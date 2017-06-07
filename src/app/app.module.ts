@@ -3,11 +3,11 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 
-import {AudioClipUIContainer} from "./audio/ui/container";
+import {AudioClipUIContainer} from './audio/ui/container';
 
 @NgModule({
   declarations: [
-    AppComponent,AudioClipUIContainer
+    AppComponent, AudioClipUIContainer
   ],
   imports: [
     BrowserModule

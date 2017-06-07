@@ -5,23 +5,23 @@
     import { CSSUtils } from 'app/utils/css_utils'
     import { Marker,Point } from './common';
 
-    declare function postMessage (message:any, transfer:Array<any>):void;
+    declare function postMessage (message: any, transfer: Array<any>): void;
 
     export class Sonagram {
-        canvasId:string;
-        audioData:AudioBuffer;
-        dft:DFTFloat32;
-        n:any;
-        ce:HTMLDivElement;
-        c:HTMLCanvasElement;
-        cCursor:HTMLCanvasElement;
-        cPlaypos:HTMLCanvasElement;
-        markers:Array<Marker>;
-        private _playFramePosition:number;
+        canvasId: string;
+        audioData: AudioBuffer;
+        dft: DFTFloat32;
+        n: any;
+        ce: HTMLDivElement;
+        c: HTMLCanvasElement;
+        cCursor: HTMLCanvasElement;
+        cPlaypos: HTMLCanvasElement;
+        markers: Array<Marker>;
+        private _playFramePosition: number;
 
-        private wo:Worker;
+        private wo: Worker;
 
-        constructor(container:HTMLDivElement) {
+        constructor(container: HTMLDivElement) {
             this.ce = container;
             this.wo = null;
             this.c = this.createCanvas();
@@ -31,23 +31,22 @@
 
             this.cCursor = this.createCanvas();
             this.ce.appendChild(this.cCursor);
-            this.cCursor.addEventListener('mouseover', (e)=> {
+            this.cCursor.addEventListener('mouseover', (e) => {
                 this.drawCursorPosition(e, true);
             });
-            this.cCursor.addEventListener('mousemove', (e)=> {
+            this.cCursor.addEventListener('mousemove', (e) => {
                 this.drawCursorPosition(e, true);
             }, false);
-            this.cCursor.addEventListener('mouseleave', (e)=> {
+            this.cCursor.addEventListener('mouseleave', (e) => {
                 this.drawCursorPosition(e, false);
             });
 
             this.audioData = null;
             this.markers = new Array<Marker>();
-
         }
 
-        private createCanvas():HTMLCanvasElement {
-            var c = document.createElement('canvas');
+        private createCanvas(): HTMLCanvasElement {
+            const c = document.createElement('canvas');
             c.width = 0;
             c.height = 0;
             c.className = 'audioSignalCanvas';
@@ -60,44 +59,44 @@
             //     this.layout();
             // });
 
-            //window.addEventListener('ips.ui.layoutchanged', ()=>{
+            // window.addEventListener('ips.ui.layoutchanged', ()=>{
             //    console.log("layout event")
             //    this.redraw();
-            //},false);
+            // },false);
             this.dft = new DFTFloat32(1024);
-            //this.layout();
+            // this.layout();
         }
 
-        get playFramePosition():number {
+        get playFramePosition(): number {
             return this._playFramePosition;
         }
 
-        set playFramePosition(playFramePosition:number) {
+        set playFramePosition(playFramePosition: number) {
             this._playFramePosition = playFramePosition;
-            //this.redraw();
+            // this.redraw();
             this.drawPlayPosition();
         }
 
-        private canvasMousePos(c:HTMLCanvasElement, e:MouseEvent):Point {
-            var cr = c.getBoundingClientRect();
-            var p = new Point();
+        private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
+            const cr = c.getBoundingClientRect();
+            let p = new Point();
             p.x = e.x - cr.left;
             p.y = e.y - cr.top;
             return p;
         }
 
-        drawCursorPosition(e:MouseEvent, show:boolean) {
+        drawCursorPosition(e: MouseEvent, show: boolean) {
 
             if (this.cCursor) {
-                var w = this.cCursor.width;
-                var h = this.cCursor.height;
-                var g = this.cCursor.getContext("2d");
+                const w = this.cCursor.width;
+                const h = this.cCursor.height;
+                const g = this.cCursor.getContext('2d');
                 g.clearRect(0, 0, w, h);
                 if (show) {
-                    var pp = this.canvasMousePos(this.cCursor, e);
-                    var offX = e.layerX - this.cCursor.offsetLeft;
-                    var offY = e.layerY - this.cCursor.offsetTop;
-                    var pixelPos = offX;
+                    const pp = this.canvasMousePos(this.cCursor, e);
+                    const offX = e.layerX - this.cCursor.offsetLeft;
+                    const offY = e.layerY - this.cCursor.offsetTop;
+                    const pixelPos = offX;
                     g.fillStyle = 'yellow';
                     g.strokeStyle = 'yellow';
 
@@ -159,7 +158,7 @@
             // this.cCursor.offsetLeft = left;
             // this.cPlaypos.offsetLeft = left;
 
-            var topStr = top.toString() + 'px';
+            const topStr = top.toString() + 'px';
             this.c.style.top = topStr;
             //this.cCursor.offsetTop = top;
             this.cCursor.style.top = topStr;
@@ -167,7 +166,7 @@
             this.cPlaypos.style.top = topStr;
 
             if (offW) {
-                var wStr = offW.toString() + 'px';
+                const wStr = offW.toString() + 'px';
                 if (redraw) {
 
                     this.cCursor.width = offW;
@@ -178,7 +177,7 @@
                 this.cPlaypos.style.width = wStr;
             }
             if (offH) {
-                var hStr = offH.toString() + 'px';
+                const hStr = offH.toString() + 'px';
                 if (redraw) {
                     this.cCursor.height = offH;
                     this.cPlaypos.height = offH;
@@ -260,7 +259,7 @@
           function DFTFloat32(n) {
             this.n = n;
             this.m = Math.log(n) / Math.log(2);
-            //if(n != (1 << m))throw new RuntimeException("length N must be power of 2");
+            // if(n != (1 << m))throw new RuntimeException("length N must be power of 2");
             // lookup tables
             this.cosLookup = new Float32Array(n / 2);
             this.sinLookup = new Float32Array(n / 2);

@@ -1,12 +1,12 @@
 
 
     export class Utils {
-        public static toHexString(val:number, radix:number, numberOfDigits:number):string {
-            var intVal = Math.round(val);
-            var str = intVal.toString(radix);
-            var countFillChars = numberOfDigits - str.length;
+        public static toHexString(val: number, radix: number, numberOfDigits: number): string {
+            const intVal = Math.round(val);
+            let  str = intVal.toString(radix);
+            const countFillChars = numberOfDigits - str.length;
             if (countFillChars > 0) {
-                for (var i = 0; i < countFillChars; i++) {
+                for (let i = 0; i < countFillChars; i++) {
                     str = str + 0;
                 }
             }

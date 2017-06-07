@@ -1,11 +1,11 @@
 import { PCMAudioFormat} from './format'
 
-    export class AudioClip{
-        private _buffer:AudioBuffer;
-        private _format:PCMAudioFormat;
-        private _data:Array<Float32Array>;
+    export class AudioClip {
+        private _buffer: AudioBuffer;
+        private _format: PCMAudioFormat;
+        private _data: Array<Float32Array>;
 
-        constructor(buffer:AudioBuffer) {
+        constructor(buffer: AudioBuffer) {
             this._buffer = buffer;
         }
 
@@ -14,10 +14,10 @@ import { PCMAudioFormat} from './format'
         };
     }
 
-    export interface Reader{
+    export interface Reader {
         read(data: Blob): AudioClip;
     }
-    export interface Writer{
+    export interface Writer {
         write(audioData: AudioClip): Blob;
     }
 
