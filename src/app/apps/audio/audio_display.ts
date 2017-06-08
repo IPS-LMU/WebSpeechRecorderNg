@@ -1,5 +1,5 @@
 
-  import { Component,ViewChild,ElementRef,AfterContentInit } from '@angular/core'
+  import { Component,ViewChild,ElementRef,AfterContentInit,ChangeDetectorRef } from '@angular/core'
 	import { WavReader } from '../../audio/impl/wavreader'
   import { AudioClip} from '../../audio/persistor'
   import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
@@ -9,7 +9,10 @@
 
     selector: 'app-audiodisplay',
 
-    template: `<p>AudioSignal</p><app-audio #audioSignalContainer></app-audio><p>end</p>`,
+    template: `<p>AudioSignal display</p>
+	<app-audio #audioSignalContainer></app-audio>
+    <button (click)="ap.start()" [disabled]="!startEnabled">Start</button> <button (click)="ap.stop()" [disabled]="!stopEnabled">Stop</button>
+	<p>{{status}}</p>`,
     styles: [`app-audiodisplay {
       width: 100%;
       height: 100%
@@ -18,9 +21,11 @@
   })
 	export class AudioDisplay implements AudioPlayerListener,AfterContentInit {
 		private _audioUrl:string;
+		startEnabled:boolean;
+		stopEnabled:boolean;
 		aCtx:AudioContext;
 		ap:AudioPlayer;
-
+	   status:string;
 		//audioSignal:AudioSignal;
 		//audioSonagram:Sonagram;
 		currentLoader:XMLHttpRequest;
@@ -31,7 +36,7 @@
 		updateTimerId:any;
     @ViewChild(AudioClipUIContainer)
     private ac:AudioClipUIContainer;
-		constructor() {
+		constructor(private ref: ChangeDetectorRef) {
 
 
 			// this.startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
@@ -59,8 +64,7 @@
 			var w = <any>window;
 			AudioContext = w.AudioContext || w.webkitAudioContext;
 			if (typeof AudioContext !== 'function') {
-
-				//this.statusMsg.innerHTML = 'ERROR: Browser does not support Web Audio API!';
+				this.status= 'ERROR: Browser does not support Web Audio API!';
 			} else {
 				this.aCtx = new AudioContext();
 				this.ap = new AudioPlayer(this.aCtx, this);
@@ -68,6 +72,7 @@
 
 			}
 			//this.audioSignal.init();
+
 		}
 
 		get audioUrl():string {
@@ -82,8 +87,9 @@
 
 		started(){
 			//this.stopBtn.disabled=false;
+
 			console.log("Play started");
-			//this.statusMsg.innerHTML='Playing...';
+			this.status='Playing...';
 		}
 
 		private load() {
@@ -118,7 +124,7 @@
 			// this.startBtn.disabled=false;
 			// this.stopBtn.disabled=true;
 			console.log("Loaded");
-			//this.statusMsg.innerHTML='Audio file loaded.';
+			this.status='Audio file loaded.';
 			console.log("Received data ",data.byteLength);
 			//var wr=new WavReader(data);
 
@@ -140,8 +146,10 @@
 				//this.ac.layout();
                 // this.ap.startAction.addControl(this.startBtn, 'click');
                 // this.ap.stopAction.addControl(this.stopBtn, 'click');
+				this.startEnabled=true;
 			});
 		}
+
 
 		updatePlayPosition() {
 
@@ -152,14 +160,23 @@
 			if(EventType.STARTED===e.type){
 				// this.startBtn.disabled=true;
 				// this.stopBtn.disabled = false;
-				//this.statusMsg.innerHTML = 'Playback...';
+				this.status = 'Playback...';
 				this.updateTimerId = window.setInterval(e=>this.updatePlayPosition(), 50);
+				this.startEnabled=false;
+				this.stopEnabled=true;
 			}else if(EventType.ENDED===e.type){
 				// this.startBtn.disabled=false;
 				// this.stopBtn.disabled=true;
-				//this.statusMsg.innerHTML='Ready.';
+
+				this.status='Ready.';
 				window.clearInterval(this.updateTimerId);
+				this.startEnabled=true;
+				this.stopEnabled=false;
 			}
+
+			//this.ref.markForCheck();
+			this.ref.detectChanges();
+
 		}
 		error(){
 			//this.statusMsg.innerHTML = 'ERROR:.';

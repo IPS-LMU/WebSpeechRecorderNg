@@ -129,9 +129,11 @@ import { AudioClip } from '../persistor'
         onended() {
             window.clearInterval(this.timerVar);
             this._startAction.disabled = false;
+            console.log("On ended enbled start action")
             this._stopAction.disabled = true;
             if (this.listener) {
                 this.listener.update(new AudioPlayerEvent(EventType.ENDED));
+                console.log("On ended listener updated")
             }
         }
 
