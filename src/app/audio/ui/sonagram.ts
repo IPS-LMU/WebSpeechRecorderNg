@@ -50,6 +50,10 @@
             c.width = 0;
             c.height = 0;
             c.className = 'audioSignalCanvas';
+          c.style.top='0px';
+          c.style.left='0px';
+          c.style.position='absolute';
+          c.style.zIndex='3';
             return c;
         }
 

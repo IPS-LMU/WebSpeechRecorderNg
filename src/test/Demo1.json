@@ -1,0 +1,20 @@
+{
+  "project": {
+    "contextPath": "",
+    "description": "Demo project 1",
+    "hosts": "",
+    "name": "Demo1",
+    "audioFormat" : {
+      "bigEndian" : false,
+      "channels": 2,
+      "encoding" : "PCM_SIGNED",
+      "frameSize" : 4,
+      "name" : "Mono_44.1kHz",
+      "quantisation" : 16,
+      "sampleRate" : 44100.0
+    },
+    "sessionCode": "",
+    "speakerWindowShowStopRecordAction": true
+  }
+}
+

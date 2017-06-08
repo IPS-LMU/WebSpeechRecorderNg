@@ -1,20 +1,21 @@
-import { Marker, Point } from './common'
 
-  declare function postMessage (message: any, transfer: Array<any>): void;
-  // declare function Worker (blob:Blob):void;
+import { Marker,Point } from './common'
+
+  declare function postMessage (message:any, transfer:Array<any>):void;
+  //declare function Worker (blob:Blob):void;
     export class AudioSignal {
-        canvasId: string;
-        audioData: AudioBuffer;
-        n: any;
-        ce: HTMLDivElement;
-        c: HTMLCanvasElement;
-        cCursor: HTMLCanvasElement;
-        cPlaypos: HTMLCanvasElement;
+        canvasId:string;
+        audioData:AudioBuffer;
+        n:any;
+        ce:HTMLDivElement;
+        c:HTMLCanvasElement;
+        cCursor:HTMLCanvasElement;
+        cPlaypos:HTMLCanvasElement;
         markers: Array<Marker>;
         private _playFramePosition: number;
-        private wo: Worker;
+        private wo:Worker;
 
-        constructor(container: HTMLDivElement) {
+        constructor(container:HTMLDivElement) {
             this.ce = container;
             this.wo = null;
             this.c = this.createCanvas();
@@ -24,69 +25,73 @@ import { Marker, Point } from './common'
 
             this.cCursor = this.createCanvas();
             this.ce.appendChild(this.cCursor);
-            this.cCursor.addEventListener('mouseover', (e) => {
+            this.cCursor.addEventListener('mouseover', (e)=> {
                 this.drawCursorPosition(e, true);
             });
-            this.cCursor.addEventListener('mousemove', (e) => {
+            this.cCursor.addEventListener('mousemove', (e)=> {
                 this.drawCursorPosition(e, true);
             }, false);
-            this.cCursor.addEventListener('mouseleave', (e) => {
+            this.cCursor.addEventListener('mouseleave', (e)=> {
                 this.drawCursorPosition(e, false);
             });
 
-            this.audioData = null;
-            this.markers = new Array<Marker>();
+            this.audioData=null;
+            this.markers=new Array<Marker>();
 
         }
 
-        private createCanvas(): HTMLCanvasElement {
-            const c = document.createElement('canvas');
+        private createCanvas():HTMLCanvasElement {
+            var c = document.createElement('canvas');
             c.width = 0;
             c.height = 0;
             c.className = 'audioSignalCanvas';
+            c.style.top='0px';
+          c.style.left='0px';
+          c.style.position='absolute';
+          c.style.zIndex='3';
             return c;
         }
 
-        init() {
+        init(){
 
 
-            // window.addEventListener('ips.ui.layoutchanged', ()=>{
+            //window.addEventListener('ips.ui.layoutchanged', ()=>{
             //    console.log("layout event")
             //    this.redraw();
-            // } ,false);
+            //},false);
             // this.layout();
         }
 
-        get playFramePosition(): number {
+        get playFramePosition():number {
             return this._playFramePosition;
         }
 
-        set playFramePosition(playFramePosition: number) {
+        set playFramePosition(playFramePosition:number) {
             this._playFramePosition = playFramePosition;
-            // this.redraw();
+            //this.redraw();
             this.drawPlayPosition();
         }
 
-        private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
-            const cr = c.getBoundingClientRect();
-            const p = new Point();
+        private canvasMousePos(c:HTMLCanvasElement, e:MouseEvent):Point {
+            var cr = c.getBoundingClientRect();
+            var p = new Point();
             p.x = e.x - cr.left;
             p.y = e.y - cr.top;
             return p;
         }
 
-        drawCursorPosition(e: MouseEvent, show: boolean) {
+        drawCursorPosition(e:MouseEvent, show:boolean) {
 
             if (this.cCursor) {
-                const w = this.cCursor.width;
-                const h = this.cCursor.height;
-                const g = this.cCursor.getContext('2d');
+                var w = this.cCursor.width;
+                var h = this.cCursor.height;
+                var g = this.cCursor.getContext("2d");
                 g.clearRect(0, 0, w, h);
                 if (show) {
-                    const pp = this.canvasMousePos(this.cCursor, e);
-                    const offX = e.layerX - this.cCursor.offsetLeft;
-                    const offY = e.layerY - this.cCursor.offsetTop;
-                    const pixelPos = offX;
+                    var pp = this.canvasMousePos(this.cCursor, e);
+                    var offX = e.layerX - this.cCursor.offsetLeft;
+                    var offY = e.layerY - this.cCursor.offsetTop;
+                    var pixelPos = offX;
                     g.fillStyle = 'yellow';
                     g.strokeStyle = 'yellow';
 
@@ -97,11 +102,11 @@ import { Marker, Point } from './common'
 
                     g.stroke();
                     if (this.audioData) {
-                        const ch0 = this.audioData.getChannelData(0);
-                        const frameLength = ch0.length;
-                        const framesPerPixel = frameLength / w;
-                        const framePos = framesPerPixel * pixelPos;
-                        const framePosRound = Math.round(framePos);
+                        var ch0 = this.audioData.getChannelData(0);
+                        var frameLength = ch0.length;
+                        var framesPerPixel = frameLength / w;
+                        var framePos = framesPerPixel * pixelPos;
+                        var framePosRound = Math.round(framePos);
                         g.font = '14px sans-serif';
                         g.fillStyle = 'yellow';
                         g.fillText(framePosRound.toString(), pixelPos + 2, 50);
@@ -111,17 +116,17 @@ import { Marker, Point } from './common'
             }
         }
 
-        drawPlayPosition() {
+        drawPlayPosition(){
             if (this.cPlaypos) {
-                const w = this.cPlaypos.width;
-                const h = this.cPlaypos.height;
-                const g = this.cPlaypos.getContext('2d');
+                var w = this.cPlaypos.width;
+                var h = this.cPlaypos.height;
+                var g = this.cPlaypos.getContext("2d");
                 g.clearRect(0, 0, w, h);
                 if (this.audioData && this.audioData.numberOfChannels > 0) {
-                    const ch0 = this.audioData.getChannelData(0);
-                    const frameLength = ch0.length;
-                    const framesPerPixel = frameLength / w;
-                    const pixelPos = this._playFramePosition * w / frameLength;
+                    var ch0 = this.audioData.getChannelData(0);
+                    var frameLength = ch0.length;
+                    var framesPerPixel = frameLength / w;
+                    var pixelPos = this._playFramePosition * w / frameLength;
                     g.fillStyle = 'red';
                     g.strokeStyle = 'red';
                     g.beginPath();
@@ -135,30 +140,29 @@ import { Marker, Point } from './common'
 
         // layout() {
         //
-        //     // console.log("Container: ",ct.offsetWidth,ct.offsetHeight,ct.clientWidth,ct.clientHeight);
+        //     //console.log("Container: ",ct.offsetWidth,ct.offsetHeight,ct.clientWidth,ct.clientHeight);
         //
-        //     // const foo=(this.c.width!==ct.offsetWidth || this.c.height!==ct.offsetHeight);
+        //     //var foo=(this.c.width!==ct.offsetWidth || this.c.height!==ct.offsetHeight);
         //
-        //     const offW = this.c.offsetWidth;
-        //     const offH = this.c.offsetHeight;
+        //     var offW = this.c.offsetWidth;
+        //     var offH = this.c.offsetHeight;
         //     this.layoutBounds(0, 0, offW, offH);
         // }
 
 
-        layoutBounds(left: number, top: number, offW: number, offH: number, redraw: boolean) {
+        layoutBounds(left:number, top:number, offW:number, offH:number, redraw:boolean) {
 
-            // this.c.offsetLeft = left;
-            // this.cCursor.offsetLeft = left;
-            // this.cPlaypos.offsetLeft = left;
-            //
-            // this.c.offsetTop = top;
-            // this.cCursor.offsetTop = top;
-            // this.cPlaypos.offsetTop = top;
+            this.c.style.left= left.toString()+'px';
+            this.cCursor.style.left = left.toString()+'px';
+            this.cPlaypos.style.left = left.toString()+'px';
+            this.c.style.top= top.toString()+'px';
+          this.cCursor.style.top = top.toString()+'px';
+          this.cPlaypos.style.top = top.toString()+'px';
 
-            if (offW) {
-                const wStr = offW.toString() + 'px';
+            if(offW) {
+                var wStr = offW.toString() + 'px';
                 if (redraw) {
-                    // this.c.width = offW;
+                    //this.c.width = offW;
                     this.cPlaypos.width = offW;
                     this.cCursor.width = offW;
                 }
@@ -166,10 +170,10 @@ import { Marker, Point } from './common'
                 this.cCursor.style.width = wStr;
                 this.cPlaypos.style.width = wStr;
             }
-            if (offH) {
-                const hStr = offH.toString() + 'px';
+            if(offH) {
+                var hStr = offH.toString() + 'px';
                 if (redraw) {
-                    // this.c.height = offH;
+                    //this.c.height = offH;
                     this.cCursor.height = offH;
                     this.cPlaypos.height = offH;
                 }
@@ -187,43 +191,43 @@ import { Marker, Point } from './common'
         self.onmessage = function (msg) {
             // console.log("Worker got message..");
 
-          const audioData = msg.data.audioData;
-          const w = msg.data.w;
-          const h = msg.data.h;
-          const chs = msg.data.chs;
-          const frameLength = msg.data.frameLength;
+          var audioData = msg.data.audioData;
+          var w = msg.data.w;
+          var h = msg.data.h;
+          var chs = msg.data.chs;
+          var frameLength = msg.data.frameLength;
 
-            // console.log("Audio signal render method:");
-          const psMinMax = <Float32Array>null;
+            //console.log("Audio signal render method:");
+          var psMinMax = <Float32Array>null;
           if (audioData) {
-            // const chs = this.audioData.numberOfChannels;
-            const chH = h / chs;
-            // const frameLength = this.audioData.getChannelData(0).length;
-            const framesPerPixel = frameLength / w;
-              // console.log("Render audio signal: ", w, "x", h, "fraem per pixel: "+framesPerPixel);
-            const y = 0;
-            const std = Date.now();
-            const pointsLen = w * chs;
+            // var chs = this.audioData.numberOfChannels;
+            var chH = h / chs;
+            // var frameLength = this.audioData.getChannelData(0).length;
+            var framesPerPixel = frameLength / w;
+              //console.log("Render audio signal: ", w, "x", h, "fraem per pixel: "+framesPerPixel);
+            var y = 0;
+            var std = Date.now();
+            var pointsLen = w * chs;
             // one for min one for max
-            const arrLen = pointsLen * 2;
-            const psMinMax = new Float32Array(arrLen);
-            let chFramePos = 0;
-            for (let ch = 0; ch < chs; ch++) {
-              const x = 0;
+            var arrLen = pointsLen * 2;
+            var psMinMax = new Float32Array(arrLen);
+              var chFramePos = 0;
+            for (var ch = 0; ch < chs; ch++) {
+              var x = 0;
 
                 chFramePos = ch * frameLength;
-                // console.log("ch frame pos: "+chFramePos);
-              for (let pii = 0; pii < w; pii++) {
-                let pMin = Infinity;
-                let pMax = -Infinity;
-                  const pixelFramePos = Math.round(chFramePos + (pii * framesPerPixel));
-                  // console.log("pixel frame pos: "+pixelFramePos);
+                //console.log("ch frame pos: "+chFramePos);
+              for (var pii = 0; pii < w; pii++) {
+                var pMin = Infinity;
+                var pMax = -Infinity;
+                  var pixelFramePos = Math.round(chFramePos + (pii * framesPerPixel));
+                  //console.log("pixel frame pos: "+pixelFramePos);
                 // calculate pixel min/max amplitude
-                for (let ai = 0; ai < framesPerPixel; ai++) {
-                    const framePos = pixelFramePos + ai;
+                for (var ai = 0; ai < framesPerPixel; ai++) {
+                    var framePos = pixelFramePos + ai;
 
-                  // const a = this.audioData.getChannelData(ch)[framePos++];
-                    const a = audioData[framePos];
+                  //var a = this.audioData.getChannelData(ch)[framePos++];
+                    var a = audioData[framePos];
                   if (a < pMin) {
                     pMin = a;
                   }
@@ -232,25 +236,25 @@ import { Marker, Point } from './common'
                   }
                 }
 
-                const psMinPos = ch * w + pii;
+                var psMinPos = ch * w + pii;
                 psMinMax[psMinPos] = pMin;
-                const psMaxPos = pointsLen + psMinPos;
+                var psMaxPos = pointsLen + psMinPos;
                 psMinMax[psMaxPos] = pMax;
 
               }
 
             }
-            const sd = Date.now();
+            var sd = Date.now();
 
-              // console.log("As rendertime: ", (sd - std));
+              //console.log("As rendertime: ", (sd - std));
           }
-            // console.log("Rendered post message");
+            //console.log("Rendered post message");
 
           postMessage({psMinMax: psMinMax, w: msg.data.w, h: msg.data.h, chs: msg.data.chs}, [psMinMax.buffer]);
         }
       }
 
-        startRender(w: number, h: number) {
+        startRender(w:number, h:number) {
 
             if (this.wo) {
                 this.wo.terminate();
@@ -261,63 +265,63 @@ import { Marker, Point } from './common'
                 w = Math.round(w);
                 h = Math.round(h);
 
-                const wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-               const wDataUrl = window.URL.createObjectURL(wb);
+                var wb=new Blob(['('+this.workerFunction.toString()+')();'], {type: 'text/javascript'});
+               var wDataUrl = window.URL.createObjectURL(wb);
                 this.wo = new Worker(wDataUrl);
 
-                const chs = this.audioData.numberOfChannels;
+                var chs = this.audioData.numberOfChannels;
 
-                const frameLength = this.audioData.getChannelData(0).length;
+                var frameLength = this.audioData.getChannelData(0).length;
                 // if(frameLength != this.audioData.getChannelData(1).length){
                 //   alert("Ungleiche Länge");
                 // }
-                const ad = new Float32Array(chs * frameLength);
-                for (let ch = 0; ch < chs; ch++) {
+                var ad = new Float32Array(chs * frameLength);
+                for (var ch = 0; ch < chs; ch++) {
                     ad.set(this.audioData.getChannelData(ch), ch * frameLength);
                 }
-                const start = Date.now();
+                var start = Date.now();
                 this.wo.onmessage = (me) => {
-                    // console.log("As rendertime: ", Date.now() - start);
+                    //console.log("As rendertime: ", Date.now() - start);
                     this.drawRendered(me);
                     this.wo.terminate();
                     this.wo = null;
                 }
                 if (this.cPlaypos) {
-                    const g = this.cPlaypos.getContext('2d');
+                    var g = this.cPlaypos.getContext("2d");
                     g.fillStyle = 'white';
-                    g.fillText('Rendering...', 10, 20);
+                    g.fillText("Rendering...", 10, 20);
 
                 }
                 this.wo.postMessage({w: w, h: h, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
             } else {
-                const g = this.c.getContext('2d');
+                var g = this.c.getContext("2d");
                 g.clearRect(0, 0, w, h);
             }
         }
 
 
-        drawRendered(me: MessageEvent) {
+        drawRendered(me:MessageEvent) {
 
             this.c.width = me.data.w;
             this.c.height = me.data.h;
-            const g = this.c.getContext('2d');
+            var g = this.c.getContext("2d");
             g.clearRect(0, 0, me.data.w, me.data.h);
-            g.fillStyle = 'black';
+            g.fillStyle = "black";
             g.fillRect(0, 0, me.data.w, me.data.h);
-            const pointsLen = me.data.w * me.data.chs;
+            var pointsLen = me.data.w * me.data.chs;
             // one for min one for max
-            const arrLen = pointsLen * 2;
+            var arrLen = pointsLen * 2;
             if (this.audioData) {
-                const std = Date.now();
+                var std = Date.now();
 
-                const chH = me.data.h / me.data.chs;
+                var chH = me.data.h / me.data.chs;
 
-                let y = 0;
-                for (let ch = 0; ch < me.data.chs; ch++) {
-                    const x = 0;
+                var y = 0;
+                for (var ch = 0; ch < me.data.chs; ch++) {
+                    var x = 0;
 
-                    const psMinPos = ch * me.data.w;
-                    const psMaxPos = pointsLen + psMinPos;
+                    var psMinPos = ch * me.data.w;
+                    var psMaxPos = pointsLen + psMinPos;
 
                     g.fillStyle = 'green';
                     g.strokeStyle = 'green';
@@ -326,16 +330,16 @@ import { Marker, Point } from './common'
                     g.beginPath();
                     g.moveTo(0, y + (chH / 2) + me.data.psMinMax[psMaxPos] * chH / 2);
 
-                    for (let pii = 0; pii < me.data.w; pii++) {
-                        const psMax = me.data.psMinMax[psMaxPos + pii];
-                        const pv = psMax * chH / 2;
-                        // console.log("Min: ",pv);
+                    for (var pii = 0; pii < me.data.w; pii++) {
+                        var psMax = me.data.psMinMax[psMaxPos + pii];
+                        var pv = psMax * chH / 2;
+                        //console.log("Min: ",pv);
                         g.lineTo(pii, y + (chH / 2) - pv);
                     }
-                    for (let pii = <number>me.data.w; pii >= 0; pii--) {
-                        const psMin = me.data.psMinMax[psMinPos + pii];
-                        const pv = psMin * chH / 2;
-                        // console.log("Max: ",pv);
+                    for (var pii = <number>me.data.w; pii >= 0; pii--) {
+                        var psMin = me.data.psMinMax[psMinPos + pii];
+                        var pv = psMin * chH / 2;
+                        //console.log("Max: ",pv);
                         g.lineTo(pii, y + (chH / 2) - pv);
                     }
                     g.closePath();
@@ -350,36 +354,36 @@ import { Marker, Point } from './common'
 
         }
 
-        redraw() {
+        redraw(){
 
-            const g = this.c.getContext('2d');
-            const w = this.c.width;
-            const h = this.c.height;
-            g.clearRect(0, 0, w, h);
-            g.fillStyle = 'black';
+            var g=this.c.getContext("2d");
+            var w = this.c.width;
+            var h = this.c.height;
+            g.clearRect(0, 0, w,h);
+            g.fillStyle = "black";
             g.fillRect(0, 0, w, h);
-            if (this.audioData) {
-                const std = Date.now();
-                const chs = this.audioData.numberOfChannels;
-                const chH = h / chs;
+            if(this.audioData) {
+                var std = Date.now();
+                var chs = this.audioData.numberOfChannels;
+                var chH = h / chs;
 
-                const frameLength = this.audioData.getChannelData(0).length;
+                var frameLength = this.audioData.getChannelData(0).length;
 
-                const framesPerPixel = frameLength / w;
-                let y = 0;
-                for (let ch = 0; ch < chs; ch++) {
-                    const x = 0;
-                    const psMin = new Float32Array(w);
-                    const psMax = new Float32Array(w);
-                    let framePos = 0;
-                    for (let pii = 0; pii < w; pii++) {
-                        let pMin = 0;
-                        let pMax = 0;
+                var framesPerPixel = frameLength / w;
+                var y = 0;
+                for (var ch = 0; ch < chs; ch++) {
+                    var x = 0;
+                    var psMin = new Float32Array(w);
+                    var psMax = new Float32Array(w);
+                    var framePos = 0;
+                    for (var pii = 0; pii < w; pii++) {
+                        var pMin = 0;
+                        var pMax = 0;
 
                         // calculate pixel min/max amplitude
-                        for (let ai = 0; ai < framesPerPixel; ai++) {
-                            // const framePos=(pii*framesPerPixel)+ai;
-                            const a = this.audioData.getChannelData(ch)[framePos++];
+                        for (var ai = 0; ai < framesPerPixel; ai++) {
+                            //var framePos=(pii*framesPerPixel)+ai;
+                            var a = this.audioData.getChannelData(ch)[framePos++];
 
                             if (a < pMin) {
                                 pMin = a;
@@ -390,7 +394,7 @@ import { Marker, Point } from './common'
                         }
                         psMin[pii] = pMin;
                         psMax[pii] = pMax;
-                        // console.log("Min: ", pMin, " max: ", pMax);
+                        //console.log("Min: ", pMin, " max: ", pMax);
 
                     }
 
@@ -401,21 +405,21 @@ import { Marker, Point } from './common'
                     g.beginPath();
                     g.moveTo(0, y + (chH / 2) + psMin[0] * chH / 2);
 
-                    for (let pii = 0; pii < w; pii++) {
-                        const pv = psMin[pii] * chH / 2;
-                        // console.log("Min: ",pv);
+                    for (var pii = 0; pii < w; pii++) {
+                        var pv = psMin[pii] * chH / 2;
+                        //console.log("Min: ",pv);
                         g.lineTo(pii, y + (chH / 2) + pv);
                     }
-                    for (let pii = w; pii >= 0; pii--) {
-                        const pv = psMax[pii] * chH / 2;
-                        // console.log("Max: ",pv);
+                    for (var pii = w; pii >= 0; pii--) {
+                        var pv = psMax[pii] * chH / 2;
+                        //console.log("Max: ",pv);
                         g.lineTo(pii, y + (chH / 2) + pv);
                     }
                     g.closePath();
-                    // g.lineTo()
+                    //g.lineTo()
                     g.fill();
                     g.stroke();
-                    g.fillStyle = 'yellow"';
+                    g.fillStyle = "yellow";
                     g.stroke();
                     y += chH;
                 }
@@ -425,9 +429,13 @@ import { Marker, Point } from './common'
         }
 
 
-        setData(audioData: AudioBuffer) {
+        setData(audioData:AudioBuffer) {
+
             this.audioData = audioData;
+
             this.playFramePosition = 0;
+
+
         }
 
 

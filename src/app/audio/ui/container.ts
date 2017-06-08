@@ -1,4 +1,4 @@
-import {ElementRef, Renderer2, AfterContentInit} from '@angular/core'
+import {ElementRef, Renderer2, AfterContentInit,AfterViewInit} from '@angular/core'
 import { AudioSignal} from './audiosignal'
 import { Sonagram } from './sonagram'
 import { Point } from './common'
@@ -6,15 +6,30 @@ import { Point } from './common'
 import { Component, ViewChild } from '@angular/core';
 import {Element} from '@angular/compiler';
 
+
+// CSS selector #signalC does NOT work here !!
 @Component({
 
   selector: 'app-audio',
-  template: `<p>AudioSignal</p><div #signalContainer></div>`
+  template: `<p>AudioSignalContainer</p><div #signalC></div><p>end container</p>`,
+  styles: [`div {
+  
+    margin: 0;
+    padding: 0;
+    position: relative;
+   
+    width: 100%;
+    height: 400px;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+    text-align: center;
+  }`]
+
 })
-    export class AudioClipUIContainer implements AfterContentInit {
+    export class AudioClipUIContainer implements AfterContentInit,AfterViewInit {
     private static DIVIDER_PIXEL_SIZE = 10;
     cc: HTMLCanvasElement;
-    @ViewChild('signalContainer') signalContainerRef: ElementRef;
+    @ViewChild('signalC') signalContainerRef: ElementRef;
         ce: HTMLDivElement;
         dc: HTMLCanvasElement;
         as: AudioSignal;
@@ -32,6 +47,9 @@ import {Element} from '@angular/compiler';
 
   ngAfterContentInit() {
 
+  }
+
+  ngAfterViewInit(){
       this.ce = this.signalContainerRef.nativeElement;
 
   this.dc = this.createCanvas();
@@ -143,6 +161,17 @@ import {Element} from '@angular/compiler';
             c.width = 0;
             c.height = 0;
             c.className = 'audioSignalCC';
+          // position: absolute;
+          // z-index: 1;
+          // top: 0px;
+          // left: 0px;
+          // width: 100%;
+          // height: 100%;
+          // max-height: 100%;
+          // text-align: center;
+          // vertical-align: middle;
+            c.style.position='absolute';
+            c.style.zIndex='1';
             return c;
         }
 

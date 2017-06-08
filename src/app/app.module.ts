@@ -4,10 +4,11 @@ import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 
 import {AudioClipUIContainer} from './audio/ui/container';
+import {AudioDisplay} from './apps/audio/audio_display';
 
 @NgModule({
   declarations: [
-    AppComponent, AudioClipUIContainer
+    AppComponent, AudioDisplay,AudioClipUIContainer
   ],
   imports: [
     BrowserModule

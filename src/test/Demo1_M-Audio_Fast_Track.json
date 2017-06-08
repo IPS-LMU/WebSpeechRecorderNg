@@ -1,0 +1,27 @@
+{
+  "project": {
+    "contextPath": "",
+    "description": "Demo project 1",
+    "hosts": "",
+    "name": "Demo1",
+    "audioFormat" : {
+      "bigEndian" : false,
+      "channels": 2,
+      "encoding" : "PCM_SIGNED",
+      "frameSize" : 4,
+      "name" : "Mono_44.1kHz",
+      "quantisation" : 16,
+      "sampleRate" : 44100.0
+    },
+    "audioDevices" : [ {
+      "audioDeviceId" : 5068,
+      "jextension" : "",
+      "name" : ".*Fast.*Track.*",
+      "playback" : false,
+      "regex" : true
+    }],
+    "sessionCode": "",
+    "speakerWindowShowStopRecordAction": true
+  }
+}
+
