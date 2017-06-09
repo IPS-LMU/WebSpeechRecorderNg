@@ -11,7 +11,7 @@
 
     template: `<p>AudioSignal display</p>
 	<app-audio #audioSignalContainer></app-audio>
-    <button (click)="ap.start()" [disabled]="!startEnabled">Start</button> <button (click)="ap.stop()" [disabled]="!stopEnabled">Stop</button>
+    <button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-play"></span></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
 	<p>{{status}}</p>`,
     styles: [`app-audiodisplay {
       width: 100%;
@@ -34,7 +34,9 @@
 		//statusMsg:HTMLElement;
 		audio:any;
 		updateTimerId:any;
+
     @ViewChild(AudioClipUIContainer)
+
     private ac:AudioClipUIContainer;
 		constructor(private ref: ChangeDetectorRef) {
 
@@ -179,7 +181,7 @@
 
 		}
 		error(){
-			//this.statusMsg.innerHTML = 'ERROR:.';
+			this.status = 'ERROR';
 		}
 
 
