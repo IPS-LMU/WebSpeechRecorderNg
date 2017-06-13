@@ -7,9 +7,11 @@ import { AppComponent } from './app.component';
 import {AudioClipUIContainer} from './audio/ui/container';
 import {AudioDisplay} from './apps/audio/audio_display';
 
+import { SpeechRecorder ,Prompting,Prompter} from './apps/speechrecorder/speechrecorder'
+
 @NgModule({
   declarations: [
-    AppComponent, AudioDisplay,AudioClipUIContainer
+    AppComponent,SpeechRecorder,Prompting,Prompter,AudioDisplay,AudioClipUIContainer
   ],
   imports: [
     BrowserModule,NgbModule.forRoot()

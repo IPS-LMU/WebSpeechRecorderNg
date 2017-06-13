@@ -1,3 +1,5 @@
+import { Component } from '@angular/core'
+
 import { Mode as SessionMode } from './session/sessionmanager';
 	import {AudioCaptureListener} from '../../audio/capture/capture';
 	import {AudioPlayer,AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../../audio/playback/player';
@@ -12,7 +14,81 @@ import { Mode as SessionMode } from './session/sessionmanager';
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
-	export class SpeechRecorder implements AudioPlayerListener {
+@Component({
+
+  selector: 'app-sprprompter',
+
+  template: `
+   
+        <p><span #prompt>Here is a text ... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 2</span></p>
+      `,
+  styles: [`p{
+
+      justify-content: center; /* align horizontal */
+      align-items: center; /* align vertical */
+      //background: white;
+      text-align: center;
+     // height: 100%;
+      background: red;
+      font-size: 20pt;
+    //flex: 1 1;
+    }
+  `]
+})
+export class Prompter{
+
+}
+
+@Component({
+
+  selector: 'app-sprprompting',
+
+  template: `
+  
+
+    <div><app-sprprompter></app-sprprompter></div>
+    
+
+  `,
+  styles: [`div,app-sprprompter{
+   
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    background: yellow;
+      //display: flex;
+      //flex-direction: row;
+      //flex-wrap: nowrap;
+    //width: 100%;
+      //flex: 1;
+
+      /* Workaround for Firefox
+      If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
+      the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
+      See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+      */
+      //min-height:0;
+    }`]
+
+})
+
+export class Prompting{
+}
+
+@Component({
+
+  selector: 'app-speechrecorder',
+
+  template: `
+    <div style="height:100%"><app-sprprompting></app-sprprompting></div>`,
+  styles: [`div,app-sprprompting{
+    width: 100%;
+    height: 100%;
+    background: orange;
+  }`]
+
+})
+export class SpeechRecorder implements AudioPlayerListener {
 
 	  mode:Mode;
 		sm:SessionManager;

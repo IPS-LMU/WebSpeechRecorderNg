@@ -52,9 +52,9 @@
 		}
 
     ngAfterContentInit() {
-		  this.init();
-		  //this.audioUrl="http://www.phonetik.uni-muenchen.de/~klausj/Trappa1.wav";
-      this.audioUrl="test/audio.wav";
+		//   this.init();
+		//   //this.audioUrl="http://www.phonetik.uni-muenchen.de/~klausj/Trappa1.wav";
+      // this.audioUrl="test/audio.wav";
     }
 
 		init() {
