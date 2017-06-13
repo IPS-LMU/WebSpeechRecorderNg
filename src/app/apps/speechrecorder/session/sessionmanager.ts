@@ -1,0 +1,765 @@
+
+import * as $ from 'jquery';
+import { Action } from '../../../action/action'
+
+    import { AudioCapture,AudioCaptureListener } from '../../../audio/capture/capture';
+    import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../../audio/playback/player'
+
+
+    import {AudioSignal} from '../../../audio/ui/audiosignal'
+    import { AudioClipUIContainer} from '../../../audio/ui/container'
+    import { WavWriter } from '../../../audio/impl/wavwriter'
+    import { StartStopSignal,State } from '../startstopsignal/startstopsignal'
+    import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
+
+    import { RecordingFile } from '../recording'
+    import { Uploader,Upload } from '../../../net/uploader';
+
+
+
+    const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+    export enum Mode {SERVER_BOUND, STAND_ALONE}
+
+    export enum Status {IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE,
+    }
+
+    class Item {
+        //recording:boolean;
+        training: boolean;
+        recs: Array<RecordingFile>;
+
+        constructor(training: boolean) {
+            this.training = training;
+            this.recs = null;
+        }
+
+    }
+
+    export class SessionManager implements AudioCaptureListener {
+
+        status: Status;
+        mode: Mode;
+        _startStopSignal: StartStopSignal;
+        private uploader: Uploader;
+        ac: AudioCapture;
+        private _channelCount: number;
+
+        // Property audioDevices from project config: list of names of allowed audio devices.
+        private _audioDevices:any;
+        private selCaptureDeviceId: ConstrainDOMString;
+        private ap: AudioPlayer;
+        private updateTimerId: any;
+        private preRecTimerId: number;
+        private preRecTimerRunning: boolean;
+        private postRecTimerId: number;
+        private postRecTimerRunning: boolean;
+        private maxRecTimerId: number;
+        private maxRecTimerRunning: boolean;
+        audioSignal: AudioClipUIContainer;
+        bwdBtn: HTMLInputElement;
+        startAction: Action;
+        stopAction: Action;
+        nextAction: Action;
+        pauseAction: Action;
+        fwdBtn: HTMLInputElement;
+        dnlLnk: HTMLAnchorElement;
+        playStartAction: Action;
+        statusMsg: HTMLElement;
+        titleEl: HTMLElement;
+        audio: any;
+
+        _session: any;
+        _script: Script;
+
+        private section: Section;
+        private promptUnit: PromptUnit;
+
+
+        sectIdx: number;
+        prmptIdx: number;
+        private autorecording: boolean;
+
+        items: Array<Item>;
+        private displayRecFile: RecordingFile;
+        private displayRecFileVersion: number;
+
+        promptItemCount: number;
+
+        constructor(startStopSignal: StartStopSignal, uploader: Uploader) {
+            this.status = Status.IDLE;
+            this.mode = Mode.SERVER_BOUND;
+            this._startStopSignal = startStopSignal;
+            this.uploader = uploader;
+            this.bwdBtn = <HTMLInputElement>(document.getElementById('bwdBtn'));
+            let startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
+            this.startAction = new Action('Start');
+            this.startAction.addControl(startBtn, 'click');
+            let stopBtn = <HTMLInputElement>(document.getElementById('stopBtn'));
+            this.stopAction = new Action('Stop');
+            this.stopAction.addControl(stopBtn, 'click');
+            let nextBtn = <HTMLInputElement>(document.getElementById('nextBtn'));
+            this.nextAction = new Action('Next');
+            this.nextAction.addControl(nextBtn, 'click');
+            let pauseBtn = <HTMLInputElement>(document.getElementById('pauseBtn'));
+            this.pauseAction = new Action('Pause');
+            this.pauseAction.addControl(pauseBtn, 'click');
+            let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
+            this.playStartAction = new Action('Play');
+            this.playStartAction.addControl(playStartBtn, 'click');
+            this.fwdBtn = <HTMLInputElement>(document.getElementById('fwdBtn'));
+            this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
+            this.audio = document.getElementById('audio');
+            var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
+
+            if (asc) {
+              //  this.audioSignal = new AudioClipUIContainer(asc);
+            }
+            this.selCaptureDeviceId=null;
+            this.statusMsg = <HTMLElement>(document.getElementById('status'));
+            this.titleEl = <HTMLElement>(document.getElementById('title'));
+
+            // let asCollapseEl=<HTMLDivElement>(document.querySelector('#collapse1'));
+            // asCollapseEl.addEventListener('shown.bs.collapse', (e) => {
+            //       console.log("Shown bs coll event received");
+            //       let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
+            //       ic.classList.remove('glyphicon-collapse-up');
+            //       ic.classList.add('glyphicon-collapse-down');
+            //       this.audioSignal.layout();
+            //   });
+
+            // does not receive events, only the jquery version works:
+
+            let asCollapseJqEl=$('#collapse1');
+            asCollapseJqEl.on('shown.bs.collapse', (e) => {
+                //console.log("Shown bs coll event received");
+                let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
+                ic.classList.remove('glyphicon-collapse-up');
+                ic.classList.add('glyphicon-collapse-down');
+                this.audioSignal.layout();
+            });
+
+            asCollapseJqEl.on('hide.bs.collapse', (e) => {
+                //console.log("Hide bs coll event received");
+                let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
+                ic.classList.remove('glyphicon-collapse-down');
+                ic.classList.add('glyphicon-collapse-up');
+                // this.audioSignal.layout();
+            });
+
+
+        }
+
+        init() {
+            this.sectIdx = 0;
+            this.prmptIdx = 0;
+            this.autorecording = false;
+            this.bwdBtn.disabled = true;
+            this.startAction.disabled = true;
+            this.stopAction.disabled = true;
+            this.nextAction.disabled = true;
+            this.pauseAction.disabled = true;
+            this.fwdBtn.disabled = true;
+            this.playStartAction.disabled = true;
+            //let n = <any>navigator;
+            //var getUserMediaFnct= n.getUserMedia || n.webkitGetUserMedia ||
+            //	n.mozGetUserMedia || n.msGetUserMedia;
+            let w = <any>window;
+
+            AudioContext = w.AudioContext || w.webkitAudioContext;
+            if (typeof AudioContext !== 'function') {
+                this.statusMsg.innerHTML = 'ERROR: Browser does not support Web Audio API!';
+            } else {
+                let context = new AudioContext();
+
+
+                if (navigator.mediaDevices) {
+
+                    this.ac = new AudioCapture(context);
+                    this.ac.listener = this;
+                    this.ap = new AudioPlayer(context, this);
+
+                    if (this.ac) {
+                        this.startAction.onAction = () => this.startItem();
+                        document.addEventListener('keypress', (e) => {
+                            let ke = <KeyboardEvent>e;
+                            //if (ke.code == 'Space') {
+                            if (ke.key == ' ') {
+
+                                this.startAction.perform();
+
+                            }
+                        }, false);
+
+                    } else {
+                        this.startAction.disabled = true;
+                        this.statusMsg.innerHTML = 'ERROR: Browser does not support Media/Audio API!';
+                    }
+                    this.stopAction.onAction = () => this.stopItem();
+                    document.addEventListener('keydown', (e) => {
+                        let ke = <KeyboardEvent>e;
+                        //if (ke.code == 'Space' || ke.code == 'Escape') {
+                        if (ke.key == ' ' || ke.key == 'Escape') {
+                            this.stopAction.perform();
+                        }
+                    }, false);
+                    this.nextAction.onAction = () => this.stopItem();
+                    document.addEventListener('keypress', (e) => {
+                        let ke = <KeyboardEvent>e;
+                        //if (ke.code == 'Space') {
+                        if (ke.key == ' ') {
+                            this.nextAction.perform();
+                        }
+                    }, false);
+                    this.pauseAction.onAction = () => this.pauseItem();
+                    window.addEventListener('keydown', (e) => {
+                        let ke = <KeyboardEvent>e;
+
+                        //if (ke.code == 'KeyP' || ke.code == 'Escape') {
+                        if (ke.key == 'p' || ke.key == 'Escape') {
+                            this.pauseAction.perform();
+                        }
+                    }, false);
+                    this.bwdBtn.addEventListener('click', () => {
+
+                        this.prevItem();
+
+                    }, false);
+                    this.fwdBtn.addEventListener('click', () => {
+
+                        this.nextItem();
+
+                    }, false);
+                    this.dnlLnk.addEventListener('click', () => {
+                        this.downloadRecording();
+                    });
+
+                    this.playStartAction.onAction = () => this.ap.start();
+                    window.addEventListener('keydown', (e) => {
+                        let ke = <KeyboardEvent>e;
+                        // Chrome: code is empty
+                        //if (ke.key == 'MediaPlayPause' || ke.code == 'MediaPlayPause') {
+                        if (ke.key == 'MediaPlayPause') {
+                            this.playStartAction.perform();
+                        }
+
+                    }, false);
+
+
+                } else {
+                    this.statusMsg.innerHTML = 'ERROR: Browser does not support Media streams!';
+                }
+            }
+            this.ac.listDevices();
+            this._startStopSignal.setStatus(State.OFF);
+        }
+
+        set session(session: any) {
+            this._session = session;
+        }
+
+        set script(script: any) {
+            this._script = script;
+            this.loadScript();
+
+            this.sectIdx = 0;
+            this.prmptIdx = 0;
+            this.applyItem();
+
+        }
+
+      set channelCount(channelCount: number) {
+        this._channelCount = channelCount;
+      }
+
+      set audioDevices(audioDevices: any) {
+        this._audioDevices = audioDevices;
+      }
+
+        update(e: AudioPlayerEvent) {
+            if (e.type == EventType.STARTED) {
+                this.playStartAction.disabled = true;
+                this.updateTimerId = window.setInterval(e => {
+                    this.audioSignal.playFramePosition = this.ap.playPositionFrames;
+                }, 50);
+            } else if (e.type == EventType.STOPPED || e.type == EventType.ENDED) {
+                window.clearInterval(this.updateTimerId);
+                this.audioSignal.playFramePosition = this.ap.playPositionFrames;
+                this.playStartAction.disabled = (!(this.displayRecFile));
+
+            }
+        }
+
+
+
+        startItem() {
+            this.bwdBtn.disabled = true;
+            this.startAction.disabled = true;
+            this.pauseAction.disabled = true;
+            this.fwdBtn.disabled = true;
+            this.displayRecFile = null;
+            this.displayRecFileVersion = 0;
+            this.showRecording();
+            if (this.section.mode === 'AUTORECORDING') {
+                this.autorecording = true;
+            }
+            this.ac.start();
+
+        }
+
+
+        loadScript() {
+            this.promptItemCount = 0;
+            let tbE = <HTMLTableElement>(document.getElementById('progressTableBody'));
+            this.items = new Array<Item>();
+            let ln = 0;
+
+            //TODO randomize not supported
+            for (let si = 0; si < this._script.sections.length; si++) {
+                let section = this._script.sections[si];
+                let pis = section.promptUnits;
+
+                let pisLen = pis.length;
+                this.promptItemCount += pisLen;
+                for (let pi = 0; pi < pisLen; pi++) {
+                    let piE = pis[pi];
+
+                    let trE = document.createElement('tr');
+                    trE.setAttribute('id', 'promptIndex_' + ln);
+                    let tdIdxE = document.createElement('td');
+                    tdIdxE.appendChild(document.createTextNode(ln.toString()));
+                    let tdPrE = document.createElement('td');
+                    tdPrE.appendChild(document.createTextNode(piE.mediaitems[0].text));
+
+                    // status table cell unchecked icon
+                    let tdStE = document.createElement('td');
+                    let stIc=document.createElement('span');
+                    stIc.setAttribute('id','promptIndex_'+ln+"_status");
+                    stIc.classList.add('glyphicon');
+                     stIc.classList.add('glyphicon-unchecked');
+                     tdStE.appendChild(stIc);
+
+                    trE.appendChild(tdIdxE);
+                    trE.appendChild(tdPrE);
+                    trE.appendChild(tdStE);
+
+                    tbE.appendChild(trE);
+
+                    let it = new Item(section.training);
+                    this.items.push(it);
+                    ln++;
+                }
+            }
+        }
+
+        currPromptIndex() {
+            let idx = 0;
+            for (let si = 0; si < this.sectIdx; si++) {
+                let section = this._script.sections[si];
+                let pis = section.promptUnits;
+                idx += pis.length;
+            }
+            idx += this.prmptIdx;
+            return idx;
+        }
+
+
+        unselectItem() {
+            let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
+            promptLineEl.classList.remove('bg-info');
+        }
+
+        clearPrompt() {
+            let prompterEl = <HTMLElement>(document.getElementById('prompter'));
+            prompterEl.innerText = '';
+        }
+
+        applyPrompt() {
+            let prText = this.promptUnit.mediaitems[0].text;
+            let prompterEl = <HTMLElement>(document.getElementById('prompter'));
+            prompterEl.innerText = prText;
+
+        }
+
+      downloadRecording() {
+        if (this.displayRecFile) {
+          let ab: AudioBuffer = this.displayRecFile.audioBuffer;
+            let ww = new WavWriter();
+            let wavFile = ww.writeAsync(ab, (wavFile) => {
+                let blob = new Blob([wavFile], {type: 'audio/wav'});
+                let rfUrl = URL.createObjectURL(blob);
+                let rdDlEl = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
+
+            let rdDlDivEl: HTMLDivElement = <HTMLDivElement>document.getElementById('rfDownload');
+            let dataDnlLnk: HTMLAnchorElement = document.createElement('a');
+            rdDlDivEl.appendChild(dataDnlLnk);
+
+            dataDnlLnk.href = rfUrl;
+            dataDnlLnk.name = 'Recording';
+            // download property not yet in TS def
+            let fn = this.displayRecFile.filenameString();
+            fn += '_' + this.displayRecFileVersion;
+            fn += '.wav';
+            dataDnlLnk.setAttribute('download', fn);
+            dataDnlLnk.click();
+          });
+        }
+      }
+
+        showRecording() {
+            this.ap.stop();
+            let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
+            promptLineEl.classList.add('bg-info');
+            let rdDlDivEl: HTMLDivElement = <HTMLDivElement>document.getElementById('rfDownload');
+
+            if (this.displayRecFile) {
+                let ab: AudioBuffer = this.displayRecFile.audioBuffer;
+                this.audioSignal.setData(ab);
+                rdDlDivEl.style.visibility = 'visible';
+                this.playStartAction.disabled = false;
+                this.ap.audioBuffer = ab;
+            } else {
+
+                this.audioSignal.setData(null);
+                //     rdDlEl.href = null;
+                //     rdDlEl.name = 'Recording';
+                // // TODO disable link (remove anchor element)
+                // rdDlEl.removeAttribute('download');
+                rdDlDivEl.style.visibility = 'hidden';
+                this.ap.audioBuffer = null;
+                this.playStartAction.disabled = true;
+            }
+        }
+
+        applyItem() {
+
+            this.section = this._script.sections[this.sectIdx]
+            this.promptUnit = this.section.promptUnits[this.prmptIdx];
+            this.clearPrompt();
+            if (this.section.promptphase === 'IDLE') {
+                this.applyPrompt();
+            }
+            // if(this.section.mode==='AUTORECORDING') {
+            //     this.stopBtn.classList.remove('glyphicon-stop');
+            //     this.stopBtn.classList.add('glyphicon-forward');
+            // }else{
+            //     this.stopBtn.classList.remove('glyphicon-forward');
+            //     this.stopBtn.classList.add('glyphicon-stop');
+            // }
+
+            let it = this.items[this.currPromptIndex()];
+            if (!it.recs) {
+                it.recs = new Array<RecordingFile>();
+            }
+
+            let recentRecFile: RecordingFile = null;
+            let availRecfiles: number = it.recs.length;
+            if (availRecfiles > 0) {
+                let rfVers: number = availRecfiles - 1;
+                recentRecFile = it.recs[rfVers];
+                this.displayRecFile = recentRecFile;
+                this.displayRecFileVersion = rfVers;
+                this.showRecording();
+            } else {
+                this.displayRecFile = null;
+                this.displayRecFileVersion = 0;
+                this.showRecording();
+            }
+            let th = document.getElementById('progressTableHeader');
+            th.scrollIntoView();
+            let itemTr = document.getElementById('promptIndex_' + this.currPromptIndex());
+            itemTr.scrollIntoView(false);
+
+            this.audioSignal.layout();
+            this._startStopSignal.setStatus(State.IDLE);
+            this.bwdBtn.disabled = false;
+            this.fwdBtn.disabled = false;
+        }
+
+
+
+        start() {
+
+            if (this.ac) {
+                this.statusMsg.innerHTML = 'Requesting audio permissions...';
+
+                if (this._audioDevices) {
+                  let fdi=null;
+
+                  this.ac.deviceInfos((mdis)=> {
+                    if(mdis) {
+                      for (let adI = 0; adI < this._audioDevices.length; adI++) {
+                        let ad = this._audioDevices[adI];
+                        if(ad.playback){
+                          // project audio device config for playback device
+                          // not used for now
+                          continue;
+                        }
+                        for (let mdii = 0; mdii < mdis.length; mdii++) {
+                          let mdi = mdis[mdii];
+                          if (ad.regex) {
+                            //console.log("Match?: \'"+mdi.label+"\' \'"+ad.name+"\'");
+                            if (mdi.label.match(ad.name)) {
+                              fdi = mdi;
+                              //console.log("Match!");
+                            }
+                          } else {
+                            if (mdi.label.trim() === ad.name.trim()) {
+                              fdi = mdi;
+                            }
+                          }
+                          if (fdi) {
+                            break;
+                          }
+                        }
+                        if (fdi) {
+                          break;
+                        }
+                      }
+                    }
+
+                    if(fdi){
+                      // matching device found
+                      console.log("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+                      this.ac.open(this._channelCount, fdi.deviceId);
+                    }else {
+                      // device not found
+                      // TODO more user friendly ("Please plug audio device ... bla")
+                      this.statusMsg.innerHTML = 'ERROR: Required audio device not available!';
+                    }
+                  });
+                } else {
+                    this.ac.open(this._channelCount);
+                }
+
+
+            }
+        }
+
+        prevItem() {
+            this.unselectItem();
+            let scriptLength = this._script.sections.length;
+
+            this.prmptIdx--;
+            if (this.prmptIdx < 0) {
+                this.sectIdx--;
+                if (this.sectIdx < 0) {
+                    this.sectIdx = scriptLength - 1;
+                }
+                let currSectLength = this._script.sections[this.sectIdx].promptUnits.length;
+                this.prmptIdx = currSectLength - 1;
+
+            }
+            this.applyItem();
+        }
+
+        nextItem() {
+            this.unselectItem();
+            let scriptLength = this._script.sections.length;
+            let currSectLength = this._script.sections[this.sectIdx].promptUnits.length;
+            this.prmptIdx++;
+            if (this.prmptIdx >= currSectLength) {
+                this.sectIdx++;
+                this.prmptIdx = 0;
+                if (this.sectIdx >= scriptLength) {
+                    this.sectIdx = 0;
+                }
+            }
+            this.applyItem();
+        }
+
+
+        opened() {
+            this.statusMsg.innerHTML = 'Ready.';
+            this.startAction.disabled = false;
+        }
+
+        started() {
+            this.status = Status.PRE_RECORDING;
+            this.startAction.disabled = true;
+
+            console.log("Spr: capture started");
+
+            this._startStopSignal.setStatus(State.PRERECORDING);
+
+            if (this.section.promptphase === 'PRERECORDING') {
+                this.applyPrompt();
+            }
+            this.statusMsg.innerHTML = 'Recording...';
+
+            let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
+            if (this.promptUnit.recduration) {
+                maxRecordingTimeMs = this.promptUnit.recduration;
+            }
+            this.maxRecTimerId = window.setTimeout(() => {
+                this.maxRecTimerRunning = false;
+                this.status = Status.STOPPING_STOP;
+                this.ac.stop();
+            }, maxRecordingTimeMs);
+            this.maxRecTimerRunning = true;
+
+            let preDelay = 1000;
+            if (this.promptUnit.prerecording) {
+                preDelay = this.promptUnit.prerecording;
+            }
+
+
+            this.preRecTimerId = window.setTimeout(() => {
+
+                this.preRecTimerRunning = false;
+                this.status = Status.RECORDING;
+                this._startStopSignal.setStatus(State.RECORDING);
+                if (this.section.mode === 'AUTORECORDING') {
+                    this.nextAction.disabled = false;
+                    this.pauseAction.disabled = false;
+                } else {
+                    this.stopAction.disabled = false;
+                }
+                if (this.section.promptphase === 'RECORDING') {
+                    this.applyPrompt();
+                }
+            }, preDelay);
+            this.preRecTimerRunning = true;
+        }
+
+        stopItem() {
+            this.status = Status.POST_REC_STOP;
+            this._startStopSignal.setStatus(State.POSTRECORDING);
+            this.stopAction.disabled = true;
+            this.nextAction.disabled = true;
+            let postDelay = 500;
+            if (this.promptUnit.postrecording) {
+                postDelay = this.promptUnit.postrecording;
+            }
+
+            this.postRecTimerId = window.setTimeout(() => {
+                this.postRecTimerRunning = false;
+                this.status = Status.STOPPING_STOP;
+                this.stopRecording();
+            }, postDelay);
+            this.postRecTimerRunning = true;
+        }
+
+        pauseItem() {
+            this.status = Status.POST_REC_PAUSE;
+            this.pauseAction.disabled = true;
+            this._startStopSignal.setStatus(State.POSTRECORDING);
+            this.stopAction.disabled = true;
+            this.nextAction.disabled = true;
+            this.pauseAction.disabled = true;
+            let postDelay = 500;
+            if (this.promptUnit.postrecording) {
+                postDelay = this.promptUnit.postrecording;
+            }
+
+            this.postRecTimerId = window.setTimeout(() => {
+                this.postRecTimerRunning = false;
+                this.status = Status.STOPPING_PAUSE;
+                this.stopRecording();
+            }, postDelay);
+            this.postRecTimerRunning = true;
+        }
+
+        stopRecording() {
+            if (this.maxRecTimerRunning) {
+                window.clearTimeout(this.maxRecTimerId);
+                this.maxRecTimerRunning = false;
+            }
+            this.ac.stop();
+        }
+
+        stopped() {
+            this.startAction.disabled = false;
+            this.stopAction.disabled = true;
+            this.nextAction.disabled = true;
+            this.pauseAction.disabled = true;
+            // console.log("Spr: capture stopped");
+            this.statusMsg.innerHTML = 'Recorded.';
+            // this.statusMsg.classList.remove('alert-info');
+            // this.statusMsg.classList.remove('alert-danger');
+            // this.statusMsg.classList.add('alert-success');
+            this._startStopSignal.setStatus(State.IDLE);
+
+            let ad = this.ac.audioBuffer();
+            let ic = this._script.sections[this.sectIdx].promptUnits[this.prmptIdx].itemcode;
+            let rf = new RecordingFile(this._session.sessionId, ic, ad);
+            let cpIdx=this.currPromptIndex();
+            let it = this.items[cpIdx];
+            if (!it.recs) {
+                it.recs = new Array<RecordingFile>();
+            }
+            it.recs.push(rf);
+          let statusEl=<HTMLSpanElement>document.getElementById('promptIndex_'+cpIdx+"_status");
+            statusEl.classList.remove('glyphicon-unchecked');
+          statusEl.classList.add('glyphicon-check');
+
+            // apply recorded item
+            this.applyItem();
+
+            if (this.mode === Mode.SERVER_BOUND) {
+                // create Wikispeech URL
+
+                // build upload URL
+                let recUrl: string = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/storage/RECS?session=' + rf.sessionId + '&itemcode=' + rf.itemCode + '&extension=wav&line=01&overwrite=false';
+
+
+                //console.log("Build wav writer...");
+                let ww = new WavWriter();
+                // convert to 16-bit integer PCM
+                // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+                // TODO duplicate conversion for manual download
+                ww.writeAsync(ad, (wavFile) => {
+                     // and upload to WikiSpeech server
+
+                    this.postRecording(wavFile, recUrl);
+                });
+            }
+
+
+            // check complete session
+            let complete = true;
+            // search backwards, to gain faster detection of incomplete state
+            for (let ri = this.items.length - 1; ri >= 0; ri--) {
+                let it = this.items[ri];
+                if (!it.training && (!it.recs || it.recs.length == 0)) {
+
+                    complete = false;
+                    break;
+                }
+            }
+
+            if (complete) {
+                this.statusMsg.innerHTML = 'Session complete!';
+            } else {
+
+                if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
+                    this.nextItem();
+                }
+
+                if (this.section.mode === 'AUTORECORDING' && this.autorecording && this.status === Status.STOPPING_STOP) {
+                    this.startItem();
+                }
+            }
+        }
+
+        postRecording(wavFile: Uint8Array, recUrl: string) {
+            let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+            let ul = new Upload(wavBlob, recUrl);
+            this.uploader.queueUpload(ul);
+        }
+
+        stop() {
+            this.ac.close();
+        }
+
+        closed() {
+            this.statusMsg.innerHTML = 'Session closed.';
+        }
+
+
+        error() {
+            this.statusMsg.innerHTML = 'ERROR: Recording.';
+            // this.statusMsg.classList.remove('alert-info');
+            // this.statusMsg.classList.add('alert-danger');
+        }
+    }
+
