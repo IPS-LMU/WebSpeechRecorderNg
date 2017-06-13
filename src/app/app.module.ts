@@ -1,20 +1,20 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
 
 import {AudioClipUIContainer} from './audio/ui/container';
 import {AudioDisplay} from './apps/audio/audio_display';
 
-import { SpeechRecorder ,Prompting,Prompter} from './apps/speechrecorder/speechrecorder'
+import { SpeechRecorder ,Prompting,PromptContainer,Prompter} from './apps/speechrecorder/speechrecorder'
+import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simpletrafficlight'
 
 @NgModule({
   declarations: [
-    AppComponent,SpeechRecorder,Prompting,Prompter,AudioDisplay,AudioClipUIContainer
+    AppComponent,SpeechRecorder,Prompting,PromptContainer,Prompter,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
-    BrowserModule,NgbModule.forRoot()
+    BrowserModule
   ],
   providers: [],
   bootstrap: [AppComponent]
