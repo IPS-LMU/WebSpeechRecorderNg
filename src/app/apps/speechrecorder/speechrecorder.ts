@@ -20,18 +20,16 @@ import { Mode as SessionMode } from './session/sessionmanager';
 
   template: `
    
-      <div><p><span #prompt>Here is a text ... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 2</span></p></div>
+      <span #prompt>Here is a text ... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 2</span>
       `,
   styles: [`div{
 
-      justify-content: center; /* align horizontal */
-      align-items: center; /* align vertical */
-      //background: white;
+      justify-content: center; /* align horizontal center */
+      align-items: center; /* align vertical  center */
+      background: white;
       text-align: center;
-     //height: 100%;
-      background: red;
       font-size: 20pt;
-    flex: 1 1;
+      flex: 0 1; 
     }
   `]
 })
@@ -43,21 +41,23 @@ export class Prompter{
 
     selector: 'app-sprpromptcontainer',
 
-    template: `
-
-        <div><app-sprprompter></app-sprprompter></div>
+    template: `      
+        <app-sprprompter></app-sprprompter>
         `
     ,
-    styles: [`div{
-        display: flex;
-        padding: 10pt;
-        height: 100%;
-        justify-content: center; /* align horizontal */
-        align-items: center; /* align vertical */
-        background: white;
-        text-align: center;
-        flex-direction:column;
-        flex: 3 1;
+    styles: [`:host{
+
+      flex: 10; /* the container consumes all available space */
+      padding: 10pt;
+      height: 100%;
+      justify-content: center; /* align horizontal center*/
+      align-items: center; /* align vertical center */
+      background: white;
+      text-align: center;
+      
+
+      display: flex;
+      flex-direction:column;
     }
     `]
 })
@@ -81,12 +81,9 @@ export class PromptContainer{
       height: 100%;
       margin: 0;
       padding: 0;
-    background: yellow;
-      display: flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-    //width: 100%;
-      flex: 1;
+       background: yellow;
+      width: 100%; /* use all horizontal availible space */
+      flex: 3; /* ... and fill rest of vertical available space (other components have flex 0) */ 
 
       /* Workaround for Firefox
       If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
@@ -94,7 +91,10 @@ export class PromptContainer{
       See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
       */  
       min-height:0;
-    }`]
+      display: flex; /* flex container: left traffic light, right prompter (container) */
+    flex-direction: row;
+    flex-wrap: nowrap; /* wrap could completely destroy the layout */
+  }`]
 
 })
 
@@ -103,14 +103,103 @@ export class Prompting{
 
 @Component({
 
+  selector: 'app-sprstatusdisplay',
+
+  template: `
+    <p>{{statusMsg}}</p>
+  `,
+  styles: [`:host{
+    //flex: 0;
+    //align-self: flex-start;
+    display: inline;
+  text-align:left;
+  }`]
+
+})
+
+export class StatusDisplay{
+    private statusMsg='Initialize...';
+}
+
+
+@Component({
+
+  selector: 'app-sprtransport',
+
+  template: `
+    <button id="bwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
+      <button id="startBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
+      <button id="stopBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+      <button id="nextBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
+      <button id="pauseBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
+      <button id="fwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
+  
+  `,
+  styles: [`:host{
+    //flex: 1;
+    align-self: center;
+    width: 100%;
+    text-align: center;
+    //display: inline;
+    //display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel *!*/
+
+    //flex-direction: row;
+    align-content: center;
+    margin: 0;
+    padding: 0;
+  }`,`
+  div {
+    display:inline;
+    flex: 0;
+  }`]
+
+})
+
+export class TransportPanel{
+}
+
+@Component({
+
+  selector: 'app-sprcontrolpanel',
+
+  template: `
+    <app-sprtransport></app-sprtransport>
+  `,
+  styles: [`:host{
+    flex: 0; /* only required vertical space */
+    width: 100%; /* available horizontal sace */
+    display: inline;
+    //display: inline-flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
+    //flex-direction: row;
+    align-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }`]
+
+})
+
+export class ControlPanel{
+}
+
+@Component({
+
   selector: 'app-speechrecorder',
 
   template: `
-    <div style="height:100%"><app-sprprompting></app-sprprompting></div>`,
+    
+      <app-sprprompting></app-sprprompting>
+     <app-sprtransport></app-sprtransport>
+    `,
   styles: [`:host{
     width: 100%;
     height: 100%;
     background: orange;
+    
+    display: flex;   /* Vertical flex container: Bottom transport panel, above prompting panel */ 
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
   }`]
 
 })
@@ -122,7 +211,7 @@ export class SpeechRecorder implements AudioPlayerListener {
         uploader: Uploader;
 		//audioSignal:AudioClipUIContainer;
         uploadProgresBarDivEl: HTMLDivElement;
-		statusMsg:HTMLElement;
+		statusMsg:string;
 		titleEl:HTMLElement;
 		audio:any;
 
@@ -139,7 +228,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 			this.audio = document.getElementById('audio');
 			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
             this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
-			this.statusMsg = <HTMLElement>(document.getElementById('status'));
+			this.statusMsg = 'Initialize...';
       this.titleEl = <HTMLElement>(document.getElementById('title'));
             this.uploader = new Uploader();
 		}
@@ -153,12 +242,12 @@ export class SpeechRecorder implements AudioPlayerListener {
 
 			AudioContext = w.AudioContext || w.webkitAudioContext;
 			if (typeof AudioContext !== 'function') {
-				this.statusMsg.innerHTML = 'ERROR: Browser does not support Web Audio API!';
+				this.statusMsg = 'ERROR: Browser does not support Web Audio API!';
 			} else {
 				var context = new AudioContext();
 
 				if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
-					this.statusMsg.innerHTML = 'ERROR: Browser does not support Media streams!';
+					this.statusMsg= 'ERROR: Browser does not support Media streams!';
 				} else {
 
 
@@ -406,16 +495,16 @@ export class SpeechRecorder implements AudioPlayerListener {
 			if(PlaybackEventType.STARTED===e.type){
 				//this.startBtn.disabled=true;
 				//this.stopBtn.disabled=true;
-				this.statusMsg.innerHTML='Playback...';
+				this.statusMsg='Playback...';
 
             } else if (PlaybackEventType.ENDED === e.type) {
 				//this.startBtn.disabled=false;
 				//this.stopBtn.disabled=true;
-				this.statusMsg.innerHTML='Ready.';
+				this.statusMsg='Ready.';
 			}
 		}
 		error(){
-			this.statusMsg.innerHTML='ERROR: Recording.';
+			this.statusMsg='ERROR: Recording.';
 		}
 	}
 
