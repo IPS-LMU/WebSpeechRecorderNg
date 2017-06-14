@@ -72,7 +72,7 @@ export class PromptContainer{
   template: `
   
     <app-simpletrafficlight></app-simpletrafficlight>
-    <app-sprpromptcontainer></app-sprpromptcontainer>
+    
     
 
   `,
@@ -109,7 +109,7 @@ export class Prompting{
     <p>{{statusMsg}}</p>
   `,
   styles: [`:host{
-    //flex: 0;
+    flex: 1;
     //align-self: flex-start;
     display: inline;
   text-align:left;
@@ -118,9 +118,24 @@ export class Prompting{
 })
 
 export class StatusDisplay{
-    private statusMsg='Initialize...';
+    statusMsg='Initialize...';
 }
 
+@Component({
+    selector: 'app-sprprogressdisplay',
+    template: `
+        <p>{{progressMsg}}</p>
+    `,
+    styles: [`:host{
+        flex: 1;
+    //align-self: flex-start;
+        display: inline;
+        text-align:left;
+    }`]
+})
+export class ProgressDisplay{
+    progressMsg='[itemcode]';
+}
 
 @Component({
 
@@ -136,7 +151,7 @@ export class StatusDisplay{
   
   `,
   styles: [`:host{
-    //flex: 1;
+    flex: 10;
     align-self: center;
     width: 100%;
     text-align: center;
@@ -163,18 +178,19 @@ export class TransportPanel{
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprtransport></app-sprtransport>
+    <app-sprstatusdisplay></app-sprstatusdisplay><app-sprtransport></app-sprtransport><app-sprprogressdisplay></app-sprprogressdisplay>
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
     width: 100%; /* available horizontal sace */
     display: inline;
-    //display: inline-flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
-    //flex-direction: row;
+    display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
+    flex-direction: row;
     align-content: center;
     align-items: center;
     margin: 0;
-    padding: 0;
+    padding: 0;  
+      min-height: min-content; /* important */
   }`]
 
 })
@@ -189,7 +205,7 @@ export class ControlPanel{
   template: `
     
       <app-sprprompting></app-sprprompting>
-     <app-sprtransport></app-sprtransport>
+        <app-sprcontrolpanel></app-sprcontrolpanel>
     `,
   styles: [`:host{
     width: 100%;
