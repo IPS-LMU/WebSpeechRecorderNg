@@ -249,6 +249,13 @@ export class SpeechRecorder implements AudioPlayerListener {
             this.uploader = new Uploader();
 		}
 
+    // ngOnInit() {
+    //     this.route.params
+    //     // (+) converts string 'id' to a number
+    //         .switchMap((params: Params) => this.service.getHero(+params['id']))
+    //         .subscribe((hero: Hero) => this.hero = hero);
+    // }
+
 		init() {
 
 			var n = <any>navigator;

@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
+import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
 
 import {AudioClipUIContainer} from './audio/ui/container';
@@ -12,11 +12,22 @@ import {
 } from './apps/speechrecorder/speechrecorder'
 import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simpletrafficlight'
 
+const appRoutes: Routes = [
+
+    { path: 'session/:id',      component: SpeechRecorder },
+
+    { path: '',
+        redirectTo: 'session/',
+        pathMatch: 'full'
+    }
+];
+
 @NgModule({
   declarations: [
     AppComponent,SpeechRecorder,Prompting,PromptContainer,Prompter,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
+      //RouterModule.forRoot(appRoutes),
     BrowserModule
   ],
   providers: [],
