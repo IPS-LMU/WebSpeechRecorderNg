@@ -10,7 +10,8 @@ import { Mode as SessionMode } from './session/sessionmanager';
   import { Script } from './script/script'
   import { SessionManager} from  './session/sessionmanager';
   import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../../net/uploader';
-
+import {ActivatedRoute, Params, Router} from "@angular/router";
+import 'rxjs/add/operator/switchMap';
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -240,21 +241,40 @@ export class SpeechRecorder implements AudioPlayerListener {
 
     currentPromptIdx:number;
 
-		constructor() {
+		constructor(private route: ActivatedRoute,
+                    private router: Router) {
 			this.audio = document.getElementById('audio');
 			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
             this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
 			this.statusMsg = 'Initialize...';
-      this.titleEl = <HTMLElement>(document.getElementById('title'));
+            this.titleEl = <HTMLElement>(document.getElementById('title'));
             this.uploader = new Uploader();
+
+            // let ops=this.route.params.switchMap(params: Params) => this.setSessionId(+params['id']))
+            //     .subscribe((hero: Hero) => this.hero = hero);
 		}
 
-    // ngOnInit() {
-    //     this.route.params
-    //     // (+) converts string 'id' to a number
-    //         .switchMap((params: Params) => this.service.getHero(+params['id']))
-    //         .subscribe((hero: Hero) => this.hero = hero);
-    // }
+    ngOnInit() {
+        // this.route.params.subscribe((params:Params)=>{
+        //
+        //     console.log("Params observable event ");
+        // });
+
+    // this.route.params.switchMap((params: Params) => {
+    //     // we need an ObservableInput here: A promise or another Oberservable
+    //     let p=new Promise(params);
+    //     return p.then((params:Params)=> {
+    //         return +params['id'];
+    //     });
+    // }).subscribe((sessionId:number)=>this.setSessionId);
+        this.route.params.subscribe((params:Params)=>{
+            this.setSessionId(+params['id']);
+        })
+    }
+
+        setSessionId(sessionId:number){
+            console.log("Session ID: "+sessionId);
+        }
 
 		init() {
 

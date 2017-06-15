@@ -16,9 +16,11 @@ const appRoutes: Routes = [
 
     { path: 'session/:id',      component: SpeechRecorder },
 
-    { path: '',
+    { path: 'test',
         redirectTo: 'session/',
         pathMatch: 'full'
+    },
+    { path: 'audio_display', component: AudioDisplay
     }
 ];
 
@@ -27,7 +29,7 @@ const appRoutes: Routes = [
     AppComponent,SpeechRecorder,Prompting,PromptContainer,Prompter,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
-      //RouterModule.forRoot(appRoutes),
+      RouterModule.forRoot(appRoutes),
     BrowserModule
   ],
   providers: [],
