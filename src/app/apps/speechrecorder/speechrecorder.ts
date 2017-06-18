@@ -16,6 +16,8 @@ import {SessionService} from "./session.service";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
+  // TODO enum not possible in template language , use string for now
+//export enum StatusAlertType {INFO,WARN,ERROR};
 @Component({
 
   selector: 'app-sprprompter',
@@ -108,7 +110,7 @@ export class Prompting{
   selector: 'app-sprstatusdisplay',
 
   template: `
-    <p class="alert {{statusType}}">{{statusMsg}}</p>
+    <p class="alert" [class.alert-info]="statusAlertType==='info'" [class.alert-danger]="statusAlertType==='error'" >{{statusMsg}}</p>
   `,
   styles: [`:host{
     flex: 1;
@@ -120,7 +122,7 @@ export class Prompting{
 })
 
 export class StatusDisplay{
-     statusType="alert-info"
+    statusAlertType='info';
     statusMsg='Initialize...';
 
 }
@@ -202,6 +204,8 @@ export class TransportPanel{
 export class ControlPanel{
 }
 
+
+
 @Component({
 
   selector: 'app-speechrecorder',
@@ -231,6 +235,7 @@ export class SpeechRecorder implements AudioPlayerListener {
         uploader: Uploader;
 		//audioSignal:AudioClipUIContainer;
         uploadProgresBarDivEl: HTMLDivElement;
+
 		statusMsg:string;
 		titleEl:HTMLElement;
 		audio:any;
