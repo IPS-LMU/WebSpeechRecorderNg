@@ -12,6 +12,7 @@ import { Mode as SessionMode } from './session/sessionmanager';
   import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../../net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
+import {SessionService} from "./session.service";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -107,7 +108,7 @@ export class Prompting{
   selector: 'app-sprstatusdisplay',
 
   template: `
-    <p>{{statusMsg}}</p>
+    <p class="alert {{statusType}}">{{statusMsg}}</p>
   `,
   styles: [`:host{
     flex: 1;
@@ -119,7 +120,9 @@ export class Prompting{
 })
 
 export class StatusDisplay{
+     statusType="alert-info"
     statusMsg='Initialize...';
+
 }
 
 @Component({
@@ -202,7 +205,7 @@ export class ControlPanel{
 @Component({
 
   selector: 'app-speechrecorder',
-
+    providers: [SessionService],
   template: `
     
       <app-sprprompting></app-sprprompting>
@@ -242,7 +245,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     currentPromptIdx:number;
 
 		constructor(private route: ActivatedRoute,
-                    private router: Router) {
+                    private router: Router,private sessionsService:SessionService) {
 			this.audio = document.getElementById('audio');
 			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
             this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
@@ -268,12 +271,22 @@ export class SpeechRecorder implements AudioPlayerListener {
     //     });
     // }).subscribe((sessionId:number)=>this.setSessionId);
         this.route.params.subscribe((params:Params)=>{
-            this.setSessionId(+params['id']);
+            let sess= this.sessionsService.getSession(params['id']).then(sess=> this.setSession(sess))
+    // TODO handle error
+            .catch(reason =>{
+                this.statusMsg=reason;
+                //this.statusType="alert-danger";
+                console.log("Error fetching session "+reason)
+            });
         })
     }
 
-        setSessionId(sessionId:number){
-            console.log("Session ID: "+sessionId);
+        setSession(session:any){
+		    if(session) {
+                console.log("Session ID: " + session.sessionId);
+            }else{
+                console.log("Session Undefined");
+            }
         }
 
 		init() {
@@ -530,7 +543,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 
     start(){
 
-        this.configure();
+        //this.configure();
 
     }
 

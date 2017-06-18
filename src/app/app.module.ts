@@ -11,6 +11,8 @@ import {
   TransportPanel, StatusDisplay, ControlPanel, ProgressDisplay
 } from './apps/speechrecorder/speechrecorder'
 import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simpletrafficlight'
+import {SessionService} from "./apps/speechrecorder/session.service";
+import {HttpModule} from "@angular/http";
 
 const appRoutes: Routes = [
 
@@ -30,9 +32,10 @@ const appRoutes: Routes = [
   ],
   imports: [
       RouterModule.forRoot(appRoutes),
+      HttpModule,
     BrowserModule
   ],
-  providers: [],
+  providers: [SessionService],
 
   bootstrap: [AppComponent]
 })
