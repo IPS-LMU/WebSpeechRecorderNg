@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import {Component, ViewChild, ViewChildDecorator} from '@angular/core'
 
 import { Mode as SessionMode } from './session/sessionmanager';
 	import {AudioCaptureListener} from '../../audio/capture/capture';
@@ -12,7 +12,7 @@ import { Mode as SessionMode } from './session/sessionmanager';
   import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../../net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
-import {SessionService} from "./session.service";
+import {SessionService} from "./session/session.service";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -202,6 +202,7 @@ export class TransportPanel{
 })
 
 export class ControlPanel{
+      @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
 }
 
 
@@ -236,7 +237,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 		//audioSignal:AudioClipUIContainer;
         uploadProgresBarDivEl: HTMLDivElement;
 
-		statusMsg:string;
+		//statusMsg:string;
 		titleEl:HTMLElement;
 		audio:any;
 
@@ -246,6 +247,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     script:Script;
         dataSaved: boolean = true;
 
+        @ViewChild(ControlPanel) controlPanel:ControlPanel;
 
     currentPromptIdx:number;
 
@@ -254,7 +256,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 			this.audio = document.getElementById('audio');
 			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
             this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
-			this.statusMsg = 'Initialize...';
+			//this.statusMsg = 'Initialize...';
             this.titleEl = <HTMLElement>(document.getElementById('title'));
             this.uploader = new Uploader();
 
@@ -263,24 +265,14 @@ export class SpeechRecorder implements AudioPlayerListener {
 		}
 
     ngOnInit() {
-        // this.route.params.subscribe((params:Params)=>{
-        //
-        //     console.log("Params observable event ");
-        // });
-
-    // this.route.params.switchMap((params: Params) => {
-    //     // we need an ObservableInput here: A promise or another Oberservable
-    //     let p=new Promise(params);
-    //     return p.then((params:Params)=> {
-    //         return +params['id'];
-    //     });
-    // }).subscribe((sessionId:number)=>this.setSessionId);
+		    //
+    }
+       ngAfterViewInit(){
         this.route.params.subscribe((params:Params)=>{
             let sess= this.sessionsService.getSession(params['id']).then(sess=> this.setSession(sess))
-    // TODO handle error
             .catch(reason =>{
-                this.statusMsg=reason;
-                //this.statusType="alert-danger";
+                this.controlPanel.statusDisplay.statusMsg=reason;
+                this.controlPanel.statusDisplay.statusAlertType='error';
                 console.log("Error fetching session "+reason)
             });
         })
@@ -289,9 +281,11 @@ export class SpeechRecorder implements AudioPlayerListener {
         setSession(session:any){
 		    if(session) {
                 console.log("Session ID: " + session.sessionId);
+                this.init();
             }else{
                 console.log("Session Undefined");
             }
+
         }
 
 		init() {
@@ -303,12 +297,14 @@ export class SpeechRecorder implements AudioPlayerListener {
 
 			AudioContext = w.AudioContext || w.webkitAudioContext;
 			if (typeof AudioContext !== 'function') {
-				this.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+                this.controlPanel.statusDisplay.statusAlertType='error';
+				this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Web Audio API!';
 			} else {
 				var context = new AudioContext();
 
 				if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
-					this.statusMsg= 'ERROR: Browser does not support Media streams!';
+                    this.controlPanel.statusDisplay.statusAlertType='error';
+					this.controlPanel.statusDisplay.statusMsg= 'ERROR: Browser does not support Media streams!';
 				} else {
 
 
@@ -556,16 +552,19 @@ export class SpeechRecorder implements AudioPlayerListener {
 			if(PlaybackEventType.STARTED===e.type){
 				//this.startBtn.disabled=true;
 				//this.stopBtn.disabled=true;
-				this.statusMsg='Playback...';
+                this.controlPanel.statusDisplay.statusAlertType='info';
+				this.controlPanel.statusDisplay.statusMsg='Playback...';
 
             } else if (PlaybackEventType.ENDED === e.type) {
 				//this.startBtn.disabled=false;
 				//this.stopBtn.disabled=true;
-				this.statusMsg='Ready.';
+                this.controlPanel.statusDisplay.statusAlertType='info';
+				this.controlPanel.statusDisplay.statusMsg='Ready.';
 			}
 		}
 		error(){
-			this.statusMsg='ERROR: Recording.';
+		    this.controlPanel.statusDisplay.statusAlertType='error';
+			this.controlPanel.statusDisplay.statusMsg='ERROR: Recording.';
 		}
 	}
 

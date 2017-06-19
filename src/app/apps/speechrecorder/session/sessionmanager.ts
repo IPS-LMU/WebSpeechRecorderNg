@@ -229,9 +229,11 @@ import { Action } from '../../../action/action'
                         this.nextItem();
 
                     }, false);
-                    this.dnlLnk.addEventListener('click', () => {
-                        this.downloadRecording();
-                    });
+
+
+                    // this.dnlLnk.addEventListener('click', () => {
+                    //     this.downloadRecording();
+                    // });
 
                     this.playStartAction.onAction = () => this.ap.start();
                     window.addEventListener('keydown', (e) => {
