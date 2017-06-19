@@ -48,9 +48,9 @@ import {StartStopSignal, State} from '../startstopsignal'
 })
 export class SimpleTrafficLight implements StartStopSignal {
 
-  private lighttop: string;
-  private lightmid: string;
-  private lightbottom: string;
+  lighttop: string;
+  lightmid: string;
+  lightbottom: string;
 
   constructor() {
     this.setStatus(State.OFF);
