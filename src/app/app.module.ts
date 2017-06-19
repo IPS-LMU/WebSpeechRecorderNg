@@ -11,7 +11,7 @@ import {
   TransportPanel, StatusDisplay, ControlPanel, ProgressDisplay
 } from './apps/speechrecorder/speechrecorder'
 import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simpletrafficlight'
-import {SessionService} from "./apps/speechrecorder/session.service";
+import {SessionService} from "./apps/speechrecorder/session/session.service";
 import {HttpModule} from "@angular/http";
 
 const appRoutes: Routes = [
