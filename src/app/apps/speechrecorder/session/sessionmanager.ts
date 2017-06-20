@@ -180,12 +180,12 @@ export class ProgressDisplay{
   selector: 'app-sprtransport',
 
   template: `
-    <button id="bwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
+    <button id="bwdBtn" (click)="prevItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
     <button id="startBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
     <button id="stopBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
     <button id="nextBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
     <button id="pauseBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
-    <button id="fwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
+    <button id="fwdBtn" (click)="nextItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
 
   `,
   styles: [`:host{
@@ -209,6 +209,14 @@ export class ProgressDisplay{
 })
 
 export class TransportPanel{
+     sessionManager:SessionManager;
+
+     nextItem(){
+         this.sessionManager.nextItem();
+     }
+    prevItem(){
+        this.sessionManager.prevItem();
+    }
 }
 
 @Component({
@@ -235,6 +243,7 @@ export class TransportPanel{
 
 export class ControlPanel{
   @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
+    @ViewChild(TransportPanel) transportPanel:TransportPanel;
 }
 
 
@@ -381,6 +390,7 @@ export class SessionManager implements AudioCaptureListener {
   ngAfterViewInit() {
       this.startStopSignal=this.prompting.simpleTrafficLight;
       this.progress=this.prompting.progress;
+      this.controlPanel.transportPanel.sessionManager=this;
   }
 
         init() {
@@ -529,10 +539,10 @@ export class SessionManager implements AudioCaptureListener {
 
 
         startItem() {
-            this.bwdBtn.disabled = true;
+            //this.bwdBtn.disabled = true;
             this.startAction.disabled = true;
             this.pauseAction.disabled = true;
-            this.fwdBtn.disabled = true;
+            //this.fwdBtn.disabled = true;
             this.displayRecFile = null;
             this.displayRecFileVersion = 0;
             this.showRecording();
@@ -600,10 +610,10 @@ export class SessionManager implements AudioCaptureListener {
         }
 
 
-        unselectItem() {
-            let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
-            promptLineEl.classList.remove('bg-info');
-        }
+        // unselectItem() {
+        //     let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
+        //     promptLineEl.classList.remove('bg-info');
+        // }
 
         clearPrompt() {
           //  let prompterEl = <HTMLElement>(document.getElementById('prompter'));
@@ -702,6 +712,7 @@ export class SessionManager implements AudioCaptureListener {
                // this.showRecording();
             }
 
+            this.progress.setSelected(this.sectIdx,this.prmptIdx);
 
             // let th = document.getElementById('progressTableHeader');
             // th.scrollIntoView();
@@ -778,7 +789,7 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         prevItem() {
-            this.unselectItem();
+            //this.unselectItem();
             let scriptLength = this._script.sections.length;
 
             this.prmptIdx--;
@@ -795,7 +806,7 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         nextItem() {
-            this.unselectItem();
+            //this.unselectItem();
             let scriptLength = this._script.sections.length;
             let currSectLength = this._script.sections[this.sectIdx].promptUnits.length;
             this.prmptIdx++;
