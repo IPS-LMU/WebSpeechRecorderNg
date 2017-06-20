@@ -6,6 +6,7 @@ import { AppComponent } from './app.component';
 import {AudioClipUIContainer} from './audio/ui/container';
 import {AudioDisplay} from './apps/audio/audio_display';
 
+import { Progress } from './apps/speechrecorder/session/progress'
 import {
   SpeechRecorder, Prompting, PromptContainer, Prompter,
   TransportPanel, StatusDisplay, ControlPanel, ProgressDisplay
@@ -13,6 +14,7 @@ import {
 import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simpletrafficlight'
 import {SessionService} from "./apps/speechrecorder/session/session.service";
 import {HttpModule} from "@angular/http";
+import {ScriptService} from "./apps/speechrecorder/script/script.service";
 
 const appRoutes: Routes = [
 
@@ -28,14 +30,14 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SpeechRecorder,Prompting,PromptContainer,Prompter,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
+    AppComponent,SpeechRecorder,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
       RouterModule.forRoot(appRoutes),
       HttpModule,
     BrowserModule
   ],
-  providers: [SessionService],
+  providers: [SessionService,ScriptService],
 
   bootstrap: [AppComponent]
 })

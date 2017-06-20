@@ -16,7 +16,9 @@ export class ScriptService {
 
         // TODO REST without .json extension !!
        let scriptProms=this.http.get(this.scriptsUrl+id+'.json').toPromise()
-           .then(response => {return response.json();})
+           .then(response => {
+             return response.json();
+           })
            .catch(this.handleError);
        return scriptProms;
    }

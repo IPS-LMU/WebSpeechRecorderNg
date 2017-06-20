@@ -64,7 +64,7 @@ import { Action } from '../../../action/action'
         fwdBtn: HTMLInputElement;
         dnlLnk: HTMLAnchorElement;
         playStartAction: Action;
-        statusMsg: HTMLElement;
+        //statusMsg: HTMLElement;
         titleEl: HTMLElement;
         audio: any;
 
@@ -115,7 +115,7 @@ import { Action } from '../../../action/action'
               //  this.audioSignal = new AudioClipUIContainer(asc);
             }
             this.selCaptureDeviceId=null;
-            this.statusMsg = <HTMLElement>(document.getElementById('status'));
+            //this.statusMsg = <HTMLElement>(document.getElementById('status'));
             this.titleEl = <HTMLElement>(document.getElementById('title'));
 
             // let asCollapseEl=<HTMLDivElement>(document.querySelector('#collapse1'));
@@ -167,7 +167,7 @@ import { Action } from '../../../action/action'
 
             AudioContext = w.AudioContext || w.webkitAudioContext;
             if (typeof AudioContext !== 'function') {
-                this.statusMsg.innerHTML = 'ERROR: Browser does not support Web Audio API!';
+               // this.statusMsg.innerHTML = 'ERROR: Browser does not support Web Audio API!';
             } else {
                 let context = new AudioContext();
 
@@ -192,7 +192,7 @@ import { Action } from '../../../action/action'
 
                     } else {
                         this.startAction.disabled = true;
-                        this.statusMsg.innerHTML = 'ERROR: Browser does not support Media/Audio API!';
+                        //this.statusMsg.innerHTML = 'ERROR: Browser does not support Media/Audio API!';
                     }
                     this.stopAction.onAction = () => this.stopItem();
                     document.addEventListener('keydown', (e) => {
@@ -230,7 +230,7 @@ import { Action } from '../../../action/action'
 
                     }, false);
 
-
+                    // TODO
                     // this.dnlLnk.addEventListener('click', () => {
                     //     this.downloadRecording();
                     // });
@@ -248,7 +248,7 @@ import { Action } from '../../../action/action'
 
 
                 } else {
-                    this.statusMsg.innerHTML = 'ERROR: Browser does not support Media streams!';
+                   // this.statusMsg.innerHTML = 'ERROR: Browser does not support Media streams!';
                 }
             }
             this.ac.listDevices();
@@ -325,26 +325,26 @@ import { Action } from '../../../action/action'
                 for (let pi = 0; pi < pisLen; pi++) {
                     let piE = pis[pi];
 
-                    let trE = document.createElement('tr');
-                    trE.setAttribute('id', 'promptIndex_' + ln);
-                    let tdIdxE = document.createElement('td');
-                    tdIdxE.appendChild(document.createTextNode(ln.toString()));
-                    let tdPrE = document.createElement('td');
-                    tdPrE.appendChild(document.createTextNode(piE.mediaitems[0].text));
+                    // let trE = document.createElement('tr');
+                    // trE.setAttribute('id', 'promptIndex_' + ln);
+                    // let tdIdxE = document.createElement('td');
+                    // tdIdxE.appendChild(document.createTextNode(ln.toString()));
+                    // let tdPrE = document.createElement('td');
+                    // tdPrE.appendChild(document.createTextNode(piE.mediaitems[0].text));
 
                     // status table cell unchecked icon
-                    let tdStE = document.createElement('td');
-                    let stIc=document.createElement('span');
-                    stIc.setAttribute('id','promptIndex_'+ln+"_status");
-                    stIc.classList.add('glyphicon');
-                     stIc.classList.add('glyphicon-unchecked');
-                     tdStE.appendChild(stIc);
-
-                    trE.appendChild(tdIdxE);
-                    trE.appendChild(tdPrE);
-                    trE.appendChild(tdStE);
-
-                    tbE.appendChild(trE);
+                    // let tdStE = document.createElement('td');
+                    // let stIc=document.createElement('span');
+                    // stIc.setAttribute('id','promptIndex_'+ln+"_status");
+                    // stIc.classList.add('glyphicon');
+                    //  stIc.classList.add('glyphicon-unchecked');
+                    //  tdStE.appendChild(stIc);
+                    //
+                    // trE.appendChild(tdIdxE);
+                    // trE.appendChild(tdPrE);
+                    // trE.appendChild(tdStE);
+                    //
+                    // tbE.appendChild(trE);
 
                     let it = new Item(section.training);
                     this.items.push(it);
@@ -371,14 +371,14 @@ import { Action } from '../../../action/action'
         }
 
         clearPrompt() {
-            let prompterEl = <HTMLElement>(document.getElementById('prompter'));
-            prompterEl.innerText = '';
+          //  let prompterEl = <HTMLElement>(document.getElementById('prompter'));
+          //  prompterEl.innerText = '';
         }
 
         applyPrompt() {
-            let prText = this.promptUnit.mediaitems[0].text;
-            let prompterEl = <HTMLElement>(document.getElementById('prompter'));
-            prompterEl.innerText = prText;
+           // let prText = this.promptUnit.mediaitems[0].text;
+           // let prompterEl = <HTMLElement>(document.getElementById('prompter'));
+            //prompterEl.innerText = prText;
 
         }
 
@@ -464,14 +464,14 @@ import { Action } from '../../../action/action'
             } else {
                 this.displayRecFile = null;
                 this.displayRecFileVersion = 0;
-                this.showRecording();
+               // this.showRecording();
             }
-            let th = document.getElementById('progressTableHeader');
-            th.scrollIntoView();
-            let itemTr = document.getElementById('promptIndex_' + this.currPromptIndex());
-            itemTr.scrollIntoView(false);
-
-            this.audioSignal.layout();
+            // let th = document.getElementById('progressTableHeader');
+            // th.scrollIntoView();
+            // let itemTr = document.getElementById('promptIndex_' + this.currPromptIndex());
+            // itemTr.scrollIntoView(false);
+            //
+            // this.audioSignal.layout();
             this._startStopSignal.setStatus(State.IDLE);
             this.bwdBtn.disabled = false;
             this.fwdBtn.disabled = false;
@@ -482,7 +482,7 @@ import { Action } from '../../../action/action'
         start() {
 
             if (this.ac) {
-                this.statusMsg.innerHTML = 'Requesting audio permissions...';
+                //this.statusMsg.innerHTML = 'Requesting audio permissions...';
 
                 if (this._audioDevices) {
                   let fdi=null;
@@ -526,7 +526,7 @@ import { Action } from '../../../action/action'
                     }else {
                       // device not found
                       // TODO more user friendly ("Please plug audio device ... bla")
-                      this.statusMsg.innerHTML = 'ERROR: Required audio device not available!';
+                      //this.statusMsg.innerHTML = 'ERROR: Required audio device not available!';
                     }
                   });
                 } else {
@@ -571,7 +571,7 @@ import { Action } from '../../../action/action'
 
 
         opened() {
-            this.statusMsg.innerHTML = 'Ready.';
+            //this.statusMsg.innerHTML = 'Ready.';
             this.startAction.disabled = false;
         }
 
@@ -586,7 +586,7 @@ import { Action } from '../../../action/action'
             if (this.section.promptphase === 'PRERECORDING') {
                 this.applyPrompt();
             }
-            this.statusMsg.innerHTML = 'Recording...';
+            //this.statusMsg.innerHTML = 'Recording...';
 
             let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
             if (this.promptUnit.recduration) {
@@ -675,7 +675,7 @@ import { Action } from '../../../action/action'
             this.nextAction.disabled = true;
             this.pauseAction.disabled = true;
             // console.log("Spr: capture stopped");
-            this.statusMsg.innerHTML = 'Recorded.';
+            //this.statusMsg.innerHTML = 'Recorded.';
             // this.statusMsg.classList.remove('alert-info');
             // this.statusMsg.classList.remove('alert-danger');
             // this.statusMsg.classList.add('alert-success');
@@ -730,7 +730,7 @@ import { Action } from '../../../action/action'
             }
 
             if (complete) {
-                this.statusMsg.innerHTML = 'Session complete!';
+               // this.statusMsg.innerHTML = 'Session complete!';
             } else {
 
                 if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -754,12 +754,12 @@ import { Action } from '../../../action/action'
         }
 
         closed() {
-            this.statusMsg.innerHTML = 'Session closed.';
+           // this.statusMsg.innerHTML = 'Session closed.';
         }
 
 
         error() {
-            this.statusMsg.innerHTML = 'ERROR: Recording.';
+            //this.statusMsg.innerHTML = 'ERROR: Recording.';
             // this.statusMsg.classList.remove('alert-info');
             // this.statusMsg.classList.add('alert-danger');
         }

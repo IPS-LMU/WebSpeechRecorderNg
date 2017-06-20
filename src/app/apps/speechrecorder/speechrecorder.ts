@@ -13,6 +13,8 @@ import { Mode as SessionMode } from './session/sessionmanager';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
 import {SessionService} from "./session/session.service";
+import {ScriptService} from "./script/script.service";
+import {Progress} from "./session/progress";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -51,7 +53,7 @@ export class Prompter{
     ,
     styles: [`:host{
 
-      flex: 10; /* the container consumes all available space */
+      flex: 3 1; /* the container consumes all available space */
       padding: 10pt;
       height: 100%;
       justify-content: center; /* align horizontal center*/
@@ -76,6 +78,8 @@ export class PromptContainer{
   template: `
   
     <app-simpletrafficlight></app-simpletrafficlight>
+    <app-sprpromptcontainer></app-sprpromptcontainer>
+    <app-sprprogress class="hidden-xs"></app-sprprogress>
     
     
 
@@ -103,6 +107,12 @@ export class PromptContainer{
 })
 
 export class Prompting{
+    @ViewChild(Progress) progress:Progress;
+    // set script(script:Script){
+    //   // delegate script
+    //   this.progress.script=script;
+    // }
+
 }
 
 @Component({
@@ -246,13 +256,13 @@ export class SpeechRecorder implements AudioPlayerListener {
     session:any;
     script:Script;
         dataSaved: boolean = true;
-
+  @ViewChild(Prompting) prompting:Prompting;
         @ViewChild(ControlPanel) controlPanel:ControlPanel;
 
     currentPromptIdx:number;
 
 		constructor(private route: ActivatedRoute,
-                    private router: Router,private sessionsService:SessionService) {
+                    private router: Router,private sessionsService:SessionService,private scriptService:ScriptService) {
 			this.audio = document.getElementById('audio');
 			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
             this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
@@ -269,7 +279,16 @@ export class SpeechRecorder implements AudioPlayerListener {
     }
        ngAfterViewInit(){
         this.route.params.subscribe((params:Params)=>{
-            let sess= this.sessionsService.getSession(params['id']).then(sess=> this.setSession(sess))
+            let sess= this.sessionsService.getSession(params['id']).then(sess=> {
+              this.setSession(sess);
+              this.init();
+              if(sess.project){
+                //TODO fetch project then fetchScript
+                this.fetchScript(sess);
+              }else{
+                this.fetchScript(sess);
+              }
+            })
             .catch(reason =>{
                 this.controlPanel.statusDisplay.statusMsg=reason;
                 this.controlPanel.statusDisplay.statusAlertType='error';
@@ -278,10 +297,27 @@ export class SpeechRecorder implements AudioPlayerListener {
         })
     }
 
+
+    fetchScript(sess:any){
+      if(sess.script){
+        this.scriptService.getScript(sess.script).then(script=>{
+          this.setScript(script)
+          this.sm.start();
+        })
+          .catch(reason =>{
+            this.controlPanel.statusDisplay.statusMsg=reason;
+            this.controlPanel.statusDisplay.statusAlertType='error';
+            console.log("Error fetching script "+reason)
+          });;
+      }
+    }
+
+
         setSession(session:any){
 		    if(session) {
                 console.log("Session ID: " + session.sessionId);
-                this.init();
+
+
             }else{
                 console.log("Session Undefined");
             }
@@ -385,33 +421,6 @@ export class SpeechRecorder implements AudioPlayerListener {
     configure() {
 
 
-      let hn: string = window.location.hostname;
-      let pn: string = window.location.pathname;
-      let pr: string = window.location.protocol;
-      let po: string = window.location.port;
-      let se: string = window.location.search;
-
-      let qs: string = se.substring(1);
-
-      this.sessionId = null;
-      this.mode = Mode.SINGLE_SESSION;
-
-      let ps = qs.split('&');
-      for (var i = 0; i < ps.length; i++) {
-        let kv: Array<string> = ps[i].split('=');
-        let dkey: string = decodeURIComponent(kv[0]);
-        let dval: string = decodeURIComponent(kv[1]);
-        if (dkey == 'sessionId') {
-          this.sessionId = dval;
-        } else if (dkey == 'mode') {
-          if (dval == 'single_session') {
-            this.mode = Mode.SINGLE_SESSION;
-          } else if (dval == 'demo') {
-            this.mode = Mode.DEMO;
-          }
-        }
-      }
-
 
       this.loadProjectCfg(() => {
         // display project name
@@ -420,52 +429,31 @@ export class SpeechRecorder implements AudioPlayerListener {
           prName = this.project.name;
         }
         this.titleEl.innerText = prName;
-        this.loadSessionData(()=>{
-          this.loadScript(()=>{
-            let chCnt=2;
-            if(this.project.audioFormat){
-              chCnt=this.project.audioFormat.channels;
-            }
-            this.sm.channelCount=chCnt;
-            this.sm.audioDevices=this.project.audioDevices;
-            this.sm.start();
-          })
-        });
+
       });
 
     }
 
-    loadSessionData(callback: ()=>any){
-      let sessUrl: string = null;
-      if (this.sessionId === null) {
-        if (window.location.hostname === 'localhost' || this.mode === Mode.DEMO) {
-          this.sm.mode = SessionMode.STAND_ALONE;
-          // debug or demo mode
-          sessUrl = 'test/test_session.json?' + new Date().getTime();
-        } else {
-          alert("No session ID !!");
-          return;
-        }
-      } else {
-        this.sm.mode = SessionMode.SERVER_BOUND;
-        sessUrl =window.location.protocol + '//' +window.location.hostname + ':' + window.location.port + '/wikispeech/rest/sessions/' + this.sessionId;
-      }
-      var sLoader = new XMLHttpRequest();
-      sLoader.open("GET", sessUrl, true);
-      sLoader.setRequestHeader('Accept', 'application/json');
-      sLoader.responseType = "json";
-      sLoader.onload = (e) => {
 
-        this.session = sLoader.response;
-        this.sm.session = this.session;
-        callback();
-      }
-      sLoader.onerror = (e) => {
-        console.log("Error downloading session data ...");
-      }
-      sLoader.send();
-
+    setScript(script:any){
+        this.script=script;
+        this.sm.script = this.script;
+        this.prompting.progress.script=this.script;
     }
+
+
+  setProject(project: any) {
+    let chCnt = 2;
+
+    if (this.project.audioFormat) {
+      chCnt = this.project.audioFormat.channels;
+    }
+    this.sm.channelCount = chCnt;
+    this.sm.audioDevices = this.project.audioDevices;
+  }
+
+
+
 
     loadProjectCfg(callback: ()=> any){
       let projUrl: string = null;
