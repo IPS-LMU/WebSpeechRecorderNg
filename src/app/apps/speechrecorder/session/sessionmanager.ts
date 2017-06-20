@@ -14,6 +14,10 @@ import { Action } from '../../../action/action'
 
     import { RecordingFile } from '../recording'
     import { Uploader,Upload } from '../../../net/uploader';
+import {Component,ViewChild} from "@angular/core";
+import {Progress} from "./progress";
+import {SessionService} from "./session.service";
+import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 
 
 
@@ -35,15 +39,238 @@ import { Action } from '../../../action/action'
 
     }
 
-    export class SessionManager implements AudioCaptureListener {
+// TODO enum not possible in template language , use string for now
+//export enum StatusAlertType {INFO,WARN,ERROR};
+@Component({
+
+  selector: 'app-sprprompter',
+
+  template: `
+
+    <span #prompt>Here is a text ... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 2</span>
+  `,
+  styles: [`div{
+
+    justify-content: center; /* align horizontal center */
+    align-items: center; /* align vertical  center */
+    background: white;
+    text-align: center;
+    font-size: 20pt;
+    flex: 0 1;
+  }
+  `]
+})
+export class Prompter{
+
+}
+
+@Component({
+
+  selector: 'app-sprpromptcontainer',
+
+  template: `
+    <app-sprprompter></app-sprprompter>
+  `
+  ,
+  styles: [`:host{
+
+    flex: 3 1; /* the container consumes all available space */
+    padding: 10pt;
+    height: 100%;
+    justify-content: center; /* align horizontal center*/
+    align-items: center; /* align vertical center */
+    background: white;
+    text-align: center;
+
+
+    display: flex;
+    flex-direction:column;
+  }
+  `]
+})
+export class PromptContainer{
+
+}
+
+@Component({
+
+  selector: 'app-sprprompting',
+
+  template: `
+
+    <app-simpletrafficlight></app-simpletrafficlight>
+    <app-sprpromptcontainer></app-sprpromptcontainer>
+    <app-sprprogress class="hidden-xs"></app-sprprogress>
+
+
+
+  `,
+  styles: [`:host{
+
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: yellow;
+    width: 100%; /* use all horizontal availible space */
+    flex: 3; /* ... and fill rest of vertical available space (other components have flex 0) */
+
+    /* Workaround for Firefox
+    If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
+    the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
+    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+    */
+    min-height:0;
+    display: flex; /* flex container: left traffic light, right prompter (container) */
+    flex-direction: row;
+    flex-wrap: nowrap; /* wrap could completely destroy the layout */
+  }`]
+
+})
+
+export class Prompting{
+  @ViewChild(SimpleTrafficLight) simpleTrafficLight:SimpleTrafficLight;
+  @ViewChild(Progress) progress:Progress;
+  // set script(script:Script){
+  //   // delegate script
+  //   this.progress.script=script;
+  // }
+
+}
+
+@Component({
+
+  selector: 'app-sprstatusdisplay',
+
+  template: `
+    <p class="alert" [class.alert-info]="statusAlertType==='info'" [class.alert-danger]="statusAlertType==='error'" >{{statusMsg}}</p>
+  `,
+  styles: [`:host{
+    flex: 1;
+  //align-self: flex-start;
+    display: inline;
+    text-align:left;
+  }`]
+
+})
+
+export class StatusDisplay{
+  statusAlertType='info';
+  statusMsg='Initialize...';
+
+}
+
+@Component({
+  selector: 'app-sprprogressdisplay',
+  template: `
+    <p>{{progressMsg}}</p>
+  `,
+  styles: [`:host{
+    flex: 1;
+  //align-self: flex-start;
+    display: inline;
+    text-align:left;
+  }`]
+})
+export class ProgressDisplay{
+  progressMsg='[itemcode]';
+}
+
+@Component({
+
+  selector: 'app-sprtransport',
+
+  template: `
+    <button id="bwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
+    <button id="startBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
+    <button id="stopBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+    <button id="nextBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
+    <button id="pauseBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
+    <button id="fwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
+
+  `,
+  styles: [`:host{
+    flex: 10;
+    align-self: center;
+    width: 100%;
+    text-align: center;
+  //display: inline;
+  //display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel *!*/
+
+  //flex-direction: row;
+    align-content: center;
+    margin: 0;
+    padding: 0;
+  }`,`
+    div {
+      display:inline;
+      flex: 0;
+    }`]
+
+})
+
+export class TransportPanel{
+}
+
+@Component({
+
+  selector: 'app-sprcontrolpanel',
+
+  template: `
+    <app-sprstatusdisplay></app-sprstatusdisplay><app-sprtransport></app-sprtransport><app-sprprogressdisplay></app-sprprogressdisplay>
+  `,
+  styles: [`:host{
+    flex: 0; /* only required vertical space */
+    width: 100%; /* available horizontal sace */
+    display: inline;
+    display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    min-height: min-content; /* important */
+  }`]
+
+})
+
+export class ControlPanel{
+  @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
+}
+
+
+@Component({
+
+  selector: 'app-sprrecordingsession',
+  providers: [SessionService],
+  template: `
+
+    <app-sprprompting></app-sprprompting>
+    <app-sprcontrolpanel></app-sprcontrolpanel>
+  `,
+  styles: [`:host{
+    width: 100%;
+    height: 100%;
+    background: orange;
+
+    display: flex;   /* Vertical flex container: Bottom transport panel, above prompting panel */
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+  }`]
+
+})
+export class SessionManager implements AudioCaptureListener {
 
         status: Status;
         mode: Mode;
-        _startStopSignal: StartStopSignal;
+
         private uploader: Uploader;
         ac: AudioCapture;
         private _channelCount: number;
-
+        @ViewChild(Prompting) prompting:Prompting;
+        private startStopSignal:StartStopSignal;
+  private progress:Progress;
+  @ViewChild(ControlPanel) controlPanel:ControlPanel;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:any;
         private selCaptureDeviceId: ConstrainDOMString;
@@ -85,11 +312,13 @@ import { Action } from '../../../action/action'
 
         promptItemCount: number;
 
-        constructor(startStopSignal: StartStopSignal, uploader: Uploader) {
+        promptItemIndex=0;
+
+        constructor() {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
-            this._startStopSignal = startStopSignal;
-            this.uploader = uploader;
+            //this._startStopSignal = startStopSignal;
+            //this.uploader = uploader;
             this.bwdBtn = <HTMLInputElement>(document.getElementById('bwdBtn'));
             let startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
             this.startAction = new Action('Start');
@@ -149,16 +378,21 @@ import { Action } from '../../../action/action'
 
         }
 
+  ngAfterViewInit() {
+      this.startStopSignal=this.prompting.simpleTrafficLight;
+      this.progress=this.prompting.progress;
+  }
+
         init() {
             this.sectIdx = 0;
             this.prmptIdx = 0;
             this.autorecording = false;
-            this.bwdBtn.disabled = true;
+            //this.bwdBtn.disabled = true;
             this.startAction.disabled = true;
             this.stopAction.disabled = true;
             this.nextAction.disabled = true;
             this.pauseAction.disabled = true;
-            this.fwdBtn.disabled = true;
+            //this.fwdBtn.disabled = true;
             this.playStartAction.disabled = true;
             //let n = <any>navigator;
             //var getUserMediaFnct= n.getUserMedia || n.webkitGetUserMedia ||
@@ -219,16 +453,16 @@ import { Action } from '../../../action/action'
                             this.pauseAction.perform();
                         }
                     }, false);
-                    this.bwdBtn.addEventListener('click', () => {
-
-                        this.prevItem();
-
-                    }, false);
-                    this.fwdBtn.addEventListener('click', () => {
-
-                        this.nextItem();
-
-                    }, false);
+                    // this.bwdBtn.addEventListener('click', () => {
+                    //
+                    //     this.prevItem();
+                    //
+                    // }, false);
+                    // this.fwdBtn.addEventListener('click', () => {
+                    //
+                    //     this.nextItem();
+                    //
+                    // }, false);
 
                     // TODO
                     // this.dnlLnk.addEventListener('click', () => {
@@ -252,7 +486,7 @@ import { Action } from '../../../action/action'
                 }
             }
             this.ac.listDevices();
-            this._startStopSignal.setStatus(State.OFF);
+            this.startStopSignal.setStatus(State.OFF);
         }
 
         set session(session: any) {
@@ -265,6 +499,7 @@ import { Action } from '../../../action/action'
 
             this.sectIdx = 0;
             this.prmptIdx = 0;
+            this.progress.script=script;
             this.applyItem();
 
         }
@@ -466,15 +701,20 @@ import { Action } from '../../../action/action'
                 this.displayRecFileVersion = 0;
                // this.showRecording();
             }
+
+
             // let th = document.getElementById('progressTableHeader');
             // th.scrollIntoView();
             // let itemTr = document.getElementById('promptIndex_' + this.currPromptIndex());
             // itemTr.scrollIntoView(false);
+
+            //TODO Ng: Build scrollIntoView directive
+
             //
             // this.audioSignal.layout();
-            this._startStopSignal.setStatus(State.IDLE);
-            this.bwdBtn.disabled = false;
-            this.fwdBtn.disabled = false;
+            this.startStopSignal.setStatus(State.IDLE);
+            // this.bwdBtn.disabled = false;
+            // this.fwdBtn.disabled = false;
         }
 
 
@@ -581,7 +821,7 @@ import { Action } from '../../../action/action'
 
             console.log("Spr: capture started");
 
-            this._startStopSignal.setStatus(State.PRERECORDING);
+            this.startStopSignal.setStatus(State.PRERECORDING);
 
             if (this.section.promptphase === 'PRERECORDING') {
                 this.applyPrompt();
@@ -609,7 +849,7 @@ import { Action } from '../../../action/action'
 
                 this.preRecTimerRunning = false;
                 this.status = Status.RECORDING;
-                this._startStopSignal.setStatus(State.RECORDING);
+                this.startStopSignal.setStatus(State.RECORDING);
                 if (this.section.mode === 'AUTORECORDING') {
                     this.nextAction.disabled = false;
                     this.pauseAction.disabled = false;
@@ -625,7 +865,7 @@ import { Action } from '../../../action/action'
 
         stopItem() {
             this.status = Status.POST_REC_STOP;
-            this._startStopSignal.setStatus(State.POSTRECORDING);
+            this.startStopSignal.setStatus(State.POSTRECORDING);
             this.stopAction.disabled = true;
             this.nextAction.disabled = true;
             let postDelay = 500;
@@ -644,7 +884,7 @@ import { Action } from '../../../action/action'
         pauseItem() {
             this.status = Status.POST_REC_PAUSE;
             this.pauseAction.disabled = true;
-            this._startStopSignal.setStatus(State.POSTRECORDING);
+            this.startStopSignal.setStatus(State.POSTRECORDING);
             this.stopAction.disabled = true;
             this.nextAction.disabled = true;
             this.pauseAction.disabled = true;
@@ -679,7 +919,7 @@ import { Action } from '../../../action/action'
             // this.statusMsg.classList.remove('alert-info');
             // this.statusMsg.classList.remove('alert-danger');
             // this.statusMsg.classList.add('alert-success');
-            this._startStopSignal.setStatus(State.IDLE);
+            this.startStopSignal.setStatus(State.IDLE);
 
             let ad = this.ac.audioBuffer();
             let ic = this._script.sections[this.sectIdx].promptUnits[this.prmptIdx].itemcode;

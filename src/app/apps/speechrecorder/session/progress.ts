@@ -14,7 +14,7 @@ import {Script} from "../script/script";
       <tbody>
       <ng-container *ngIf="script">
     <ng-container *ngFor="let section of script.sections; let si = index;">
-      <tr *ngFor="let promptUnit of section.promptUnits; let pi=index;"><td>{{si}}:{{pi}}</td><td>{{promptUnit.mediaitems[0].text}}</td><td><span class="glyphicon glyphicon-unchecked"></span></td></tr>
+      <tr *ngFor="let promptUnit of section.promptUnits; let pi=index;" [class.bg-info]="si===0 && pi===1"><td>{{si}}:{{pi}}</td><td>{{promptUnit.mediaitems[0].text}}</td><td><span class="glyphicon glyphicon-unchecked"></span></td></tr>
     </ng-container>
       </ng-container>
       </tbody>
@@ -39,5 +39,10 @@ import {Script} from "../script/script";
 })
 export class Progress{
   script: Script;
-
+  sectionIdx:number;
+  promptIndex:number
+  setSelected(sectionIdx:number,promptIndex:number){
+    this.sectionIdx=sectionIdx;
+    this.promptIndex=promptIndex;
+  }
 }

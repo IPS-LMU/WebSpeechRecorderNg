@@ -1,6 +1,6 @@
 import {Component, ViewChild, ViewChildDecorator} from '@angular/core'
 
-import { Mode as SessionMode } from './session/sessionmanager';
+import {ControlPanel, Mode as SessionMode, Prompting, StatusDisplay} from './session/sessionmanager';
 	import {AudioCaptureListener} from '../../audio/capture/capture';
 	import {AudioPlayer,AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../../audio/playback/player';
   import {AudioSignal } from '../../audio/ui/audiosignal';
@@ -18,221 +18,17 @@ import {Progress} from "./session/progress";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
-  // TODO enum not possible in template language , use string for now
-//export enum StatusAlertType {INFO,WARN,ERROR};
-@Component({
-
-  selector: 'app-sprprompter',
-
-  template: `
-   
-      <span #prompt>Here is a text ... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 2</span>
-      `,
-  styles: [`div{
-
-      justify-content: center; /* align horizontal center */
-      align-items: center; /* align vertical  center */
-      background: white;
-      text-align: center;
-      font-size: 20pt;
-      flex: 0 1; 
-    }
-  `]
-})
-export class Prompter{
-
-}
-
-@Component({
-
-    selector: 'app-sprpromptcontainer',
-
-    template: `      
-        <app-sprprompter></app-sprprompter>
-        `
-    ,
-    styles: [`:host{
-
-      flex: 3 1; /* the container consumes all available space */
-      padding: 10pt;
-      height: 100%;
-      justify-content: center; /* align horizontal center*/
-      align-items: center; /* align vertical center */
-      background: white;
-      text-align: center;
-      
-
-      display: flex;
-      flex-direction:column;
-    }
-    `]
-})
-export class PromptContainer{
-
-}
-
-@Component({
-
-  selector: 'app-sprprompting',
-
-  template: `
-  
-    <app-simpletrafficlight></app-simpletrafficlight>
-    <app-sprpromptcontainer></app-sprpromptcontainer>
-    <app-sprprogress class="hidden-xs"></app-sprprogress>
-    
-    
-
-  `,
-  styles: [`:host{
-   
-      height: 100%;
-      margin: 0;
-      padding: 0;
-       background: yellow;
-      width: 100%; /* use all horizontal availible space */
-      flex: 3; /* ... and fill rest of vertical available space (other components have flex 0) */ 
-
-      /* Workaround for Firefox
-      If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
-      the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
-      See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
-      */  
-      min-height:0;
-      display: flex; /* flex container: left traffic light, right prompter (container) */
-    flex-direction: row;
-    flex-wrap: nowrap; /* wrap could completely destroy the layout */
-  }`]
-
-})
-
-export class Prompting{
-    @ViewChild(Progress) progress:Progress;
-    // set script(script:Script){
-    //   // delegate script
-    //   this.progress.script=script;
-    // }
-
-}
-
-@Component({
-
-  selector: 'app-sprstatusdisplay',
-
-  template: `
-    <p class="alert" [class.alert-info]="statusAlertType==='info'" [class.alert-danger]="statusAlertType==='error'" >{{statusMsg}}</p>
-  `,
-  styles: [`:host{
-    flex: 1;
-    //align-self: flex-start;
-    display: inline;
-  text-align:left;
-  }`]
-
-})
-
-export class StatusDisplay{
-    statusAlertType='info';
-    statusMsg='Initialize...';
-
-}
-
-@Component({
-    selector: 'app-sprprogressdisplay',
-    template: `
-        <p>{{progressMsg}}</p>
-    `,
-    styles: [`:host{
-        flex: 1;
-    //align-self: flex-start;
-        display: inline;
-        text-align:left;
-    }`]
-})
-export class ProgressDisplay{
-    progressMsg='[itemcode]';
-}
-
-@Component({
-
-  selector: 'app-sprtransport',
-
-  template: `
-    <button id="bwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
-      <button id="startBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
-      <button id="stopBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
-      <button id="nextBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
-      <button id="pauseBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
-      <button id="fwdBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
-  
-  `,
-  styles: [`:host{
-    flex: 10;
-    align-self: center;
-    width: 100%;
-    text-align: center;
-    //display: inline;
-    //display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel *!*/
-
-    //flex-direction: row;
-    align-content: center;
-    margin: 0;
-    padding: 0;
-  }`,`
-  div {
-    display:inline;
-    flex: 0;
-  }`]
-
-})
-
-export class TransportPanel{
-}
-
-@Component({
-
-  selector: 'app-sprcontrolpanel',
-
-  template: `
-    <app-sprstatusdisplay></app-sprstatusdisplay><app-sprtransport></app-sprtransport><app-sprprogressdisplay></app-sprprogressdisplay>
-  `,
-  styles: [`:host{
-    flex: 0; /* only required vertical space */
-    width: 100%; /* available horizontal sace */
-    display: inline;
-    display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
-    flex-direction: row;
-    align-content: center;
-    align-items: center;
-    margin: 0;
-    padding: 0;  
-      min-height: min-content; /* important */
-  }`]
-
-})
-
-export class ControlPanel{
-      @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
-}
-
-
 
 @Component({
 
   selector: 'app-speechrecorder',
-    providers: [SessionService],
+  providers: [SessionService],
   template: `
-    
-      <app-sprprompting></app-sprprompting>
-        <app-sprcontrolpanel></app-sprcontrolpanel>
-    `,
+    <app-sprrecordingsession></app-sprrecordingsession>
+  `,
   styles: [`:host{
     width: 100%;
     height: 100%;
-    background: orange;
-    
-    display: flex;   /* Vertical flex container: Bottom transport panel, above prompting panel */ 
-    flex-direction: column;
     margin: 0;
     padding: 0;
   }`]
@@ -241,7 +37,7 @@ export class ControlPanel{
 export class SpeechRecorder implements AudioPlayerListener {
 
 	  mode:Mode;
-		sm:SessionManager;
+
 		ap:AudioPlayer;
         uploader: Uploader;
 		//audioSignal:AudioClipUIContainer;
@@ -256,8 +52,9 @@ export class SpeechRecorder implements AudioPlayerListener {
     session:any;
     script:Script;
         dataSaved: boolean = true;
-  @ViewChild(Prompting) prompting:Prompting;
-        @ViewChild(ControlPanel) controlPanel:ControlPanel;
+  @ViewChild(SessionManager) sm:SessionManager;
+    statusDisplay:StatusDisplay;
+
 
     currentPromptIdx:number;
 
@@ -278,6 +75,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 		    //
     }
        ngAfterViewInit(){
+		    this.statusDisplay=this.sm.controlPanel.statusDisplay;
         this.route.params.subscribe((params:Params)=>{
             let sess= this.sessionsService.getSession(params['id']).then(sess=> {
               this.setSession(sess);
@@ -290,8 +88,8 @@ export class SpeechRecorder implements AudioPlayerListener {
               }
             })
             .catch(reason =>{
-                this.controlPanel.statusDisplay.statusMsg=reason;
-                this.controlPanel.statusDisplay.statusAlertType='error';
+                this.statusDisplay.statusMsg=reason;
+                this.statusDisplay.statusAlertType='error';
                 console.log("Error fetching session "+reason)
             });
         })
@@ -305,8 +103,8 @@ export class SpeechRecorder implements AudioPlayerListener {
           this.sm.start();
         })
           .catch(reason =>{
-            this.controlPanel.statusDisplay.statusMsg=reason;
-            this.controlPanel.statusDisplay.statusAlertType='error';
+            this.statusDisplay.statusMsg=reason;
+            this.statusDisplay.statusAlertType='error';
             console.log("Error fetching script "+reason)
           });;
       }
@@ -333,18 +131,18 @@ export class SpeechRecorder implements AudioPlayerListener {
 
 			AudioContext = w.AudioContext || w.webkitAudioContext;
 			if (typeof AudioContext !== 'function') {
-                this.controlPanel.statusDisplay.statusAlertType='error';
-				this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+                this.statusDisplay.statusAlertType='error';
+				this.statusDisplay.statusMsg = 'ERROR: Browser does not support Web Audio API!';
 			} else {
 				var context = new AudioContext();
 
 				if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
-                    this.controlPanel.statusDisplay.statusAlertType='error';
-					this.controlPanel.statusDisplay.statusMsg= 'ERROR: Browser does not support Media streams!';
+                    this.statusDisplay.statusAlertType='error';
+					this.statusDisplay.statusMsg= 'ERROR: Browser does not support Media streams!';
 				} else {
 
 
-                    this.sm = new SessionManager(new SimpleTrafficLight(), this.uploader);
+                    //this.sm = new SessionManager(new SimpleTrafficLight(), this.uploader);
 					this.sm.init();
 					this.ap = new AudioPlayer(context,this);
 					//this.sm.listener=this;
@@ -438,7 +236,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     setScript(script:any){
         this.script=script;
         this.sm.script = this.script;
-        this.prompting.progress.script=this.script;
+
     }
 
 
@@ -540,19 +338,19 @@ export class SpeechRecorder implements AudioPlayerListener {
 			if(PlaybackEventType.STARTED===e.type){
 				//this.startBtn.disabled=true;
 				//this.stopBtn.disabled=true;
-                this.controlPanel.statusDisplay.statusAlertType='info';
-				this.controlPanel.statusDisplay.statusMsg='Playback...';
+                this.statusDisplay.statusAlertType='info';
+				this.statusDisplay.statusMsg='Playback...';
 
             } else if (PlaybackEventType.ENDED === e.type) {
 				//this.startBtn.disabled=false;
 				//this.stopBtn.disabled=true;
-                this.controlPanel.statusDisplay.statusAlertType='info';
-				this.controlPanel.statusDisplay.statusMsg='Ready.';
+                this.statusDisplay.statusAlertType='info';
+				this.statusDisplay.statusMsg='Ready.';
 			}
 		}
 		error(){
-		    this.controlPanel.statusDisplay.statusAlertType='error';
-			this.controlPanel.statusDisplay.statusMsg='ERROR: Recording.';
+		    this.statusDisplay.statusAlertType='error';
+			this.statusDisplay.statusMsg='ERROR: Recording.';
 		}
 	}
 
