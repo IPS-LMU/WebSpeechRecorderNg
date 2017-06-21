@@ -14,7 +14,7 @@ import { Action } from '../../../action/action'
 
     import { RecordingFile } from '../recording'
     import { Uploader,Upload } from '../../../net/uploader';
-import {Component,ViewChild} from "@angular/core";
+import {Component,ViewChild,ChangeDetectorRef } from "@angular/core";
 import {Progress} from "./progress";
 import {SessionService} from "./session.service";
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -181,12 +181,18 @@ export class ProgressDisplay{
   selector: 'app-sprtransport',
 
   template: `
-    <button id="bwdBtn" (click)="prevItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
-    <button id="startBtn" (click)="this.sessionManager.startItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
-    <button id="stopBtn" (click)="this.sessionManager.stopItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
-    <button id="nextBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
-    <button id="pauseBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
-    <button id="fwdBtn" (click)="nextItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
+      <button id="bwdBtn" (click)="prevItem()" [disabled]="notIdle()" class="btn btn-primary"><span
+              class="glyphicon glyphicon-step-backward"></span></button>
+      <button id="startBtn" (click)="this.sessionManager.startItem()" [disabled]="!sessionManager || sessionManager.startAction.disabled" class="btn btn-primary"><span
+              class="glyphicon glyphicon-record"></span> Start
+      </button>
+      <button id="stopBtn" (click)="this.sessionManager.stopItem()" [disabled]="!sessionManager || sessionManager.stopAction.disabled" [class.disabled]="!sessionManager || sessionManager.stopAction.disabled" class="btn btn-primary"><span
+              class="glyphicon glyphicon-stop"></span> Stop
+      </button>
+      <button id="nextBtn" (click)="sessionManager.nextAction.perform()" [disabled]="!sessionManager || sessionManager.nextAction.disabled" class="btn btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
+      <button id="pauseBtn" (click)="sessionManager.pauseAction.perform()"  [disabled]="!sessionManager || sessionManager.pauseAction.disabled"  class="btn btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
+      <button id="fwdBtn" (click)="nextItem()" [disabled]="notIdle()" class="btn btn-primary"><span
+              class="glyphicon glyphicon-step-forward"></span></button>
 
   `,
   styles: [`:host{
@@ -208,17 +214,23 @@ export class ProgressDisplay{
     }`]
 
 })
-
 export class TransportPanel{
      sessionManager:SessionManager;
 
      nextItem(){
          this.sessionManager.nextItem();
+
      }
     prevItem(){
         this.sessionManager.prevItem();
     }
 
+    notIdle():boolean{
+        if(this.sessionManager) {
+            return this.sessionManager.status !== Status.IDLE
+        }
+        return true;
+    }
 
 
 }
@@ -327,7 +339,7 @@ export class SessionManager implements AudioCaptureListener {
 
         promptItemIndex=0;
 
-        constructor() {
+        constructor(private changeDetectorRef: ChangeDetectorRef) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
@@ -339,6 +351,7 @@ export class SessionManager implements AudioCaptureListener {
             let stopBtn = <HTMLInputElement>(document.getElementById('stopBtn'));
             this.stopAction = new Action('Stop');
             this.stopAction.addControl(stopBtn, 'click');
+            this.stopAction.disabled=true;
             let nextBtn = <HTMLInputElement>(document.getElementById('nextBtn'));
             this.nextAction = new Action('Next');
             this.nextAction.addControl(nextBtn, 'click');
@@ -691,6 +704,8 @@ export class SessionManager implements AudioCaptureListener {
 
             this.section = this._script.sections[this.sectIdx]
             this.promptUnit = this.section.promptUnits[this.prmptIdx];
+           // this.status=Status.IDLE;
+            this.changeDetectorRef.detectChanges();
             this.clearPrompt();
             if (this.section.promptphase === 'IDLE') {
                 this.applyPrompt();
@@ -998,6 +1013,8 @@ export class SessionManager implements AudioCaptureListener {
 
                 if (this.section.mode === 'AUTORECORDING' && this.autorecording && this.status === Status.STOPPING_STOP) {
                     this.startItem();
+                }else{
+                    this.status=Status.IDLE
                 }
             }
         }
