@@ -1,5 +1,6 @@
 import {Component, ViewChild, ViewChildDecorator} from '@angular/core'
-import {Script,Section,PromptUnit} from "../script/script";
+import { Item } from './sessionmanager';
+
 
 @Component({
 
@@ -16,16 +17,16 @@ import {Script,Section,PromptUnit} from "../script/script";
           </tr>
           </thead>
           <tbody>
-          <ng-container *ngIf="script">
-              <ng-container *ngFor="let section of script.sections; let si = index;">
-                  <tr *ngFor="let pu of section.promptUnits; let pi=index;"
-                      [class.bg-info]="si===sectionIdx && pi===promptIndex">
-                      <td>{{si}}:{{pi}}</td>
-                      <td>{{pu.mediaitems[0].text}}</td>
-                      <td><span class="glyphicon glyphicon-unchecked"></span></td>
+          <ng-container *ngIf="items">
+             
+            <tr *ngFor="let item of items; let itIdx=index;"
+                      [class.bg-info]="itIdx===selectedItemIdx">
+                      <td>{{itIdx}}</td>
+                      <td>{{item.promptAsString}}</td>
+                      <td><span class="glyphicon" [class.glyphicon-unchecked]="!item.recs || item.recs.length===0" [class.glyphicon-check]="item.recs && item.recs.length>0"></span></td>
                   </tr>
               </ng-container>
-          </ng-container>
+          
           </tbody>
       </table>
   `,
@@ -47,11 +48,6 @@ import {Script,Section,PromptUnit} from "../script/script";
 
 })
 export class Progress{
-  script: Script;
-  sectionIdx=0;
-  promptIndex=0;
-  setSelected(sectionIdx:number,promptIndex:number){
-    this.sectionIdx=sectionIdx;
-    this.promptIndex=promptIndex;
-  }
+    items:Array<Item>;
+    selectedItemIdx=0;
 }

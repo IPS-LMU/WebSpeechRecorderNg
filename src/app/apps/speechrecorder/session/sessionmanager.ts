@@ -27,12 +27,13 @@ import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
     export enum Status {IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE,
     }
 
-    class Item {
-        //recording:boolean;
+    export class Item {
+        promptAsString:string;
         training: boolean;
         recs: Array<RecordingFile>;
 
-        constructor(training: boolean) {
+        constructor(promptAsString:string,training: boolean) {
+            this.promptAsString=promptAsString;
             this.training = training;
             this.recs = null;
         }
@@ -181,8 +182,8 @@ export class ProgressDisplay{
 
   template: `
     <button id="bwdBtn" (click)="prevItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-backward"></span></button>
-    <button id="startBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
-    <button id="stopBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
+    <button id="startBtn" (click)="this.sessionManager.startItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-record"></span> Start</button>
+    <button id="stopBtn" (click)="this.sessionManager.stopItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span> Stop</button>
     <button id="nextBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
     <button id="pauseBtn" class="btn-lg btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
     <button id="fwdBtn" (click)="nextItem()" class="btn-lg btn-primary"><span class="glyphicon glyphicon-step-forward"></span></button>
@@ -217,6 +218,9 @@ export class TransportPanel{
     prevItem(){
         this.sessionManager.prevItem();
     }
+
+
+
 }
 
 @Component({
@@ -275,7 +279,7 @@ export class SessionManager implements AudioCaptureListener {
 
         private uploader: Uploader;
         ac: AudioCapture;
-        private _channelCount: number;
+        private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
         private startStopSignal:StartStopSignal;
   private progress:Progress;
@@ -305,7 +309,7 @@ export class SessionManager implements AudioCaptureListener {
         audio: any;
 
         _session: any;
-        _script: Script;
+        _script: Script; // TODO this a plain JS object for now, did not id an easy way to convert JSON to TypeScript
 
         private section: Section;
         private promptUnit: PromptUnit;
@@ -509,7 +513,7 @@ export class SessionManager implements AudioCaptureListener {
 
             this.sectIdx = 0;
             this.prmptIdx = 0;
-            this.progress.script=script;
+            this.progress.items=this.items;
             this.applyItem();
 
         }
@@ -556,7 +560,7 @@ export class SessionManager implements AudioCaptureListener {
 
         loadScript() {
             this.promptItemCount = 0;
-            let tbE = <HTMLTableElement>(document.getElementById('progressTableBody'));
+
             this.items = new Array<Item>();
             let ln = 0;
 
@@ -567,8 +571,8 @@ export class SessionManager implements AudioCaptureListener {
 
                 let pisLen = pis.length;
                 this.promptItemCount += pisLen;
-                for (let pi = 0; pi < pisLen; pi++) {
-                    let piE = pis[pi];
+                for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
+                    let pi = pis[piSectIdx];
 
                     // let trE = document.createElement('tr');
                     // trE.setAttribute('id', 'promptIndex_' + ln);
@@ -591,7 +595,13 @@ export class SessionManager implements AudioCaptureListener {
                     //
                     // tbE.appendChild(trE);
 
-                    let it = new Item(section.training);
+
+                    let promptAsStr='';
+                    if(pi.mediaitems && pi.mediaitems.length>0){
+                      promptAsStr=pi.mediaitems[0].text;
+                    }
+
+                    let it = new Item(promptAsStr,section.training);
                     this.items.push(it);
                     ln++;
                 }
@@ -654,24 +664,24 @@ export class SessionManager implements AudioCaptureListener {
 
         showRecording() {
             this.ap.stop();
-            let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
-            promptLineEl.classList.add('bg-info');
-            let rdDlDivEl: HTMLDivElement = <HTMLDivElement>document.getElementById('rfDownload');
+            // let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
+            // promptLineEl.classList.add('bg-info');
+            // let rdDlDivEl: HTMLDivElement = <HTMLDivElement>document.getElementById('rfDownload');
 
             if (this.displayRecFile) {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-                this.audioSignal.setData(ab);
-                rdDlDivEl.style.visibility = 'visible';
+               // this.audioSignal.setData(ab);
+              //  rdDlDivEl.style.visibility = 'visible';
                 this.playStartAction.disabled = false;
                 this.ap.audioBuffer = ab;
             } else {
 
-                this.audioSignal.setData(null);
+                //this.audioSignal.setData(null);
                 //     rdDlEl.href = null;
                 //     rdDlEl.name = 'Recording';
                 // // TODO disable link (remove anchor element)
                 // rdDlEl.removeAttribute('download');
-                rdDlDivEl.style.visibility = 'hidden';
+                //rdDlDivEl.style.visibility = 'hidden';
                 this.ap.audioBuffer = null;
                 this.playStartAction.disabled = true;
             }
@@ -693,7 +703,8 @@ export class SessionManager implements AudioCaptureListener {
             //     this.stopBtn.classList.add('glyphicon-stop');
             // }
 
-            let it = this.items[this.currPromptIndex()];
+            let currentItIdx=this.currPromptIndex();
+            let it = this.items[currentItIdx];
             if (!it.recs) {
                 it.recs = new Array<RecordingFile>();
             }
@@ -712,7 +723,7 @@ export class SessionManager implements AudioCaptureListener {
                // this.showRecording();
             }
 
-            this.progress.setSelected(this.sectIdx,this.prmptIdx);
+            this.progress.selectedItemIdx=currentItIdx;
 
             // let th = document.getElementById('progressTableHeader');
             // th.scrollIntoView();
@@ -941,9 +952,6 @@ export class SessionManager implements AudioCaptureListener {
                 it.recs = new Array<RecordingFile>();
             }
             it.recs.push(rf);
-          let statusEl=<HTMLSpanElement>document.getElementById('promptIndex_'+cpIdx+"_status");
-            statusEl.classList.remove('glyphicon-unchecked');
-          statusEl.classList.add('glyphicon-check');
 
             // apply recorded item
             this.applyItem();
@@ -961,9 +969,9 @@ export class SessionManager implements AudioCaptureListener {
                 // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
                 // TODO duplicate conversion for manual download
                 ww.writeAsync(ad, (wavFile) => {
-                     // and upload to WikiSpeech server
+                     // TODO and upload to WikiSpeech server
 
-                    this.postRecording(wavFile, recUrl);
+                    //this.postRecording(wavFile, recUrl);
                 });
             }
 

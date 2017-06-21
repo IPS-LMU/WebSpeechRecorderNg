@@ -100,6 +100,7 @@ export class SpeechRecorder implements AudioPlayerListener {
       if(sess.script){
         this.scriptService.getScript(sess.script).then(script=>{
           this.setScript(script)
+          this.sm.session=sess;
           this.sm.start();
         })
           .catch(reason =>{
