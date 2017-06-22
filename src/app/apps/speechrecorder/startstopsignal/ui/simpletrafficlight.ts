@@ -1,4 +1,4 @@
-import {Component} from '@angular/core'
+import {Component,Input} from '@angular/core'
 import {StartStopSignal, State} from '../startstopsignal'
 
 @Component({
@@ -53,10 +53,11 @@ export class SimpleTrafficLight implements StartStopSignal {
   lightbottom: string;
 
   constructor() {
-    this.setStatus(State.OFF);
+    this.status=State.OFF;
   }
 
-  setStatus(status: State) {
+  @Input()
+  set status(status: State) {
     if (State.OFF === status) {
       this.lighttop = 'grey';
       this.lightmid = 'grey';

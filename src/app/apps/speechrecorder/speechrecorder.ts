@@ -75,7 +75,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 		    //
     }
        ngAfterViewInit(){
-		    this.statusDisplay=this.sm.controlPanel.statusDisplay;
+
         this.route.params.subscribe((params:Params)=>{
             let sess= this.sessionsService.getSession(params['id']).then(sess=> {
               this.setSession(sess);
@@ -88,8 +88,8 @@ export class SpeechRecorder implements AudioPlayerListener {
               }
             })
             .catch(reason =>{
-                this.statusDisplay.statusMsg=reason;
-                this.statusDisplay.statusAlertType='error';
+                this.sm.statusMsg=reason;
+                this.sm.statusAlertType='error';
                 console.log("Error fetching session "+reason)
             });
         })

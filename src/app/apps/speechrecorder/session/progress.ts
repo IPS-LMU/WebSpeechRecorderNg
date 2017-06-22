@@ -1,4 +1,4 @@
-import {Component, ViewChild, ViewChildDecorator} from '@angular/core'
+import {Component,Input} from '@angular/core'
 import { Item } from './sessionmanager';
 
 
@@ -48,6 +48,6 @@ import { Item } from './sessionmanager';
 
 })
 export class Progress{
-    items:Array<Item>;
-    selectedItemIdx=0;
+    @Input() items:Array<Item>;
+    @Input() selectedItemIdx=0;
 }

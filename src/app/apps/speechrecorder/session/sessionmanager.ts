@@ -9,16 +9,17 @@ import { Action } from '../../../action/action'
     import {AudioSignal} from '../../../audio/ui/audiosignal'
     import { AudioClipUIContainer} from '../../../audio/ui/container'
     import { WavWriter } from '../../../audio/impl/wavwriter'
-    import { StartStopSignal,State } from '../startstopsignal/startstopsignal'
+    import { StartStopSignal} from '../startstopsignal/startstopsignal'
     import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
 
     import { RecordingFile } from '../recording'
     import { Uploader,Upload } from '../../../net/uploader';
-import {Component,ViewChild,ChangeDetectorRef } from "@angular/core";
+import {Component, ViewChild, ChangeDetectorRef, Input} from "@angular/core";
 import {Progress} from "./progress";
 import {SessionService} from "./session.service";
-import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 
+import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
+import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 
 
     const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -62,7 +63,7 @@ import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
   `]
 })
 export class Prompter{
-  promptText:string
+  @Input() promptText:string
 }
 
 @Component({
@@ -70,7 +71,7 @@ export class Prompter{
   selector: 'app-sprpromptcontainer',
 
   template: `
-    <app-sprprompter></app-sprprompter>
+    <app-sprprompter [promptText]="promptText"></app-sprprompter>
   `
   ,
   styles: [`:host{
@@ -90,7 +91,7 @@ export class Prompter{
   `]
 })
 export class PromptContainer{
-  @ViewChild(Prompter) prompter:Prompter;
+  @Input() promptText:string;
 }
 
 @Component({
@@ -99,9 +100,9 @@ export class PromptContainer{
 
   template: `
 
-    <app-simpletrafficlight></app-simpletrafficlight>
-    <app-sprpromptcontainer></app-sprpromptcontainer>
-    <app-sprprogress class="hidden-xs"></app-sprprogress>
+    <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
+    <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
+    <app-sprprogress class="hidden-xs" [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress>
 
 
 
@@ -130,8 +131,10 @@ export class PromptContainer{
 
 export class Prompting{
   @ViewChild(SimpleTrafficLight) simpleTrafficLight:SimpleTrafficLight;
-  @ViewChild(PromptContainer) promptContainer:PromptContainer;
-  @ViewChild(Progress) progress:Progress;
+  @Input() startStopSignalState:StartStopSignalState;
+  @Input() promptText:string;
+  @Input() items:Array<Item>;
+  @Input() selectedItemIdx:number;
 }
 
 @Component({
@@ -156,8 +159,8 @@ export class Prompting{
 })
 
 export class StatusDisplay{
-  statusAlertType='info';
-  statusMsg='Initialize...';
+  @Input() statusAlertType='info';
+  @Input() statusMsg='Initialize...';
 
 }
 
@@ -177,22 +180,41 @@ export class ProgressDisplay{
   progressMsg='[itemcode]';
 }
 
+
+export class TransportActions{
+  startAction: Action;
+  stopAction: Action;
+  nextAction: Action;
+  pauseAction: Action;
+  fwdAction:Action;
+  bwdAction:Action;
+  constructor(){
+    this.startAction = new Action('Start');
+    this.stopAction = new Action('Stop');
+    this.nextAction = new Action('Next');
+    this.pauseAction = new Action('Pause');
+    this.fwdAction=new Action('Forward');
+    this.bwdAction=new Action('Backward');
+
+  }
+}
+
 @Component({
 
   selector: 'app-sprtransport',
 
   template: `
-      <button id="bwdBtn" (click)="prevItem()" [disabled]="notIdle()" class="btn btn-primary"><span
+      <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" class="btn btn-primary"><span
               class="glyphicon glyphicon-step-backward"></span></button>
-      <button id="startBtn" (click)="this.sessionManager.startItem()" [disabled]="!sessionManager || sessionManager.startAction.disabled" class="btn btn-primary"><span
+      <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" class="btn btn-primary"><span
               class="glyphicon glyphicon-record"></span> Start
       </button>
-      <button id="stopBtn" (click)="this.sessionManager.stopItem()" [disabled]="!sessionManager || sessionManager.stopAction.disabled" [class.disabled]="!sessionManager || sessionManager.stopAction.disabled" class="btn btn-primary"><span
+      <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()"  class="btn btn-primary"><span
               class="glyphicon glyphicon-stop"></span> Stop
       </button>
-      <button id="nextBtn" (click)="sessionManager.nextAction.perform()" [disabled]="!sessionManager || sessionManager.nextAction.disabled" class="btn btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
-      <button id="pauseBtn" (click)="sessionManager.pauseAction.perform()"  [disabled]="!sessionManager || sessionManager.pauseAction.disabled"  class="btn btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
-      <button id="fwdBtn" (click)="nextItem()" [disabled]="notIdle()" class="btn btn-primary"><span
+      <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" class="btn btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
+      <button id="pauseBtn" (click)="actions.pauseAction.perform()"  [disabled]="pauseDisabled()"  class="btn btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
+      <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" class="btn btn-primary"><span
               class="glyphicon glyphicon-step-forward"></span></button>
 
   `,
@@ -220,23 +242,30 @@ export class ProgressDisplay{
 
 })
 export class TransportPanel{
-     sessionManager:SessionManager;
 
-     nextItem(){
-         this.sessionManager.nextItem();
 
-     }
-    prevItem(){
-        this.sessionManager.prevItem();
+  @Input() actions:TransportActions;
+
+  startDisabled() {
+    return !this.actions || this.actions.startAction.disabled
+  }
+    stopDisabled() {
+      return !this.actions || this.actions.stopAction.disabled
+    }
+    nextDisabled() {
+      return !this.actions || this.actions.nextAction.disabled
+    }
+    pauseDisabled() {
+      return !this.actions || this.actions.pauseAction.disabled
     }
 
-    notIdle():boolean{
-        if(this.sessionManager) {
-            return this.sessionManager.status !== Status.IDLE
-        }
-        return true;
-    }
+  fwdDisabled() {
+    return !this.actions || this.actions.fwdAction.disabled
+  }
 
+  bwdDisabled() {
+    return !this.actions || this.actions.bwdAction.disabled
+  }
 
 }
 
@@ -246,7 +275,7 @@ export class TransportPanel{
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay></app-sprstatusdisplay><app-sprtransport></app-sprtransport><app-sprprogressdisplay></app-sprprogressdisplay>
+    <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" class="hidden-xs"></app-sprstatusdisplay><app-sprtransport [actions]="transportActions"></app-sprtransport><app-sprprogressdisplay class="hidden-xs"></app-sprprogressdisplay>
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
@@ -266,6 +295,9 @@ export class TransportPanel{
 export class ControlPanel{
   @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
     @ViewChild(TransportPanel) transportPanel:TransportPanel;
+    @Input() transportActions:TransportActions
+    @Input() statusMsg:string;
+    @Input() statusAlertType:string;
 }
 
 
@@ -275,9 +307,32 @@ export class ControlPanel{
   providers: [SessionService],
   template: `
 
-    <app-sprprompting></app-sprprompting>
-    <app-audio></app-audio>
-    <app-sprcontrolpanel></app-sprcontrolpanel>
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a id="audioSignalSwitch" data-toggle="collapse" data-parent="#asGrPanel" href="#collapse1">Audio
+          signal <span id="audioSignalCollIcon" class="glyphicon glyphicon-collapse-up"></span></a>
+
+      </h4>
+    </div>
+    <div id="collapse1" class="panel-collapse collapse">
+      <app-audio class="panel-body"></app-audio>
+      <div id="signalDisplayFooter" class="panel-footer">
+        <div id="audioPlayer">
+          <button id="playStartBtn" class="btn"><span id="playIcon"
+                                                      class="glyphicon glyphicon-play-circle"></span>
+            Play
+          </button>
+        </div>
+        <div id="rfDownload">
+          <a id="rfDownloadLnk" href="#dl">Download as WAV file <span
+            class="glyphicon glyphicon-download"></span></a>
+        </div>
+
+      </div>
+    </div>
+    <app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
+    
   `,
   styles: [`:host{
     width: 100%;
@@ -301,9 +356,8 @@ export class SessionManager implements AudioCaptureListener {
         private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
         @ViewChild(AudioClipUIContainer) audioSignal: AudioClipUIContainer;
-  @ViewChild(ControlPanel) controlPanel:ControlPanel;
-  private startStopSignal:StartStopSignal;
-  private progress:Progress;
+
+  private startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:any;
         private selCaptureDeviceId: ConstrainDOMString;
@@ -317,10 +371,7 @@ export class SessionManager implements AudioCaptureListener {
         private maxRecTimerRunning: boolean;
 
         bwdBtn: HTMLInputElement;
-        startAction: Action;
-        stopAction: Action;
-        nextAction: Action;
-        pauseAction: Action;
+        transportActions:TransportActions;
         fwdBtn: HTMLInputElement;
         dnlLnk: HTMLAnchorElement;
         playStartAction: Action;
@@ -341,6 +392,7 @@ export class SessionManager implements AudioCaptureListener {
         private autorecording: boolean;
 
         items: Array<Item>;
+        selectedItemIdx:number;
         private displayRecFile: RecordingFile;
         private displayRecFileVersion: number;
 
@@ -348,16 +400,18 @@ export class SessionManager implements AudioCaptureListener {
 
         promptItemIndex=0;
 
+        promptText:string;
+
+        statusMsg:string;
+        statusAlertType:string;
+
         constructor(private changeDetectorRef: ChangeDetectorRef) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
             //this.uploader = uploader;
-            this.startAction = new Action('Start');
-            this.stopAction = new Action('Stop');
-            this.stopAction.disabled=true;
-            this.nextAction = new Action('Next');
-            this.pauseAction = new Action('Pause');
+            this.transportActions=new TransportActions();
+
             let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
             this.playStartAction = new Action('Play');
             this.playStartAction.addControl(playStartBtn, 'click');
@@ -387,9 +441,9 @@ export class SessionManager implements AudioCaptureListener {
             let asCollapseJqEl=$('#collapse1');
             asCollapseJqEl.on('shown.bs.collapse', (e) => {
                 //console.log("Shown bs coll event received");
-                let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
-                ic.classList.remove('glyphicon-collapse-up');
-                ic.classList.add('glyphicon-collapse-down');
+                //let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
+                //ic.classList.remove('glyphicon-collapse-up');
+                //ic.classList.add('glyphicon-collapse-down');
                 this.audioSignal.layout();
             });
 
@@ -405,9 +459,8 @@ export class SessionManager implements AudioCaptureListener {
         }
 
   ngAfterViewInit() {
-      this.startStopSignal=this.prompting.simpleTrafficLight;
-      this.progress=this.prompting.progress;
-      this.controlPanel.transportPanel.sessionManager=this;
+
+      // this.controlPanel.transportPanel.sessionManager=this;
   }
 
         init() {
@@ -415,10 +468,10 @@ export class SessionManager implements AudioCaptureListener {
             this.prmptIdx = 0;
             this.autorecording = false;
             //this.bwdBtn.disabled = true;
-            this.startAction.disabled = true;
-            this.stopAction.disabled = true;
-            this.nextAction.disabled = true;
-            this.pauseAction.disabled = true;
+            this.transportActions.startAction.disabled = true;
+            this.transportActions.stopAction.disabled = true;
+            this.transportActions.nextAction.disabled = true;
+            this.transportActions.pauseAction.disabled = true;
             //this.fwdBtn.disabled = true;
             this.playStartAction.disabled = true;
             //let n = <any>navigator;
@@ -428,8 +481,8 @@ export class SessionManager implements AudioCaptureListener {
 
             AudioContext = w.AudioContext || w.webkitAudioContext;
             if (typeof AudioContext !== 'function') {
-               this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Web Audio API!';
-               this.controlPanel.statusDisplay.statusAlertType='error';
+               this.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+               this.statusAlertType='error';
             } else {
                 let context = new AudioContext();
 
@@ -441,47 +494,50 @@ export class SessionManager implements AudioCaptureListener {
                     this.ap = new AudioPlayer(context, this);
 
                     if (this.ac) {
-                        this.startAction.onAction = () => this.startItem();
+                        this.transportActions.startAction.onAction = () => this.startItem();
                         document.addEventListener('keypress', (e) => {
                             let ke = <KeyboardEvent>e;
                             //if (ke.code == 'Space') {
                             if (ke.key == ' ') {
 
-                                this.startAction.perform();
+                                this.transportActions.startAction.perform();
 
                             }
                         }, false);
 
                     } else {
-                        this.startAction.disabled = true;
-                        this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Media/Audio API!';
-                      this.controlPanel.statusDisplay.statusAlertType='error';
+                        this.transportActions.startAction.disabled = true;
+                        this.statusMsg = 'ERROR: Browser does not support Media/Audio API!';
+                      this.statusAlertType='error';
                     }
-                    this.stopAction.onAction = () => this.stopItem();
+                    this.transportActions.stopAction.onAction = () => this.stopItem();
                     document.addEventListener('keydown', (e) => {
                         let ke = <KeyboardEvent>e;
                         //if (ke.code == 'Space' || ke.code == 'Escape') {
                         if (ke.key == ' ' || ke.key == 'Escape') {
-                            this.stopAction.perform();
+                            this.transportActions.stopAction.perform();
                         }
                     }, false);
-                    this.nextAction.onAction = () => this.stopItem();
+                    this.transportActions.nextAction.onAction = () => this.stopItem();
                     document.addEventListener('keypress', (e) => {
                         let ke = <KeyboardEvent>e;
                         //if (ke.code == 'Space') {
                         if (ke.key == ' ') {
-                            this.nextAction.perform();
+                            this.transportActions.nextAction.perform();
                         }
                     }, false);
-                    this.pauseAction.onAction = () => this.pauseItem();
+                    this.transportActions.pauseAction.onAction = () => this.pauseItem();
                     window.addEventListener('keydown', (e) => {
                         let ke = <KeyboardEvent>e;
 
                         //if (ke.code == 'KeyP' || ke.code == 'Escape') {
                         if (ke.key == 'p' || ke.key == 'Escape') {
-                            this.pauseAction.perform();
+                            this.transportActions.pauseAction.perform();
                         }
                     }, false);
+
+                    this.transportActions.fwdAction.onAction=()=>this.nextItem();
+                    this.transportActions.bwdAction.onAction=()=>this.prevItem();
 
                     // TODO
                     // this.dnlLnk.addEventListener('click', () => {
@@ -502,12 +558,12 @@ export class SessionManager implements AudioCaptureListener {
 
                 } else {
 
-                   this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Media streams!';
-                  this.controlPanel.statusDisplay.statusAlertType='error';
+                   this.statusMsg = 'ERROR: Browser does not support Media streams!';
+                  this.statusAlertType='error';
                 }
             }
             this.ac.listDevices();
-            this.startStopSignal.setStatus(State.OFF);
+            this.startStopSignalState=StartStopSignalState.OFF;
         }
 
         set session(session: any) {
@@ -520,7 +576,7 @@ export class SessionManager implements AudioCaptureListener {
 
             this.sectIdx = 0;
             this.prmptIdx = 0;
-            this.progress.items=this.items;
+
             this.applyItem();
 
         }
@@ -551,8 +607,10 @@ export class SessionManager implements AudioCaptureListener {
 
         startItem() {
             //this.bwdBtn.disabled = true;
-            this.startAction.disabled = true;
-            this.pauseAction.disabled = true;
+            this.transportActions.startAction.disabled = true;
+            this.transportActions.pauseAction.disabled = true;
+          this.transportActions.fwdAction.disabled=true
+          this.transportActions.bwdAction.disabled=true
             //this.fwdBtn.disabled = true;
             this.displayRecFile = null;
             this.displayRecFileVersion = 0;
@@ -606,11 +664,15 @@ export class SessionManager implements AudioCaptureListener {
 
 
         clearPrompt() {
-          this.prompting.promptContainer.prompter.promptText='';
+          //this.prompting.promptContainer.prompter.promptText='';
+          this.promptText='';
+          this.changeDetectorRef.detectChanges()
         }
 
         applyPrompt() {
-          this.prompting.promptContainer.prompter.promptText=this.promptUnit.mediaitems[0].text;
+          //this.prompting.promptContainer.prompter.promptText=this.promptUnit.mediaitems[0].text;
+          this.promptText=this.promptUnit.mediaitems[0].text;
+          this.changeDetectorRef.detectChanges()
         }
 
       downloadRecording() {
@@ -681,8 +743,8 @@ export class SessionManager implements AudioCaptureListener {
             //     this.stopBtn.classList.add('glyphicon-stop');
             // }
 
-            let currentItIdx=this.currPromptIndex();
-            let it = this.items[currentItIdx];
+            this.selectedItemIdx=this.currPromptIndex();
+            let it = this.items[this.selectedItemIdx];
             if (!it.recs) {
                 it.recs = new Array<RecordingFile>();
             }
@@ -701,7 +763,6 @@ export class SessionManager implements AudioCaptureListener {
                // this.showRecording();
             }
 
-            this.progress.selectedItemIdx=currentItIdx;
 
             // let th = document.getElementById('progressTableHeader');
             // th.scrollIntoView();
@@ -712,9 +773,7 @@ export class SessionManager implements AudioCaptureListener {
 
             //
             this.audioSignal.layout();
-            this.startStopSignal.setStatus(State.IDLE);
-            // this.bwdBtn.disabled = false;
-            // this.fwdBtn.disabled = false;
+            this.startStopSignalState=StartStopSignalState.IDLE;
         }
 
 
@@ -722,7 +781,7 @@ export class SessionManager implements AudioCaptureListener {
         start() {
 
             if (this.ac) {
-                this.controlPanel.statusDisplay.statusMsg = 'Requesting audio permissions...';
+                this.statusMsg = 'Requesting audio permissions...';
 
                 if (this._audioDevices) {
                   let fdi=null;
@@ -766,8 +825,8 @@ export class SessionManager implements AudioCaptureListener {
                     }else {
                       // device not found
                       // TODO more user friendly ("Please plug audio device ... bla")
-                      this.controlPanel.statusDisplay.statusMsg = 'ERROR: Required audio device not available!';
-                      this.controlPanel.statusDisplay.statusAlertType='error';
+                      this.statusMsg = 'ERROR: Required audio device not available!';
+                      this.statusAlertType='error';
                     }
                   });
                 } else {
@@ -812,22 +871,24 @@ export class SessionManager implements AudioCaptureListener {
 
 
         opened() {
-            this.controlPanel.statusDisplay.statusMsg = 'Ready.';
-            this.startAction.disabled = false;
+            this.statusMsg = 'Ready.';
+            this.transportActions.startAction.disabled = false;
+          this.transportActions.fwdAction.disabled=false
+          this.transportActions.bwdAction.disabled=false
         }
 
         started() {
             this.status = Status.PRE_RECORDING;
-            this.startAction.disabled = true;
+            this.transportActions.startAction.disabled = true;
 
             console.log("Spr: capture started");
 
-            this.startStopSignal.setStatus(State.PRERECORDING);
+            this.startStopSignalState=StartStopSignalState.PRERECORDING;
 
             if (this.section.promptphase === 'PRERECORDING') {
                 this.applyPrompt();
             }
-            this.controlPanel.statusDisplay.statusMsg = 'Recording...';
+            this.statusMsg = 'Recording...';
 
             let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
             if (this.promptUnit.recduration) {
@@ -850,12 +911,12 @@ export class SessionManager implements AudioCaptureListener {
 
                 this.preRecTimerRunning = false;
                 this.status = Status.RECORDING;
-                this.startStopSignal.setStatus(State.RECORDING);
+                this.startStopSignalState=StartStopSignalState.RECORDING;
                 if (this.section.mode === 'AUTORECORDING') {
-                    this.nextAction.disabled = false;
-                    this.pauseAction.disabled = false;
+                    this.transportActions.nextAction.disabled = false;
+                    this.transportActions.pauseAction.disabled = false;
                 } else {
-                    this.stopAction.disabled = false;
+                    this.transportActions.stopAction.disabled = false;
                 }
                 if (this.section.promptphase === 'RECORDING') {
                     this.applyPrompt();
@@ -866,9 +927,9 @@ export class SessionManager implements AudioCaptureListener {
 
         stopItem() {
             this.status = Status.POST_REC_STOP;
-            this.startStopSignal.setStatus(State.POSTRECORDING);
-            this.stopAction.disabled = true;
-            this.nextAction.disabled = true;
+            this.startStopSignalState=StartStopSignalState.POSTRECORDING;
+            this.transportActions.stopAction.disabled = true;
+            this.transportActions.nextAction.disabled = true;
             let postDelay = 500;
             if (this.promptUnit.postrecording) {
                 postDelay = this.promptUnit.postrecording;
@@ -884,11 +945,11 @@ export class SessionManager implements AudioCaptureListener {
 
         pauseItem() {
             this.status = Status.POST_REC_PAUSE;
-            this.pauseAction.disabled = true;
-            this.startStopSignal.setStatus(State.POSTRECORDING);
-            this.stopAction.disabled = true;
-            this.nextAction.disabled = true;
-            this.pauseAction.disabled = true;
+            this.transportActions.pauseAction.disabled = true;
+            this.startStopSignalState=StartStopSignalState.POSTRECORDING;
+            this.transportActions.stopAction.disabled = true;
+            this.transportActions.nextAction.disabled = true;
+            this.transportActions.pauseAction.disabled = true;
             let postDelay = 500;
             if (this.promptUnit.postrecording) {
                 postDelay = this.promptUnit.postrecording;
@@ -911,16 +972,16 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         stopped() {
-            this.startAction.disabled = false;
-            this.stopAction.disabled = true;
-            this.nextAction.disabled = true;
-            this.pauseAction.disabled = true;
+            this.transportActions.startAction.disabled = false;
+            this.transportActions.stopAction.disabled = true;
+            this.transportActions.nextAction.disabled = true;
+            this.transportActions.pauseAction.disabled = true;
             // console.log("Spr: capture stopped");
-            this.controlPanel.statusDisplay.statusMsg = 'Recorded.';
+            this.statusMsg = 'Recorded.';
             // this.statusMsg.classList.remove('alert-info');
             // this.statusMsg.classList.remove('alert-danger');
             // this.statusMsg.classList.add('alert-success');
-            this.startStopSignal.setStatus(State.IDLE);
+            this.startStopSignalState=StartStopSignalState.IDLE;
 
             let ad = this.ac.audioBuffer();
             let ic = this._script.sections[this.sectIdx].promptUnits[this.prmptIdx].itemcode;
@@ -968,7 +1029,7 @@ export class SessionManager implements AudioCaptureListener {
             }
 
             if (complete) {
-                this.controlPanel.statusDisplay.statusMsg = 'Session complete!';
+                this.statusMsg = 'Session complete!';
             } else {
 
                 if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -979,6 +1040,8 @@ export class SessionManager implements AudioCaptureListener {
                     this.startItem();
                 }else{
                     this.status=Status.IDLE
+                  this.transportActions.fwdAction.disabled=false
+                  this.transportActions.bwdAction.disabled=false
                 }
             }
         }
@@ -994,13 +1057,13 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         closed() {
-           this.controlPanel.statusDisplay.statusMsg = 'Session closed.';
+           this.statusMsg = 'Session closed.';
         }
 
 
         error() {
-            this.controlPanel.statusDisplay.statusMsg = 'ERROR: Recording.';
-          this.controlPanel.statusDisplay.statusAlertType='error';
+            this.statusMsg = 'ERROR: Recording.';
+          this.statusAlertType='error';
         }
     }
 

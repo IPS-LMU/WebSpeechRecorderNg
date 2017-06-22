@@ -3,6 +3,6 @@
     ;
 
     export interface StartStopSignal {
-        setStatus(status:State);
+        status:State;
     }
 

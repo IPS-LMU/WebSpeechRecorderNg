@@ -8,7 +8,7 @@
     export class Action {
 
         private _name:string;
-        _disabled:boolean;
+        _disabled=true;
         private _onAction:EventListener;
         listeners:Array<EventListener>;
         private controls:HTMLInputElement[];
