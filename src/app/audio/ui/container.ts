@@ -11,7 +11,7 @@ import {Element} from '@angular/compiler';
 @Component({
 
   selector: 'app-audio',
-  template: `<p>AudioSignalContainer</p><div #signalC></div><p>end container</p>`,
+  template: `<div #signalC></div>`,
   styles: [`div {
   
     margin: 0;
