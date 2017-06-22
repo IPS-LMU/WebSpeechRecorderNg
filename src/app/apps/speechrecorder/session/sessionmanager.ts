@@ -358,7 +358,7 @@ export class SessionManager implements AudioCaptureListener {
         @ViewChild(Prompting) prompting:Prompting;
         @ViewChild(AudioClipUIContainer) audioSignal: AudioClipUIContainer;
 
-  private startStopSignalState:StartStopSignalState;
+        startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:any;
         private selCaptureDeviceId: ConstrainDOMString;
