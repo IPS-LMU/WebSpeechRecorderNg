@@ -48,21 +48,21 @@ import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 
   template: `
 
-    <span #prompt>Here is a text ... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. 2</span>
+    <span #prompt>{{promptText}}</span>
   `,
-  styles: [`div{
+  styles: [`span{
 
     justify-content: center; /* align horizontal center */
     align-items: center; /* align vertical  center */
     background: white;
     text-align: center;
-    font-size: 20pt;
+    font-size: 2em;
     flex: 0 1;
   }
   `]
 })
 export class Prompter{
-
+  promptText:string
 }
 
 @Component({
@@ -90,7 +90,7 @@ export class Prompter{
   `]
 })
 export class PromptContainer{
-
+  @ViewChild(Prompter) prompter:Prompter;
 }
 
 @Component({
@@ -111,7 +111,7 @@ export class PromptContainer{
     height: 100%;
     margin: 0;
     padding: 0;
-    background: yellow;
+    background: lightgrey;
     width: 100%; /* use all horizontal availible space */
     flex: 3; /* ... and fill rest of vertical available space (other components have flex 0) */
 
@@ -130,12 +130,8 @@ export class PromptContainer{
 
 export class Prompting{
   @ViewChild(SimpleTrafficLight) simpleTrafficLight:SimpleTrafficLight;
+  @ViewChild(PromptContainer) promptContainer:PromptContainer;
   @ViewChild(Progress) progress:Progress;
-  // set script(script:Script){
-  //   // delegate script
-  //   this.progress.script=script;
-  // }
-
 }
 
 @Component({
@@ -143,14 +139,19 @@ export class Prompting{
   selector: 'app-sprstatusdisplay',
 
   template: `
-    <p class="alert" [class.alert-info]="statusAlertType==='info'" [class.alert-danger]="statusAlertType==='error'" >{{statusMsg}}</p>
+    <p><span *ngIf="statusAlertType==='error'" class="glyphicon glyphicon-alert">&nbsp;</span>{{statusMsg}}</p>
   `,
   styles: [`:host{
     flex: 1;
   //align-self: flex-start;
     display: inline;
     text-align:left;
-  }`]
+    font-size: smaller;
+  }`,`
+  span {
+    color:red;
+  }
+  `]
 
 })
 
@@ -196,7 +197,7 @@ export class ProgressDisplay{
 
   `,
   styles: [`:host{
-    flex: 10;
+    flex: 3;
     align-self: center;
     width: 100%;
     text-align: center;
@@ -206,12 +207,16 @@ export class ProgressDisplay{
   //flex-direction: row;
     align-content: center;
     margin: 0;
-    padding: 0;
+    //padding: 0;
   }`,`
     div {
       display:inline;
       flex: 0;
-    }`]
+    }`,`
+    button {
+      font-size:1.5em;
+    }
+  `]
 
 })
 export class TransportPanel{
@@ -235,6 +240,7 @@ export class TransportPanel{
 
 }
 
+
 @Component({
 
   selector: 'app-sprcontrolpanel',
@@ -245,13 +251,13 @@ export class TransportPanel{
   styles: [`:host{
     flex: 0; /* only required vertical space */
     width: 100%; /* available horizontal sace */
-    display: inline;
+    //display: inline;
     display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
     flex-direction: row;
     align-content: center;
     align-items: center;
     margin: 0;
-    padding: 0;
+    padding: 20px;
     min-height: min-content; /* important */
   }`]
 
@@ -270,12 +276,13 @@ export class ControlPanel{
   template: `
 
     <app-sprprompting></app-sprprompting>
+    <app-audio></app-audio>
     <app-sprcontrolpanel></app-sprcontrolpanel>
   `,
   styles: [`:host{
     width: 100%;
     height: 100%;
-    background: orange;
+    background: lightgrey;
 
     display: flex;   /* Vertical flex container: Bottom transport panel, above prompting panel */
     flex-direction: column;
@@ -293,9 +300,10 @@ export class SessionManager implements AudioCaptureListener {
         ac: AudioCapture;
         private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
-        private startStopSignal:StartStopSignal;
-  private progress:Progress;
+        @ViewChild(AudioClipUIContainer) audioSignal: AudioClipUIContainer;
   @ViewChild(ControlPanel) controlPanel:ControlPanel;
+  private startStopSignal:StartStopSignal;
+  private progress:Progress;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:any;
         private selCaptureDeviceId: ConstrainDOMString;
@@ -307,7 +315,7 @@ export class SessionManager implements AudioCaptureListener {
         private postRecTimerRunning: boolean;
         private maxRecTimerId: number;
         private maxRecTimerRunning: boolean;
-        audioSignal: AudioClipUIContainer;
+
         bwdBtn: HTMLInputElement;
         startAction: Action;
         stopAction: Action;
@@ -322,6 +330,7 @@ export class SessionManager implements AudioCaptureListener {
 
         _session: any;
         _script: Script; // TODO this a plain JS object for now, did not id an easy way to convert JSON to TypeScript
+          // See: https://stackoverflow.com/questions/22875636/how-do-i-cast-a-json-object-to-a-typescript-class
 
         private section: Section;
         private promptUnit: PromptUnit;
@@ -344,31 +353,22 @@ export class SessionManager implements AudioCaptureListener {
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
             //this.uploader = uploader;
-            this.bwdBtn = <HTMLInputElement>(document.getElementById('bwdBtn'));
-            let startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
             this.startAction = new Action('Start');
-            this.startAction.addControl(startBtn, 'click');
-            let stopBtn = <HTMLInputElement>(document.getElementById('stopBtn'));
             this.stopAction = new Action('Stop');
-            this.stopAction.addControl(stopBtn, 'click');
             this.stopAction.disabled=true;
-            let nextBtn = <HTMLInputElement>(document.getElementById('nextBtn'));
             this.nextAction = new Action('Next');
-            this.nextAction.addControl(nextBtn, 'click');
-            let pauseBtn = <HTMLInputElement>(document.getElementById('pauseBtn'));
             this.pauseAction = new Action('Pause');
-            this.pauseAction.addControl(pauseBtn, 'click');
             let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
             this.playStartAction = new Action('Play');
             this.playStartAction.addControl(playStartBtn, 'click');
             this.fwdBtn = <HTMLInputElement>(document.getElementById('fwdBtn'));
             this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
             this.audio = document.getElementById('audio');
-            var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
+           // var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
 
-            if (asc) {
+            //if (asc) {
               //  this.audioSignal = new AudioClipUIContainer(asc);
-            }
+            //}
             this.selCaptureDeviceId=null;
             //this.statusMsg = <HTMLElement>(document.getElementById('status'));
             this.titleEl = <HTMLElement>(document.getElementById('title'));
@@ -428,7 +428,8 @@ export class SessionManager implements AudioCaptureListener {
 
             AudioContext = w.AudioContext || w.webkitAudioContext;
             if (typeof AudioContext !== 'function') {
-               // this.statusMsg.innerHTML = 'ERROR: Browser does not support Web Audio API!';
+               this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+               this.controlPanel.statusDisplay.statusAlertType='error';
             } else {
                 let context = new AudioContext();
 
@@ -453,7 +454,8 @@ export class SessionManager implements AudioCaptureListener {
 
                     } else {
                         this.startAction.disabled = true;
-                        //this.statusMsg.innerHTML = 'ERROR: Browser does not support Media/Audio API!';
+                        this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Media/Audio API!';
+                      this.controlPanel.statusDisplay.statusAlertType='error';
                     }
                     this.stopAction.onAction = () => this.stopItem();
                     document.addEventListener('keydown', (e) => {
@@ -480,16 +482,6 @@ export class SessionManager implements AudioCaptureListener {
                             this.pauseAction.perform();
                         }
                     }, false);
-                    // this.bwdBtn.addEventListener('click', () => {
-                    //
-                    //     this.prevItem();
-                    //
-                    // }, false);
-                    // this.fwdBtn.addEventListener('click', () => {
-                    //
-                    //     this.nextItem();
-                    //
-                    // }, false);
 
                     // TODO
                     // this.dnlLnk.addEventListener('click', () => {
@@ -509,7 +501,9 @@ export class SessionManager implements AudioCaptureListener {
 
 
                 } else {
-                   // this.statusMsg.innerHTML = 'ERROR: Browser does not support Media streams!';
+
+                   this.controlPanel.statusDisplay.statusMsg = 'ERROR: Browser does not support Media streams!';
+                  this.controlPanel.statusDisplay.statusAlertType='error';
                 }
             }
             this.ac.listDevices();
@@ -586,29 +580,6 @@ export class SessionManager implements AudioCaptureListener {
                 this.promptItemCount += pisLen;
                 for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
                     let pi = pis[piSectIdx];
-
-                    // let trE = document.createElement('tr');
-                    // trE.setAttribute('id', 'promptIndex_' + ln);
-                    // let tdIdxE = document.createElement('td');
-                    // tdIdxE.appendChild(document.createTextNode(ln.toString()));
-                    // let tdPrE = document.createElement('td');
-                    // tdPrE.appendChild(document.createTextNode(piE.mediaitems[0].text));
-
-                    // status table cell unchecked icon
-                    // let tdStE = document.createElement('td');
-                    // let stIc=document.createElement('span');
-                    // stIc.setAttribute('id','promptIndex_'+ln+"_status");
-                    // stIc.classList.add('glyphicon');
-                    //  stIc.classList.add('glyphicon-unchecked');
-                    //  tdStE.appendChild(stIc);
-                    //
-                    // trE.appendChild(tdIdxE);
-                    // trE.appendChild(tdPrE);
-                    // trE.appendChild(tdStE);
-                    //
-                    // tbE.appendChild(trE);
-
-
                     let promptAsStr='';
                     if(pi.mediaitems && pi.mediaitems.length>0){
                       promptAsStr=pi.mediaitems[0].text;
@@ -633,21 +604,13 @@ export class SessionManager implements AudioCaptureListener {
         }
 
 
-        // unselectItem() {
-        //     let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
-        //     promptLineEl.classList.remove('bg-info');
-        // }
 
         clearPrompt() {
-          //  let prompterEl = <HTMLElement>(document.getElementById('prompter'));
-          //  prompterEl.innerText = '';
+          this.prompting.promptContainer.prompter.promptText='';
         }
 
         applyPrompt() {
-           // let prText = this.promptUnit.mediaitems[0].text;
-           // let prompterEl = <HTMLElement>(document.getElementById('prompter'));
-            //prompterEl.innerText = prText;
-
+          this.prompting.promptContainer.prompter.promptText=this.promptUnit.mediaitems[0].text;
         }
 
       downloadRecording() {
@@ -683,13 +646,13 @@ export class SessionManager implements AudioCaptureListener {
 
             if (this.displayRecFile) {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-               // this.audioSignal.setData(ab);
+                this.audioSignal.setData(ab);
               //  rdDlDivEl.style.visibility = 'visible';
                 this.playStartAction.disabled = false;
                 this.ap.audioBuffer = ab;
             } else {
 
-                //this.audioSignal.setData(null);
+                this.audioSignal.setData(null);
                 //     rdDlEl.href = null;
                 //     rdDlEl.name = 'Recording';
                 // // TODO disable link (remove anchor element)
@@ -748,7 +711,7 @@ export class SessionManager implements AudioCaptureListener {
             //TODO Ng: Build scrollIntoView directive
 
             //
-            // this.audioSignal.layout();
+            this.audioSignal.layout();
             this.startStopSignal.setStatus(State.IDLE);
             // this.bwdBtn.disabled = false;
             // this.fwdBtn.disabled = false;
@@ -759,7 +722,7 @@ export class SessionManager implements AudioCaptureListener {
         start() {
 
             if (this.ac) {
-                //this.statusMsg.innerHTML = 'Requesting audio permissions...';
+                this.controlPanel.statusDisplay.statusMsg = 'Requesting audio permissions...';
 
                 if (this._audioDevices) {
                   let fdi=null;
@@ -803,7 +766,8 @@ export class SessionManager implements AudioCaptureListener {
                     }else {
                       // device not found
                       // TODO more user friendly ("Please plug audio device ... bla")
-                      //this.statusMsg.innerHTML = 'ERROR: Required audio device not available!';
+                      this.controlPanel.statusDisplay.statusMsg = 'ERROR: Required audio device not available!';
+                      this.controlPanel.statusDisplay.statusAlertType='error';
                     }
                   });
                 } else {
@@ -848,7 +812,7 @@ export class SessionManager implements AudioCaptureListener {
 
 
         opened() {
-            //this.statusMsg.innerHTML = 'Ready.';
+            this.controlPanel.statusDisplay.statusMsg = 'Ready.';
             this.startAction.disabled = false;
         }
 
@@ -863,7 +827,7 @@ export class SessionManager implements AudioCaptureListener {
             if (this.section.promptphase === 'PRERECORDING') {
                 this.applyPrompt();
             }
-            //this.statusMsg.innerHTML = 'Recording...';
+            this.controlPanel.statusDisplay.statusMsg = 'Recording...';
 
             let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
             if (this.promptUnit.recduration) {
@@ -952,7 +916,7 @@ export class SessionManager implements AudioCaptureListener {
             this.nextAction.disabled = true;
             this.pauseAction.disabled = true;
             // console.log("Spr: capture stopped");
-            //this.statusMsg.innerHTML = 'Recorded.';
+            this.controlPanel.statusDisplay.statusMsg = 'Recorded.';
             // this.statusMsg.classList.remove('alert-info');
             // this.statusMsg.classList.remove('alert-danger');
             // this.statusMsg.classList.add('alert-success');
@@ -1004,7 +968,7 @@ export class SessionManager implements AudioCaptureListener {
             }
 
             if (complete) {
-               // this.statusMsg.innerHTML = 'Session complete!';
+                this.controlPanel.statusDisplay.statusMsg = 'Session complete!';
             } else {
 
                 if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -1030,14 +994,13 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         closed() {
-           // this.statusMsg.innerHTML = 'Session closed.';
+           this.controlPanel.statusDisplay.statusMsg = 'Session closed.';
         }
 
 
         error() {
-            //this.statusMsg.innerHTML = 'ERROR: Recording.';
-            // this.statusMsg.classList.remove('alert-info');
-            // this.statusMsg.classList.add('alert-danger');
+            this.controlPanel.statusDisplay.statusMsg = 'ERROR: Recording.';
+          this.controlPanel.statusDisplay.statusAlertType='error';
         }
     }
 
