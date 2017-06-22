@@ -20,6 +20,7 @@ import {SessionService} from "./session.service";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
+import {BootstrapCollapse} from "../../../utils/collapse.directive";
 
 
     const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -315,7 +316,7 @@ export class ControlPanel{
 
       </h4>
     </div>
-    <div id="collapse1" class="panel-collapse collapse">
+    <div id="collapse1" class="panel-collapse collapse" bootstrapCollapse [shownCb]="this.audioSignal.layout">
       <app-audio class="panel-body"></app-audio>
       <div id="signalDisplayFooter" class="panel-footer">
         <div id="audioPlayer">
@@ -438,22 +439,22 @@ export class SessionManager implements AudioCaptureListener {
 
             // does not receive events, only the jquery version works:
 
-            let asCollapseJqEl=$('#collapse1');
-            asCollapseJqEl.on('shown.bs.collapse', (e) => {
-                //console.log("Shown bs coll event received");
-                //let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
-                //ic.classList.remove('glyphicon-collapse-up');
-                //ic.classList.add('glyphicon-collapse-down');
-                this.audioSignal.layout();
-            });
-
-            asCollapseJqEl.on('hide.bs.collapse', (e) => {
-                //console.log("Hide bs coll event received");
-                let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
-                ic.classList.remove('glyphicon-collapse-down');
-                ic.classList.add('glyphicon-collapse-up');
-                // this.audioSignal.layout();
-            });
+            // let asCollapseJqEl=$('#collapse1');
+            // asCollapseJqEl.on('shown.bs.collapse', (e) => {
+            //     //console.log("Shown bs coll event received");
+            //     //let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
+            //     //ic.classList.remove('glyphicon-collapse-up');
+            //     //ic.classList.add('glyphicon-collapse-down');
+            //     this.audioSignal.layout();
+            // });
+            //
+            // asCollapseJqEl.on('hide.bs.collapse', (e) => {
+            //     //console.log("Hide bs coll event received");
+            //     let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
+            //     ic.classList.remove('glyphicon-collapse-down');
+            //     ic.classList.add('glyphicon-collapse-up');
+            //     // this.audioSignal.layout();
+            // });
 
 
         }

@@ -17,6 +17,7 @@ import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simp
 import {SessionService} from "./apps/speechrecorder/session/session.service";
 import {HttpModule} from "@angular/http";
 import {ScriptService} from "./apps/speechrecorder/script/script.service";
+import {BootstrapCollapse} from "./utils/collapse.directive";
 
 const appRoutes: Routes = [
 
@@ -32,7 +33,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
+    AppComponent,BootstrapCollapse,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
       RouterModule.forRoot(appRoutes),
