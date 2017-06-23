@@ -9,8 +9,7 @@ export class BootstrapCollapse {
 
   constructor(el: ElementRef) {
 
-    let asCollapseJqEl=$(el.nativeElement);
-    asCollapseJqEl.on('shown.bs.collapse', (e) => {
+    el.nativeElement.addEventListener('shown.bs.collapse', (e) => {
       console.log("Shown bs coll event received");
 
       if(this.shownCb){
@@ -18,11 +17,18 @@ export class BootstrapCollapse {
       }
     });
 
-    asCollapseJqEl.on('hide.bs.collapse', (e) => {
-
-      if(this.hideCb){
-        this.hideCb
-      }
+    document.addEventListener('shown.bs.collapse', function(event) {
+      // if (event.target.id == 'my-id') {
+      //   callback();
+      // }
+      console.log("Shown bs coll event (from document) received");
     });
+
+    // el.nativeElement.on('hide.bs.collapse', (e) => {
+    //   console.log("Hide bs coll event received");
+    //   if(this.hideCb){
+    //     this.hideCb
+    //   }
+    // });
   }
 }

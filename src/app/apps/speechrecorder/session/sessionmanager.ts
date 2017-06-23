@@ -316,7 +316,7 @@ export class ControlPanel{
 
       </h4>
     </div>
-    <div id="collapse1" class="panel-collapse collapse" [ngbCollapse]="audioSignalCollapsed">
+    <div id="collapse1" class="panel-collapse collapse" [ngbCollapse]="audioSignalCollapsed" bootstrapCollapse>
       <app-audio class="panel-body"></app-audio>
       <div id="signalDisplayFooter" class="panel-footer">
         <div id="audioPlayer">
@@ -407,6 +407,8 @@ export class SessionManager implements AudioCaptureListener {
         statusAlertType:string;
 
         audioSignalCollapsed=true;
+
+        bootstrapCollapse:BootstrapCollapse;
 
         constructor(private changeDetectorRef: ChangeDetectorRef) {
             this.status = Status.IDLE;
