@@ -1,12 +1,14 @@
-@import "../node_modules/bootstrap/less/bootstrap";
-@icon-font-path: "../node_modules/bootstrap/fonts/";
+@import "../node_modules/bootstrap/scss/bootstrap";
+// Bootstrap 4 does not provide free glyphicons anymore !!
+// Try Font Awesome ...
+//@icon-font-path: "../node_modules/bootstrap/fonts/";
 
-@navbar-inverse-color: white;
-@navbar-inverse-link-color: white;
-@navbar-inverse-bg:  #009440;
+$navbar-inverse-color: white;
+$navbar-inverse-link-color: white;
+$navbar-inverse-bg:  #009440;
 
-@btn-primary-bg: #009440;
-@btn-default-bg: #009440;
+$btn-primary-bg: #009440;
+$btn-default-bg: #009440;
 
 // jumbotron is a bootstrap class which looks fine
 // we extend it here for full brwser window mode with flex boxes
@@ -17,7 +19,7 @@
   // Bootstrap navbar seems to be absolute positioned
   // we need to pad the amount of space the navbar needs to the top
   // (margin to the top causes the vertical scrollbar to appear here)
-  padding-top: @navbar-height;
+  //padding-top: $navbar-height;
 
   //background-color: red;
 }
