@@ -311,12 +311,12 @@ export class ControlPanel{
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
     <div class="panel-heading">
       <h4 class="panel-title">
-        <a id="audioSignalSwitch" data-toggle="collapse" data-parent="#asGrPanel" href="#collapse1">Audio
-          signal <span id="audioSignalCollIcon" class="glyphicon glyphicon-collapse-up"></span></a>
+        <a id="audioSignalSwitch"  (click)="this.toggleAudioDisplay();this.audioSignal.layout()">Audio
+          signal <span id="audioSignalCollIcon" class="glyphicon glyphicon-collapse-up"></span></a>  <a (click)="this.audioSignal.layout()">layout</a>
 
       </h4>
     </div>
-    <div id="collapse1" class="panel-collapse collapse" bootstrapCollapse [shownCb]="this.audioSignal.layout">
+    <div id="collapse1" class="panel-collapse collapse" [ngbCollapse]="audioSignalCollapsed">
       <app-audio class="panel-body"></app-audio>
       <div id="signalDisplayFooter" class="panel-footer">
         <div id="audioPlayer">
@@ -406,6 +406,8 @@ export class SessionManager implements AudioCaptureListener {
         statusMsg:string;
         statusAlertType:string;
 
+        audioSignalCollapsed=true;
+
         constructor(private changeDetectorRef: ChangeDetectorRef) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
@@ -463,6 +465,11 @@ export class SessionManager implements AudioCaptureListener {
 
       // this.controlPanel.transportPanel.sessionManager=this;
   }
+
+        toggleAudioDisplay(){
+          this.audioSignalCollapsed=!this.audioSignalCollapsed;
+          this.audioSignal.layout()
+        }
 
         init() {
             this.sectIdx = 0;
