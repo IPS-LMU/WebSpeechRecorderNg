@@ -24,13 +24,18 @@ import {Progress} from "./session/progress";
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession></app-sprrecordingsession>
+    <!--<app-sprrecordingsession></app-sprrecordingsession> -->
+    <p>Test</p>
   `,
   styles: [`:host{
-    width: 100%;
+    //flex: 1;
     height: 100%;
+    background: blue;
+    /* width: 50%; */
+    /* width: 100%; */
     margin: 0;
     padding: 0;
+    
   }`]
 
 })
@@ -77,21 +82,22 @@ export class SpeechRecorder implements AudioPlayerListener {
        ngAfterViewInit(){
 
         this.route.params.subscribe((params:Params)=>{
-            let sess= this.sessionsService.getSession(params['id']).then(sess=> {
-              this.setSession(sess);
-              this.init();
-              if(sess.project){
-                //TODO fetch project then fetchScript
-                this.fetchScript(sess);
-              }else{
-                this.fetchScript(sess);
-              }
-            })
-            .catch(reason =>{
-                this.sm.statusMsg=reason;
-                this.sm.statusAlertType='error';
-                console.log("Error fetching session "+reason)
-            });
+
+            // let sess= this.sessionsService.getSession(params['id']).then(sess=> {
+            //   this.setSession(sess);
+            //   this.init();
+            //   if(sess.project){
+            //     //TODO fetch project then fetchScript
+            //     this.fetchScript(sess);
+            //   }else{
+            //     this.fetchScript(sess);
+            //   }
+            // })
+            // .catch(reason =>{
+            //     this.sm.statusMsg=reason;
+            //     this.sm.statusAlertType='error';
+            //     console.log("Error fetching session "+reason)
+            // });
         })
     }
 

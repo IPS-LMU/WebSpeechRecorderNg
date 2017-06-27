@@ -1,54 +1,25 @@
+@import '~@angular/material/theming';
+// Plus imports for other components in your app.
 
-// Site overrides
-@import "../node_modules/bootstrap/scss/_variables";
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat-core();
 
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue.
+$candy-app-primary: mat-palette($mat-green);
+$candy-app-accent:  mat-palette($mat-amber);
 
+// The warn palette is optional (defaults to red).
+$candy-app-warn:    mat-palette($mat-red);
 
+// Create the theme object (a Sass map containing all of the palettes).
+$candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-app-warn);
 
-// Bootstrap 4 does not provide free glyphicons anymore !!
-// Try Font Awesome ...
-//@icon-font-path: "../node_modules/bootstrap/fonts/";
-// Navbar
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include angular-material-theme($candy-app-theme);
 
-
-//
-//
-//$navbar-inverse-active-color:         red;
-//$navbar-inverse-disabled-color:       yellow;
-//
-//$navbar-light-color:                orange;
-//$navbar-light-active-color:         pink;
-//$navbar-light-disabled-color:       grey;
-//
-$navbar-inverse-color: #009440;
-$navbar-inverse-link-color: #009440;
-$navbar-inverse-color: white;
-$navbar-inverse-link-color: white;
-$navbar-inverse-bg:  #009440;
-$navbar-default-bg:  #009440;
-
-//
-$btn-primary-bg: #009440;
-$btn-default-bg: #009440;
-
-
-// jumbotron is a bootstrap class which looks fine
-// we extend it here for full brwser window mode with flex boxes
-
-
-@import "../node_modules/bootstrap/scss/bootstrap";
-//@import "../node_modules/bootstrap/scss/buttons";
-//@import "../node_modules/bootstrap/scss/nav";
-//@import "../node_modules/bootstrap/scss/navbar";
-
-.jumbotron{
-  height: 100%;
-  margin: 0 auto 0 auto;
-  //  padding: 10px;
-  //  // Bootstrap navbar seems to be absolute positioned
-  //  // we need to pad the amount of space the navbar needs to the top
-  //  // (margin to the top causes the vertical scrollbar to appear here)
-  //  //padding-top: $navbar-height;
-  //
-  //  //background-color: red;
-}

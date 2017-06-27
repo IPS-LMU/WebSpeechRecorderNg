@@ -1,0 +1,19 @@
+Good tutorial:
+
+https://blog.thoughtram.io/angular/2017/05/23/custom-themes-with-angular-material.html
+
+Currently running last master build:
+npm install angular/material2-builds angular/cdk-builds
+
+due to this bug:
+https://github.com/angular/material2/issues/5232
+
+Flex layout with material:
+Example:
+https://material.angular.io/guides
+(source code?)
+
+Example, but for Angular 1 (?):
+http://plnkr.co/edit/E244WNhvMXw9VC7DpAW0?p=preview
+
+

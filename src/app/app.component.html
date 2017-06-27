@@ -1,2 +1,19 @@
-<router-outlet></router-outlet>
+<md-toolbar color="primary" flex layout="row">
 
+  <md-toolbar-row>
+
+    <button md-button [mdMenuTriggerFor]="menu">
+      <md-icon>more_vert</md-icon>
+    </button>
+    <md-menu #menu="mdMenu" yPosition="below" [overlapTrigger]="false">
+      <button md-menu-item  [mdMenuTriggerFor]="helpMenu">Help</button>
+      <md-menu #helpMenu="mdMenu" xPosition="after" [overlapTrigger]="false">
+        <p>WebSpeechRecorderNg 0.0.1</p>
+      </md-menu>
+    </md-menu>
+    &nbsp;<span>WebSpeechRecorder</span>
+  </md-toolbar-row>
+
+</md-toolbar>
+<!-- <div flex layout="column"><p>Bla</p></div> -->
+<app-speechrecorder></app-speechrecorder>

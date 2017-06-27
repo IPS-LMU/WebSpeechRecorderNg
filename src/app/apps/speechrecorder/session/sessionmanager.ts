@@ -103,7 +103,7 @@ export class PromptContainer{
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <app-sprprogress class="hidden-xs" [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress>
+    <!-- <app-sprprogress class="hidden-xs" [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress> -->
 
 
 
@@ -309,7 +309,7 @@ export class ControlPanel{
   template: `
 
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
-    <div class="panel-heading">
+    <!--<div class="panel-heading">
       <h4 class="panel-title">
         <a id="audioSignalSwitch"  (click)="this.toggleAudioDisplay();this.audioSignal.layout()">Audio
           signal <span id="audioSignalCollIcon" class="glyphicon glyphicon-collapse-up"></span></a>  <a (click)="this.audioSignal.layout()">layout</a>
@@ -331,8 +331,8 @@ export class ControlPanel{
         </div>
 
       </div>
-    </div>
-    <app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
+    </div>-->
+    <!--<app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel> -->
     
   `,
   styles: [`:host{
