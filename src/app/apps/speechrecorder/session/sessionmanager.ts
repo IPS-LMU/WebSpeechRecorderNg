@@ -50,7 +50,7 @@ import {BootstrapCollapse} from "../../../utils/collapse.directive";
 
   template: `
 
-    <span #prompt>{{promptText}}</span>
+    <span #prompt>Bla fasel TEST !!!{{promptText}}</span>
   `,
   styles: [`span{
 
@@ -77,9 +77,9 @@ export class Prompter{
   ,
   styles: [`:host{
 
-    flex: 3 1; /* the container consumes all available space */
+    flex: 3; /* the container consumes all available space */
     padding: 10pt;
-    height: 100%;
+    /* height: 100%; */
     justify-content: center; /* align horizontal center*/
     align-items: center; /* align vertical center */
     background: white;
@@ -103,19 +103,19 @@ export class PromptContainer{
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <!-- <app-sprprogress class="hidden-xs" [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress> -->
+    <app-sprprogress class="hidden-xs" [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress>
 
 
 
   `,
   styles: [`:host{
 
-    height: 100%;
+    /* height: 100%; */
     margin: 0;
     padding: 0;
     background: lightgrey;
     width: 100%; /* use all horizontal availible space */
-    flex: 3; /* ... and fill rest of vertical available space (other components have flex 0) */
+    flex: 1; /* ... and fill rest of vertical available space (other components have flex 0) */
 
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
@@ -280,8 +280,8 @@ export class TransportPanel{
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
-    width: 100%; /* available horizontal sace */
-    //display: inline;
+    /*  width: 100%; */ /* available horizontal sace */
+    /* display: inline; */
     display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel */
     flex-direction: row;
     align-content: center;
@@ -307,8 +307,8 @@ export class ControlPanel{
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
-
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
+    
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" flex layout="row"></app-sprprompting>
     <!--<div class="panel-heading">
       <h4 class="panel-title">
         <a id="audioSignalSwitch"  (click)="this.toggleAudioDisplay();this.audioSignal.layout()">Audio
@@ -332,15 +332,16 @@ export class ControlPanel{
 
       </div>
     </div>-->
-    <!--<app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel> -->
+    <app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
-    width: 100%;
+    /* width: 100%; */
+    flex: 2; 
     height: 100%;
-    background: lightgrey;
+    background: orange;
 
-    display: flex;   /* Vertical flex container: Bottom transport panel, above prompting panel */
+    display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
     flex-direction: column;
     margin: 0;
     padding: 0;
