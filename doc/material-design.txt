@@ -8,6 +8,8 @@ npm install angular/material2-builds angular/cdk-builds
 due to this bug:
 https://github.com/angular/material2/issues/5232
 
+Back to Angular 4.1.3 and material @angular/material@^2.0.0-beta.7 the problem is not reproducable anymore !
+
 Flex layout with material:
 Example:
 https://material.angular.io/guides
