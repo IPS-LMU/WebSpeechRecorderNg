@@ -126,7 +126,11 @@ export class PromptContainer{
     display: flex; /* flex container: left traffic light, right prompter (container) */
     flex-direction: row;
     flex-wrap: nowrap; /* wrap could completely destroy the layout */
-  }`]
+  }`,`
+      app-simpletrafficlight {
+          margin: 10px;
+      }
+  `]
 
 })
 
@@ -333,7 +337,7 @@ export class ControlPanel{
     /* width: 100%; */
     flex: 2; 
     height: 100%;
-    background: orange;
+    background: lightgrey;
 
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
     flex-direction: column;
