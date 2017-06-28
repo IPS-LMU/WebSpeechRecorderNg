@@ -8,7 +8,7 @@ import { Item } from './sessionmanager';
 
   template: `
 
-      <table class="table table-bordered">
+      <table class="mat-typography">
           <thead>
           <tr>
               <th>#</th><!--<th>Code</th>-->
@@ -20,10 +20,10 @@ import { Item } from './sessionmanager';
           <ng-container *ngIf="items">
              
             <tr *ngFor="let item of items; let itIdx=index;"
-                      [class.bg-info]="itIdx===selectedItemIdx">
+                      [class.selRow]="itIdx===selectedItemIdx">
                       <td>{{itIdx}}</td>
                       <td>{{item.promptAsString}}</td>
-                      <td><span class="glyphicon" [class.glyphicon-unchecked]="!item.recs || item.recs.length===0" [class.glyphicon-check]="item.recs && item.recs.length>0"></span></td>
+                <td><md-icon *ngIf="item.recs && item.recs.length>0" >done</md-icon><span class="glyphicon" [class.glyphicon-unchecked]="!item.recs || item.recs.length===0" [class.glyphicon-check]="item.recs && item.recs.length>0"></span></td>
                   </tr>
               </ng-container>
           
@@ -44,7 +44,18 @@ import { Item } from './sessionmanager';
     `table{
     min-height: 1px;
     height: 100%;
-  }`]
+  }`,`table {
+          border-collapse: collapse;
+      }
+
+      table, th, td {
+          border: 1px solid lightgrey;
+          padding: 0.5em;
+      }`,`
+      .selRow{
+          background: lightblue;
+      }
+      `]
 
 })
 export class Progress{

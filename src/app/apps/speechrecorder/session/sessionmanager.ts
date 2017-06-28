@@ -205,18 +205,12 @@ export class TransportActions{
   selector: 'app-sprtransport',
 
   template: `
-      <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" class="btn btn-primary"><span
-              class="glyphicon glyphicon-step-backward"></span></button>
-      <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" class="btn btn-primary"><span
-              class="glyphicon glyphicon-record"></span> Start
-      </button>
-      <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()"  class="btn btn-primary"><span
-              class="glyphicon glyphicon-stop"></span> Stop
-      </button>
-      <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" class="btn btn-primary"><span class="glyphicon glyphicon-forward"></span> Next</button>
-      <button id="pauseBtn" (click)="actions.pauseAction.perform()"  [disabled]="pauseDisabled()"  class="btn btn-primary"><span class="glyphicon glyphicon-pause"></span> Pause</button>
-      <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" class="btn btn-primary"><span
-              class="glyphicon glyphicon-step-forward"></span></button>
+      <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" md-raised-button><md-icon>chevron_left</md-icon></button>
+      <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" md-raised-button><md-icon fill="red" >fiber_manual_record</md-icon> Start</button>
+      <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button><md-icon>stop</md-icon> Stop</button>
+      <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" md-raised-button><md-icon>stop</md-icon><md-icon>chevron_right</md-icon> Next</button>
+      <button id="pauseBtn" (click)="actions.pauseAction.perform()"  [disabled]="pauseDisabled()" md-raised-button><md-icon>pause</md-icon> Pause</button>
+      <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" md-raised-button><md-icon>chevron_right</md-icon></button>
 
   `,
   styles: [`:host{

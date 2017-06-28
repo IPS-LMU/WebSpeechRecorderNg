@@ -1,0 +1,62 @@
+{
+    "type": "script",
+    "scriptId": 1245,
+    "sections": [
+      {
+        "mode": "MANUAL",
+        "name": "Introduction",
+        "order": "SEQUENTIAL",
+        "promptUnits": [
+          {
+            "itemcode": "I0",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1248,
+                "scope": "APPLICATION",
+                "text": "Willkommen bei der IPS-Sprachaufnahme!"
+              }
+            ],
+            "recpromptId": 1247
+          },
+          {
+            "itemcode": "I1",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1250,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+              }
+            ],
+            "recpromptId": 1249
+          },
+          {
+            "itemcode": "I2",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1255,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Jetzt geht's los!"
+              }
+            ],
+            "recpromptId": 1254
+          }
+        ],
+        "promptphase": "IDLE",
+        "sectionId": 1246,
+        "sectionPosition": 0,
+        "speakerDisplay": true,
+        "speakerdisplayStr": "true",
+        "training": false
+      }
+    ],
+    "name": "Test1"
+  }
+
