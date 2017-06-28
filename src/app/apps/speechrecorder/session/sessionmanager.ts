@@ -50,7 +50,7 @@ import {BootstrapCollapse} from "../../../utils/collapse.directive";
 
   template: `
 
-    <span #prompt>Bla fasel TEST !!!{{promptText}}</span>
+    <span #prompt>{{promptText}}</span>
   `,
   styles: [`span{
 
@@ -357,7 +357,7 @@ export class SessionManager implements AudioCaptureListener {
         ac: AudioCapture;
         private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
-        @ViewChild(AudioClipUIContainer) audioSignal: AudioClipUIContainer;
+        //@ViewChild(AudioClipUIContainer) audioSignal: AudioClipUIContainer;
 
         startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
@@ -471,7 +471,7 @@ export class SessionManager implements AudioCaptureListener {
 
         toggleAudioDisplay(){
           this.audioSignalCollapsed=!this.audioSignalCollapsed;
-          this.audioSignal.layout()
+         // this.audioSignal.layout()
         }
 
         init() {
@@ -604,11 +604,11 @@ export class SessionManager implements AudioCaptureListener {
             if (e.type == EventType.STARTED) {
                 this.playStartAction.disabled = true;
                 this.updateTimerId = window.setInterval(e => {
-                    this.audioSignal.playFramePosition = this.ap.playPositionFrames;
+                    //this.audioSignal.playFramePosition = this.ap.playPositionFrames;
                 }, 50);
             } else if (e.type == EventType.STOPPED || e.type == EventType.ENDED) {
                 window.clearInterval(this.updateTimerId);
-                this.audioSignal.playFramePosition = this.ap.playPositionFrames;
+               // this.audioSignal.playFramePosition = this.ap.playPositionFrames;
                 this.playStartAction.disabled = (!(this.displayRecFile));
 
             }
@@ -719,13 +719,13 @@ export class SessionManager implements AudioCaptureListener {
 
             if (this.displayRecFile) {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-                this.audioSignal.setData(ab);
+                //this.audioSignal.setData(ab);
               //  rdDlDivEl.style.visibility = 'visible';
                 this.playStartAction.disabled = false;
                 this.ap.audioBuffer = ab;
             } else {
 
-                this.audioSignal.setData(null);
+               // this.audioSignal.setData(null);
                 //     rdDlEl.href = null;
                 //     rdDlEl.name = 'Recording';
                 // // TODO disable link (remove anchor element)
@@ -783,7 +783,7 @@ export class SessionManager implements AudioCaptureListener {
             //TODO Ng: Build scrollIntoView directive
 
             //
-            this.audioSignal.layout();
+            //this.audioSignal.layout();
             this.startStopSignalState=StartStopSignalState.IDLE;
         }
 

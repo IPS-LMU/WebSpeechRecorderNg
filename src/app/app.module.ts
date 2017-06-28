@@ -39,7 +39,7 @@ const appRoutes: Routes = [
     AppComponent,BootstrapCollapse,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
-      RouterModule.forRoot(appRoutes),NgbModule.forRoot(),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,
+      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,
       HttpModule,
     BrowserModule
   ],

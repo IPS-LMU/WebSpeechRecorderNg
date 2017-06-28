@@ -52,7 +52,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     script:Script;
         dataSaved: boolean = true;
   @ViewChild(SessionManager) sm:SessionManager;
-    statusDisplay:StatusDisplay;
+    //statusDisplay:StatusDisplay;
 
 
     currentPromptIdx:number;
@@ -62,7 +62,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 			this.audio = document.getElementById('audio');
 			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
             this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
-			//this.statusMsg = 'Initialize...';
+			  //this.statusMsg = 'Initialize...';
             this.titleEl = <HTMLElement>(document.getElementById('title'));
             this.uploader = new Uploader();
 
@@ -104,9 +104,9 @@ export class SpeechRecorder implements AudioPlayerListener {
           this.sm.start();
         })
           .catch(reason =>{
-            this.statusDisplay.statusMsg=reason;
-            this.statusDisplay.statusAlertType='error';
-            console.log("Error fetching script "+reason)
+            this.sm.statusMsg=reason;
+            this.sm.statusAlertType='error';
+            console.log("Error fetching script: "+reason)
           });;
       }
     }
@@ -132,14 +132,14 @@ export class SpeechRecorder implements AudioPlayerListener {
 
 			AudioContext = w.AudioContext || w.webkitAudioContext;
 			if (typeof AudioContext !== 'function') {
-                this.statusDisplay.statusAlertType='error';
-				this.statusDisplay.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+                this.sm.statusAlertType='error';
+				this.sm.statusMsg = 'ERROR: Browser does not support Web Audio API!';
 			} else {
 				var context = new AudioContext();
 
 				if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
-                    this.statusDisplay.statusAlertType='error';
-					this.statusDisplay.statusMsg= 'ERROR: Browser does not support Media streams!';
+                    this.sm.statusAlertType='error';
+					this.sm.statusMsg= 'ERROR: Browser does not support Media streams!';
 				} else {
 
 
@@ -339,19 +339,19 @@ export class SpeechRecorder implements AudioPlayerListener {
 			if(PlaybackEventType.STARTED===e.type){
 				//this.startBtn.disabled=true;
 				//this.stopBtn.disabled=true;
-                this.statusDisplay.statusAlertType='info';
-				this.statusDisplay.statusMsg='Playback...';
+                this.sm.statusAlertType='info';
+				this.sm.statusMsg='Playback...';
 
             } else if (PlaybackEventType.ENDED === e.type) {
 				//this.startBtn.disabled=false;
 				//this.stopBtn.disabled=true;
-                this.statusDisplay.statusAlertType='info';
-				this.statusDisplay.statusMsg='Ready.';
+                this.sm.statusAlertType='info';
+				this.sm.statusMsg='Ready.';
 			}
 		}
 		error(){
-		    this.statusDisplay.statusAlertType='error';
-			this.statusDisplay.statusMsg='ERROR: Recording.';
+		    this.sm.statusAlertType='error';
+			this.sm.statusMsg='ERROR: Recording.';
 		}
 	}
 
