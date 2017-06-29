@@ -87,6 +87,7 @@ export class Prompter{
     text-align: center;
     display: flex;
     flex-direction:column;
+    min-height: 0px;
   }
   `]
 })
@@ -102,7 +103,7 @@ export class PromptContainer{
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <app-sprprogress class="hidden-xs" [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress>
+    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress>
 
 
 
@@ -121,13 +122,15 @@ export class PromptContainer{
     the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
     See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
     */
-    min-height:0;
+    min-height:0px;
+   
     display: flex; /* flex container: left traffic light, right prompter (container) */
     flex-direction: row;
     flex-wrap: nowrap; /* wrap could completely destroy the layout */
   }`,`
       app-simpletrafficlight {
           margin: 10px;
+        min-height: 0px;
       }
   `]
 
@@ -305,57 +308,22 @@ export class ControlPanel{
   providers: [SessionService],
   template: `
     
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" flex layout="row"></app-sprprompting>
-    <!--<div class="panel-heading">
-      <h4 class="panel-title">
-        <a id="audioSignalSwitch"  (click)="this.toggleAudioDisplay();this.audioSignal.layout()">Audio
-          signal <span id="audioSignalCollIcon" class="glyphicon glyphicon-collapse-up"></span></a>  <a (click)="this.audioSignal.layout()">layout</a>
-
-      </h4>
-    </div>
-    <div id="collapse1" class="panel-collapse collapse" [ngbCollapse]="audioSignalCollapsed" bootstrapCollapse>
-      <app-audio class="panel-body"></app-audio>
-      <div id="signalDisplayFooter" class="panel-footer">
-        <div id="audioPlayer">
-          <button id="playStartBtn" class="btn"><span id="playIcon"
-                                                      class="glyphicon glyphicon-play-circle"></span>
-            Play
-          </button>
-        </div>
-        <div id="rfDownload">
-          <a id="rfDownloadLnk" href="#dl">Download as WAV file <span
-            class="glyphicon glyphicon-download"></span></a>
-        </div>
-
-      </div>
-    </div>-->
-    <md-toolbar color="primary">
-      <button md-button [mdMenuTriggerFor]="menu">
-        <md-icon>menu</md-icon>
-      </button>
-      <md-menu #menu="mdMenu" yPosition="below" [overlapTrigger]="false">
-        <button md-menu-item  [mdMenuTriggerFor]="helpMenu">Help</button>
-        <md-menu #helpMenu="mdMenu" xPosition="after" [overlapTrigger]="false">
-          <p>WebSpeechRecorderNg 0.0.1</p>
-        </md-menu>
-      </md-menu>
-      &nbsp;<span>WebSpeechRecorder</span>
-
-
-    </md-toolbar>
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
+   
     <app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
-    /* width: 100%; */
+    
     flex: 2; 
-    height: 100%;
+    
     background: lightgrey;
 
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
     flex-direction: column;
     margin: 0;
     padding: 0;
+    min-height:0px;
   }`]
 
 })

@@ -31,27 +31,37 @@ import { Item } from './sessionmanager';
       </table>
   `,
   styles: [`:host {
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: scroll;
-  // display: flex;
-  // flex-direction: column;
-    background: white;
+    /*display: flex; 
+  flex-direction: column; */
     padding: 10pt;
     flex: 1;
+    background: white;
+    /* Workaround for Firefox
+    If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
+    the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
+    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+    */
+    /* min-height:0px; */
     min-height: 1px;
-  // height: 100 px;
+   
   }`,
     `table{
-    min-height: 1px;
-    height: 100%;
-  }`,`table {
+      /* overflow-x: auto;
+      overflow-y: scroll;*/
+    min-height: 1px; 
+     
+    /*height: 100%;*/
           border-collapse: collapse;
       }
 
       table, th, td {
           border: 1px solid lightgrey;
           padding: 0.5em;
-      }`,`
+      }
+
+`,`
       .selRow{
           background: lightblue;
       }
