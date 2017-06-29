@@ -20,7 +20,7 @@ import {ScriptService} from "./apps/speechrecorder/script/script.service";
 import {BootstrapCollapse} from "./utils/collapse.directive";
 import {NgbModule} from "@ng-bootstrap/ng-bootstrap";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {MdIconModule, MdMenu, MdMenuItem, MdMenuModule, MdToolbarModule} from "@angular/material";
+import {MdButtonModule, MdIconModule, MdMenu, MdMenuItem, MdMenuModule, MdToolbarModule} from "@angular/material";
 
 const appRoutes: Routes = [
 
@@ -39,7 +39,7 @@ const appRoutes: Routes = [
     AppComponent,BootstrapCollapse,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
   ],
   imports: [
-      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,
+      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,
       HttpModule,
     BrowserModule
   ],

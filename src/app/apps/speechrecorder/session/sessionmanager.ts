@@ -50,15 +50,16 @@ import {BootstrapCollapse} from "../../../utils/collapse.directive";
 
   template: `
 
-    <span #prompt>{{promptText}}</span>
+    {{promptText}}
   `,
-  styles: [`span{
+  styles: [`:host{
 
     justify-content: center; /* align horizontal center */
     align-items: center; /* align vertical  center */
     background: white;
     text-align: center;
     font-size: 2em;
+    line-height: 1.2em;
     flex: 0 1;
   }
   `]
@@ -84,8 +85,6 @@ export class Prompter{
     align-items: center; /* align vertical center */
     background: white;
     text-align: center;
-
-
     display: flex;
     flex-direction:column;
   }
@@ -114,7 +113,7 @@ export class PromptContainer{
     margin: 0;
     padding: 0;
     background: lightgrey;
-    width: 100%; /* use all horizontal availible space */
+    width: 100%; /* use all horizontal available space */
     flex: 1; /* ... and fill rest of vertical available space (other components have flex 0) */
 
     /* Workaround for Firefox
@@ -330,6 +329,20 @@ export class ControlPanel{
 
       </div>
     </div>-->
+    <md-toolbar color="primary">
+      <button md-button [mdMenuTriggerFor]="menu">
+        <md-icon>menu</md-icon>
+      </button>
+      <md-menu #menu="mdMenu" yPosition="below" [overlapTrigger]="false">
+        <button md-menu-item  [mdMenuTriggerFor]="helpMenu">Help</button>
+        <md-menu #helpMenu="mdMenu" xPosition="after" [overlapTrigger]="false">
+          <p>WebSpeechRecorderNg 0.0.1</p>
+        </md-menu>
+      </md-menu>
+      &nbsp;<span>WebSpeechRecorder</span>
+
+
+    </md-toolbar>
     <app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
     
   `,
