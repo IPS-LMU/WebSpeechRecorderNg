@@ -30,6 +30,8 @@ import {Progress} from "./session/progress";
     flex: 2;
     display: flex;
     flex-direction: column;
+    min-height:0;      
+
   }`]
 
 })
