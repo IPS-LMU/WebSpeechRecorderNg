@@ -44,12 +44,13 @@ import {Element} from '@angular/compiler';
        }
 
 
+ngAfterViewInit()
+{
+}
 
   ngAfterContentInit() {
 
-  }
 
-  ngAfterViewInit(){
       this.ce = this.signalContainerRef.nativeElement;
 
   this.dc = this.createCanvas();

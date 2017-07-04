@@ -18,10 +18,11 @@ import {SessionService} from "./session.service";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {BootstrapCollapse} from "../../../utils/collapse.directive";
+import {MdDialog} from "@angular/material";
+import {AudioDisplayDialog, DialogResultExampleDialog} from "app/apps/audio/audio_display_dialog";
 
 
-    const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
     export enum Mode {SERVER_BOUND, STAND_ALONE}
 
     export enum Status {IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE,
@@ -274,7 +275,15 @@ export class TransportPanel{
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" class="hidden-xs"></app-sprstatusdisplay><app-sprtransport [actions]="transportActions"></app-sprtransport><app-sprprogressdisplay class="hidden-xs"></app-sprprogressdisplay>
+    <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+                          class="hidden-xs"></app-sprstatusdisplay>
+    <div>
+      <button (click)="openAudioDisplayDialog()" [disabled]="false" md-raised-button>
+        <md-icon>menu</md-icon>
+      </button>
+    </div>
+    <app-sprtransport [actions]="transportActions"></app-sprtransport>
+    <app-sprprogressdisplay class="hidden-xs"></app-sprprogressdisplay>
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
@@ -287,16 +296,28 @@ export class TransportPanel{
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`]
+  }`,`
+  div {
+    flex:0 ;
+  }
+  `]
 
 })
-
 export class ControlPanel{
   @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
     @ViewChild(TransportPanel) transportPanel:TransportPanel;
+
     @Input() transportActions:TransportActions
     @Input() statusMsg:string;
     @Input() statusAlertType:string;
+    @Input() currentRecording:AudioBuffer;
+    constructor(public dialog: MdDialog){
+
+    }
+  openAudioDisplayDialog() {
+    let audioDisplayRef=this.dialog.open(AudioDisplayDialog,this.currentRecording);
+    audioDisplayRef.componentInstance.audioBuffer=this.currentRecording;
+  }
 }
 
 
@@ -308,7 +329,7 @@ export class ControlPanel{
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
    
-    <app-sprcontrolpanel [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
+    <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
@@ -327,6 +348,7 @@ export class ControlPanel{
 })
 export class SessionManager implements AudioCaptureListener {
 
+
         status: Status;
         mode: Mode;
 
@@ -340,6 +362,7 @@ export class SessionManager implements AudioCaptureListener {
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:any;
         private selCaptureDeviceId: ConstrainDOMString;
+        currentRecording:AudioBuffer;
         private ap: AudioPlayer;
         private updateTimerId: any;
         private preRecTimerId: number;
@@ -385,8 +408,6 @@ export class SessionManager implements AudioCaptureListener {
         statusAlertType:string;
 
         audioSignalCollapsed=true;
-
-        bootstrapCollapse:BootstrapCollapse;
 
         constructor(private changeDetectorRef: ChangeDetectorRef) {
             this.status = Status.IDLE;
@@ -697,11 +718,12 @@ export class SessionManager implements AudioCaptureListener {
             if (this.displayRecFile) {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
                 //this.audioSignal.setData(ab);
+              this.currentRecording=ab;
               //  rdDlDivEl.style.visibility = 'visible';
                 this.playStartAction.disabled = false;
                 this.ap.audioBuffer = ab;
             } else {
-
+                this.currentRecording=null;
                // this.audioSignal.setData(null);
                 //     rdDlEl.href = null;
                 //     rdDlEl.name = 'Recording';

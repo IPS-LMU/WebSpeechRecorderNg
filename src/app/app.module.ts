@@ -17,10 +17,13 @@ import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simp
 import {SessionService} from "./apps/speechrecorder/session/session.service";
 import {HttpModule} from "@angular/http";
 import {ScriptService} from "./apps/speechrecorder/script/script.service";
-import {BootstrapCollapse} from "./utils/collapse.directive";
-import {NgbModule} from "@ng-bootstrap/ng-bootstrap";
+
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
-import {MdButtonModule, MdIconModule, MdMenu, MdMenuItem, MdMenuModule, MdToolbarModule} from "@angular/material";
+import {
+  MdButtonModule, MdDialogModule, MdIconModule, MdMenu, MdMenuItem, MdMenuModule,
+  MdToolbarModule
+} from "@angular/material";
+import {AudioDisplayDialog, DialogResultExampleDialog} from "./apps/audio/audio_display_dialog";
 
 const appRoutes: Routes = [
 
@@ -36,10 +39,13 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,BootstrapCollapse,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioClipUIContainer,SimpleTrafficLight
+    AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,DialogResultExampleDialog,AudioClipUIContainer,SimpleTrafficLight
+  ],
+  entryComponents: [
+    AudioDisplayDialog,DialogResultExampleDialog
   ],
   imports: [
-      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,
+      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,MdDialogModule,
       HttpModule,
     BrowserModule
   ],
@@ -48,3 +54,4 @@ const appRoutes: Routes = [
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+

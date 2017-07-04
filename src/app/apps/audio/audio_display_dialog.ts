@@ -3,12 +3,28 @@
  */
 
 
-import { Component,ViewChild,ElementRef,AfterContentInit,ChangeDetectorRef } from '@angular/core'
-import {MdDialog, MdDialogRef} from '@angular/material';
+import {Component, ViewChild, ElementRef, AfterContentInit, ChangeDetectorRef, Inject} from '@angular/core'
+import {MD_DIALOG_DATA, MdDialog, MdDialogRef} from '@angular/material';
 import { WavReader } from '../../audio/impl/wavreader'
 import { AudioClip} from '../../audio/persistor'
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
 import { AudioClipUIContainer } from '../../audio/ui/container'
+
+
+@Component({
+  selector: 'dialog-result-example-dialog',
+  template: `<h1 md-dialog-title>Dialog</h1>
+  <div md-dialog-content>What would you like to do?</div>
+      <div md-dialog-actions>
+      <button md-button md-dialog-close="Option 1">Option 1</button>
+  <button md-button md-dialog-close="Option 2">Option 2</button>
+</div>`,
+})
+export class DialogResultExampleDialog {
+  constructor(public dialogRef: MdDialogRef<DialogResultExampleDialog>) {}
+}
+
+
 
 @Component({
 
@@ -18,12 +34,15 @@ import { AudioClipUIContainer } from '../../audio/ui/container'
   <h1 md-dialog-title>Audio signal</h1>
   <div>
   <app-audio #audioSignalContainer></app-audio>
-  <button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-play"></span></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
+  <button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
     <p>{{status}}</p></div>`,
 
-  styles: [`app-audiodisplay {
-    width: 100%;
-    height: 100%
+  styles: [`:host {
+    width: 800px;
+    height: 400px;
+  }`,`app-audio {
+    width: 800px;
+    height: 400px;
   }`]
 
 })
@@ -42,11 +61,11 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   //statusMsg:HTMLElement;
   audio:any;
   updateTimerId:any;
-
+  audioBuffer:AudioBuffer;
   @ViewChild(AudioClipUIContainer)
 
   private ac:AudioClipUIContainer;
-  constructor(private ref: ChangeDetectorRef) {
+  constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<DialogResultExampleDialog>) {
 
 
     // this.startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
@@ -63,6 +82,12 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
     //   this.init();
     //   //this.audioUrl="http://www.phonetik.uni-muenchen.de/~klausj/Trappa1.wav";
     // this.audioUrl="test/audio.wav";
+  }
+
+  ngAfterViewInit(){
+    this.init();
+    this.data=this.audioBuffer;
+
   }
 
   init() {
@@ -85,15 +110,6 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
 
   }
 
-  get audioUrl():string {
-    return this._audioUrl;
-  }
-
-  set audioUrl(value:string) {
-    this.ap.stop();
-    this._audioUrl = value;
-    this.load();
-  }
 
   started(){
     //this.stopBtn.disabled=false;
@@ -102,62 +118,11 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
     this.status='Playing...';
   }
 
-  private load() {
+  set data(audioBuffer:AudioBuffer){
 
-    if (this.currentLoader) {
-      this.currentLoader.abort();
-      this.currentLoader = null;
-    }
-    //this.statusMsg.innerHTML = 'Connecting...';
-    this.currentLoader = new XMLHttpRequest();
-    this.currentLoader.open("GET", this._audioUrl, true);
-    this.currentLoader.responseType = "arraybuffer";
-    this.currentLoader.onload = (e) => {
-
-      var data = this.currentLoader.response; // not responseText
-      console.log("Received data ",data.byteLength);
-      this.currentLoader = null;
-      this.loaded(data);
-    }
-    this.currentLoader.onerror = (e) => {
-      console.log("Error downloading ...");
-      //this.statusMsg.innerHTML = 'Error loading audio file!';
-      this.currentLoader = null;
-    }
-    //this.statusMsg.innerHTML = 'Loading...';
-
-    this.currentLoader.send();
-
-  }
-
-  private loaded(data:ArrayBuffer) {
-    // this.startBtn.disabled=false;
-    // this.stopBtn.disabled=true;
-    console.log("Loaded");
-    this.status='Audio file loaded.';
-    console.log("Received data ",data.byteLength);
-    //var wr=new WavReader(data);
-
-    //var clip = wr.read();
-
-    var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer)=> {
-      console.log("Samplerate: ", audioBuffer.sampleRate);
-      var clip = new AudioClip(audioBuffer);
-      // Use Web audio API AudioBuffer instead of AudioClip
-      //var ab=this.aCtx.createAudioBuffer();
-      //var da0=clip.data[0];
-      //this.audioSignal.setData(audioBuffer);
       this.ac.setData(audioBuffer);
-      this.ap.audioClip = clip;
-      //this.ap.start();
-      //window.setTimeout(e=>this.audioSignal.layout,1000);
-
-      //this.audioSignal.layout();
-      //this.ac.layout();
-      // this.ap.startAction.addControl(this.startBtn, 'click');
-      // this.ap.stopAction.addControl(this.stopBtn, 'click');
-      this.startEnabled=true;
-    });
+      //this.ap.audioClip = clip;
+      this.ap.audioBuffer=audioBuffer;
   }
 
 
