@@ -1,5 +1,3 @@
-
-import * as $ from 'jquery';
 import { Action } from '../../../action/action'
 
     import { AudioCapture,AudioCaptureListener } from '../../../audio/capture/capture';
