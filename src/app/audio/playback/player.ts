@@ -1,7 +1,8 @@
 import { Action } from '../../action/action'
 import { AudioClip } from '../persistor'
 
-    export enum  EventType {STARTED, POS_UPDATE, STOPPED, ENDED}
+    export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED}
+
     export class AudioPlayerEvent{
 
         private _type:EventType;
@@ -90,8 +91,11 @@ import { AudioClip } from '../persistor'
 
         set audioBuffer(audioBuffer:AudioBuffer) {
             this._audioBuffer = audioBuffer;
-            if (audioBuffer) {
+            if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
+                if(this.listener){
+                    this.listener.update(new AudioPlayerEvent(EventType.READY));
+                }
             }
         }
 

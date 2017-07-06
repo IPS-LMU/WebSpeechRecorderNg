@@ -23,7 +23,8 @@ import {
   MdButtonModule, MdDialogModule, MdIconModule, MdMenu, MdMenuItem, MdMenuModule,
   MdToolbarModule
 } from "@angular/material";
-import {AudioDisplayDialog, DialogResultExampleDialog} from "./apps/audio/audio_display_dialog";
+import {AudioDisplayDialog} from "./apps/audio/audio_display_dialog";
+
 
 const appRoutes: Routes = [
 
@@ -39,10 +40,10 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,DialogResultExampleDialog,AudioClipUIContainer,SimpleTrafficLight
+    AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,AudioClipUIContainer,SimpleTrafficLight
   ],
   entryComponents: [
-    AudioDisplayDialog,DialogResultExampleDialog
+    AudioDisplayDialog
   ],
   imports: [
       RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,MdDialogModule,

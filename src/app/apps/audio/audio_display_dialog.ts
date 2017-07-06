@@ -9,22 +9,7 @@ import { WavReader } from '../../audio/impl/wavreader'
 import { AudioClip} from '../../audio/persistor'
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
 import { AudioClipUIContainer } from '../../audio/ui/container'
-
-
-@Component({
-  selector: 'dialog-result-example-dialog',
-  template: `<h1 md-dialog-title>Dialog</h1>
-  <div md-dialog-content>What would you like to do?</div>
-      <div md-dialog-actions>
-      <button md-button md-dialog-close="Option 1">Option 1</button>
-  <button md-button md-dialog-close="Option 2">Option 2</button>
-</div>`,
-})
-export class DialogResultExampleDialog {
-  constructor(public dialogRef: MdDialogRef<DialogResultExampleDialog>) {}
-}
-
-
+import {AudioContextProvider} from '../../audio/context'
 
 @Component({
 
@@ -33,7 +18,7 @@ export class DialogResultExampleDialog {
   template: `
   <!-- <h1 md-dialog-title>Audio signal</h1> -->
   <app-audio #audioSignalContainer></app-audio>
-  <div><button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
+  <div><button (click)="ap.start()" [disabled]="!startEnabled"><md-icon>play_arrow</md-icon></button> <button (click)="ap.stop()" [disabled]="!stopEnabled"><md-icon>stop</md-icon></button>
     <p>Status: {{status}}</p></div>`,
 
   styles: [`:host {
@@ -71,7 +56,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   @ViewChild(AudioClipUIContainer)
 
   private ac:AudioClipUIContainer;
-  constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<DialogResultExampleDialog>) {
+  constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<AudioDisplayDialog>) {
 
 
     // this.startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
@@ -93,27 +78,20 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   ngAfterViewInit(){
     this.init();
     this.data=this.audioBuffer;
-
+    if(this.data){
+      this.startEnabled=true;
+     this.ref.detectChanges();
+    }
   }
 
   init() {
-    // this.startBtn.disabled = true;
-    // this.stopBtn.disabled = true;
-    var n = <any>navigator;
-    //var getUserMediaFnct= n.getUserMedia || n.webkitGetUserMedia ||
-    //	n.mozGetUserMedia || n.msGetUserMedia;
-    var w = <any>window;
-    AudioContext = w.AudioContext || w.webkitAudioContext;
-    if (typeof AudioContext !== 'function') {
+    this.aCtx=AudioContextProvider.audioContext;
+    if (!this.aCtx) {
       this.status= 'ERROR: Browser does not support Web Audio API!';
     } else {
-      this.aCtx = new AudioContext();
+
       this.ap = new AudioPlayer(this.aCtx, this);
-      //	this.startBtn.disabled = true;
-
     }
-    //this.audioSignal.init();
-
   }
 
 
@@ -138,7 +116,11 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
     this.ac.playFramePosition = this.ap.playPositionFrames;
   }
   update(e:AudioPlayerEvent){
-    if(EventType.STARTED===e.type){
+    if(EventType.READY===e.type) {
+      this.status = 'Ready';
+      this.startEnabled = true;
+      this.stopEnabled = false;
+    }else if(EventType.STARTED===e.type){
       // this.startBtn.disabled=true;
       // this.stopBtn.disabled = false;
       this.status = 'Playback...';
