@@ -12,14 +12,24 @@ import {Element} from '@angular/compiler';
 
   selector: 'app-audio',
   template: `<div #signalC></div>`,
-  styles: [`div {
+  styles: [`:host {
   
     margin: 0;
     padding: 0;
-    position: relative;
+    /* position: relative; */
    
+    flex: 1;
+    justify-content: center; /* align horizontal */
+    align-items: center; /* align vertical */
+    text-align: center;
+  }`,`div {
+  
+    margin: 0;
+    padding: 0;
+     position: relative;
     width: 100%;
-    height: 400px;
+    height: 100%;
+    
     justify-content: center; /* align horizontal */
     align-items: center; /* align vertical */
     text-align: center;

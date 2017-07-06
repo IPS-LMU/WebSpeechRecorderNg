@@ -31,18 +31,24 @@ export class DialogResultExampleDialog {
   selector: 'app-audiodisplaydialog',
 
   template: `
-  <h1 md-dialog-title>Audio signal</h1>
-  <div>
+  <!-- <h1 md-dialog-title>Audio signal</h1> -->
   <app-audio #audioSignalContainer></app-audio>
-  <button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
-    <p>{{status}}</p></div>`,
+  <div><button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
+    <p>Status: {{status}}</p></div>`,
 
   styles: [`:host {
-    width: 800px;
-    height: 400px;
+   /* width: 800px;
+    height: 400px; */
+    height: 100%;
+    display:flex;
+    flex-direction: column;
+  }`,`div {
+    /* height: 100%; */
+    flex: 0;
   }`,`app-audio {
-    width: 800px;
-    height: 400px;
+    /* width: 800px;
+    height: 400px; */
+    /* height: 100%; */
   }`]
 
 })

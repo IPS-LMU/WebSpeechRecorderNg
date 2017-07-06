@@ -18,7 +18,7 @@ import {SessionService} from "./session.service";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MdDialog} from "@angular/material";
+import {MdDialog, MdDialogConfig} from "@angular/material";
 import {AudioDisplayDialog, DialogResultExampleDialog} from "app/apps/audio/audio_display_dialog";
 
 
@@ -315,7 +315,12 @@ export class ControlPanel{
 
     }
   openAudioDisplayDialog() {
-    let audioDisplayRef=this.dialog.open(AudioDisplayDialog,this.currentRecording);
+    let dCfg=new MdDialogConfig();
+    dCfg.width='80%';
+    dCfg.height='80%';
+    dCfg.data=this.currentRecording;
+    let audioDisplayRef=this.dialog.open(AudioDisplayDialog,dCfg);
+    this.dialog.open
     audioDisplayRef.componentInstance.audioBuffer=this.currentRecording;
   }
 }
