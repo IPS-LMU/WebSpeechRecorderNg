@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core'
+import {Component, EventEmitter, Input, Output} from '@angular/core'
 import {Item} from './sessionmanager';
 
 
@@ -20,7 +20,7 @@ import {Item} from './sessionmanager';
       <ng-container *ngIf="items">
 
         <tr *ngFor="let item of items; let itIdx=index;"
-            [class.selRow]="itIdx===selectedItemIdx" [scrollIntoView]="itIdx===selectedItemIdx">
+            (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx" [scrollIntoView]="itIdx===selectedItemIdx">
           <td>{{itIdx}}</td>
           <td>{{item.promptAsString}}</td>
           <td>
@@ -67,4 +67,10 @@ import {Item} from './sessionmanager';
 export class Progress {
   @Input() items: Array<Item>;
   @Input() selectedItemIdx = 0;
+  @Output() onRowSelect = new EventEmitter<number>();
+  @Output()
+  set rowSelect(rowIdx:number){
+    console.log("Row: "+rowIdx);
+    this.onRowSelect.emit(rowIdx);
+  }
 }

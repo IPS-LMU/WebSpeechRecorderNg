@@ -12,7 +12,7 @@ import { Action } from '../../../action/action'
 
     import { RecordingFile } from '../recording'
     import { Uploader,Upload } from '../../../net/uploader';
-import {Component, ViewChild, ChangeDetectorRef, Input} from "@angular/core";
+import {Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter} from "@angular/core";
 import {Progress} from "./progress";
 import {SessionService} from "./session.service";
 
@@ -102,7 +102,7 @@ export class PromptContainer{
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprogress>
+    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx" (onRowSelect)="itemSelect($event)"></app-sprprogress>
 
 
 
@@ -141,6 +141,12 @@ export class Prompting{
   @Input() promptText:string;
   @Input() items:Array<Item>;
   @Input() selectedItemIdx:number;
+  @Output() onItemSelect=new EventEmitter<number>();
+
+  itemSelect(rowIdx:number){
+    console.log("Row (prompting) "+rowIdx)
+    this.onItemSelect.emit(rowIdx);
+  }
 }
 
 @Component({
@@ -278,7 +284,7 @@ export class TransportPanel{
       </button>
     </div>
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
-    <app-sprprogressdisplay class="hidden-xs"></app-sprprogressdisplay>
+    <app-sprprogressdisplay class="md-hidden-xs" ></app-sprprogressdisplay>
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
@@ -325,7 +331,7 @@ export class ControlPanel{
   providers: [SessionService],
   template: `
     
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx"></app-sprprompting>
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
    
     <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
     
@@ -557,7 +563,26 @@ export class SessionManager implements AudioCaptureListener {
             }
         }
 
+      itemSelect(itemIdx:number){
+          console.log("Selected item: "+itemIdx);
 
+
+        let i=0;
+        for(let si=0;si<this._script.sections.length;si++){
+          let section = this._script.sections[si];
+          let pis = section.promptUnits;
+          let sLen=pis.length;
+          if(itemIdx<i+sLen){
+            this.sectIdx=si;
+            this.prmptIdx=itemIdx-i;
+            break;
+          }else {
+            i += pis.length;
+          }
+        }
+
+        this.applyItem();
+      }
 
         startItem() {
             //this.bwdBtn.disabled = true;
@@ -769,6 +794,8 @@ export class SessionManager implements AudioCaptureListener {
 
             }
         }
+
+
 
         prevItem() {
             let scriptLength = this._script.sections.length;
