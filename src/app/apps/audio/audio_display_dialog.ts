@@ -10,6 +10,7 @@ import { AudioClip} from '../../audio/persistor'
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
 import { AudioClipUIContainer } from '../../audio/ui/container'
 import {AudioContextProvider} from '../../audio/context'
+import {isNullOrUndefined} from "util";
 
 @Component({
 
@@ -19,7 +20,8 @@ import {AudioContextProvider} from '../../audio/context'
   <!-- <h1 md-dialog-title>Audio signal</h1> -->
   <app-audio #audioSignalContainer></app-audio>
   <div><button (click)="ap.start()" [disabled]="!startEnabled"><md-icon>play_arrow</md-icon></button> <button (click)="ap.stop()" [disabled]="!stopEnabled"><md-icon>stop</md-icon></button>
-    <p>Status: {{status}}</p></div>`,
+    <p>Status: {{status}}</p>
+    <p>Audio: {{audioFormatStr}}</p></div>`,
 
   styles: [`:host {
    /* width: 800px;
@@ -44,12 +46,10 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   aCtx:AudioContext;
   ap:AudioPlayer;
   status:string;
+  audioFormatStr:string;
   //audioSignal:AudioSignal;
   //audioSonagram:Sonagram;
   currentLoader:XMLHttpRequest;
-  //startBtn:HTMLInputElement;
-  //stopBtn:HTMLInputElement;
-  //statusMsg:HTMLElement;
   audio:any;
   updateTimerId:any;
   audioBuffer:AudioBuffer;
@@ -77,11 +77,10 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
 
   ngAfterViewInit(){
     this.init();
-    this.data=this.audioBuffer;
-    if(this.data){
-      this.startEnabled=true;
-     this.ref.detectChanges();
-    }
+    // this.data=this.audioBuffer;
+    // this.startEnabled=(!isNullOrUndefined(this.data));
+    //  this.ref.detectChanges();
+    this.updateUI();
   }
 
   init() {
@@ -91,7 +90,24 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
     } else {
 
       this.ap = new AudioPlayer(this.aCtx, this);
+      this.status= 'Player initialized.';
     }
+  }
+
+  private updateUI(){
+
+    this.ac.setData(this.audioBuffer);
+
+    this.ap.audioBuffer=this.audioBuffer;
+    if(this.audioBuffer) {
+      this.status="Audio data loaded."
+      this.audioFormatStr = this.audioBuffer.sampleRate + " Hz, " + this.audioBuffer.numberOfChannels + " channels, duration: " + this.audioBuffer.duration+" s";
+    }else{
+      this.status="No audio data."
+      this.audioFormatStr='';
+    }
+    this.startEnabled=(!isNullOrUndefined(this.audioBuffer));
+    this.ref.detectChanges();
   }
 
 
@@ -101,12 +117,10 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
     console.log("Play started");
     this.status='Playing...';
   }
-
   set data(audioBuffer:AudioBuffer){
+      this.audioBuffer=audioBuffer;
+      this.data=this.audioBuffer;
 
-      this.ac.setData(audioBuffer);
-      //this.ap.audioClip = clip;
-      this.ap.audioBuffer=audioBuffer;
   }
 
 

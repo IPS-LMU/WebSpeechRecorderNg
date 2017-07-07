@@ -278,7 +278,7 @@ export class TransportPanel{
     <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
     <div>
-      <button (click)="openAudioDisplayDialog()" [disabled]="false" md-raised-button>
+      <button (click)="openAudioDisplayDialog()" [disabled]="!currentRecording" md-raised-button>
         <md-icon>menu</md-icon>
       </button>
     </div>
@@ -301,7 +301,6 @@ export class TransportPanel{
     flex:0 ;
   }
   `]
-
 })
 export class ControlPanel{
   @ViewChild(StatusDisplay) statusDisplay:StatusDisplay;
@@ -320,7 +319,6 @@ export class ControlPanel{
     dCfg.height='80%';
     dCfg.data=this.currentRecording;
     let audioDisplayRef=this.dialog.open(AudioDisplayDialog,dCfg);
-    this.dialog.open
     audioDisplayRef.componentInstance.audioBuffer=this.currentRecording;
   }
 }
@@ -750,13 +748,6 @@ export class SessionManager implements AudioCaptureListener {
             if (this.section.promptphase === 'IDLE') {
                 this.applyPrompt();
             }
-            // if(this.section.mode==='AUTORECORDING') {
-            //     this.stopBtn.classList.remove('glyphicon-stop');
-            //     this.stopBtn.classList.add('glyphicon-forward');
-            // }else{
-            //     this.stopBtn.classList.remove('glyphicon-forward');
-            //     this.stopBtn.classList.add('glyphicon-stop');
-            // }
 
             this.selectedItemIdx=this.currPromptIndex();
             let it = this.items[this.selectedItemIdx];
@@ -771,12 +762,11 @@ export class SessionManager implements AudioCaptureListener {
                 recentRecFile = it.recs[rfVers];
                 this.displayRecFile = recentRecFile;
                 this.displayRecFileVersion = rfVers;
-                this.showRecording();
             } else {
                 this.displayRecFile = null;
                 this.displayRecFileVersion = 0;
-               // this.showRecording();
             }
+          this.showRecording();
 
 
             // let th = document.getElementById('progressTableHeader');
