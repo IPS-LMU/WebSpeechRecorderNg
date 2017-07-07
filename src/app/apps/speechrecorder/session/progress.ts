@@ -20,12 +20,12 @@ import { Item } from './sessionmanager';
           <ng-container *ngIf="items">
              
             <tr *ngFor="let item of items; let itIdx=index;"
-                      [class.selRow]="itIdx===selectedItemIdx">
+                      [class.selRow]="itIdx===selectedItemIdx" [scrollIntoView]="itIdx===selectedItemIdx">
                       <td>{{itIdx}}</td>
                       <td>{{item.promptAsString}}</td>
                 <td><md-icon *ngIf="item.recs && item.recs.length>0" >done</md-icon><span class="glyphicon" [class.glyphicon-unchecked]="!item.recs || item.recs.length===0" [class.glyphicon-check]="item.recs && item.recs.length>0"></span></td>
                   </tr>
-              </ng-container>
+          </ng-container>
           
           </tbody>
       </table>

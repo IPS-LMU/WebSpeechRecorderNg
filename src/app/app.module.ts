@@ -24,6 +24,7 @@ import {
   MdToolbarModule
 } from "@angular/material";
 import {AudioDisplayDialog} from "./apps/audio/audio_display_dialog";
+import {ScrollIntoViewDirective} from "./utils/scrollintoview";
 
 
 const appRoutes: Routes = [
@@ -40,7 +41,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,AudioClipUIContainer,SimpleTrafficLight
+    ScrollIntoViewDirective,AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,AudioClipUIContainer,SimpleTrafficLight
   ],
   entryComponents: [
     AudioDisplayDialog
