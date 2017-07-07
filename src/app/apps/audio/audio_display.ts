@@ -11,7 +11,7 @@
 
     template: `<p>AudioSignal display</p>
 	<app-audio #audioSignalContainer></app-audio>
-    <button (click)="ap.start()" [disabled]="!startEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-play"></span></button> <button (click)="ap.stop()" [disabled]="!stopEnabled" class="btn-lg btn-primary"><span class="glyphicon glyphicon-stop"></span></button>
+    <button (click)="ap.start()" [disabled]="!startEnabled"></button> <button (click)="ap.stop()" [disabled]="!stopEnabled"></button>
 	<p>{{status}}</p>`,
     styles: [`app-audiodisplay {
       width: 100%;

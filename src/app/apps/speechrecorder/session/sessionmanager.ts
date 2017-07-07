@@ -148,7 +148,7 @@ export class Prompting{
   selector: 'app-sprstatusdisplay',
 
   template: `
-    <p><span *ngIf="statusAlertType==='error'" class="glyphicon glyphicon-alert">&nbsp;</span>{{statusMsg}}</p>
+    <p><md-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</md-icon>{{statusMsg}}</p>
   `,
   styles: [`:host{
     flex: 1;
@@ -223,13 +223,8 @@ export class TransportActions{
     align-self: center;
     width: 100%;
     text-align: center;
-  //display: inline;
-  //display: flex;   /* Horizontal flex container: Bottom transport panel, above prompting panel *!*/
-
-  //flex-direction: row;
     align-content: center;
     margin: 0;
-    //padding: 0;
   }`,`
     div {
       display:inline;
@@ -359,7 +354,6 @@ export class SessionManager implements AudioCaptureListener {
         ac: AudioCapture;
         private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
-        //@ViewChild(AudioClipUIContainer) audioSignal: AudioClipUIContainer;
 
         startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
@@ -375,13 +369,12 @@ export class SessionManager implements AudioCaptureListener {
         private maxRecTimerId: number;
         private maxRecTimerRunning: boolean;
 
-        bwdBtn: HTMLInputElement;
         transportActions:TransportActions;
-        fwdBtn: HTMLInputElement;
+//        fwdBtn: HTMLInputElement;
         dnlLnk: HTMLAnchorElement;
         playStartAction: Action;
         //statusMsg: HTMLElement;
-        titleEl: HTMLElement;
+       // titleEl: HTMLElement;
         audio: any;
 
         _session: any;
@@ -422,73 +415,22 @@ export class SessionManager implements AudioCaptureListener {
             let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
             this.playStartAction = new Action('Play');
             this.playStartAction.addControl(playStartBtn, 'click');
-            this.fwdBtn = <HTMLInputElement>(document.getElementById('fwdBtn'));
             this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
             this.audio = document.getElementById('audio');
-           // var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
-
-            //if (asc) {
-              //  this.audioSignal = new AudioClipUIContainer(asc);
-            //}
             this.selCaptureDeviceId=null;
-            //this.statusMsg = <HTMLElement>(document.getElementById('status'));
-            this.titleEl = <HTMLElement>(document.getElementById('title'));
-
-            // let asCollapseEl=<HTMLDivElement>(document.querySelector('#collapse1'));
-            // asCollapseEl.addEventListener('shown.bs.collapse', (e) => {
-            //       console.log("Shown bs coll event received");
-            //       let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
-            //       ic.classList.remove('glyphicon-collapse-up');
-            //       ic.classList.add('glyphicon-collapse-down');
-            //       this.audioSignal.layout();
-            //   });
-
-            // does not receive events, only the jquery version works:
-
-            // let asCollapseJqEl=$('#collapse1');
-            // asCollapseJqEl.on('shown.bs.collapse', (e) => {
-            //     //console.log("Shown bs coll event received");
-            //     //let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
-            //     //ic.classList.remove('glyphicon-collapse-up');
-            //     //ic.classList.add('glyphicon-collapse-down');
-            //     this.audioSignal.layout();
-            // });
-            //
-            // asCollapseJqEl.on('hide.bs.collapse', (e) => {
-            //     //console.log("Hide bs coll event received");
-            //     let ic: HTMLElement = document.getElementById('audioSignalCollIcon');
-            //     ic.classList.remove('glyphicon-collapse-down');
-            //     ic.classList.add('glyphicon-collapse-up');
-            //     // this.audioSignal.layout();
-            // });
-
-
         }
 
-  ngAfterViewInit() {
-
-      // this.controlPanel.transportPanel.sessionManager=this;
-  }
-
-        toggleAudioDisplay(){
-          this.audioSignalCollapsed=!this.audioSignalCollapsed;
-         // this.audioSignal.layout()
-        }
 
         init() {
             this.sectIdx = 0;
             this.prmptIdx = 0;
             this.autorecording = false;
-            //this.bwdBtn.disabled = true;
             this.transportActions.startAction.disabled = true;
             this.transportActions.stopAction.disabled = true;
             this.transportActions.nextAction.disabled = true;
             this.transportActions.pauseAction.disabled = true;
-            //this.fwdBtn.disabled = true;
             this.playStartAction.disabled = true;
-            //let n = <any>navigator;
-            //var getUserMediaFnct= n.getUserMedia || n.webkitGetUserMedia ||
-            //	n.mozGetUserMedia || n.msGetUserMedia;
+
             let w = <any>window;
 
             AudioContext = w.AudioContext || w.webkitAudioContext;
@@ -714,9 +656,6 @@ export class SessionManager implements AudioCaptureListener {
 
         showRecording() {
             this.ap.stop();
-            // let promptLineEl = document.getElementById('promptIndex_' + this.currPromptIndex());
-            // promptLineEl.classList.add('bg-info');
-            // let rdDlDivEl: HTMLDivElement = <HTMLDivElement>document.getElementById('rfDownload');
 
             if (this.displayRecFile) {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
@@ -767,17 +706,6 @@ export class SessionManager implements AudioCaptureListener {
                 this.displayRecFileVersion = 0;
             }
           this.showRecording();
-
-
-            // let th = document.getElementById('progressTableHeader');
-            // th.scrollIntoView();
-            // let itemTr = document.getElementById('promptIndex_' + this.currPromptIndex());
-            // itemTr.scrollIntoView(false);
-
-            //TODO Ng: Build scrollIntoView directive
-
-            //
-            //this.audioSignal.layout();
             this.startStopSignalState=StartStopSignalState.IDLE;
         }
 
@@ -843,7 +771,6 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         prevItem() {
-            //this.unselectItem();
             let scriptLength = this._script.sections.length;
 
             this.prmptIdx--;
@@ -860,7 +787,6 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         nextItem() {
-            //this.unselectItem();
             let scriptLength = this._script.sections.length;
             let currSectLength = this._script.sections[this.sectIdx].promptUnits.length;
             this.prmptIdx++;
@@ -910,7 +836,6 @@ export class SessionManager implements AudioCaptureListener {
             if (this.promptUnit.prerecording) {
                 preDelay = this.promptUnit.prerecording;
             }
-
 
             this.preRecTimerId = window.setTimeout(() => {
 
@@ -983,9 +908,6 @@ export class SessionManager implements AudioCaptureListener {
             this.transportActions.pauseAction.disabled = true;
             // console.log("Spr: capture stopped");
             this.statusMsg = 'Recorded.';
-            // this.statusMsg.classList.remove('alert-info');
-            // this.statusMsg.classList.remove('alert-danger');
-            // this.statusMsg.classList.add('alert-success');
             this.startStopSignalState=StartStopSignalState.IDLE;
 
             let ad = this.ac.audioBuffer();
