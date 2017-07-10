@@ -10,7 +10,7 @@ import {ControlPanel, Mode as SessionMode, Prompting, StatusDisplay} from './ses
   import { Script } from './script/script'
   import { SessionManager} from  './session/sessionmanager';
   import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../../net/uploader';
-import {ActivatedRoute, Params, Router} from "@angular/router";
+import {ActivatedRoute, ParamMap, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
 import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
@@ -77,24 +77,31 @@ export class SpeechRecorder implements AudioPlayerListener {
     }
        ngAfterViewInit(){
 
-        this.route.params.subscribe((params:Params)=>{
+        this.route.queryParams.subscribe((params:Params)=>{
+          this.fetchSession(params['sessionId']);
+        });
 
-            let sess= this.sessionsService.getSession(params['id']).then(sess=> {
-              this.setSession(sess);
-              this.init();
-              if(sess.project){
-                //TODO fetch project then fetchScript
-                this.fetchScript(sess);
-              }else{
-                this.fetchScript(sess);
-              }
-            })
-            .catch(reason =>{
-                this.sm.statusMsg=reason;
-                this.sm.statusAlertType='error';
-                console.log("Error fetching session "+reason)
-            });
+        this.route.params.subscribe((params:Params)=>{
+            this.fetchSession(params['id']);
         })
+    }
+
+    fetchSession(sessionId:string){
+      let sess= this.sessionsService.getSession(sessionId).then(sess=> {
+        this.setSession(sess);
+        this.init();
+        if(sess.project){
+          //TODO fetch project then fetchScript
+          this.fetchScript(sess);
+        }else{
+          this.fetchScript(sess);
+        }
+      })
+        .catch(reason =>{
+          this.sm.statusMsg=reason;
+          this.sm.statusAlertType='error';
+          console.log("Error fetching session "+reason)
+        });
     }
 
 

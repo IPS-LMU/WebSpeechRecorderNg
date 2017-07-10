@@ -30,6 +30,7 @@ import {ScrollIntoViewDirective} from "./utils/scrollintoview";
 const appRoutes: Routes = [
 
     { path: 'session/:id',      component: SpeechRecorder },
+    { path: '',      component: SpeechRecorder },
 
     { path: 'test',
         redirectTo: 'session/',
@@ -40,6 +41,7 @@ const appRoutes: Routes = [
 ];
 
 @NgModule({
+
   declarations: [
     ScrollIntoViewDirective,AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,AudioClipUIContainer,SimpleTrafficLight
   ],
