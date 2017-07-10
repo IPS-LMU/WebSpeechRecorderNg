@@ -1,11 +1,12 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build_klausj_www": "ng build --dev --base-href='/~klausj/demos/wsr/ng/dist/'",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
