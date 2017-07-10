@@ -829,6 +829,7 @@ export class SessionManager implements AudioCaptureListener {
 
 
         opened() {
+          this.statusAlertType='info';
             this.statusMsg = 'Ready.';
             this.transportActions.startAction.disabled = false;
           this.transportActions.fwdAction.disabled=false
@@ -846,6 +847,7 @@ export class SessionManager implements AudioCaptureListener {
             if (this.section.promptphase === 'PRERECORDING') {
                 this.applyPrompt();
             }
+          this.statusAlertType='info';
             this.statusMsg = 'Recording...';
 
             let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
@@ -934,6 +936,7 @@ export class SessionManager implements AudioCaptureListener {
             this.transportActions.nextAction.disabled = true;
             this.transportActions.pauseAction.disabled = true;
             // console.log("Spr: capture stopped");
+          this.statusAlertType='info';
             this.statusMsg = 'Recorded.';
             this.startStopSignalState=StartStopSignalState.IDLE;
 
@@ -1011,6 +1014,7 @@ export class SessionManager implements AudioCaptureListener {
         }
 
         closed() {
+          this.statusAlertType='info';
            this.statusMsg = 'Session closed.';
         }
 
