@@ -1,4 +1,4 @@
-import { Complex } from 'app/math/complex';
+import { Complex } from 'module/math/complex';
 
     export class DFTFloat32 {
 
@@ -151,14 +151,14 @@ import { Complex } from 'app/math/complex';
             }
         }
 
-        public processReal(srcBuf: Array<number>): Array<number> {
+        public processReal(srcBuf: Array<number>): Array<Complex> {
             const x = srcBuf.slice();
             const y = new Array<number>(srcBuf.length);
             for (let yi = 0; yi < y.length; yi++) {
                 y[yi] = 0.0;
             }
             this.fftCooleyTukey(x, y);
-            const rc = new Complex[x.length];
+            const rc = new Array<Complex>(x.length);
             for (let i = 0; i < x.length; i++) {
                 rc[i] = new Complex(x[i], y[i]);
             }

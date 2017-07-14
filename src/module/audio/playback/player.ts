@@ -6,7 +6,7 @@ import { AudioClip } from '../persistor'
     export class AudioPlayerEvent{
 
         private _type:EventType;
-        private _timePosition:number;
+        private _timePosition:number | undefined;
 
         constructor(type:EventType, timePosition?:number) {
             this._type = type;
@@ -22,7 +22,7 @@ import { AudioClip } from '../persistor'
         }
     }
     export interface AudioPlayerListener {
-        update(e:AudioPlayerEvent);
+        update(e:AudioPlayerEvent):void;
     }
 
 
@@ -35,7 +35,7 @@ import { AudioClip } from '../persistor'
         // _audioClip:ips.audio.AudioClip;
         listener:AudioPlayerListener;
         stream:MediaStream;
-        _audioBuffer:AudioBuffer;
+        _audioBuffer:AudioBuffer | null;
         sourceBufferNode:AudioBufferSourceNode;
         bufferingNode:ScriptProcessorNode;
         buffPos:number;
@@ -89,7 +89,7 @@ import { AudioClip } from '../persistor'
             this.audioBuffer = audioClip.buffer;
         }
 
-        set audioBuffer(audioBuffer:AudioBuffer) {
+        set audioBuffer(audioBuffer:AudioBuffer | null) {
             this._audioBuffer = audioBuffer;
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
@@ -147,9 +147,10 @@ import { AudioClip } from '../persistor'
         }
 
         get playPositionFrames() {
+          if(this._audioBuffer) {
             var ppTime = this.playPositionTime;
             return this._audioBuffer.sampleRate * ppTime;
-
+          }
         }
 
     }

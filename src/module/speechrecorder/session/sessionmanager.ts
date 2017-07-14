@@ -1,17 +1,17 @@
-import { Action } from '../../../action/action'
+import { Action } from '../../action/action'
 
-    import { AudioCapture,AudioCaptureListener } from '../../../audio/capture/capture';
-    import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../../audio/playback/player'
+    import { AudioCapture,AudioCaptureListener } from '../../audio/capture/capture';
+    import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
 
 
-    import {AudioSignal} from '../../../audio/ui/audiosignal'
-    import { AudioClipUIContainer} from '../../../audio/ui/container'
-    import { WavWriter } from '../../../audio/impl/wavwriter'
+    import {AudioSignal} from '../../audio/ui/audiosignal'
+    import { AudioClipUIContainer} from '../../audio/ui/container'
+    import { WavWriter } from '../../audio/impl/wavwriter'
     import { StartStopSignal} from '../startstopsignal/startstopsignal'
     import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
 
     import { RecordingFile } from '../recording'
-    import { Uploader,Upload } from '../../../net/uploader';
+    import { Uploader,Upload } from '../../net/uploader';
 import {Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter} from "@angular/core";
 import {Progress} from "./progress";
 import {SessionService} from "./session.service";
@@ -19,7 +19,7 @@ import {SessionService} from "./session.service";
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {MdDialog, MdDialogConfig} from "@angular/material";
-import {AudioDisplayDialog} from "app/apps/audio/audio_display_dialog";
+import {AudioDisplayDialog} from "module/audio/audio_display_dialog";
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -31,7 +31,7 @@ const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
     export class Item {
         promptAsString:string;
         training: boolean;
-        recs: Array<RecordingFile>;
+        recs: Array<RecordingFile> | null;
 
         constructor(promptAsString:string,training: boolean) {
             this.promptAsString=promptAsString;
@@ -364,8 +364,8 @@ export class SessionManager implements AudioCaptureListener {
         startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:any;
-        private selCaptureDeviceId: ConstrainDOMString;
-        currentRecording:AudioBuffer;
+        private selCaptureDeviceId: ConstrainDOMString | null;
+        currentRecording:AudioBuffer | null;
         private ap: AudioPlayer;
         private updateTimerId: any;
         private preRecTimerId: number;
@@ -397,7 +397,7 @@ export class SessionManager implements AudioCaptureListener {
 
         items: Array<Item>;
         selectedItemIdx:number;
-        private displayRecFile: RecordingFile;
+        private displayRecFile: RecordingFile | null;
         private displayRecFileVersion: number;
 
         promptItemCount: number;
@@ -670,11 +670,13 @@ export class SessionManager implements AudioCaptureListener {
             dataDnlLnk.href = rfUrl;
             dataDnlLnk.name = 'Recording';
             // download property not yet in TS def
-            let fn = this.displayRecFile.filenameString();
-            fn += '_' + this.displayRecFileVersion;
-            fn += '.wav';
-            dataDnlLnk.setAttribute('download', fn);
-            dataDnlLnk.click();
+              if(this.displayRecFile) {
+                let fn = this.displayRecFile.filenameString();
+                fn += '_' + this.displayRecFileVersion;
+                fn += '.wav';
+                dataDnlLnk.setAttribute('download', fn);
+                dataDnlLnk.click();
+              }
           });
         }
       }
@@ -719,7 +721,7 @@ export class SessionManager implements AudioCaptureListener {
                 it.recs = new Array<RecordingFile>();
             }
 
-            let recentRecFile: RecordingFile = null;
+            let recentRecFile: RecordingFile | null = null;
             let availRecfiles: number = it.recs.length;
             if (availRecfiles > 0) {
                 let rfVers: number = availRecfiles - 1;
@@ -742,7 +744,7 @@ export class SessionManager implements AudioCaptureListener {
                 this.statusMsg = 'Requesting audio permissions...';
 
                 if (this._audioDevices) {
-                  let fdi=null;
+                  let fdi:MediaDeviceInfo| null =null;
 
                   this.ac.deviceInfos((mdis)=> {
                     if(mdis) {

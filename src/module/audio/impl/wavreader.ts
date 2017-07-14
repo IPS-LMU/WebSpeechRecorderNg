@@ -7,14 +7,14 @@ import { BinaryByteReader } from '../../io/BinaryReader'
 
 
         private br:BinaryByteReader;
-        private format:PCMAudioFormat;
+        private format:PCMAudioFormat | null;
         private dataLength:number;
 
         constructor(data:ArrayBuffer) {
             this.br = new BinaryByteReader(data);
         }
 
-        read():AudioClip {
+        read():AudioClip | null{
 
 
             var rh = this.br.readAscii(4);
@@ -61,7 +61,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             return chkLen;
         }
 
-        parseFmtChunk():PCMAudioFormat {
+        parseFmtChunk():PCMAudioFormat | null {
             var fmt = this.br.readUint16LE();
             if (fmt === WavFileFormat.PCM) {
                 var channels = this.br.readUint16LE();
@@ -82,25 +82,28 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             return null;
         }
 
-        readData():Array<Float32Array> {
+        readData():Array<Float32Array> | null{
             var chkLen = this.navigateToChunk('data');
-            var chsArr = new Array<Float32Array>(this.format.channelCount);
-            var sampleCount = this.dataLength / this.format.channelCount / this.format.sampleSize;
-            for (var ch = 0; ch < this.format.channelCount; ch++) {
+            var chsArr=null;
+            if(this.format) {
+              chsArr = new Array<Float32Array>(this.format.channelCount);
+              var sampleCount = this.dataLength / this.format.channelCount / this.format.sampleSize;
+              for (var ch = 0; ch < this.format.channelCount; ch++) {
                 chsArr[ch] = new Float32Array(sampleCount);
-            }
-            if (this.format.sampleSize == 2) {
+              }
+              if (this.format.sampleSize == 2) {
 
 
                 for (var i = 0; i < this.dataLength / 2; i++) {
-                    for (var ch = 0; ch < this.format.channelCount; ch++) {
-                        var s16Ampl = this.br.readInt16LE();
-                        var floatAmpl = s16Ampl / 32768;
-                        //console.log("Ampl: ",s16Ampl,floatAmpl);
-                        chsArr[ch][i] = floatAmpl;
-                    }
+                  for (var ch = 0; ch < this.format.channelCount; ch++) {
+                    var s16Ampl = this.br.readInt16LE();
+                    var floatAmpl = s16Ampl / 32768;
+                    //console.log("Ampl: ",s16Ampl,floatAmpl);
+                    chsArr[ch][i] = floatAmpl;
+                  }
                 }
 
+              }
             }
             return chsArr;
         }

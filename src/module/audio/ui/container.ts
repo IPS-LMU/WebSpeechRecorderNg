@@ -45,8 +45,8 @@ import {Element} from '@angular/compiler';
         as: AudioSignal;
         so: Sonagram;
         private _playFramePosition: number;
-        private dragStartMouseY: number = null;
-        private dragStartY: number = null;
+        private dragStartMouseY: number | null = null;
+        private dragStartY: number | null = null;
         private dividerPosition = 0.5;
        constructor(private renderer: Renderer2) {
 
@@ -85,8 +85,8 @@ ngAfterViewInit()
       if (this.dragStartY != null) {
         this.dividerDrag(e2);
         this.layout();
-        document.onmousemove = null;
-        document.onmouseup = null;
+        document.onmousemove = (ev)=>{};
+        document.onmouseup = (ev)=>{};
         this.dragStartY = null;
       }
     }
@@ -136,7 +136,7 @@ ngAfterViewInit()
         }
 
         dividerDrag(e: MouseEvent) {
-            if (this.dc) {
+            if (this.dc && this.dragStartMouseY && this.dragStartY) {
 
                 const dragOffset = e.clientY - this.dragStartMouseY;
                 // console.log("Drag offset: ", dragOffset);
@@ -159,11 +159,12 @@ ngAfterViewInit()
             const w = this.dc.width;
             const h = this.dc.height;
             const g = this.dc.getContext('2d');
-            g.fillStyle = 'white';
-            g.fillRect(0, 0, w, h);
-            g.fillStyle = 'black';
-            g.fillRect(5, 5, w - 10, 1);
-
+            if(g) {
+              g.fillStyle = 'white';
+              g.fillRect(0, 0, w, h);
+              g.fillStyle = 'black';
+              g.fillRect(5, 5, w - 10, 1);
+            }
         }
 
 

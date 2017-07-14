@@ -3,28 +3,30 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
 
-import {AudioClipUIContainer} from './audio/ui/container';
-import {AudioDisplay} from './apps/audio/audio_display';
+import {AudioClipUIContainer} from '../module/audio/ui/container';
+import {AudioDisplay} from '../module/audio/audio_display';
 
-import { Progress } from './apps/speechrecorder/session/progress'
-import {SpeechRecorder} from './apps/speechrecorder/speechrecorder'
+import { Progress } from '../module/speechrecorder/session/progress'
+import {SpeechRecorder} from '../module/speechrecorder/speechrecorder'
 import {
   Prompting, PromptContainer, Prompter,
   TransportPanel, StatusDisplay, ControlPanel, ProgressDisplay, SessionManager
-} from './apps/speechrecorder/session/sessionmanager';
+} from '../module/speechrecorder/session/sessionmanager';
 
-import { SimpleTrafficLight} from './apps/speechrecorder/startstopsignal/ui/simpletrafficlight'
-import {SessionService} from "./apps/speechrecorder/session/session.service";
+import { SimpleTrafficLight} from '../module/speechrecorder/startstopsignal/ui/simpletrafficlight'
+import {SessionService} from "../module/speechrecorder/session/session.service";
 import {HttpModule} from "@angular/http";
-import {ScriptService} from "./apps/speechrecorder/script/script.service";
+import {ScriptService} from "../module/speechrecorder/script/script.service";
 
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
   MdButtonModule, MdDialogModule, MdIconModule, MdMenu, MdMenuItem, MdMenuModule,
   MdToolbarModule
 } from "@angular/material";
-import {AudioDisplayDialog} from "./apps/audio/audio_display_dialog";
-import {ScrollIntoViewDirective} from "./utils/scrollintoview";
+import {AudioDisplayDialog} from "../module/audio/audio_display_dialog";
+import {ScrollIntoViewDirective} from "../module/utils/scrollintoview";
+import {SpeechRecorderModule} from "../module/speechrecorder/spr.module";
+import {AudioModule} from "../module/audio/audio.module";
 
 
 const appRoutes: Routes = [
@@ -43,7 +45,7 @@ const appRoutes: Routes = [
 @NgModule({
 
   declarations: [
-    ScrollIntoViewDirective,AppComponent,SpeechRecorder,SessionManager,Prompting,PromptContainer,Prompter,Progress,ControlPanel,StatusDisplay,TransportPanel,ProgressDisplay,AudioDisplay,AudioDisplayDialog,AudioClipUIContainer,SimpleTrafficLight
+    AppComponent
   ],
   entryComponents: [
     AudioDisplayDialog
@@ -51,7 +53,7 @@ const appRoutes: Routes = [
   imports: [
       RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,MdDialogModule,
       HttpModule,
-    BrowserModule
+    BrowserModule,SpeechRecorderModule,AudioModule
   ],
   providers: [SessionService,ScriptService],
 

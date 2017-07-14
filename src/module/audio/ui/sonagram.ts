@@ -1,15 +1,16 @@
 
 
-    import { DFTFloat32 } from 'app/math/dft';
-    import { DSPUtils } from 'app/dsp/utils'
-    import { CSSUtils } from 'app/utils/css_utils'
+    import { DFTFloat32 } from 'module/math/dft';
+    import { DSPUtils } from 'module/dsp/utils'
+    import { CSSUtils } from 'module/utils/css_utils'
     import { Marker,Point } from './common';
+    import {Complex} from "../../math/complex";
 
     declare function postMessage (message: any, transfer: Array<any>): void;
 
     export class Sonagram {
         canvasId: string;
-        audioData: AudioBuffer;
+        audioData: AudioBuffer | null;
         dft: DFTFloat32;
         n: any;
         ce: HTMLDivElement;
@@ -19,7 +20,7 @@
         markers: Array<Marker>;
         private _playFramePosition: number;
 
-        private wo: Worker;
+        private wo: Worker | null;
 
         constructor(container: HTMLDivElement) {
             this.ce = container;
@@ -95,8 +96,9 @@
                 const w = this.cCursor.width;
                 const h = this.cCursor.height;
                 const g = this.cCursor.getContext('2d');
-                g.clearRect(0, 0, w, h);
-                if (show) {
+                if(g) {
+                  g.clearRect(0, 0, w, h);
+                  if (show) {
                     const pp = this.canvasMousePos(this.cCursor, e);
                     const offX = e.layerX - this.cCursor.offsetLeft;
                     const offY = e.layerY - this.cCursor.offsetTop;
@@ -111,17 +113,17 @@
 
                     g.stroke();
                     if (this.audioData) {
-                        var ch0 = this.audioData.getChannelData(0);
-                        var frameLength = ch0.length;
-                        var framesPerPixel = frameLength / w;
-                        var framePos = framesPerPixel * pixelPos;
-                        var framePosRound = Math.round(framePos);
-                        g.font = '14px sans-serif';
-                        g.fillStyle = 'yellow';
-                        g.fillText(framePosRound.toString(), pixelPos + 2, 50);
+                      var ch0 = this.audioData.getChannelData(0);
+                      var frameLength = ch0.length;
+                      var framesPerPixel = frameLength / w;
+                      var framePos = framesPerPixel * pixelPos;
+                      var framePosRound = Math.round(framePos);
+                      g.font = '14px sans-serif';
+                      g.fillStyle = 'yellow';
+                      g.fillText(framePosRound.toString(), pixelPos + 2, 50);
                     }
+                  }
                 }
-
             }
         }
 
@@ -130,8 +132,9 @@
                 var w = this.cPlaypos.width;
                 var h = this.cPlaypos.height;
                 var g = this.cPlaypos.getContext("2d");
-                g.clearRect(0, 0, w, h);
-                if (this.audioData && this.audioData.numberOfChannels > 0) {
+                if(g) {
+                  g.clearRect(0, 0, w, h);
+                  if (this.audioData && this.audioData.numberOfChannels > 0) {
                     var ch0 = this.audioData.getChannelData(0);
                     var frameLength = ch0.length;
                     var framesPerPixel = frameLength / w;
@@ -143,6 +146,7 @@
                     g.lineTo(pixelPos, h);
                     g.closePath();
                     g.stroke();
+                  }
                 }
             }
         }
@@ -204,113 +208,148 @@
 
       workerFunction() {
 
-        var Complex = (function () {
-          function Complex(real, img) {
+        class Complex {
+
+          real: number;
+          img: number;
+
+          public static fromPolarForm(magnitude: number, argument: number): Complex {
+            const r = Math.cos(argument) * magnitude;
+            const i = Math.sin(argument) * magnitude;
+            return new Complex(r, i);
+          }
+
+          constructor(real: number, img: number) {
             this.real = real;
             this.img = img;
           }
 
-          Complex.prototype.magnitude = function () {
+          public magnitude(): number {
             return Math.sqrt((this.real * this.real) + (this.img * this.img));
-          };
-          Complex.prototype.argument = function () {
-            return Math.atan2(this.img, this.real);
-          };
-          Complex.prototype.add = function (addC) {
-            return new Complex(this.real + addC.real, this.img + addC.img);
-          };
-          Complex.prototype.sub = function (subC) {
-            return new Complex(this.real - subC.real, this.img - subC.img);
-          };
-          Complex.prototype.mult = function (multC) {
-            var multR = (this.real * multC.real) - (this.img * multC.img);
-            var multI = (this.real * multC.img) + (multC.real * this.img);
-            return new Complex(multR, multI);
-          };
-          Complex.prototype.multReal = function (multF) {
-            return new Complex(this.real * multF, this.img * multF);
-          };
-          Complex.prototype.div = function (divisor) {
-            var divReal = divisor.real;
-            var divImg = divisor.img;
-            var div = (divReal * divReal) + (divImg * divImg);
-            var divisionReal = ((this.real * divReal) + (this.img * divImg)) / div;
-            var divisionImg = ((divReal * this.img) - (this.real * divImg)) / div;
-            return new Complex(divisionReal, divisionImg);
-          };
-          Complex.prototype.divReal = function (divisor) {
-            var div = divisor * divisor;
-            var divsionReal = (this.real * divisor) / div;
-            var divsionImg = (divisor * this.img) / div;
-            return new Complex(divsionReal, divsionImg);
-          };
-          Complex.prototype.conjugate = function () {
-            return new Complex(this.real, -this.img);
-          };
-          Complex.prototype.equals = function (c) {
-            if (c == null)
-              return false;
-            return (this.real == c.real && this.img == c.img);
-          };
-          Complex.prototype.toString = function () {
-            return "Real: " + this.real + ", Img: " + this.img;
-          };
-          return Complex;
-        }());
+          }
 
-        // copied from TS compiler output !!
-        var DFTFloat32 = (function () {
-          function DFTFloat32(n) {
+          public argument(): number {
+            return Math.atan2(this.img, this.real);
+          }
+
+          public add(addC: Complex): Complex {
+            return new Complex(this.real + addC.real, this.img + addC.img);
+          }
+
+          public sub(subC: Complex): Complex {
+            return new Complex(this.real - subC.real, this.img - subC.img);
+          }
+
+          public mult(multC: Complex): Complex {
+            const multR = (this.real * multC.real) - (this.img * multC.img);
+            const multI = (this.real * multC.img) + (multC.real * this.img);
+            return new Complex(multR, multI);
+          }
+
+          public multReal(multF: number): Complex {
+            return new Complex(this.real * multF, this.img * multF);
+          }
+
+          public div(divisor: Complex): Complex {
+            const divReal = divisor.real;
+            const divImg = divisor.img;
+            const div = (divReal * divReal) + (divImg * divImg);
+            const divisionReal = ((this.real * divReal) + (this.img * divImg)) / div;
+            const divisionImg = ((divReal * this.img) - (this.real * divImg)) / div;
+
+            return new Complex(divisionReal, divisionImg);
+          }
+
+          public divReal(divisor: number): Complex {
+            const div = divisor * divisor;
+            const divsionReal = (this.real * divisor) / div;
+            const divsionImg = (divisor * this.img) / div;
+
+            return new Complex(divsionReal, divsionImg);
+          }
+
+          public conjugate(): Complex {
+            return new Complex(this.real, -this.img);
+          }
+
+          public equals(c: Complex): boolean {
+            if (c === null) {
+              return false;
+            }
+            return (this.real === c.real && this.img === c.img);
+          }
+
+          public toString(): string {
+            return 'Real: ' + this.real + ', Img: ' + this.img;
+          }
+        }
+
+        class DFTFloat32 {
+
+          private n: number;
+          private m: number;
+
+          private cosLookup: Float32Array;
+          private sinLookup: Float32Array;
+
+          constructor(n: number) {
             this.n = n;
             this.m = Math.log(n) / Math.log(2);
+
             // if(n != (1 << m))throw new RuntimeException("length N must be power of 2");
+
             // lookup tables
             this.cosLookup = new Float32Array(n / 2);
             this.sinLookup = new Float32Array(n / 2);
-            for (var i = 0; i < n / 2; i++) {
-              var arc = (-2 * Math.PI * i) / n;
+
+            for (let i = 0; i < n / 2; i++) {
+              const arc = (-2 * Math.PI * i) / n;
               this.cosLookup[i] = Math.cos(arc);
               this.sinLookup[i] = Math.sin(arc);
             }
           }
-          DFTFloat32.prototype.processReal = function (srcBuf) {
-            var x = srcBuf.slice();
-            var y = new Float32Array(srcBuf.length);
-            for (var yi = 0; yi < y.length; yi++) {
+
+          public processReal(srcBuf: Float32Array): Array<Complex> {
+            const x = srcBuf.slice();
+            const y = new Float32Array(srcBuf.length);
+            for (let yi = 0; yi < y.length; yi++) {
               y[yi] = 0.0;
             }
             this.fftCooleyTukey(x, y);
-            var rc = new Array(x.length);
-            for (var i = 0; i < x.length; i++) {
+            const rc = new Array<Complex>(x.length);
+            for (let i = 0; i < x.length; i++) {
               rc[i] = new Complex(x[i], y[i]);
             }
             return rc;
-          };
-          DFTFloat32.prototype.processRealMagnitude = function (srcBuf) {
-            var x = srcBuf.slice();
-            var y = new Float32Array(srcBuf.length);
-            for (var yi = 0; yi < y.length; yi++) {
+          }
+
+          public processRealMagnitude(srcBuf: Float32Array): Float32Array {
+            const x = srcBuf.slice();
+            const y = new Float32Array(srcBuf.length);
+            for (let yi = 0; yi < y.length; yi++) {
               y[yi] = 0.0;
             }
             this.fftCooleyTukey(x, y);
-            var rc = new Float32Array(x.length);
-            for (var i = 0; i < x.length; i++) {
-              var rcc = new Complex(x[i], y[i]);
+            const rc = new Float32Array(x.length);
+            for (let i = 0; i < x.length; i++) {
+              const rcc = new Complex(x[i], y[i]);
               rc[i] = rcc.magnitude();
             }
             return rc;
-          };
-          DFTFloat32.prototype.fftCooleyTukey = function (real, img) {
-            var i;
-            var j = 0;
-            var k;
-            var n1;
-            var n2 = this.n / 2;
-            var a;
-            var c;
-            var s;
-            var t1;
-            var t2;
+          }
+
+          public fftCooleyTukey(real: Float32Array, img: Float32Array): void {
+            let i: number;
+            let j = 0;
+            let k: number;
+            let n1: number;
+            let n2: number = this.n / 2;
+            let a: number;
+            let c: number;
+            let s: number;
+            let t1: number;
+            let t2: number;
+
             for (i = 1; i < this.n - 1; i++) {
               n1 = n2;
               while (j >= n1) {
@@ -318,6 +357,7 @@
                 n1 = n1 / 2;
               }
               j = j + n1;
+
               if (i < j) {
                 t1 = real[i];
                 real[i] = real[j];
@@ -327,6 +367,7 @@
                 img[j] = t1;
               }
             }
+
             n1 = 0;
             n2 = 1;
             for (i = 0; i < this.m; i++) {
@@ -336,7 +377,8 @@
               for (j = 0; j < n1; j++) {
                 c = this.cosLookup[a];
                 s = this.sinLookup[a];
-                a += 1 << (this.m - i - 1);
+                a += ( 1 << (this.m - i - 1));
+
                 for (k = j; k < this.n; k = k + n2) {
                   t1 = c * real[k + n1] - s * img[k + n1];
                   t2 = s * real[k + n1] + c * img[k + n1];
@@ -347,45 +389,56 @@
                 }
               }
             }
-          };
-          DFTFloat32.prototype.process = function (t) {
-            var reals = new Float32Array(this.n);
-            var imgs = new Float32Array(this.n);
-            var trans = new Array(this.n);
-            for (var i = 0; i < this.n; i++) {
+          }
+
+
+          public process(t: Array<Complex>): Array<Complex> {
+            const reals: Float32Array = new Float32Array(this.n);
+            const imgs: Float32Array = new Float32Array(this.n);
+            const trans: Array<Complex> = new Array<Complex>(this.n);
+            for (let i = 0; i < this.n; i++) {
               reals[i] = t[i].real;
               imgs[i] = t[i].img;
             }
             this.fftCooleyTukey(reals, imgs);
-            for (var i = 0; i < this.n; i++) {
+            for (let i = 0; i < this.n; i++) {
               trans[i] = new Complex(reals[i], imgs[i]);
             }
             return trans;
-          };
-          return DFTFloat32;
-        }());
 
-        // copied from TS compiler ourtput !!
-        var GaussianWindow = (function () {
-          function GaussianWindow(size) {
-            var sigma = 0.3;
 
+          }
+
+        }
+        interface WindowFunction {
+          getScale(i: number): number;
+        }
+
+        class GaussianWindow implements WindowFunction {
+
+          public static DEFAULT_SIGMA = 0.3;
+          // Gaussian window function,
+          // http://reference.wolfram.com/language/ref/GaussianWindow.html
+          // val=exp(-50*x*x/9) => sigma=0.3
+
+          private buf: Float32Array;
+
+          constructor(size: number, sigma: number = GaussianWindow.DEFAULT_SIGMA) {
             this.buf = new Float32Array(size);
-            var center = (size - 1) / 2;
-            for (var i = 0; i < size; i++) {
-              var quot = (i - center) / (sigma * center);
-              var exp = -0.5 * quot * quot;
-              var val = Math.exp(exp);
+            const center = (size - 1) / 2;
+            for (let i = 0; i < size; i++) {
+              const quot = (i - center) / (sigma * center);
+              const exp = -0.5 * quot * quot;
+              const val = Math.exp(exp);
               this.buf[i] = val;
             }
           }
-          GaussianWindow.prototype.getScale = function (i) {
+
+          getScale(i: number): number {
             return this.buf[i];
-          };
+          }
 
-          return GaussianWindow;
-        }());
-
+        }
 
         self.onmessage = function (msg) {
 
@@ -395,7 +448,8 @@
           var chs= msg.data.chs;
             var audioData = new Array(chs);
             for (var ch = 0; ch < chs; ch++) {
-                audioData[ch] = new Float32Array(msg.data['audioData' + ch]);
+                // TODO can we use the transferred array directly?
+                audioData[ch] = new Float32Array(msg.data['audioData'][ch]);
             }
 
           var frameLength=msg.data.frameLength;
@@ -526,31 +580,57 @@
                     ada[ch] = this.audioData.getChannelData(ch).buffer.slice(0);
                 }
                 var start = Date.now();
-                this.wo.onmessage = (me) => {
+                if(this.wo) {
+                  this.wo.onmessage = (me) => {
                     //console.log("So rendertime: ", Date.now() - start);
                     this.drawRendered(me);
-                    this.wo.terminate();
+                    if(this.wo) {
+                      this.wo.terminate();
+                    }
                     this.wo = null;
+                  }
                 }
                 if (this.cPlaypos) {
                     var g = this.cPlaypos.getContext("2d");
-                    g.fillText("Rendering...", 10, 20);
+                    if(g) {
+                      g.fillText("Rendering...", 10, 20);
+                    }
 
                 }
-                var postData = {
-                    w: w,
-                    h: h,
-                    chs: chs,
-                    frameLength: frameLength,
-                    dftSize: 1024
-                };
-                for (var ch = 0; ch < chs; ch++) {
-                    postData['audioData' + ch] = ada[ch];
+                // var postData = {
+                //     w: w,
+                //     h: h,
+                //     chs: chs,
+                //     frameLength: frameLength,
+                //     dftSize: 1024,
+                //     audioData0:null,
+                //      audioData1: null
+                // };
+                class PostData{
+                  constructor(w:number,h:number,chs:number,frameLength:number,dftSize:number) {
+                  }
+                  audioData0:ArrayBuffer | null;
+                  audioData1:ArrayBuffer | null;
                 }
-                this.wo.postMessage(postData, ada);
+
+                let postData=new PostData(w,h,chs,frameLength,1024);
+                let adArr=new Array<ArrayBuffer>(chs);
+                for (var ch = 0; ch < chs; ch++) {
+                    if(ch==0) {
+
+                      postData.audioData0 = ada[ch];
+
+                    }else if(ch==1){
+                      postData.audioData1 = ada[ch];
+                    }
+                  adArr[ch]=ada[ch];
+                }
+                this.wo.postMessage({audioData:adArr, w: w, h:h, chs:chs,frameLength:frameLength,dftSize:1024}, ada);
             } else {
                 var g = this.c.getContext("2d");
-                g.clearRect(0, 0, w, h);
+                if(g) {
+                  g.clearRect(0, 0, w, h);
+                }
             }
         }
 
@@ -560,11 +640,12 @@
                 this.c.width = me.data.w;
                 this.c.height = me.data.h;
                 var g = this.c.getContext("2d");
-                var imgDataArr:Uint8ClampedArray = me.data.imgData;
-                var imgData = g.createImageData(me.data.w, me.data.h);
-                imgData.data.set(imgDataArr);
-                g.putImageData(imgData, 0, 0);
-
+                if(g) {
+                  var imgDataArr: Uint8ClampedArray = me.data.imgData;
+                  var imgData = g.createImageData(me.data.w, me.data.h);
+                  imgData.data.set(imgDataArr);
+                  g.putImageData(imgData, 0, 0);
+                }
             }
 
             this.drawPlayPosition();
@@ -577,10 +658,11 @@
 
             var w = this.c.width;
             var h = this.c.height;
-            g.clearRect(0, 0, w, h);
-            g.fillStyle = "white";
-            g.fillRect(0, 0, w, h);
-            if (this.audioData) {
+            if(g) {
+              g.clearRect(0, 0, w, h);
+              g.fillStyle = "white";
+              g.fillRect(0, 0, w, h);
+              if (this.audioData) {
                 var chs = this.audioData.numberOfChannels;
                 var chH = h / chs;
 
@@ -595,82 +677,83 @@
                 var max = 0;
                 var maxPsd = -Infinity;
                 for (var ch = 0; ch < chs; ch++) {
-                    var x = 0;
-                    sona[ch] = new Array<Float32Array>(w);
+                  var x = 0;
+                  sona[ch] = new Array<Float32Array>(w);
 
-                    var chData = this.audioData.getChannelData(ch);
-                    // TODO center buffer
+                  var chData = this.audioData.getChannelData(ch);
+                  // TODO center buffer
 
-                    var framePos = 0;
-                    for (var pii = 0; pii < w; pii++) {
-                        framePos = Math.round(pii * framesPerPixel);
-                        // calculate DFT at pixel position
-                        for (var i = 0; i < 1024; i++) {
-                            var chDat = chData[framePos + i];
-                            b[i] = chDat;
-                        }
-                        var spectr = this.dft.processRealMagnitude(b);
-                        sona[ch][pii] = spectr;
-                        var pMax = Math.max.apply(null, spectr);
-                        if (pMax > max) {
-                            max = pMax;
-                        }
-                        for (var s = 0; s < 512; s++) {
-                            var psd = (2 * Math.pow(spectr[s], 2)) / 512;
-                            if (psd > maxPsd) {
-                                maxPsd = psd;
-                            }
-                        }
+                  var framePos = 0;
+                  for (var pii = 0; pii < w; pii++) {
+                    framePos = Math.round(pii * framesPerPixel);
+                    // calculate DFT at pixel position
+                    for (var i = 0; i < 1024; i++) {
+                      var chDat = chData[framePos + i];
+                      b[i] = chDat;
                     }
+                    var spectr = this.dft.processRealMagnitude(b);
+                    sona[ch][pii] = spectr;
+                    var pMax = Math.max.apply(null, spectr);
+                    if (pMax > max) {
+                      max = pMax;
+                    }
+                    for (var s = 0; s < 512; s++) {
+                      var psd = (2 * Math.pow(spectr[s], 2)) / 512;
+                      if (psd > maxPsd) {
+                        maxPsd = psd;
+                      }
+                    }
+                  }
                 }
                 //console.log("max: ", max);
                 maxPsd = (2 * Math.pow(max, 2)) / 512;
                 for (var ch = 0; ch < chs; ch++) {
 
-                    var framePos = 0;
-                    for (var pii = 0; pii < w; pii++) {
-                        framePos = pii * framesPerPixel;
+                  var framePos = 0;
+                  for (var pii = 0; pii < w; pii++) {
+                    framePos = pii * framesPerPixel;
 
-                        for (var y = 0; y < h; y++) {
-                            var freqIdx = Math.round(y * 512 / h);
+                    for (var y = 0; y < h; y++) {
+                      var freqIdx = Math.round(y * 512 / h);
 
-                            // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
-                            // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
-                            var val = sona[ch][pii][freqIdx];
-                            var psd = (2 * Math.pow(val, 2)) / 512;
+                      // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
+                      // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
+                      var val = sona[ch][pii][freqIdx];
+                      var psd = (2 * Math.pow(val, 2)) / 512;
 
-                            // Calculate logarithmic
-                            var psdLog = DSPUtils.toLevelInDB(psd / maxPsd);
-                            var dynRangeInDb = 70;
-                            var scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
+                      // Calculate logarithmic
+                      var psdLog = DSPUtils.toLevelInDB(psd / maxPsd);
+                      var dynRangeInDb = 70;
+                      var scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
 
-                            if (scaledVal > 1)
-                                scaledVal = 1;
-                            if (scaledVal < 0) {
-                                scaledVal = 0;
-                            }
-                            var rgbVal = (255 * scaledVal);
-                            if (rgbVal < 0) {
+                      if (scaledVal > 1)
+                        scaledVal = 1;
+                      if (scaledVal < 0) {
+                        scaledVal = 0;
+                      }
+                      var rgbVal = (255 * scaledVal);
+                      if (rgbVal < 0) {
 //							System.out.println("Neg RGB val: "+rgbVal);
-                                rgbVal = 0;
-                            }
-                            if (rgbVal > 255) {
-                                rgbVal = 255;
-                            }
-                            rgbVal = 255 - rgbVal;
-                            // if(rgbVal<minRgbVal){
-                            //     minRgbVal=rgbVal;
-                            // }
-                            var colorStr = CSSUtils.toColorString(rgbVal, rgbVal, rgbVal);
-                            g.fillStyle = colorStr;
+                        rgbVal = 0;
+                      }
+                      if (rgbVal > 255) {
+                        rgbVal = 255;
+                      }
+                      rgbVal = 255 - rgbVal;
+                      // if(rgbVal<minRgbVal){
+                      //     minRgbVal=rgbVal;
+                      // }
+                      var colorStr = CSSUtils.toColorString(rgbVal, rgbVal, rgbVal);
+                      g.fillStyle = colorStr;
 
-                            g.fillRect(pii, chH - y, 1, 1);
-                        }
+                      g.fillRect(pii, chH - y, 1, 1);
                     }
+                  }
                 }
 
 
                 this.drawPlayPosition();
+              }
             }
         }
 

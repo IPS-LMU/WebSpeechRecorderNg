@@ -3,6 +3,7 @@
 
         real: number;
         img: number;
+
         public static fromPolarForm(magnitude: number, argument: number): Complex {
             const r = Math.cos(argument) * magnitude;
             const i = Math.sin(argument) * magnitude;

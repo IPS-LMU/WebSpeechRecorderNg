@@ -1,5 +1,6 @@
 
 
+import {isNullOrUndefined} from "util";
 interface AudioWorker extends Worker {
     terminate ():void;
     postMessage (message:any, transfer:Array<any>):void;
@@ -23,11 +24,11 @@ interface AudioWorker extends Worker {
         }
     }
     export interface AudioCaptureListener {
-        opened();
-        started();
-        stopped();
-        closed();
-        error();
+        opened():void;
+        started():void;
+        stopped():void;
+        closed():void;
+        error():void;
     }
     export class AudioCapture {
 
@@ -61,12 +62,12 @@ interface AudioWorker extends Worker {
         }
 
         listDevices() {
-            navigator.mediaDevices.enumerateDevices().then((l)=>this.printDevices(l));
+            navigator.mediaDevices.enumerateDevices().then((l:MediaDeviceInfo[])=>this.printDevices(l));
         }
 
-      deviceInfos(cb: (deviceInfos: MediaDeviceInfo[]) => any, retry = true) {
+      deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true) {
 
-        navigator.mediaDevices.enumerateDevices().then((l) => {
+        navigator.mediaDevices.enumerateDevices().then((l:MediaDeviceInfo[]) => {
           let labelsAvailable = false;
           for (let i = 0; i < l.length; i++) {
             let di = l[i];
@@ -96,7 +97,7 @@ interface AudioWorker extends Worker {
       }
 
 
-        printDevices(l:MediaDeviceInfo[]) {
+        printDevices(l:MediaDeviceInfo[]):void {
             let selDeviceId='___dummy___';
             for (let i = 0; i < l.length; i++) {
                 let di = l[i];
@@ -170,10 +171,11 @@ interface AudioWorker extends Worker {
               }
                 msc = {audio: true, video: false};
             }
+            if(msc) {
+              console.log(msc.audio);
+            }
 
-            console.log(msc.audio);
-
-          let ump = navigator.mediaDevices.getUserMedia(msc);
+          let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
           ump.then((s) => {
               this.stream = s;
 
@@ -225,7 +227,7 @@ interface AudioWorker extends Worker {
                 // TODO shuld we use streamChannelCount or channelCount here ?
                 this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
                 let c = 0;
-                this.bufferingNode.onaudioprocess = (e) => {
+                this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
 
                   // TODO use chCnt
                   let inBuffer = e.inputBuffer;

@@ -1,9 +1,9 @@
 
   import { Component,ViewChild,ElementRef,AfterContentInit,ChangeDetectorRef } from '@angular/core'
-	import { WavReader } from '../../audio/impl/wavreader'
-  import { AudioClip} from '../../audio/persistor'
-  import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
-  import { AudioClipUIContainer } from '../../audio/ui/container'
+	import { WavReader } from './impl/wavreader'
+  import { AudioClip} from './persistor'
+  import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
+  import { AudioClipUIContainer } from './ui/container'
 
   @Component({
 
@@ -28,7 +28,7 @@
 	   status:string;
 		//audioSignal:AudioSignal;
 		//audioSonagram:Sonagram;
-		currentLoader:XMLHttpRequest;
+		currentLoader:XMLHttpRequest | null;
 		//startBtn:HTMLInputElement;
 		//stopBtn:HTMLInputElement;
 		//statusMsg:HTMLElement;
@@ -105,12 +105,14 @@
 			this.currentLoader.open("GET", this._audioUrl, true);
 			this.currentLoader.responseType = "arraybuffer";
 			this.currentLoader.onload = (e) => {
+        if (this.currentLoader) {
 
-				var data = this.currentLoader.response; // not responseText
-				console.log("Received data ",data.byteLength);
-				this.currentLoader = null;
-				this.loaded(data);
-			}
+          var data = this.currentLoader.response; // not responseText
+          console.log("Received data ", data.byteLength);
+          this.currentLoader = null;
+          this.loaded(data);
+        }
+      }
 			this.currentLoader.onerror = (e) => {
 				console.log("Error downloading ...");
 				//this.statusMsg.innerHTML = 'Error loading audio file!';
@@ -156,7 +158,9 @@
 		updatePlayPosition() {
 
 			//this.audioSignal.playFramePosition = this.ap.playPositionFrames;
-			this.ac.playFramePosition = this.ap.playPositionFrames;
+      if(this.ap && this.ap.playPositionFrames) {
+        this.ac.playFramePosition = this.ap.playPositionFrames;
+      }
 		}
 		update(e:AudioPlayerEvent){
 			if(EventType.STARTED===e.type){

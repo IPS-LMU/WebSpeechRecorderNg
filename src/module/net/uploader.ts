@@ -166,7 +166,7 @@
 
         private process() {
 
-            let pul: Upload = null;
+            let pul: Upload | null = null;
 
             // only serial uploads for now
             if (UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {

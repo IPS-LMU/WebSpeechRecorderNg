@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
+    "module_transpile": "ngc -p src/tsconfig-module-aot.json",
     "start": "ng serve",
     "build": "ng build",
     "build_klausj_www": "ng build --dev --base-href='/~klausj/demos/wsr/ng/dist/'",

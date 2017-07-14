@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
-import {environment} from "../../../../environments/environment";
+import {environment} from "../../../environments/environment";
 
 
 @Injectable()
 export class SessionService {
   private sessionsApiCtx = 'session';  // URL to web api
-  private sessionsUrl;
+  private sessionsUrl:string;
 
   constructor(private http: Http) {
 

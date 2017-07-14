@@ -1,15 +1,15 @@
 import {Component, ViewChild, ViewChildDecorator} from '@angular/core'
 
 import {ControlPanel, Mode as SessionMode, Prompting, StatusDisplay} from './session/sessionmanager';
-	import {AudioCaptureListener} from '../../audio/capture/capture';
-	import {AudioPlayer,AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../../audio/playback/player';
-  import {AudioSignal } from '../../audio/ui/audiosignal';
+	import {AudioCaptureListener} from '../audio/capture/capture';
+	import {AudioPlayer,AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../audio/playback/player';
+  import {AudioSignal } from '../audio/ui/audiosignal';
 
-	import { AudioClipUIContainer } from '../../audio/ui/container';
+	import { AudioClipUIContainer } from '../audio/ui/container';
 	import { SimpleTrafficLight } from './startstopsignal/ui/simpletrafficlight'
   import { Script } from './script/script'
   import { SessionManager} from  './session/sessionmanager';
-  import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../../net/uploader';
+  import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
 import {ActivatedRoute, ParamMap, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
 import {SessionService} from "./session/session.service";
@@ -264,7 +264,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 
 
     loadProjectCfg(callback: ()=> any){
-      let projUrl: string = null;
+      let projUrl: string | null = null;
 
       if (this.sessionId === null) {
         if (window.location.hostname === 'localhost' || this.mode === Mode.DEMO) {
@@ -276,20 +276,22 @@ export class SpeechRecorder implements AudioPlayerListener {
         projUrl = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/rest/projects/?sessionId=' + this.sessionId;
 
       }
-      var pLoader = new XMLHttpRequest();
-      pLoader.open("GET", projUrl, true);
-      pLoader.setRequestHeader('Accept', 'application/json');
-      pLoader.responseType = "json";
-      pLoader.onload = (e) => {
+      if(projUrl) {
+        var pLoader = new XMLHttpRequest();
+        pLoader.open("GET", projUrl, true);
+        pLoader.setRequestHeader('Accept', 'application/json');
+        pLoader.responseType = "json";
+        pLoader.onload = (e) => {
 
-        this.project = pLoader.response.project;
+          this.project = pLoader.response.project;
 
-        callback();
+          callback();
+        }
+        pLoader.onerror = (e) => {
+          console.log("Error downloading project data ...");
+        }
+        pLoader.send();
       }
-      pLoader.onerror = (e) => {
-        console.log("Error downloading project data ...");
-      }
-      pLoader.send();
     }
 
 
@@ -304,7 +306,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 
     let sessionId:string=this.session.sessionId;
 
-      let scrUrl:string = null;
+      let scrUrl:string | null = null;
 
       if (hn === 'localhost'  || this.mode===Mode.DEMO) {
           // local debug mode

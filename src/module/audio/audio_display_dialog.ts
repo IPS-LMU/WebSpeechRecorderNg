@@ -5,11 +5,11 @@
 
 import {Component, ViewChild, ElementRef, AfterContentInit, ChangeDetectorRef, Inject} from '@angular/core'
 import {MD_DIALOG_DATA, MdDialog, MdDialogRef} from '@angular/material';
-import { WavReader } from '../../audio/impl/wavreader'
-import { AudioClip} from '../../audio/persistor'
-import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
-import { AudioClipUIContainer } from '../../audio/ui/container'
-import {AudioContextProvider} from '../../audio/context'
+import { WavReader } from './impl/wavreader'
+import { AudioClip} from './persistor'
+import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
+import { AudioClipUIContainer } from './ui/container'
+import {AudioContextProvider} from './context'
 import {isNullOrUndefined} from "util";
 
 @Component({
@@ -127,7 +127,9 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   updatePlayPosition() {
 
     //this.audioSignal.playFramePosition = this.ap.playPositionFrames;
-    this.ac.playFramePosition = this.ap.playPositionFrames;
+    if(this.ap.playPositionFrames) {
+      this.ac.playFramePosition = this.ap.playPositionFrames;
+    }
   }
   update(e:AudioPlayerEvent){
     if(EventType.READY===e.type) {

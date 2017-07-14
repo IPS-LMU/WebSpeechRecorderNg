@@ -1,4 +1,4 @@
-import { Utils } from 'app/math/utils';
+import { Utils } from 'module/math/utils';
 
     export class CSSUtils {
 
