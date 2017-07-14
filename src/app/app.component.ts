@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
-
-
+import {Component, Inject} from '@angular/core';
+import { VERSION } from '../module/speechrecorder/spr.module'
 
 @Component({
   selector: 'app-root',
@@ -8,5 +7,6 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+  sprVersion=VERSION;
   title = 'app';
 }

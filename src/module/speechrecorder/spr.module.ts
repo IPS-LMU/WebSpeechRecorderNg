@@ -15,6 +15,7 @@ import {
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
 import {MdButtonModule, MdDialogModule,MdIconModule} from "@angular/material";
 
+export const VERSION='0.0.3';
 @NgModule({
     declarations: [Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,ProgressDisplay,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
     exports: [CommonModule],
