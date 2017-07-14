@@ -742,6 +742,7 @@ export class SessionManager implements AudioCaptureListener {
 
             if (this.ac) {
                 this.statusMsg = 'Requesting audio permissions...';
+              this.statusAlertType='info';
 
                 if (this._audioDevices) {
                   let fdi:MediaDeviceInfo| null =null;

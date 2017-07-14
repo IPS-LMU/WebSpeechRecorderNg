@@ -4,12 +4,14 @@
     import { DSPUtils } from 'module/dsp/utils'
     import { CSSUtils } from 'module/utils/css_utils'
     import { Marker,Point } from './common';
-    import {Complex} from "../../math/complex";
+
 
     declare function postMessage (message: any, transfer: Array<any>): void;
 
+    const DEFAULT_DFT_SIZE=1024;
+
     export class Sonagram {
-        canvasId: string;
+
         audioData: AudioBuffer | null;
         dft: DFTFloat32;
         n: any;
@@ -21,6 +23,7 @@
         private _playFramePosition: number;
 
         private wo: Worker | null;
+        private dftSize=DEFAULT_DFT_SIZE;
 
         constructor(container: HTMLDivElement) {
             this.ce = container;
@@ -68,7 +71,7 @@
             //    console.log("layout event")
             //    this.redraw();
             // },false);
-            this.dft = new DFTFloat32(1024);
+            this.dft = new DFTFloat32(this.dftSize);
             // this.layout();
         }
 
@@ -162,15 +165,11 @@
 
         layoutBounds(left:number, top:number, offW:number, offH:number, redraw:boolean) {
 
-            // this.c.offsetLeft = left;
-            // this.cCursor.offsetLeft = left;
-            // this.cPlaypos.offsetLeft = left;
-
+            const leftStr=left.toString() +'px';
+            this.c.style.left=leftStr;
             const topStr = top.toString() + 'px';
             this.c.style.top = topStr;
-            //this.cCursor.offsetTop = top;
             this.cCursor.style.top = topStr;
-            //this.cPlaypos.offsetTop = top;
             this.cPlaypos.style.top = topStr;
 
             if (offW) {
@@ -208,6 +207,8 @@
 
       workerFunction() {
 
+        // Redefine some DSP classes
+        // See e.g. audio.math.Complex
         class Complex {
 
           real: number;
@@ -429,8 +430,7 @@
             for (let i = 0; i < size; i++) {
               const quot = (i - center) / (sigma * center);
               const exp = -0.5 * quot * quot;
-              const val = Math.exp(exp);
-              this.buf[i] = val;
+              this.buf[i] = Math.exp(exp);
             }
           }
 
@@ -442,56 +442,51 @@
 
         self.onmessage = function (msg) {
 
-            // var audioDataBuf=msg.data.audioData;
-          var w= msg.data.w;
-          var h=msg.data.h;
-          var chs= msg.data.chs;
-            var audioData = new Array(chs);
-            for (var ch = 0; ch < chs; ch++) {
+          let w= msg.data.w;
+          let h=msg.data.h;
+          let chs= msg.data.chs;
+            let audioData = new Array(chs);
+            for (let ch = 0; ch < chs; ch++) {
                 // TODO can we use the transferred array directly?
                 audioData[ch] = new Float32Array(msg.data['audioData'][ch]);
             }
 
-          var frameLength=msg.data.frameLength;
-          var dftSize=msg.data.dftSize;
+          let frameLength=msg.data.frameLength;
+          let dftSize=msg.data.dftSize;
 
-          var dftBands = dftSize / 2;
-          var dft = new DFTFloat32(dftSize);
-          var wf = new GaussianWindow(dftSize);
-          // var imgData = new ImageData(w, h);
-          var imgData = new Uint8ClampedArray(w * h * 4);
+          let dftBands = dftSize / 2;
+          let dft = new DFTFloat32(dftSize);
+          let wf = new GaussianWindow(dftSize);
+          let imgData = new Uint8ClampedArray(w * h * 4);
           //console.log("Render method:");
           if (audioData) {
-            // var chs = this.audioData.numberOfChannels;
-            var chH = Math.round(h / chs);
-            // var frameLength = this.audioData.getChannelData(0).length;
-            var framesPerPixel = frameLength / w;
+            let chH = Math.round(h / chs);
+            let framesPerPixel = frameLength / w;
             //console.log("Render: ", w, "x", h);
-            var y = 0;
-            // TODO
-            var b = new Float32Array(dftSize);
-            var sona = new Array(chs);
-            var max = 0;
-            var maxPsd = -Infinity;
-            var p = 0;
-            for (var ch = 0; ch < chs; ch++) {
+
+            let b = new Float32Array(dftSize);
+            let sona = new Array(chs);
+
+            let maxPsd = -Infinity;
+            let p = 0;
+            for (let ch = 0; ch < chs; ch++) {
               p = ch * frameLength;
-              var x = 0;
+              let x = 0;
               sona[ch] = new Array(w);
-              //var chData = this.audioData.getChannelData(ch);
+              //let chData = this.audioData.getChannelData(ch);
               // TODO center buffer
-              var framePos = 0;
-              for (var pii = 0; pii < w; pii++) {
+              let framePos = 0;
+              for (let pii = 0; pii < w; pii++) {
                   framePos = Math.round(pii * framesPerPixel);
                 // calculate DFT at pixel position
-                for (var i = 0; i < dftSize; i++) {
-                    var chDat = audioData[ch][framePos + i];
+                for (let i = 0; i < dftSize; i++) {
+                    let chDat = audioData[ch][framePos + i];
                   b[i] = chDat * wf.getScale(i);
                 }
-                var spectr = dft.processRealMagnitude(b);
+                let spectr = dft.processRealMagnitude(b);
                 sona[ch][pii] = spectr;
-                for (var s = 0; s < dftBands; s++) {
-                  var psd = (2 * Math.pow(spectr[s], 2)) / dftBands;
+                for (let s = 0; s < dftBands; s++) {
+                  let psd = (2 * Math.pow(spectr[s], 2)) / dftBands;
                   if (psd > maxPsd) {
                     maxPsd = psd;
                   }
@@ -500,23 +495,23 @@
             }
             //maxPsd = (2 * Math.pow(max, 2)) / dftBands;
 
-            for (var ch = 0; ch < chs; ch++) {
+            for (let ch = 0; ch < chs; ch++) {
 
-              for (var pii = 0; pii < w; pii++) {
-                var allBlack = true;
-                for (var y = 0; y < chH; y++) {
-                  var freqIdx = Math.round(y * dftBands / chH);
+              for (let pii = 0; pii < w; pii++) {
+                let allBlack = true;
+                for (let y = 0; y < chH; y++) {
+                  let freqIdx = Math.round(y * dftBands / chH);
                   // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
                   // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
-                  var val = sona[ch][pii][freqIdx];
-                  var psd = (2 * Math.pow(val, 2)) / dftBands;
+                  let val = sona[ch][pii][freqIdx];
+                  let psd = (2 * Math.pow(val, 2)) / dftBands;
                   // Calculate logarithmic value
-                  //var psdLog = ips.dsp.DSPUtils.toLevelInDB(psd / maxPsd);
-                  var linearLevel=psd/maxPsd;
-                  var psdLog=10 * Math.log(linearLevel) / Math.log(10);
+                  //let psdLog = ips.dsp.DSPUtils.toLevelInDB(psd / maxPsd);
+                  let linearLevel=psd/maxPsd;
+                  let psdLog=10 * Math.log(linearLevel) / Math.log(10);
                   // Fixed dynamic Range value of 70dB for now
-                  var dynRangeInDb = 70;
-                  var scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
+                  let dynRangeInDb = 70;
+                  let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
 
                   // are the following checks necessary for clamped array ?
                   if (scaledVal > 1.0)
@@ -524,7 +519,7 @@
                   if (scaledVal < 0.0) {
                     scaledVal = 0;
                   }
-                  var rgbVal = Math.round(255 * scaledVal);
+                  let rgbVal = Math.round(255 * scaledVal);
                   if (rgbVal < 0) {
                     //							System.out.println("Neg RGB val: "+rgbVal);
                     rgbVal = 0;
@@ -536,8 +531,8 @@
                   if (rgbVal > 0) {
                     allBlack = false;
                   }
-                  var py = chH - y;
-                  var dataPos = ((((ch * chH ) + py) * w ) + pii) * 4;
+                  let py = chH - y;
+                  let dataPos = ((((ch * chH ) + py) * w ) + pii) * 4;
                   imgData[dataPos + 0] = rgbVal; //R
                   imgData[dataPos + 1] = rgbVal; //G
                   imgData[dataPos + 2] = rgbVal; //B
@@ -567,19 +562,19 @@
 
 
 
-                var wb=new Blob(['('+this.workerFunction.toString()+')();'], {type: 'text/javascript'});
-                var wDataUrl = window.URL.createObjectURL(wb);
+                let wb=new Blob(['('+this.workerFunction.toString()+')();'], {type: 'text/javascript'});
+                let wDataUrl = window.URL.createObjectURL(wb);
                 this.wo=new Worker(wDataUrl);
 
-                var chs = this.audioData.numberOfChannels;
+                let chs = this.audioData.numberOfChannels;
 
-                var frameLength = this.audioData.getChannelData(0).length;
-                var ada = new Array<ArrayBuffer>(chs);
-                for (var ch = 0; ch < chs; ch++) {
+                let frameLength = this.audioData.getChannelData(0).length;
+                let ada = new Array<ArrayBuffer>(chs);
+                for (let ch = 0; ch < chs; ch++) {
                     // we need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
                     ada[ch] = this.audioData.getChannelData(ch).buffer.slice(0);
                 }
-                var start = Date.now();
+                let start = Date.now();
                 if(this.wo) {
                   this.wo.onmessage = (me) => {
                     //console.log("So rendertime: ", Date.now() - start);
@@ -591,43 +586,15 @@
                   }
                 }
                 if (this.cPlaypos) {
-                    var g = this.cPlaypos.getContext("2d");
+                    let g = this.cPlaypos.getContext("2d");
                     if(g) {
                       g.fillText("Rendering...", 10, 20);
                     }
 
                 }
-                // var postData = {
-                //     w: w,
-                //     h: h,
-                //     chs: chs,
-                //     frameLength: frameLength,
-                //     dftSize: 1024,
-                //     audioData0:null,
-                //      audioData1: null
-                // };
-                class PostData{
-                  constructor(w:number,h:number,chs:number,frameLength:number,dftSize:number) {
-                  }
-                  audioData0:ArrayBuffer | null;
-                  audioData1:ArrayBuffer | null;
-                }
-
-                let postData=new PostData(w,h,chs,frameLength,1024);
-                let adArr=new Array<ArrayBuffer>(chs);
-                for (var ch = 0; ch < chs; ch++) {
-                    if(ch==0) {
-
-                      postData.audioData0 = ada[ch];
-
-                    }else if(ch==1){
-                      postData.audioData1 = ada[ch];
-                    }
-                  adArr[ch]=ada[ch];
-                }
-                this.wo.postMessage({audioData:adArr, w: w, h:h, chs:chs,frameLength:frameLength,dftSize:1024}, ada);
+                this.wo.postMessage({audioData:ada, w: w, h:h, chs:chs,frameLength:frameLength,dftSize:this.dftSize}, ada);
             } else {
-                var g = this.c.getContext("2d");
+                let g = this.c.getContext("2d");
                 if(g) {
                   g.clearRect(0, 0, w, h);
                 }
@@ -639,10 +606,10 @@
 
                 this.c.width = me.data.w;
                 this.c.height = me.data.h;
-                var g = this.c.getContext("2d");
+                let g = this.c.getContext("2d");
                 if(g) {
-                  var imgDataArr: Uint8ClampedArray = me.data.imgData;
-                  var imgData = g.createImageData(me.data.w, me.data.h);
+                  let imgDataArr: Uint8ClampedArray = me.data.imgData;
+                  let imgData = g.createImageData(me.data.w, me.data.h);
                   imgData.data.set(imgDataArr);
                   g.putImageData(imgData, 0, 0);
                 }
@@ -654,51 +621,53 @@
         // synchronous draw (not used anymore)
         redraw() {
 
-            var g = this.c.getContext("2d");
+            let g = this.c.getContext("2d");
 
-            var w = this.c.width;
-            var h = this.c.height;
+            let w = this.c.width;
+            let h = this.c.height;
             if(g) {
               g.clearRect(0, 0, w, h);
               g.fillStyle = "white";
               g.fillRect(0, 0, w, h);
               if (this.audioData) {
-                var chs = this.audioData.numberOfChannels;
-                var chH = h / chs;
+                let spectSize=Math.floor(this.dftSize/2)
+                let chs = this.audioData.numberOfChannels;
+                let chH = h / chs;
 
-                var frameLength = this.audioData.getChannelData(0).length;
+                let frameLength = this.audioData.getChannelData(0).length;
 
-                var framesPerPixel = frameLength / w;
-                var y = 0;
+                let framesPerPixel = frameLength / w;
+                let y = 0;
                 // TODO
-                var b = new Float32Array(1024)
+                let b = new Float32Array(this.dftSize)
 
-                var sona = new Array<Array<Float32Array>>(chs);
-                var max = 0;
-                var maxPsd = -Infinity;
-                for (var ch = 0; ch < chs; ch++) {
-                  var x = 0;
+                let sona = new Array<Array<Float32Array>>(chs);
+                let max = 0;
+                let maxPsd = -Infinity;
+                for (let ch = 0; ch < chs; ch++) {
+                  let x = 0;
                   sona[ch] = new Array<Float32Array>(w);
 
-                  var chData = this.audioData.getChannelData(ch);
+                  let chData = this.audioData.getChannelData(ch);
                   // TODO center buffer
 
-                  var framePos = 0;
-                  for (var pii = 0; pii < w; pii++) {
+                  let framePos = 0;
+                  for (let pii = 0; pii < w; pii++) {
                     framePos = Math.round(pii * framesPerPixel);
                     // calculate DFT at pixel position
-                    for (var i = 0; i < 1024; i++) {
-                      var chDat = chData[framePos + i];
+                    for (let i = 0; i < this.dftSize; i++) {
+                      let chDat = chData[framePos + i];
                       b[i] = chDat;
                     }
-                    var spectr = this.dft.processRealMagnitude(b);
+                    let spectr = this.dft.processRealMagnitude(b);
                     sona[ch][pii] = spectr;
-                    var pMax = Math.max.apply(null, spectr);
+                    let pMax = Math.max.apply(null, spectr);
                     if (pMax > max) {
                       max = pMax;
                     }
-                    for (var s = 0; s < 512; s++) {
-                      var psd = (2 * Math.pow(spectr[s], 2)) / 512;
+
+                    for (let s = 0; s < spectSize; s++) {
+                      let psd = (2 * Math.pow(spectr[s], 2)) / spectSize;
                       if (psd > maxPsd) {
                         maxPsd = psd;
                       }
@@ -706,32 +675,32 @@
                   }
                 }
                 //console.log("max: ", max);
-                maxPsd = (2 * Math.pow(max, 2)) / 512;
-                for (var ch = 0; ch < chs; ch++) {
+                maxPsd = (2 * Math.pow(max, 2)) / spectSize;
+                for (let ch = 0; ch < chs; ch++) {
 
-                  var framePos = 0;
-                  for (var pii = 0; pii < w; pii++) {
+                  let framePos = 0;
+                  for (let pii = 0; pii < w; pii++) {
                     framePos = pii * framesPerPixel;
 
-                    for (var y = 0; y < h; y++) {
-                      var freqIdx = Math.round(y * 512 / h);
+                    for (let y = 0; y < h; y++) {
+                      let freqIdx = Math.round(y * spectSize / h);
 
                       // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
                       // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
-                      var val = sona[ch][pii][freqIdx];
-                      var psd = (2 * Math.pow(val, 2)) / 512;
+                      let val = sona[ch][pii][freqIdx];
+                      let psd = (2 * Math.pow(val, 2)) / spectSize;
 
                       // Calculate logarithmic
-                      var psdLog = DSPUtils.toLevelInDB(psd / maxPsd);
-                      var dynRangeInDb = 70;
-                      var scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
+                      let psdLog = DSPUtils.toLevelInDB(psd / maxPsd);
+                      let dynRangeInDb = 70;
+                      let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
 
                       if (scaledVal > 1)
                         scaledVal = 1;
                       if (scaledVal < 0) {
                         scaledVal = 0;
                       }
-                      var rgbVal = (255 * scaledVal);
+                      let rgbVal = (255 * scaledVal);
                       if (rgbVal < 0) {
 //							System.out.println("Neg RGB val: "+rgbVal);
                         rgbVal = 0;
@@ -740,18 +709,12 @@
                         rgbVal = 255;
                       }
                       rgbVal = 255 - rgbVal;
-                      // if(rgbVal<minRgbVal){
-                      //     minRgbVal=rgbVal;
-                      // }
-                      var colorStr = CSSUtils.toColorString(rgbVal, rgbVal, rgbVal);
+                      let colorStr = CSSUtils.toColorString(rgbVal, rgbVal, rgbVal);
                       g.fillStyle = colorStr;
-
                       g.fillRect(pii, chH - y, 1, 1);
                     }
                   }
                 }
-
-
                 this.drawPlayPosition();
               }
             }
@@ -759,9 +722,7 @@
 
 
         setData(audioData:AudioBuffer) {
-
             this.audioData = audioData;
-
             this.playFramePosition = 0;
             //this.redraw();
             //this.startRender();
