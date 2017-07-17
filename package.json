@@ -5,6 +5,7 @@
   "scripts": {
     "ng": "ng",
     "module_transpile": "ngc -p tsconfig-module-aot.json",
+    "rollup_module": "rollup -c",
     "package_module": "rollup -c",
     "start": "ng serve",
     "build": "ng build",
