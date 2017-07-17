@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "module_transpile": "ngc -p src/tsconfig-module-aot.json",
+    "module_transpile": "ngc -p tsconfig-module-aot.json",
+    "package_module": "rollup -c",
     "start": "ng serve",
     "build": "ng build",
     "build_klausj_www": "ng build --dev --base-href='/~klausj/demos/wsr/ng/dist/'",
@@ -47,6 +48,7 @@
     "protractor": "~5.1.2",
     "ts-node": "~3.0.4",
     "tslint": "~5.3.2",
-    "typescript": "~2.3.3"
+    "typescript": "~2.3.3",
+    "rollup": "^0.45.2"
   }
 }

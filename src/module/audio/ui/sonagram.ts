@@ -1,8 +1,8 @@
 
 
-    import { DFTFloat32 } from 'module/math/dft';
-    import { DSPUtils } from 'module/dsp/utils'
-    import { CSSUtils } from 'module/utils/css_utils'
+    import { DFTFloat32 } from '../../math/dft';
+    import { DSPUtils } from '../../dsp/utils'
+    import { CSSUtils } from '../../utils/css_utils'
     import { Marker,Point } from './common';
 
 

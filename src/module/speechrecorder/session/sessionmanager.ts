@@ -19,7 +19,7 @@ import {SessionService} from "./session.service";
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {MdDialog, MdDialogConfig} from "@angular/material";
-import {AudioDisplayDialog} from "module/audio/audio_display_dialog";
+import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour

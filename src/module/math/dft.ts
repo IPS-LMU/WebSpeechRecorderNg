@@ -1,4 +1,4 @@
-import { Complex } from 'module/math/complex';
+import { Complex } from './complex';
 
     export class DFTFloat32 {
 

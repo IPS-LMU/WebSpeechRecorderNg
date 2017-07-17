@@ -10,7 +10,7 @@ import { AudioClip} from './persistor'
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
 import { AudioClipUIContainer } from './ui/container'
 import {AudioContextProvider} from './context'
-import {isNullOrUndefined} from "util";
+//import {isNullOrUndefined} from "util";
 
 @Component({
 
@@ -106,7 +106,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
       this.status="No audio data."
       this.audioFormatStr='';
     }
-    this.startEnabled=(!isNullOrUndefined(this.audioBuffer));
+    this.startEnabled=(!(this.audioBuffer));
     this.ref.detectChanges();
   }
 
