@@ -1,0 +1,23 @@
+{
+  "name": "speechrecorderng",
+  "version": "0.0.3",
+  "description": "WebSpeechRecorder as Angular Module",
+  "main": "bundles/speechrecorder.umd.js",
+  "module": "module/index.js",
+  "typings": "module/index.d.ts",
+  "keywords": [
+    "SpeechRecorder",
+    "angular4"
+  ],
+  "author": "Klaus Jänsch",
+  "license": "MIT",
+
+  "peerDependencies": {
+    "@angular/core": "^4.2.0",
+    "@angular/common": "^4.2.0",
+    "@angular/http": "^4.2.0",
+    "@angular/material": "^4.2.0",
+    "@angular/router": "^4.2.0",
+    "rxjs": "^5.0.1"
+  }
+}
