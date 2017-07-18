@@ -19,11 +19,11 @@ md-toolbar {
   /*background: blue;*/
   /*width: 50%*/
 /*}*/
-app-speechrecorder {
-  flex: 1;
-  height: 100%;
-  /*background: blue;*/
-  margin: 0;
-  padding: 0;
-  /*//width: 50%*/
-}
+
+/*app-speechrecorder {*/
+  /*flex: 1;*/
+  /*height: 100%;*/
+  /*!*background: blue;*!*/
+  /*margin: 0;*/
+  /*padding: 0;*/
+/*}*/

@@ -14,13 +14,27 @@ import {
 } from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
 import {MdButtonModule, MdDialogModule,MdIconModule} from "@angular/material";
+import {HttpModule} from "@angular/http";
+import {SessionService} from "./session/session.service";
+import {ScriptService} from "./script/script.service";
+import {RouterModule, Routes} from "@angular/router";
 
 export const VERSION='0.0.3';
+
+const SPR_ROUTES: Routes = [
+
+  { path: 'spr/session/:id',      component: SpeechRecorder },
+  { path: 'spr',      component: SpeechRecorder }
+];
+
 @NgModule({
     declarations: [Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,ProgressDisplay,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
-    exports: [CommonModule],
-  imports: [CommonModule,AudioModule,MdIconModule,MdButtonModule,MdDialogModule]
-})
+    exports: [SpeechRecorder],
+
+  imports: [RouterModule.forChild(SPR_ROUTES),CommonModule,HttpModule,
+    AudioModule,MdIconModule,MdButtonModule,MdDialogModule]
+,
+  providers: [SessionService,ScriptService]})
 export class SpeechRecorderModule{
 
 }

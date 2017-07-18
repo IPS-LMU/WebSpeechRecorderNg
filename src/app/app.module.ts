@@ -31,9 +31,6 @@ import {AudioModule} from "../module/audio/audio.module";
 
 const appRoutes: Routes = [
 
-    { path: 'session/:id',      component: SpeechRecorder },
-    { path: '',      component: SpeechRecorder },
-
     { path: 'test',
         redirectTo: 'session/',
         pathMatch: 'full'
@@ -55,7 +52,7 @@ const appRoutes: Routes = [
       HttpModule,
     BrowserModule,SpeechRecorderModule,AudioModule
   ],
-  providers: [SessionService,ScriptService],
+
 
   bootstrap: [AppComponent]
 })
