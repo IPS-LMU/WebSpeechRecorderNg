@@ -52,7 +52,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   currentLoader:XMLHttpRequest;
   audio:any;
   updateTimerId:any;
-  audioBuffer:AudioBuffer;
+  audioBuffer:AudioBuffer | null=null;
   @ViewChild(AudioClipUIContainer)
 
   private ac:AudioClipUIContainer;
@@ -106,7 +106,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
       this.status="No audio data."
       this.audioFormatStr='';
     }
-    this.startEnabled=(!(this.audioBuffer));
+    this.startEnabled=(this.audioBuffer!==null);
     this.ref.detectChanges();
   }
 

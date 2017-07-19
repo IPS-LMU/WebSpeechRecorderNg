@@ -19,7 +19,7 @@ import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
 
-export const VERSION='0.0.3';
+export const VERSION='0.0.4';
 
 const SPR_ROUTES: Routes = [
 
