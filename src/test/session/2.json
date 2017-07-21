@@ -1,9 +1,7 @@
 {
   "debugMode": true,
   "sessionId": 2,
-  "project":{
-    "name":"Test Project"
-  },
+  "project": "Test Project",
 
   "script": 1245
 }

@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import {InjectionToken, ModuleWithProviders, NgModule} from '@angular/core';
 import {SpeechRecorder} from "./speechrecorder";
 import {AudioModule} from "../audio/audio.module";
 import {SimpleTrafficLight} from "./startstopsignal/ui/simpletrafficlight";
@@ -21,6 +21,16 @@ import {RouterModule, Routes} from "@angular/router";
 
 export const VERSION='0.0.4';
 
+// TODO Inject config : https://stackoverflow.com/questions/43193049/app-settings-the-angular-4-way
+// https://stackoverflow.com/questions/40400368/how-to-use-config-data-in-forroot
+// https://stackoverflow.com/questions/42822233/how-to-pass-config-data-to-ngmodule-so-ngmodule-will-be-compiled-with-aot
+
+export class Config{
+  apiEndPoint: string;
+}
+
+let CONFIG=new Config().apiEndPoint="test";
+
 const SPR_ROUTES: Routes = [
 
   { path: 'spr/session/:id',      component: SpeechRecorder },
@@ -30,11 +40,28 @@ const SPR_ROUTES: Routes = [
 @NgModule({
     declarations: [Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,ProgressDisplay,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
     exports: [SpeechRecorder],
-
   imports: [RouterModule.forChild(SPR_ROUTES),CommonModule,HttpModule,
-    AudioModule,MdIconModule,MdButtonModule,MdDialogModule]
-,
-  providers: [SessionService,ScriptService]})
+    AudioModule,MdIconModule,MdButtonModule,MdDialogModule],
+  providers: [SessionService,ScriptService]
+
+})
 export class SpeechRecorderModule{
 
+  // static forRoot(config: Config):ModuleWithProviders {
+  //   return {
+  //     ngModule: SpeechRecorderModule,
+  //     providers: [
+  //       {
+  //         provide: Config,
+  //         useValue: config
+  //       },
+  //       { provide: SessionService,
+  //         useFactory: (http:Http)=>{
+  //           return new SessionService(config);
+  //       }
+  //       }
+  //
+  //     ]
+  //   }
+  // }
 }

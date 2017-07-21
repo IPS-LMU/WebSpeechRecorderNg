@@ -1,17 +1,22 @@
-import {Injectable} from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
 import {environment} from "../../../environments/environment";
+import {Config} from "../spr.module";
 
 
 @Injectable()
 export class SessionService {
   private sessionsApiCtx = 'session';  // URL to web api
   private sessionsUrl:string;
+  private config:Config|null=null;
 
   constructor(private http: Http) {
+    let apiEndPoint = 'test'
 
-    let apiEndPoint = environment.apiEndPoint ? environment.apiEndPoint : 'api';
+    if(this.config) {
+      apiEndPoint=this.config.apiEndPoint ? this.config.apiEndPoint : 'api/v1';
+    }
 
     this.sessionsUrl = apiEndPoint + '/' + this.sessionsApiCtx;
   }
