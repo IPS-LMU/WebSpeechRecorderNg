@@ -1,21 +1,21 @@
-import {Inject, Injectable} from '@angular/core';
+import {Inject, Injectable, Optional} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
 import {environment} from "../../../environments/environment";
-import {Config} from "../spr.module";
+import {Config, SPEECHRECORDER_CONFIG} from "../spr.config";
 
 
 @Injectable()
 export class SessionService {
   private sessionsApiCtx = 'session';  // URL to web api
   private sessionsUrl:string;
-  private config:Config|null=null;
+  //private config:Config|null=null;
 
-  constructor(private http: Http) {
+  constructor(private http:Http,@Inject(SPEECHRECORDER_CONFIG) config:Config) {
     let apiEndPoint = 'test'
 
-    if(this.config) {
-      apiEndPoint=this.config.apiEndPoint ? this.config.apiEndPoint : 'api/v1';
+    if(config) {
+      apiEndPoint=config.apiEndPoint ? config.apiEndPoint : 'api/v1';
     }
 
     this.sessionsUrl = apiEndPoint + '/' + this.sessionsApiCtx;
@@ -33,6 +33,7 @@ export class SessionService {
         return response.json();
       })
       .catch(this.handleError);
+
     return sessProms;
   }
 

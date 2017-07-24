@@ -448,7 +448,7 @@ import { Marker,Point } from './common'
         }
 
 
-        setData(audioData:AudioBuffer) {
+        setData(audioData:AudioBuffer | null) {
 
             this.audioData = audioData;
 

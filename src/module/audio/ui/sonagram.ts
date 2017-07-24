@@ -721,7 +721,7 @@
         }
 
 
-        setData(audioData:AudioBuffer) {
+        setData(audioData:AudioBuffer | null) {
             this.audioData = audioData;
             this.playFramePosition = 0;
             //this.redraw();

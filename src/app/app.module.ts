@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import {InjectionToken, NgModule} from '@angular/core';
+import {Injectable, InjectionToken, NgModule} from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
 
@@ -25,8 +25,9 @@ import {
 } from "@angular/material";
 import {AudioDisplayDialog} from "../module/audio/audio_display_dialog";
 import {ScrollIntoViewDirective} from "../module/utils/scrollintoview";
-import {Config, SpeechRecorderModule} from "../module/speechrecorder/spr.module";
+import {SpeechRecorderModule} from "../module/speechrecorder/spr.module";
 import {AudioModule} from "../module/audio/audio.module";
+import {APP_CONFIG, HERO_DI_CONFIG} from "./app.config";
 
 
 const appRoutes: Routes = [
@@ -38,10 +39,6 @@ const appRoutes: Routes = [
     { path: 'audio_display', component: AudioDisplay
     }
 ];
-export let SPEECHRECORDER_CONFIG = new InjectionToken<Config>('app.config');
-export const SPR_CFG: Config = {
-  apiEndPoint: 'http://localhost:8000/api/test_from config'
-};
 
 @NgModule({
   declarations: [
@@ -55,7 +52,7 @@ export const SPR_CFG: Config = {
       HttpModule,
     BrowserModule,SpeechRecorderModule,AudioModule
   ],
-  providers: [],
+  providers: [{provide:APP_CONFIG,useValue:HERO_DI_CONFIG}],
 
   bootstrap: [AppComponent]
 })

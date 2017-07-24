@@ -87,21 +87,25 @@ export class SpeechRecorder implements AudioPlayerListener {
     }
 
     fetchSession(sessionId:string){
-      let sess= this.sessionsService.getSession(sessionId).then(sess=> {
-        this.setSession(sess);
-        this.init();
-        if(sess.project){
-          //TODO fetch project then fetchScript
-          this.fetchScript(sess);
-        }else{
-          this.fetchScript(sess);
-        }
-      })
-        .catch(reason =>{
-          this.sm.statusMsg=reason;
-          this.sm.statusAlertType='error';
-          console.log("Error fetching session "+reason)
-        });
+      let sess= this.sessionsService.getSession(sessionId);
+
+      if(sess) {
+        sess.then(sess => {
+          this.setSession(sess);
+          this.init();
+          if (sess.project) {
+            //TODO fetch project then fetchScript
+            this.fetchScript(sess);
+          } else {
+            this.fetchScript(sess);
+          }
+        })
+          .catch(reason => {
+            this.sm.statusMsg = reason;
+            this.sm.statusAlertType = 'error';
+            console.log("Error fetching session " + reason)
+          });
+      }
     }
 
 

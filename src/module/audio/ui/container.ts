@@ -245,7 +245,7 @@ ngAfterViewInit()
             this.so.layoutBounds(0, soTop, offW, soH, true);
         }
 
-        setData(audioData: AudioBuffer) {
+        setData(audioData: AudioBuffer | null) {
             // this.audioData = audioData;
             this.as.setData(audioData);
             this.so.setData(audioData);

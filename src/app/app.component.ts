@@ -1,5 +1,6 @@
 import {Component, Inject} from '@angular/core';
 import { VERSION } from '../module/speechrecorder/spr.module'
+import {APP_CONFIG, AppConfig} from "./app.config";
 
 @Component({
   selector: 'app-root',
@@ -8,5 +9,8 @@ import { VERSION } from '../module/speechrecorder/spr.module'
 })
 export class AppComponent {
   sprVersion=VERSION;
-  title = 'app';
+  title='bla'
+  constructor(@Inject(APP_CONFIG) appCfg:AppConfig){
+    this.title=appCfg.title
+  }
 }
