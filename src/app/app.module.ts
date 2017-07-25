@@ -29,9 +29,7 @@ const appRoutes: Routes = [
   declarations: [
     AppComponent
   ],
-  entryComponents: [
-    AudioDisplayDialog
-  ],
+
   imports: [
       RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,MdDialogModule,
       HttpModule,

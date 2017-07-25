@@ -5,6 +5,11 @@ export let SPEECHRECORDER_CONFIG = new InjectionToken<SpeechRecorderConfig>('spe
 
 @Injectable()
 export class SpeechRecorderConfig{
-  apiEndPoint: string;
+  apiEndPoint: string | null=null;
+  apiType: string | null=null;
+  constructor(){
+    this.apiEndPoint=null;
+    this.apiType=null;
+  }
 }
 

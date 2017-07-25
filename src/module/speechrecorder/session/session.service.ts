@@ -1,34 +1,38 @@
 import {Inject, Injectable, Optional} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
-import {environment} from "../../../environments/environment";
+
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 
+export const SESSION_API_CTX='session';
 
 @Injectable()
 export class SessionService {
-  private sessionsApiCtx = 'session';  // URL to web api
+
   private sessionsUrl:string;
 
+  constructor(private http:Http,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
-  constructor(private http:Http,@Inject(SPEECHRECORDER_CONFIG) config:SpeechRecorderConfig) {
-    let apiEndPoint = 'test'
+    let apiEndPoint = ''
 
-    if(config) {
-      apiEndPoint=config.apiEndPoint ? config.apiEndPoint : 'api/v1';
+    if(config && config.apiEndPoint) {
+      apiEndPoint=config.apiEndPoint;
+    }
+    if(apiEndPoint !== ''){
+      apiEndPoint=apiEndPoint+'/'
     }
 
-    this.sessionsUrl = apiEndPoint + '/' + this.sessionsApiCtx;
+    this.sessionsUrl = apiEndPoint + SESSION_API_CTX;
   }
 
   getSession(id: string): Promise<any> {
 
     let sessUrl = this.sessionsUrl + '/' + id;
-    if (environment.apiType === 'files') {
+    if (this.config && this.config.apiType === 'files') {
       // for development and demo
       sessUrl = sessUrl + '.json';
     }
-    let sessProms = this.http.get(sessUrl).toPromise()
+    let sessProms = this.http.get(sessUrl,{ withCredentials: true }).toPromise()
       .then(response => {
         return response.json();
       })

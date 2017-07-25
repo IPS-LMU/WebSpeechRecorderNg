@@ -1,26 +1,46 @@
 /**
  * Created by klausj on 17.06.2017.
  */
-import { Injectable } from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 
+
+export const SCRIPT_API_CTX='script'
 
 @Injectable()
 export class ScriptService {
-    private scriptsUrl = 'test/script/';
-    constructor(private http: Http) {
+  private scriptCtxUrl:string;
 
+  constructor(private http:Http,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+
+    let apiEndPoint = ''
+
+    if(config && config.apiEndPoint) {
+      apiEndPoint=config.apiEndPoint;
     }
-   getScript(id:string):Promise<any>{
+    if(apiEndPoint !== ''){
+      apiEndPoint=apiEndPoint+'/'
+    }
 
-        // TODO REST without .json extension !!
-       let scriptProms=this.http.get(this.scriptsUrl+id+'.json').toPromise()
-           .then(response => {
-             return response.json();
-           })
-           .catch(this.handleError);
-       return scriptProms;
+    this.scriptCtxUrl = apiEndPoint + SCRIPT_API_CTX;
+  }
+
+  getScript(id:string):Promise<any>{
+
+    let scriptUrl = this.scriptCtxUrl + '/' + id;
+    if (this.config && this.config.apiType === 'files') {
+      // for development and demo
+      scriptUrl = scriptUrl + '.json';
+    }
+    let scriptProms = this.http.get(scriptUrl,{ withCredentials: true }).toPromise()
+      .then(response => {
+        return response.json();
+      })
+      .catch(this.handleError);
+
+    return scriptProms;
    }
 
     private handleError(error: any): Promise<any> {

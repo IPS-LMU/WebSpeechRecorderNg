@@ -20,12 +20,7 @@ import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 
-export const VERSION='0.0.4';
-
-// TODO Inject config : https://stackoverflow.com/questions/43193049/app-settings-the-angular-4-way
-// https://stackoverflow.com/questions/40400368/how-to-use-config-data-in-forroot
-// https://stackoverflow.com/questions/42822233/how-to-pass-config-data-to-ngmodule-so-ngmodule-will-be-compiled-with-aot
-
+export const VERSION='0.0.6';
 
 const SPR_ROUTES: Routes = [
 
@@ -35,6 +30,9 @@ const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,ProgressDisplay,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
+  entryComponents: [
+    AudioDisplayDialog
+  ],
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),HttpModule,CommonModule,
     AudioModule,MdIconModule,MdButtonModule,MdDialogModule],
