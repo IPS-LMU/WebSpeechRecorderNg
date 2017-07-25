@@ -1,16 +1,10 @@
 import {Injectable, InjectionToken} from "@angular/core";
 
-export let SPEECHRECORDER_CONFIG = new InjectionToken<Config>('app.config');
+export let SPEECHRECORDER_CONFIG = new InjectionToken<SpeechRecorderConfig>('speechrecorder.config');
 
 
 @Injectable()
-export class Config{
-  constructor(){
-    this.apiEndPoint="blafasel/byconstr"
-  }
+export class SpeechRecorderConfig{
   apiEndPoint: string;
 }
 
-export const SPR_CFG: Config = {
-  apiEndPoint: 'test'
-};

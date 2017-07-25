@@ -18,7 +18,7 @@ import {HttpModule} from "@angular/http";
 import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
-import {SPEECHRECORDER_CONFIG, SPR_CFG} from "./spr.config";
+import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 
 export const VERSION='0.0.4';
 
@@ -38,17 +38,17 @@ const SPR_ROUTES: Routes = [
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),HttpModule,CommonModule,
     AudioModule,MdIconModule,MdButtonModule,MdDialogModule],
-  providers: [{provide:SPEECHRECORDER_CONFIG,useValue:SPR_CFG},SessionService,ScriptService]
+  providers: [SessionService,ScriptService]
 
 })
 export class SpeechRecorderModule{
-  //
-  // static forRoot(config: Config): ModuleWithProviders {
-  //   return {
-  //     ngModule: SpeechRecorderModule,
-  //     providers: [
-  //       {provide: SPEECHRECORDER_CONFIG, useValue: config }
-  //     ]
-  //   };
-  // }
+
+  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders {
+    return {
+      ngModule: SpeechRecorderModule,
+      providers: [
+        {provide: SPEECHRECORDER_CONFIG, useValue: config }
+      ]
+    };
+  }
 }
