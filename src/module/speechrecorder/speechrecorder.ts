@@ -81,8 +81,11 @@ export class SpeechRecorder implements AudioPlayerListener {
           this.fetchSession(params['sessionId']);
         });
 
-        this.route.params.subscribe((params:Params)=>{
-            this.fetchSession(params['id']);
+        this.route.params.subscribe((params:Params)=> {
+          let routeParamsId = params['id'];
+          if (routeParamsId) {
+            this.fetchSession(routeParamsId);
+          }
         })
     }
 

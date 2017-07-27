@@ -415,7 +415,9 @@ export class SessionManager implements AudioCaptureListener {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
-            //this.uploader = uploader;
+
+            // TODO Uploader should be a Ng service
+            this.uploader = new Uploader();
             this.transportActions=new TransportActions();
 
             let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
@@ -971,7 +973,7 @@ export class SessionManager implements AudioCaptureListener {
                 ww.writeAsync(ad, (wavFile) => {
                      // TODO and upload to WikiSpeech server
 
-                    //this.postRecording(wavFile, recUrl);
+                    this.postRecording(wavFile, recUrl);
                 });
             }
 
