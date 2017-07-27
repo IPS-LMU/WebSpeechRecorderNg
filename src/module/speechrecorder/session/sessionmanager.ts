@@ -180,7 +180,7 @@ export class StatusDisplay{
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <md-progress-spinner [mode]="spinnerMode" [color]="status" [value]="_value" style="width:2em;height:2em" ></md-progress-spinner>Uploadstate
+    <md-progress-spinner [mode]="spinnerMode" [color]="status" [value]="_value" style="width:2em;height:2em" ></md-progress-spinner>Upload: {{_value}}%
   `,
   styles: [`:host{
     flex: 1;
@@ -194,12 +194,14 @@ export class UploadStatus{
   spinnerColor='default'
   _value=100
   @Input() set value(value:number){
-    if(value==0){
+    if(value===0){
       this.spinnerMode='indeterminate'
     }else{
       this.spinnerMode='determinate'
     }
+
     this._value=value;
+    console.log('Spinner value: '+this._value )
   };
   @Input() status:string;
 }

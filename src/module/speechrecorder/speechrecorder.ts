@@ -187,14 +187,19 @@ export class SpeechRecorder implements AudioPlayerListener {
             this.dataSaved = (UploaderStatus.DONE === upStatus);
             let percentUpl = ue.percentDone();
 
+            if(percentUpl<50){
+              this.sm.uploadStatus='accent'
+            }else{
+              this.sm.uploadStatus='success'
+            }
             this.sm.uploadProgress=percentUpl;
 
             // set progress bar type
             // CSS class active (animated striped) consumes too much CPU
             if (UploaderStatus.UPLOADING === upStatus) {
-              this.sm.uploadStatus='success'
+
             } else if (UploaderStatus.DONE === upStatus) {
-              this.sm.uploadStatus='success'
+
             } else if (UploaderStatus.TRY_UPLOADING === upStatus) {
               this.sm.uploadStatus='success'
             } else if (UploaderStatus.ERR === upStatus) {

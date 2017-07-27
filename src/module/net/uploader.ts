@@ -44,6 +44,7 @@
                 return 100;
             }
             let percent = Math.floor(this._sizeDone * 100 / this._sizeQueued);
+            console.log("Upload status: queued: "+this._sizeQueued+", done: "+this._sizeDone+", "+percent+"%")
             return percent;
         }
 
