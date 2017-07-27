@@ -18,7 +18,7 @@ import {SessionService} from "./session.service";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MdDialog, MdDialogConfig} from "@angular/material";
+import {MdDialog, MdDialogConfig,MdProgressSpinner} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 
 
@@ -176,6 +176,35 @@ export class StatusDisplay{
 
 }
 
+
+@Component({
+  selector: 'app-uploadstatus',
+  template: `
+    <md-progress-spinner [mode]="spinnerMode" [color]="status" [value]="_value" style="width:2em;height:2em" ></md-progress-spinner>Uploadstate
+  `,
+  styles: [`:host{
+    flex: 1;
+  //align-self: flex-start;
+    display: inline;
+    text-align:left;
+  }`]
+})
+export class UploadStatus{
+  spinnerMode='determinate'
+  spinnerColor='default'
+  _value=100
+  @Input() set value(value:number){
+    if(value==0){
+      this.spinnerMode='indeterminate'
+    }else{
+      this.spinnerMode='determinate'
+    }
+    this._value=value;
+  };
+  @Input() status:string;
+}
+
+
 @Component({
   selector: 'app-sprprogressdisplay',
   template: `
@@ -284,7 +313,8 @@ export class TransportPanel{
       </button>
     </div>
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
-    <app-sprprogressdisplay class="md-hidden-xs" ></app-sprprogressdisplay>
+    <app-sprprogressdisplay ></app-sprprogressdisplay>
+    <app-uploadstatus [value]="uploadProgress" [status]="uploadStatus"></app-uploadstatus>
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
@@ -310,6 +340,8 @@ export class ControlPanel{
     @Input() transportActions:TransportActions
     @Input() statusMsg:string;
     @Input() statusAlertType:string;
+  @Input() uploadStatus:string;
+    @Input() uploadProgress:number;
     @Input() currentRecording:AudioBuffer;
     constructor(public dialog: MdDialog){
 
@@ -333,7 +365,7 @@ export class ControlPanel{
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
    
-    <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprcontrolpanel>
+    <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
@@ -352,11 +384,9 @@ export class ControlPanel{
 })
 export class SessionManager implements AudioCaptureListener {
 
-
         status: Status;
         mode: Mode;
 
-        private uploader: Uploader;
         ac: AudioCapture;
         private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
@@ -409,15 +439,15 @@ export class SessionManager implements AudioCaptureListener {
         statusMsg:string;
         statusAlertType:string;
 
+        uploadProgress:number=100;
+        uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
-        constructor(private changeDetectorRef: ChangeDetectorRef) {
+        constructor(private changeDetectorRef: ChangeDetectorRef,private uploader:Uploader) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
 
-            // TODO Uploader should be a Ng service
-            this.uploader = new Uploader();
             this.transportActions=new TransportActions();
 
             let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
@@ -962,8 +992,11 @@ export class SessionManager implements AudioCaptureListener {
                 // create Wikispeech URL
 
                 // build upload URL
-                let recUrl: string = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/storage/RECS?session=' + rf.sessionId + '&itemcode=' + rf.itemCode + '&extension=wav&line=01&overwrite=false';
-
+                // Wikispeech old parametreized URL
+                //let recUrl: string = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/storage/RECS?session=' + rf.sessionId + '&itemcode=' + rf.itemCode + '&extension=wav&line=01&overwrite=false';
+              // TODO use SpeechRecorderconfig resp. RecfileService
+              //new REST API URL
+              let recUrl: string = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/api/v1/session/'+rf.sessionId+'/recfile/'+rf.itemCode;
 
                 //console.log("Build wav writer...");
                 let ww = new WavWriter();

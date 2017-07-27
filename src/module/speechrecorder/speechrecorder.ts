@@ -1,4 +1,4 @@
-import {Component, ViewChild, ViewChildDecorator} from '@angular/core'
+import {Component, ViewChild, ViewChildDecorator, ChangeDetectorRef} from '@angular/core'
 
 import {ControlPanel, Mode as SessionMode, Prompting, StatusDisplay} from './session/sessionmanager';
 	import {AudioCaptureListener} from '../audio/capture/capture';
@@ -40,12 +40,7 @@ export class SpeechRecorder implements AudioPlayerListener {
 	  mode:Mode;
 
 		ap:AudioPlayer;
-        uploader: Uploader;
-		//audioSignal:AudioClipUIContainer;
-        uploadProgresBarDivEl: HTMLDivElement;
 
-		//statusMsg:string;
-		titleEl:HTMLElement;
 		audio:any;
 
         project: any;
@@ -60,16 +55,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     currentPromptIdx:number;
 
 		constructor(private route: ActivatedRoute,
-                    private router: Router,private sessionsService:SessionService,private scriptService:ScriptService) {
-			this.audio = document.getElementById('audio');
-			var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
-            this.uploadProgresBarDivEl = <HTMLDivElement>(document.getElementById('uploadProgressBar'));
-			  //this.statusMsg = 'Initialize...';
-            this.titleEl = <HTMLElement>(document.getElementById('title'));
-            this.uploader = new Uploader();
-
-            // let ops=this.route.params.switchMap(params: Params) => this.setSessionId(+params['id']))
-            //     .subscribe((hero: Hero) => this.hero = hero);
+                    private router: Router,private changeDetectorRef: ChangeDetectorRef,private sessionsService:SessionService,private scriptService:ScriptService,private uploader:Uploader) {
 		}
 
     ngOnInit() {
@@ -201,36 +187,23 @@ export class SpeechRecorder implements AudioPlayerListener {
             this.dataSaved = (UploaderStatus.DONE === upStatus);
             let percentUpl = ue.percentDone();
 
+            this.sm.uploadProgress=percentUpl;
+
             // set progress bar type
             // CSS class active (animated striped) consumes too much CPU
             if (UploaderStatus.UPLOADING === upStatus) {
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-warning');
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-danger');
-                this.uploadProgresBarDivEl.classList.add('progress-bar-success');
-                this.uploadProgresBarDivEl.classList.add('progress-bar-striped');
-                // this.uploadProgresBarDivEl.classList.add('active');
+              this.sm.uploadStatus='success'
             } else if (UploaderStatus.DONE === upStatus) {
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-warning');
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-danger');
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-striped');
-                this.uploadProgresBarDivEl.classList.remove('active');
-                //this.uploadProgresBarDivEl.classList.add('progress-bar-success');
+              this.sm.uploadStatus='success'
             } else if (UploaderStatus.TRY_UPLOADING === upStatus) {
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-success');
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-danger');
-                this.uploadProgresBarDivEl.classList.add('progress-bar-warning');
-                this.uploadProgresBarDivEl.classList.add('progress-bar-striped');
-                //this.uploadProgresBarDivEl.classList.add('active');
+              this.sm.uploadStatus='success'
             } else if (UploaderStatus.ERR === upStatus) {
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-success');
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-warning');
-                this.uploadProgresBarDivEl.classList.add('progress-bar-danger');
-                this.uploadProgresBarDivEl.classList.remove('progress-bar-striped');
-                //this.uploadProgresBarDivEl.classList.remove('active');
+              this.sm.uploadStatus='warn'
             }
 
-            this.uploadProgresBarDivEl.style.width = percentUpl.toString() + '%';
-            this.uploadProgresBarDivEl.innerText = "Upload " + ue.sizeDone + " of " + ue.sizeQueued + " bytes";
+            //this.uploadProgresBarDivEl.style.width = percentUpl.toString() + '%';
+            //this.uploadProgresBarDivEl.innerText = "Upload " + ue.sizeDone + " of " + ue.sizeQueued + " bytes";
+            this.changeDetectorRef.detectChanges()
         }
 
     configure() {
@@ -243,7 +216,7 @@ export class SpeechRecorder implements AudioPlayerListener {
         if (this.project && this.project.name) {
           prName = this.project.name;
         }
-        this.titleEl.innerText = prName;
+        //this.titleEl.innerText = prName;
 
       });
 
