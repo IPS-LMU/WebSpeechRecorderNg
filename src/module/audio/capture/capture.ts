@@ -78,7 +78,7 @@ interface AudioWorker extends Worker {
           if (!labelsAvailable) {
             if(retry) {
               // workaround to request permissions
-              let audioCnstrs={echoCancellation: false}
+              let audioCnstrs={echoCancelation: false}
               navigator.mediaDevices.getUserMedia({audio: audioCnstrs}).then((s: MediaStream) => {
                 // stop immedialtely
                 s.stop();
