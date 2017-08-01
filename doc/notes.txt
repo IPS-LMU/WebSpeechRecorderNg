@@ -1,6 +1,0 @@
-
-Module configuration:
-
-https://stackoverflow.com/questions/43193049/app-settings-the-angular-4-way
-https://stackoverflow.com/questions/40400368/how-to-use-config-data-in-forroot
-https://stackoverflow.com/questions/42822233/how-to-pass-config-data-to-ngmodule-so-ngmodule-will-be-compiled-with-aot
