@@ -9,7 +9,10 @@
     "SpeechRecorder",
     "angular4"
   ],
-  "author": "Klaus Jänsch",
+  "author": {
+    "name": "Klaus Jänsch",
+    "email": "klausj@phonetik.uni-muenchen.de"
+  },
   "license": "MIT",
 
   "peerDependencies": {
