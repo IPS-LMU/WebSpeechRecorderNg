@@ -200,9 +200,6 @@ interface AudioWorker extends Worker {
               // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
               // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
-              // See VU meter audio worker example:
-              // http://webaudio.github.io/web-audio-api/#idl-def-AudioWorkerNodeProcessor
-
               if (this.context.createAudioWorker) {
                 console.log("Audio worker implemented!!")
               } else {
