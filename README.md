@@ -50,6 +50,7 @@ export class AppModule { }
 ### HTML/CSS integration
  Speechrecorder is intended to run in a layout which always fits to the browser viewport without scrollbars. The subject should not be distracted from performing the recording session.
  Therefore the module should be embedded in HTML page with 100% height and without padding or margin.
+ At least the CSS properties `margin-top`,`margin-bottom`,`padding-top`,`padding-bottom` should be zero and `height` should be `100%` for the DOM elements `html` and `body`
 #### Example `index.html`
  ```
    <!doctype html>
