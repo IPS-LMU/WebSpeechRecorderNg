@@ -2,7 +2,7 @@ import {Inject, Injectable, Optional} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
 
-import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 
 export const SESSION_API_CTX='session';
 
@@ -28,7 +28,7 @@ export class SessionService {
   getSession(id: string): Promise<any> {
 
     let sessUrl = this.sessionsUrl + '/' + id;
-    if (this.config && this.config.apiType === 'files') {
+    if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       sessUrl = sessUrl + '.json';
     }
