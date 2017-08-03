@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "^0.0.11"` to the `dependencies` property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "^0.0.11"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -48,7 +48,7 @@ export class AppModule { }
 ```
 
 ### HTML/CSS integration
- Speechrecorder is intended to run in a fit-to-page layout without scrollbars. The subject should not be distracted from performing the recording session.
+ Speechrecorder is intended to run in a layout which always fits to the browser viewport without scrollbars. The subject should not be distracted from performing the recording session.
  Therefore the module should be embedded in HTML page with 100% height and without padding or margin.
 #### Example `index.html`
  ```
@@ -56,11 +56,9 @@ export class AppModule { }
    <html lang="en" style="height:100%;margin:0;padding:0">
    <head>
      <meta charset="utf-8">
-     <title>WikiSpeechNg</title>
+     <title>My application</title>
      <base href="/">
-   
      <meta name="viewport" content="width=device-width, initial-scale=1">
-     <link rel="icon" type="image/x-icon" href="favicon.ico">
      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
    </head>
    <body style="height:100%;margin:0;padding:0">
@@ -100,58 +98,77 @@ By default the API Endpoint ({apiEndPoint}) is an empty string, the API is then 
 
 ## SpeechRecorder REST API description
 
-### Entity `session`
+### Entity Project
+
+REST Path: GET {apiEndPoint}project/{projectId}
+
+Content-type: application/json
+
+```
+{
+  "project": {
+    "name": "My project",
+    "audioFormat" : {
+      "channels": 1
+    },
+  }
+}
+```
+### Entity Session
 
 Current recording session data.
 
 REST Path: GET {apiEndPoint}session/{sessionId}
-Content-type: application/json
-Properties: 
-sessionId: number: Unique ID of the session
 
-script: number: Unique ID of recording script 
+Content-type: application/json
+
+Properties: 
+ * sessionId: number: Unique ID of the session
+ * script: number: Unique ID of recording script 
 
 Example:
 ```
 {
   "sessionId": 2,
+  "project": "My project",
   "script": 1245
 }
 ```  
 
-### Entity `script`
+### Entity Script
 
 Recording script controls recording session procedure. 
 
 REST Path: GET {apiEndPoint}script/{scriptId}
+
 Content-type: application/json
+
 Properties:
-type: script: constant: Must be `"script"`
-scriptId: number: Unique ID of the script
-sections: array: Array of recording session sections
+ * type: script: constant: Must be `"script"`
+ * scriptId: number: Unique ID of the script
+ * sections: array: Array of recording session sections
 
 ### Embedded entity Section
 
 Properties:
-name: Optional name of section
-mode: enum: "MANUAL", "AUTOPROGRESS" or "AUTORECORDING"
-order: enum: "SEQUENTIAL" or "RANDOM": In mode `"RANDOM"` the recording items are randomized for each recordig session
-promptUnits: array: List of prompt units.
+ * name: Optional name of section
+ * mode: enum: "MANUAL", "AUTOPROGRESS" or "AUTORECORDING"
+ * promptUnits: array: List of prompt units.
 
 ### Embedded entity Prompt Unit
 
 Properties:
 
-recpromptId: Unique ID of this recording prompt 
-itemcode: string: In the scope of the script unique identifier of an recording item
-mediaitems: array: List of media items for this prompt. Currently only a single mediaitem is supported.
+ * recpromptId: Unique ID of this recording prompt 
+ * itemcode: string: In the scope of the script unique identifier of an recording item
+ * mediaitems: array: List of media items for this prompt. Currently only a single mediaitem is supported.
 
 ### Embedded entity Media item
 
 Properties (supported properties only):
-text: string: Text to prompt
+ * text: string: Text to prompt
 
-Example:
+Example script:
 ```
 {
     "type": "script",
@@ -160,13 +177,11 @@ Example:
       {
         "mode": "MANUAL",
         "name": "Introduction",
-        "order": "SEQUENTIAL",
         "promptUnits": [
           {
             "itemcode": "I0",
             "mediaitems": [
               {
-                "mediaitemId": 1248,
                 "text": "Willkommen bei der IPS-Sprachaufnahme!"
               }
             ],
@@ -176,20 +191,16 @@ Example:
             "itemcode": "I1",
             "mediaitems": [
               {
-                "mediaitemId": 1250,
                 "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
               }
             ],
             "recpromptId": 1249
           }
         ],
-        "promptphase": "IDLE",
-        "sectionId": 1246,
         "training": false
       },{
          "mode": "AUTOPROGRESS",
          "name": "Recording Session",
-         "order": "SEQUENTIAL",
          "promptUnits": [
            {
            "itemcode": "N0",
@@ -224,6 +235,7 @@ Example:
 SpeechRecorder stores the recording in browser memory first. The recordings are then uploaded to the server as binary encoded WAVE files.
 
 Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
+
 Content-Type: audio/wave
 
 There might be multiple uploads for one recording item, when the subject repeats a recording. The server is responsible to handle this uploads.
