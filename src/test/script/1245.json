@@ -54,7 +54,7 @@
         "sectionPosition": 0,
         "speakerDisplay": true,
         "speakerdisplayStr": "true",
-        "training": false
+        "training": true
       },
       {
         "mode": "AUTOPROGRESS",

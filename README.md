@@ -8,7 +8,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ## Integrate SpeechRecorder module to your web application
 
 ### Install NPM package
-Speechrecorder module is provided as NPM package.
+Speechrecorder module is available as NPM package.
 Add `"speechrecorderng": "^0.0.11"` to the `dependencies` property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
@@ -87,6 +87,149 @@ export class AppModule { }
  </md-toolbar>
  <router-outlet></router-outlet>
  ```
+   
+### Server REST API
+
+SpeechRecorder requires a HTTP server providing a REST API. The server code is not part of this package.
+The package only contains a minimal file structure for testing. The files reside in `src/test`.
+
+## Configuration
+
+By default the API Endpoint ({apiEndPoint}) is an empty string, the API is then expected to be relative to the base path of the application. 
+
+
+## SpeechRecorder REST API description
+
+### Entity `session`
+
+Current recording session data.
+
+REST Path: GET {apiEndPoint}session/{sessionId}
+Content-type: application/json
+Properties: 
+sessionId: number: Unique ID of the session
+
+script: number: Unique ID of recording script 
+
+Example:
+```
+{
+  "sessionId": 2,
+  "script": 1245
+}
+```  
+
+### Entity `script`
+
+Recording script controls recording session procedure. 
+
+REST Path: GET {apiEndPoint}script/{scriptId}
+Content-type: application/json
+Properties:
+type: script: constant: Must be `"script"`
+scriptId: number: Unique ID of the script
+sections: array: Array of recording session sections
+
+### Embedded entity Section
+
+Properties:
+name: Optional name of section
+mode: enum: "MANUAL", "AUTOPROGRESS" or "AUTORECORDING"
+order: enum: "SEQUENTIAL" or "RANDOM": In mode `"RANDOM"` the recording items are randomized for each recordig session
+promptUnits: array: List of prompt units.
+
+### Embedded entity Prompt Unit
+
+Properties:
+
+recpromptId: Unique ID of this recording prompt 
+itemcode: string: In the scope of the script unique identifier of an recording item
+mediaitems: array: List of media items for this prompt. Currently only a single mediaitem is supported.
+
+### Embedded entity Media item
+
+Properties (supported properties only):
+text: string: Text to prompt
+
+Example:
+```
+{
+    "type": "script",
+    "scriptId": 1245,
+    "sections": [
+      {
+        "mode": "MANUAL",
+        "name": "Introduction",
+        "order": "SEQUENTIAL",
+        "promptUnits": [
+          {
+            "itemcode": "I0",
+            "mediaitems": [
+              {
+                "mediaitemId": 1248,
+                "text": "Willkommen bei der IPS-Sprachaufnahme!"
+              }
+            ],
+            "recpromptId": 1247
+          },
+          {
+            "itemcode": "I1",
+            "mediaitems": [
+              {
+                "mediaitemId": 1250,
+                "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+              }
+            ],
+            "recpromptId": 1249
+          }
+        ],
+        "promptphase": "IDLE",
+        "sectionId": 1246,
+        "training": false
+      },{
+         "mode": "AUTOPROGRESS",
+         "name": "Recording Session",
+         "order": "SEQUENTIAL",
+         "promptUnits": [
+           {
+           "itemcode": "N0",
+           "recduration": 10000,
+           "mediaitems": [
+             {
+              "mediaitemId": 1258,
+              "text": "What's your name?"
+             }
+            ],
+            "recpromptId": 1257
+           },
+           {
+            "itemcode": "S0",
+            "mediaitems": [
+              {
+              "mediaitemId": 1300,
+              "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+             ],
+             "recpromptId": 1258
+           }
+          ]
+       }
+    ]
+ }
+           
+```  
+
+### Recording file
+
+SpeechRecorder stores the recording in browser memory first. The recordings are then uploaded to the server as binary encoded WAVE files.
+
+Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
+Content-Type: audio/wave
+
+There might be multiple uploads for one recording item, when the subject repeats a recording. The server is responsible to handle this uploads.
+A GET request to the URL should return the latest upload.  
+
+
    
 ## Development
 
