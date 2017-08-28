@@ -7,7 +7,7 @@ export default {
   globals: {
     '@angular/core': 'ng.core',
     '@angular/common': 'ng.common',
-    '@angular/http': 'ng.http',
+    '@angular/common/http': 'ng.common.http',
     '@angular/material': 'ng.material',
     '@angular/router': 'ng.router',
     'rxjs/Observable': 'Rx',
@@ -19,5 +19,5 @@ export default {
     'rxjs/add/observable/of': 'Rx.Observable',
     'rxjs/add/operator/toPromise': 'Rx.Observable.prototype'
   },
-  external: [ '@angular/core','@angular/common','@angular/http', '@angular/material','@angular/router','rxjs/add/operator/toPromise','rxjs/add/operator/switchMap','util']
+  external: [ '@angular/core','@angular/common', '@angular/common/http','@angular/material','@angular/router','rxjs/add/operator/toPromise','rxjs/add/operator/switchMap','util']
 }

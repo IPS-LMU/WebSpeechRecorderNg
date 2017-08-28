@@ -2,7 +2,7 @@
 
     // state of an upload
     import {Injectable} from "@angular/core";
-    import {Http} from "@angular/http";
+    import {HttpClient} from "@angular/common/http";
 
     export enum UploadStatus {IDLE = 1, UPLOADING = 2, ABORT = 3, DONE = 0, ERR = -1}
 
@@ -82,7 +82,7 @@
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
 
-        constructor(private http: Http) {
+        constructor(private http: HttpClient) {
             this.que = new Array<Upload>();
         }
 
@@ -118,8 +118,9 @@
 
             this.http.post(ul.url,ul.data,{withCredentials:true}).toPromise()
               .then(response => {
-                console.log("Upload ret val:" + response.status + " " + response.statusText);
-                if (response.status >= 200 && response.status < 300) {
+
+                //console.log("Upload ret val:" + response.status + " " + response.statusText);
+                //if (response.status >= 200 && response.status < 300) {
                   if (this.DEBUG_DELAY) {
                     window.setTimeout(() => {
                       this.uploadDone(ul);
@@ -128,10 +129,10 @@
                     this.uploadDone(ul);
 
                   }
-                } else {
-                  ul.status = UploadStatus.ERR;
-                  this.processError();
-                }
+                // } else {
+                //   ul.status = UploadStatus.ERR;
+                //   this.processError();
+                // }
               })
               .catch((e)=>{
 

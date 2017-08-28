@@ -14,7 +14,7 @@ import {
 } from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
 import {MdButtonModule, MdDialogModule, MdIconModule, MdProgressSpinnerModule} from "@angular/material";
-import {HttpModule} from "@angular/http";
+import {HttpClientModule} from "@angular/common/http";
 import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
@@ -35,8 +35,8 @@ const SPR_ROUTES: Routes = [
     AudioDisplayDialog
   ],
     exports: [SpeechRecorder],
-  imports: [RouterModule.forChild(SPR_ROUTES),HttpModule,CommonModule,
-    AudioModule,MdIconModule,MdButtonModule,MdDialogModule,MdProgressSpinnerModule],
+  imports: [RouterModule.forChild(SPR_ROUTES),CommonModule,
+    AudioModule,MdIconModule,MdButtonModule,MdDialogModule,MdProgressSpinnerModule,HttpClientModule],
   providers: [SessionService,ScriptService,Uploader]
 
 })

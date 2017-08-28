@@ -1,5 +1,5 @@
 import {Inject, Injectable, Optional} from '@angular/core';
-import {Http} from "@angular/http";
+import {HttpClient} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
@@ -11,7 +11,7 @@ export class SessionService {
 
   private sessionsUrl:string;
 
-  constructor(private http:Http,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     let apiEndPoint = ''
 
@@ -34,7 +34,8 @@ export class SessionService {
     }
     let sessProms = this.http.get(sessUrl,{ withCredentials: true }).toPromise()
       .then(response => {
-        return response.json();
+
+        return response;
       })
       .catch(this.handleError);
 
