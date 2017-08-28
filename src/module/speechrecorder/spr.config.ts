@@ -3,10 +3,13 @@ import {Injectable, InjectionToken} from "@angular/core";
 export let SPEECHRECORDER_CONFIG = new InjectionToken<SpeechRecorderConfig>('speechrecorder.config');
 
 
+export enum ApiType {
+  NORMAL,FILES
+}
 @Injectable()
 export class SpeechRecorderConfig{
-  apiEndPoint: string | null=null;
-  apiType: string | null=null;
+  apiEndPoint?: string | null=null;
+  apiType?: ApiType | null=null;
   constructor(){
     this.apiEndPoint=null;
     this.apiType=null;
