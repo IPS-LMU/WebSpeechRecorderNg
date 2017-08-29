@@ -12,6 +12,7 @@
     "rollup_module": "rollup -c",
     "prepare_module_package": "cp module_package.json dist/module/package.json",
     "pack_module": "cd dist/module;npm pack",
+    "publish_module": "cd dist/module;npm publish",
     "start": "ng serve",
     "build": "ng build",
     "build_klausj_www": "ng build --dev --base-href='/~klausj/demos/wsr/ng/dist/'",
