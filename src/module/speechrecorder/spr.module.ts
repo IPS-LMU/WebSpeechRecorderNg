@@ -21,7 +21,7 @@ import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {Uploader} from "../net/uploader";
 
-export const VERSION='0.0.11';
+export const VERSION='0.0.12';
 
 const SPR_ROUTES: Routes = [
 
