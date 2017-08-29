@@ -104,6 +104,8 @@ REST Path: GET {apiEndPoint}project/{projectId}
 
 Content-type: application/json
 
+Example for Mono recordings:
+
 ```
 {
   "project": {
