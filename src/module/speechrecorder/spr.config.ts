@@ -10,9 +10,11 @@ export enum ApiType {
 export class SpeechRecorderConfig{
   apiEndPoint?: string | null=null;
   apiType?: ApiType | null=null;
+  withCredentials?: boolean=false;
   constructor(){
     this.apiEndPoint=null;
     this.apiType=null;
+    this.withCredentials=false;
   }
 }
 

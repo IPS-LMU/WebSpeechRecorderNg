@@ -12,6 +12,7 @@ export const SCRIPT_API_CTX='script'
 @Injectable()
 export class ScriptService {
   private scriptCtxUrl:string;
+  private withCredentials:boolean=false;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
@@ -22,6 +23,9 @@ export class ScriptService {
     }
     if(apiEndPoint !== ''){
       apiEndPoint=apiEndPoint+'/'
+    }
+    if(config!=null && config.withCredentials!=null){
+      this.withCredentials=config.withCredentials;
     }
 
     this.scriptCtxUrl = apiEndPoint + SCRIPT_API_CTX;
@@ -34,7 +38,7 @@ export class ScriptService {
       // for development and demo
       scriptUrl = scriptUrl + '.json';
     }
-    let scriptProms = this.http.get(scriptUrl,{ withCredentials: true }).toPromise()
+    let scriptProms = this.http.get(scriptUrl,{ withCredentials: this.withCredentials }).toPromise()
       .then(response => {
         return response;
       })

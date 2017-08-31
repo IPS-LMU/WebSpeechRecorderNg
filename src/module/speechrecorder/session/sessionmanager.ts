@@ -1,25 +1,17 @@
 import { Action } from '../../action/action'
-
-    import { AudioCapture,AudioCaptureListener } from '../../audio/capture/capture';
-    import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
-
-
-    import {AudioSignal} from '../../audio/ui/audiosignal'
-    import { AudioClipUIContainer} from '../../audio/ui/container'
-    import { WavWriter } from '../../audio/impl/wavwriter'
-    import { StartStopSignal} from '../startstopsignal/startstopsignal'
-    import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
-
-    import { RecordingFile } from '../recording'
-    import { Uploader,Upload } from '../../net/uploader';
+import { AudioCapture,AudioCaptureListener } from '../../audio/capture/capture';
+import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
+import { WavWriter } from '../../audio/impl/wavwriter'
+import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
+import { RecordingFile } from '../recording'
+import { Upload } from '../../net/uploader';
 import {Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter} from "@angular/core";
-import {Progress} from "./progress";
 import {SessionService} from "./session.service";
-
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {MdDialog, MdDialogConfig,MdProgressSpinner} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
+import {SpeechRecorderUploader} from "../spruploader";
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -445,7 +437,7 @@ export class SessionManager implements AudioCaptureListener {
         uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
-        constructor(private changeDetectorRef: ChangeDetectorRef,private uploader:Uploader) {
+        constructor(private changeDetectorRef: ChangeDetectorRef,private uploader:SpeechRecorderUploader) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;

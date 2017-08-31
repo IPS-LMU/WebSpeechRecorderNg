@@ -19,9 +19,10 @@ import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
-import {Uploader} from "../net/uploader";
+import {SpeechRecorderUploader} from "./spruploader";
 
-export const VERSION='0.0.12';
+
+export const VERSION='0.0.14';
 
 const SPR_ROUTES: Routes = [
 
@@ -37,7 +38,7 @@ const SPR_ROUTES: Routes = [
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),CommonModule,
     AudioModule,MdIconModule,MdButtonModule,MdDialogModule,MdProgressSpinnerModule,HttpClientModule],
-  providers: [SessionService,ScriptService,Uploader]
+  providers: [SessionService,ScriptService,SpeechRecorderUploader]
 
 })
 export class SpeechRecorderModule{

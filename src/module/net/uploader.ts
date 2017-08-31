@@ -1,9 +1,7 @@
 
-
-    // state of an upload
-    import {Injectable} from "@angular/core";
     import {HttpClient} from "@angular/common/http";
 
+    // state of an upload
     export enum UploadStatus {IDLE = 1, UPLOADING = 2, ABORT = 3, DONE = 0, ERR = -1}
 
     // state of the uploader
@@ -71,7 +69,6 @@
         }
     }
 
-@Injectable()
     export class Uploader {
         RETRY_DELAY: number = 30000;
         DEBUG_DELAY: number = 0;
@@ -82,7 +79,7 @@
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
 
-        constructor(private http: HttpClient) {
+        constructor(private http: HttpClient,private withCredentials:boolean=false) {
             this.que = new Array<Upload>();
         }
 
@@ -116,7 +113,7 @@
                 this.status = UploaderStatus.UPLOADING;
             }
 
-            this.http.post(ul.url,ul.data,{withCredentials:true}).toPromise()
+            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).toPromise()
               .then(response => {
 
                 //console.log("Upload ret val:" + response.status + " " + response.statusText);

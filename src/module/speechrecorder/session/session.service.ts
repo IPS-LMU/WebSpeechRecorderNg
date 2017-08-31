@@ -10,6 +10,7 @@ export const SESSION_API_CTX='session';
 export class SessionService {
 
   private sessionsUrl:string;
+  private withCredentials:boolean=false;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
@@ -21,7 +22,9 @@ export class SessionService {
     if(apiEndPoint !== ''){
       apiEndPoint=apiEndPoint+'/'
     }
-
+    if(config!=null && config.withCredentials!=null){
+      this.withCredentials=config.withCredentials;
+    }
     this.sessionsUrl = apiEndPoint + SESSION_API_CTX;
   }
 
@@ -32,7 +35,7 @@ export class SessionService {
       // for development and demo
       sessUrl = sessUrl + '.json';
     }
-    let sessProms = this.http.get(sessUrl,{ withCredentials: true }).toPromise()
+    let sessProms = this.http.get(sessUrl,{ withCredentials: this.withCredentials }).toPromise()
       .then(response => {
 
         return response;

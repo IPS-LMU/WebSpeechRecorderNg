@@ -9,14 +9,17 @@ import {ControlPanel, Mode as SessionMode, Prompting, StatusDisplay} from './ses
 	import { SimpleTrafficLight } from './startstopsignal/ui/simpletrafficlight'
   import { Script } from './script/script'
   import { SessionManager} from  './session/sessionmanager';
-  import { Uploader, UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
+  import { UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
 import {ActivatedRoute, ParamMap, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
 import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
 import {Progress} from "./session/progress";
+import {SpeechRecorderUploader} from "./spruploader";
 
   export enum Mode {SINGLE_SESSION,DEMO}
+
+
 
 
 @Component({
@@ -55,7 +58,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     currentPromptIdx:number;
 
 		constructor(private route: ActivatedRoute,
-                    private router: Router,private changeDetectorRef: ChangeDetectorRef,private sessionsService:SessionService,private scriptService:ScriptService,private uploader:Uploader) {
+                    private router: Router,private changeDetectorRef: ChangeDetectorRef,private sessionsService:SessionService,private scriptService:ScriptService,private uploader:SpeechRecorderUploader) {
 		}
 
     ngOnInit() {
