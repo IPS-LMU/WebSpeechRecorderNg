@@ -22,7 +22,7 @@ import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./spruploader";
 
 
-export const VERSION='0.0.14';
+export const VERSION='0.0.15';
 
 const SPR_ROUTES: Routes = [
 

@@ -5,13 +5,16 @@ import { WavWriter } from '../../audio/impl/wavwriter'
 import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
 import { RecordingFile } from '../recording'
 import { Upload } from '../../net/uploader';
-import {Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter} from "@angular/core";
-import {SessionService} from "./session.service";
+import {Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter, Inject} from "@angular/core";
+import {SESSION_API_CTX, SessionService} from "./session.service";
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {MdDialog, MdDialogConfig,MdProgressSpinner} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 import {SpeechRecorderUploader} from "../spruploader";
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+
+export const RECFILE_API_CTX='recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -437,7 +440,7 @@ export class SessionManager implements AudioCaptureListener {
         uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
-        constructor(private changeDetectorRef: ChangeDetectorRef,private uploader:SpeechRecorderUploader) {
+        constructor(private changeDetectorRef: ChangeDetectorRef,private uploader:SpeechRecorderUploader,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
@@ -983,14 +986,20 @@ export class SessionManager implements AudioCaptureListener {
             this.applyItem();
 
             if (this.mode === Mode.SERVER_BOUND) {
-                // create Wikispeech URL
-
-                // build upload URL
-                // Wikispeech old parametreized URL
-                //let recUrl: string = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/storage/RECS?session=' + rf.sessionId + '&itemcode=' + rf.itemCode + '&extension=wav&line=01&overwrite=false';
               // TODO use SpeechRecorderconfig resp. RecfileService
               //new REST API URL
-              let recUrl: string = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/api/v1/session/'+rf.sessionId+'/recfile/'+rf.itemCode;
+
+                let apiEndPoint = '';
+
+                if(this.config && this.config.apiEndPoint) {
+                  apiEndPoint=this.config.apiEndPoint;
+                }
+                if(apiEndPoint !== ''){
+                  apiEndPoint=apiEndPoint+'/'
+                }
+
+                let sessionsUrl = apiEndPoint + SESSION_API_CTX;
+                let recUrl: string = sessionsUrl+'/'+rf.sessionId+'/'+RECFILE_API_CTX+'/'+rf.itemCode;
 
                 //console.log("Build wav writer...");
                 let ww = new WavWriter();
