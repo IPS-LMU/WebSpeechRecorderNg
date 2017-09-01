@@ -3,6 +3,7 @@ import {HttpClient} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {Session} from "./session";
 
 export const SESSION_API_CTX='session';
 
@@ -28,7 +29,7 @@ export class SessionService {
     this.sessionsUrl = apiEndPoint + SESSION_API_CTX;
   }
 
-  getSession(id: string): Promise<any> {
+  getSession(id: string): Promise<Session> {
 
     let sessUrl = this.sessionsUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {

@@ -13,6 +13,7 @@ import {MdDialog, MdDialogConfig,MdProgressSpinner} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {Session} from "./session";
 
 export const RECFILE_API_CTX='recfile';
 
@@ -97,7 +98,7 @@ export class PromptContainer{
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx" (onRowSelect)="itemSelect($event)"></app-sprprogress>
+    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx" (onRowSelect)="itemSelect($event)" (onShowDoneAction)="showDone($event)"></app-sprprogress>
 
 
 
@@ -137,10 +138,15 @@ export class Prompting{
   @Input() items:Array<Item>;
   @Input() selectedItemIdx:number;
   @Output() onItemSelect=new EventEmitter<number>();
+  @Output() onShowDone=new EventEmitter<number>();
 
   itemSelect(rowIdx:number){
     console.log("Row (prompting) "+rowIdx)
     this.onItemSelect.emit(rowIdx);
+  }
+  showDone(rowIdx:number){
+
+    this.onShowDone.emit(rowIdx);
   }
 }
 
@@ -251,7 +257,7 @@ export class TransportActions{
 
   `,
   styles: [`:host{
-    flex: 3;
+    flex: 20;
     align-self: center;
     width: 100%;
     text-align: center;
@@ -263,7 +269,7 @@ export class TransportActions{
       flex: 0;
     }`,`
     button {
-      font-size:1.5em;
+      font-size:1.2em;
     }
   `]
 
@@ -304,13 +310,8 @@ export class TransportPanel{
   template: `
     <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
-    <div>
-      <button (click)="openAudioDisplayDialog()" [disabled]="!currentRecording" md-raised-button>
-        <md-icon>menu</md-icon>
-      </button>
-    </div>
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
-    <app-sprprogressdisplay ></app-sprprogressdisplay>
+   
     <app-uploadstatus [value]="uploadProgress" [status]="uploadStatus"></app-uploadstatus>
   `,
   styles: [`:host{
@@ -360,7 +361,7 @@ export class ControlPanel{
   providers: [SessionService],
   template: `
     
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()"></app-sprprompting>
    
     <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
@@ -410,7 +411,7 @@ export class SessionManager implements AudioCaptureListener {
        // titleEl: HTMLElement;
         audio: any;
 
-        _session: any;
+        _session: Session;
         _script: Script; // TODO this a plain JS object for now, did not id an easy way to convert JSON to TypeScript
           // See: https://stackoverflow.com/questions/22875636/how-do-i-cast-a-json-object-to-a-typescript-class
 
@@ -440,7 +441,10 @@ export class SessionManager implements AudioCaptureListener {
         uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
-        constructor(private changeDetectorRef: ChangeDetectorRef,private uploader:SpeechRecorderUploader,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+        constructor(private changeDetectorRef: ChangeDetectorRef,
+                    public dialog: MdDialog,
+                    private uploader:SpeechRecorderUploader,
+                    @Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
@@ -555,7 +559,7 @@ export class SessionManager implements AudioCaptureListener {
             this.startStopSignalState=StartStopSignalState.OFF;
         }
 
-        set session(session: any) {
+        set session(session: Session) {
             this._session = session;
         }
 
@@ -732,6 +736,15 @@ export class SessionManager implements AudioCaptureListener {
                 this.playStartAction.disabled = true;
             }
         }
+
+  openAudioDisplayDialog() {
+    let dCfg = new MdDialogConfig();
+    dCfg.width = '80%';
+    dCfg.height = '80%';
+    dCfg.data = this.currentRecording;
+    let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
+    audioDisplayRef.componentInstance.audioBuffer = this.currentRecording;
+  }
 
         applyItem() {
 
@@ -974,32 +987,34 @@ export class SessionManager implements AudioCaptureListener {
 
             let ad = this.ac.audioBuffer();
             let ic = this._script.sections[this.sectIdx].promptUnits[this.prmptIdx].itemcode;
-            let rf = new RecordingFile(this._session.sessionId, ic, ad);
-            let cpIdx=this.currPromptIndex();
-            let it = this.items[cpIdx];
-            if (!it.recs) {
+            if (this._session && ic) {
+              let sessId: string | number = this._session.sessionId;
+              let rf = new RecordingFile(sessId, ic, ad);
+              let cpIdx = this.currPromptIndex();
+              let it = this.items[cpIdx];
+              if (!it.recs) {
                 it.recs = new Array<RecordingFile>();
-            }
-            it.recs.push(rf);
+              }
+              it.recs.push(rf);
 
-            // apply recorded item
-            this.applyItem();
+              // apply recorded item
+              this.applyItem();
 
-            if (this.mode === Mode.SERVER_BOUND) {
-              // TODO use SpeechRecorderconfig resp. RecfileService
-              //new REST API URL
+              if (this.mode === Mode.SERVER_BOUND) {
+                // TODO use SpeechRecorderconfig resp. RecfileService
+                //new REST API URL
 
                 let apiEndPoint = '';
 
-                if(this.config && this.config.apiEndPoint) {
-                  apiEndPoint=this.config.apiEndPoint;
+                if (this.config && this.config.apiEndPoint) {
+                  apiEndPoint = this.config.apiEndPoint;
                 }
-                if(apiEndPoint !== ''){
-                  apiEndPoint=apiEndPoint+'/'
+                if (apiEndPoint !== '') {
+                  apiEndPoint = apiEndPoint + '/'
                 }
 
                 let sessionsUrl = apiEndPoint + SESSION_API_CTX;
-                let recUrl: string = sessionsUrl+'/'+rf.sessionId+'/'+RECFILE_API_CTX+'/'+rf.itemCode;
+                let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
                 //console.log("Build wav writer...");
                 let ww = new WavWriter();
@@ -1007,12 +1022,12 @@ export class SessionManager implements AudioCaptureListener {
                 // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
                 // TODO duplicate conversion for manual download
                 ww.writeAsync(ad, (wavFile) => {
-                     // TODO and upload to WikiSpeech server
+                  // TODO and upload to WikiSpeech server
 
-                    this.postRecording(wavFile, recUrl);
+                  this.postRecording(wavFile, recUrl);
                 });
+              }
             }
-
 
             // check complete session
             let complete = true;

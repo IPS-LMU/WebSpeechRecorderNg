@@ -20,9 +20,11 @@ import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./spruploader";
+import {Mediaitem, PromptUnit, Script} from "./script/script";
+import {Session} from "./session/session";
 
 
-export const VERSION='0.0.15';
+export const VERSION='0.0.16';
 
 const SPR_ROUTES: Routes = [
 

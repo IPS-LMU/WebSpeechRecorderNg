@@ -16,6 +16,7 @@ import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
 import {Progress} from "./session/progress";
 import {SpeechRecorderUploader} from "./spruploader";
+import {Session} from "./session/session";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -50,7 +51,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     sessionId: string;
     session:any;
     script:Script;
-        dataSaved: boolean = true;
+    dataSaved: boolean = true;
   @ViewChild(SessionManager) sm:SessionManager;
     //statusDisplay:StatusDisplay;
 
@@ -67,7 +68,9 @@ export class SpeechRecorder implements AudioPlayerListener {
        ngAfterViewInit(){
 
         this.route.queryParams.subscribe((params:Params)=>{
-          this.fetchSession(params['sessionId']);
+          if(params['sessionId']) {
+            this.fetchSession(params['sessionId']);
+          }
         });
 
         this.route.params.subscribe((params:Params)=> {
@@ -101,7 +104,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     }
 
 
-    fetchScript(sess:any){
+    fetchScript(sess:Session){
       if(sess.script){
         this.scriptService.getScript(sess.script).then(script=>{
           this.setScript(script)
@@ -231,7 +234,7 @@ export class SpeechRecorder implements AudioPlayerListener {
     }
 
 
-    setScript(script:any){
+    setScript(script:Script){
         this.script=script;
         this.sm.script = this.script;
 
@@ -285,48 +288,48 @@ export class SpeechRecorder implements AudioPlayerListener {
 
 
 
-  loadScript(callback: ()=>any){
-    var scrLoader = new XMLHttpRequest();
-    let hn:string =window.location.hostname;
-    let pn:string =window.location.pathname;
-    let pr:string =window.location.protocol;
-    let po:string =window.location.port;
-
-    let sessionId:string=this.session.sessionId;
-
-      let scrUrl:string | null = null;
-
-      if (hn === 'localhost'  || this.mode===Mode.DEMO) {
-          // local debug mode
-          // FF caches
-          scrUrl = 'test/' + this.session.script.toString() + '.json?' + new Date().getTime();
-
-      } else {
-          let scrPath:string = '/wikispeech/session/scripts/servlet';
-          let scrQu:string = 'sessionId=' + sessionId;
-          scrUrl = pr + '//' + hn + ':' + po + scrPath;
-          if (scrQu) {
-              scrUrl = scrUrl + '?' + scrQu;
-          }
-      }
-
-    scrLoader.open("GET",scrUrl , true);
-    scrLoader.setRequestHeader('Accept','application/json');
-    scrLoader.responseType = "json";
-    scrLoader.onload = (e) => {
-
-      this.script = scrLoader.response;
-
-
-      this.sm.script = this.script;
-
-      callback();
-    }
-    scrLoader.onerror = (e) => {
-      console.log("Error downloading recording script data ...");
-    }
-    scrLoader.send();
-  }
+  // loadScript(callback: ()=>any){
+  //   var scrLoader = new XMLHttpRequest();
+  //   let hn:string =window.location.hostname;
+  //   let pn:string =window.location.pathname;
+  //   let pr:string =window.location.protocol;
+  //   let po:string =window.location.port;
+  //
+  //   let sessionId:string=this.session.sessionId;
+  //
+  //     let scrUrl:string | null = null;
+  //
+  //     if (hn === 'localhost'  || this.mode===Mode.DEMO) {
+  //         // local debug mode
+  //         // FF caches
+  //         scrUrl = 'test/' + this.session.script.toString() + '.json?' + new Date().getTime();
+  //
+  //     } else {
+  //         let scrPath:string = '/wikispeech/session/scripts/servlet';
+  //         let scrQu:string = 'sessionId=' + sessionId;
+  //         scrUrl = pr + '//' + hn + ':' + po + scrPath;
+  //         if (scrQu) {
+  //             scrUrl = scrUrl + '?' + scrQu;
+  //         }
+  //     }
+  //
+  //   scrLoader.open("GET",scrUrl , true);
+  //   scrLoader.setRequestHeader('Accept','application/json');
+  //   scrLoader.responseType = "json";
+  //   scrLoader.onload = (e) => {
+  //
+  //     this.script = scrLoader.response;
+  //
+  //
+  //     this.sm.script = this.script;
+  //
+  //     callback();
+  //   }
+  //   scrLoader.onerror = (e) => {
+  //     console.log("Error downloading recording script data ...");
+  //   }
+  //   scrLoader.send();
+  // }
 
     start(){
 

@@ -4,10 +4,10 @@ import { UUID } from '../utils/utils'
     export class RecordingFile {
 
       _audioBuffer:AudioBuffer;
-      sessionId:string;
+      sessionId:string|number;
       itemCode:string;
       uuid:string;
-      constructor(sessionId:string,itemcode:string,audioBuffer:AudioBuffer) {
+      constructor(sessionId:string|number,itemcode:string,audioBuffer:AudioBuffer) {
           this.sessionId=sessionId;
           this.itemCode=itemcode;
           this._audioBuffer=audioBuffer;

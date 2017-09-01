@@ -1,0 +1,538 @@
+{
+    "type": "script",
+    "scriptId": "317118e4-3603-4058-abbd-008c2cb9b59b",
+    "sections": [
+      {
+        "mode": "MANUAL",
+        "name": "Introduction",
+        "order": "SEQUENTIAL",
+        "promptUnits": [
+          {
+            "itemcode": "I0",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1248,
+                "scope": "APPLICATION",
+                "text": "Willkommen bei der IPS-Sprachaufnahme!"
+              }
+            ],
+            "recpromptId": 1247
+          },
+          {
+            "itemcode": "I1",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1250,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+              }
+            ],
+            "recpromptId": 1249
+          },
+          {
+            "itemcode": "I2",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1255,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Jetzt geht's los!"
+              }
+            ],
+            "recpromptId": 1254
+          }
+        ],
+        "promptphase": "IDLE",
+        "sectionId": 1246,
+        "sectionPosition": 0,
+        "speakerDisplay": true,
+        "speakerdisplayStr": "true",
+        "training": true
+      },
+      {
+        "mode": "AUTOPROGRESS",
+        "name": "Recording Session",
+        "order": "SEQUENTIAL",
+        "promptUnits": [
+          {
+            "itemcode": "N0",
+            "recduration": 10000,
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1258,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "What's your name?"
+              }
+            ],
+            "recpromptId": 1257
+          },
+          {
+            "itemcode": "S0",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1258
+          },
+          {
+            "itemcode": "S1",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1259
+          },
+          {
+            "itemcode": "S2",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1260
+          },
+          {
+            "itemcode": "S3",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1261
+          },
+          {
+            "itemcode": "S4",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1262
+          },
+          {
+            "itemcode": "S5",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1263
+          },
+          {
+            "itemcode": "S6",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1264
+          },
+          {
+            "itemcode": "S7",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1265
+          },
+          {
+            "itemcode": "S8",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1266
+          },
+          {
+            "itemcode": "S9",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1267
+          },
+          {
+            "itemcode": "S10",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1268
+          },
+          {
+            "itemcode": "S11",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1269
+          },
+          {
+            "itemcode": "S12",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1270
+          },
+          {
+            "itemcode": "S13",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1271
+          },
+          {
+            "itemcode": "S14",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1272
+          }
+        ],
+        "promptphase": "PRERECORDING",
+        "sectionId": 1256,
+        "sectionPosition": 1,
+        "speakerDisplay": true,
+        "speakerdisplayStr": "yes",
+        "training": false
+      },
+      {
+        "mode": "AUTORECORDING",
+        "name": "Recording Session",
+        "order": "SEQUENTIAL",
+        "promptUnits": [
+          {
+            "itemcode": "AN0",
+            "recduration": 10000,
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1258,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "What's your name?"
+              }
+            ],
+            "recpromptId": 1257
+          },
+          {
+            "itemcode": "AS0",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1258
+          },
+          {
+            "itemcode": "AS1",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1259
+          },
+          {
+            "itemcode": "AS2",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1260
+          },
+          {
+            "itemcode": "AS3",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1261
+          },
+          {
+            "itemcode": "AS4",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1262
+          },
+          {
+            "itemcode": "AS5",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1263
+          },
+          {
+            "itemcode": "AS6",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1264
+          },
+          {
+            "itemcode": "AS7",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1265
+          },
+          {
+            "itemcode": "AS8",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1266
+          },
+          {
+            "itemcode": "AS9",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1267
+          },
+          {
+            "itemcode": "AS10",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1268
+          },
+          {
+            "itemcode": "AS11",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1269
+          },
+          {
+            "itemcode": "AS12",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1270
+          },
+          {
+            "itemcode": "AS13",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1271
+          },
+          {
+            "itemcode": "AS14",
+            "mediaitems": [
+              {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mediaitemId": 1300,
+                "mimetype": "text/plain",
+                "scope": "APPLICATION",
+                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+              }
+            ],
+            "recpromptId": 1272
+          }
+        ],
+        "promptphase": "IDLE",
+        "sectionId": 1257,
+        "sectionPosition": 2,
+        "speakerDisplay": true,
+        "speakerdisplayStr": "yes",
+        "training": false
+      }
+    ],
+    "name": "Test1"
+  }
+

@@ -5,6 +5,7 @@ import {Inject, Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {Script} from "./script";
 
 
 export const SCRIPT_API_CTX='script'
@@ -31,7 +32,7 @@ export class ScriptService {
     this.scriptCtxUrl = apiEndPoint + SCRIPT_API_CTX;
   }
 
-  getScript(id:string):Promise<any>{
+  getScript(id:string | number):Promise<Script>{
 
     let scriptUrl = this.scriptCtxUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {

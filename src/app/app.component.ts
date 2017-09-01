@@ -9,7 +9,7 @@ import { VERSION } from '../module/speechrecorder/spr.module'
 })
 export class AppComponent {
   sprVersion=VERSION;
-  title='bla'
+  title='Speechrecorder Angular Demo'
   constructor(){
   }
 }

@@ -131,9 +131,9 @@ Properties:
 Example:
 ```
 {
-  "sessionId": 2,
+  "sessionId": "2",
   "project": "My project",
-  "script": 1245
+  "script": "1245"
 }
 ```  
 
@@ -154,8 +154,9 @@ Properties:
 
 Properties:
  * name: Optional name of section
- * mode: enum: "MANUAL", "AUTOPROGRESS" or "AUTORECORDING"
+ * mode: enum: `MANUAL`, `AUTOPROGRESS` or `AUTORECORDING`
  * promptUnits: array: List of prompt units.
+ * training: boolean: Section is intended as training for the subject. The recording items of a training section are ignored when the completeness of the session (each prompt item is recorded) is checked.
 
 ### Embedded entity Prompt Unit
 
@@ -163,7 +164,7 @@ Properties:
 
  * recpromptId: Unique ID of this recording prompt 
  * itemcode: string: In the scope of the script unique identifier of an recording item
- * mediaitems: array: List of media items for this prompt. Currently only a single mediaitem is supported.
+ * mediaitems: array: List of media items for this prompt. Currently only a single mediaitem element in the array is supported.
 
 ### Embedded entity Media item
 
@@ -174,7 +175,7 @@ Example script:
 ```
 {
     "type": "script",
-    "scriptId": 1245,
+    "scriptId": "1245",
     "sections": [
       {
         "mode": "MANUAL",
@@ -187,7 +188,6 @@ Example script:
                 "text": "Willkommen bei der IPS-Sprachaufnahme!"
               }
             ],
-            "recpromptId": 1247
           },
           {
             "itemcode": "I1",
@@ -196,7 +196,6 @@ Example script:
                 "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
               }
             ],
-            "recpromptId": 1249
           }
         ],
         "training": false
@@ -209,21 +208,17 @@ Example script:
            "recduration": 10000,
            "mediaitems": [
              {
-              "mediaitemId": 1258,
               "text": "What's your name?"
              }
             ],
-            "recpromptId": 1257
            },
            {
             "itemcode": "S0",
             "mediaitems": [
               {
-              "mediaitemId": 1300,
               "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
               }
              ],
-             "recpromptId": 1258
            }
           ]
        }

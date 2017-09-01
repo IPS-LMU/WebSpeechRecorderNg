@@ -24,7 +24,10 @@ import {Item} from './sessionmanager';
           <td>{{itIdx}}</td>
           <td>{{item.promptAsString}}</td>
           <td>
-            <md-icon *ngIf="item.recs && item.recs.length>0">done</md-icon>
+            <button *ngIf="item.recs && item.recs.length>0" (click)="clickDone=itIdx">
+              <md-icon>done</md-icon>
+            </button>
+            
           </td>
         </tr>
       </ng-container>
@@ -72,5 +75,15 @@ export class Progress {
   set rowSelect(rowIdx:number){
     console.log("Row: "+rowIdx);
     this.onRowSelect.emit(rowIdx);
+  }
+
+  @Output() onShowDoneAction = new EventEmitter<number>();
+  @Output()
+  set clickDone(rowIdx:number){
+    console.log("Row button  done click: "+rowIdx);
+    if(this.items[rowIdx] && this.items[rowIdx].recs) {
+      this.onRowSelect.emit(rowIdx);
+      this.onShowDoneAction.emit(rowIdx);
+    }
   }
 }
