@@ -140,19 +140,17 @@ interface AudioWorker extends Worker {
             }else if(navigator.userAgent.match(".*Chrome.*")){
             // Google Chrome: we need to switch of each of the
               console.log("Setting media track constraints for Google Chrome.");
+
+
             msc= {
               audio: {
-
-                "mandatory": {
-                  //deviceId: selDeviceId,
+                  "deviceId": selDeviceId,
+                  "channelCount": channelCount,
                   "echoCancellation": false,
-                  "googEchoCancellation": "false",
-                  "googAutoGainControl": "false",
-                  "googNoiseSuppression": "false",
-                  "googHighpassFilter": "false"
-
-                },
-                "optional": [{"deviceId": selDeviceId}, {channelCount: channelCount}]
+                  "googEchoCancellation": false,
+                  "googAutoGainControl": false,
+                  "googNoiseSuppression": false,
+                  "googHighpassFilter": false
               },
               video: false,
             }
