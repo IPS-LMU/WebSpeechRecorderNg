@@ -1,0 +1,11 @@
+{
+
+    "description": "Demo project 1",
+    "name": "Demo1",
+    "audioFormat" : {
+      "channels": 1
+    },
+    "speakerWindowShowStopRecordAction": true
+
+}
+

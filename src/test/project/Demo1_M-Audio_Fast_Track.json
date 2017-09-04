@@ -1,0 +1,15 @@
+{
+
+  "name": "Demo1",
+  "description": "Demo project 1",
+    "audioFormat" : {
+      "channels": 2
+    },
+    "audioDevices" : [ {
+      "name" : ".*Fast.*Track.*",
+      "playback" : false,
+      "regex" : true
+    }],
+    "speakerWindowShowStopRecordAction": true
+}
+

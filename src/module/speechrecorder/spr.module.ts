@@ -22,9 +22,10 @@ import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./spruploader";
 import {Mediaitem, PromptUnit, Script} from "./script/script";
 import {Session} from "./session/session";
+import {ProjectService} from "./project/project.service";
 
 
-export const VERSION='0.0.16';
+export const VERSION='0.0.17';
 
 const SPR_ROUTES: Routes = [
 
@@ -40,7 +41,7 @@ const SPR_ROUTES: Routes = [
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),CommonModule,
     AudioModule,MdIconModule,MdButtonModule,MdDialogModule,MdProgressSpinnerModule,HttpClientModule],
-  providers: [SessionService,ScriptService,SpeechRecorderUploader]
+  providers: [SessionService,ProjectService,ScriptService,SpeechRecorderUploader]
 
 })
 export class SpeechRecorderModule{

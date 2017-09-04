@@ -14,6 +14,7 @@ import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
+import {AudioDevice} from "../project/project";
 
 export const RECFILE_API_CTX='recfile';
 
@@ -391,7 +392,7 @@ export class SessionManager implements AudioCaptureListener {
 
         startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
-        private _audioDevices:any;
+        private _audioDevices:Array<AudioDevice> | null | undefined;
         private selCaptureDeviceId: ConstrainDOMString | null;
         currentRecording:AudioBuffer | null;
         private ap: AudioPlayer;
@@ -578,7 +579,7 @@ export class SessionManager implements AudioCaptureListener {
         this._channelCount = channelCount;
       }
 
-      set audioDevices(audioDevices: any) {
+      set audioDevices(audioDevices: Array<AudioDevice>) {
         this._audioDevices = audioDevices;
       }
 
@@ -833,6 +834,7 @@ export class SessionManager implements AudioCaptureListener {
                     }
                   });
                 } else {
+                  console.log("Open session with default audio device");
                     this.ac.open(this._channelCount);
                 }
 

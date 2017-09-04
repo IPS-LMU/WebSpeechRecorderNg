@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -10,7 +10,9 @@
     "ng": "ng",
     "module_transpile": "ngc -p tsconfig-module-aot.json",
     "rollup_module": "rollup -c",
+    "minify_module": "uglifyjs dist/module/bundles/speechrecorder.umd.js --screw-ie8 --compress --mangle --comments --output dist/module/bundles/speechrecorder.umd.min.js",
     "prepare_module_package": "cp module_package.json dist/module/package.json",
+    "build_module": "npm run prepare_module_package && npm run module_transpile && npm run rollup_module && npm run minify_module",
     "pack_module": "cd dist/module;npm pack",
     "publish_module": "cd dist/module;rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",
@@ -53,6 +55,7 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "protractor": "~5.1.2",
     "rollup": "^0.45.2",
+    "uglify-js": "^2.4.11",
     "ts-node": "~3.0.4",
     "tslint": "~5.3.2",
     "typescript": "~2.4.2"

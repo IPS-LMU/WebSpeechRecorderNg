@@ -17,6 +17,8 @@ import {ScriptService} from "./script/script.service";
 import {Progress} from "./session/progress";
 import {SpeechRecorderUploader} from "./spruploader";
 import {Session} from "./session/session";
+import {Project,AudioFormat} from "./project/project";
+import {ProjectService} from "./project/project.service";
 
   export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -42,15 +44,13 @@ import {Session} from "./session/session";
 export class SpeechRecorder implements AudioPlayerListener {
 
 	  mode:Mode;
-
 		ap:AudioPlayer;
-
 		audio:any;
 
-        project: any;
-    sessionId: string;
-    session:any;
-    script:Script;
+  sessionId: string;
+  session:Session;
+
+  script:Script;
     dataSaved: boolean = true;
   @ViewChild(SessionManager) sm:SessionManager;
     //statusDisplay:StatusDisplay;
@@ -59,7 +59,12 @@ export class SpeechRecorder implements AudioPlayerListener {
     currentPromptIdx:number;
 
 		constructor(private route: ActivatedRoute,
-                    private router: Router,private changeDetectorRef: ChangeDetectorRef,private sessionsService:SessionService,private scriptService:ScriptService,private uploader:SpeechRecorderUploader) {
+                    private router: Router,
+                private changeDetectorRef: ChangeDetectorRef,
+                private sessionsService:SessionService,
+                private projectService:ProjectService,
+                private scriptService:ScriptService,
+                private uploader:SpeechRecorderUploader) {
 		}
 
     ngOnInit() {
@@ -89,8 +94,15 @@ export class SpeechRecorder implements AudioPlayerListener {
           this.setSession(sess);
           this.init();
           if (sess.project) {
-            //TODO fetch project then fetchScript
-            this.fetchScript(sess);
+            this.projectService.getProject(sess.project).then(project=>{
+              this.project=project;
+              this.fetchScript(sess);
+            }).catch(reason =>{
+              this.sm.statusMsg=reason;
+              this.sm.statusAlertType='error';
+              console.log("Error fetching project config: "+reason)
+            });
+
           } else {
             this.fetchScript(sess);
           }
@@ -115,7 +127,7 @@ export class SpeechRecorder implements AudioPlayerListener {
             this.sm.statusMsg=reason;
             this.sm.statusAlertType='error';
             console.log("Error fetching script: "+reason)
-          });;
+          });
       }
     }
 
@@ -241,14 +253,18 @@ export class SpeechRecorder implements AudioPlayerListener {
     }
 
 
-  setProject(project: any) {
+  set project(project: Project) {
+
     let chCnt = 2;
 
-    if (this.project.audioFormat) {
-      chCnt = this.project.audioFormat.channels;
+    if (project) {
+      this.sm.audioDevices = project.audioDevices;
+      if(project.audioFormat) {
+        chCnt =project.audioFormat.channels;
+      }
     }
     this.sm.channelCount = chCnt;
-    this.sm.audioDevices = this.project.audioDevices;
+
   }
 
 
