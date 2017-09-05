@@ -11,6 +11,7 @@ export class SpeechRecorderConfig{
   apiEndPoint?: string | null=null;
   apiType?: ApiType | null=null;
   withCredentials?: boolean=false;
+  enableDownloadRecordings?: boolean=false;
   constructor(){
     this.apiEndPoint=null;
     this.apiType=null;

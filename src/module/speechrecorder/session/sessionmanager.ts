@@ -99,7 +99,7 @@ export class PromptContainer{
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx" (onRowSelect)="itemSelect($event)" (onShowDoneAction)="showDone($event)"></app-sprprogress>
+    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="enableDownload" (onRowSelect)="itemSelect($event)" (onShowDoneAction)="showDone($event)" (onDownloadDoneAction)="downloadDone($event)"></app-sprprogress>
 
 
 
@@ -138,8 +138,10 @@ export class Prompting{
   @Input() promptText:string;
   @Input() items:Array<Item>;
   @Input() selectedItemIdx:number;
+  @Input() enableDownload:boolean;
   @Output() onItemSelect=new EventEmitter<number>();
   @Output() onShowDone=new EventEmitter<number>();
+  @Output() onDownloadDone=new EventEmitter<number>();
 
   itemSelect(rowIdx:number){
     console.log("Row (prompting) "+rowIdx)
@@ -148,6 +150,10 @@ export class Prompting{
   showDone(rowIdx:number){
 
     this.onShowDone.emit(rowIdx);
+  }
+  downloadDone(rowIdx:number){
+
+    this.onDownloadDone.emit(rowIdx);
   }
 }
 
@@ -362,7 +368,7 @@ export class ControlPanel{
   providers: [SessionService],
   template: `
     
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()"></app-sprprompting>
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
    
     <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
@@ -695,14 +701,15 @@ export class SessionManager implements AudioCaptureListener {
             let wavFile = ww.writeAsync(ab, (wavFile) => {
                 let blob = new Blob([wavFile], {type: 'audio/wav'});
                 let rfUrl = URL.createObjectURL(blob);
-                let rdDlEl = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
+              let dataDnlLnk = document.createElement("a");
 
-            let rdDlDivEl: HTMLDivElement = <HTMLDivElement>document.getElementById('rfDownload');
-            let dataDnlLnk: HTMLAnchorElement = document.createElement('a');
-            rdDlDivEl.appendChild(dataDnlLnk);
+              dataDnlLnk.name = 'Recording';
 
-            dataDnlLnk.href = rfUrl;
-            dataDnlLnk.name = 'Recording';
+              dataDnlLnk.href = rfUrl;
+
+              document.body.appendChild(dataDnlLnk);
+
+
             // download property not yet in TS def
               if(this.displayRecFile) {
                 let fn = this.displayRecFile.filenameString();
@@ -711,6 +718,8 @@ export class SessionManager implements AudioCaptureListener {
                 dataDnlLnk.setAttribute('download', fn);
                 dataDnlLnk.click();
               }
+              document.body.removeChild(dataDnlLnk);
+              //window.open(rfUrl);
           });
         }
       }

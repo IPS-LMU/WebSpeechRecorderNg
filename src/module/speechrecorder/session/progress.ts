@@ -27,6 +27,9 @@ import {Item} from './sessionmanager';
             <button *ngIf="item.recs && item.recs.length>0" (click)="clickDone=itIdx">
               <md-icon>done</md-icon>
             </button>
+            <button *ngIf="enableDownload" [disabled]="!(item.recs && item.recs.length>0)" (click)="clickDownloadDone=itIdx">
+              <md-icon>file_download</md-icon>
+            </button>
             
           </td>
         </tr>
@@ -70,6 +73,7 @@ import {Item} from './sessionmanager';
 export class Progress {
   @Input() items: Array<Item>;
   @Input() selectedItemIdx = 0;
+  @Input() enableDownload: boolean;
   @Output() onRowSelect = new EventEmitter<number>();
   @Output()
   set rowSelect(rowIdx:number){
@@ -84,6 +88,16 @@ export class Progress {
     if(this.items[rowIdx] && this.items[rowIdx].recs) {
       this.onRowSelect.emit(rowIdx);
       this.onShowDoneAction.emit(rowIdx);
+    }
+  }
+
+  @Output() onDownloadDoneAction = new EventEmitter<number>();
+  @Output()
+  set clickDownloadDone(rowIdx:number){
+    console.log("Row button download done click: "+rowIdx);
+    if(this.items[rowIdx] && this.items[rowIdx].recs) {
+      this.onRowSelect.emit(rowIdx);
+      this.onDownloadDoneAction.emit(rowIdx);
     }
   }
 }
