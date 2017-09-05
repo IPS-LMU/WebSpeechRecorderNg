@@ -91,10 +91,15 @@ export class LevelMeasure {
           let chData = audioData[ch];
           for (let s = 0; s < chData.length; s++) {
             if (chData[s] < linLevels[ch][0]) {
+              if(chData[s]<-1.0) {
+                console.log("Min: " + chData[s]);
+              }
               linLevels[ch][0] = chData[s];
             }
             if (chData[s] > linLevels[ch][1]) {
-              console.log("Max: "+chData[s]);
+              if(chData[s]>1.0) {
+                console.log("Max: " + chData[s]);
+              }
               linLevels[ch][1] = chData[s];
             }
 

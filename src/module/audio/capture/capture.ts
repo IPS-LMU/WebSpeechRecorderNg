@@ -149,10 +149,14 @@ interface AudioWorker extends Worker {
                   "deviceId": selDeviceId,
                   "channelCount": channelCount,
                   "echoCancellation": false,
+                  "autoGainControl": false,
                   "googEchoCancellation": false,
+                  "googExperimentalEchoCancellation": false,
                   "googAutoGainControl": false,
+                  "googTypingNoiseDetection":false,
                   "googNoiseSuppression": false,
-                  "googHighpassFilter": false
+                  "googHighpassFilter": false,
+                  "googBeamforming":false
               },
               video: false,
             }
