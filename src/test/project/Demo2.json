@@ -1,8 +1,8 @@
 {
     "description": "Demo project 1",
-    "name": "Demo1",
+    "name": "Demo2",
     "audioFormat" : {
-      "channels": 1
+      "channels": 2
     },
   "audioDevices" : [ {
     "name" : ".*Fast.*Track.*",

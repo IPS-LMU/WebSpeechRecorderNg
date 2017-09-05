@@ -16,9 +16,6 @@
             return 10 * Math.log(linearLevel) / Math.log(10);
         }
 
-        public static getLevelInDB(linearLevel: number): number {
-            return DSPUtils.toLevelInDB(linearLevel);
-        }
 
         public static toLinearLevel(dbLevel: number): number {
             return Math.pow(10, (dbLevel / 10));

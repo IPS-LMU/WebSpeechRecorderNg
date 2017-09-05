@@ -1,6 +1,7 @@
 
 
 import {isNullOrUndefined} from "util";
+import {LevelMeasure} from "../dsp/level_measure";
 interface AudioWorker extends Worker {
     terminate ():void;
     postMessage (message:any, transfer:Array<any>):void;
@@ -47,6 +48,7 @@ interface AudioWorker extends Worker {
         data:Array<Array<Float32Array>>;
         currentSampleRate:number;
         n:Navigator;
+        levelMeasure:LevelMeasure | null;
 
         constructor(context:any) {
            this.context=context;
@@ -109,7 +111,7 @@ interface AudioWorker extends Worker {
         open(channelCount:number,selDeviceId?:ConstrainDOMString,){
           console.log("Starting capture...");
           this.channelCount=channelCount;
-
+          this.levelMeasure=new LevelMeasure(this.channelCount);
             //var msc = new AudioStreamConstr();
           // var msc={};
             //msc.video = false;
@@ -219,7 +221,7 @@ interface AudioWorker extends Worker {
                 console.log("Audio script processor implemented!!");
 
 
-                // TODO shuld we use streamChannelCount or channelCount here ?
+                // TODO should we use streamChannelCount or channelCount here ?
                 this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
                 let c = 0;
                 this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
@@ -228,14 +230,18 @@ interface AudioWorker extends Worker {
                   let inBuffer = e.inputBuffer;
                   let duration = inBuffer.duration;
                   // only process requested count of channels
+                  let currentBuffers=new Array<Float32Array>(channelCount);
                   for (let ch: number = 0; ch < channelCount; ch++) {
                     let chSamples = inBuffer.getChannelData(ch);
                     let chSamplesCopy = chSamples.slice(0);
+                    currentBuffers[ch]=chSamplesCopy.slice(0);
                     this.data[ch].push(chSamplesCopy);
                   }
 
                   c++;
-                  // TODO measure (peak) level here
+                 if(this.levelMeasure){
+                   this.levelMeasure.pushData(currentBuffers);
+                 }
 
                 }
               }
@@ -256,6 +262,10 @@ interface AudioWorker extends Worker {
 
       start() {
         this.initData();
+        if(this.levelMeasure){
+          this.levelMeasure.reset();
+          this.levelMeasure.start();
+        }
         this.mediaStream.connect(this.bufferingNode);
         this.bufferingNode.connect(this.context.destination);
         if (this.listener) {
@@ -269,6 +279,9 @@ interface AudioWorker extends Worker {
 
           this.mediaStream.disconnect(this.bufferingNode);
           this.bufferingNode.disconnect(this.context.destination);
+          if(this.levelMeasure){
+            this.levelMeasure.stop();
+          }
             console.log("Captured");
           if(this.listener){
             this.listener.stopped();
@@ -288,6 +301,7 @@ interface AudioWorker extends Worker {
                 mts[i].stop();
             }
         }
+
         console.log("Capture close");
         // if(this.listener){
         //   this.listener.closed();

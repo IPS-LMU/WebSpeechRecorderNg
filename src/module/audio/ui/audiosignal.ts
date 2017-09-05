@@ -1,7 +1,7 @@
 
 import { Marker,Point } from './common'
 
-  declare function postMessage (message:any, transfer:Array<any>):void;
+    declare function postMessage (message:any, transfer:Array<any>):void;
   //declare function Worker (blob:Blob):void;
     export class AudioSignal {
         canvasId:string;
