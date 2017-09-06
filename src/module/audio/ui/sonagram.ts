@@ -103,8 +103,8 @@
                   g.clearRect(0, 0, w, h);
                   if (show) {
                     const pp = this.canvasMousePos(this.cCursor, e);
-                    const offX = e.layerX - this.cCursor.offsetLeft;
-                    const offY = e.layerY - this.cCursor.offsetTop;
+                    const offX = e.offsetX - this.cCursor.offsetLeft;
+                    const offY = e.offsetY - this.cCursor.offsetTop;
                     const pixelPos = offX;
                     g.fillStyle = 'yellow';
                     g.strokeStyle = 'yellow';

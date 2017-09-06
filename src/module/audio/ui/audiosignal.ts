@@ -89,13 +89,13 @@ import { Marker,Point } from './common'
                 if(g) {
                   g.clearRect(0, 0, w, h);
                   if (show) {
+
                     var pp = this.canvasMousePos(this.cCursor, e);
-                    var offX = e.layerX - this.cCursor.offsetLeft;
-                    var offY = e.layerY - this.cCursor.offsetTop;
+                    var offX = e.offsetX - this.cCursor.offsetLeft;
+                    var offY = e.offsetY - this.cCursor.offsetTop;
                     var pixelPos = offX;
                     g.fillStyle = 'yellow';
                     g.strokeStyle = 'yellow';
-
                     g.beginPath();
                     g.moveTo(pixelPos, 0);
                     g.lineTo(pixelPos, h);
