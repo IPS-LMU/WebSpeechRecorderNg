@@ -1,6 +1,3 @@
-
-
-import {isNullOrUndefined} from "util";
 import {LevelMeasure} from "../dsp/level_measure";
 interface AudioWorker extends Worker {
     terminate ():void;
@@ -140,10 +137,14 @@ interface AudioWorker extends Worker {
                 video: false
               };
             }else if(navigator.userAgent.match(".*Chrome.*")){
-            // Google Chrome: we need to switch of each of the
+            // Google Chrome: we need to switch of each of the preprocessing units including the
               console.log("Setting media track constraints for Google Chrome.");
 
+            // Chrome 60 -> 61 changed
+            // it works now without mandatory/optional sub-objects
 
+
+            // Requires at least Chrome 61
             msc= {
               audio: {
                   "deviceId": selDeviceId,
