@@ -3,14 +3,14 @@
  */
 
 
-import {Component, ViewChild, ElementRef, AfterContentInit, ChangeDetectorRef, Inject} from '@angular/core'
-import {MD_DIALOG_DATA, MdDialog, MdDialogRef} from '@angular/material';
-import { WavReader } from './impl/wavreader'
-import { AudioClip} from './persistor'
+import {
+  Component, ViewChild, ChangeDetectorRef, OnDestroy, AfterViewInit
+} from '@angular/core'
+import {MdDialogRef} from '@angular/material';
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
 import { AudioClipUIContainer } from './ui/container'
-import {AudioContextProvider} from './context'
-//import {isNullOrUndefined} from "util";
+import { AudioContextProvider } from './context'
+
 
 @Component({
 
@@ -39,7 +39,7 @@ import {AudioContextProvider} from './context'
   }`]
 
 })
-export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit {
+export class AudioDisplayDialog implements AudioPlayerListener,AfterViewInit,OnDestroy {
   private _audioUrl:string;
   startEnabled:boolean;
   stopEnabled:boolean;
@@ -47,40 +47,30 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
   ap:AudioPlayer;
   status:string;
   audioFormatStr:string;
-  //audioSignal:AudioSignal;
-  //audioSonagram:Sonagram;
   currentLoader:XMLHttpRequest;
   audio:any;
   updateTimerId:any;
   audioBuffer:AudioBuffer | null=null;
   @ViewChild(AudioClipUIContainer)
-
   private ac:AudioClipUIContainer;
+  private destroyed=false;
+
   constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<AudioDisplayDialog>) {
-
-
-    // this.startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
-    // this.stopBtn = <HTMLInputElement>(document.getElementById('stopBtn'));
-    //this.audio = document.getElementById('audio');
-    //var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
-    //this.audioSignal = new AudioSignal(asc);
-    //this.audioSonagram = new Sonagram(asc);
-    //this.ac = new AudioClipUIContainer();
-    //this.statusMsg = <HTMLElement>(document.getElementById('status'));
   }
 
-  ngAfterContentInit() {
-    //   this.init();
-    //   //this.audioUrl="http://www.phonetik.uni-muenchen.de/~klausj/Trappa1.wav";
-    // this.audioUrl="test/audio.wav";
-  }
+
 
   ngAfterViewInit(){
     this.init();
-    // this.data=this.audioBuffer;
-    // this.startEnabled=(!isNullOrUndefined(this.data));
-    //  this.ref.detectChanges();
+    this.destroyed=false;
     this.updateUI();
+  }
+
+  ngOnDestroy(){
+    // stop player
+    this.ap.stop();
+    // mark component destroyed
+    this.destroyed=true;
   }
 
   init() {
@@ -112,8 +102,6 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
 
 
   started(){
-    //this.stopBtn.disabled=false;
-
     console.log("Play started");
     this.status='Playing...';
   }
@@ -125,36 +113,31 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterContentInit 
 
 
   updatePlayPosition() {
-
-    //this.audioSignal.playFramePosition = this.ap.playPositionFrames;
     if(this.ap.playPositionFrames) {
       this.ac.playFramePosition = this.ap.playPositionFrames;
     }
   }
+
   update(e:AudioPlayerEvent){
     if(EventType.READY===e.type) {
       this.status = 'Ready';
       this.startEnabled = true;
       this.stopEnabled = false;
     }else if(EventType.STARTED===e.type){
-      // this.startBtn.disabled=true;
-      // this.stopBtn.disabled = false;
       this.status = 'Playback...';
       this.updateTimerId = window.setInterval(e=>this.updatePlayPosition(), 50);
       this.startEnabled=false;
       this.stopEnabled=true;
     }else if(EventType.ENDED===e.type){
-      // this.startBtn.disabled=false;
-      // this.stopBtn.disabled=true;
-
       this.status='Ready.';
       window.clearInterval(this.updateTimerId);
       this.startEnabled=true;
       this.stopEnabled=false;
     }
 
-    //this.ref.markForCheck();
-    this.ref.detectChanges();
+    if(!this.destroyed) {
+      this.ref.detectChanges();
+    }
 
   }
   error(){

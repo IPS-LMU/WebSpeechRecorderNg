@@ -357,7 +357,8 @@ export class ControlPanel{
     dCfg.height='80%';
     dCfg.data=this.currentRecording;
     let audioDisplayRef=this.dialog.open(AudioDisplayDialog,dCfg);
-    audioDisplayRef.componentInstance.audioBuffer=this.currentRecording;
+    let compInst=audioDisplayRef.componentInstance;
+    compInst.audioBuffer=this.currentRecording;
   }
 }
 
@@ -451,7 +452,7 @@ export class SessionManager implements AudioCaptureListener {
         constructor(private changeDetectorRef: ChangeDetectorRef,
                     public dialog: MdDialog,
                     private uploader:SpeechRecorderUploader,
-                    @Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+                    @Inject(SPEECHRECORDER_CONFIG) public config?:SpeechRecorderConfig) {
             this.status = Status.IDLE;
             this.mode = Mode.SERVER_BOUND;
             //this._startStopSignal = startStopSignal;
@@ -585,7 +586,7 @@ export class SessionManager implements AudioCaptureListener {
         this._channelCount = channelCount;
       }
 
-      set audioDevices(audioDevices: Array<AudioDevice>) {
+      set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {
         this._audioDevices = audioDevices;
       }
 
@@ -753,7 +754,8 @@ export class SessionManager implements AudioCaptureListener {
     dCfg.height = '80%';
     dCfg.data = this.currentRecording;
     let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
-    audioDisplayRef.componentInstance.audioBuffer = this.currentRecording;
+    let compInst=audioDisplayRef.componentInstance;
+    compInst.audioBuffer = this.currentRecording;
   }
 
         applyItem() {
@@ -800,7 +802,7 @@ export class SessionManager implements AudioCaptureListener {
                   let fdi:MediaDeviceInfo| null =null;
 
                   this.ac.deviceInfos((mdis)=> {
-                    if(mdis) {
+                    if(mdis && this._audioDevices) {
                       for (let adI = 0; adI < this._audioDevices.length; adI++) {
                         let ad = this._audioDevices[adI];
                         if(ad.playback){
@@ -1027,16 +1029,17 @@ export class SessionManager implements AudioCaptureListener {
                 let sessionsUrl = apiEndPoint + SESSION_API_CTX;
                 let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
-                //console.log("Build wav writer...");
-                let ww = new WavWriter();
-                // convert to 16-bit integer PCM
-                // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-                // TODO duplicate conversion for manual download
-                ww.writeAsync(ad, (wavFile) => {
-                  // TODO and upload to WikiSpeech server
 
-                  this.postRecording(wavFile, recUrl);
-                });
+                if(this.config && this.config.enableUploadRecordings) {
+                  // convert asynchronously to 16-bit integer PCM
+                  // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+                  // TODO duplicate conversion for manual download
+                  //console.log("Build wav writer...");
+                  let ww = new WavWriter();
+                  ww.writeAsync(ad, (wavFile) => {
+                    this.postRecording(wavFile, recUrl);
+                  });
+                }
               }
             }
 
