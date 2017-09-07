@@ -749,7 +749,6 @@ export class SessionManager implements AudioCaptureListener {
         }
 
   openAudioDisplayDialog() {
-    window.setTimeout(_ => {
       let dCfg = new MdDialogConfig();
       dCfg.width = '80%';
       dCfg.height = '80%';
@@ -765,7 +764,6 @@ export class SessionManager implements AudioCaptureListener {
       );
       let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
       // audioDisplayRef.componentInstance.audioBuffer=this.currentRecording
-    })
   }
 
         applyItem() {
