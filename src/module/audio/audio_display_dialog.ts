@@ -4,13 +4,13 @@
 
 
 import {
-  Component, ViewChild, ChangeDetectorRef, OnDestroy, AfterViewInit
+  Component, ViewChild, ChangeDetectorRef, OnDestroy, AfterViewInit, AfterViewChecked, Inject
 } from '@angular/core'
-import {MdDialogRef} from '@angular/material';
+import {MdDialogConfig, MdDialogRef} from '@angular/material';
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
 import { AudioClipUIContainer } from './ui/container'
 import { AudioContextProvider } from './context'
-
+import {MD_DIALOG_DATA} from '@angular/material';
 
 @Component({
 
@@ -39,7 +39,7 @@ import { AudioContextProvider } from './context'
   }`]
 
 })
-export class AudioDisplayDialog implements AudioPlayerListener,AfterViewInit,OnDestroy {
+export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   private _audioUrl:string;
   startEnabled:boolean;
   stopEnabled:boolean;
@@ -48,23 +48,32 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterViewInit,OnD
   status:string;
   audioFormatStr:string;
   currentLoader:XMLHttpRequest;
-  audio:any;
+  //audio:any;
   updateTimerId:any;
   audioBuffer:AudioBuffer | null=null;
   @ViewChild(AudioClipUIContainer)
   private ac:AudioClipUIContainer;
   private destroyed=false;
 
-  constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<AudioDisplayDialog>) {
+  constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<AudioDisplayDialog>,@Inject(MD_DIALOG_DATA) public data: any) {
+
   }
 
 
 
   ngAfterViewInit(){
-    this.init();
+    console.log("ngAfterViewInit")
     this.destroyed=false;
-    this.updateUI();
+    this.init();
+
+   // this.updateUI();
+
   }
+  //
+  // ngAfterViewChecked(){
+  //   console.log("ngAfterViewChecked")
+  //
+  // }
 
   ngOnDestroy(){
     // stop player
@@ -82,22 +91,25 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterViewInit,OnD
       this.ap = new AudioPlayer(this.aCtx, this);
       this.status= 'Player initialized.';
     }
+   this.applyAudioBuffer()
   }
 
-  private updateUI(){
+  applyAudioBuffer(){
+    this.audioBuffer=this.data;
+    //setTimeout(_=> {
+      this.ac.setData(this.audioBuffer);
 
-    this.ac.setData(this.audioBuffer);
-
-    this.ap.audioBuffer=this.audioBuffer;
-    if(this.audioBuffer) {
-      this.status="Audio data loaded."
-      this.audioFormatStr = this.audioBuffer.sampleRate + " Hz, " + this.audioBuffer.numberOfChannels + " channels, duration: " + this.audioBuffer.duration+" s";
-    }else{
-      this.status="No audio data."
-      this.audioFormatStr='';
-    }
-    this.startEnabled=(this.audioBuffer!==null);
-    this.ref.detectChanges();
+      this.ap.audioBuffer = this.audioBuffer;
+      if (this.audioBuffer) {
+        this.status = "Audio data loaded."
+        this.audioFormatStr = this.audioBuffer.sampleRate + " Hz, " + this.audioBuffer.numberOfChannels + " channels, duration: " + this.audioBuffer.duration + " s";
+      } else {
+        this.status = "No audio data."
+        this.audioFormatStr = '';
+      }
+      this.startEnabled = (this.audioBuffer !== null);
+      this.ref.detectChanges();
+    //});
   }
 
 
@@ -105,11 +117,11 @@ export class AudioDisplayDialog implements AudioPlayerListener,AfterViewInit,OnD
     console.log("Play started");
     this.status='Playing...';
   }
-  set data(audioBuffer:AudioBuffer){
-      this.audioBuffer=audioBuffer;
-      this.data=this.audioBuffer;
-
-  }
+  // set data(audioBuffer:AudioBuffer){
+  //     this.audioBuffer=audioBuffer;
+  //     this.data=this.audioBuffer;
+  //
+  // }
 
 
   updatePlayPosition() {

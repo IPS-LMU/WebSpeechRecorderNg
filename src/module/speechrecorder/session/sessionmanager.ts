@@ -749,13 +749,23 @@ export class SessionManager implements AudioCaptureListener {
         }
 
   openAudioDisplayDialog() {
-    let dCfg = new MdDialogConfig();
-    dCfg.width = '80%';
-    dCfg.height = '80%';
-    dCfg.data = this.currentRecording;
-    let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
-    let compInst=audioDisplayRef.componentInstance;
-    compInst.audioBuffer = this.currentRecording;
+    window.setTimeout(_ => {
+      let dCfg = new MdDialogConfig();
+      dCfg.width = '80%';
+      dCfg.height = '80%';
+      dCfg.data = this.currentRecording;
+      this.dialog.afterOpen.subscribe(ref => {
+
+          let compInst = ref.componentInstance;
+          // does not work: The UI children (Audio clip UI container) of the dialog are not initialized in this stage
+
+          //compInst.init();
+          //compInst.audioBuffer = this.currentRecording;
+        }
+      );
+      let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
+      // audioDisplayRef.componentInstance.audioBuffer=this.currentRecording
+    })
   }
 
         applyItem() {
@@ -763,7 +773,7 @@ export class SessionManager implements AudioCaptureListener {
             this.section = this._script.sections[this.sectIdx]
             this.promptUnit = this.section.promptUnits[this.prmptIdx];
            // this.status=Status.IDLE;
-            this.changeDetectorRef.detectChanges();
+
             this.clearPrompt();
             if (this.section.promptphase === 'IDLE') {
                 this.applyPrompt();
@@ -786,8 +796,9 @@ export class SessionManager implements AudioCaptureListener {
                 this.displayRecFile = null;
                 this.displayRecFileVersion = 0;
             }
-          this.showRecording();
+             this.showRecording();
             this.startStopSignalState=StartStopSignalState.IDLE;
+
         }
 
 
@@ -1071,6 +1082,7 @@ export class SessionManager implements AudioCaptureListener {
                   this.transportActions.bwdAction.disabled=false
                 }
             }
+          this.changeDetectorRef.detectChanges();
         }
 
         postRecording(wavFile: Uint8Array, recUrl: string) {
