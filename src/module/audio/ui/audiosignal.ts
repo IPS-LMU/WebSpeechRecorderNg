@@ -1,13 +1,35 @@
 
 import { Marker,Point } from './common'
+import {Component, ViewChild, ElementRef} from '@angular/core';
 
     declare function postMessage (message:any, transfer:Array<any>):void;
-  //declare function Worker (blob:Blob):void;
+
+
+@Component({
+
+    selector: 'audio-signal',
+    template: `
+    <canvas #audioSignalC ></canvas>
+    <canvas #cursorC (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)" (mouseleave)="drawCursorPosition($event, false)"></canvas>
+    <canvas #playPosC></canvas>`,
+
+    styles: [ `canvas {
+    top: 0;
+    left 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }`]
+
+})
     export class AudioSignal {
         canvasId:string;
         audioData:AudioBuffer| null;
         n:any;
         ce:HTMLDivElement;
+        @ViewChild('audioSignalC') canvasRef: ElementRef;
+        @ViewChild('cursorC') cursorCRef: ElementRef;
+        @ViewChild('playPosC') playPosCRef: ElementRef;
         c:HTMLCanvasElement;
         cCursor:HTMLCanvasElement;
         cPlaypos:HTMLCanvasElement;
@@ -15,51 +37,27 @@ import { Marker,Point } from './common'
         private _playFramePosition: number;
         private wo:Worker | null;
 
-        constructor(container:HTMLDivElement) {
-            this.ce = container;
+        constructor(private ref:ElementRef) {
+
             this.wo = null;
-            this.c = this.createCanvas();
-            this.ce.appendChild(this.c);
-            this.cPlaypos = this.createCanvas();
-            this.ce.appendChild(this.cPlaypos);
-
-            this.cCursor = this.createCanvas();
-            this.ce.appendChild(this.cCursor);
-            this.cCursor.addEventListener('mouseover', (e)=> {
-                this.drawCursorPosition(e, true);
-            });
-            this.cCursor.addEventListener('mousemove', (e)=> {
-                this.drawCursorPosition(e, true);
-            }, false);
-            this.cCursor.addEventListener('mouseleave', (e)=> {
-                this.drawCursorPosition(e, false);
-            });
-
             this.audioData=null;
             this.markers=new Array<Marker>();
 
         }
 
-        private createCanvas():HTMLCanvasElement {
-            var c = document.createElement('canvas');
-            c.width = 0;
-            c.height = 0;
-            c.className = 'audioSignalCanvas';
-            c.style.top='0px';
-          c.style.left='0px';
-          c.style.position='absolute';
-          c.style.zIndex='3';
-            return c;
-        }
+    ngAfterViewInit() {
+
+        this.ce = this.ref.nativeElement;
+        this.c = this.canvasRef.nativeElement;
+        this.c.style.zIndex='1';
+        this.cCursor=this.cursorCRef.nativeElement;
+        this.cCursor.style.zIndex='3';
+        this.cPlaypos=this.playPosCRef.nativeElement;
+        this.cPlaypos.style.zIndex='2';
+
+    }
 
         init(){
-
-
-            //window.addEventListener('ips.ui.layoutchanged', ()=>{
-            //    console.log("layout event")
-            //    this.redraw();
-            //},false);
-            // this.layout();
         }
 
         get playFramePosition():number {
@@ -68,7 +66,6 @@ import { Marker,Point } from './common'
 
         set playFramePosition(playFramePosition:number) {
             this._playFramePosition = playFramePosition;
-            //this.redraw();
             this.drawPlayPosition();
         }
 
@@ -81,7 +78,7 @@ import { Marker,Point } from './common'
         }
 
         drawCursorPosition(e:MouseEvent, show:boolean) {
-
+            console.log("Draw cursor");
             if (this.cCursor) {
                 var w = this.cCursor.width;
                 var h = this.cCursor.height;
@@ -142,17 +139,6 @@ import { Marker,Point } from './common'
             }
         }
 
-        // layout() {
-        //
-        //     //console.log("Container: ",ct.offsetWidth,ct.offsetHeight,ct.clientWidth,ct.clientHeight);
-        //
-        //     //var foo=(this.c.width!==ct.offsetWidth || this.c.height!==ct.offsetHeight);
-        //
-        //     var offW = this.c.offsetWidth;
-        //     var offH = this.c.offsetHeight;
-        //     this.layoutBounds(0, 0, offW, offH);
-        // }
-
 
         layoutBounds(left:number, top:number, offW:number, offH:number, redraw:boolean) {
 
@@ -160,8 +146,8 @@ import { Marker,Point } from './common'
             this.cCursor.style.left = left.toString()+'px';
             this.cPlaypos.style.left = left.toString()+'px';
             this.c.style.top= top.toString()+'px';
-          this.cCursor.style.top = top.toString()+'px';
-          this.cPlaypos.style.top = top.toString()+'px';
+            this.cCursor.style.top = top.toString()+'px';
+            this.cPlaypos.style.top = top.toString()+'px';
 
             if(offW) {
                 var wStr = offW.toString() + 'px';
@@ -298,13 +284,7 @@ import { Marker,Point } from './common'
                     this.wo = null;
                   }
                 }
-                if (this.cPlaypos) {
-                    var g = this.cPlaypos.getContext("2d");
-                    if(g) {
-                      g.fillStyle = 'white';
-                      g.fillText("Rendering...", 10, 20);
-                    }
-                }
+
                 this.wo.postMessage({w: w, h: h, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
             } else {
                 var g = this.c.getContext("2d");
@@ -366,7 +346,7 @@ import { Marker,Point } from './common'
                   y += chH;
                 }
 
-                this.drawPlayPosition();
+                //this.drawPlayPosition();
               }
             }
         }
@@ -442,21 +422,14 @@ import { Marker,Point } from './common'
                   y += chH;
                 }
 
-                this.drawPlayPosition();
+                //this.drawPlayPosition();
               }
             }
         }
 
-
         setData(audioData:AudioBuffer | null) {
-
             this.audioData = audioData;
-
             this.playFramePosition = 0;
-
-
         }
-
-
     }
 

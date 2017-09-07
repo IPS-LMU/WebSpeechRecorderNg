@@ -12,6 +12,7 @@ import {Component, ViewChild} from '@angular/core';
     selector: 'app-audio',
     template: `
     <canvas #signalC (mousedown)="mousedown($event)" (mouseover)="mouseover($event)" (mousemove)="mousemove($event)" (mouseleave)="mouseleave($event)"></canvas>
+    <audio-signal></audio-signal>
     `,
     styles: [`:host {
 
@@ -25,9 +26,16 @@ import {Component, ViewChild} from '@angular/core';
     align-items: center; /* align vertical */
     text-align: center;
   }`, `canvas {
+    top: 0;
+    left: 0;
     width: 0;
     height: 0;
     cursor: ns-resize;
+    position: absolute;
+    zIndex: 1;
+  }`,`audio-signal {
+    top: 0;
+    left: 0;
     position: absolute;
     zIndex: 1;
   }`]
@@ -36,9 +44,10 @@ import {Component, ViewChild} from '@angular/core';
 export class AudioClipUIContainer implements AfterViewInit {
     private static DIVIDER_PIXEL_SIZE = 10;
     @ViewChild('signalC') canvasRef: ElementRef;
+
     ce: HTMLDivElement;
     dc: HTMLCanvasElement;
-    as: AudioSignal;
+    @ViewChild(AudioSignal) as: AudioSignal;
     so: Sonagram;
     private _playFramePosition: number;
     private dragStartMouseY: number | null = null;
@@ -53,7 +62,7 @@ export class AudioClipUIContainer implements AfterViewInit {
 
         this.ce = this.ref.nativeElement;
         this.dc = this.canvasRef.nativeElement;
-        this.as = new AudioSignal(this.ce);
+
         this.so = new Sonagram(this.ce);
         this.so.init();
 
