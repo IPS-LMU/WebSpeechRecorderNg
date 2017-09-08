@@ -168,18 +168,7 @@ export class AudioClipUIContainer implements AfterViewInit {
     }
   }
 
-  /**
-   * Layout temporary without re-rendering. The canvases are scaled only.
-   */
   layoutScaled() {
-    this.layout(false);
-  }
-
-  /**
-   * Layout container.If redraw is true, which is the default the canvases are re-rendered.
-   * @param {boolean} redraw
-   */
-  layout(redraw:boolean=true) {
     const offW = this.ce.offsetWidth;
     const offH = this.ce.offsetHeight;
 
@@ -204,8 +193,37 @@ export class AudioClipUIContainer implements AfterViewInit {
     this.dc.style.width = wStr;
     this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
     this.drawDivider();
-    this.as.layoutBounds(0, 0, offW, asH, redraw);
-    this.so.layoutBounds(0, soTop, offW, soH, redraw);
+    this.so.layoutBounds(0, soTop, offW, soH, false);
+    this.as.layoutBounds(0, 0, offW, asH, false);
+  }
+
+  layout() {
+    const offW = this.ce.offsetWidth;
+    const offH = this.ce.offsetHeight;
+
+    const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    const asTop = 0;
+
+    const asH = Math.round(psH * this.dividerPosition);
+    const soH = Math.round(psH * (1 - this.dividerPosition));
+    const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    const wStr = offW.toString() + 'px';
+
+    const dTop = asH;
+    const dTopStr = dTop.toString() + 'px';
+    this.dc.style.top = dTopStr;
+    this.dc.style.left = '0px';
+    this.dc.style.width = wStr;
+
+    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    this.dc.width = offW;
+    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+
+    this.dc.style.width = wStr;
+    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+    this.drawDivider();
+    this.as.layoutBounds(0, 0, offW, asH, true);
+    this.so.layoutBounds(0, soTop, offW, soH, true);
   }
 
   setData(audioData: AudioBuffer | null) {

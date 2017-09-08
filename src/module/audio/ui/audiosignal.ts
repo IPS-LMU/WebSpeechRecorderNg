@@ -1,5 +1,6 @@
 import {Marker, Point} from './common'
 import {Component, ViewChild, ElementRef} from '@angular/core';
+import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -8,10 +9,10 @@ declare function postMessage(message: any, transfer: Array<any>): void;
 
   selector: 'audio-signal',
   template: `
-    <canvas #audioSignalC></canvas>
-    <canvas #cursorC (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
+    <canvas #audioSignal></canvas>
+    <canvas #cursor (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
             (mouseleave)="drawCursorPosition($event, false)"></canvas>
-    <canvas #playPosC></canvas>`,
+    <canvas #marker></canvas>`,
 
   styles: [`canvas {
     top: 0;
@@ -22,42 +23,45 @@ declare function postMessage(message: any, transfer: Array<any>): void;
   }`]
 
 })
-export class AudioSignal {
+export class AudioSignal extends CanvasLayerComponent{
 
   audioData: AudioBuffer | null;
   n: any;
   ce: HTMLDivElement;
-  @ViewChild('audioSignalC') canvasRef: ElementRef;
-  @ViewChild('cursorC') cursorCRef: ElementRef;
-  @ViewChild('playPosC') playPosCRef: ElementRef;
-  c: HTMLCanvasElement;
-  cCursor: HTMLCanvasElement;
-  cPlaypos: HTMLCanvasElement;
+  @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
+  @ViewChild('cursor') cursorCanvasRef: ElementRef;
+  @ViewChild('marker') playPosCanvasRef: ElementRef;
+  signalCanvas: HTMLCanvasElement;
+  cursorCanvas: HTMLCanvasElement;
+  markerCanvas: HTMLCanvasElement;
+
   markers: Array<Marker>;
   private _playFramePosition: number;
   private wo: Worker | null;
   private workerURL: string;
 
   constructor(private ref: ElementRef) {
-
+    super();
     this.wo = null;
     let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
     this.workerURL = window.URL.createObjectURL(wb);
     this.audioData = null;
     this.markers = new Array<Marker>();
-
-
   }
 
   ngAfterViewInit() {
 
     this.ce = this.ref.nativeElement;
-    this.c = this.canvasRef.nativeElement;
-    this.c.style.zIndex = '1';
-    this.cCursor = this.cursorCRef.nativeElement;
-    this.cCursor.style.zIndex = '3';
-    this.cPlaypos = this.playPosCRef.nativeElement;
-    this.cPlaypos.style.zIndex = '2';
+    this.signalCanvas = this.audioSignalCanvasRef.nativeElement;
+    this.signalCanvas.style.zIndex = '1';
+    this.cursorCanvas = this.cursorCanvasRef.nativeElement;
+    this.cursorCanvas.style.zIndex = '3';
+    this.markerCanvas = this.playPosCanvasRef.nativeElement;
+    this.markerCanvas.style.zIndex = '2';
+
+    this.canvasLayers[0]=this.signalCanvas;
+    this.canvasLayers[1]=this.cursorCanvas;
+    this.canvasLayers[2]=this.markerCanvas;
 
   }
 
@@ -80,17 +84,17 @@ export class AudioSignal {
 
   drawCursorPosition(e: MouseEvent, show: boolean) {
 
-    if (this.cCursor) {
-      let w = this.cCursor.width;
-      let h = this.cCursor.height;
-      let g = this.cCursor.getContext("2d");
+    if (this.cursorCanvas) {
+      let w = this.cursorCanvas.width;
+      let h = this.cursorCanvas.height;
+      let g = this.cursorCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
         if (show) {
 
-          let pp = this.canvasMousePos(this.cCursor, e);
-          let offX = e.offsetX - this.cCursor.offsetLeft;
-          let offY = e.offsetY - this.cCursor.offsetTop;
+          let pp = this.canvasMousePos(this.cursorCanvas, e);
+          let offX = e.offsetX - this.cursorCanvas.offsetLeft;
+          let offY = e.offsetY - this.cursorCanvas.offsetTop;
           let pixelPos = offX;
           g.fillStyle = 'yellow';
           g.strokeStyle = 'yellow';
@@ -117,10 +121,10 @@ export class AudioSignal {
   }
 
   drawPlayPosition() {
-    if (this.cPlaypos) {
-      let w = this.cPlaypos.width;
-      let h = this.cPlaypos.height;
-      let g = this.cPlaypos.getContext("2d");
+    if (this.markerCanvas) {
+      let w = this.markerCanvas.width;
+      let h = this.markerCanvas.height;
+      let g = this.markerCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
         if (this.audioData && this.audioData.numberOfChannels > 0) {
@@ -140,42 +144,7 @@ export class AudioSignal {
     }
   }
 
-  layoutBounds(left: number, top: number, offW: number, offH: number, redraw: boolean) {
 
-    this.c.style.left = left.toString() + 'px';
-    this.cCursor.style.left = left.toString() + 'px';
-    this.cPlaypos.style.left = left.toString() + 'px';
-    this.c.style.top = top.toString() + 'px';
-    this.cCursor.style.top = top.toString() + 'px';
-    this.cPlaypos.style.top = top.toString() + 'px';
-
-    if (offW) {
-      let wStr = offW.toString() + 'px';
-      if (redraw) {
-        //this.c.width = offW;
-        this.cPlaypos.width = offW;
-        this.cCursor.width = offW;
-      }
-      this.c.style.width = wStr;
-      this.cCursor.style.width = wStr;
-      this.cPlaypos.style.width = wStr;
-    }
-    if (offH) {
-      let hStr = offH.toString() + 'px';
-      if (redraw) {
-        //this.c.height = offH;
-        this.cCursor.height = offH;
-        this.cPlaypos.height = offH;
-      }
-      this.c.style.height = hStr;
-      this.cCursor.style.height = hStr;
-      this.cPlaypos.style.height = hStr;
-
-    }
-    if (redraw) {
-      this.startRender(offW, offH);
-    }
-  }
 
   workerFunction() {
     self.onmessage = function (msg) {
@@ -274,7 +243,7 @@ export class AudioSignal {
 
       this.wo.postMessage({w: w, h: h, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
     } else {
-      let g = this.c.getContext("2d");
+      let g = this.signalCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
       }
@@ -284,9 +253,9 @@ export class AudioSignal {
 
   drawRendered(me: MessageEvent) {
 
-    this.c.width = me.data.w;
-    this.c.height = me.data.h;
-    let g = this.c.getContext("2d");
+    this.signalCanvas.width = me.data.w;
+    this.signalCanvas.height = me.data.h;
+    let g = this.signalCanvas.getContext("2d");
     if (g) {
       g.clearRect(0, 0, me.data.w, me.data.h);
       g.fillStyle = "black";
@@ -339,10 +308,10 @@ export class AudioSignal {
 
   redraw() {
 
-    let g = this.c.getContext("2d");
+    let g = this.signalCanvas.getContext("2d");
     if (g) {
-      let w = this.c.width;
-      let h = this.c.height;
+      let w = this.signalCanvas.width;
+      let h = this.signalCanvas.height;
       g.clearRect(0, 0, w, h);
       g.fillStyle = "black";
       g.fillRect(0, 0, w, h);

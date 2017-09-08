@@ -13,10 +13,10 @@ const DEFAULT_DFT_SIZE = 1024;
 
   selector: 'audio-sonagram',
   template: `
-    <canvas #cC></canvas>
-    <canvas #cursorC (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
+    <canvas #sonagram></canvas>
+    <canvas #cursor (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
             (mouseleave)="drawCursorPosition($event, false)"></canvas>
-    <canvas #playPosC></canvas>`,
+    <canvas #marker></canvas>`,
 
   styles: [`canvas {
     top: 0;
@@ -33,12 +33,12 @@ export class Sonagram {
   dft: DFTFloat32;
   n: any;
   ce: HTMLDivElement;
-  c: HTMLCanvasElement;
-  cCursor: HTMLCanvasElement;
-  cPlaypos: HTMLCanvasElement;
-  @ViewChild('cC') canvasRef: ElementRef;
-  @ViewChild('cursorC') cursorCRef: ElementRef;
-  @ViewChild('playPosC') playPosCRef: ElementRef;
+  sonagramCanvas: HTMLCanvasElement;
+  cursorCanvas: HTMLCanvasElement;
+  markerCanvas: HTMLCanvasElement;
+  @ViewChild('sonagram') sonagramCanvasRef: ElementRef;
+  @ViewChild('cursor') cursorCanvasRef: ElementRef;
+  @ViewChild('marker') markerCanvasRef: ElementRef;
   markers: Array<Marker>;
   private _playFramePosition: number;
 
@@ -58,12 +58,12 @@ export class Sonagram {
   ngAfterViewInit() {
 
     this.ce = this.ref.nativeElement;
-    this.c = this.canvasRef.nativeElement;
-    this.c.style.zIndex = '1';
-    this.cCursor = this.cursorCRef.nativeElement;
-    this.cCursor.style.zIndex = '3';
-    this.cPlaypos = this.playPosCRef.nativeElement;
-    this.cPlaypos.style.zIndex = '2';
+    this.sonagramCanvas = this.sonagramCanvasRef.nativeElement;
+    this.sonagramCanvas.style.zIndex = '1';
+    this.cursorCanvas = this.cursorCanvasRef.nativeElement;
+    this.cursorCanvas.style.zIndex = '3';
+    this.markerCanvas = this.markerCanvasRef.nativeElement;
+    this.markerCanvas.style.zIndex = '2';
 
   }
 
@@ -87,16 +87,16 @@ export class Sonagram {
 
   drawCursorPosition(e: MouseEvent, show: boolean) {
 
-    if (this.cCursor) {
-      const w = this.cCursor.width;
-      const h = this.cCursor.height;
-      const g = this.cCursor.getContext('2d');
+    if (this.cursorCanvas) {
+      const w = this.cursorCanvas.width;
+      const h = this.cursorCanvas.height;
+      const g = this.cursorCanvas.getContext('2d');
       if (g) {
         g.clearRect(0, 0, w, h);
         if (show) {
-          const pp = this.canvasMousePos(this.cCursor, e);
-          const offX = e.offsetX - this.cCursor.offsetLeft;
-          const offY = e.offsetY - this.cCursor.offsetTop;
+          const pp = this.canvasMousePos(this.cursorCanvas, e);
+          const offX = e.offsetX - this.cursorCanvas.offsetLeft;
+          const offY = e.offsetY - this.cursorCanvas.offsetTop;
           const pixelPos = offX;
           g.fillStyle = 'yellow';
           g.strokeStyle = 'yellow';
@@ -123,10 +123,10 @@ export class Sonagram {
   }
 
   drawPlayPosition() {
-    if (this.cPlaypos) {
-      var w = this.cPlaypos.width;
-      var h = this.cPlaypos.height;
-      var g = this.cPlaypos.getContext("2d");
+    if (this.markerCanvas) {
+      var w = this.markerCanvas.width;
+      var h = this.markerCanvas.height;
+      var g = this.markerCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
         if (this.audioData && this.audioData.numberOfChannels > 0) {
@@ -149,8 +149,8 @@ export class Sonagram {
   layout() {
 
 
-    var offW = this.c.offsetWidth;
-    var offH = this.c.offsetHeight;
+    var offW = this.sonagramCanvas.offsetWidth;
+    var offH = this.sonagramCanvas.offsetHeight;
     this.layoutBounds(0, 0, offW, offH, true);
   }
 
@@ -158,32 +158,32 @@ export class Sonagram {
   layoutBounds(left: number, top: number, offW: number, offH: number, redraw: boolean) {
 
     const leftStr = left.toString() + 'px';
-    this.c.style.left = leftStr;
+    this.sonagramCanvas.style.left = leftStr;
     const topStr = top.toString() + 'px';
-    this.c.style.top = topStr;
-    this.cCursor.style.top = topStr;
-    this.cPlaypos.style.top = topStr;
+    this.sonagramCanvas.style.top = topStr;
+    this.cursorCanvas.style.top = topStr;
+    this.markerCanvas.style.top = topStr;
 
     if (offW) {
       const wStr = offW.toString() + 'px';
       if (redraw) {
 
-        this.cCursor.width = offW;
-        this.cPlaypos.width = offW;
+        this.cursorCanvas.width = offW;
+        this.markerCanvas.width = offW;
       }
-      this.c.style.width = wStr;
-      this.cCursor.style.width = wStr;
-      this.cPlaypos.style.width = wStr;
+      this.sonagramCanvas.style.width = wStr;
+      this.cursorCanvas.style.width = wStr;
+      this.markerCanvas.style.width = wStr;
     }
     if (offH) {
       const hStr = offH.toString() + 'px';
       if (redraw) {
-        this.cCursor.height = offH;
-        this.cPlaypos.height = offH;
+        this.cursorCanvas.height = offH;
+        this.markerCanvas.height = offH;
       }
-      this.c.style.height = hStr;
-      this.cCursor.style.height = hStr;
-      this.cPlaypos.style.height = hStr;
+      this.sonagramCanvas.style.height = hStr;
+      this.cursorCanvas.style.height = hStr;
+      this.markerCanvas.style.height = hStr;
 
     }
     if (redraw) {
@@ -572,8 +572,8 @@ export class Sonagram {
           this.wo = null;
         }
       }
-      if (this.cPlaypos) {
-        let g = this.cPlaypos.getContext("2d");
+      if (this.markerCanvas) {
+        let g = this.markerCanvas.getContext("2d");
         if (g) {
           g.fillText("Rendering...", 10, 20);
         }
@@ -581,7 +581,7 @@ export class Sonagram {
       }
       this.wo.postMessage({audioData: ada, w: w, h: h, chs: chs, frameLength: frameLength, dftSize: this.dftSize}, ada);
     } else {
-      let g = this.c.getContext("2d");
+      let g = this.sonagramCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
       }
@@ -589,11 +589,11 @@ export class Sonagram {
   }
 
   drawRendered(me: MessageEvent) {
-    if (this.c) {
+    if (this.sonagramCanvas) {
 
-      this.c.width = me.data.w;
-      this.c.height = me.data.h;
-      let g = this.c.getContext("2d");
+      this.sonagramCanvas.width = me.data.w;
+      this.sonagramCanvas.height = me.data.h;
+      let g = this.sonagramCanvas.getContext("2d");
       if (g) {
         let imgDataArr: Uint8ClampedArray = me.data.imgData;
         let imgData = g.createImageData(me.data.w, me.data.h);
@@ -608,10 +608,10 @@ export class Sonagram {
   // synchronous draw (not used anymore)
   redraw() {
 
-    let g = this.c.getContext("2d");
+    let g = this.sonagramCanvas.getContext("2d");
 
-    let w = this.c.width;
-    let h = this.c.height;
+    let w = this.sonagramCanvas.width;
+    let h = this.sonagramCanvas.height;
     if (g) {
       g.clearRect(0, 0, w, h);
       g.fillStyle = "white";
