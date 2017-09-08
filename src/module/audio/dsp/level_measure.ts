@@ -28,6 +28,8 @@ export class LevelMeasure {
   private workerFunctionURL: string;
   private worker: Worker;
 
+  private bufferIndex:number=0;
+
 
   constructor(private channelCount: number) {
     this.maxLinPeakLevels = new Array<number>(this.channelCount);
@@ -66,12 +68,14 @@ export class LevelMeasure {
   }
 
   pushData(bufferData: Array<Float32Array>) {
-    console.log("measure buffer data: "+bufferData.length+" "+bufferData[0].length);
+    //console.log("measure buffer data: "+bufferData.length+" "+bufferData[0].length);
     let buffers=new Array<any>(bufferData.length);
     for(let ch=0;ch<bufferData.length;ch++){
       buffers[ch]=bufferData[ch].buffer;
     }
-    this.worker.postMessage({audioData: buffers,chs: this.channelCount},buffers);
+    this.worker.postMessage({audioData: buffers,chs: this.channelCount,bufferIndex:this.bufferIndex},buffers);
+    //console.log("Posted buffer #"+this.bufferIndex);
+    this.bufferIndex++;
   }
 
 
@@ -111,7 +115,16 @@ export class LevelMeasure {
         linLevelBufs[ch]=linLevels[ch].buffer;
 
       }
-      postMessage({linLevelBuffers: linLevelBufs},linLevelBufs);
+
+      // TEST delay
+      // let v=0;
+      // for(let i=0;i<100000000;i++){
+      //   v=v+Math.random();
+      // }
+      // console.log(v);
+      // console.log("Processed buffer #"+msg.data.bufferIndex);
+
+      postMessage({linLevelBuffers: linLevelBufs}, linLevelBufs);
     }
   }
 
