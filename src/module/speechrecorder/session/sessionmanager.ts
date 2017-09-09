@@ -5,7 +5,10 @@ import { WavWriter } from '../../audio/impl/wavwriter'
 import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
 import { RecordingFile } from '../recording'
 import { Upload } from '../../net/uploader';
-import {Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter, Inject} from "@angular/core";
+import {
+    Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter, Inject,
+    AfterViewInit
+} from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -15,6 +18,8 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
 import {AudioDevice} from "../project/project";
+import {LiveLevelDisplay} from "../../audio/ui/livelevel";
+import {LevelMeasure} from "../../audio/dsp/level_measure";
 
 export const RECFILE_API_CTX='recfile';
 
@@ -70,6 +75,7 @@ export class Prompter{
 
   template: `
     <app-sprprompter [promptText]="promptText"></app-sprprompter>
+    
   `
   ,
   styles: [`:host{
@@ -317,6 +323,7 @@ export class TransportPanel{
   template: `
     <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
+    
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
    
     <app-uploadstatus [value]="uploadProgress" [status]="uploadStatus"></app-uploadstatus>
@@ -370,7 +377,7 @@ export class ControlPanel{
   template: `
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
-   
+    <audio-livelevel #liveLevel></audio-livelevel>
     <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
@@ -388,7 +395,7 @@ export class ControlPanel{
   }`]
 
 })
-export class SessionManager implements AudioCaptureListener {
+export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
         status: Status;
         mode: Mode;
@@ -396,7 +403,7 @@ export class SessionManager implements AudioCaptureListener {
         ac: AudioCapture;
         private _channelCount=2;
         @ViewChild(Prompting) prompting:Prompting;
-
+        @ViewChild(LiveLevelDisplay) liveLevelDisplay:LiveLevelDisplay;
         startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:Array<AudioDevice> | null | undefined;
@@ -449,6 +456,8 @@ export class SessionManager implements AudioCaptureListener {
         uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
+        private levelMeasure:LevelMeasure;
+
         constructor(private changeDetectorRef: ChangeDetectorRef,
                     public dialog: MdDialog,
                     private uploader:SpeechRecorderUploader,
@@ -465,6 +474,7 @@ export class SessionManager implements AudioCaptureListener {
             this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
             this.audio = document.getElementById('audio');
             this.selCaptureDeviceId=null;
+            this.levelMeasure=new LevelMeasure();
         }
 
 
@@ -491,7 +501,7 @@ export class SessionManager implements AudioCaptureListener {
                 if (navigator.mediaDevices) {
 
                     this.ac = new AudioCapture(context);
-                    this.ac.listener = this;
+
                     this.ap = new AudioPlayer(context, this);
 
                     if (this.ac) {
@@ -505,6 +515,9 @@ export class SessionManager implements AudioCaptureListener {
 
                             }
                         }, false);
+
+                        this.ac.listener = this;
+                        this.ac.audioOutStream=this.levelMeasure;
 
                     } else {
                         this.transportActions.startAction.disabled = true;
@@ -565,6 +578,11 @@ export class SessionManager implements AudioCaptureListener {
             }
             this.ac.listDevices();
             this.startStopSignalState=StartStopSignalState.OFF;
+
+        }
+
+        ngAfterViewInit(){
+            this.levelMeasure.levelListener=this.liveLevelDisplay;
         }
 
         set session(session: Session) {

@@ -1,7 +1,49 @@
 import {min} from "rxjs/operator/min";
 import {DSPUtils} from "../../dsp/utils";
 import {buffer} from "rxjs/operator/buffer";
+import {SequenceAudioFloat32OutStream} from "../io/stream";
 
+export class LevelInfos {
+
+  private channelCount:number;
+    constructor(public minLinLevels: Array<number>,
+                public maxLinLevels: Array<number>,
+                private minLinPeakLevels: Array<number>,
+                private maxLinPeakLevels: Array<number>) {
+        this.channelCount=minLinLevels.length;
+       // TODO check other arrays
+    }
+
+
+    // get minLinLevels(): Array<number> {
+    //     //return this.minLinLevels;
+    // }
+    //
+    // get maxLinLevels(): Array<number> {
+    //     //return this.minLinLevels;
+    // }
+
+    levelsLin():Array<number>{
+        let lvlsLin=new Array<number>(this.channelCount);
+        for (let ch = 0; ch < this.channelCount; ch++) {
+            lvlsLin[ch]=Math.max(Math.abs(this.minLinLevels[ch]),Math.abs(this.maxLinLevels[ch]));
+        }
+        return lvlsLin;
+    }
+    powerLevelsDB():Array<number>{
+        let lvlsDb=new Array<number>(this.channelCount);
+        for (let ch = 0; ch < this.channelCount; ch++) {
+            lvlsDb[ch]=DSPUtils.toPowerLevelInDB(this.levelsLin()[ch]);
+        }
+        return lvlsDb;
+    }
+}
+
+export interface LevelListener{
+    channelCount:number;
+    update(levelInfos:LevelInfos);
+    reset();
+}
 
 declare function postMessage (message:any, transfer?:Array<any>):void;
 // export class LevelStatus{
@@ -17,7 +59,11 @@ declare function postMessage (message:any, transfer?:Array<any>):void;
 //
 // }
 
-export class LevelMeasure {
+
+
+
+
+export class LevelMeasure implements SequenceAudioFloat32OutStream{
 
 
   minLinPeakLevels: Array<number>;
@@ -27,21 +73,25 @@ export class LevelMeasure {
 
   private workerFunctionURL: string;
   private worker: Worker;
-
+  private channelCount:number;
   private bufferIndex:number=0;
 
+  levelListener:LevelListener;
 
-  constructor(private channelCount: number) {
-    this.maxLinPeakLevels = new Array<number>(this.channelCount);
-    this.minLinPeakLevels = new Array<number>(this.channelCount);
-    this.maxLinLevels = new Array<number>(this.channelCount);
-    this.minLinLevels = new Array<number>(this.channelCount);
+  constructor() {
+
     this.reset();
     let workerFunctionBlob = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
     this.workerFunctionURL = window.URL.createObjectURL(workerFunctionBlob);
-  }
 
-  start() {
+  }
+  setFormat(channels:number,sampleRate:number){
+    this.channelCount=channels;
+    this.maxLinPeakLevels = new Array<number>(this.channelCount);
+      this.minLinPeakLevels = new Array<number>(this.channelCount);
+      this.maxLinLevels = new Array<number>(this.channelCount);
+      this.minLinLevels = new Array<number>(this.channelCount);
+      this.reset();
     this.worker = new Worker(this.workerFunctionURL);
     this.worker.onmessage = (me) => {
       console.log("Worker post");
@@ -58,16 +108,26 @@ export class LevelMeasure {
     }
   }
 
-  reset() {
+
+
+  nextStream() {
+    this.reset();
+  }
+
+  private reset(){
     for (let ch = 0; ch < this.channelCount; ch++) {
       this.minLinLevels[ch] = 0.0;
       this.maxLinLevels[ch] = 0.0;
       this.minLinPeakLevels[ch] = 0.0;
       this.maxLinPeakLevels[ch] = 0.0;
     }
+      if(this.levelListener) {
+          this.levelListener.reset();
+          this.levelListener.channelCount=this.channelCount;
+      }
   }
 
-  pushData(bufferData: Array<Float32Array>) {
+  write(bufferData: Array<Float32Array>):number {
     //console.log("measure buffer data: "+bufferData.length+" "+bufferData[0].length);
     let buffers=new Array<any>(bufferData.length);
     for(let ch=0;ch<bufferData.length;ch++){
@@ -76,6 +136,17 @@ export class LevelMeasure {
     this.worker.postMessage({audioData: buffers,chs: this.channelCount,bufferIndex:this.bufferIndex},buffers);
     //console.log("Posted buffer #"+this.bufferIndex);
     this.bufferIndex++;
+    return bufferData[0].length;
+  }
+
+  flush(){
+    // no cache for now; do nothing
+  }
+
+  close(){
+    if(this.worker){
+      this.worker.terminate();
+    }
   }
 
 
@@ -140,16 +211,14 @@ export class LevelMeasure {
     }
     this.minLinLevels = minLinLevels;
     this.maxLinLevels = maxLinLevels;
+    if(this.levelListener) {
+        let lvlInfos = new LevelInfos(minLinLevels, this.maxLinLevels, this.minLinPeakLevels, this.maxLinPeakLevels);
+        this.levelListener.update(lvlInfos);
+    }
     console.log("Peak level channel 0: "+this.peakLevelsLin()+",  "+this.peakPowerLevelsDB()[0]+" dB");
   }
 
-  levelsLin():Array<number>{
-    let lvlsLin=new Array<number>(this.channelCount);
-    for (let ch = 0; ch < this.channelCount; ch++) {
-      lvlsLin[ch]=Math.max(Math.abs(this.minLinLevels[ch]),Math.abs(this.maxLinLevels[ch]));
-    }
-    return lvlsLin;
-  }
+
 
   peakLevelsLin():Array<number>{
     let pkLvlsLin=new Array<number>(this.channelCount);
@@ -159,13 +228,7 @@ export class LevelMeasure {
     return pkLvlsLin;
   }
 
-  powerLevelsDB():Array<number>{
-    let lvlsDb=new Array<number>(this.channelCount);
-    for (let ch = 0; ch < this.channelCount; ch++) {
-        lvlsDb[ch]=DSPUtils.toPowerLevelInDB(this.levelsLin()[ch]);
-    }
-    return lvlsDb;
-  }
+
   peakPowerLevelsDB():Array<number>{
     let pkLvlsDb=new Array<number>(this.channelCount);
     for (let ch = 0; ch < this.channelCount; ch++) {

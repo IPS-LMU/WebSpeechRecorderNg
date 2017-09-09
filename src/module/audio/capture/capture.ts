@@ -1,4 +1,5 @@
 import {LevelMeasure} from "../dsp/level_measure";
+import {SequenceAudioFloat32OutStream} from "../io/stream";
 interface AudioWorker extends Worker {
     terminate ():void;
     postMessage (message:any, transfer:Array<any>):void;
@@ -45,7 +46,7 @@ interface AudioWorker extends Worker {
         data:Array<Array<Float32Array>>;
         currentSampleRate:number;
         n:Navigator;
-        levelMeasure:LevelMeasure | null;
+        audioOutStream:SequenceAudioFloat32OutStream | null;
 
         constructor(context:any) {
            this.context=context;
@@ -108,7 +109,8 @@ interface AudioWorker extends Worker {
         open(channelCount:number,selDeviceId?:ConstrainDOMString,){
           console.log("Starting capture...");
           this.channelCount=channelCount;
-          this.levelMeasure=new LevelMeasure(this.channelCount);
+          //this.audioOutStream=new LevelMeasure(this.channelCount);
+            this.audioOutStream.setFormat(this.channelCount,44100);
             //var msc = new AudioStreamConstr();
           // var msc={};
             //msc.video = false;
@@ -244,8 +246,8 @@ interface AudioWorker extends Worker {
                   }
 
                   c++;
-                 if(this.levelMeasure){
-                   this.levelMeasure.pushData(currentBuffers);
+                 if(this.audioOutStream){
+                   this.audioOutStream.write(currentBuffers);
                  }
 
                 }
@@ -267,9 +269,8 @@ interface AudioWorker extends Worker {
 
       start() {
         this.initData();
-        if(this.levelMeasure){
-          this.levelMeasure.reset();
-          this.levelMeasure.start();
+        if(this.audioOutStream){
+            this.audioOutStream.nextStream()
         }
         this.mediaStream.connect(this.bufferingNode);
         this.bufferingNode.connect(this.context.destination);
@@ -284,9 +285,7 @@ interface AudioWorker extends Worker {
 
           this.mediaStream.disconnect(this.bufferingNode);
           this.bufferingNode.disconnect(this.context.destination);
-          if(this.levelMeasure){
-            this.levelMeasure.stop();
-          }
+          this.audioOutStream.flush();
             console.log("Captured");
           if(this.listener){
             this.listener.stopped();
