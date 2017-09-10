@@ -1,18 +1,17 @@
 import { Action } from '../../action/action'
 import { AudioCapture,AudioCaptureListener } from '../../audio/capture/capture';
-import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from '../../audio/playback/player'
+import { AudioPlayer,AudioPlayerEvent,EventType } from '../../audio/playback/player'
 import { WavWriter } from '../../audio/impl/wavwriter'
-import {Script,Section,PromptUnit,PromptPhase} from '../script/script';
+import {Script,Section,PromptUnit} from '../script/script';
 import { RecordingFile } from '../recording'
 import { Upload } from '../../net/uploader';
 import {
-    Component, ViewChild, ChangeDetectorRef, Input, Output, EventEmitter, Inject,
+    Component, ViewChild, ChangeDetectorRef, Input, Inject,
     AfterViewInit
 } from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
-import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MdDialog, MdDialogConfig,MdProgressSpinner} from "@angular/material";
+import {MdDialog, MdDialogConfig} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
@@ -20,6 +19,7 @@ import {Session} from "./session";
 import {AudioDevice} from "../project/project";
 import {LiveLevelDisplay} from "../../audio/ui/livelevel";
 import {LevelMeasure} from "../../audio/dsp/level_measure";
+import {Prompting} from "./prompting";
 
 export const RECFILE_API_CTX='recfile';
 
@@ -45,123 +45,7 @@ const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 
 // TODO enum not possible in template language , use string for now
 //export enum StatusAlertType {INFO,WARN,ERROR};
-@Component({
 
-  selector: 'app-sprprompter',
-
-  template: `
-
-    {{promptText}}
-  `,
-  styles: [`:host{
-
-    justify-content: center; /* align horizontal center */
-    align-items: center; /* align vertical  center */
-    background: white;
-    text-align: center;
-    font-size: 2em;
-    line-height: 1.2em;
-    flex: 0 1;
-  }
-  `]
-})
-export class Prompter{
-  @Input() promptText:string
-}
-
-@Component({
-
-  selector: 'app-sprpromptcontainer',
-
-  template: `
-    <app-sprprompter [promptText]="promptText"></app-sprprompter>
-    
-  `
-  ,
-  styles: [`:host{
-
-    flex: 3; /* the container consumes all available space */
-    padding: 10pt;
-    /* height: 100%; */
-    justify-content: center; /* align horizontal center*/
-    align-items: center; /* align vertical center */
-    background: white;
-    text-align: center;
-    display: flex;
-    flex-direction:column;
-    min-height: 0px;
-  }
-  `]
-})
-export class PromptContainer{
-  @Input() promptText:string;
-}
-
-@Component({
-
-  selector: 'app-sprprompting',
-
-  template: `
-
-    <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-    <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="enableDownload" (onRowSelect)="itemSelect($event)" (onShowDoneAction)="showDone($event)" (onDownloadDoneAction)="downloadDone($event)"></app-sprprogress>
-
-
-
-  `,
-  styles: [`:host{
-
-    /* height: 100%; */
-    margin: 0;
-    padding: 0;
-    background: lightgrey;
-    width: 100%; /* use all horizontal available space */
-    flex: 1; /* ... and fill rest of vertical available space (other components have flex 0) */
-
-    /* Workaround for Firefox
-    If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
-    the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
-    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
-    */
-    min-height:0px;
-   
-    display: flex; /* flex container: left traffic light, right prompter (container) */
-    flex-direction: row;
-    flex-wrap: nowrap; /* wrap could completely destroy the layout */
-  }`,`
-      app-simpletrafficlight {
-          margin: 10px;
-        min-height: 0px;
-      }
-  `]
-
-})
-
-export class Prompting{
-  @ViewChild(SimpleTrafficLight) simpleTrafficLight:SimpleTrafficLight;
-  @Input() startStopSignalState:StartStopSignalState;
-  @Input() promptText:string;
-  @Input() items:Array<Item>;
-  @Input() selectedItemIdx:number;
-  @Input() enableDownload:boolean;
-  @Output() onItemSelect=new EventEmitter<number>();
-  @Output() onShowDone=new EventEmitter<number>();
-  @Output() onDownloadDone=new EventEmitter<number>();
-
-  itemSelect(rowIdx:number){
-    console.log("Row (prompting) "+rowIdx)
-    this.onItemSelect.emit(rowIdx);
-  }
-  showDone(rowIdx:number){
-
-    this.onShowDone.emit(rowIdx);
-  }
-  downloadDone(rowIdx:number){
-
-    this.onDownloadDone.emit(rowIdx);
-  }
-}
 
 @Component({
 

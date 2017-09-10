@@ -8,8 +8,11 @@ import {CommonModule} from "@angular/common";
 import {Progress} from "./session/progress";
 import {AudioDisplayDialog} from "../audio/audio_display_dialog";
 import {
+  PromptContainer, Prompter, Prompting,
+} from "./session/prompting";
+import {
   ControlPanel,
-  ProgressDisplay, PromptContainer, Prompter, Prompting, SessionManager, StatusDisplay,
+  ProgressDisplay, SessionManager, StatusDisplay,
   TransportPanel, UploadStatus
 } from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
@@ -23,6 +26,7 @@ import {SpeechRecorderUploader} from "./spruploader";
 import {Mediaitem, PromptUnit, Script} from "./script/script";
 import {Session} from "./session/session";
 import {ProjectService} from "./project/project.service";
+import {LiveLevelDisplay} from "../audio/ui/livelevel";
 
 
 export const VERSION='0.0.17';
