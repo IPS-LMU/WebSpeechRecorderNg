@@ -56,7 +56,7 @@ const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
   `,
   styles: [`:host{
     flex: 1;
-  //align-self: flex-start;
+  /* align-self: flex-start; */
     display: inline;
     text-align:left;
     font-size: smaller;

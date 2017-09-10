@@ -1,6 +1,6 @@
 import {Component, ViewChild, ViewChildDecorator, ChangeDetectorRef} from '@angular/core'
 
-import {ControlPanel, Mode as SessionMode, Prompting, StatusDisplay} from './session/sessionmanager';
+import {ControlPanel, Mode as SessionMode, StatusDisplay} from './session/sessionmanager';
 	import {AudioCaptureListener} from '../audio/capture/capture';
 	import {AudioPlayer,AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../audio/playback/player';
   import {AudioSignal } from '../audio/ui/audiosignal';

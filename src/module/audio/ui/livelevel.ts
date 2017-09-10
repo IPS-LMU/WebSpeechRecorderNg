@@ -7,8 +7,7 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-livelevel',
     template: `
-        <canvas #liveLevel></canvas> <div>{{peakDbLevelStr}}</div>
-        
+        <canvas #liveLevel></canvas> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -17,15 +16,17 @@ export const MIN_DB_LEVEL=-40.0;
         min-height: 44px; */
         
         background: darkgray;
+        padding:4px;
+        box-sizing:border-box;
         /* margin: 10px; */  /* causes scroll bar */
-        height: 44px;
-        min-height: 44px;
-        max-height: 44px;
+        height: 54px;
+        min-height: 54px;
+        max-height: 54px;
         display: flex; /* flex container: left traffic light, right prompter (container) */
         flex-direction: row;
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
     }`,`canvas {
-        flex:2;
+        flex:1;
         top: 0px;
         left: 0px;
         width: 100%;
@@ -33,10 +34,13 @@ export const MIN_DB_LEVEL=-40.0;
         /*height: 40px;
         max-height: 40px; */
         position: relative;
-    }`,`div{
+        box-sizing:border-box;
+    }`,`span{
        flex: 0;
+       font-weight: bold;
         display: inline-block;
         white-space: nowrap;
+        box-sizing:border-box;
     }`]
 
 })
@@ -81,6 +85,9 @@ export class LiveLevelDisplay {
         // this.liveLevelCanvas.height=this.ce.offsetHeight;
         // this.liveLevelCanvas.style.width=offW;
         // this.liveLevelCanvas.style.height=offH;
+        this.liveLevelCanvas.width=this.liveLevelCanvas.offsetWidth;
+
+        console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
     }
 
     update(levelInfos:LevelInfos){
@@ -88,7 +95,7 @@ export class LiveLevelDisplay {
         let peakDBVals=levelInfos.powerLevelsDB();
         if(this.peakDbLvl<peakDBVals[0]){
             this.peakDbLvl=peakDBVals[0];
-            this.peakDbLevelStr=this.peakDbLvl+" dB";
+            //this.peakDbLevelStr=this.peakDbLvl+" dB";
             this.changeDetectorRef.detectChanges();
         }
         this.dbValues.push(dbVals);
@@ -101,6 +108,7 @@ export class LiveLevelDisplay {
 
 
     reset(){
+        this.peakDbLvl=MIN_DB_LEVEL;
         this.dbValues=new Array<Array<number>>();
         this.drawAll();
     }
