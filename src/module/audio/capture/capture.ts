@@ -109,8 +109,9 @@ interface AudioWorker extends Worker {
         open(channelCount:number,selDeviceId?:ConstrainDOMString,){
           console.log("Starting capture...");
           this.channelCount=channelCount;
-          //this.audioOutStream=new LevelMeasure(this.channelCount);
-            this.audioOutStream.setFormat(this.channelCount,44100);
+          if(this.audioOutStream) {
+            this.audioOutStream.setFormat(this.channelCount, 44100);
+          }
             //var msc = new AudioStreamConstr();
           // var msc={};
             //msc.video = false;
@@ -285,7 +286,9 @@ interface AudioWorker extends Worker {
 
           this.mediaStream.disconnect(this.bufferingNode);
           this.bufferingNode.disconnect(this.context.destination);
-          this.audioOutStream.flush();
+          if(this.audioOutStream) {
+            this.audioOutStream.flush();
+          }
             console.log("Captured");
           if(this.listener){
             this.listener.stopped();

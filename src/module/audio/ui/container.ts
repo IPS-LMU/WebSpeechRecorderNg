@@ -71,7 +71,7 @@ export class AudioClipUIContainer implements AfterViewInit {
   }
 
   @HostListener('window:resize', ['$event'])
-  onResize(event) {
+  onResize(event:Event):void {
     this.layout();
   }
 
@@ -97,18 +97,18 @@ export class AudioClipUIContainer implements AfterViewInit {
   }
 
   @HostListener('document:mouseup', ['$event'])
-  onMouseup(event) {
+  onMouseup(me:MouseEvent) {
     if (this.dragStartY != null) {
-      this.dividerDrag(event);
+      this.dividerDrag(me);
       this.layout();
       this.dragStartY = null;
     }
   }
 
   @HostListener('document:mousemove', ['$event'])
-  onMousemove(event) {
+  onMousemove(me:MouseEvent) {
     if (this.dragStartY != null) {
-      this.dividerDrag(event);
+      this.dividerDrag(me);
       this.layoutScaled();
     }
   }

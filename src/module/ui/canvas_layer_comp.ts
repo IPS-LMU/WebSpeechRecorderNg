@@ -53,5 +53,5 @@ export abstract class CanvasLayerComponent{
     }
   }
 
-  abstract startRender(offWidth:number,offsetHeight:number);
+  abstract startRender(offWidth:number,offsetHeight:number):void;
 }

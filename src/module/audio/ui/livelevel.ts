@@ -71,7 +71,7 @@ export class LiveLevelDisplay {
     }
 
     @HostListener('window:resize', ['$event'])
-    onResize(event) {
+    onResize(event:Event) {
 
         this.layout();
         //this.liveLevelCanvas.style.height=offH;

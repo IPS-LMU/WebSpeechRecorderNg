@@ -41,8 +41,8 @@ export class LevelInfos {
 
 export interface LevelListener{
     channelCount:number;
-    update(levelInfos:LevelInfos);
-    reset();
+    update(levelInfos:LevelInfos):void;
+    reset():void;
 }
 
 declare function postMessage (message:any, transfer?:Array<any>):void;
