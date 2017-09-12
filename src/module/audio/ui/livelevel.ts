@@ -1,59 +1,40 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild} from "@angular/core"
 import {LevelInfos} from "../dsp/level_measure";
 
-export const MIN_DB_LEVEL=-40.0;
+export const MIN_DB_LEVEL=-60.0;
 
 @Component({
 
-    selector: 'audio-livelevel',
+    selector: 'audio-levelbar',
     template: `
-        <canvas #liveLevel></canvas> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
+        <canvas #levelbar></canvas>
     `,
     styles: [`:host {
-        flex: 0; /* only required vertical space */
+       
         width: 100%;
-        /*height: 44px;
-        min-height: 44px; */
-        
         background: darkgray;
-        padding:4px;
         box-sizing:border-box;
-        /* margin: 10px; */  /* causes scroll bar */
-        height: 54px;
-        min-height: 54px;
-        max-height: 54px;
-        display: flex; /* flex container: left traffic light, right prompter (container) */
-        flex-direction: row;
-        flex-wrap: nowrap; /* wrap could completely destroy the layout */
+        height: 100%;
+      position: relative;
     }`,`canvas {
-        flex:1;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        
-        /*height: 40px;
-        max-height: 40px; */
-        position: relative;
-        box-sizing:border-box;
-    }`,`span{
-       flex: 0;
-       font-weight: bold;
-        display: inline-block;
-        white-space: nowrap;
-        box-sizing:border-box;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      min-height: 50px;
+      position: absolute;
     }`]
 
 })
-export class LiveLevelDisplay {
+export class LevelBar {
 
 
-    @ViewChild('liveLevel') liveLevelCanvasRef: ElementRef;
+    @ViewChild('levelbar') liveLevelCanvasRef: ElementRef;
     liveLevelCanvas: HTMLCanvasElement;
     ce:HTMLDivElement;
     dbValues: Array<Array<number>>;
-    peakDbLevelStr="-___ dB";
+
     peakDbLvl=MIN_DB_LEVEL;
-    bla=false;
 
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
         this.dbValues=new Array<Array<number>>();
@@ -86,6 +67,7 @@ export class LiveLevelDisplay {
         // this.liveLevelCanvas.style.width=offW;
         // this.liveLevelCanvas.style.height=offH;
         this.liveLevelCanvas.width=this.liveLevelCanvas.offsetWidth;
+       this.liveLevelCanvas.height=this.liveLevelCanvas.offsetHeight;
 
         console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
     }

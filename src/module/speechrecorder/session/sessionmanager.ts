@@ -17,7 +17,7 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
 import {AudioDevice} from "../project/project";
-import {LiveLevelDisplay} from "../../audio/ui/livelevel";
+import {LevelBarDisplay} from "../../audio/ui/livelevel_display";
 import {LevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
 
@@ -261,16 +261,13 @@ export class ControlPanel{
   template: `
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
-    <audio-livelevel #liveLevel></audio-livelevel>
+    <audio-levelbardisplay #levelbardisplay></audio-levelbardisplay>
     <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
-    
-    flex: 2; 
-    
+    flex: 2;
     background: lightgrey;
-
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
     flex-direction: column;
     margin: 0;
@@ -283,11 +280,10 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
         status: Status;
         mode: Mode;
-
         ac: AudioCapture;
-        private _channelCount=2;
+        private _channelCount=2; //TODO define constant for default format
         @ViewChild(Prompting) prompting:Prompting;
-        @ViewChild(LiveLevelDisplay) liveLevelDisplay:LiveLevelDisplay;
+        @ViewChild(LevelBarDisplay) liveLevelDisplay:LevelBarDisplay;
         startStopSignalState:StartStopSignalState;
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:Array<AudioDevice> | null | undefined;
@@ -303,20 +299,15 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         private maxRecTimerRunning: boolean;
 
         transportActions:TransportActions;
-//        fwdBtn: HTMLInputElement;
         dnlLnk: HTMLAnchorElement;
         playStartAction: Action;
-        //statusMsg: HTMLElement;
-       // titleEl: HTMLElement;
         audio: any;
 
         _session: Session;
-        _script: Script; // TODO this a plain JS object for now, did not id an easy way to convert JSON to TypeScript
-          // See: https://stackoverflow.com/questions/22875636/how-do-i-cast-a-json-object-to-a-typescript-class
+        _script: Script;
 
         private section: Section;
         private promptUnit: PromptUnit;
-
 
         sectIdx: number;
         prmptIdx: number;

@@ -26,7 +26,7 @@ import {SpeechRecorderUploader} from "./spruploader";
 import {Mediaitem, PromptUnit, Script} from "./script/script";
 import {Session} from "./session/session";
 import {ProjectService} from "./project/project.service";
-import {LiveLevelDisplay} from "../audio/ui/livelevel";
+import {LevelBarDisplay} from "../audio/ui/livelevel_display";
 
 
 export const VERSION='0.0.17';
