@@ -2,13 +2,14 @@ import {ChangeDetectorRef, Component, ElementRef,  ViewChild} from "@angular/cor
 import {LevelInfos} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
 
+
 export const MIN_DB_LEVEL=-40.0;
 
 @Component({
 
     selector: 'audio-levelbardisplay',
     template: `
-      <audio-levelbar></audio-levelbar> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
+      <audio-levelbar></audio-levelbar> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> <md-icon>zoom_out_map</md-icon>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */

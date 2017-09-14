@@ -2,6 +2,9 @@ import {ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild} from 
 import {LevelInfos} from "../dsp/level_measure";
 
 export const MIN_DB_LEVEL=-60.0;
+export const LINE_WIDTH=2;
+export const LINE_DISTANCE=2;
+export const OVERFLOW_INCR_FACTOR=0.3; // TODO
 
 @Component({
 
@@ -82,7 +85,7 @@ export class LevelBar {
         }
         this.dbValues.push(dbVals);
         let i=this.dbValues.length-1;
-        let x=i*2;
+        let x=i*(LINE_DISTANCE+LINE_WIDTH);
         this.drawPushValue(x,dbVals);
     }
 
@@ -95,6 +98,27 @@ export class LevelBar {
         this.drawAll();
     }
 
+    private drawLevelLine(g:CanvasRenderingContext2D,x:number,h:number,dbVal:number){
+
+      if(dbVal>=-0.3){
+        g.strokeStyle = 'red';
+        g.fillStyle='red';
+
+      }else {
+        g.strokeStyle = '#00c853';
+        g.fillStyle='#00c853';
+      }
+      g.beginPath();
+      g.moveTo(x, h);
+      let pVal = ((dbVal-MIN_DB_LEVEL)/-MIN_DB_LEVEL) * h;
+
+      //console.log("Draw lvl: "+dbVal+"dB: "+x+","+pVal+" on "+w+"x"+h);
+      g.lineTo(x, h-pVal);
+      g.closePath();
+      g.stroke();
+
+    }
+
     drawPushValue(x: number, dbVals: Array<number>) {
 
         // TODO test cahannel 0 only
@@ -104,21 +128,10 @@ export class LevelBar {
             let h = this.liveLevelCanvas.height;
             let g = this.liveLevelCanvas.getContext("2d");
             if (g) {
-                //g.lineWidth=1;
-                //g.fillStyle = 'green';
-                if(dbVal>=-0.3){
-                    g.strokeStyle = 'red';
-                }else {
-                    g.strokeStyle = '#00c853';
-                }
-                g.beginPath();
-                g.moveTo(x, h);
-                let pVal = ((dbVal-MIN_DB_LEVEL)/-MIN_DB_LEVEL) * h;
-                //console.log("Draw lvl: "+dbVal+"dB: "+x+","+pVal+" on "+w+"x"+h);
-                g.lineTo(x, h-pVal);
-                g.closePath();
 
-                g.stroke();
+              this.drawLevelLine(g,x,h,dbVal);
+
+
             }
         }
     }
@@ -131,19 +144,17 @@ export class LevelBar {
             if (g) {
                 g.fillStyle='black';
                 g.fillRect(0, 0, w, h);
-                //g.fillStyle = 'green';
-                g.strokeStyle = '#00c853';
+
+                g.lineWidth=LINE_WIDTH;
+
                 for(let i=0;i<this.dbValues.length;i++) {
-                    let x=i*2;
-                    g.beginPath();
-                    g.moveTo(x,h);
-                    // TODO test channel 0 only
-                    let dbVal=this.dbValues[i][0];
-                    let pVal = ((dbVal-MIN_DB_LEVEL)/-MIN_DB_LEVEL) * h;
-                    g.lineTo(x,h-pVal );
-                    g.closePath();
-                    g.stroke();
+                    let x=i*(LINE_DISTANCE+LINE_WIDTH);
+
+                    this.drawLevelLine(g,x,h,this.dbValues[i][0]);
+
                 }
+
+
             }
         }
     }
