@@ -20,11 +20,14 @@ import {AudioDevice} from "../project/project";
 import {LevelBarDisplay} from "../../audio/ui/livelevel_display";
 import {LevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
+import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 
 export const RECFILE_API_CTX='recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+
+const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
     export enum Mode {SERVER_BOUND, STAND_ALONE}
 
     export enum Status {IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE,
@@ -392,8 +395,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
                         }, false);
 
                         this.ac.listener = this;
-                        this.ac.audioOutStream=this.levelMeasure;
-
+                        //this.ac.audioOutStream=this.levelMeasure;
+                        this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.levelMeasure,LEVEL_BAR_INTERVALL_SECONDS);
                     } else {
                         this.transportActions.startAction.disabled = true;
                         this.statusMsg = 'ERROR: Browser does not support Media/Audio API!';

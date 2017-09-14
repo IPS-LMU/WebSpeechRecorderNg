@@ -129,14 +129,16 @@ export class LevelMeasure implements SequenceAudioFloat32OutStream{
 
   write(bufferData: Array<Float32Array>):number {
     //console.log("measure buffer data: "+bufferData.length+" "+bufferData[0].length);
+    let bufArrCopies=new Array<Float32Array>(bufferData.length);
     let buffers=new Array<any>(bufferData.length);
     for(let ch=0;ch<bufferData.length;ch++){
-      buffers[ch]=bufferData[ch].buffer;
+      bufArrCopies[ch]=bufferData[ch].slice();
+      buffers[ch]=bufArrCopies[ch].buffer;
     }
     this.worker.postMessage({audioData: buffers,chs: this.channelCount,bufferIndex:this.bufferIndex},buffers);
     //console.log("Posted buffer #"+this.bufferIndex);
     this.bufferIndex++;
-    return bufferData[0].length;
+    return bufArrCopies[0].length;
   }
 
   flush(){
