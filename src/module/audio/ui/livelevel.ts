@@ -10,21 +10,30 @@ export const OVERFLOW_INCR_FACTOR=0.3; // TODO
 
     selector: 'audio-levelbar',
     template: `
-        <canvas #levelbar></canvas>
+      <div><canvas #levelbar></canvas></div>
     `,
     styles: [`:host {
        
         width: 100%;
         background: darkgray;
         box-sizing:border-box;
-        height: 100%;
+       height: 100%;
       position: relative;
+      overflow-x: scroll;
+      overflow-y:auto;
+    }`,`div {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      
+      /*position: absolute;*/
+      box-sizing:border-box;
     }`,`canvas {
       top: 0;
       left: 0;
       width: 100%;
-      height: 50px;
-      min-height: 50px;
+      height: 100%;
       position: absolute;
     }`]
 

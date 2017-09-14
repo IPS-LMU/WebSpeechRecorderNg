@@ -17,8 +17,8 @@ export const MIN_DB_LEVEL=-40.0;
         background: darkgray;
         padding:4px;
         box-sizing:border-box;
-        height: 58px;
-        min-height: 58px;
+      height: 100px;
+      min-height: 100px;
         display: flex; /* flex container: left level bar, right decimal peak level value */
         flex-direction: row;
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
