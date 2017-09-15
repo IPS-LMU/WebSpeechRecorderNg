@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpParams} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Script} from "./script";
@@ -14,7 +14,7 @@ export const SCRIPT_API_CTX='script'
 export class ScriptService {
   private scriptCtxUrl:string;
   private withCredentials:boolean=false;
-
+  private httpParams:HttpParams;
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     let apiEndPoint = ''
@@ -30,6 +30,8 @@ export class ScriptService {
     }
 
     this.scriptCtxUrl = apiEndPoint + SCRIPT_API_CTX;
+    this.httpParams=new HttpParams();
+    this.httpParams.set('cache','false');
   }
 
   getScript(id:string | number):Promise<Script>{
@@ -39,7 +41,7 @@ export class ScriptService {
       // for development and demo
       scriptUrl = scriptUrl + '.json';
     }
-    let scriptProms = this.http.get(scriptUrl,{ withCredentials: this.withCredentials }).toPromise()
+    let scriptProms = this.http.get(scriptUrl,{params:this.httpParams, withCredentials: this.withCredentials }).toPromise()
       .then(response => {
         return response;
       })
