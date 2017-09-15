@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild} from "@angular/core"
-import {LevelInfos} from "../dsp/level_measure";
+import {LevelInfos, LevelListener} from "../dsp/level_measure";
 
 export const MIN_DB_LEVEL=-60.0;
 export const LINE_WIDTH=2;
@@ -38,10 +38,10 @@ export const OVERFLOW_INCR_FACTOR=0.75; // TODO
     }`]
 
 })
-export class LevelBar {
+export class LevelBar implements LevelListener{
 
     @ViewChild('virtualCanvas') virtualCanvasRef: ElementRef;
-    virtualVanvas:HTMLDivElement;
+    virtualCanvas:HTMLDivElement;
     @ViewChild('levelbar') liveLevelCanvasRef: ElementRef;
     liveLevelCanvas: HTMLCanvasElement;
     ce:HTMLDivElement;
@@ -56,18 +56,21 @@ export class LevelBar {
     ngAfterViewInit() {
         this.ce=this.ref.nativeElement;
         this.liveLevelCanvas = this.liveLevelCanvasRef.nativeElement;
-        this.virtualVanvas=this.virtualCanvasRef.nativeElement;
+        this.virtualCanvas=this.virtualCanvasRef.nativeElement;
         this.layout();
         this.drawAll();
     }
 
-    // @HostListener('scroll',['$event'])
-    // onScroll(se:Event){
-    //   console.log("Host div scroll event: "+se);
-    //   // se.preventDefault();
-    //   // se.stopImmediatePropagation();
-    //   // se.stopPropagation();
-    // }
+    @HostListener('scroll',['$event'])
+    onScroll(se:Event){
+      console.log("Host div scroll event: "+se);
+      // se.preventDefault();
+      // se.stopImmediatePropagation();
+      // se.stopPropagation();
+      this.liveLevelCanvas.style.left=this.ce.scrollLeft+'px';
+      //this.liveLevelCanvas.style.height=offH;
+      this.drawAll();
+    }
 
     set channelCount(channelCount:number){
        this.reset();
@@ -88,13 +91,19 @@ export class LevelBar {
         // this.liveLevelCanvas.height=this.ce.offsetHeight;
         // this.liveLevelCanvas.style.width=offW;
         // this.liveLevelCanvas.style.height=offH;
-        this.liveLevelCanvas.width=this.liveLevelCanvas.offsetWidth;
-       this.liveLevelCanvas.height=this.liveLevelCanvas.offsetHeight;
+
+
+      // set Canvas size to viewport size
+        this.liveLevelCanvas.width=this.ce.offsetWidth;
+       this.liveLevelCanvas.height=this.ce.offsetHeight;
+
+       // and move to viewport position
+       this.liveLevelCanvas.style.left=this.ce.scrollLeft+'px';
         this.drawAll();
-        console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
+       // console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
     }
 
-    update(levelInfos:LevelInfos,streamClosed?:boolean){
+    update(levelInfos:LevelInfos){
         let dbVals=levelInfos.powerLevelsDB();
         let peakDBVals=levelInfos.powerLevelsDB();
         if(this.peakDbLvl<peakDBVals[0]){
@@ -106,22 +115,28 @@ export class LevelBar {
         let i=this.dbValues.length-1;
         let x=i*(LINE_DISTANCE+LINE_WIDTH);
         this.drawPushValue(x,dbVals);
-        if(streamClosed){
-          // TODO
-        }else{
-          this.checkWidth();
-          // this.virtualVanvas.scrollLeft=200;
-          // this.liveLevelCanvas.scrollLeft=200;
-        }
+
+        this.checkWidth();
+
+    }
+
+    streamFinished(){
+      console.log("Stream finished");
+      let requiredWidth=this.dbValues.length*(LINE_DISTANCE+LINE_WIDTH);
+
+        this.virtualCanvas.style.width=requiredWidth+'px';
+        this.ce.scrollLeft=requiredWidth-this.ce.offsetWidth;
+        this.layout();
+
     }
 
     checkWidth(){
       let requiredWidth=this.dbValues.length*(LINE_DISTANCE+LINE_WIDTH);
-      if(this.liveLevelCanvas.offsetWidth<requiredWidth){
+      if(this.virtualCanvas.offsetWidth<requiredWidth){
         let newWidth=Math.round(requiredWidth+(this.ce.offsetWidth*OVERFLOW_INCR_FACTOR));
-        this.liveLevelCanvas.style.width=newWidth+'px';
-        this.layout();
+        this.virtualCanvas.style.width=newWidth+'px';
         this.ce.scrollLeft=newWidth-this.ce.offsetWidth;
+        this.layout();
       }
     }
 
@@ -129,10 +144,13 @@ export class LevelBar {
     reset(){
         this.peakDbLvl=MIN_DB_LEVEL;
         this.dbValues=new Array<Array<number>>();
+        this.layout();
         this.drawAll();
     }
 
     private drawLevelLine(g:CanvasRenderingContext2D,x:number,h:number,dbVal:number){
+      //translate to viewport
+      let xc=x-this.ce.scrollLeft;
 
       if(dbVal>=-0.3){
         g.strokeStyle = 'red';
@@ -143,11 +161,11 @@ export class LevelBar {
         g.fillStyle='#00c853';
       }
       g.beginPath();
-      g.moveTo(x, h);
+      g.moveTo(xc, h);
       let pVal = ((dbVal-MIN_DB_LEVEL)/-MIN_DB_LEVEL) * h;
 
       //console.log("Draw lvl: "+dbVal+"dB: "+x+","+pVal+" on "+w+"x"+h);
-      g.lineTo(x, h-pVal);
+      g.lineTo(xc, h-pVal);
       g.closePath();
       g.stroke();
 
@@ -155,7 +173,7 @@ export class LevelBar {
 
     drawPushValue(x: number, dbVals: Array<number>) {
 
-        // TODO test cahannel 0 only
+        // TODO test channel 0 only
         let dbVal=dbVals[0];
         if (this.liveLevelCanvas) {
             let w = this.liveLevelCanvas.width;
@@ -172,6 +190,8 @@ export class LevelBar {
 
     drawAll(){
         if (this.liveLevelCanvas) {
+
+
             let w = this.liveLevelCanvas.width;
             let h = this.liveLevelCanvas.height;
             let g = this.liveLevelCanvas.getContext("2d");
@@ -181,13 +201,37 @@ export class LevelBar {
 
                 g.lineWidth=LINE_WIDTH;
 
-                for(let i=0;i<this.dbValues.length;i++) {
-                    let x=i*(LINE_DISTANCE+LINE_WIDTH);
+                if(this.dbValues.length>0) {
+                  // draw only viewport part:
 
-                    this.drawLevelLine(g,x,h,this.dbValues[i][0]);
+                  // draw from x1 to x2
+                  let x1 = this.ce.scrollLeft;
+                  let x2 = x1 + this.ce.offsetWidth;
+
+                  // corresponds to this level values:
+                  let i1 = Math.floor(x1 / (LINE_DISTANCE + LINE_WIDTH));
+                  let i2 = Math.ceil(x2 / (LINE_DISTANCE + LINE_WIDTH));
+                  // some values around
+                  i1 -= 2;
+                  i2 += 2;
+                  // limits
+                  if (i1 < 0) {
+                    i1 = 0;
+                  }
+                  if (i2 > this.dbValues.length) {
+                    i2 = this.dbValues.length;
+                  }
+
+                    for (let i = i1; i < i2; i++) {
+                      let x = i * (LINE_DISTANCE + LINE_WIDTH);
+                      let dbVals=this.dbValues[i];
+                      if(dbVals) {
+                        this.drawLevelLine(g, x, h,dbVals[0]);
+                      }
+
+                    }
 
                 }
-
 
             }
         }

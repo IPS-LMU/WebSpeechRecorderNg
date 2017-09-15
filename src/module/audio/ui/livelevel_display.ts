@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, ElementRef,  ViewChild} from "@angular/core"
-import {LevelInfos} from "../dsp/level_measure";
+import {LevelInfos, LevelListener} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
 
 
@@ -34,7 +34,7 @@ export const MIN_DB_LEVEL=-40.0;
     }`]
 
 })
-export class LevelBarDisplay {
+export class LevelBarDisplay implements LevelListener{
 
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
@@ -65,6 +65,11 @@ export class LevelBarDisplay {
       this.changeDetectorRef.detectChanges();
     }
     this.liveLevel.update(levelInfos);
+  }
+
+  streamFinished(){
+    this.liveLevel.streamFinished();
+
   }
 
 

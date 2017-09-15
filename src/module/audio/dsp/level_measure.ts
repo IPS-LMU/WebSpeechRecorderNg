@@ -42,6 +42,7 @@ export class LevelInfos {
 export interface LevelListener{
     channelCount:number;
     update(levelInfos:LevelInfos):void;
+    streamFinished():void;
     reset():void;
 }
 
@@ -95,16 +96,24 @@ export class LevelMeasure implements SequenceAudioFloat32OutStream{
     this.worker = new Worker(this.workerFunctionURL);
     this.worker.onmessage = (me) => {
       console.log("Worker post");
-      let minLevels=new Array<number>(this.channelCount);
-      let maxLevels=new Array<number>(this.channelCount);
-      for(let ch=0;ch<this.channelCount;ch++){
-        let fls=new Float32Array(me.data.linLevelBuffers[ch]);
-        console.log("Fls: "+fls[0]+ " " +fls[1]);
-        minLevels[ch]=fls[0];
-        maxLevels[ch]=fls[1];
-      }
+      let streamFinished = me.data.streamFinished;
+      if (streamFinished) {
+        if (this.levelListener) {
+          this.levelListener.streamFinished()
+        }
+      } else {
 
-      this.updateLevels(minLevels,maxLevels);
+        let minLevels = new Array<number>(this.channelCount);
+        let maxLevels = new Array<number>(this.channelCount);
+        for (let ch = 0; ch < this.channelCount; ch++) {
+          let fls = new Float32Array(me.data.linLevelBuffers[ch]);
+          console.log("Fls: " + fls[0] + " " + fls[1]);
+          minLevels[ch] = fls[0];
+          maxLevels[ch] = fls[1];
+        }
+
+        this.updateLevels(minLevels, maxLevels);
+      }
     }
   }
 
@@ -135,69 +144,77 @@ export class LevelMeasure implements SequenceAudioFloat32OutStream{
       bufArrCopies[ch]=bufferData[ch].slice();
       buffers[ch]=bufArrCopies[ch].buffer;
     }
-    this.worker.postMessage({audioData: buffers,chs: this.channelCount,bufferIndex:this.bufferIndex},buffers);
+    this.worker.postMessage({streamFinished:false,audioData: buffers,chs: this.channelCount,bufferIndex:this.bufferIndex},buffers);
     //console.log("Posted buffer #"+this.bufferIndex);
     this.bufferIndex++;
     return bufArrCopies[0].length;
   }
 
   flush(){
-    // no cache for now; do nothing
+    this.worker.postMessage({streamFinished:true});
+
   }
 
   close(){
     if(this.worker){
       this.worker.terminate();
     }
+
   }
 
 
   workerFunction() {
     self.onmessage = function (msg) {
-      var chs=msg.data.chs;
-      var audioData = new Array<Float32Array>(chs);
-      var linLevels = new Array<Float32Array>(chs);
-      for(let ch=0;ch<chs;ch++){
-        linLevels[ch]=new Float32Array(2);
-        audioData[ch]=new Float32Array(msg.data.audioData[ch]);
-      }
+      let streamFinished = msg.data.streamFinished;
+      if (streamFinished) {
+        postMessage({streamFinished: true});
 
-      if (audioData) {
+      } else {
+        var chs = msg.data.chs;
+        var audioData = new Array<Float32Array>(chs);
+        var linLevels = new Array<Float32Array>(chs);
+        for (let ch = 0; ch < chs; ch++) {
+          linLevels[ch] = new Float32Array(2);
+          audioData[ch] = new Float32Array(msg.data.audioData[ch]);
+        }
 
-        for (var ch = 0; ch < chs; ch++) {
-          let chData = audioData[ch];
-          for (let s = 0; s < chData.length; s++) {
-            if (chData[s] < linLevels[ch][0]) {
-              if(chData[s]<-1.0) {
-                console.log("Min: " + chData[s]);
+        if (audioData) {
+
+          for (var ch = 0; ch < chs; ch++) {
+            let chData = audioData[ch];
+            for (let s = 0; s < chData.length; s++) {
+              if (chData[s] < linLevels[ch][0]) {
+                if (chData[s] < -1.0) {
+                  console.log("Min: " + chData[s]);
+                }
+                linLevels[ch][0] = chData[s];
               }
-              linLevels[ch][0] = chData[s];
-            }
-            if (chData[s] > linLevels[ch][1]) {
-              if(chData[s]>1.0) {
-                console.log("Max: " + chData[s]);
+              if (chData[s] > linLevels[ch][1]) {
+                if (chData[s] > 1.0) {
+                  console.log("Max: " + chData[s]);
+                }
+                linLevels[ch][1] = chData[s];
               }
-              linLevels[ch][1] = chData[s];
-            }
 
+            }
           }
         }
+        var linLevelBufs = new Array<any>(chs);
+        for (let ch = 0; ch < chs; ch++) {
+          linLevelBufs[ch] = linLevels[ch].buffer;
+
+        }
+
+        // TEST delay
+        // let v=0;
+        // for(let i=0;i<100000000;i++){
+        //   v=v+Math.random();
+        // }
+        // console.log(v);
+        // console.log("Processed buffer #"+msg.data.bufferIndex);
+
+        postMessage({streamFinished: false, linLevelBuffers: linLevelBufs}, linLevelBufs);
       }
-      var linLevelBufs = new Array<any>(chs);
-      for(let ch=0;ch<chs;ch++){
-        linLevelBufs[ch]=linLevels[ch].buffer;
-
-      }
-
-      // TEST delay
-      // let v=0;
-      // for(let i=0;i<100000000;i++){
-      //   v=v+Math.random();
-      // }
-      // console.log(v);
-      // console.log("Processed buffer #"+msg.data.bufferIndex);
-
-      postMessage({linLevelBuffers: linLevelBufs}, linLevelBufs);
     }
   }
 
