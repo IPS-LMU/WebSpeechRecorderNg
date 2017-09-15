@@ -171,17 +171,43 @@ export class LevelBar implements LevelListener{
 
     }
 
+  private drawLevelLines(g:CanvasRenderingContext2D,x:number,h:number,dbVals:Array<number>){
+    //translate to viewport
+    let xc=x-this.ce.scrollLeft;
+    let chH=Math.floor(h/dbVals.length);
+    for(let ch=0;ch<dbVals.length;ch++) {
+      let dbVal=dbVals[ch];
+      let y=Math.floor(ch*chH);
+      if (dbVal >= -0.3) {
+        g.strokeStyle = 'red';
+        g.fillStyle = 'red';
+
+      } else {
+        g.strokeStyle = '#00c853';
+        g.fillStyle = '#00c853';
+      }
+      g.beginPath();
+      g.moveTo(xc, y+chH);
+      let pVal = ((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL) * chH;
+
+      //console.log("Draw lvl: "+dbVal+"dB: "+x+","+pVal+" on "+w+"x"+h);
+      g.lineTo(xc, y+chH - pVal);
+      g.closePath();
+      g.stroke();
+    }
+  }
+
     drawPushValue(x: number, dbVals: Array<number>) {
 
         // TODO test channel 0 only
-        let dbVal=dbVals[0];
+       // let dbVal=dbVals[0];
         if (this.liveLevelCanvas) {
             let w = this.liveLevelCanvas.width;
             let h = this.liveLevelCanvas.height;
             let g = this.liveLevelCanvas.getContext("2d");
             if (g) {
 
-              this.drawLevelLine(g,x,h,dbVal);
+              this.drawLevelLines(g,x,h,dbVals);
 
 
             }
@@ -226,7 +252,7 @@ export class LevelBar implements LevelListener{
                       let x = i * (LINE_DISTANCE + LINE_WIDTH);
                       let dbVals=this.dbValues[i];
                       if(dbVals) {
-                        this.drawLevelLine(g, x, h,dbVals[0]);
+                        this.drawLevelLines(g, x, h,dbVals);
                       }
 
                     }
