@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpParams} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Project} from "./project";
@@ -14,7 +14,7 @@ export const PROJECT_API_CTX='project'
 export class ProjectService {
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
-
+  private httpParams:HttpParams;
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     let apiEndPoint = ''
@@ -30,6 +30,8 @@ export class ProjectService {
     }
 
     this.projectCtxUrl = apiEndPoint + PROJECT_API_CTX;
+    this.httpParams=new HttpParams();
+    this.httpParams.set('cache','false');
   }
 
   getProject(id:string):Promise<Project>{
@@ -39,7 +41,8 @@ export class ProjectService {
       // for development and demo
       projectUrl = projectUrl + '.json';
     }
-    let projectProms = this.http.get(projectUrl,{ withCredentials: this.withCredentials }).toPromise()
+
+    let projectProms = this.http.get(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials}).toPromise()
       .then(response => {
         return response;
       })
