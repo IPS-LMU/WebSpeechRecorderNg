@@ -4,13 +4,13 @@ import {LevelInfos} from "../dsp/level_measure";
 export const MIN_DB_LEVEL=-60.0;
 export const LINE_WIDTH=2;
 export const LINE_DISTANCE=2;
-export const OVERFLOW_INCR_FACTOR=0.3; // TODO
+export const OVERFLOW_INCR_FACTOR=0.75; // TODO
 
 @Component({
 
     selector: 'audio-levelbar',
     template: `
-      <div><canvas #levelbar></canvas></div>
+      <div #virtualCanvas><canvas #levelbar></canvas></div>
     `,
     styles: [`:host {
        
@@ -40,7 +40,8 @@ export const OVERFLOW_INCR_FACTOR=0.3; // TODO
 })
 export class LevelBar {
 
-
+    @ViewChild('virtualCanvas') virtualCanvasRef: ElementRef;
+    virtualVanvas:HTMLDivElement;
     @ViewChild('levelbar') liveLevelCanvasRef: ElementRef;
     liveLevelCanvas: HTMLCanvasElement;
     ce:HTMLDivElement;
@@ -55,9 +56,18 @@ export class LevelBar {
     ngAfterViewInit() {
         this.ce=this.ref.nativeElement;
         this.liveLevelCanvas = this.liveLevelCanvasRef.nativeElement;
+        this.virtualVanvas=this.virtualCanvasRef.nativeElement;
         this.layout();
         this.drawAll();
     }
+
+    // @HostListener('scroll',['$event'])
+    // onScroll(se:Event){
+    //   console.log("Host div scroll event: "+se);
+    //   // se.preventDefault();
+    //   // se.stopImmediatePropagation();
+    //   // se.stopPropagation();
+    // }
 
     set channelCount(channelCount:number){
        this.reset();
@@ -80,11 +90,11 @@ export class LevelBar {
         // this.liveLevelCanvas.style.height=offH;
         this.liveLevelCanvas.width=this.liveLevelCanvas.offsetWidth;
        this.liveLevelCanvas.height=this.liveLevelCanvas.offsetHeight;
-
+        this.drawAll();
         console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
     }
 
-    update(levelInfos:LevelInfos){
+    update(levelInfos:LevelInfos,streamClosed?:boolean){
         let dbVals=levelInfos.powerLevelsDB();
         let peakDBVals=levelInfos.powerLevelsDB();
         if(this.peakDbLvl<peakDBVals[0]){
@@ -96,9 +106,24 @@ export class LevelBar {
         let i=this.dbValues.length-1;
         let x=i*(LINE_DISTANCE+LINE_WIDTH);
         this.drawPushValue(x,dbVals);
+        if(streamClosed){
+          // TODO
+        }else{
+          this.checkWidth();
+          // this.virtualVanvas.scrollLeft=200;
+          // this.liveLevelCanvas.scrollLeft=200;
+        }
     }
 
-
+    checkWidth(){
+      let requiredWidth=this.dbValues.length*(LINE_DISTANCE+LINE_WIDTH);
+      if(this.liveLevelCanvas.offsetWidth<requiredWidth){
+        let newWidth=Math.round(requiredWidth+(this.ce.offsetWidth*OVERFLOW_INCR_FACTOR));
+        this.liveLevelCanvas.style.width=newWidth+'px';
+        this.layout();
+        this.ce.scrollLeft=newWidth-this.ce.offsetWidth;
+      }
+    }
 
 
     reset(){
