@@ -6,6 +6,7 @@ import {HttpClient, HttpParams} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Project} from "./project";
+import {UUID} from "../../utils/utils";
 
 
 export const PROJECT_API_CTX='project'
@@ -39,7 +40,9 @@ export class ProjectService {
     let projectUrl = this.projectCtxUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
-      projectUrl = projectUrl + '.json';
+      // append UUID to make request URL unique to avoid localhost server caching
+      projectUrl = projectUrl + '.json?requestUUID='+UUID.generate();
+
     }
 
     let projectProms = this.http.get(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials}).toPromise()

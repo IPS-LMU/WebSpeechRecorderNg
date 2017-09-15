@@ -6,6 +6,7 @@ import {HttpClient, HttpParams} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Script} from "./script";
+import {UUID} from "../../utils/utils";
 
 
 export const SCRIPT_API_CTX='script'
@@ -39,7 +40,8 @@ export class ScriptService {
     let scriptUrl = this.scriptCtxUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
-      scriptUrl = scriptUrl + '.json';
+      // append UUID to make request URL unique to avoid localhost server caching
+      scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
     }
     let scriptProms = this.http.get(scriptUrl,{params:this.httpParams, withCredentials: this.withCredentials }).toPromise()
       .then(response => {

@@ -4,6 +4,7 @@ import 'rxjs/add/operator/toPromise';
 
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
+import {UUID} from "../../utils/utils";
 
 export const SESSION_API_CTX='session';
 
@@ -34,7 +35,8 @@ export class SessionService {
     let sessUrl = this.sessionsUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
-      sessUrl = sessUrl + '.json';
+      // append UUID to make request URL unique to avoid localhost server caching
+      sessUrl = sessUrl + '.json?requestUUID='+UUID.generate();
     }
     let sessProms = this.http.get(sessUrl,{ withCredentials: this.withCredentials }).toPromise()
       .then(response => {
