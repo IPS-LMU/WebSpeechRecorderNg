@@ -4,7 +4,8 @@ import {LevelInfo, LevelListener} from "../dsp/level_measure";
 export const MIN_DB_LEVEL=-60.0;
 export const LINE_WIDTH=2;
 export const LINE_DISTANCE=2;
-export const OVERFLOW_INCR_FACTOR=0.75; // TODO
+export const OVERFLOW_THRESHOLD=0.25;
+export const OVERFLOW_INCR_FACTOR=0.5;
 
 @Component({
 
@@ -132,8 +133,8 @@ export class LevelBar implements LevelListener{
 
     checkWidth(){
       let requiredWidth=this.dbValues.length*(LINE_DISTANCE+LINE_WIDTH);
-      if(this.virtualCanvas.offsetWidth<requiredWidth){
-        let newWidth=Math.round(requiredWidth+(this.ce.offsetWidth*OVERFLOW_INCR_FACTOR));
+      if(this.virtualCanvas.offsetWidth-requiredWidth<this.ce.offsetWidth*OVERFLOW_THRESHOLD){
+        let newWidth=Math.round(this.virtualCanvas.offsetWidth+(this.ce.offsetWidth*OVERFLOW_INCR_FACTOR));
         this.virtualCanvas.style.width=newWidth+'px';
         this.ce.scrollLeft=newWidth-this.ce.offsetWidth;
         this.layout();
