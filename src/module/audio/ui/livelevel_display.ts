@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, ElementRef,  ViewChild} from "@angular/core"
-import {LevelInfos, LevelListener} from "../dsp/level_measure";
+import {LevelInfo,  LevelListener} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
 
 
@@ -40,7 +40,7 @@ export class LevelBarDisplay implements LevelListener{
     @ViewChild(LevelBar) liveLevel: LevelBar;
     peakDbLevelStr="-___ dB";
     peakDbLvl=MIN_DB_LEVEL;
-    bla=false;
+
 
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
@@ -56,15 +56,15 @@ export class LevelBarDisplay implements LevelListener{
        this.liveLevel.channelCount=channelCount;
     }
 
-  update(levelInfos:LevelInfos){
-    let dbVals=levelInfos.powerLevelsDB();
-    let peakDBVals=levelInfos.powerLevelsDB();
-    if(this.peakDbLvl<peakDBVals[0]){
-      this.peakDbLvl=peakDBVals[0];
+  update(levelInfo:LevelInfo,peakLevelInfo:LevelInfo){
+    //let dbVals=levelInfo.powerLevelsDB();
+    let peakDBVal=levelInfo.powerLevelDB();
+    if(this.peakDbLvl<peakDBVal){
+      this.peakDbLvl=peakDBVal;
       // the event comes from outside of an Angular zone
       this.changeDetectorRef.detectChanges();
     }
-    this.liveLevel.update(levelInfos);
+    this.liveLevel.update(levelInfo);
   }
 
   streamFinished(){

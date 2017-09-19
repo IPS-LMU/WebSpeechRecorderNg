@@ -13,3 +13,14 @@
   }
   }
 
+  export class Arrays {
+
+    static cloneNumberArray(numberArray: Array<number>): Array<number> {
+      let len = numberArray.length;
+      let cloneArr = new Array<number>(len);
+      for (let c = 0; c < numberArray.length; c++) {
+        cloneArr[c] = numberArray[c];
+      }
+      return cloneArr;
+    }
+  }

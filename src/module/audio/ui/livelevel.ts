@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, ViewChild} from "@angular/core"
-import {LevelInfos, LevelListener} from "../dsp/level_measure";
+import {LevelInfo, LevelListener} from "../dsp/level_measure";
 
 export const MIN_DB_LEVEL=-60.0;
 export const LINE_WIDTH=2;
@@ -103,11 +103,11 @@ export class LevelBar implements LevelListener{
        // console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
     }
 
-    update(levelInfos:LevelInfos){
+    update(levelInfos:LevelInfo){
         let dbVals=levelInfos.powerLevelsDB();
-        let peakDBVals=levelInfos.powerLevelsDB();
-        if(this.peakDbLvl<peakDBVals[0]){
-            this.peakDbLvl=peakDBVals[0];
+        let peakDBVal=levelInfos.powerLevelDB();
+        if(this.peakDbLvl<peakDBVal){
+            this.peakDbLvl=peakDBVal;
             //this.peakDbLevelStr=this.peakDbLvl+" dB";
             this.changeDetectorRef.detectChanges();
         }
