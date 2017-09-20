@@ -10,11 +10,7 @@ import {AudioDisplayDialog} from "../audio/audio_display_dialog";
 import {
   PromptContainer, Prompter, Prompting,
 } from "./session/prompting";
-import {
-  ControlPanel,
-  ProgressDisplay, SessionManager, StatusDisplay,
-  TransportPanel, UploadStatus
-} from "./session/sessionmanager";
+import {SessionManager} from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
 import {MdButtonModule, MdDialogModule, MdIconModule, MdProgressSpinnerModule} from "@angular/material";
 import {HttpClientModule} from "@angular/common/http";
@@ -23,10 +19,8 @@ import {ScriptService} from "./script/script.service";
 import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./spruploader";
-import {Mediaitem, PromptUnit, Script} from "./script/script";
-import {Session} from "./session/session";
 import {ProjectService} from "./project/project.service";
-import {LevelBarDisplay} from "../audio/ui/livelevel_display";
+import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./session/controlpanel";
 
 
 export const VERSION='0.0.17';
@@ -38,7 +32,8 @@ const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,ProgressDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
+    declarations: [ControlPanel,Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,
+      ProgressDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
   entryComponents: [
     AudioDisplayDialog
   ],
