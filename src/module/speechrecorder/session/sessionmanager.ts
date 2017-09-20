@@ -58,7 +58,7 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
     <audio-levelbardisplay #levelbardisplay></audio-levelbardisplay>
-    <app-sprcontrolpanel [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
+    <app-sprcontrolpanel [enableUploadRecordings] ="enableUploadRecordings" [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
@@ -74,6 +74,7 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
 })
 export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
+        enableUploadRecordings:boolean=true;
         status: Status;
         mode: Mode;
         ac: AudioCapture;
@@ -146,6 +147,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.audio = document.getElementById('audio');
             this.selCaptureDeviceId=null;
             this.levelMeasure=new LevelMeasure();
+            if(this.config){
+              this.enableUploadRecordings=this.config.enableUploadRecordings;
+            }
           this.init();
         }
 

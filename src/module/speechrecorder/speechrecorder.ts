@@ -1,24 +1,15 @@
-import {Component, ViewChild, ViewChildDecorator, ChangeDetectorRef} from '@angular/core'
-
-import {ControlPanel, Mode as SessionMode, StatusDisplay} from './session/sessionmanager';
-	import {AudioCaptureListener} from '../audio/capture/capture';
-	import {AudioPlayer,AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../audio/playback/player';
-  import {AudioSignal } from '../audio/ui/audiosignal';
-
-	import { AudioClipUIContainer } from '../audio/ui/container';
-	import { SimpleTrafficLight } from './startstopsignal/ui/simpletrafficlight'
-  import { Script } from './script/script'
-  import { SessionManager,Status as SessionManagerStatus} from  './session/sessionmanager';
-
-  import { UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
-import {ActivatedRoute, ParamMap, Params, Router} from "@angular/router";
+import {Component, ViewChild, ChangeDetectorRef} from '@angular/core'
+import {AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../audio/playback/player';
+import { Script } from './script/script'
+import { SessionManager,Status as SessionManagerStatus} from  './session/sessionmanager';
+import { UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
+import {ActivatedRoute, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
 import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
-import {Progress} from "./session/progress";
 import {SpeechRecorderUploader} from "./spruploader";
 import {Session} from "./session/session";
-import {Project,AudioFormat} from "./project/project";
+import {Project} from "./project/project";
 import {ProjectService} from "./project/project.service";
 
   export enum Mode {SINGLE_SESSION,DEMO}

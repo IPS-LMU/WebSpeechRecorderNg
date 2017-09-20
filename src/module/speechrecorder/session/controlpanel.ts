@@ -176,7 +176,7 @@ export class TransportPanel{
     
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
    
-    <app-uploadstatus [value]="uploadProgress" [status]="uploadStatus"></app-uploadstatus>
+    <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress" [status]="uploadStatus"></app-uploadstatus>
   `,
   styles: [`:host{
     flex: 0; /* only required vertical space */
@@ -205,6 +205,7 @@ export class ControlPanel{
   @Input() uploadStatus:string;
     @Input() uploadProgress:number;
     @Input() currentRecording:AudioBuffer;
+    @Input() enableUploadRecordings:boolean;
     constructor(public dialog: MdDialog){
 
     }
