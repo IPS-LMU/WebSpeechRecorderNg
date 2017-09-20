@@ -6,8 +6,8 @@ import {Script,Section,PromptUnit} from '../script/script';
 import { RecordingFile } from '../recording'
 import { Upload } from '../../net/uploader';
 import {
-    Component, ViewChild, ChangeDetectorRef, Input, Inject,
-    AfterViewInit
+  Component, ViewChild, ChangeDetectorRef, Input, Inject,
+  AfterViewInit, AfterViewChecked
 } from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -30,7 +30,7 @@ const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
     export enum Mode {SERVER_BOUND, STAND_ALONE}
 
-    export enum Status {IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE,
+    export enum Status {IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE,ERROR
     }
 
     export class Item {
@@ -353,8 +353,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.audio = document.getElementById('audio');
             this.selCaptureDeviceId=null;
             this.levelMeasure=new LevelMeasure();
+          this.init();
         }
 
+  ngAfterViewInit(){
+
+
+        this.levelMeasure.levelListener=this.liveLevelDisplay;
+      }
 
         init() {
             this.sectIdx = 0;
@@ -367,17 +373,24 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.playStartAction.disabled = true;
 
             let w = <any>window;
+            let n = <any>navigator;
 
-            AudioContext = w.AudioContext || w.webkitAudioContext;
-            if (typeof AudioContext !== 'function') {
+            w.AudioContext = w.AudioContext || w.webkitAudioContext;
+            let debugFail=false;
+            if (!w.AudioContext || typeof w.AudioContext !== 'function' || debugFail) {
+              this.status=Status.ERROR;
                this.statusMsg = 'ERROR: Browser does not support Web Audio API!';
                this.statusAlertType='error';
+               return;
             } else {
-                let context = new AudioContext();
+                let context = new w.AudioContext();
 
-
-                if (navigator.mediaDevices) {
-
+                if (!navigator.mediaDevices) {
+                  this.status=Status.ERROR;
+                  this.statusMsg = 'ERROR: Browser does not support Media streams!';
+                  this.statusAlertType='error';
+                  return;
+                }else{
                     this.ac = new AudioCapture(context);
 
                     this.ap = new AudioPlayer(context, this);
@@ -448,20 +461,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
                     }, false);
 
 
-                } else {
-
-                   this.statusMsg = 'ERROR: Browser does not support Media streams!';
-                  this.statusAlertType='error';
                 }
+              this.ac.listDevices();
             }
-            this.ac.listDevices();
             this.startStopSignalState=StartStopSignalState.OFF;
 
         }
 
-        ngAfterViewInit(){
-            this.levelMeasure.levelListener=this.liveLevelDisplay;
-        }
+
 
         set session(session: Session) {
             this._session = session;

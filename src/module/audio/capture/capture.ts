@@ -80,7 +80,7 @@ interface AudioWorker extends Worker {
               // workaround to request permissions
               let audioCnstrs={echoCancelation: false}
               navigator.mediaDevices.getUserMedia({audio: audioCnstrs}).then((s: MediaStream) => {
-                // stop immedialtely
+                // stop immediately
                 s.stop();
 
               });
@@ -102,7 +102,7 @@ interface AudioWorker extends Worker {
             for (let i = 0; i < l.length; i++) {
                 let di = l[i];
 
-                console.log("Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
+                console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
             }
         }
 
@@ -124,6 +124,8 @@ interface AudioWorker extends Worker {
             // The workaround to set these constraints does _NOT_ help:
             //var msc={audio: {echoCancellation: false,channelCount: 2, googAudioMirroring: false},video: false};
 
+          // Safari at least version 11: Support for media streams
+          // TODO test if input is unprocessed
 
             let msc;
             console.log(navigator.userAgent);
@@ -178,6 +180,19 @@ interface AudioWorker extends Worker {
                 video: false,
               }
                 msc = {audio: true, video: false};
+            }else if(navigator.userAgent.match(".*Safari.*")){
+              msc= {
+                audio: {
+                  "deviceId": selDeviceId,
+                  "channelCount": channelCount,
+                  "echoCancellation": false
+                },
+                video: false,
+              }
+
+            }else{
+
+              // TODO default constraints or error Browser not supported
             }
             if(msc) {
               console.log(msc.audio);

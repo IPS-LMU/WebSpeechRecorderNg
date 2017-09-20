@@ -8,7 +8,8 @@ import {ControlPanel, Mode as SessionMode, StatusDisplay} from './session/sessio
 	import { AudioClipUIContainer } from '../audio/ui/container';
 	import { SimpleTrafficLight } from './startstopsignal/ui/simpletrafficlight'
   import { Script } from './script/script'
-  import { SessionManager} from  './session/sessionmanager';
+  import { SessionManager,Status as SessionManagerStatus} from  './session/sessionmanager';
+
   import { UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
 import {ActivatedRoute, ParamMap, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
@@ -44,7 +45,7 @@ import {ProjectService} from "./project/project.service";
 export class SpeechRecorder implements AudioPlayerListener {
 
 	  mode:Mode;
-		ap:AudioPlayer;
+		//ap:AudioPlayer;
 		audio:any;
 
   sessionId: string;
@@ -71,19 +72,23 @@ export class SpeechRecorder implements AudioPlayerListener {
 		    //
     }
        ngAfterViewInit(){
+		  if(this.sm.status!== SessionManagerStatus.ERROR) {
+        let initSuccess = this.init();
+        if (initSuccess) {
+          this.route.queryParams.subscribe((params: Params) => {
+            if (params['sessionId']) {
+              this.fetchSession(params['sessionId']);
+            }
+          });
 
-        this.route.queryParams.subscribe((params:Params)=>{
-          if(params['sessionId']) {
-            this.fetchSession(params['sessionId']);
-          }
-        });
-
-        this.route.params.subscribe((params:Params)=> {
-          let routeParamsId = params['id'];
-          if (routeParamsId) {
-            this.fetchSession(routeParamsId);
-          }
-        })
+          this.route.params.subscribe((params: Params) => {
+            let routeParamsId = params['id'];
+            if (routeParamsId) {
+              this.fetchSession(routeParamsId);
+            }
+          })
+        }
+      }
     }
 
     fetchSession(sessionId:string){
@@ -92,7 +97,8 @@ export class SpeechRecorder implements AudioPlayerListener {
       if(sess) {
         sess.then(sess => {
           this.setSession(sess);
-          this.init();
+
+
           if (sess.project) {
             this.projectService.getProject(sess.project).then(project=>{
               this.project=project;
@@ -143,32 +149,36 @@ export class SpeechRecorder implements AudioPlayerListener {
 
         }
 
-		init() {
+		init():boolean {
 
 			var n = <any>navigator;
 			//var getUserMediaFnct= n.getUserMedia || n.webkitGetUserMedia ||
 			//	n.mozGetUserMedia || n.msGetUserMedia;
 			var w = <any>window;
+			// TODO test onyl !!
 
-			AudioContext = w.AudioContext || w.webkitAudioContext;
-			if (typeof AudioContext !== 'function') {
-                this.sm.statusAlertType='error';
-				this.sm.statusMsg = 'ERROR: Browser does not support Web Audio API!';
-			} else {
-				var context = new AudioContext();
-
-				if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
-                    this.sm.statusAlertType='error';
-					this.sm.statusMsg= 'ERROR: Browser does not support Media streams!';
-				} else {
-
+      // let debugFail=true;
+		// 	AudioContext = w.AudioContext || w.webkitAudioContext;
+		// 	if (typeof AudioContext !== 'function' || debugFail) {
+      //           this.sm.statusAlertType='error';
+		// 		this.sm.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+		// 		return false;
+		// 	} else {
+		// 		var context = new AudioContext();
+      //
+		// 		if (typeof navigator.mediaDevices.getUserMedia !== 'function') {
+      //               this.sm.statusAlertType='error';
+		// 			this.sm.statusMsg= 'ERROR: Browser does not support Media streams!';
+      //     return false;
+		// 		} else {
+      //
 
                     //this.sm = new SessionManager(new SimpleTrafficLight(), this.uploader);
-					this.sm.init();
-					this.ap = new AudioPlayer(context,this);
+					//this.sm.init();
+					//this.ap = new AudioPlayer(context,this);
 					//this.sm.listener=this;
-				}
-			}
+			//	}
+		//	}
             this.uploader.listener = (ue) => {
                 this.uploadUpdate(ue);
             }
@@ -198,6 +208,7 @@ export class SpeechRecorder implements AudioPlayerListener {
                     return message;
                 }
             });
+			return true;
         }
 
         uploadUpdate(ue: UploaderStatusChangeEvent) {
