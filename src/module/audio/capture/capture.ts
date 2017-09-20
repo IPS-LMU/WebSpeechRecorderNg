@@ -1,4 +1,4 @@
-import {LevelMeasure} from "../dsp/level_measure";
+import {StreamLevelMeasure} from "../dsp/level_measure";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 interface AudioWorker extends Worker {
     terminate ():void;

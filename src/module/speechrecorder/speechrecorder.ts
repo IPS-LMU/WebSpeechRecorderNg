@@ -12,7 +12,7 @@ import {Session} from "./session/session";
 import {Project} from "./project/project";
 import {ProjectService} from "./project/project.service";
 
-  export enum Mode {SINGLE_SESSION,DEMO}
+export enum Mode {SINGLE_SESSION,DEMO}
 
 
 

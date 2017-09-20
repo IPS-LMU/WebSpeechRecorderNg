@@ -18,7 +18,7 @@ import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
 import {AudioDevice} from "../project/project";
 import {LevelBarDisplay} from "../../audio/ui/livelevel_display";
-import {LevelMeasure} from "../../audio/dsp/level_measure";
+import {StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
@@ -57,7 +57,7 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
   template: `
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
-    <audio-levelbardisplay #levelbardisplay></audio-levelbardisplay>
+    <audio-levelbardisplay #levelbardisplay [displayAudioBuffer]="displayAudioBuffer"></audio-levelbardisplay>
     <app-sprcontrolpanel [enableUploadRecordings] ="enableUploadRecordings" [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
@@ -114,6 +114,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         selectedItemIdx:number;
         private displayRecFile: RecordingFile | null;
         private displayRecFileVersion: number;
+        displayAudioBuffer: AudioBuffer | null;
 
         promptItemCount: number;
 
@@ -128,7 +129,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
-        private levelMeasure:LevelMeasure;
+        private levelMeasure:StreamLevelMeasure;
 
         constructor(private changeDetectorRef: ChangeDetectorRef,
                     public dialog: MdDialog,
@@ -146,7 +147,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
             this.audio = document.getElementById('audio');
             this.selCaptureDeviceId=null;
-            this.levelMeasure=new LevelMeasure();
+            this.levelMeasure=new StreamLevelMeasure();
             if(this.config){
               this.enableUploadRecordings=this.config.enableUploadRecordings;
             }
@@ -334,6 +335,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             //this.fwdBtn.disabled = true;
             this.displayRecFile = null;
             this.displayRecFileVersion = 0;
+            this.displayAudioBuffer=null;
             this.showRecording();
             if (this.section.mode === 'AUTORECORDING') {
                 this.autorecording = true;
@@ -490,6 +492,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
                 recentRecFile = it.recs[rfVers];
                 this.displayRecFile = recentRecFile;
                 this.displayRecFileVersion = rfVers;
+                this.displayAudioBuffer=this.displayRecFile.audioBuffer;
             } else {
                 this.displayRecFile = null;
                 this.displayRecFileVersion = 0;

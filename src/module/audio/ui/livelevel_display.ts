@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef,  ViewChild} from "@angular/core"
+import {ChangeDetectorRef, Component, ElementRef, Input, ViewChild} from "@angular/core"
 import {LevelInfo,  LevelListener} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
 
@@ -38,6 +38,7 @@ export class LevelBarDisplay implements LevelListener{
 
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
+
     peakDbLevelStr="-___ dB";
     peakDbLvl=MIN_DB_LEVEL;
 
@@ -48,6 +49,11 @@ export class LevelBarDisplay implements LevelListener{
 
     ngAfterViewInit() {
         this.ce=this.ref.nativeElement;
+
+    }
+
+  @Input()
+    set displayAudioBuffer(dab:AudioBuffer){
 
     }
 
