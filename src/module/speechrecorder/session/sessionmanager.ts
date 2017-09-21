@@ -148,7 +148,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.audio = document.getElementById('audio');
             this.selCaptureDeviceId=null;
             this.levelMeasure=new StreamLevelMeasure();
-            if(this.config){
+            if(this.config && this.config.enableUploadRecordings!=null){
               this.enableUploadRecordings=this.config.enableUploadRecordings;
             }
           this.init();
