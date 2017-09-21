@@ -56,8 +56,8 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
   providers: [SessionService],
   template: `
     
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
-    <audio-levelbardisplay #levelbardisplay [displayLevelInfos]="displayLevelInfos"></audio-levelbardisplay>
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
+    <audio-levelbardisplay #levelbardisplay [displayLevelInfos]="displayLevelInfos" [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="openAudioDisplayDialog()" (onDownloadRecording)="downloadRecording()" [enableDownload]="enableDownloadRecordings" ></audio-levelbardisplay>
     <app-sprcontrolpanel [enableUploadRecordings] ="enableUploadRecordings" [currentRecording]="displayAudioBuffer" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
@@ -75,6 +75,7 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
 export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
         enableUploadRecordings:boolean=true;
+        enableDownloadRecordings:boolean=false;
         status: Status;
         mode: Mode;
         ac: AudioCapture;
@@ -153,6 +154,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.streamLevelMeasure=new StreamLevelMeasure();
             if(this.config && this.config.enableUploadRecordings!=null){
               this.enableUploadRecordings=this.config.enableUploadRecordings;
+            }
+            if(this.config && this.config.enableDownloadRecordings!=null){
+                this.enableDownloadRecordings=this.config.enableDownloadRecordings;
             }
           this.init();
         }

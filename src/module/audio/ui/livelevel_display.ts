@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, Input, ViewChild} from "@angular/core"
+import {ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
 
@@ -9,7 +9,8 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-levelbardisplay',
     template: `
-      <audio-levelbar [displayLevelInfos]="_displayLevelInfos"></audio-levelbar> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> <md-icon>zoom_out_map</md-icon>
+        <audio-levelbar [displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><md-icon>zoom_out_map</md-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><md-icon>file_download</md-icon></button>
+        <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -38,13 +39,23 @@ export class LevelBarDisplay implements LevelListener{
 
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
-
+    @Input() displayAudioBuffer:AudioBuffer|  null;
+    @Input() enableDownload:boolean;
     peakDbLevelStr="-___ dB";
     peakDbLvl=MIN_DB_LEVEL;
 
     _displayLevelInfos:LevelInfos| null;
+    @Output() onShowRecordingDetails:EventEmitter<void>=new EventEmitter<void>();
+    @Output() onDownloadRecording:EventEmitter<void>=new EventEmitter<void>();
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
+    }
+
+    showRecordingDetails(){
+        this.onShowRecordingDetails.emit();
+    }
+    downloadRecording(){
+        this.onDownloadRecording.emit();
     }
 
     ngAfterViewInit() {

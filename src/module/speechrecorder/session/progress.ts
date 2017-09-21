@@ -23,13 +23,7 @@ import {Item} from './sessionmanager';
             (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx" [scrollIntoView]="itIdx===selectedItemIdx">
           <td>{{itIdx}}</td>
           <td>{{item.promptAsString}}</td>
-          <td>
-            <button *ngIf="item.recs && item.recs.length>0" (click)="clickDone=itIdx">
-              <md-icon>done</md-icon>
-            </button>
-            <button *ngIf="enableDownload" [disabled]="!(item.recs && item.recs.length>0)" (click)="clickDownloadDone=itIdx">
-              <md-icon>file_download</md-icon>
-            </button>
+          <td><md-icon *ngIf="item.recs && item.recs.length>0">done</md-icon>
             
           </td>
         </tr>

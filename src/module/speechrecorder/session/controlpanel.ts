@@ -6,7 +6,7 @@ import {Script,Section,PromptUnit} from '../script/script';
 import { RecordingFile } from '../recording'
 import { Upload } from '../../net/uploader';
 import {
-  Component, ViewChild, Input
+    Component, ViewChild, Input, EventEmitter, Output
 } from "@angular/core";
 
 import {MdDialog, MdDialogConfig} from "@angular/material";
@@ -209,6 +209,8 @@ export class ControlPanel{
     constructor(public dialog: MdDialog){
 
     }
+
+
   openAudioDisplayDialog() {
     let dCfg=new MdDialogConfig();
     dCfg.width='80%';

@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "module_transpile": "ngc -p tsconfig-module-aot.json",
+    "apply_version": "node bin/apply_version.js",
+    "module_transpile": "npm run apply_version && ngc -p tsconfig-module-aot.json",
     "rollup_module": "rollup -c",
     "minify_module": "uglifyjs dist/module/bundles/speechrecorder.umd.js --screw-ie8 --compress --mangle --comments --output dist/module/bundles/speechrecorder.umd.min.js",
     "prepare_module_package": "cp module_package.json dist/module/package.json",
