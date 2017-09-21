@@ -22,9 +22,6 @@ import {SpeechRecorderUploader} from "./spruploader";
 import {ProjectService} from "./project/project.service";
 import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./session/controlpanel";
 
-
-export const VERSION='0.0.17';
-
 const SPR_ROUTES: Routes = [
 
   { path: 'spr/session/:id',      component: SpeechRecorder },

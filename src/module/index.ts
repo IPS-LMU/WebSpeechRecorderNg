@@ -1,4 +1,5 @@
-export {SpeechRecorderModule,VERSION} from './speechrecorder/spr.module'
+export {SpeechRecorderModule} from './speechrecorder/spr.module'
+export {VERSION} from './speechrecorder/spr.module.version'
 export {SpeechRecorderConfig} from './speechrecorder/spr.config'
 export {SpeechRecorder} from './speechrecorder/speechrecorder'
 export {Session} from './speechrecorder/session/session'
