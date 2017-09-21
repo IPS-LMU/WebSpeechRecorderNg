@@ -58,7 +58,7 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
     <audio-levelbardisplay #levelbardisplay [displayLevelInfos]="displayLevelInfos"></audio-levelbardisplay>
-    <app-sprcontrolpanel [enableUploadRecordings] ="enableUploadRecordings" [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
+    <app-sprcontrolpanel [enableUploadRecordings] ="enableUploadRecordings" [currentRecording]="displayAudioBuffer" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
   styles: [`:host{
@@ -85,7 +85,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         // Property audioDevices from project config: list of names of allowed audio devices.
         private _audioDevices:Array<AudioDevice> | null | undefined;
         private selCaptureDeviceId: ConstrainDOMString | null;
-        currentRecording:AudioBuffer | null;
+        //currentRecording:AudioBuffer | null;
         private ap: AudioPlayer;
         private updateTimerId: any;
         private preRecTimerId: number;
@@ -309,6 +309,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         }
 
       itemSelect(itemIdx:number){
+        if(this.status!==Status.IDLE){
+            return;
+        }
           console.log("Selected item: "+itemIdx);
 
 
@@ -435,9 +438,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
             if (this.displayRecFile) {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-                //this.audioSignal.setData(ab);
-              this.currentRecording=ab;
-              this.displayAudioBuffer=this.currentRecording;
+
+              this.displayAudioBuffer=ab;
               this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer,LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos)=>{
                 this.displayLevelInfos=levelInfos;
                 this.changeDetectorRef.detectChanges();
@@ -446,7 +448,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
                 this.playStartAction.disabled = false;
                 this.ap.audioBuffer = ab;
             } else {
-                this.currentRecording=null;
+                this.displayAudioBuffer=null;
                this.displayLevelInfos=null;
                // this.audioSignal.setData(null);
                 //     rdDlEl.href = null;
@@ -463,7 +465,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       let dCfg = new MdDialogConfig();
       dCfg.width = '80%';
       dCfg.height = '80%';
-      dCfg.data = this.currentRecording;
+      dCfg.data = this.displayAudioBuffer;
       this.dialog.afterOpen.subscribe(ref => {
 
           let compInst = ref.componentInstance;
