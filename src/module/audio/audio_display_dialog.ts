@@ -9,7 +9,7 @@ import {
 import {MdDialogConfig, MdDialogRef} from '@angular/material';
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
 import { AudioClipUIContainer } from './ui/container'
-import { AudioContextProvider } from './context'
+import {AudioContextProvider, AudioSystem} from './context'
 import {MD_DIALOG_DATA} from '@angular/material';
 
 @Component({
@@ -43,7 +43,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   private _audioUrl:string;
   startEnabled:boolean;
   stopEnabled:boolean;
-  aCtx:AudioContext;
+  private aCtx:AudioSystem;
   ap:AudioPlayer;
   status:string;
   audioFormatStr:string;
@@ -56,7 +56,14 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   private destroyed=false;
 
   constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<AudioDisplayDialog>,@Inject(MD_DIALOG_DATA) public data: any) {
+    this.aCtx=AudioContextProvider.audioSystem();
+    if (!this.aCtx.audioContext) {
+      this.status= 'ERROR: Browser does not support Web Audio API!';
+    } else {
 
+      this.ap = new AudioPlayer(this.aCtx.audioContext, this);
+      this.status= 'Player initialized.';
+    }
   }
 
 
@@ -64,8 +71,8 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   ngAfterViewInit(){
     console.log("ngAfterViewInit")
     this.destroyed=false;
-    this.init();
-
+    //this.init();
+    this.applyAudioBuffer()
    // this.updateUI();
 
   }
@@ -82,17 +89,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
     this.destroyed=true;
   }
 
-  init() {
-    this.aCtx=AudioContextProvider.audioContext;
-    if (!this.aCtx) {
-      this.status= 'ERROR: Browser does not support Web Audio API!';
-    } else {
 
-      this.ap = new AudioPlayer(this.aCtx, this);
-      this.status= 'Player initialized.';
-    }
-   this.applyAudioBuffer()
-  }
 
   applyAudioBuffer(){
     this.audioBuffer=this.data;
