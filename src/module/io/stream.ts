@@ -48,6 +48,7 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream{
 
       let copied=0;
       let buffersLen=buffers[0].length;
+    this.receivedFrames+=buffersLen;
       let avail=buffersLen;
       // Fill out buffers until all values copied
       while (avail>0) {
@@ -69,17 +70,16 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream{
           }
         }
         copied+=toFill;
-
+        avail-=toFill;
         this.filled+=toFill;
         if(this.filled==this._chunkSize){
           this.outStream.write(this.bufs);
-          avail-=this.filled;
           this.sentFrames+=this.filled;
           this.filled=0;
 
         }
       }
-      this.receivedFrames+=copied;
+
       this.printStat();
     return copied;
   }
@@ -92,7 +92,10 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream{
       this.outStream.write(restBufs);
       this.outStream.flush();
       this.sentFrames+=this.filled;
+      console.log("Flushed "+this.filled);
+      this.filled=0;
     }
+    this.printStat();
   }
 
   private printStat(){
