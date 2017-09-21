@@ -203,20 +203,14 @@ interface AudioWorker extends Worker {
               this.stream = s;
 
               let aTracks = s.getAudioTracks();
-              let sampleRateFromTrack:number=null;
+
               for (let i = 0; i < aTracks.length; i++) {
                 let aTrack = aTracks[i];
-                if(!sampleRateFromTrack) {
-                  let atrSets=aTrack.getSettings();
-                  sampleRateFromTrack= atrSets.sampleRate;
-                }
+
                 console.log("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
               }
 
-              // not set
-              // if(sampleRateFromTrack){
-              //   this.currentSampleRate=sampleRateFromTrack;
-              // }
+
               let vTracks = s.getVideoTracks();
               for (let i = 0; i < vTracks.length; i++) {
                 let vTrack = vTracks[i];

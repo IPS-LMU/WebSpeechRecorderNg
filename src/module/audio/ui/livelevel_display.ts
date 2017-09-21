@@ -42,7 +42,7 @@ export class LevelBarDisplay implements LevelListener{
     peakDbLevelStr="-___ dB";
     peakDbLvl=MIN_DB_LEVEL;
 
-    _displayLevelInfos:LevelInfos;
+    _displayLevelInfos:LevelInfos| null;
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
     }
