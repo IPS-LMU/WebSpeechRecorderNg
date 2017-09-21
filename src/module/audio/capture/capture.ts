@@ -48,6 +48,7 @@ interface AudioWorker extends Worker {
         n:Navigator;
         audioOutStream:SequenceAudioFloat32OutStream | null;
 
+        framesRecorded:number;
         constructor(context:any) {
            this.context=context;
             this.n=navigator;
@@ -59,6 +60,7 @@ interface AudioWorker extends Worker {
           for (let i = 0; i < this.channelCount; i++) {
             this.data.push(new Array<Float32Array>());
           }
+          this.framesRecorded=0;
         }
 
         listDevices() {
@@ -109,7 +111,7 @@ interface AudioWorker extends Worker {
         open(channelCount:number,selDeviceId?:ConstrainDOMString,){
           console.log("Starting capture...");
           this.channelCount=channelCount;
-
+          this.framesRecorded=0;
             //var msc = new AudioStreamConstr();
           // var msc={};
             //msc.video = false;
@@ -272,6 +274,8 @@ interface AudioWorker extends Worker {
                     let chSamplesCopy = chSamples.slice(0);
                     currentBuffers[ch]=chSamplesCopy.slice(0);
                     this.data[ch].push(chSamplesCopy);
+                    this.framesRecorded+=chSamplesCopy.length;
+                    console.log("Frames recorded: "+this.framesRecorded)
                   }
 
                   c++;

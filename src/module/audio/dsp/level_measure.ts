@@ -198,6 +198,7 @@ export class LevelMeasure {
         audioData[ch] = new Float32Array(msg.data.audioData[ch]);
       }
       let frameLength = audioData[0].length;
+      console.log("Calc levels frame length: "+frameLength);
 
       let bufferCount=Math.ceil(frameLength/bufferFrameLength);
       for (let ch = 0; ch < chs; ch++) {
