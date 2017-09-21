@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, ElementRef, Input, ViewChild} from "@angular/core"
-import {LevelInfo,  LevelListener} from "../dsp/level_measure";
+import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
 
 
@@ -9,7 +9,7 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-levelbardisplay',
     template: `
-      <audio-levelbar></audio-levelbar> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> <md-icon>zoom_out_map</md-icon>
+      <audio-levelbar [displayLevelInfos]="_displayLevelInfos"></audio-levelbar> <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> <md-icon>zoom_out_map</md-icon>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -42,7 +42,7 @@ export class LevelBarDisplay implements LevelListener{
     peakDbLevelStr="-___ dB";
     peakDbLvl=MIN_DB_LEVEL;
 
-
+    _displayLevelInfos:LevelInfos;
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
     }
@@ -52,9 +52,9 @@ export class LevelBarDisplay implements LevelListener{
 
     }
 
-  @Input()
-    set displayAudioBuffer(dab:AudioBuffer){
-
+    @Input()
+    set displayLevelInfos(levelInfos:LevelInfos| null){
+        this._displayLevelInfos=levelInfos;
     }
 
     set channelCount(channelCount:number){

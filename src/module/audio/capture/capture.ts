@@ -109,9 +109,7 @@ interface AudioWorker extends Worker {
         open(channelCount:number,selDeviceId?:ConstrainDOMString,){
           console.log("Starting capture...");
           this.channelCount=channelCount;
-          if(this.audioOutStream) {
-            this.audioOutStream.setFormat(this.channelCount, 44100);
-          }
+
             //var msc = new AudioStreamConstr();
           // var msc={};
             //msc.video = false;
@@ -203,11 +201,20 @@ interface AudioWorker extends Worker {
               this.stream = s;
 
               let aTracks = s.getAudioTracks();
+              let sampleRateFromTrack:number=null;
               for (let i = 0; i < aTracks.length; i++) {
                 let aTrack = aTracks[i];
-
+                if(!sampleRateFromTrack) {
+                  let atrSets=aTrack.getSettings();
+                  sampleRateFromTrack= atrSets.sampleRate;
+                }
                 console.log("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
               }
+
+              // not set
+              // if(sampleRateFromTrack){
+              //   this.currentSampleRate=sampleRateFromTrack;
+              // }
               let vTracks = s.getVideoTracks();
               for (let i = 0; i < vTracks.length; i++) {
                 let vTrack = vTracks[i];
@@ -216,8 +223,14 @@ interface AudioWorker extends Worker {
               this.mediaStream = this.context.createMediaStreamSource(s);
               // stream channel count ( is always 2 !)
               let streamChannelCount: number = this.mediaStream.channelCount;
-              this.currentSampleRate = this.mediaStream.sampleRate;
+
+              // is not set!!
+              //this.currentSampleRate = this.mediaStream.sampleRate;
+              this.currentSampleRate=this.context.sampleRate;
               console.log("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
+            if(this.audioOutStream) {
+              this.audioOutStream.setFormat(this.channelCount,this.currentSampleRate);
+            }
               // W3C  -> new name is createScriptProcessor
               //
               // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)

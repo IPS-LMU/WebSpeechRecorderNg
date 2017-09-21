@@ -18,7 +18,7 @@ import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
 import {AudioDevice} from "../project/project";
 import {LevelBarDisplay} from "../../audio/ui/livelevel_display";
-import {StreamLevelMeasure} from "../../audio/dsp/level_measure";
+import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
@@ -57,7 +57,7 @@ const LEVEL_BAR_INTERVALL_SECONDS =0.1;  // 100ms
   template: `
     
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText"  [items]="items" [selectedItemIdx]="selectedItemIdx" [enableDownload]="config.enableDownloadRecordings" (onItemSelect)="itemSelect($event)" (onShowDone)="openAudioDisplayDialog()" (onDownloadDone)="downloadRecording()"></app-sprprompting>
-    <audio-levelbardisplay #levelbardisplay [displayAudioBuffer]="displayAudioBuffer"></audio-levelbardisplay>
+    <audio-levelbardisplay #levelbardisplay [displayLevelInfos]="displayLevelInfos"></audio-levelbardisplay>
     <app-sprcontrolpanel [enableUploadRecordings] ="enableUploadRecordings" [currentRecording]="currentRecording" [transportActions]="transportActions" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress" [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
     
   `,
@@ -115,6 +115,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         private displayRecFile: RecordingFile | null;
         private displayRecFileVersion: number;
         displayAudioBuffer: AudioBuffer | null;
+        displayLevelInfos: LevelInfos| null;
 
         promptItemCount: number;
 
@@ -129,7 +130,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         uploadStatus:string='ok'
         audioSignalCollapsed=true;
 
-        private levelMeasure:StreamLevelMeasure;
+        private streamLevelMeasure:StreamLevelMeasure;
+        private levelMeasure:LevelMeasure;
 
         constructor(private changeDetectorRef: ChangeDetectorRef,
                     public dialog: MdDialog,
@@ -147,7 +149,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
             this.audio = document.getElementById('audio');
             this.selCaptureDeviceId=null;
-            this.levelMeasure=new StreamLevelMeasure();
+            this.levelMeasure=new LevelMeasure();
+            this.streamLevelMeasure=new StreamLevelMeasure();
             if(this.config && this.config.enableUploadRecordings!=null){
               this.enableUploadRecordings=this.config.enableUploadRecordings;
             }
@@ -157,7 +160,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   ngAfterViewInit(){
 
 
-        this.levelMeasure.levelListener=this.liveLevelDisplay;
+        this.streamLevelMeasure.levelListener=this.liveLevelDisplay;
       }
 
         init() {
@@ -207,7 +210,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
                         this.ac.listener = this;
                         //this.ac.audioOutStream=this.levelMeasure;
-                        this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.levelMeasure,LEVEL_BAR_INTERVALL_SECONDS);
+                        this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure,LEVEL_BAR_INTERVALL_SECONDS);
                     } else {
                         this.transportActions.startAction.disabled = true;
                         this.statusMsg = 'ERROR: Browser does not support Media/Audio API!';
@@ -434,11 +437,17 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
                 let ab: AudioBuffer = this.displayRecFile.audioBuffer;
                 //this.audioSignal.setData(ab);
               this.currentRecording=ab;
+              this.displayAudioBuffer=this.currentRecording;
+              this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer,LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos)=>{
+                this.displayLevelInfos=levelInfos;
+                this.changeDetectorRef.detectChanges();
+              });
               //  rdDlDivEl.style.visibility = 'visible';
                 this.playStartAction.disabled = false;
                 this.ap.audioBuffer = ab;
             } else {
                 this.currentRecording=null;
+               this.displayLevelInfos=null;
                // this.audioSignal.setData(null);
                 //     rdDlEl.href = null;
                 //     rdDlEl.name = 'Recording';
@@ -492,7 +501,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
                 recentRecFile = it.recs[rfVers];
                 this.displayRecFile = recentRecFile;
                 this.displayRecFileVersion = rfVers;
-                this.displayAudioBuffer=this.displayRecFile.audioBuffer;
+
             } else {
                 this.displayRecFile = null;
                 this.displayRecFileVersion = 0;
