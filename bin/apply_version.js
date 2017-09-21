@@ -9,3 +9,5 @@ var tsCont="export const VERSION='"+pkg.version+"'";
 //})
 
 fs.writeFileSync('src/module/speechrecorder/spr.module.version.ts',tsCont);
+
+process.exit(0)
