@@ -47,6 +47,8 @@ interface AudioWorker extends Worker {
         currentSampleRate:number;
         n:Navigator;
         audioOutStream:SequenceAudioFloat32OutStream | null;
+        private disconnectStreams=true;
+        private capturing=false;
 
         framesRecorded:number;
         constructor(context:any) {
@@ -181,6 +183,7 @@ interface AudioWorker extends Worker {
               }
                 msc = {audio: true, video: false};
             }else if(navigator.userAgent.match(".*Safari.*")){
+              this.disconnectStreams=false;
               msc= {
                 audio: {
                   "deviceId": selDeviceId,
@@ -258,25 +261,26 @@ interface AudioWorker extends Worker {
                 let c = 0;
                 this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
 
-                  // TODO use chCnt
-                  let inBuffer = e.inputBuffer;
-                  let duration = inBuffer.duration;
-                  // only process requested count of channels
-                  let currentBuffers=new Array<Float32Array>(channelCount);
-                  for (let ch: number = 0; ch < channelCount; ch++) {
-                    let chSamples = inBuffer.getChannelData(ch);
-                    let chSamplesCopy = chSamples.slice(0);
-                    currentBuffers[ch]=chSamplesCopy.slice(0);
-                    this.data[ch].push(chSamplesCopy);
-                    this.framesRecorded+=chSamplesCopy.length;
-                    console.log("Frames recorded: "+this.framesRecorded)
+                  if(this.capturing) {
+                    // TODO use chCnt
+                    let inBuffer = e.inputBuffer;
+                    let duration = inBuffer.duration;
+                    // only process requested count of channels
+                    let currentBuffers = new Array<Float32Array>(channelCount);
+                    for (let ch: number = 0; ch < channelCount; ch++) {
+                      let chSamples = inBuffer.getChannelData(ch);
+                      let chSamplesCopy = chSamples.slice(0);
+                      currentBuffers[ch] = chSamplesCopy.slice(0);
+                      this.data[ch].push(chSamplesCopy);
+                      this.framesRecorded += chSamplesCopy.length;
+                      console.log("Frames recorded: " + this.framesRecorded)
+                    }
+
+                    c++;
+                    if (this.audioOutStream) {
+                      this.audioOutStream.write(currentBuffers);
+                    }
                   }
-
-                  c++;
-                 if(this.audioOutStream){
-                   this.audioOutStream.write(currentBuffers);
-                 }
-
                 }
               }
               // }
@@ -299,6 +303,7 @@ interface AudioWorker extends Worker {
         if(this.audioOutStream){
             this.audioOutStream.nextStream()
         }
+        this.capturing=true;
         this.mediaStream.connect(this.bufferingNode);
         this.bufferingNode.connect(this.context.destination);
         if (this.listener) {
@@ -310,11 +315,15 @@ interface AudioWorker extends Worker {
 
         stop(){
 
-          this.mediaStream.disconnect(this.bufferingNode);
-          this.bufferingNode.disconnect(this.context.destination);
+          if(this.disconnectStreams) {
+            this.mediaStream.disconnect(this.bufferingNode);
+            this.bufferingNode.disconnect(this.context.destination);
+          }
+
           if(this.audioOutStream) {
             this.audioOutStream.flush();
           }
+          this.capturing=false;
             console.log("Captured");
           if(this.listener){
             this.listener.stopped();
