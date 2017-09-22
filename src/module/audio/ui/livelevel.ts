@@ -1,6 +1,7 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 
+export const RED_DB_LEVEL=-0.3;
 export const MIN_DB_LEVEL = -60.0;
 export const LINE_WIDTH = 2;
 export const LINE_DISTANCE = 2;
@@ -67,12 +68,7 @@ export class LevelBar implements LevelListener {
 
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
-    console.log("Host div scroll event: " + se);
-    // se.preventDefault();
-    // se.stopImmediatePropagation();
-    // se.stopPropagation();
     this.liveLevelCanvas.style.left = this.ce.scrollLeft + 'px';
-    //this.liveLevelCanvas.style.height=offH;
     this.drawAll();
   }
 
@@ -82,7 +78,6 @@ export class LevelBar implements LevelListener {
       this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
         return li.powerLevelsDB()
       });
-      console.log("Level bars #" + this.dbValues.length)
     } else {
       this.dbValues = new Array<Array<number>>();
     }
@@ -97,18 +92,10 @@ export class LevelBar implements LevelListener {
   onResize(event: Event) {
 
     this.layout();
-    //this.liveLevelCanvas.style.height=offH;
     this.drawAll();
   }
 
   layout() {
-    // let offW=this.ce.offsetWidth.toString() + 'px';
-    // let offH=this.ce.offsetHeight.toString() + 'px';
-    // this.liveLevelCanvas.width=this.ce.offsetWidth;
-    // this.liveLevelCanvas.height=this.ce.offsetHeight;
-    // this.liveLevelCanvas.style.width=offW;
-    // this.liveLevelCanvas.style.height=offH;
-
 
     // set Canvas size to viewport size
     this.liveLevelCanvas.width = this.ce.offsetWidth;
@@ -117,7 +104,6 @@ export class LevelBar implements LevelListener {
     // and move to viewport position
     this.liveLevelCanvas.style.left = this.ce.scrollLeft + 'px';
     this.drawAll();
-    // console.log("Canvas style offsetWidth: "+this.liveLevelCanvas.offsetWidth+",  width: "+this.liveLevelCanvas.width)
   }
 
   update(levelInfos: LevelInfo) {
@@ -125,21 +111,16 @@ export class LevelBar implements LevelListener {
     let peakDBVal = levelInfos.powerLevelDB();
     if (this.peakDbLvl < peakDBVal) {
       this.peakDbLvl = peakDBVal;
-      //this.peakDbLevelStr=this.peakDbLvl+" dB";
       this.changeDetectorRef.detectChanges();
     }
     this.dbValues.push(dbVals);
-    console.log("Live level bar #" + this.dbValues.length)
     let i = this.dbValues.length - 1;
     let x = i * (LINE_DISTANCE + LINE_WIDTH);
     this.drawPushValue(x, dbVals);
-
     this.checkWidth();
-
   }
 
   streamFinished() {
-    console.log("Stream finished");
     this.layoutStatic();
   }
 
@@ -165,7 +146,6 @@ export class LevelBar implements LevelListener {
     }
   }
 
-
   reset() {
     this.peakDbLvl = MIN_DB_LEVEL;
     this.dbValues = new Array<Array<number>>();
@@ -189,7 +169,6 @@ export class LevelBar implements LevelListener {
     g.moveTo(xc, h);
     let pVal = ((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL) * h;
 
-    //console.log("Draw lvl: "+dbVal+"dB: "+x+","+pVal+" on "+w+"x"+h);
     g.lineTo(xc, h - pVal);
     g.closePath();
     g.stroke();
@@ -203,7 +182,7 @@ export class LevelBar implements LevelListener {
     for (let ch = 0; ch < dbVals.length; ch++) {
       let dbVal = dbVals[ch];
       let y = Math.floor(ch * chH);
-      if (dbVal >= -0.3) {
+      if (dbVal >= RED_DB_LEVEL) {
         g.strokeStyle = 'red';
         g.fillStyle = 'red';
 
@@ -215,7 +194,6 @@ export class LevelBar implements LevelListener {
       g.moveTo(xc, y + chH);
       let pVal = ((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL) * chH;
 
-      //console.log("Draw lvl: "+dbVal+"dB: "+x+","+pVal+" on "+w+"x"+h);
       g.lineTo(xc, y + chH - pVal);
       g.closePath();
       g.stroke();
@@ -224,25 +202,18 @@ export class LevelBar implements LevelListener {
 
   drawPushValue(x: number, dbVals: Array<number>) {
 
-    // TODO test channel 0 only
-    // let dbVal=dbVals[0];
     if (this.liveLevelCanvas) {
       let w = this.liveLevelCanvas.width;
       let h = this.liveLevelCanvas.height;
       let g = this.liveLevelCanvas.getContext("2d");
       if (g) {
-
         this.drawLevelLines(g, x, h, dbVals);
-
-
       }
     }
   }
 
   drawAll() {
     if (this.liveLevelCanvas) {
-
-
       let w = this.liveLevelCanvas.width;
       let h = this.liveLevelCanvas.height;
       let g = this.liveLevelCanvas.getContext("2d");

@@ -25,23 +25,17 @@ import { AudioClip } from '../persistor'
         update(e:AudioPlayerEvent):void;
     }
 
-
     export class AudioPlayer {
         public static DEFAULT_BUFSIZE:number = 8192;
         private _startAction:Action;
         private _stopAction:Action;
         bufSize:number;
         context:AudioContext;
-        // _audioClip:ips.audio.AudioClip;
         listener:AudioPlayerListener;
-        stream:MediaStream;
         _audioBuffer:AudioBuffer | null;
         sourceBufferNode:AudioBufferSourceNode;
-        bufferingNode:ScriptProcessorNode;
         buffPos:number;
         private zeroBufCnt:number;
-        //data:Array<Float32Array>;
-
         n:any;
         zb:Float32Array;
         private playStartTime:number;
@@ -118,11 +112,6 @@ import { AudioClip } from '../persistor'
 
         }
 
-        // updatePlayPosition() {
-        //     var pp = this.context.currentTime - this.playStartTime;
-        //     console.log("Play position: " + pp);
-        // }
-
         stop(){
             if (this.sourceBufferNode) {
                 this.sourceBufferNode.stop();
@@ -133,11 +122,9 @@ import { AudioClip } from '../persistor'
         onended() {
             window.clearInterval(this.timerVar);
             this._startAction.disabled = false;
-            console.log("On ended enbled start action")
             this._stopAction.disabled = true;
             if (this.listener) {
                 this.listener.update(new AudioPlayerEvent(EventType.ENDED));
-                console.log("On ended listener updated")
             }
         }
 

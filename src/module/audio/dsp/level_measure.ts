@@ -198,16 +198,11 @@ export class LevelMeasure {
         audioData[ch] = new Float32Array(msg.data.audioData[ch]);
       }
       let frameLength = audioData[0].length;
-      console.log("Calc levels frame length: "+frameLength);
-
       let bufferCount=Math.ceil(frameLength/bufferFrameLength);
       for (let ch = 0; ch < chs; ch++) {
         linLevels[ch] = new Float32Array(bufferCount*2);
       }
       if (audioData && chs > 0) {
-
-
-
         for (var ch = 0; ch < chs; ch++) {
           let chData = audioData[ch];
 
@@ -216,38 +211,19 @@ export class LevelMeasure {
             let lvlArrPos = bi * 2;
             let bs = s % bufferFrameLength;
 
-
             if (chData[s] < linLevels[ch][lvlArrPos]) {
-              if (chData[s] < -1.0) {
-                console.log("Min: " + chData[s]);
-              }
               linLevels[ch][lvlArrPos] = chData[s];
             }
             lvlArrPos++;
             if (chData[s] > linLevels[ch][lvlArrPos]) {
-              if (chData[s] > 1.0) {
-                console.log("Max: " + chData[s]);
-              }
               linLevels[ch][lvlArrPos] = chData[s];
             }
-
           }
-
         }
         var linLevelBufs = new Array<any>(chs);
         for (let ch = 0; ch < chs; ch++) {
           linLevelBufs[ch] = linLevels[ch].buffer;
-
         }
-
-        // TEST delay
-        // let v=0;
-        // for(let i=0;i<100000000;i++){
-        //   v=v+Math.random();
-        // }
-        // console.log(v);
-        // console.log("Processed buffer #"+msg.data.bufferIndex);
-
         postMessage({bufferFrameLength:bufferFrameLength,frameLength:frameLength,linLevelBuffers: linLevelBufs}, linLevelBufs);
 
       }
@@ -282,7 +258,6 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
     this.peakLevelInfo = new LevelInfo(this.channelCount);
     this.worker = new Worker(this.workerFunctionURL);
     this.worker.onmessage = (me) => {
-      //console.log("Worker post");
       let streamFinished = me.data.streamFinished;
       if (streamFinished) {
         if (this.levelListener) {
@@ -294,7 +269,6 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
         let maxLevels = new Array<number>(this.channelCount);
         for (let ch = 0; ch < this.channelCount; ch++) {
           let fls = new Float32Array(me.data.linLevelBuffers[ch]);
-          //console.log("Fls: " + fls[0] + " " + fls[1]);
           minLevels[ch] = fls[0];
           maxLevels[ch] = fls[1];
         }
@@ -319,7 +293,6 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   }
 
   write(bufferData: Array<Float32Array>): number {
-    //console.log("measure buffer data: "+bufferData.length+" "+bufferData[0].length);
     let bufArrCopies = new Array<Float32Array>(bufferData.length);
     let buffers = new Array<any>(bufferData.length);
     for (let ch = 0; ch < bufferData.length; ch++) {
@@ -332,7 +305,6 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
       chs: this.channelCount,
       bufferIndex: this.bufferIndex
     }, buffers);
-    //console.log("Posted buffer #"+this.bufferIndex);
     this.bufferIndex++;
     return bufArrCopies[0].length;
   }
@@ -375,15 +347,9 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
             }
             for (let s = 0; s < frameLength; s++) {
               if (chData[s] < linLevels[ch][0]) {
-                if (chData[s] < -1.0) {
-                  console.log("Min: " + chData[s]);
-                }
                 linLevels[ch][0] = chData[s];
               }
               if (chData[s] > linLevels[ch][1]) {
-                if (chData[s] > 1.0) {
-                  console.log("Max: " + chData[s]);
-                }
                 linLevels[ch][1] = chData[s];
               }
 
@@ -393,17 +359,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
         var linLevelBufs = new Array<any>(chs);
         for (let ch = 0; ch < chs; ch++) {
           linLevelBufs[ch] = linLevels[ch].buffer;
-
         }
-
-        // TEST delay
-        // let v=0;
-        // for(let i=0;i<100000000;i++){
-        //   v=v+Math.random();
-        // }
-        // console.log(v);
-        // console.log("Processed buffer #"+msg.data.bufferIndex);
-
         postMessage({streamFinished: false, frameLength: frameLength, linLevelBuffers: linLevelBufs}, linLevelBufs);
       }
     }

@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -13,7 +13,7 @@
     "rollup_module": "rollup -c",
     "minify_module": "uglifyjs dist/module/bundles/speechrecorder.umd.js --screw-ie8 --compress --mangle --comments --output dist/module/bundles/speechrecorder.umd.min.js",
     "prepare_module_package": "cp module_package.json dist/module/package.json",
-    "build_module": "npm run prepare_module_package && npm run module_transpile && npm run rollup_module && npm run minify_module",
+    "build_module": "npm run module_transpile && npm run rollup_module && npm run minify_module && npm run prepare_module_package",
     "pack_module": "cd dist/module;npm pack",
     "publish_module": "cd dist/module;rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",

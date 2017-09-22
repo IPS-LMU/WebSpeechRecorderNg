@@ -32,7 +32,7 @@ const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export enum Mode {SERVER_BOUND, STAND_ALONE}
 
 export enum Status {
-  BLOCKED,IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
+  BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
 export class Item {
@@ -233,17 +233,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   @HostListener('window:keypress', ['$event'])
   onKeyPress(ke: KeyboardEvent) {
-    console.log("Key press: "+ke.key)
     if (ke.key == ' ') {
       this.transportActions.startAction.perform();
       this.transportActions.nextAction.perform();
     }
-
   }
 
   @HostListener('window:keydown', ['$event'])
   onKeyDown(ke: KeyboardEvent) {
-    console.log("Key down: "+ke.key)
     if (ke.key == ' ' || ke.key == 'Escape') {
       this.transportActions.stopAction.perform();
     }
@@ -253,10 +250,10 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     if (ke.key == 'MediaPlayPause') {
       this.playStartAction.perform();
     }
-    if(ke.key==='ArrowRight'){
+    if (ke.key === 'ArrowRight') {
       this.transportActions.fwdAction.perform();
     }
-    if(ke.key==='ArrowLeft'){
+    if (ke.key === 'ArrowLeft') {
       this.transportActions.bwdAction.perform();
     }
   }
@@ -328,7 +325,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.transportActions.pauseAction.disabled = true;
     this.transportActions.fwdAction.disabled = true
     this.transportActions.bwdAction.disabled = true
-    //this.fwdBtn.disabled = true;
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
     this.displayAudioBuffer = null;
@@ -399,14 +395,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       let wavFile = ww.writeAsync(ab, (wavFile) => {
         let blob = new Blob([wavFile], {type: 'audio/wav'});
         let rfUrl = URL.createObjectURL(blob);
+
+        // TODO Angular compatible ??
         let dataDnlLnk = document.createElement("a");
 
         dataDnlLnk.name = 'Recording';
-
         dataDnlLnk.href = rfUrl;
 
         document.body.appendChild(dataDnlLnk);
-
 
         // download property not yet in TS def
         if (this.displayRecFile) {
@@ -427,24 +423,16 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
     if (this.displayRecFile) {
       let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-
       this.displayAudioBuffer = ab;
       this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
         this.displayLevelInfos = levelInfos;
         this.changeDetectorRef.detectChanges();
       });
-      //  rdDlDivEl.style.visibility = 'visible';
       this.playStartAction.disabled = false;
       this.ap.audioBuffer = ab;
     } else {
       this.displayAudioBuffer = null;
       this.displayLevelInfos = null;
-      // this.audioSignal.setData(null);
-      //     rdDlEl.href = null;
-      //     rdDlEl.name = 'Recording';
-      // // TODO disable link (remove anchor element)
-      // rdDlEl.removeAttribute('download');
-      //rdDlDivEl.style.visibility = 'hidden';
       this.ap.audioBuffer = null;
       this.playStartAction.disabled = true;
     }
@@ -456,31 +444,29 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     dCfg.height = '80%';
     dCfg.data = this.displayAudioBuffer;
     this.dialog.afterOpen.subscribe(ref => {
-      this.status=Status.BLOCKED;
-      this.transportActions.startAction.disabled = true;
-      this.transportActions.stopAction.disabled = true;
-      this.transportActions.nextAction.disabled = true;
-      this.transportActions.pauseAction.disabled = true;
-      this.transportActions.fwdAction.disabled = true;
-      this.transportActions.bwdAction.disabled = true;
+        this.status = Status.BLOCKED;
+        this.transportActions.startAction.disabled = true;
+        this.transportActions.stopAction.disabled = true;
+        this.transportActions.nextAction.disabled = true;
+        this.transportActions.pauseAction.disabled = true;
+        this.transportActions.fwdAction.disabled = true;
+        this.transportActions.bwdAction.disabled = true;
 
       }
     );
-    this.dialog.afterAllClosed.subscribe(()=>{
-      this.status=Status.IDLE;
+    this.dialog.afterAllClosed.subscribe(() => {
+      this.status = Status.IDLE;
       this.transportActions.startAction.disabled = false;
       this.transportActions.fwdAction.disabled = false
       this.transportActions.bwdAction.disabled = false
     });
     let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
-    // audioDisplayRef.componentInstance.audioBuffer=this.currentRecording
   }
 
   applyItem() {
 
     this.section = this._script.sections[this.sectIdx]
     this.promptUnit = this.section.promptUnits[this.prmptIdx];
-    // this.status=Status.IDLE;
 
     this.clearPrompt();
     if (this.section.promptphase === 'IDLE') {
@@ -615,9 +601,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   started() {
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
-
-    console.log("Spr: capture started");
-
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
 
     if (this.section.promptphase === 'PRERECORDING') {
@@ -711,7 +694,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-    // console.log("Spr: capture stopped");
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
     this.startStopSignalState = StartStopSignalState.IDLE;
