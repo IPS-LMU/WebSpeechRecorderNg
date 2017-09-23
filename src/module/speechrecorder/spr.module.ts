@@ -21,6 +21,7 @@ import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./spruploader";
 import {ProjectService} from "./project/project.service";
 import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./session/controlpanel";
+import {FlexLayoutModule} from "@angular/flex-layout";
 
 const SPR_ROUTES: Routes = [
 
@@ -35,7 +36,7 @@ const SPR_ROUTES: Routes = [
     AudioDisplayDialog
   ],
     exports: [SpeechRecorder],
-  imports: [RouterModule.forChild(SPR_ROUTES),CommonModule,
+  imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,
     AudioModule,MdIconModule,MdButtonModule,MdDialogModule,MdProgressSpinnerModule,HttpClientModule],
   providers: [SessionService,ProjectService,ScriptService,SpeechRecorderUploader]
 

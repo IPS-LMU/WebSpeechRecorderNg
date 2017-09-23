@@ -171,7 +171,7 @@ export class TransportPanel{
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
     
     <app-sprtransport [actions]="transportActions"></app-sprtransport>

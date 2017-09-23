@@ -67,7 +67,7 @@ export class PromptContainer {
 
         <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
         <app-sprpromptcontainer [promptText]="promptText"></app-sprpromptcontainer>
-        <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx"
+        <app-sprprogress fxHide.xs  [items]="items" [selectedItemIdx]="selectedItemIdx"
                          (onRowSelect)="itemSelect($event)"></app-sprprogress>
 
 
