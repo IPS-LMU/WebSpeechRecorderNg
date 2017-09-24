@@ -36,7 +36,8 @@ import {Item} from './sessionmanager';
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 10pt;
-    flex: 1;
+    flex: 1;  
+      min-width: 220px;
     background: white;
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
@@ -50,6 +51,8 @@ import {Item} from './sessionmanager';
       `table {
       min-height: 1px;
       border-collapse: collapse;
+          /* Tables do not have a natural min size */
+          min-width: 200px;
     }
 
     table, th, td {
