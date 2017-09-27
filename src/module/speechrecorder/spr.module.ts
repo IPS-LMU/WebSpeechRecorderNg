@@ -8,7 +8,7 @@ import {CommonModule} from "@angular/common";
 import {Progress} from "./session/progress";
 import {AudioDisplayDialog} from "../audio/audio_display_dialog";
 import {
-  PromptContainer, Prompter, Prompting,
+  PromptContainer, Prompter, Prompting, PromptingContainer, Recinstructions,
 } from "./session/prompting";
 import {SessionManager} from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
@@ -23,6 +23,7 @@ import {ProjectService} from "./project/project.service";
 import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./session/controlpanel";
 import {FlexLayoutModule} from "@angular/flex-layout";
 
+
 const SPR_ROUTES: Routes = [
 
   { path: 'spr/session/:id',      component: SpeechRecorder },
@@ -30,7 +31,7 @@ const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [ControlPanel,Progress,SimpleTrafficLight,AudioDisplayDialog,Prompter,PromptContainer,Prompting,StatusDisplay,
+    declarations: [ControlPanel,Progress,SimpleTrafficLight,AudioDisplayDialog,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
       ProgressDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
   entryComponents: [
     AudioDisplayDialog

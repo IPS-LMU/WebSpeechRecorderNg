@@ -22,6 +22,9 @@
           },
           {
             "itemcode": "I1",
+            "recinstructions" : {
+              "recinstructions" : "Hier finden Sie kurze Anleitungen"
+            },
             "mediaitems": [
               {
                 "annotationTemplate": false,
@@ -64,6 +67,9 @@
           {
             "itemcode": "N0",
             "recduration": 10000,
+            "recinstructions" : {
+              "recinstructions" : "Please answer:"
+            },
             "mediaitems": [
               {
                 "annotationTemplate": false,
@@ -92,6 +98,9 @@
           },
           {
             "itemcode": "S1",
+            "recinstructions" : {
+              "recinstructions" : "Please read the sentence:"
+            },
             "mediaitems": [
               {
                 "annotationTemplate": false,

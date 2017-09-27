@@ -22,6 +22,9 @@
           },
           {
             "itemcode": "I1",
+            "recinstructions" : {
+              "recinstructions" : "Hier finden Sie kurze Anleitungen"
+            },
             "mediaitems": [
               {
                 "annotationTemplate": false,

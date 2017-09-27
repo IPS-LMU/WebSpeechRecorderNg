@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, PromptUnit} from '../script/script';
+import {Script, Section, PromptUnit, Mediaitem} from '../script/script';
 import {RecordingFile} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -57,7 +57,7 @@ export class Item {
   providers: [SessionService],
   template: `
 
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptText]="promptText" [items]="items"
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt" [items]="items"
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
     <audio-levelbardisplay #levelbardisplay [displayLevelInfos]="displayLevelInfos"
                            [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="openAudioDisplayDialog()"
@@ -113,7 +113,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   _script: Script;
 
   private section: Section;
-  private promptUnit: PromptUnit;
+  promptUnit: PromptUnit;
+  showPrompt:boolean;
 
   sectIdx: number;
   prmptIdx: number;
@@ -130,7 +131,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   promptItemIndex = 0;
 
-  promptText: string;
+
 
   statusMsg: string;
   statusAlertType: string;
@@ -378,13 +379,16 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   clearPrompt() {
     //this.prompting.promptContainer.prompter.promptText='';
-    this.promptText = '';
+    //this.mediaitem = null;
+    this.showPrompt=false;
     this.changeDetectorRef.detectChanges()
   }
 
   applyPrompt() {
     //this.prompting.promptContainer.prompter.promptText=this.promptUnit.mediaitems[0].text;
-    this.promptText = this.promptUnit.mediaitems[0].text;
+    //this.promptText = this.promptUnit.mediaitems[0].text;
+    //this.mediaitem=this.promptUnit.mediaitems[0];
+    this.showPrompt=true;
     this.changeDetectorRef.detectChanges()
   }
 
