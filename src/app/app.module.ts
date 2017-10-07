@@ -5,8 +5,8 @@ import { AppComponent } from './app.component';
 import {AudioDisplay} from '../module/audio/audio_display';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
-  MdButtonModule, MdDialogModule, MdIconModule, MdMenu, MdMenuItem, MdMenuModule,
-  MdToolbarModule
+  MatButtonModule, MatDialogModule, MatIconModule, MatMenu, MatMenuItem, MatMenuModule,
+  MatToolbarModule
 } from "@angular/material";
 import {AudioDisplayDialog} from "../module/audio/audio_display_dialog";
 import {SpeechRecorderModule} from "../module/speechrecorder/spr.module";
@@ -31,7 +31,7 @@ const appRoutes: Routes = [
   ],
 
   imports: [
-      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MdToolbarModule,MdMenuModule,MdIconModule,MdButtonModule,MdDialogModule,
+      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
 
     BrowserModule,SpeechRecorderModule.forRoot(SPR_CFG),AudioModule
   ],

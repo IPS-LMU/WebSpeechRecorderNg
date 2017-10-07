@@ -12,7 +12,7 @@ import {
 } from "./session/prompting";
 import {SessionManager} from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
-import {MdButtonModule, MdDialogModule, MdIconModule, MdProgressSpinnerModule} from "@angular/material";
+import {MatButtonModule, MatDialogModule, MatIconModule, MatProgressSpinnerModule} from "@angular/material";
 import {HttpClientModule} from "@angular/common/http";
 import {SessionService} from "./session/session.service";
 import {ScriptService} from "./script/script.service";
@@ -38,7 +38,7 @@ const SPR_ROUTES: Routes = [
   ],
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,
-    AudioModule,MdIconModule,MdButtonModule,MdDialogModule,MdProgressSpinnerModule,HttpClientModule],
+    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressSpinnerModule,HttpClientModule],
   providers: [SessionService,ProjectService,ScriptService,SpeechRecorderUploader]
 
 })

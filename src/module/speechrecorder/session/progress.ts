@@ -23,7 +23,7 @@ import {Item} from './sessionmanager';
             (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx" [scrollIntoView]="itIdx===selectedItemIdx">
           <td>{{itIdx}}</td>
           <td>{{item.promptAsString}}</td>
-          <td><md-icon *ngIf="item.recs && item.recs.length>0">done</md-icon>
+          <td><mat-icon *ngIf="item.recs && item.recs.length>0">done</mat-icon>
             
           </td>
         </tr>

@@ -1,17 +1,17 @@
-<md-toolbar color="primary">
+<mat-toolbar color="primary">
 
-    <button md-button [mdMenuTriggerFor]="menu">
-      <md-icon>menu</md-icon>
+    <button mat-button [matMenuTriggerFor]="menu">
+      <mat-icon>menu</mat-icon>
     </button>
-    <md-menu #menu="mdMenu" yPosition="below" [overlapTrigger]="false">
-      <button md-menu-item  [mdMenuTriggerFor]="helpMenu">Help</button>
-      <md-menu #helpMenu="mdMenu" xPosition="after" [overlapTrigger]="false">
+    <mat-menu #menu="matMenu" yPosition="below" [overlapTrigger]="false">
+      <button mat-menu-item  [matMenuTriggerFor]="helpMenu">Help</button>
+      <mat-menu #helpMenu="matMenu" xPosition="after" [overlapTrigger]="false">
         <p>WebSpeechRecorderNg {{sprVersion}}</p>
-      </md-menu>
-    </md-menu>
+      </mat-menu>
+    </mat-menu>
     &nbsp;<span>{{title}}</span>
 
 
-</md-toolbar>
+</mat-toolbar>
 <router-outlet></router-outlet>
 

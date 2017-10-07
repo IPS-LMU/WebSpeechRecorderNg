@@ -6,11 +6,11 @@
 import {
   Component, ViewChild, ChangeDetectorRef, OnDestroy, Inject
 } from '@angular/core'
-import {MdDialogRef} from '@angular/material';
+import {MatDialogRef} from '@angular/material';
 import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
 import { AudioClipUIContainer } from './ui/container'
 import {AudioContextProvider, AudioSystem} from './context'
-import {MD_DIALOG_DATA} from '@angular/material';
+import {MAT_DIALOG_DATA} from '@angular/material';
 
 @Component({
 
@@ -18,7 +18,7 @@ import {MD_DIALOG_DATA} from '@angular/material';
 
   template: `
   <app-audio #audioSignalContainer></app-audio>
-  <div><button (click)="ap.start()" [disabled]="!startEnabled"><md-icon>play_arrow</md-icon></button> <button (click)="ap.stop()" [disabled]="!stopEnabled"><md-icon>stop</md-icon></button>
+  <div><button (click)="ap.start()" [disabled]="!startEnabled"><mat-icon>play_arrow</mat-icon></button> <button (click)="ap.stop()" [disabled]="!stopEnabled"><mat-icon>stop</mat-icon></button>
     <p>Status: {{status}}</p>
     <p>Audio: {{audioFormatStr}}</p></div>`,
 
@@ -45,7 +45,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   private ac:AudioClipUIContainer;
   private destroyed=false;
 
-  constructor(private ref: ChangeDetectorRef,public dialogRef: MdDialogRef<AudioDisplayDialog>,@Inject(MD_DIALOG_DATA) public data: any) {
+  constructor(private ref: ChangeDetectorRef,public dialogRef: MatDialogRef<AudioDisplayDialog>,@Inject(MAT_DIALOG_DATA) public data: any) {
     this.aCtx=AudioContextProvider.audioSystem();
     if (!this.aCtx.audioContext) {
       this.status= 'ERROR: Browser does not support Web Audio API!';

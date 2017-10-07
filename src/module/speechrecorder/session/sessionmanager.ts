@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MdDialog, MdDialogConfig} from "@angular/material";
+import {MatDialog, MatDialogConfig} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
@@ -144,7 +144,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   private levelMeasure: LevelMeasure;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
-              public dialog: MdDialog,
+              public dialog: MatDialog,
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
@@ -443,7 +443,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   }
 
   openAudioDisplayDialog() {
-    let dCfg = new MdDialogConfig();
+    let dCfg = new MatDialogConfig();
     dCfg.width = '80%';
     dCfg.height = '80%';
     dCfg.data = this.displayAudioBuffer;

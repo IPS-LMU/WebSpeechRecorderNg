@@ -9,7 +9,7 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-levelbardisplay',
     template: `
-        <audio-levelbar [displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><md-icon>zoom_out_map</md-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><md-icon>file_download</md-icon></button>
+        <audio-levelbar [displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
         <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
     `,
     styles: [`:host {

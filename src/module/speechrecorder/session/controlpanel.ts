@@ -9,7 +9,7 @@ import {
     Component, ViewChild, Input, EventEmitter, Output
 } from "@angular/core";
 
-import {MdDialog, MdDialogConfig} from "@angular/material";
+import {MatDialog, MatDialogConfig,MatIcon} from "@angular/material";
 import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
 
 
@@ -18,7 +18,7 @@ import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
   selector: 'app-sprstatusdisplay',
 
   template: `
-    <p><md-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</md-icon>{{statusMsg}}</p>
+    <p><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>{{statusMsg}}</p>
   `,
   styles: [`:host{
     flex: 1;
@@ -44,7 +44,7 @@ export class StatusDisplay{
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <md-progress-spinner [mode]="spinnerMode" [color]="status" [value]="_value" style="width:2em;height:2em" ></md-progress-spinner>Upload: {{_value}}%
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [value]="_value" style="width:2em;height:2em" ></mat-progress-spinner>Upload: {{_value}}%
   `,
   styles: [`:host{
     flex: 1;
@@ -111,12 +111,12 @@ export class TransportActions{
   selector: 'app-sprtransport',
 
   template: `
-      <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" md-raised-button><md-icon>chevron_left</md-icon></button>
-      <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" md-raised-button><md-icon [style.color]="startDisabled() ? 'grey' : 'red'">fiber_manual_record</md-icon> Start</button>
-      <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button><md-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</md-icon> Stop</button>
-      <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" md-raised-button><md-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</md-icon><md-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</md-icon> Next</button>
-      <button id="pauseBtn" (click)="actions.pauseAction.perform()"  [disabled]="pauseDisabled()" md-raised-button><md-icon>pause</md-icon> Pause</button>
-      <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" md-raised-button><md-icon>chevron_right</md-icon></button>
+      <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" md-raised-button><mat-icon>chevron_left</mat-icon></button>
+      <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" md-raised-button><mat-icon [style.color]="startDisabled() ? 'grey' : 'red'">fiber_manual_record</mat-icon> Start</button>
+      <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button><mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon> Stop</button>
+      <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" md-raised-button><mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon><mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon> Next</button>
+      <button id="pauseBtn" (click)="actions.pauseAction.perform()"  [disabled]="pauseDisabled()" md-raised-button><mat-icon>pause</mat-icon> Pause</button>
+      <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" md-raised-button><mat-icon>chevron_right</mat-icon></button>
 
   `,
   styles: [`:host{
@@ -206,13 +206,13 @@ export class ControlPanel{
     @Input() uploadProgress:number;
     @Input() currentRecording:AudioBuffer;
     @Input() enableUploadRecordings:boolean;
-    constructor(public dialog: MdDialog){
+    constructor(public dialog: MatDialog){
 
     }
 
 
   openAudioDisplayDialog() {
-    let dCfg=new MdDialogConfig();
+    let dCfg=new MatDialogConfig();
     dCfg.width='80%';
     dCfg.height='80%';
     dCfg.data=this.currentRecording;
