@@ -436,6 +436,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       this.ap.audioBuffer = ab;
     } else {
       this.displayAudioBuffer = null;
+      // TODO
+        // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
+        // The level bar display does not clear, it shows the last captured stream
       this.displayLevelInfos = null;
       this.ap.audioBuffer = null;
       this.playStartAction.disabled = true;
@@ -714,8 +717,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       }
       it.recs.push(rf);
 
-      // apply recorded item
-      this.applyItem();
+
 
       if (this.mode === Mode.SERVER_BOUND) {
         // TODO use SpeechRecorderconfig resp. RecfileService
@@ -775,6 +777,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         this.transportActions.bwdAction.disabled = false
       }
     }
+      // apply recorded item
+      this.applyItem();
     this.changeDetectorRef.detectChanges();
   }
 
