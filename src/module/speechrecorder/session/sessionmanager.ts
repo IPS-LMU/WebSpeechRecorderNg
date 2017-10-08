@@ -29,9 +29,9 @@ export const RECFILE_API_CTX = 'recfile';
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 
 const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
-export enum Mode {SERVER_BOUND, STAND_ALONE}
+export const enum Mode {SERVER_BOUND, STAND_ALONE}
 
-export enum Status {
+export const enum Status {
   BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
@@ -59,7 +59,9 @@ export class Item {
 
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt" [items]="items"
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
-    <audio-levelbardisplay #levelbardisplay [displayLevelInfos]="displayLevelInfos"
+    <audio-levelbardisplay #levelbardisplay 
+                           [streamingMode]="isRecording()"
+                           [displayLevelInfos]="displayLevelInfos"
                            [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="openAudioDisplayDialog()"
                            (onDownloadRecording)="downloadRecording()"
                            [enableDownload]="enableDownloadRecordings"></audio-levelbardisplay>
@@ -84,7 +86,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
-  status: Status;
+  status: Status=Status.BLOCKED;
   mode: Mode;
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
@@ -443,6 +445,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       this.ap.audioBuffer = null;
       this.playStartAction.disabled = true;
     }
+    this.changeDetectorRef.detectChanges();
   }
 
   openAudioDisplayDialog() {
@@ -565,6 +568,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     }
   }
 
+  isRecording():boolean{
+    return (this.status===Status.PRE_RECORDING || this.status===Status.RECORDING);
+  }
 
   prevItem() {
     let scriptLength = this._script.sections.length;
@@ -761,6 +767,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       }
     }
 
+    let autoStart=(this.status === Status.STOPPING_STOP);
+    this.status=Status.IDLE;
     if (complete) {
       this.statusMsg = 'Session complete!';
     } else {
@@ -769,10 +777,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         this.nextItem();
       }
 
-      if (this.section.mode === 'AUTORECORDING' && this.autorecording && this.status === Status.STOPPING_STOP) {
+      if (this.section.mode === 'AUTORECORDING' && this.autorecording && autoStart) {
         this.startItem();
       } else {
-        this.status = Status.IDLE
         this.transportActions.fwdAction.disabled = false
         this.transportActions.bwdAction.disabled = false
       }

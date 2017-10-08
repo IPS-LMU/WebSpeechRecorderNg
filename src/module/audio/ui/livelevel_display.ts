@@ -9,7 +9,7 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-levelbardisplay',
     template: `
-        <audio-levelbar [displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
+        <audio-levelbar [streamingMode]="streamingMode"[displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
         <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
     `,
     styles: [`:host {
@@ -39,6 +39,7 @@ export class LevelBarDisplay implements LevelListener{
 
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
+    @Input() streamingMode:boolean;
     @Input() displayAudioBuffer:AudioBuffer|  null;
     @Input() enableDownload:boolean;
     peakDbLevelStr="-___ dB";

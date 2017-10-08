@@ -8,6 +8,7 @@ export const LINE_DISTANCE = 2;
 export const OVERFLOW_THRESHOLD = 0.25;
 export const OVERFLOW_INCR_FACTOR = 0.5;
 
+
 @Component({
 
   selector: 'audio-levelbar',
@@ -50,8 +51,8 @@ export class LevelBar implements LevelListener {
   liveLevelCanvas: HTMLCanvasElement;
   ce: HTMLDivElement;
   dbValues: Array<Array<number>>;
-
   peakDbLvl = MIN_DB_LEVEL;
+  private _streamingMode=false;
 
   constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
     this.dbValues = new Array<Array<number>>();
@@ -73,15 +74,21 @@ export class LevelBar implements LevelListener {
   }
 
   @Input()
+  set streamingMode(streamingMode:boolean){
+      this._streamingMode=streamingMode
+      this.layoutStatic();
+  }
+
+  @Input()
   set displayLevelInfos(levelInfos: LevelInfos | null) {
-    if (levelInfos) {
-      this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
-        return li.powerLevelsDB()
-      });
-    } else {
-      this.dbValues = new Array<Array<number>>();
-    }
-    this.layoutStatic();
+      if (levelInfos) {
+          this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
+              return li.powerLevelsDB()
+          });
+      } else {
+          this.dbValues = new Array<Array<number>>();
+      }
+      this.layoutStatic();
   }
 
   set channelCount(channelCount: number) {
