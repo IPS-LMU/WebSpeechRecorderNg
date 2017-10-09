@@ -75,8 +75,11 @@ export class LevelBar implements LevelListener {
 
   @Input()
   set streamingMode(streamingMode:boolean){
-      this._streamingMode=streamingMode
-      this.layoutStatic();
+      if(this._streamingMode!==streamingMode) {
+        this._streamingMode = streamingMode;
+        this.reset();
+        this.layoutStatic();
+      }
   }
 
   @Input()
@@ -114,17 +117,19 @@ export class LevelBar implements LevelListener {
   }
 
   update(levelInfos: LevelInfo) {
-    let dbVals = levelInfos.powerLevelsDB();
-    let peakDBVal = levelInfos.powerLevelDB();
-    if (this.peakDbLvl < peakDBVal) {
-      this.peakDbLvl = peakDBVal;
-      this.changeDetectorRef.detectChanges();
+    if(this._streamingMode) {
+      let dbVals = levelInfos.powerLevelsDB();
+      let peakDBVal = levelInfos.powerLevelDB();
+      if (this.peakDbLvl < peakDBVal) {
+        this.peakDbLvl = peakDBVal;
+        this.changeDetectorRef.detectChanges();
+      }
+      this.dbValues.push(dbVals);
+      let i = this.dbValues.length - 1;
+      let x = i * (LINE_DISTANCE + LINE_WIDTH);
+      this.drawPushValue(x, dbVals);
+      this.checkWidth();
     }
-    this.dbValues.push(dbVals);
-    let i = this.dbValues.length - 1;
-    let x = i * (LINE_DISTANCE + LINE_WIDTH);
-    this.drawPushValue(x, dbVals);
-    this.checkWidth();
   }
 
   streamFinished() {
