@@ -141,7 +141,7 @@
 				//var ab=this.aCtx.createAudioBuffer();
 				//var da0=clip.data[0];
 				//this.audioSignal.setData(audioBuffer);
-				this.ac.setData(audioBuffer);
+				this.ac.audioData=audioBuffer;
 				this.ap.audioClip = clip;
 				//this.ap.start();
 				//window.setTimeout(e=>this.audioSignal.layout,1000);

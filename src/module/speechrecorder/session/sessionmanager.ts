@@ -59,10 +59,11 @@ export class Item {
 
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt" [items]="items"
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
+    <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed" [audioData]="displayAudioBuffer"></app-audio>
     <audio-levelbardisplay #levelbardisplay 
                            [streamingMode]="isRecording()"
                            [displayLevelInfos]="displayLevelInfos"
-                           [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="openAudioDisplayDialog()"
+                           [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                            (onDownloadRecording)="downloadRecording()"
                            [enableDownload]="enableDownloadRecordings"></audio-levelbardisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [currentRecording]="displayAudioBuffer"
@@ -79,6 +80,17 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
+  }`,`
+  app-audio{
+    flex: 0;
+    overflow: hidden;
+    
+    
+  }`,`
+  app-audio.active {
+    flex: 2;
+    overflow: hidden;
+    
   }`]
 
 })
@@ -96,8 +108,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   // Property audioDevices from project config: list of names of allowed audio devices.
   private _audioDevices: Array<AudioDevice> | null | undefined;
   private selCaptureDeviceId: ConstrainDOMString | null;
-  //currentRecording:AudioBuffer | null;
-  private ap: AudioPlayer;
+
   private updateTimerId: any;
   private preRecTimerId: number;
   private preRecTimerRunning: boolean;
@@ -144,6 +155,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
+  controlAudioPlayer: AudioPlayer;
+
+
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               public dialog: MatDialog,
@@ -208,9 +222,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         return;
       } else {
         this.ac = new AudioCapture(context);
-
-        this.ap = new AudioPlayer(context, this);
-
         if (this.ac) {
           this.transportActions.startAction.onAction = () => this.startItem();
           this.ac.listener = this;
@@ -225,7 +236,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         this.transportActions.pauseAction.onAction = () => this.pauseItem();
         this.transportActions.fwdAction.onAction = () => this.nextItem();
         this.transportActions.bwdAction.onAction = () => this.prevItem();
-        this.playStartAction.onAction = () => this.ap.start();
+        this.playStartAction.onAction = () => this.controlAudioPlayer.start();
 
       }
       this.ac.listDevices();
@@ -425,7 +436,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   }
 
   showRecording() {
-    this.ap.stop();
+    this.controlAudioPlayer.stop();
 
     if (this.displayRecFile) {
       let ab: AudioBuffer = this.displayRecFile.audioBuffer;
@@ -435,24 +446,28 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         this.changeDetectorRef.detectChanges();
       });
       this.playStartAction.disabled = false;
-      this.ap.audioBuffer = ab;
+      this.controlAudioPlayer.audioBuffer = ab;
     } else {
       this.displayAudioBuffer = null;
       // TODO
         // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
         // The level bar display does not clear, it shows the last captured stream
       this.displayLevelInfos = null;
-      this.ap.audioBuffer = null;
+      this.controlAudioPlayer.audioBuffer = null;
       this.playStartAction.disabled = true;
     }
     this.changeDetectorRef.detectChanges();
+  }
+
+  showRecordingDetails(){
+
   }
 
   openAudioDisplayDialog() {
     let dCfg = new MatDialogConfig();
     dCfg.width = '80%';
     dCfg.height = '80%';
-    dCfg.data = this.displayAudioBuffer;
+    dCfg.data = { audioBuffer: this.displayAudioBuffer, audioPlayer: this.controlAudioPlayer};
     this.dialog.afterOpen.subscribe(ref => {
         this.status = Status.BLOCKED;
         this.transportActions.startAction.disabled = true;

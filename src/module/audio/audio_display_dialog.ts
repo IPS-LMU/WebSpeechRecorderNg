@@ -46,13 +46,16 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   private destroyed=false;
 
   constructor(private ref: ChangeDetectorRef,public dialogRef: MatDialogRef<AudioDisplayDialog>,@Inject(MAT_DIALOG_DATA) public data: any) {
-    this.aCtx=AudioContextProvider.audioSystem();
-    if (!this.aCtx.audioContext) {
-      this.status= 'ERROR: Browser does not support Web Audio API!';
-    } else {
+    this.ap=data.audioPlayer;
+    if(!this.ap) {
+      this.aCtx=AudioContextProvider.audioSystem();
+      if (!this.aCtx.audioContext) {
+        this.status = 'ERROR: Browser does not support Web Audio API!';
+      } else {
 
-      this.ap = new AudioPlayer(this.aCtx.audioContext, this);
-      this.status= 'Player initialized.';
+        this.ap = new AudioPlayer(this.aCtx.audioContext, this);
+        this.status = 'Player initialized.';
+      }
     }
   }
 
@@ -69,8 +72,8 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
   }
 
   applyAudioBuffer(){
-    this.audioBuffer=this.data;
-      this.ac.setData(this.audioBuffer);
+    this.audioBuffer=this.data.audioBuffer;
+      this.ac.audioData=this.audioBuffer;
 
       this.ap.audioBuffer = this.audioBuffer;
       if (this.audioBuffer) {

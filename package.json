@@ -45,6 +45,7 @@
     "core-js": "^2.5.1",
     "intl": "^1.2.5",
     "rxjs": "^5.4.3",
+    "webpack": "^3.6.0",
     "zone.js": "^0.8.18"
   },
   "devDependencies": {
@@ -52,7 +53,7 @@
     "@angular/compiler-cli": "^4.4.4",
     "@angular/language-service": "^4.4.4",
     "@types/jasmine": "^2.6.0",
-    "@types/node": "^6.0.88",
+    "@types/node": "^6.0.89",
     "codelyzer": "~3.0.1",
     "jasmine-core": "^2.8.0",
     "jasmine-spec-reporter": "^4.2.1",

@@ -1,5 +1,8 @@
-import {Component, ViewChild, ChangeDetectorRef} from '@angular/core'
-import {AudioPlayerListener,AudioPlayerEvent, EventType as PlaybackEventType } from '../audio/playback/player';
+import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit} from '@angular/core'
+import {
+  AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
+  AudioPlayer
+} from '../audio/playback/player';
 import { Script } from './script/script'
 import { SessionManager,Status as SessionManagerStatus} from  './session/sessionmanager';
 import { UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
@@ -11,6 +14,7 @@ import {SpeechRecorderUploader} from "./spruploader";
 import {Session} from "./session/session";
 import {Project} from "./project/project";
 import {ProjectService} from "./project/project.service";
+import {AudioContextProvider} from "../audio/context";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -33,10 +37,10 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechRecorder implements AudioPlayerListener {
+export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener {
 
 	  mode:Mode;
-		//ap:AudioPlayer;
+		controlAudioPlayer:AudioPlayer;
 		audio:any;
 
   sessionId: string;
@@ -60,9 +64,22 @@ export class SpeechRecorder implements AudioPlayerListener {
 		}
 
     ngOnInit() {
-		    //
+      let audioSystem=AudioContextProvider.audioSystem();
+      if (!audioSystem || !audioSystem.audioContext) {
+        let reason = 'ERROR: Browser does not support Web Audio API!';
+        this.sm.statusMsg=reason;
+        this.sm.statusAlertType='error';
+        console.log("Error fetching project config: "+reason)
+      } else {
+
+        this.controlAudioPlayer = new AudioPlayer(audioSystem.audioContext, this);
+        this.sm.controlAudioPlayer=this.controlAudioPlayer;
+        this.sm.statusAlertType='info';
+        this.sm.statusMsg = 'Player initialized.';
+      }
     }
        ngAfterViewInit(){
+
 		  if(this.sm.status!== SessionManagerStatus.ERROR) {
         let initSuccess = this.init();
         if (initSuccess) {

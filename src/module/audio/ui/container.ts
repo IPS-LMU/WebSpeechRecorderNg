@@ -1,4 +1,7 @@
-import {ElementRef, Renderer2, AfterContentInit, AfterViewInit, HostListener} from '@angular/core'
+import {
+  ElementRef, Renderer2, AfterContentInit, AfterViewInit, HostListener, Input, OnInit,
+  OnChanges
+} from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
 import {Point} from './common'
@@ -46,7 +49,7 @@ import {Component, ViewChild} from '@angular/core';
   }`]
 
 })
-export class AudioClipUIContainer implements AfterViewInit {
+export class AudioClipUIContainer implements OnInit,AfterViewInit,OnChanges {
   private static DIVIDER_PIXEL_SIZE = 10;
   @ViewChild('container') canvasRef: ElementRef;
 
@@ -62,11 +65,17 @@ export class AudioClipUIContainer implements AfterViewInit {
   constructor(private ref: ElementRef) {
   }
 
+  ngOnInit(){
+    this.ce = this.ref.nativeElement;
+    this.dc = this.canvasRef.nativeElement;
+  }
 
   ngAfterViewInit() {
 
-    this.ce = this.ref.nativeElement;
-    this.dc = this.canvasRef.nativeElement;
+    this.layout();
+  }
+
+  ngOnChanges(changes) {
     this.layout();
   }
 
@@ -198,35 +207,38 @@ export class AudioClipUIContainer implements AfterViewInit {
   }
 
   layout() {
-    const offW = this.ce.offsetWidth;
-    const offH = this.ce.offsetHeight;
+    if(this.ce && this.dc) {
+      const offW = this.ce.offsetWidth;
+      const offH = this.ce.offsetHeight;
 
-    const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    const asTop = 0;
+      const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      const asTop = 0;
 
-    const asH = Math.round(psH * this.dividerPosition);
-    const soH = Math.round(psH * (1 - this.dividerPosition));
-    const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    const wStr = offW.toString() + 'px';
+      const asH = Math.round(psH * this.dividerPosition);
+      const soH = Math.round(psH * (1 - this.dividerPosition));
+      const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      const wStr = offW.toString() + 'px';
 
-    const dTop = asH;
-    const dTopStr = dTop.toString() + 'px';
-    this.dc.style.top = dTopStr;
-    this.dc.style.left = '0px';
-    this.dc.style.width = wStr;
+      const dTop = asH;
+      const dTopStr = dTop.toString() + 'px';
+      this.dc.style.top = dTopStr;
+      this.dc.style.left = '0px';
+      this.dc.style.width = wStr;
 
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    this.dc.width = offW;
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      this.dc.width = offW;
+      this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
 
-    this.dc.style.width = wStr;
-    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
-    this.drawDivider();
-    this.as.layoutBounds(0, 0, offW, asH, true);
-    this.so.layoutBounds(0, soTop, offW, soH, true);
+      this.dc.style.width = wStr;
+      this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+      this.drawDivider();
+      this.as.layoutBounds(0, 0, offW, asH, true);
+      this.so.layoutBounds(0, soTop, offW, soH, true);
+    }
   }
 
-  setData(audioData: AudioBuffer | null) {
+  @Input()
+  set audioData(audioData: AudioBuffer | null) {
     this.as.setData(audioData);
     this.so.setData(audioData);
     this.layout();
