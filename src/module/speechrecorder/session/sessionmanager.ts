@@ -22,6 +22,8 @@ import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/leve
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
+import {AudioDisplay} from "../../audio/audio_display";
+import {AudioClipUIContainer} from "../../audio/ui/container";
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -104,6 +106,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   private _channelCount = 2; //TODO define constant for default format
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+  @ViewChild(AudioClipUIContainer) audioDisplayContainer:AudioClipUIContainer;
   startStopSignalState: StartStopSignalState;
   // Property audioDevices from project config: list of names of allowed audio devices.
   private _audioDevices: Array<AudioDevice> | null | undefined;
@@ -151,7 +154,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
-  audioSignalCollapsed = true;
+  _audioSignalCollapsed = true;
 
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
@@ -455,37 +458,25 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       this.displayLevelInfos = null;
       this.controlAudioPlayer.audioBuffer = null;
       this.playStartAction.disabled = true;
+
+      // Collapse audio signal display if open
+      if(!this.audioSignalCollapsed){
+        this.audioSignalCollapsed=true;
+      }
     }
     this.changeDetectorRef.detectChanges();
   }
 
-  showRecordingDetails(){
-
+  set audioSignalCollapsed(audioSignalCollapsed:boolean){
+    this._audioSignalCollapsed=audioSignalCollapsed;
+    // Audio display canvases need their separate layout call
+    setTimeout(()=>{
+      this.audioDisplayContainer.layout();
+    });
   }
 
-  openAudioDisplayDialog() {
-    let dCfg = new MatDialogConfig();
-    dCfg.width = '80%';
-    dCfg.height = '80%';
-    dCfg.data = { audioBuffer: this.displayAudioBuffer, audioPlayer: this.controlAudioPlayer};
-    this.dialog.afterOpen.subscribe(ref => {
-        this.status = Status.BLOCKED;
-        this.transportActions.startAction.disabled = true;
-        this.transportActions.stopAction.disabled = true;
-        this.transportActions.nextAction.disabled = true;
-        this.transportActions.pauseAction.disabled = true;
-        this.transportActions.fwdAction.disabled = true;
-        this.transportActions.bwdAction.disabled = true;
-
-      }
-    );
-    this.dialog.afterAllClosed.subscribe(() => {
-      this.status = Status.IDLE;
-      this.transportActions.startAction.disabled = false;
-      this.transportActions.fwdAction.disabled = false
-      this.transportActions.bwdAction.disabled = false
-    });
-    let audioDisplayRef = this.dialog.open(AudioDisplayDialog, dCfg);
+  get audioSignalCollapsed():boolean{
+    return this._audioSignalCollapsed;
   }
 
   applyItem() {
