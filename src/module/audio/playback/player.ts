@@ -27,6 +27,7 @@ import { AudioClip } from '../persistor'
 
     export class AudioPlayer {
         public static DEFAULT_BUFSIZE:number = 8192;
+        private running=false;
         private _startAction:Action;
         private _stopAction:Action;
         bufSize:number;
@@ -98,15 +99,19 @@ import { AudioClip } from '../persistor'
                 }
             }
         }
+        get audioBuffer():AudioBuffer{
+            return this._audioBuffer;
+        }
 
         start() {
-            if(!this._startAction.disabled) {
+            if(!this._startAction.disabled && !this.running) {
                 this.sourceBufferNode = this.context.createBufferSource();
                 this.sourceBufferNode.buffer = this._audioBuffer;
                 this.sourceBufferNode.connect(this.context.destination);
                 this.sourceBufferNode.onended = () => this.onended();
 
                 this.playStartTime = this.context.currentTime;
+                this.running=true;
                 this.sourceBufferNode.start();
 
                 this.playStartTime = this.context.currentTime;
@@ -120,19 +125,25 @@ import { AudioClip } from '../persistor'
         }
 
         stop(){
-            if (this.sourceBufferNode) {
-                this.sourceBufferNode.stop();
+            if(this.running) {
+                if (this.sourceBufferNode) {
+                    this.sourceBufferNode.stop();
+                }
+                window.clearInterval(this.timerVar);
+                this.running=false;
+                if (this.listener) {
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
+                }
             }
-            window.clearInterval(this.timerVar);
-            if (this.listener) {
-                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
-            }
+
         }
 
         onended() {
             window.clearInterval(this.timerVar);
-            this._startAction.disabled = false;
+
+            this._startAction.disabled = !(this.audioBuffer);
             this._stopAction.disabled = true;
+            this.running=false;
             if (this.listener) {
                 this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ENDED));
             }
