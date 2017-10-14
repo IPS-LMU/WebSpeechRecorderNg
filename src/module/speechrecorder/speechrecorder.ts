@@ -372,7 +372,7 @@ export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener 
 
     }
 
-		update(e:AudioPlayerEvent){
+		audioPlayerUpdate(e:AudioPlayerEvent){
 			if(PlaybackEventType.STARTED===e.type){
 				//this.startBtn.disabled=true;
 				//this.stopBtn.disabled=true;

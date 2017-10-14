@@ -63,10 +63,11 @@ export class Item {
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
     <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed" [audioData]="displayAudioBuffer"></app-audio>
     <audio-levelbardisplay #levelbardisplay 
+                           [controlAudioPlayer]="controlAudioPlayer"
                            [streamingMode]="isRecording()"
                            [displayLevelInfos]="displayLevelInfos"
                            [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                           (onDownloadRecording)="downloadRecording()"
+                           (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
                            [enableDownload]="enableDownloadRecordings"></audio-levelbardisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
@@ -788,6 +789,11 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   stop() {
     this.ac.close();
+  }
+
+
+  startControlPlayback(){
+    this.playStartAction.perform();
   }
 
   closed() {

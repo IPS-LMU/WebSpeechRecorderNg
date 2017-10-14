@@ -162,7 +162,7 @@
         this.ac.playFramePosition = this.ap.playPositionFrames;
       }
 		}
-		update(e:AudioPlayerEvent){
+		audioPlayerUpdate(e:AudioPlayerEvent){
 			if(EventType.STARTED===e.type){
 				// this.startBtn.disabled=true;
 				// this.stopBtn.disabled = false;

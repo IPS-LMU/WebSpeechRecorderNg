@@ -22,7 +22,7 @@ import { AudioClip } from '../persistor'
         }
     }
     export interface AudioPlayerListener {
-        update(e:AudioPlayerEvent):void;
+        audioPlayerUpdate(e:AudioPlayerEvent):void;
     }
 
     export class AudioPlayer {
@@ -88,7 +88,7 @@ import { AudioClip } from '../persistor'
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
                 if(this.listener){
-                    this.listener.update(new AudioPlayerEvent(EventType.READY));
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
             }
         }
@@ -107,7 +107,7 @@ import { AudioClip } from '../persistor'
             this._stopAction.disabled = false;
             //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
             if(this.listener){
-                this.listener.update(new AudioPlayerEvent(EventType.STARTED));
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
             }
 
         }
@@ -124,7 +124,7 @@ import { AudioClip } from '../persistor'
             this._startAction.disabled = false;
             this._stopAction.disabled = true;
             if (this.listener) {
-                this.listener.update(new AudioPlayerEvent(EventType.ENDED));
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ENDED));
             }
         }
 

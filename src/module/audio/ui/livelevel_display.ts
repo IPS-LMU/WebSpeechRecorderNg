@@ -1,6 +1,10 @@
-import {ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core"
+import {
+    ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
+    ViewChild
+} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 import {LevelBar} from "./livelevel";
+import {AudioPlayer, AudioPlayerEvent, AudioPlayerListener, EventType} from "../playback/player";
 
 
 export const MIN_DB_LEVEL=-40.0;
@@ -9,7 +13,7 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-levelbardisplay',
     template: `
-        <audio-levelbar [streamingMode]="streamingMode"[displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
+        <audio-levelbar [streamingMode]="streamingMode"[displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button (click)="startPlayback()" [disabled]="displayAudioBuffer==null" [style.color]="playStartEnabled ? 'green' : 'grey'"><mat-icon>play_arrow</mat-icon></button><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
         <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
     `,
     styles: [`:host {
@@ -35,7 +39,7 @@ export const MIN_DB_LEVEL=-40.0;
     }`]
 
 })
-export class LevelBarDisplay implements LevelListener{
+export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDestroy{
 
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
@@ -46,10 +50,30 @@ export class LevelBarDisplay implements LevelListener{
     peakDbLvl=MIN_DB_LEVEL;
 
     _displayLevelInfos:LevelInfos| null;
+
     @Output() onShowRecordingDetails:EventEmitter<void>=new EventEmitter<void>();
     @Output() onDownloadRecording:EventEmitter<void>=new EventEmitter<void>();
+
+   @Input() controlAudioPlayer: AudioPlayer;
+   playStartEnabled=false;
+    playStopEnabled=false;
+    private updateTimerId:number;
+
+    private destroyed=false;
+
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
+    }
+
+    ngOnDestroy(){
+        this.destroyed=true;
+    }
+
+    startPlayback(){
+        if(this.displayAudioBuffer){
+            this.controlAudioPlayer.audioBuffer=this.displayAudioBuffer;
+            this.controlAudioPlayer.start()
+        }
     }
 
     showRecordingDetails(){
@@ -61,7 +85,7 @@ export class LevelBarDisplay implements LevelListener{
 
     ngAfterViewInit() {
         this.ce=this.ref.nativeElement;
-
+        this.controlAudioPlayer.listener=this;
     }
 
     @Input()
@@ -74,7 +98,7 @@ export class LevelBarDisplay implements LevelListener{
        this.liveLevel.channelCount=channelCount;
     }
 
-  update(levelInfo:LevelInfo,peakLevelInfo:LevelInfo){
+  update(levelInfo:LevelInfo, peakLevelInfo:LevelInfo){
     //let dbVals=levelInfo.powerLevelsDB();
     let peakDBVal=levelInfo.powerLevelDB();
     if(this.peakDbLvl<peakDBVal){
@@ -84,6 +108,38 @@ export class LevelBarDisplay implements LevelListener{
     }
     this.liveLevel.update(levelInfo);
   }
+
+    updatePlayPosition() {
+        if(this.controlAudioPlayer.playPositionFrames) {
+           // this.ac.playFramePosition = this.ap.playPositionFrames;
+        }
+    }
+
+    audioPlayerUpdate(e:AudioPlayerEvent){
+        if(EventType.READY===e.type) {
+            //this.status = 'Ready';
+            this.playStartEnabled = true;
+            this.playStopEnabled = false;
+        }else if(EventType.STARTED===e.type){
+            //this.status = 'Playback...';
+            this.updateTimerId = window.setInterval(e=>this.updatePlayPosition(), 50);
+            this.playStartEnabled=false;
+            this.playStopEnabled=true;
+        }else if(EventType.ENDED===e.type){
+            //.status='Ready.';
+            window.clearInterval(this.updateTimerId);
+            this.playStartEnabled=true;
+            this.playStopEnabled=false;
+        }
+
+        if(!this.destroyed) {
+            this.changeDetectorRef.detectChanges();
+        }
+
+    }
+    error(){
+       // this.status = 'ERROR';
+    }
 
   streamFinished(){
     this.liveLevel.streamFinished();

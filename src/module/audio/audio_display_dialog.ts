@@ -98,7 +98,7 @@ export class AudioDisplayDialog implements AudioPlayerListener,OnDestroy {
     }
   }
 
-  update(e:AudioPlayerEvent){
+  audioPlayerUpdate(e:AudioPlayerEvent){
     if(EventType.READY===e.type) {
       this.status = 'Ready';
       this.startEnabled = true;
