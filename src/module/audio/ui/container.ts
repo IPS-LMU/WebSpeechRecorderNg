@@ -18,8 +18,8 @@ import {Component, ViewChild} from '@angular/core';
   `,
   styles: [`:host {
 
-    margin: 0;
-    padding: 0;
+    margin: 0; 
+    padding: 0; 
     position: relative;
     width: 100%;
     height: 100%;

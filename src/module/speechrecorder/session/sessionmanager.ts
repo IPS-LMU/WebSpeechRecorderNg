@@ -61,7 +61,7 @@ export class Item {
 
     <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt" [items]="items"
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
-    <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed" [audioData]="displayAudioBuffer"></app-audio>
+    <div #asCt [class.active]="!audioSignalCollapsed" ><app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed" [audioData]="displayAudioBuffer"></app-audio></div>
     <audio-levelbardisplay #levelbardisplay 
                            [controlAudioPlayer]="controlAudioPlayer"
                            [streamingMode]="isRecording()"
@@ -84,17 +84,25 @@ export class Item {
     padding: 0;
     min-height: 0px;
   }`,`
-  app-audio{
-    flex: 0;
+  div{
+     flex: 0;
     overflow: hidden;
-    
-    
+      
   }`,`
-  app-audio.active {
+  div.active {
     flex: 2;
-    overflow: hidden;
+      display: flex;
     
-  }`]
+    overflow: hidden;  
+   
+      margin: 20px;
+      /* border: 20px; */
+      z-index: 5;
+  }`,`
+  app-audio.active{
+      
+  }
+  `]
 
 })
 export class SessionManager implements AfterViewInit, AudioCaptureListener {
