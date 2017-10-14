@@ -45,13 +45,11 @@
 
         set disabled(disabled:boolean) {
             this._disabled = disabled;
-            for (var l of this.listeners) {
-                var e = new CustomEvent('toggle_disabled', {'detail': this._disabled});
-                l.call(e);
-            }
-            for (var c of this.controls) {
+            for (let c of this.controls) {
                 c.disabled = this._disabled;
             }
+            let disStr=this.disabled?"disabled":"enabled";
+            console.log(this._name+": "+disStr);
         }
 
         get disabled():boolean {

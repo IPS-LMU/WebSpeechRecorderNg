@@ -84,32 +84,39 @@ import { AudioClip } from '../persistor'
         }
 
         set audioBuffer(audioBuffer:AudioBuffer | null) {
+            this.stop();
             this._audioBuffer = audioBuffer;
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
+            }else{
+                this._startAction.disabled = true;
+                if(this.listener){
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+                }
             }
         }
 
         start() {
-            this.sourceBufferNode = this.context.createBufferSource();
-            this.sourceBufferNode.buffer = this._audioBuffer;
-            this.sourceBufferNode.connect(this.context.destination);
-            this.sourceBufferNode.onended = ()=>this.onended();
+            if(!this._startAction.disabled) {
+                this.sourceBufferNode = this.context.createBufferSource();
+                this.sourceBufferNode.buffer = this._audioBuffer;
+                this.sourceBufferNode.connect(this.context.destination);
+                this.sourceBufferNode.onended = () => this.onended();
 
-            this.playStartTime = this.context.currentTime;
-            this.sourceBufferNode.start();
+                this.playStartTime = this.context.currentTime;
+                this.sourceBufferNode.start();
 
-            this.playStartTime = this.context.currentTime;
-            this._startAction.disabled = true;
-            this._stopAction.disabled = false;
-            //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
-            if(this.listener){
-                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                this.playStartTime = this.context.currentTime;
+                this._startAction.disabled = true;
+                this._stopAction.disabled = false;
+                //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
+                if (this.listener) {
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                }
             }
-
         }
 
         stop(){
@@ -117,6 +124,9 @@ import { AudioClip } from '../persistor'
                 this.sourceBufferNode.stop();
             }
             window.clearInterval(this.timerVar);
+            if (this.listener) {
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
+            }
         }
 
         onended() {

@@ -13,8 +13,11 @@ export const MIN_DB_LEVEL=-40.0;
 
     selector: 'audio-levelbardisplay',
     template: `
-        <audio-levelbar [streamingMode]="streamingMode"[displayLevelInfos]="_displayLevelInfos"></audio-levelbar><button (click)="startPlayback()" [disabled]="displayAudioBuffer==null" [style.color]="playStartEnabled ? 'green' : 'grey'"><mat-icon>play_arrow</mat-icon></button><button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
-        <span> Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
+        <audio-levelbar [streamingMode]="streamingMode"[displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <button matTooltip="Start playback" (click)="controlAudioPlayer.start()" [disabled]="controlAudioPlayer?.startAction.disabled" [style.color]="controlAudioPlayer?.startAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
+        <button matTooltip="Stop playback" (click)="controlAudioPlayer.stop()" [disabled]="controlAudioPlayer?.stopAction.disabled" [style.color]="controlAudioPlayer?.stopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
+        <button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
+        <span matTooltip="Peak level" matTooltipPosition="below">Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -44,7 +47,7 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
     @Input() streamingMode:boolean;
-    @Input() displayAudioBuffer:AudioBuffer|  null;
+    private _displayAudioBuffer:AudioBuffer|  null;
     @Input() enableDownload:boolean;
     peakDbLevelStr="-___ dB";
     peakDbLvl=MIN_DB_LEVEL;
@@ -69,11 +72,18 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
         this.destroyed=true;
     }
 
-    startPlayback(){
-        if(this.displayAudioBuffer){
-            this.controlAudioPlayer.audioBuffer=this.displayAudioBuffer;
-            this.controlAudioPlayer.start()
+
+    @Input()
+    set displayAudioBuffer(displayAudioBuffer:AudioBuffer|null){
+        this._displayAudioBuffer=displayAudioBuffer;
+        if(this.controlAudioPlayer) {
+            this.controlAudioPlayer.audioBuffer = this.displayAudioBuffer;
         }
+    }
+
+
+    get displayAudioBuffer(){
+        return  this._displayAudioBuffer;
     }
 
     showRecordingDetails(){

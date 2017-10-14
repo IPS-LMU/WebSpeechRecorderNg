@@ -18,7 +18,7 @@ import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
   selector: 'app-sprstatusdisplay',
 
   template: `
-    <p><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>{{statusMsg}}</p>
+    <p matTooltip="Status"><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>{{statusMsg}}</p>
   `,
   styles: [`:host{
     flex: 1;
@@ -111,7 +111,7 @@ export class TransportActions{
   selector: 'app-sprtransport',
 
   template: `
-      <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" md-raised-button><mat-icon>chevron_left</mat-icon></button>
+      <button matTooltip="Item back" id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()" md-raised-button><mat-icon>chevron_left</mat-icon></button>
       <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" md-raised-button><mat-icon [style.color]="startDisabled() ? 'grey' : 'red'">fiber_manual_record</mat-icon> Start</button>
       <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button><mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon> Stop</button>
       <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" md-raised-button><mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon><mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon> Next</button>
