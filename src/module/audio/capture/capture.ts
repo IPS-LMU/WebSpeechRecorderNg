@@ -179,16 +179,20 @@ export class AudioCapture {
     } else if (navigator.userAgent.match(".*Firefox.*")) {
       console.log("Setting media track constraints for Mozilla Firefox.");
       // Firefox
-      // though it seems not to apply preprocessing stereo channels are mixed and splitted
       msc = {
         audio: {
+            "deviceId": selDeviceId,
+            "channelCount": channelCount,
           "echoCancellation": false,
+            "mozEchoCancellation": false,
+            "autoGainControl": false,
           "mozAutoGainControl": false,
+            "noiseSuppression": false,
           "mozNoiseSuppression": false
         },
         video: false,
       }
-      msc = {audio: true, video: false};
+
     } else if (navigator.userAgent.match(".*Safari.*")) {
       console.log("Setting media track constraints for Safari browser.")
       console.log("Apply workaround for Safari: Avoid disconnect of streams.");
