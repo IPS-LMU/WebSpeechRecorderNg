@@ -48,8 +48,8 @@
             for (let c of this.controls) {
                 c.disabled = this._disabled;
             }
-            let disStr=this.disabled?"disabled":"enabled";
-            console.log(this._name+": "+disStr);
+            //let disStr=this.disabled?"disabled":"enabled";
+            //console.log(this._name+": "+disStr);
         }
 
         get disabled():boolean {
