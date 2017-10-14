@@ -1,6 +1,6 @@
 import {
-  ElementRef, Renderer2, AfterContentInit, AfterViewInit, HostListener, Input, OnInit,
-  OnChanges
+    ElementRef, Renderer2, AfterContentInit, AfterViewInit, HostListener, Input, OnInit,
+    OnChanges, SimpleChanges
 } from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
@@ -75,7 +75,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit,OnChanges {
     this.layout();
   }
 
-  ngOnChanges(changes) {
+  ngOnChanges(changes: SimpleChanges): void{
     this.layout();
   }
 
