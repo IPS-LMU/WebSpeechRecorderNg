@@ -106,7 +106,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   private _channelCount = 2; //TODO define constant for default format
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
-  @ViewChild(AudioClipUIContainer) audioDisplayContainer:AudioClipUIContainer;
+
   startStopSignalState: StartStopSignalState;
   // Property audioDevices from project config: list of names of allowed audio devices.
   private _audioDevices: Array<AudioDevice> | null | undefined;
@@ -145,16 +145,12 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   promptItemCount: number;
 
-  promptItemIndex = 0;
-
-
-
   statusMsg: string;
   statusAlertType: string;
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
-  _audioSignalCollapsed = true;
+  audioSignalCollapsed = true;
 
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
@@ -168,6 +164,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
     this.mode = Mode.SERVER_BOUND;
+
     //this._startStopSignal = startStopSignal;
 
     this.transportActions = new TransportActions();
@@ -465,18 +462,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       }
     }
     this.changeDetectorRef.detectChanges();
-  }
-
-  set audioSignalCollapsed(audioSignalCollapsed:boolean){
-    this._audioSignalCollapsed=audioSignalCollapsed;
-    // Audio display canvases need their separate layout call
-    setTimeout(()=>{
-      this.audioDisplayContainer.layout();
-    });
-  }
-
-  get audioSignalCollapsed():boolean{
-    return this._audioSignalCollapsed;
   }
 
   applyItem() {

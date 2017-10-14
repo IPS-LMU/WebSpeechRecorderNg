@@ -1,6 +1,5 @@
 import {
-    ElementRef, Renderer2, AfterContentInit, AfterViewInit, HostListener, Input, OnInit,
-    OnChanges, SimpleChanges
+    ElementRef, AfterViewInit, HostListener, Input, OnInit
 } from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
@@ -49,7 +48,7 @@ import {Component, ViewChild} from '@angular/core';
   }`]
 
 })
-export class AudioClipUIContainer implements OnInit,AfterViewInit,OnChanges {
+export class AudioClipUIContainer implements OnInit,AfterViewInit {
   private static DIVIDER_PIXEL_SIZE = 10;
   @ViewChild('container') canvasRef: ElementRef;
 
@@ -63,6 +62,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit,OnChanges {
   private dividerPosition = 0.5;
 
   constructor(private ref: ElementRef) {
+
   }
 
   ngOnInit(){
@@ -71,13 +71,17 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit,OnChanges {
   }
 
   ngAfterViewInit() {
-
     this.layout();
+      let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
+        mrs.forEach((mr:MutationRecord)=>{
+          if('attributes'===mr.type && ('class'===mr.attributeName || 'style'===mr.attributeName)){
+            this.layout();
+          }
+        })
+      });
+      heightListener.observe(this.ce,{attributes: true,childList: true, characterData: true});
   }
 
-  ngOnChanges(changes: SimpleChanges): void{
-    this.layout();
-  }
 
   @HostListener('window:resize', ['$event'])
   onResize(event:Event):void {
