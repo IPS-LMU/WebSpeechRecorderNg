@@ -135,7 +135,7 @@ export class AudioCapture {
     // Safari at least version 11: Support for media streams
     // TODO test if input is unprocessed
 
-    let msc;
+    let msc:any;
     console.log('User agent: '+navigator.userAgent);
     if (navigator.userAgent.match(".*Edge.*")) {
 
@@ -187,7 +187,7 @@ export class AudioCapture {
             "mozEchoCancellation": false,
             "autoGainControl": false,
           "mozAutoGainControl": false,
-            "noiseSuppression": false,
+          "noiseSuppression": false,
           "mozNoiseSuppression": false
         },
         video: false,

@@ -99,7 +99,7 @@ import { AudioClip } from '../persistor'
                 }
             }
         }
-        get audioBuffer():AudioBuffer{
+        get audioBuffer():AudioBuffer| null{
             return this._audioBuffer;
         }
 
