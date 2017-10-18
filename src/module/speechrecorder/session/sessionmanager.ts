@@ -467,10 +467,10 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     }
   }
 
-  set displayRecFile(displayRecFile:RecordingFile){
+  set displayRecFile(displayRecFile:RecordingFile|null){
     this._displayRecFile=displayRecFile;
     if(this._displayRecFile) {
-        let ab: AudioBuffer = this.displayRecFile.audioBuffer;
+        let ab: AudioBuffer = this._displayRecFile.audioBuffer;
         this.displayAudioBuffer = ab;
         this.controlAudioPlayer.audioBuffer = ab;
     }else{
@@ -478,14 +478,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       this.controlAudioPlayer.audioBuffer = null;
     }
   }
-  get displayRecFile(){
+  get displayRecFile():RecordingFile|null{
     return this._displayRecFile;
   }
 
   showRecording() {
     this.controlAudioPlayer.stop();
 
-    if (this.displayRecFile) {
+    if (this.displayAudioBuffer) {
 
       this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
         this.displayLevelInfos = levelInfos;
