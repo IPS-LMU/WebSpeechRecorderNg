@@ -6,13 +6,12 @@ import {AudioDisplay} from "./audio_display";
 import {AudioSignal} from "./ui/audiosignal";
 import {Sonagram} from "./ui/sonagram";
 import {LevelBar} from "./ui/livelevel";
-import {LevelBarDisplay} from "./ui/livelevel_display";
 import {CommonModule} from "@angular/common";
 import {MatButtonModule,MatDialogModule, MatIconModule} from "@angular/material";
 
 @NgModule({
-    declarations: [AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplay,LevelBar,LevelBarDisplay],
-    exports: [AudioClipUIContainer,AudioDisplay,LevelBarDisplay],
+    declarations: [AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplay,LevelBar],
+    exports: [AudioClipUIContainer,AudioDisplay,LevelBar],
     imports: [CommonModule,MatIconModule,MatButtonModule,MatDialogModule]
 })
 export class AudioModule{

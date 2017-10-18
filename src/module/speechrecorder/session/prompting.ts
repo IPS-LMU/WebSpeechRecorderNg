@@ -99,7 +99,6 @@ export class PromptContainer {
 
     flex: 3; /* the container consumes all available space */
     padding: 10pt;
-    /* height: 100%; */
     justify-content: center; /* align horizontal center*/
     align-items: center; /* align vertical center */
     background: white;
@@ -131,8 +130,7 @@ export class PromptingContainer {
 
   `,
   styles: [`:host {
-
-    /* height: 100%; */
+    
     margin: 0;
     padding: 0;
     background: lightgrey;
@@ -169,7 +167,6 @@ export class Prompting {
   @Output() onItemSelect = new EventEmitter<number>();
 
   itemSelect(rowIdx: number) {
-    console.log("Row (prompting) " + rowIdx)
     this.onItemSelect.emit(rowIdx);
   }
 }

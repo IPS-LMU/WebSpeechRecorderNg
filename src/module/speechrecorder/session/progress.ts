@@ -74,14 +74,12 @@ export class Progress {
   @Output() onRowSelect = new EventEmitter<number>();
   @Output()
   set rowSelect(rowIdx:number){
-    console.log("Row: "+rowIdx);
     this.onRowSelect.emit(rowIdx);
   }
 
   @Output() onShowDoneAction = new EventEmitter<number>();
   @Output()
   set clickDone(rowIdx:number){
-    console.log("Row button  done click: "+rowIdx);
     if(this.items[rowIdx] && this.items[rowIdx].recs) {
       this.onRowSelect.emit(rowIdx);
       this.onShowDoneAction.emit(rowIdx);
@@ -91,7 +89,6 @@ export class Progress {
   @Output() onDownloadDoneAction = new EventEmitter<number>();
   @Output()
   set clickDownloadDone(rowIdx:number){
-    console.log("Row button download done click: "+rowIdx);
     if(this.items[rowIdx] && this.items[rowIdx].recs) {
       this.onRowSelect.emit(rowIdx);
       this.onDownloadDoneAction.emit(rowIdx);

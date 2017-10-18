@@ -111,7 +111,7 @@ export class TransportActions {
   selector: 'app-sprtransport',
 
   template: `
-    <button matTooltip="Item back" id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
+    <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
             md-raised-button>
       <mat-icon>chevron_left</mat-icon>
     </button>

@@ -2,22 +2,22 @@ import {
     ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
     ViewChild
 } from "@angular/core"
-import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
-import {LevelBar} from "./livelevel";
-import {AudioPlayer, AudioPlayerEvent, AudioPlayerListener, EventType} from "../playback/player";
+import {MatTooltip} from "@angular/material"
+import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
+import {LevelBar} from "../audio/ui/livelevel";
+import {AudioPlayer, AudioPlayerEvent, AudioPlayerListener, EventType} from "../audio/playback/player";
 
 
 export const MIN_DB_LEVEL=-40.0;
 
 @Component({
-
-    selector: 'audio-levelbardisplay',
+    selector: 'spr-recordingitemdisplay',
     template: `
-        <audio-levelbar [streamingMode]="streamingMode"[displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
         <button matTooltip="Start playback" (click)="controlAudioPlayer.start()" [disabled]="controlAudioPlayer?.startAction.disabled" [style.color]="controlAudioPlayer?.startAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
         <button matTooltip="Stop playback" (click)="controlAudioPlayer.stop()" [disabled]="controlAudioPlayer?.stopAction.disabled" [style.color]="controlAudioPlayer?.stopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
-        <button [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>zoom_out_map</mat-icon></button><button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
-        <span matTooltip="Peak level" matTooltipPosition="below">Peak: {{peakDbLvl | number:'1.1-1'}} dB </span> 
+        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>{{(audioSignalCollapsed)?"expand_less":"expand_more"}}</mat-icon></button><button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
+        <span matTooltip="Peak level">Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -47,6 +47,7 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
     ce:HTMLDivElement;
     @ViewChild(LevelBar) liveLevel: LevelBar;
     @Input() streamingMode:boolean;
+    @Input() audioSignalCollapsed:boolean;
     private _displayAudioBuffer:AudioBuffer|  null;
     @Input() enableDownload:boolean;
     peakDbLevelStr="-___ dB";
@@ -109,7 +110,6 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
     }
 
   update(levelInfo:LevelInfo, peakLevelInfo:LevelInfo){
-    //let dbVals=levelInfo.powerLevelsDB();
     let peakDBVal=levelInfo.powerLevelDB();
     if(this.peakDbLvl<peakDBVal){
       this.peakDbLvl=peakDBVal;

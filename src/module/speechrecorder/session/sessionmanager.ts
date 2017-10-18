@@ -16,7 +16,7 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
 import {AudioDevice} from "../project/project";
-import {LevelBarDisplay} from "../../audio/ui/livelevel_display";
+import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
@@ -58,16 +58,21 @@ export class Item {
   providers: [SessionService],
   template: `
 
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt" [items]="items"
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt"
+                      [items]="items"
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
-    <div #asCt [class.active]="!audioSignalCollapsed" ><app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed" [audioData]="displayAudioBuffer"></app-audio></div>
-    <audio-levelbardisplay #levelbardisplay 
-                           [controlAudioPlayer]="controlAudioPlayer"
-                           [streamingMode]="isRecording()"
-                           [displayLevelInfos]="displayLevelInfos"
-                           [displayAudioBuffer]="displayAudioBuffer" (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                           (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
-                           [enableDownload]="enableDownloadRecordings"></audio-levelbardisplay>
+    <div #asCt [class.active]="!audioSignalCollapsed">
+      <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed"
+                 [audioData]="displayAudioBuffer"></app-audio>
+    </div>
+    <spr-recordingitemdisplay #levelbardisplay
+                              [controlAudioPlayer]="controlAudioPlayer"
+                              [streamingMode]="isRecording()"
+                              [displayLevelInfos]="displayLevelInfos"
+                              [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
+                              (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
+                              (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
+                              [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
@@ -102,7 +107,6 @@ export class Item {
       
   }
   `]
-
 })
 export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
@@ -328,9 +332,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     if (this.status !== Status.IDLE) {
       return;
     }
-    console.log("Selected item: " + itemIdx);
-
-
     let i = 0;
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
@@ -349,7 +350,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   }
 
   startItem() {
-    //this.bwdBtn.disabled = true;
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.transportActions.fwdAction.disabled = true

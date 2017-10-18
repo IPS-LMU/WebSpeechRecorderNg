@@ -25,6 +25,8 @@ import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStat
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionFinishedDialog} from "./session/session_finished_dialog";
 import {MessageDialog} from "../ui/message_dialog";
+import {LevelBarDisplay} from "../ui/livelevel_display";
+import {LevelBar} from "../audio/ui/livelevel";
 
 
 
@@ -36,7 +38,7 @@ const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [ControlPanel,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,MessageDialog,SessionFinishedDialog,SpeechRecorder,ScrollIntoViewDirective],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,MessageDialog,SessionFinishedDialog,SpeechRecorder,ScrollIntoViewDirective],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
