@@ -99,7 +99,7 @@
           {
             "itemcode": "S1",
             "recinstructions" : {
-              "recinstructions" : "Please read the sentence:"
+              "recinstructions" : "Bitte lesen:"
             },
             "mediaitems": [
               {
@@ -108,193 +108,12 @@
                 "mediaitemId": 1300,
                 "mimetype": "text/plain",
                 "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                "text": "Heute ist schönes Frühlingswetter."
               }
             ],
             "recpromptId": 1259
-          },
-          {
-            "itemcode": "S2",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1260
-          },
-          {
-            "itemcode": "S3",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1261
-          },
-          {
-            "itemcode": "S4",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1262
-          },
-          {
-            "itemcode": "S5",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1263
-          },
-          {
-            "itemcode": "S6",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1264
-          },
-          {
-            "itemcode": "S7",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1265
-          },
-          {
-            "itemcode": "S8",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1266
-          },
-          {
-            "itemcode": "S9",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1267
-          },
-          {
-            "itemcode": "S10",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1268
-          },
-          {
-            "itemcode": "S11",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1269
-          },
-          {
-            "itemcode": "S12",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1270
-          },
-          {
-            "itemcode": "S13",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1271
-          },
-          {
-            "itemcode": "S14",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1272
           }
+
         ],
         "promptphase": "PRERECORDING",
         "sectionId": 1256,
@@ -310,6 +129,9 @@
         "promptUnits": [
           {
             "itemcode": "AN0",
+            "recinstructions" : {
+              "recinstructions" : "Please answer:"
+            },
             "recduration": 10000,
             "mediaitems": [
               {
@@ -325,6 +147,9 @@
           },
           {
             "itemcode": "AS0",
+            "recinstructions" : {
+              "recinstructions" : "Please read the digits:"
+            },
             "mediaitems": [
               {
                 "annotationTemplate": false,
@@ -332,13 +157,16 @@
                 "mediaitemId": 1300,
                 "mimetype": "text/plain",
                 "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                "text": "2 7 4 1 6 8 3 9 5 0"
               }
             ],
             "recpromptId": 1258
           },
           {
             "itemcode": "AS1",
+            "recinstructions" : {
+              "recinstructions" : "Please answer:"
+            },
             "mediaitems": [
               {
                 "annotationTemplate": false,
@@ -346,193 +174,12 @@
                 "mediaitemId": 1300,
                 "mimetype": "text/plain",
                 "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                "text": "How did you get here today?"
               }
             ],
             "recpromptId": 1259
-          },
-          {
-            "itemcode": "AS2",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1260
-          },
-          {
-            "itemcode": "AS3",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1261
-          },
-          {
-            "itemcode": "AS4",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1262
-          },
-          {
-            "itemcode": "AS5",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1263
-          },
-          {
-            "itemcode": "AS6",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1264
-          },
-          {
-            "itemcode": "AS7",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1265
-          },
-          {
-            "itemcode": "AS8",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1266
-          },
-          {
-            "itemcode": "AS9",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1267
-          },
-          {
-            "itemcode": "AS10",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1268
-          },
-          {
-            "itemcode": "AS11",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1269
-          },
-          {
-            "itemcode": "AS12",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1270
-          },
-          {
-            "itemcode": "AS13",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1271
-          },
-          {
-            "itemcode": "AS14",
-            "mediaitems": [
-              {
-                "annotationTemplate": false,
-                "autoplay": false,
-                "mediaitemId": 1300,
-                "mimetype": "text/plain",
-                "scope": "APPLICATION",
-                "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-            ],
-            "recpromptId": 1272
           }
+
         ],
         "promptphase": "IDLE",
         "sectionId": 1257,

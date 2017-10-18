@@ -6,13 +6,12 @@ import {Script, Section, PromptUnit, Mediaitem} from '../script/script';
 import {RecordingFile} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
-  Component, ViewChild, ChangeDetectorRef, Input, Inject,
-  AfterViewInit, AfterViewChecked, HostListener
+  Component, ViewChild, ChangeDetectorRef, Inject,
+  AfterViewInit, HostListener
 } from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MatDialog, MatDialogConfig} from "@angular/material";
-import {AudioDisplayDialog} from "../../audio/audio_display_dialog";
+import {MatDialog} from "@angular/material";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
@@ -22,8 +21,8 @@ import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/leve
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
-import {AudioDisplay} from "../../audio/audio_display";
-import {AudioClipUIContainer} from "../../audio/ui/container";
+import {SessionFinishedDialog} from "./session_finished_dialog";
+import {MessageDialog} from "../../ui/message_dialog";
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -218,16 +217,20 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     let debugFail = false;
     if (!w.AudioContext || typeof w.AudioContext !== 'function' || debugFail) {
       this.status = Status.ERROR;
-      this.statusMsg = 'ERROR: Browser does not support Web Audio API!';
+      let errMsg='Browser does not support Web Audio API!';
+      this.statusMsg = 'ERROR: '+errMsg;
       this.statusAlertType = 'error';
+      this.dialog.open(MessageDialog,{data:{type:'error',title:'Error',msg:errMsg,advise:'Please use a supported browser.',}});
       return;
     } else {
       let context = new w.AudioContext();
 
       if (!navigator.mediaDevices) {
         this.status = Status.ERROR;
-        this.statusMsg = 'ERROR: Browser does not support Media streams!';
+        let errMsg='Browser does not support Media streams!';
+        this.statusMsg = 'ERROR: '+errMsg;
         this.statusAlertType = 'error';
+        this.dialog.open(MessageDialog,{data:{type:'error',title:'Error',msg:errMsg,advise:'Please use a supported browser.',}});
         return;
       } else {
         this.ac = new AudioCapture(context);
@@ -237,8 +240,11 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
           this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
         } else {
           this.transportActions.startAction.disabled = true;
-          this.statusMsg = 'ERROR: Browser does not support Media/Audio API!';
+          let errMsg = 'Browser does not support Media/Audio API!';
+          this.statusMsg = 'ERROR: '+errMsg;
           this.statusAlertType = 'error';
+          this.dialog.open(MessageDialog,{data:{type:'error',title:'Error',msg:errMsg,advise:'Please use a supported browser.',}});
+          return;
         }
         this.transportActions.stopAction.onAction = () => this.stopItem();
         this.transportActions.nextAction.onAction = () => this.stopItem();
@@ -554,9 +560,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.ac.open(this._channelCount, fdi.deviceId);
           } else {
             // device not found
-            // TODO more user friendly ("Please plug audio device ... bla")
             this.statusMsg = 'ERROR: Required audio device not available!';
             this.statusAlertType = 'error';
+
+            this.dialog.open(MessageDialog,{data:{type:'error',
+              title:'Required audio device',
+              msg:"Required audio device not found",
+              advice:"Please connect a suitable audio device for this project and retry."},
+            })
           }
         });
       } else {
@@ -771,6 +782,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.status=Status.IDLE;
     if (complete) {
       this.statusMsg = 'Session complete!';
+      let dialogRef = this.dialog.open(SessionFinishedDialog, {});
     } else {
 
       if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -813,6 +825,14 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   error() {
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
+    this.dialog.open(MessageDialog,{
+      data:{
+        type:'error',
+        title:'Recording error',
+        msg:'An unknown error occured during recording.',
+        advice:'Please retry.'
+      }
+    });
   }
 }
 

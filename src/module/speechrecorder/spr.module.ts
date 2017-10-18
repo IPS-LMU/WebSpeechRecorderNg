@@ -1,12 +1,10 @@
-import {Injectable, InjectionToken, ModuleWithProviders, NgModule} from '@angular/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
 import {SpeechRecorder} from "./speechrecorder";
 import {AudioModule} from "../audio/audio.module";
 import {SimpleTrafficLight} from "./startstopsignal/ui/simpletrafficlight";
-import {AudioClipUIContainer} from "../audio/ui/container";
 
 import {CommonModule} from "@angular/common";
 import {Progress} from "./session/progress";
-import {AudioDisplayDialog} from "../audio/audio_display_dialog";
 import {
   PromptContainer, Prompter, Prompting, PromptingContainer, Recinstructions,
 } from "./session/prompting";
@@ -25,6 +23,8 @@ import {SpeechRecorderUploader} from "./spruploader";
 import {ProjectService} from "./project/project.service";
 import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./session/controlpanel";
 import {FlexLayoutModule} from "@angular/flex-layout";
+import {SessionFinishedDialog} from "./session/session_finished_dialog";
+import {MessageDialog} from "../ui/message_dialog";
 
 
 
@@ -35,10 +35,10 @@ const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [ControlPanel,Progress,SimpleTrafficLight,AudioDisplayDialog,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,SpeechRecorder,ScrollIntoViewDirective],
+    declarations: [ControlPanel,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
+      ProgressDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,MessageDialog,SessionFinishedDialog,SpeechRecorder,ScrollIntoViewDirective],
   entryComponents: [
-    AudioDisplayDialog
+    MessageDialog,SessionFinishedDialog
   ],
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,

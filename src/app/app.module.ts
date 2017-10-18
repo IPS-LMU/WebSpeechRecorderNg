@@ -8,11 +8,9 @@ import {
   MatButtonModule, MatDialogModule, MatIconModule, MatMenu, MatMenuItem, MatMenuModule,
   MatToolbarModule
 } from "@angular/material";
-import {AudioDisplayDialog} from "../module/audio/audio_display_dialog";
 import {SpeechRecorderModule} from "../module/speechrecorder/spr.module";
 import {AudioModule} from "../module/audio/audio.module";
 import {SPR_CFG} from "./app.config";
-
 
 
 const appRoutes: Routes = [
