@@ -66,7 +66,7 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
 
     private destroyed=false;
 
-    private warnDbLevel=DEFAULT_WARN_DB_LEVEL;
+    warnDbLevel=DEFAULT_WARN_DB_LEVEL;
 
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
