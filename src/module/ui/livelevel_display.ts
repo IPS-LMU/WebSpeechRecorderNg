@@ -9,6 +9,7 @@ import {AudioPlayer, AudioPlayerEvent, AudioPlayerListener, EventType} from "../
 
 
 export const MIN_DB_LEVEL=-40.0;
+export const DEFAULT_WARN_DB_LEVEL=-2;
 
 @Component({
     selector: 'spr-recordingitemdisplay',
@@ -17,7 +18,7 @@ export const MIN_DB_LEVEL=-40.0;
         <button matTooltip="Start playback" (click)="controlAudioPlayer.start()" [disabled]="controlAudioPlayer?.startAction.disabled" [style.color]="controlAudioPlayer?.startAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
         <button matTooltip="Stop playback" (click)="controlAudioPlayer.stop()" [disabled]="controlAudioPlayer?.stopAction.disabled" [style.color]="controlAudioPlayer?.stopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
         <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null" (click)="showRecordingDetails()"><mat-icon>{{(audioSignalCollapsed)?"expand_less":"expand_more"}}</mat-icon></button><button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null" (click)="downloadRecording()"><mat-icon>file_download</mat-icon></button>
-        <span matTooltip="Peak level">Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
+        <span matTooltip="Peak level" [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -64,6 +65,8 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
     private updateTimerId:number;
 
     private destroyed=false;
+
+    private warnDbLevel=DEFAULT_WARN_DB_LEVEL;
 
     constructor(private ref: ElementRef,private changeDetectorRef: ChangeDetectorRef) {
 
@@ -121,7 +124,7 @@ export class LevelBarDisplay implements LevelListener,AudioPlayerListener,OnDest
 
     updatePlayPosition() {
         if(this.controlAudioPlayer.playPositionFrames) {
-           // this.ac.playFramePosition = this.ap.playPositionFrames;
+           //this.ac.playFramePosition = this.controlAudioPlayer.playPositionFrames;
         }
     }
 

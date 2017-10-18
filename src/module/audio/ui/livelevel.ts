@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 
-export const RED_DB_LEVEL=-0.3;
+export const DEFAULT_WARN_DB_LEVEL=-2;
 export const MIN_DB_LEVEL = -60.0;
 export const LINE_WIDTH = 2;
 export const LINE_DISTANCE = 2;
@@ -53,6 +53,10 @@ export class LevelBar implements LevelListener {
   dbValues: Array<Array<number>>;
   peakDbLvl = MIN_DB_LEVEL;
   private _streamingMode=false;
+  private _staticLevelInfos:LevelInfos|null=null;
+  private _playFramePosition: number;
+
+  warnDBLevel=DEFAULT_WARN_DB_LEVEL;
 
   constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
     this.dbValues = new Array<Array<number>>();
@@ -84,6 +88,7 @@ export class LevelBar implements LevelListener {
 
   @Input()
   set displayLevelInfos(levelInfos: LevelInfos | null) {
+      this._staticLevelInfos=levelInfos;
       if (levelInfos) {
           this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
               return li.powerLevelsDB()
@@ -169,7 +174,7 @@ export class LevelBar implements LevelListener {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
 
-    if (dbVal >= -0.3) {
+    if (dbVal >= this.warnDBLevel) {
       g.strokeStyle = 'red';
       g.fillStyle = 'red';
 
@@ -194,7 +199,7 @@ export class LevelBar implements LevelListener {
     for (let ch = 0; ch < dbVals.length; ch++) {
       let dbVal = dbVals[ch];
       let y = Math.floor(ch * chH);
-      if (dbVal >= RED_DB_LEVEL) {
+      if (dbVal >= this.warnDBLevel) {
         g.strokeStyle = 'red';
         g.fillStyle = 'red';
 
@@ -231,6 +236,9 @@ export class LevelBar implements LevelListener {
       let g = this.liveLevelCanvas.getContext("2d");
       if (g) {
         g.fillStyle = 'black';
+        if(!this._streamingMode && !this._staticLevelInfos){
+          g.fillStyle='grey'
+        }
         g.fillRect(0, 0, w, h);
 
         g.lineWidth = LINE_WIDTH;
@@ -270,5 +278,36 @@ export class LevelBar implements LevelListener {
       }
     }
   }
+
+  set playFramePosition(playFramePosition: number) {
+    this._playFramePosition = playFramePosition;
+    //this.drawPlayPosition()
+  }
+
+
+  // drawPlayPosition() {
+  //   if (this.markerCanvas) {
+  //     let w = this.markerCanvas.width;
+  //     let h = this.markerCanvas.height;
+  //     let g = this.markerCanvas.getContext("2d");
+  //     if (g) {
+  //       g.clearRect(0, 0, w, h);
+  //       if (this.audioData && this.audioData.numberOfChannels > 0) {
+  //         let ch0 = this.audioData.getChannelData(0);
+  //         let frameLength = ch0.length;
+  //         let framesPerPixel = frameLength / w;
+  //         let pixelPos = this._playFramePosition * w / frameLength;
+  //         g.fillStyle = 'red';
+  //         g.strokeStyle = 'red';
+  //         g.beginPath();
+  //         g.moveTo(pixelPos, 0);
+  //         g.lineTo(pixelPos, h);
+  //         g.closePath();
+  //         g.stroke();
+  //       }
+  //     }
+  //   }
+  // }
+
 
 }
