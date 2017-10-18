@@ -23,6 +23,7 @@ import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
+import {AudioClipUIContainer} from "../../audio/ui/container";
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -66,7 +67,8 @@ export class Item {
                  [audioData]="displayAudioBuffer"></app-audio>
     </div>
     <spr-recordingitemdisplay #levelbardisplay
-                              [controlAudioPlayer]="controlAudioPlayer"
+                              [playStartAction]="controlAudioPlayer.startAction"
+                              [playStopAction]="controlAudioPlayer.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
                               [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
@@ -118,6 +120,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   private _channelCount = 2; //TODO define constant for default format
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+  @ViewChild(AudioClipUIContainer) audioClipUIConatiner:AudioClipUIContainer;
 
   startStopSignalState: StartStopSignalState;
   // Property audioDevices from project config: list of names of allowed audio devices.
@@ -150,7 +153,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   items: Array<Item>;
   selectedItemIdx: number;
-  private displayRecFile: RecordingFile | null;
+  private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
   displayAudioBuffer: AudioBuffer | null;
   displayLevelInfos: LevelInfos | null;
@@ -166,7 +169,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
-  controlAudioPlayer: AudioPlayer;
+  private _controlAudioPlayer: AudioPlayer;
 
 
 
@@ -289,6 +292,20 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     if (ke.key === 'ArrowLeft') {
       this.transportActions.bwdAction.perform();
     }
+  }
+
+  set controlAudioPlayer(controlAudioPlayer:AudioPlayer){
+    if(this._controlAudioPlayer){
+      //this._controlAudioPlayer.listener=null;
+    }
+    this._controlAudioPlayer=controlAudioPlayer;
+      if(this._controlAudioPlayer){
+          this._controlAudioPlayer.listener=this;
+      }
+  }
+
+  get controlAudioPlayer():AudioPlayer{
+    return this._controlAudioPlayer;
   }
 
   set session(session: Session) {
@@ -450,25 +467,39 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     }
   }
 
+  set displayRecFile(displayRecFile:RecordingFile){
+    this._displayRecFile=displayRecFile;
+    if(this._displayRecFile) {
+        let ab: AudioBuffer = this.displayRecFile.audioBuffer;
+        this.displayAudioBuffer = ab;
+        this.controlAudioPlayer.audioBuffer = ab;
+    }else{
+      this.displayAudioBuffer=null;
+      this.controlAudioPlayer.audioBuffer = null;
+    }
+  }
+  get displayRecFile(){
+    return this._displayRecFile;
+  }
+
   showRecording() {
     this.controlAudioPlayer.stop();
 
     if (this.displayRecFile) {
-      let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-      this.displayAudioBuffer = ab;
+
       this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
         this.displayLevelInfos = levelInfos;
         this.changeDetectorRef.detectChanges();
       });
       this.playStartAction.disabled = false;
-      this.controlAudioPlayer.audioBuffer = ab;
+
     } else {
-      this.displayAudioBuffer = null;
+
       // TODO
         // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
         // The level bar display does not clear, it shows the last captured stream
       this.displayLevelInfos = null;
-      this.controlAudioPlayer.audioBuffer = null;
+
       this.playStartAction.disabled = true;
 
       // Collapse audio signal display if open
@@ -815,6 +846,31 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   startControlPlayback(){
     this.playStartAction.perform();
   }
+
+  updateControlPlaybackPosition(){
+    if(this._controlAudioPlayer.playPositionFrames) {
+        this.audioClipUIConatiner.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+    }
+  }
+
+    audioPlayerUpdate(e:AudioPlayerEvent){
+        if(EventType.READY===e.type) {
+
+        }else if(EventType.STARTED===e.type){
+            //this.status = 'Playback...';
+            this.updateTimerId = window.setInterval(e=>this.updateControlPlaybackPosition(), 50);
+
+        }else if(EventType.ENDED===e.type){
+            //.status='Ready.';
+            window.clearInterval(this.updateTimerId);
+
+        }
+
+        // if(!this.destroyed) {
+        //     this.changeDetectorRef.detectChanges();
+        // }
+
+    }
 
   closed() {
     this.statusAlertType = 'info';
