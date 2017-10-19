@@ -95,6 +95,13 @@ export class LevelInfo {
 export class LevelInfos {
   constructor(public readonly bufferLevelInfos: Array<LevelInfo>, public readonly peakLevelInfo: LevelInfo) {
   }
+
+  framesPerBuffer():number{
+    if(this.bufferLevelInfos.length>0){
+      return this.bufferLevelInfos[0].frameLength;
+    }
+    return this.peakLevelInfo.frameLength/this.bufferLevelInfos.length;
+  }
 }
 
 
@@ -164,7 +171,7 @@ export class LevelMeasure {
             minLevels[ch]=linLevelArrs[ch][linLvlArrPos];
             maxLevels[ch]=linLevelArrs[ch][linLvlArrPos+1];
           }
-          let bli = new LevelInfo(chs, framePos, me.data.frameLength, minLevels, maxLevels);
+          let bli = new LevelInfo(chs, framePos, me.data.bufferFrameLength, minLevels, maxLevels);
           bufferLevelInfos.push(bli);
           peakLevelInfo.merge(bli);
         }

@@ -2,10 +2,8 @@ import {
     ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
     ViewChild
 } from "@angular/core"
-import {MatTooltip} from "@angular/material"
 import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
 import {LevelBar} from "../audio/ui/livelevel";
-import {AudioPlayer, AudioPlayerEvent, AudioPlayerListener, EventType} from "../audio/playback/player";
 import {Action} from "../action/action";
 
 
@@ -99,9 +97,7 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
     @Input()
     set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null) {
         this._displayAudioBuffer = displayAudioBuffer;
-
     }
-
 
     get displayAudioBuffer() {
         return this._displayAudioBuffer;
@@ -129,6 +125,10 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
         this.reset();
         this.liveLevel.channelCount = channelCount;
     }
+
+  set playFramePosition(playFramePosition: number) {
+    this.liveLevel.playFramePosition=playFramePosition;
+  }
 
     update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo) {
         let peakDBVal = levelInfo.powerLevelDB();

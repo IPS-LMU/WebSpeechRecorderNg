@@ -1,7 +1,7 @@
 import {ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 
-export const DEFAULT_WARN_DB_LEVEL=-2;
+export const DEFAULT_WARN_DB_LEVEL = -2;
 export const MIN_DB_LEVEL = -60.0;
 export const LINE_WIDTH = 2;
 export const LINE_DISTANCE = 2;
@@ -15,6 +15,7 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
   template: `
     <div #virtualCanvas>
       <canvas #levelbar></canvas>
+      <canvas #markerCanvas></canvas>
     </div>
   `,
   styles: [`:host {
@@ -49,14 +50,16 @@ export class LevelBar implements LevelListener {
   virtualCanvas: HTMLDivElement;
   @ViewChild('levelbar') liveLevelCanvasRef: ElementRef;
   liveLevelCanvas: HTMLCanvasElement;
+  @ViewChild('markerCanvas') markerCanvasRef: ElementRef;
+  markerCanvas: HTMLCanvasElement;
   ce: HTMLDivElement;
   dbValues: Array<Array<number>>;
   peakDbLvl = MIN_DB_LEVEL;
-  private _streamingMode=false;
-  private _staticLevelInfos:LevelInfos|null=null;
+  private _streamingMode = false;
+  private _staticLevelInfos: LevelInfos | null = null;
   private _playFramePosition: number;
 
-  warnDBLevel=DEFAULT_WARN_DB_LEVEL;
+  warnDBLevel = DEFAULT_WARN_DB_LEVEL;
 
   constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
     this.dbValues = new Array<Array<number>>();
@@ -65,6 +68,8 @@ export class LevelBar implements LevelListener {
   ngAfterViewInit() {
     this.ce = this.ref.nativeElement;
     this.liveLevelCanvas = this.liveLevelCanvasRef.nativeElement;
+    this.markerCanvas = this.markerCanvasRef.nativeElement;
+    this.markerCanvas.style.zIndex = '4';
     this.virtualCanvas = this.virtualCanvasRef.nativeElement;
     this.layout();
     this.drawAll();
@@ -73,34 +78,48 @@ export class LevelBar implements LevelListener {
 
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
-    this.liveLevelCanvas.style.left = this.ce.scrollLeft + 'px';
+    this.updateViewportPosition()
     this.drawAll();
+    this.drawPlayPosition();
+  }
+
+  private updateViewportPosition(){
+    // Move canvases to visible viewport position
+    let viewPortStyleLeft=this.ce.scrollLeft + 'px';
+    this.liveLevelCanvas.style.left = viewPortStyleLeft;
+    this.markerCanvas.style.left = viewPortStyleLeft;
   }
 
   @Input()
-  set streamingMode(streamingMode:boolean){
-      if(this._streamingMode!==streamingMode) {
-        this._streamingMode = streamingMode;
-        this.reset();
-        this.layoutStatic();
-      }
+  set streamingMode(streamingMode: boolean) {
+    if (this._streamingMode !== streamingMode) {
+      this._streamingMode = streamingMode;
+      this.reset();
+      this.layoutStatic();
+    }
   }
 
   @Input()
   set displayLevelInfos(levelInfos: LevelInfos | null) {
-      this._staticLevelInfos=levelInfos;
-      if (levelInfos) {
-          this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
-              return li.powerLevelsDB()
-          });
-      } else {
-          this.dbValues = new Array<Array<number>>();
-      }
-      this.layoutStatic();
+    this._staticLevelInfos = levelInfos;
+    if (levelInfos) {
+
+      this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
+        return li.powerLevelsDB()
+      });
+    } else {
+      this.dbValues = new Array<Array<number>>();
+    }
+    this.layoutStatic();
   }
 
   set channelCount(channelCount: number) {
     this.reset();
+  }
+
+  set playFramePosition(playFramePosition: number) {
+    this._playFramePosition = playFramePosition;
+    this.drawPlayPosition();
   }
 
   @HostListener('window:resize', ['$event'])
@@ -116,13 +135,18 @@ export class LevelBar implements LevelListener {
     this.liveLevelCanvas.width = this.ce.offsetWidth;
     this.liveLevelCanvas.height = this.ce.offsetHeight;
 
+    this.markerCanvas.width = this.ce.offsetWidth;
+    this.markerCanvas.height = this.ce.offsetHeight;
+
     // and move to viewport position
-    this.liveLevelCanvas.style.left = this.ce.scrollLeft + 'px';
+   this.updateViewportPosition();
+
     this.drawAll();
+    this.drawPlayPosition();
   }
 
   update(levelInfos: LevelInfo) {
-    if(this._streamingMode) {
+    if (this._streamingMode) {
       let dbVals = levelInfos.powerLevelsDB();
       let peakDBVal = levelInfos.powerLevelDB();
       if (this.peakDbLvl < peakDBVal) {
@@ -141,7 +165,7 @@ export class LevelBar implements LevelListener {
     this.layoutStatic();
   }
 
-  layoutStatic() {
+  private layoutStatic() {
 
     let requiredWidth = this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH);
     if (this.virtualCanvas && this.ce) {
@@ -153,7 +177,7 @@ export class LevelBar implements LevelListener {
 
   }
 
-  checkWidth() {
+  private checkWidth() {
     let requiredWidth = this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH);
     if (this.virtualCanvas.offsetWidth - requiredWidth < this.ce.offsetWidth * OVERFLOW_THRESHOLD) {
       let newWidth = Math.round(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
@@ -168,6 +192,7 @@ export class LevelBar implements LevelListener {
     this.dbValues = new Array<Array<number>>();
     this.layout();
     this.drawAll();
+    this.drawPlayPosition();
   }
 
   private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
@@ -217,7 +242,7 @@ export class LevelBar implements LevelListener {
     }
   }
 
-  drawPushValue(x: number, dbVals: Array<number>) {
+  private drawPushValue(x: number, dbVals: Array<number>) {
 
     if (this.liveLevelCanvas) {
       let w = this.liveLevelCanvas.width;
@@ -229,15 +254,15 @@ export class LevelBar implements LevelListener {
     }
   }
 
-  drawAll() {
+  private  drawAll() {
     if (this.liveLevelCanvas) {
       let w = this.liveLevelCanvas.width;
       let h = this.liveLevelCanvas.height;
       let g = this.liveLevelCanvas.getContext("2d");
       if (g) {
         g.fillStyle = 'black';
-        if(!this._streamingMode && !this._staticLevelInfos){
-          g.fillStyle='grey'
+        if (!this._streamingMode && !this._staticLevelInfos) {
+          g.fillStyle = 'grey'
         }
         g.fillRect(0, 0, w, h);
 
@@ -279,35 +304,50 @@ export class LevelBar implements LevelListener {
     }
   }
 
-  set playFramePosition(playFramePosition: number) {
-    this._playFramePosition = playFramePosition;
-    //this.drawPlayPosition()
+
+  private framesPerPixel(): number | null {
+    // one buffer
+    if (this._staticLevelInfos) {
+      let framesPerBuffer = this._staticLevelInfos.framesPerBuffer();
+      let pixelsPerBuffer = LINE_DISTANCE + LINE_WIDTH;
+
+      let framesPerPixel=framesPerBuffer / pixelsPerBuffer;
+      return framesPerPixel;
+    }
+    return null;
   }
 
 
-  // drawPlayPosition() {
-  //   if (this.markerCanvas) {
-  //     let w = this.markerCanvas.width;
-  //     let h = this.markerCanvas.height;
-  //     let g = this.markerCanvas.getContext("2d");
-  //     if (g) {
-  //       g.clearRect(0, 0, w, h);
-  //       if (this.audioData && this.audioData.numberOfChannels > 0) {
-  //         let ch0 = this.audioData.getChannelData(0);
-  //         let frameLength = ch0.length;
-  //         let framesPerPixel = frameLength / w;
-  //         let pixelPos = this._playFramePosition * w / frameLength;
-  //         g.fillStyle = 'red';
-  //         g.strokeStyle = 'red';
-  //         g.beginPath();
-  //         g.moveTo(pixelPos, 0);
-  //         g.lineTo(pixelPos, h);
-  //         g.closePath();
-  //         g.stroke();
-  //       }
-  //     }
-  //   }
-  // }
+  private drawPlayPosition() {
+    if (this.markerCanvas) {
+      let w = this.markerCanvas.width;
+      let h = this.markerCanvas.height;
+      let g = this.markerCanvas.getContext("2d");
+      if (g) {
+        g.clearRect(0, 0, w, h);
+        let framesPerPixel = this.framesPerPixel();
+        if (framesPerPixel && this._playFramePosition) {
+          let x = this._playFramePosition / framesPerPixel;
+
+          // Get position in viewport
+          let xc = x - this.ce.scrollLeft;
+          // Only draw if inside marker (viewport) canvas
+          if(xc>=0 && xc<=w) {
+            g.fillStyle = 'red';
+            g.strokeStyle = 'red';
+            g.lineWidth = LINE_WIDTH;
+            g.beginPath();
+            // paint over all channels
+            g.moveTo(xc, 0);
+            g.lineTo(xc, h);
+            g.closePath();
+            g.stroke();
+          }
+        }
+      }
+    }
+
+  }
 
 
 }

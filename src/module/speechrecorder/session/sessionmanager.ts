@@ -89,38 +89,38 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
-  }`,`
-  div{
-     flex: 0;
-    overflow: hidden;
-      
-  }`,`
-  div.active {
-    flex: 2;
+  }`, `
+    div {
+      flex: 0;
+      overflow: hidden;
+
+    }`, `
+    div.active {
+      flex: 2;
       display: flex;
-    
-    overflow: hidden;  
-   
+
+      overflow: hidden;
+
       margin: 20px;
       /* border: 20px; */
       z-index: 5;
-  }`,`
-  app-audio.active{
-      
-  }
+    }`, `
+    app-audio.active {
+
+    }
   `]
 })
 export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
-  status: Status=Status.BLOCKED;
+  status: Status = Status.BLOCKED;
   mode: Mode;
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
-  @ViewChild(AudioClipUIContainer) audioClipUIConatiner:AudioClipUIContainer;
+  @ViewChild(AudioClipUIContainer) audioClipUIConatiner: AudioClipUIContainer;
 
   startStopSignalState: StartStopSignalState;
   // Property audioDevices from project config: list of names of allowed audio devices.
@@ -145,7 +145,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   private section: Section;
   promptUnit: PromptUnit;
-  showPrompt:boolean;
+  showPrompt: boolean;
 
   sectIdx: number;
   prmptIdx: number;
@@ -170,7 +170,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer: AudioPlayer;
-
 
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
@@ -202,12 +201,10 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   }
 
   ngAfterViewInit() {
-
-
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
   }
 
-  init() {
+  private init() {
     this.sectIdx = 0;
     this.prmptIdx = 0;
     this.autorecording = false;
@@ -224,20 +221,34 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     let debugFail = false;
     if (!w.AudioContext || typeof w.AudioContext !== 'function' || debugFail) {
       this.status = Status.ERROR;
-      let errMsg='Browser does not support Web Audio API!';
-      this.statusMsg = 'ERROR: '+errMsg;
+      let errMsg = 'Browser does not support Web Audio API!';
+      this.statusMsg = 'ERROR: ' + errMsg;
       this.statusAlertType = 'error';
-      this.dialog.open(MessageDialog,{data:{type:'error',title:'Error',msg:errMsg,advise:'Please use a supported browser.',}});
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Error',
+          msg: errMsg,
+          advise: 'Please use a supported browser.',
+        }
+      });
       return;
     } else {
       let context = new w.AudioContext();
 
       if (!navigator.mediaDevices) {
         this.status = Status.ERROR;
-        let errMsg='Browser does not support Media streams!';
-        this.statusMsg = 'ERROR: '+errMsg;
+        let errMsg = 'Browser does not support Media streams!';
+        this.statusMsg = 'ERROR: ' + errMsg;
         this.statusAlertType = 'error';
-        this.dialog.open(MessageDialog,{data:{type:'error',title:'Error',msg:errMsg,advise:'Please use a supported browser.',}});
+        this.dialog.open(MessageDialog, {
+          data: {
+            type: 'error',
+            title: 'Error',
+            msg: errMsg,
+            advise: 'Please use a supported browser.',
+          }
+        });
         return;
       } else {
         this.ac = new AudioCapture(context);
@@ -248,9 +259,16 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         } else {
           this.transportActions.startAction.disabled = true;
           let errMsg = 'Browser does not support Media/Audio API!';
-          this.statusMsg = 'ERROR: '+errMsg;
+          this.statusMsg = 'ERROR: ' + errMsg;
           this.statusAlertType = 'error';
-          this.dialog.open(MessageDialog,{data:{type:'error',title:'Error',msg:errMsg,advise:'Please use a supported browser.',}});
+          this.dialog.open(MessageDialog, {
+            data: {
+              type: 'error',
+              title: 'Error',
+              msg: errMsg,
+              advise: 'Please use a supported browser.',
+            }
+          });
           return;
         }
         this.transportActions.stopAction.onAction = () => this.stopItem();
@@ -294,17 +312,17 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     }
   }
 
-  set controlAudioPlayer(controlAudioPlayer:AudioPlayer){
-    if(this._controlAudioPlayer){
+  set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
+    if (this._controlAudioPlayer) {
       //this._controlAudioPlayer.listener=null;
     }
-    this._controlAudioPlayer=controlAudioPlayer;
-      if(this._controlAudioPlayer){
-          this._controlAudioPlayer.listener=this;
-      }
+    this._controlAudioPlayer = controlAudioPlayer;
+    if (this._controlAudioPlayer) {
+      this._controlAudioPlayer.listener = this;
+    }
   }
 
-  get controlAudioPlayer():AudioPlayer{
+  get controlAudioPlayer(): AudioPlayer {
     return this._controlAudioPlayer;
   }
 
@@ -320,7 +338,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.prmptIdx = 0;
 
     this.applyItem();
-
   }
 
   set channelCount(channelCount: number) {
@@ -383,7 +400,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   }
 
 
-  loadScript() {
+  private loadScript() {
     this.promptItemCount = 0;
 
     this.items = new Array<Item>();
@@ -425,7 +442,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   clearPrompt() {
     //this.prompting.promptContainer.prompter.promptText='';
     //this.mediaitem = null;
-    this.showPrompt=false;
+    this.showPrompt = false;
     this.changeDetectorRef.detectChanges()
   }
 
@@ -433,7 +450,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     //this.prompting.promptContainer.prompter.promptText=this.promptUnit.mediaitems[0].text;
     //this.promptText = this.promptUnit.mediaitems[0].text;
     //this.mediaitem=this.promptUnit.mediaitems[0];
-    this.showPrompt=true;
+    this.showPrompt = true;
     this.changeDetectorRef.detectChanges()
   }
 
@@ -467,18 +484,19 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     }
   }
 
-  set displayRecFile(displayRecFile:RecordingFile|null){
-    this._displayRecFile=displayRecFile;
-    if(this._displayRecFile) {
-        let ab: AudioBuffer = this._displayRecFile.audioBuffer;
-        this.displayAudioBuffer = ab;
-        this.controlAudioPlayer.audioBuffer = ab;
-    }else{
-      this.displayAudioBuffer=null;
+  set displayRecFile(displayRecFile: RecordingFile | null) {
+    this._displayRecFile = displayRecFile;
+    if (this._displayRecFile) {
+      let ab: AudioBuffer = this._displayRecFile.audioBuffer;
+      this.displayAudioBuffer = ab;
+      this.controlAudioPlayer.audioBuffer = ab;
+    } else {
+      this.displayAudioBuffer = null;
       this.controlAudioPlayer.audioBuffer = null;
     }
   }
-  get displayRecFile():RecordingFile|null{
+
+  get displayRecFile(): RecordingFile | null {
     return this._displayRecFile;
   }
 
@@ -496,15 +514,15 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     } else {
 
       // TODO
-        // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
-        // The level bar display does not clear, it shows the last captured stream
+      // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
+      // The level bar display does not clear, it shows the last captured stream
       this.displayLevelInfos = null;
 
       this.playStartAction.disabled = true;
 
       // Collapse audio signal display if open
-      if(!this.audioSignalCollapsed){
-        this.audioSignalCollapsed=true;
+      if (!this.audioSignalCollapsed) {
+        this.audioSignalCollapsed = true;
       }
     }
     this.changeDetectorRef.detectChanges();
@@ -594,10 +612,13 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
             this.statusMsg = 'ERROR: Required audio device not available!';
             this.statusAlertType = 'error';
 
-            this.dialog.open(MessageDialog,{data:{type:'error',
-              title:'Required audio device',
-              msg:"Required audio device not found",
-              advice:"Please connect a suitable audio device for this project and retry."},
+            this.dialog.open(MessageDialog, {
+              data: {
+                type: 'error',
+                title: 'Required audio device',
+                msg: "Required audio device not found",
+                advice: "Please connect a suitable audio device for this project and retry."
+              },
             })
           }
         });
@@ -610,8 +631,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     }
   }
 
-  isRecording():boolean{
-    return (this.status===Status.PRE_RECORDING || this.status===Status.RECORDING);
+  isRecording(): boolean {
+    return (this.status === Status.PRE_RECORDING || this.status === Status.RECORDING);
   }
 
   prevItem() {
@@ -766,7 +787,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       it.recs.push(rf);
 
 
-
       if (this.mode === Mode.SERVER_BOUND) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
@@ -809,8 +829,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       }
     }
 
-    let autoStart=(this.status === Status.STOPPING_STOP);
-    this.status=Status.IDLE;
+    let autoStart = (this.status === Status.STOPPING_STOP);
+    this.status = Status.IDLE;
     if (complete) {
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
@@ -827,8 +847,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         this.transportActions.bwdAction.disabled = false
       }
     }
-      // apply recorded item
-      this.applyItem();
+    // apply recorded item
+    this.applyItem();
     this.changeDetectorRef.detectChanges();
   }
 
@@ -843,34 +863,35 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   }
 
 
-  startControlPlayback(){
+  startControlPlayback() {
     this.playStartAction.perform();
   }
 
-  updateControlPlaybackPosition(){
-    if(this._controlAudioPlayer.playPositionFrames) {
-        this.audioClipUIConatiner.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+  private updateControlPlaybackPosition() {
+    if (this._controlAudioPlayer.playPositionFrames) {
+      this.audioClipUIConatiner.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+      this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
   }
 
-    audioPlayerUpdate(e:AudioPlayerEvent){
-        if(EventType.READY===e.type) {
+  audioPlayerUpdate(e: AudioPlayerEvent) {
+    if (EventType.READY === e.type) {
 
-        }else if(EventType.STARTED===e.type){
-            //this.status = 'Playback...';
-            this.updateTimerId = window.setInterval(e=>this.updateControlPlaybackPosition(), 50);
+    } else if (EventType.STARTED === e.type) {
+      //this.status = 'Playback...';
+      this.updateTimerId = window.setInterval(e => this.updateControlPlaybackPosition(), 50);
 
-        }else if(EventType.ENDED===e.type){
-            //.status='Ready.';
-            window.clearInterval(this.updateTimerId);
-
-        }
-
-        // if(!this.destroyed) {
-        //     this.changeDetectorRef.detectChanges();
-        // }
+    } else if (EventType.ENDED === e.type) {
+      //.status='Ready.';
+      window.clearInterval(this.updateTimerId);
 
     }
+
+    // if(!this.destroyed) {
+    //     this.changeDetectorRef.detectChanges();
+    // }
+
+  }
 
   closed() {
     this.statusAlertType = 'info';
@@ -881,12 +902,12 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   error() {
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
-    this.dialog.open(MessageDialog,{
-      data:{
-        type:'error',
-        title:'Recording error',
-        msg:'An unknown error occured during recording.',
-        advice:'Please retry.'
+    this.dialog.open(MessageDialog, {
+      data: {
+        type: 'error',
+        title: 'Recording error',
+        msg: 'An unknown error occured during recording.',
+        advice: 'Please retry.'
       }
     });
   }
