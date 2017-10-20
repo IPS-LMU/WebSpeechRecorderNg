@@ -1,5 +1,6 @@
 
-    import {HttpClient} from "@angular/common/http";
+    import {HttpClient, HttpErrorResponse} from "@angular/common/http";
+    import {ResponseContentType} from "@angular/http";
 
     // state of an upload
     export enum UploadStatus {IDLE = 1, UPLOADING = 2, ABORT = 3, DONE = 0, ERR = -1}
@@ -113,31 +114,53 @@
                 this.status = UploaderStatus.UPLOADING;
             }
 
-            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).toPromise()
-              .then(response => {
+            // this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).toPromise()
+            //   .then(response => {
+            //
+            //     //console.log("Upload ret val:" + response.status + " " + response.statusText);
+            //     //if (response.status >= 200 && response.status < 300) {
+            //       if (this.DEBUG_DELAY) {
+            //         window.setTimeout(() => {
+            //           this.uploadDone(ul);
+            //         }, this.DEBUG_DELAY);
+            //       } else {
+            //         this.uploadDone(ul);
+            //
+            //       }
+            //     // } else {
+            //     //   ul.status = UploadStatus.ERR;
+            //     //   this.processError();
+            //     // }
+            //   })
+            //   .catch((e)=>{
+            //
+            //     // abort not supported by Angular HTTP ?
+            //     console.log("Upload error: "+e.toString());
+            //
+            //     ul.status = UploadStatus.ERR;
+            //     this.processError();
+            //   });
 
-                //console.log("Upload ret val:" + response.status + " " + response.statusText);
-                //if (response.status >= 200 && response.status < 300) {
-                  if (this.DEBUG_DELAY) {
-                    window.setTimeout(() => {
-                      this.uploadDone(ul);
-                    }, this.DEBUG_DELAY);
-                  } else {
-                    this.uploadDone(ul);
+            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).subscribe(
+              data => {
 
-                  }
-                // } else {
-                //   ul.status = UploadStatus.ERR;
-                //   this.processError();
-                // }
-              })
-              .catch((e)=>{
+                if (this.DEBUG_DELAY) {
+                window.setTimeout(() => {
+                  this.uploadDone(ul);
+                }, this.DEBUG_DELAY);
+              } else {
+                this.uploadDone(ul);
 
-                // abort not supported by Angular HTTP ?
-                console.log("Upload error");
-
-                ul.status = UploadStatus.ERR;
-                this.processError();
+              }},
+              (err: HttpErrorResponse) => {
+                if (err.error instanceof Error) {
+                  // A client-side or network error occurred. Handle it accordingly.
+                  console.log('Upload error occurred:', err.error.message);
+                } else {
+                  // The backend returned an unsuccessful response code.
+                  // The response body may contain clues as to what went wrong,
+                  console.log(`Upload error: Server returned code ${err.status}, body was: ${err.error}`);
+                }
               });
         }
 

@@ -115,7 +115,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;
-  mode: Mode;
+
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
   @ViewChild(Prompting) prompting: Prompting;
@@ -177,12 +177,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
-    this.mode = Mode.SERVER_BOUND;
-
-    //this._startStopSignal = startStopSignal;
-
     this.transportActions = new TransportActions();
-
     let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
     this.playStartAction = new Action('Play');
     this.playStartAction.addControl(playStartBtn, 'click');
@@ -787,7 +782,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       it.recs.push(rf);
 
 
-      if (this.mode === Mode.SERVER_BOUND) {
+      if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
 
@@ -804,7 +799,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
         let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
 
-        if (this.config && this.config.enableUploadRecordings) {
+
           // convert asynchronously to 16-bit integer PCM
           // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
           // TODO duplicate conversion for manual download
@@ -813,7 +808,6 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
           ww.writeAsync(ad, (wavFile) => {
             this.postRecording(wavFile, recUrl);
           });
-        }
       }
     }
 
