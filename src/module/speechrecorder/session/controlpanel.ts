@@ -40,12 +40,11 @@ export class StatusDisplay {
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [value]="_value"
-                          style="width:2em;height:2em"></mat-progress-spinner>Upload: {{_value}}%
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{_value}}%
   `,
   styles: [`:host {
     flex: 1;
-  / / align-self: flex-start;
+  /* align-self: flex-start; */
     display: inline;
     text-align: left;
   }`]
@@ -77,7 +76,7 @@ export class UploadStatus {
   `,
   styles: [`:host {
     flex: 1;
-  / / align-self: flex-start;
+  /* align-self: flex-start; */
     display: inline;
     text-align: left;
   }`]
