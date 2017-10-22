@@ -181,7 +181,7 @@
           }
 
         ],
-        "promptphase": "IDLE",
+        "promptphase": "PRERECORDING",
         "sectionId": 1257,
         "sectionPosition": 2,
         "speakerDisplay": true,
