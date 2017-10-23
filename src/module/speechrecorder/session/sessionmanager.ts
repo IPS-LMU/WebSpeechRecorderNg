@@ -523,7 +523,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.changeDetectorRef.detectChanges();
   }
 
-  applyItem() {
+  applyItem(temporary=false) {
 
     this.section = this._script.sections[this.sectIdx]
     this.promptUnit = this.section.promptUnits[this.prmptIdx];
@@ -551,7 +551,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       this.displayRecFile = null;
       this.displayRecFileVersion = 0;
     }
-    this.showRecording();
+    if(!temporary) {
+      this.showRecording();
+    }
     this.startStopSignalState = StartStopSignalState.IDLE;
 
   }
@@ -825,6 +827,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
     let autoStart = (this.status === Status.STOPPING_STOP);
     this.status = Status.IDLE;
+    let startNext=false;
     if (complete) {
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
@@ -835,14 +838,17 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       }
 
       if (this.section.mode === 'AUTORECORDING' && this.autorecording && autoStart) {
-        this.startItem();
+        startNext=true;
       } else {
         this.transportActions.fwdAction.disabled = false
         this.transportActions.bwdAction.disabled = false
       }
     }
     // apply recorded item
-    this.applyItem();
+    this.applyItem(startNext);
+    if(startNext){
+      this.startItem();
+    }
     this.changeDetectorRef.detectChanges();
   }
 
