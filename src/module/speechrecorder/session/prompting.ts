@@ -5,7 +5,7 @@ import {
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
-import {Mediaitem, PromptUnit} from "../script/script";
+import {Mediaitem, PromptItem} from "../script/script";
 
 @Component({
 
@@ -90,8 +90,8 @@ export class PromptContainer {
   selector: 'app-sprpromptingcontainer',
 
   template: `
-    <spr-recinstructions [recinstructions]="showPrompt?promptUnit?.recinstructions?.recinstructions:null"></spr-recinstructions>
-    <app-sprpromptcontainer [mediaitem]="showPrompt?promptUnit?.mediaitems[0]:null"></app-sprpromptcontainer>
+    <spr-recinstructions [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
+    <app-sprpromptcontainer [mediaitem]="showPrompt?promptItem?.mediaitems[0]:null"></app-sprpromptcontainer>
 
   `
   ,
@@ -110,7 +110,7 @@ export class PromptContainer {
   `]
 })
 export class PromptingContainer {
-  @Input() promptUnit: PromptUnit;
+  @Input() promptItem: PromptItem;
   @Input() showPrompt: boolean;
 }
 
@@ -122,7 +122,7 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptUnit]="promptUnit" [showPrompt]="showPrompt"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
 
@@ -159,7 +159,7 @@ export class PromptingContainer {
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
   @Input() startStopSignalState: StartStopSignalState;
-  @Input() promptUnit: PromptUnit | null;
+  @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;
   @Input() items: Array<Item>;
   @Input() selectedItemIdx: number;

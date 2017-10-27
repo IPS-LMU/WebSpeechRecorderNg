@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, PromptUnit, Mediaitem} from '../script/script';
+import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
 import {RecordingFile} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -59,7 +59,7 @@ export class Item {
   providers: [SessionService],
   template: `
 
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptUnit]="promptUnit" [showPrompt]="showPrompt"
+    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                       [items]="items"
                       [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -144,7 +144,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   _script: Script;
 
   private section: Section;
-  promptUnit: PromptUnit;
+  group: Group;
+  promptItem:PromptItem;
   showPrompt: boolean;
 
   sectIdx: number;
@@ -364,14 +365,18 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     let i = 0;
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let pis = section.promptUnits;
-      let sLen = pis.length;
-      if (itemIdx < i + sLen) {
-        this.sectIdx = si;
-        this.prmptIdx = itemIdx - i;
-        break;
-      } else {
-        i += pis.length;
+      let gs = section.groups;
+      for (let gi = 0; gi < gs.length; gi++) {
+        let pis=this.section.groups[gi].promptItems;
+
+        let sLen = pis.length;
+        if (itemIdx < i + sLen) {
+          this.sectIdx = si;
+          this.prmptIdx = itemIdx - i;
+          break;
+        } else {
+          i += pis.length;
+        }
       }
     }
 
@@ -404,31 +409,39 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     //TODO randomize not supported
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let pis = section.promptUnits;
+      let gs = section.groups;
+      for(let gi=0;gi<gs.length;gi++) {
+        let pis=gs[gi].promptItems;
+        let pisLen = pis.length;
+        this.promptItemCount += pisLen;
+        for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
+          let pi = pis[piSectIdx];
+          let promptAsStr = '';
+          if (pi.mediaitems && pi.mediaitems.length > 0) {
+            promptAsStr = pi.mediaitems[0].text;
+          }
 
-      let pisLen = pis.length;
-      this.promptItemCount += pisLen;
-      for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
-        let pi = pis[piSectIdx];
-        let promptAsStr = '';
-        if (pi.mediaitems && pi.mediaitems.length > 0) {
-          promptAsStr = pi.mediaitems[0].text;
+          let it = new Item(promptAsStr, section.training);
+          this.items.push(it);
+          ln++;
         }
-
-        let it = new Item(promptAsStr, section.training);
-        this.items.push(it);
-        ln++;
       }
     }
   }
 
   currPromptIndex() {
     let idx = 0;
+    // count index of previous sections
     for (let si = 0; si < this.sectIdx; si++) {
       let section = this._script.sections[si];
-      let pis = section.promptUnits;
-      idx += pis.length;
+      let gs=this.section.groups;
+      // TODO use map reduce
+      for(let gi=0;gi<gs.length;gi++){
+        idx += gs[gi].promptItems.length;
+      }
+
     }
+    // and add position in this section
     idx += this.prmptIdx;
     return idx;
   }
@@ -526,7 +539,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   applyItem(temporary=false) {
 
     this.section = this._script.sections[this.sectIdx]
-    this.promptUnit = this.section.promptUnits[this.prmptIdx];
+    this.group = this.section.groups[this.prmptIdx];
 
     this.clearPrompt();
     if (this.section.promptphase === 'IDLE') {
@@ -641,7 +654,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
       if (this.sectIdx < 0) {
         this.sectIdx = scriptLength - 1;
       }
-      let currSectLength = this._script.sections[this.sectIdx].promptUnits.length;
+      let currSectLength = this._script.sections[this.sectIdx].groups.length;
       this.prmptIdx = currSectLength - 1;
 
     }
@@ -650,7 +663,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
   nextItem() {
     let scriptLength = this._script.sections.length;
-    let currSectLength = this._script.sections[this.sectIdx].promptUnits.length;
+    let currSectLength = this._script.sections[this.sectIdx].groups.length;
     this.prmptIdx++;
     if (this.prmptIdx >= currSectLength) {
       this.sectIdx++;
@@ -683,8 +696,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.statusMsg = 'Recording...';
 
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
-    if (this.promptUnit.recduration) {
-      maxRecordingTimeMs = this.promptUnit.recduration;
+    if (this.promptItem.recduration) {
+      maxRecordingTimeMs = this.promptItem.recduration;
     }
     this.maxRecTimerId = window.setTimeout(() => {
       this.maxRecTimerRunning = false;
@@ -694,8 +707,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.maxRecTimerRunning = true;
 
     let preDelay = 1000;
-    if (this.promptUnit.prerecording) {
-      preDelay = this.promptUnit.prerecording;
+    if (this.promptItem.prerecording) {
+      preDelay = this.promptItem.prerecording;
     }
 
     this.preRecTimerId = window.setTimeout(() => {
@@ -722,8 +735,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     let postDelay = 500;
-    if (this.promptUnit.postrecording) {
-      postDelay = this.promptUnit.postrecording;
+    if (this.promptItem.postrecording) {
+      postDelay = this.promptItem.postrecording;
     }
 
     this.postRecTimerId = window.setTimeout(() => {
@@ -742,8 +755,8 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     let postDelay = 500;
-    if (this.promptUnit.postrecording) {
-      postDelay = this.promptUnit.postrecording;
+    if (this.promptItem.postrecording) {
+      postDelay = this.promptItem.postrecording;
     }
 
     this.postRecTimerId = window.setTimeout(() => {
@@ -772,7 +785,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
     this.startStopSignalState = StartStopSignalState.IDLE;
 
     let ad = this.ac.audioBuffer();
-    let ic = this._script.sections[this.sectIdx].promptUnits[this.prmptIdx].itemcode;
+    let ic = this._script.sections[this.sectIdx].groups[this.prmptIdx].promptItems[0].itemcode;
     if (this._session && ic) {
       let sessId: string | number = this._session.sessionId;
       let rf = new RecordingFile(sessId, ic, ad);

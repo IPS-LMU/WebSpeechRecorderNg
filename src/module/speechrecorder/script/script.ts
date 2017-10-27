@@ -11,7 +11,7 @@ export interface Mediaitem {
   text: string;
 }
 
-export interface PromptUnit {
+export interface PromptItem {
   itemcode?: string,
   prerecording: number,
   recduration?: number,
@@ -20,11 +20,15 @@ export interface PromptUnit {
   mediaitems: Array<Mediaitem>
 }
 
+export interface Group {
+  promptItems: Array<PromptItem>;
+}
+
 export interface Section {
   mode: Mode;
   promptphase: PromptPhase;
   training: boolean;
-  promptUnits: Array<PromptUnit>;
+  groups: Array<Group>;
 }
 
 export interface Script {
