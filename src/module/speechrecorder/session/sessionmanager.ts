@@ -6,8 +6,8 @@ import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
 import {RecordingFile} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
-  Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener
+    Component, ViewChild, ChangeDetectorRef, Inject,
+    AfterViewInit, HostListener, OnDestroy
 } from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -110,7 +110,7 @@ export class Item {
     }
   `]
 })
-export class SessionManager implements AfterViewInit, AudioCaptureListener {
+export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
@@ -173,6 +173,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer: AudioPlayer;
 
+  private destroyed=false;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               public dialog: MatDialog,
@@ -200,6 +201,10 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
   ngAfterViewInit() {
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
   }
+    ngOnDestroy() {
+       this.destroyed=true;
+       // TODO stop capture /playback
+    }
 
   private init() {
     this.sectIdx = 0;
@@ -918,9 +923,9 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
     }
 
-    // if(!this.destroyed) {
-    //     this.changeDetectorRef.detectChanges();
-    // }
+    if(!this.destroyed) {
+        this.changeDetectorRef.detectChanges();
+    }
 
   }
 
