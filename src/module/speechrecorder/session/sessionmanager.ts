@@ -58,14 +58,13 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
-
-    <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
-                      [items]="items"
-                      [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"></app-sprprompting>
-    <div #asCt [class.active]="!audioSignalCollapsed">
-      <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                 [audioData]="displayAudioBuffer"></app-audio>
-    </div>
+      <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
+                        [items]="items"
+                        [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"
+                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
+       
+    </app-sprprompting>
+    
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer.startAction"
                               [playStopAction]="controlAudioPlayer.stopAction"
@@ -89,26 +88,7 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
-  }`, `
-    div {
-      flex: 0;
-      overflow: hidden;
-
-    }`, `
-    div.active {
-      flex: 2;
-      display: flex;
-
-      overflow: hidden;
-
-      margin: 20px;
-      /* border: 20px; */
-      z-index: 5;
-    }`, `
-    app-audio.active {
-
-    }
-  `]
+  }` ]
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
@@ -120,7 +100,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private _channelCount = 2; //TODO define constant for default format
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
-  @ViewChild(AudioClipUIContainer) audioClipUIConatiner: AudioClipUIContainer;
+
 
   startStopSignalState: StartStopSignalState;
   // Property audioDevices from project config: list of names of allowed audio devices.
@@ -199,6 +179,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   ngAfterViewInit() {
+
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
   }
     ngOnDestroy() {
@@ -905,7 +886,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private updateControlPlaybackPosition() {
     if (this._controlAudioPlayer.playPositionFrames) {
-      this.audioClipUIConatiner.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+      this.prompting.audioClipUIContainer.playFramePosition = this._controlAudioPlayer.playPositionFrames;
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
   }

@@ -6,6 +6,7 @@ import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
+import {AudioClipUIContainer} from "../../audio/ui/container";
 
 @Component({
 
@@ -125,12 +126,18 @@ export class PromptingContainer {
     <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
+    <div #asCt [class.active]="!audioSignalCollapsed">
+       
+            <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed"
+                       [audioData]="displayAudioBuffer"></app-audio>
+        
+    </div>
 
 
 
   `,
   styles: [`:host {
-    
+    position:relative;
     margin: 0;
     padding: 0;
     background: lightgrey;
@@ -152,19 +159,59 @@ export class PromptingContainer {
       margin: 10px;
       min-height: 0px;
     }
-  `]
+  `, `
+    div {
+        display: none;
+        position:absolute;
+      
+
+       /* height: 50%; */
+        /* width: 100%; */
+
+        /* overflow: hidden; */
+
+       /* margin: 20px; */
+        /* border: 20px; */
+        z-index: 5;
+        /*background-color: red; */
+    }`, `
+    div.active {
+        display: flex;
+        position:absolute;
+        bottom: 0px;
+        /*left: 0px; */
+
+        height: 80%;
+        width: 100%;
+
+        overflow: hidden;
+        
+        padding: 20px; 
+        /* margin: 20px; */
+        /* border: 20px; */
+        z-index: 5;
+        box-sizing: border-box;
+       background-color: rgba(0,0,0,0.75)
+        
+    }`
+  ]
 
 })
 
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
+  @ViewChild(AudioClipUIContainer) audioClipUIContainer: AudioClipUIContainer;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;
   @Input() items: Array<Item>;
   @Input() selectedItemIdx: number;
   @Input() enableDownload: boolean;
+
+  @Input() audioSignalCollapsed:boolean;
+  @Input() displayAudioBuffer:AudioBuffer | null;
   @Output() onItemSelect = new EventEmitter<number>();
+
 
   itemSelect(rowIdx: number) {
     this.onItemSelect.emit(rowIdx);
