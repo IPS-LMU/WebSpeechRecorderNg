@@ -540,7 +540,7 @@ export class SessionManager implements AfterViewInit, AudioCaptureListener {
 
     this.section = this._script.sections[this.sectIdx]
     this.group = this.section.groups[this.prmptIdx];
-
+    this.promptItem = this.group.promptItems[0];
     this.clearPrompt();
     if (this.section.promptphase === 'IDLE') {
       this.applyPrompt();
