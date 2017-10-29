@@ -131,11 +131,14 @@ export class PromptingContainer {
         for(let ti=0;ti<ev.targetTouches.length;ti++){
           let t=ev.targetTouches.item(ti);
           // All x values are the same ??
-          console.log("Touch #"+ti+": pageX: "+t.pageX+" clientX: "+t.clientX+" screenX: "+t.screenX)
+          //console.log("Touch #"+ti+": pageX: "+t.pageX+" clientX: "+t.clientX+" screenX: "+t.screenX)
         }
-        if(targetTouchesLen==1){
+        if(targetTouchesLen==1 && this.startX){
           // single touch
-            this.startX=ev.targetTouches.item(0).clientX;
+            let t=ev.targetTouches.item(0);
+            if(t) {
+                this.startX =t.clientX;
+            }
         }
     }
     @HostListener('touchend', ['$event'])
@@ -146,17 +149,19 @@ export class PromptingContainer {
         let changedTouchesLen=ev.changedTouches.length;
         if(changedTouchesLen==1 && this.startX){
             // single touch
-
-            let deltaX=ev.changedTouches.item(0).clientX-this.startX;
-            console.log("DeltaX: "+deltaX+"  width: "+this.e.offsetWidth)
-            if(deltaX>this.e.offsetWidth/3){
-              console.log("Swipe right detected!!")
-                this.swipedRight.emit()
-            }
-            if(-deltaX>this.e.offsetWidth/3){
-                console.log("Swipe left detected!!")
-                this.swipedLeft.emit()
-            }else{
+            let t=ev.changedTouches.item(0);
+            if(t) {
+                let deltaX = t.clientX - this.startX;
+                console.log("DeltaX: " + deltaX + "  width: " + this.e.offsetWidth)
+                if (deltaX > this.e.offsetWidth / 3) {
+                    console.log("Swipe right detected!!")
+                    this.swipedRight.emit()
+                }
+                if (-deltaX > this.e.offsetWidth / 3) {
+                    console.log("Swipe left detected!!")
+                    this.swipedLeft.emit()
+                } else {
+                }
             }
         }
         this.e.style.transition="left 0.6s";
@@ -170,9 +175,11 @@ export class PromptingContainer {
         let targetTouchesLen=ev.targetTouches.length;
         if(targetTouchesLen==1 && this.startX){
             // single touch
-
-            let deltaX=ev.targetTouches.item(0).clientX-this.startX;
-            this.e.style.left=deltaX+"px";
+            let t=ev.targetTouches.item(0);
+            if(t) {
+                let deltaX = t.clientX - this.startX;
+                this.e.style.left = deltaX + "px";
+            }
         }
     }
     @HostListener('touchcancel', ['$event'])
