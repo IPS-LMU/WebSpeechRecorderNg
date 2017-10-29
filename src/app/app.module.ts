@@ -11,6 +11,7 @@ import {
 import {SpeechRecorderModule} from "../module/speechrecorder/spr.module";
 import {AudioModule} from "../module/audio/audio.module";
 import {SPR_CFG} from "./app.config";
+import {FlexLayoutModule} from "@angular/flex-layout";
 
 
 const appRoutes: Routes = [
@@ -29,7 +30,7 @@ const appRoutes: Routes = [
   ],
 
   imports: [
-      RouterModule.forRoot(appRoutes),BrowserAnimationsModule,MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+      RouterModule.forRoot(appRoutes),FlexLayoutModule,BrowserAnimationsModule,MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
 
     BrowserModule,SpeechRecorderModule.forRoot(SPR_CFG),AudioModule
   ],
