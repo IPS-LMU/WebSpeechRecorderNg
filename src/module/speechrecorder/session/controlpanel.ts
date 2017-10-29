@@ -86,6 +86,8 @@ export class ProgressDisplay {
 }
 
 
+
+
 export class TransportActions {
   startAction: Action;
   stopAction: Action;
@@ -114,20 +116,20 @@ export class TransportActions {
             md-raised-button>
       <mat-icon>chevron_left</mat-icon>
     </button>
-    <button id="startBtn" (click)="actions.startAction.perform()" [disabled]="startDisabled()" md-raised-button>
-      <mat-icon [style.color]="startDisabled() ? 'grey' : 'red'">fiber_manual_record</mat-icon>
-      Start
+    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()" md-raised-button>
+      <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
+      {{startStopNextName()}}
     </button>
-    <button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button>
+    <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button>
       <mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
       Stop
-    </button>
+    </button> 
     <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" md-raised-button>
       <mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
       <mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       Next
-    </button>
-    <button id="pauseBtn" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" md-raised-button>
+    </button>-->
+    <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" md-raised-button>
       <mat-icon>pause</mat-icon>
       Pause
     </button>
@@ -159,6 +161,9 @@ export class TransportPanel {
 
   @Input() actions: TransportActions;
 
+  startStopNextButtonName:string;
+    startStopNextButtonIconName:string;
+
   startDisabled() {
     return !this.actions || this.actions.startAction.disabled
   }
@@ -181,6 +186,46 @@ export class TransportPanel {
 
   bwdDisabled() {
     return !this.actions || this.actions.bwdAction.disabled
+  }
+
+    startStopNextName():string{
+        if(!this.nextDisabled()){
+            this.startStopNextButtonName= "Next"
+        }else if(!this.startDisabled()){
+            this.startStopNextButtonName="Start"
+        }else if(!this.stopDisabled()) {
+            this.startStopNextButtonName = "Stop"
+        }
+        return this.startStopNextButtonName;
+    }
+  startStopNextIconName():string{
+      if(!this.startDisabled()){
+         this.startStopNextButtonIconName="fiber_manual_record"
+      }else if(!this.stopDisabled()){
+          this.startStopNextButtonIconName="stop"
+      }else if(!this.nextDisabled()){
+          this.startStopNextButtonIconName="stop"
+      }
+      return this.startStopNextButtonIconName
+  }
+    startStopNextIconColor():string{
+        if(!this.startDisabled()){
+            return "red"
+        }else if(!this.stopDisabled() || !this.nextDisabled()){
+            return "yellow"
+        }else{
+            return "grey";
+        }
+    }
+
+  startStopNextPerform(){
+    if(!this.startDisabled()){
+      this.actions.startAction.perform();
+    }else if(!this.stopDisabled()){
+      this.actions.stopAction.perform();
+    }else if(!this.nextDisabled()){
+      this.actions.nextAction.perform();
+    }
   }
 
 }
