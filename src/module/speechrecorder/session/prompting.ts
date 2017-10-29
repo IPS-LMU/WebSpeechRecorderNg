@@ -1,5 +1,5 @@
 import {
-  Component, ViewChild, Input, Output, EventEmitter
+    Component, ViewChild, Input, Output, EventEmitter, HostListener, ElementRef
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -62,7 +62,7 @@ export class Prompter {
 
   template: `
 
-    <app-sprprompter [promptText]="mediaitem?.text"></app-sprprompter>
+    <app-sprprompter  [promptText]="mediaitem?.text"></app-sprprompter>
 
   `
   ,
@@ -97,7 +97,7 @@ export class PromptContainer {
   `
   ,
   styles: [`:host {
-
+    position: relative;
     flex: 3; /* the container consumes all available space */
     padding: 10pt;
     justify-content: center; /* align horizontal center*/
@@ -113,6 +113,73 @@ export class PromptContainer {
 export class PromptingContainer {
   @Input() promptItem: PromptItem;
   @Input() showPrompt: boolean;
+  @Output() swipedLeft=new EventEmitter();
+  @Output() swipedRight=new EventEmitter();
+  private e:HTMLDivElement;
+  private startX:number | null=null
+    constructor(private ref: ElementRef) {
+
+    }
+
+    ngOnInit(){
+        this.e = this.ref.nativeElement;
+    }
+    @HostListener('touchstart', ['$event'])
+    onTouchstart(ev:TouchEvent){
+        console.log("Touch start! ")
+        let targetTouchesLen=ev.targetTouches.length;
+        for(let ti=0;ti<ev.targetTouches.length;ti++){
+          let t=ev.targetTouches.item(ti);
+          // All x values are the same ??
+          console.log("Touch #"+ti+": pageX: "+t.pageX+" clientX: "+t.clientX+" screenX: "+t.screenX)
+        }
+        if(targetTouchesLen==1){
+          // single touch
+            this.startX=ev.targetTouches.item(0).clientX;
+        }
+    }
+    @HostListener('touchend', ['$event'])
+    onTouchEnd(ev:TouchEvent){
+        console.log("Touch end!")
+        // Reset offset shift
+
+        let changedTouchesLen=ev.changedTouches.length;
+        if(changedTouchesLen==1 && this.startX){
+            // single touch
+
+            let deltaX=ev.changedTouches.item(0).clientX-this.startX;
+            console.log("DeltaX: "+deltaX+"  width: "+this.e.offsetWidth)
+            if(deltaX>this.e.offsetWidth/3){
+              console.log("Swipe right detected!!")
+                this.swipedRight.emit()
+            }
+            if(-deltaX>this.e.offsetWidth/3){
+                console.log("Swipe left detected!!")
+                this.swipedLeft.emit()
+            }else{
+            }
+        }
+        this.e.style.transition="left 0.6s";
+
+        this.e.style.left="0px";
+
+    }
+    @HostListener('touchmove', ['$event'])
+    onTouchMove(ev:TouchEvent){
+        console.log("Touch move!")
+        let targetTouchesLen=ev.targetTouches.length;
+        if(targetTouchesLen==1 && this.startX){
+            // single touch
+
+            let deltaX=ev.targetTouches.item(0).clientX-this.startX;
+            this.e.style.left=deltaX+"px";
+        }
+    }
+    @HostListener('touchcancel', ['$event'])
+    onTouchCancel(ev:Event){
+        console.log("Touch cancel!")
+    }
+
 }
 
 
@@ -123,7 +190,7 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" (swipedLeft)="nextItem()" (swipedRight)="prevItem()"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -158,7 +225,12 @@ export class PromptingContainer {
     app-simpletrafficlight {
       margin: 10px;
       min-height: 0px;
+        z-index: 6;
     }
+  `, `
+      app-sprprogress {
+          z-index: 6;
+      }
   `, `
     div {
         display: none;
@@ -211,10 +283,18 @@ export class Prompting {
   @Input() audioSignalCollapsed:boolean;
   @Input() displayAudioBuffer:AudioBuffer | null;
   @Output() onItemSelect = new EventEmitter<number>();
-
+    @Output() onNextItem = new EventEmitter();
+    @Output() onPrevItem = new EventEmitter();
 
   itemSelect(rowIdx: number) {
     this.onItemSelect.emit(rowIdx);
   }
+
+  nextItem(){
+    this.onNextItem.emit();
+  }
+    prevItem(){
+       this.onPrevItem.emit();
+    }
 }
 

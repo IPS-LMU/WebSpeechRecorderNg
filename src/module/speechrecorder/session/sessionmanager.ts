@@ -60,7 +60,7 @@ export class Item {
   template: `
       <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
-                        [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)"
+                        [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
        
     </app-sprprompting>

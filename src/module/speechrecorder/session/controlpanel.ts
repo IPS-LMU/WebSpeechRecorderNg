@@ -113,27 +113,27 @@ export class TransportActions {
 
   template: `
     <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
-            md-raised-button>
+            mat-raised-button>
       <mat-icon>chevron_left</mat-icon>
     </button>
-    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()" md-raised-button>
+    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       {{startStopNextName()}}
     </button>
-    <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" md-raised-button>
+    <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" mat-raised-button>
       <mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
       Stop
     </button> 
-    <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" md-raised-button>
+    <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" mat-raised-button>
       <mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
       <mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       Next
     </button>-->
-    <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" md-raised-button>
+    <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
       Pause
     </button>
-    <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" md-raised-button>
+    <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
       <mat-icon>chevron_right</mat-icon>
     </button>
 
@@ -149,11 +149,8 @@ export class TransportActions {
     div {
       display: inline;
       flex: 0;
-    }`, `
-    button {
-      font-size: 1.2em;
-    }
-  `]
+    }`
+  ]
 
 })
 export class TransportPanel {
