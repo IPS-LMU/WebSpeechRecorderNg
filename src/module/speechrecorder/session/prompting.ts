@@ -236,11 +236,11 @@ export class PromptingContainer {
     app-simpletrafficlight {
       margin: 10px;
       min-height: 0px;
-        z-index: 6;
+        z-index: 3;
     }
   `, `
       app-sprprogress {
-          z-index: 6;
+          z-index: 3;
       }
   `, `
     div {
