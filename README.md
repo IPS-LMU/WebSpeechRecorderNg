@@ -108,11 +108,9 @@ Example for Mono recordings:
 
 ```
 {
-  "project": {
-    "name": "My project",
-    "audioFormat" : {
-      "channels": 1
-    },
+ "name": "My project",
+ "audioFormat" : {
+   "channels": 1
   }
 }
 ```
