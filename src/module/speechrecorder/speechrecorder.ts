@@ -108,6 +108,7 @@ export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener 
 
 
           if (sess.project) {
+            console.log("Session associated project: "+sess.project)
             this.projectService.getProject(sess.project).then(project=>{
               this.project=project;
               this.fetchScript(sess);
@@ -118,6 +119,7 @@ export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener 
             });
 
           } else {
+            console.log("Session has no associated project. Using default configuration.")
             this.fetchScript(sess);
           }
         })
@@ -277,10 +279,14 @@ export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener 
     let chCnt = 2;
 
     if (project) {
+      console.log("Project name: "+project.name)
       this.sm.audioDevices = project.audioDevices;
       if(project.audioFormat) {
         chCnt =project.audioFormat.channels;
+        console.log("Project requested recording channel count: "+chCnt)
       }
+    }else{
+      console.error("Empty project configuration!")
     }
     this.sm.channelCount = chCnt;
 

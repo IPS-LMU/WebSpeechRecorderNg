@@ -614,7 +614,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
           if (fdi) {
             // matching device found
-            console.log("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+            console.log("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
             this.ac.open(this._channelCount, fdi.deviceId);
           } else {
             // device not found
@@ -632,7 +632,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           }
         });
       } else {
-        console.log("Open session with default audio device");
+        console.log("Open session with default audio device for "+this._channelCount+" channels");
         this.ac.open(this._channelCount);
       }
 
