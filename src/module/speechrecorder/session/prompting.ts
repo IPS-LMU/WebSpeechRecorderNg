@@ -126,7 +126,7 @@ export class PromptingContainer {
     }
     @HostListener('touchstart', ['$event'])
     onTouchstart(ev:TouchEvent){
-        //console.log("Touch start! ")
+        console.log("Touch start! ")
         let targetTouchesLen=ev.targetTouches.length;
         //for(let ti=0;ti<ev.targetTouches.length;ti++){
           //let t=ev.targetTouches.item(ti);
@@ -137,13 +137,19 @@ export class PromptingContainer {
           // single touch
             let t=ev.targetTouches.item(0);
             if(t) {
-                this.startX =t.clientX;
+                this.startX =Math.round(t.screenX);
+                this.e.style.transition='none';
+                console.log("Touch start x: "+this.startX)
             }
         }
+
+       ev.preventDefault();
+        //ev.stopPropagation()
+        //ev.stopImmediatePropagation()
     }
     @HostListener('touchend', ['$event'])
     onTouchEnd(ev:TouchEvent){
-        //console.log("Touch end!")
+        console.log("Touch end!")
         // Reset offset shift
 
         let changedTouchesLen=ev.changedTouches.length;
@@ -152,7 +158,7 @@ export class PromptingContainer {
             // single touch
             let t=ev.changedTouches.item(0);
             if(t) {
-                let deltaX = t.clientX - this.startX;
+                let deltaX = Math.round(t.clientX - this.startX);
                 console.log("DeltaX: " + deltaX + "  width: " + this.e.offsetWidth)
                 if (deltaX > this.e.offsetWidth / 3) {
                     //console.log("Swipe right detected!!")
@@ -170,25 +176,31 @@ export class PromptingContainer {
         this.e.style.transition="left 0.6s";
 
         this.e.style.left="0px";
-
+        //ev.preventDefault();
     }
     @HostListener('touchmove', ['$event'])
     onTouchMove(ev:TouchEvent){
-        //console.log("Touch move!")
+        console.log("Touch move!")
         let targetTouchesLen=ev.targetTouches.length;
         if(targetTouchesLen==1 && this.startX){
             // single touch
             let t=ev.targetTouches.item(0);
             if(t) {
-                let deltaX = t.clientX - this.startX;
-                this.e.style.left = deltaX + "px";
+                let deltaX = Math.round(t.screenX - this.startX);
+                window.setTimeout(()=> {
+                    this.e.style.left = deltaX + "px";
+                });
+                console.log("Touch move delta x: "+deltaX)
             }
         }
+        ev.preventDefault();
+
     }
     @HostListener('touchcancel', ['$event'])
     onTouchCancel(ev:TouchEvent){
-        //console.log("Touch cancel!")
+        console.log("Touch cancel!")
         this.e.style.left="0px";
+        //ev.preventDefault();
     }
 
 }
