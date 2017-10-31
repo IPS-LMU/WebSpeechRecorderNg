@@ -86,6 +86,7 @@ export class PromptContainer {
 }
 
 
+
 @Component({
 
   selector: 'app-sprpromptingcontainer',
@@ -117,8 +118,12 @@ export class PromptingContainer {
   @Output() swipedRight=new EventEmitter();
   private e:HTMLDivElement;
   private startX:number | null=null
-    constructor(private ref: ElementRef) {
+    private  timeStamp:number |null;
 
+    constructor(private ref: ElementRef) {
+        type TouchStart ={
+
+        }
     }
 
     ngOnInit(){
@@ -126,7 +131,7 @@ export class PromptingContainer {
     }
     @HostListener('touchstart', ['$event'])
     onTouchstart(ev:TouchEvent){
-        console.log("Touch start! ")
+        //console.log("Touch start! ")
         let targetTouchesLen=ev.targetTouches.length;
         //for(let ti=0;ti<ev.targetTouches.length;ti++){
           //let t=ev.targetTouches.item(ti);
@@ -138,8 +143,9 @@ export class PromptingContainer {
             let t=ev.targetTouches.item(0);
             if(t) {
                 this.startX =Math.round(t.screenX);
+                this.timeStamp=ev.timeStamp;
                 this.e.style.transition='none';
-                console.log("Touch start x: "+this.startX)
+                //console.log("Touch start x: "+this.startX)
             }
         }
 
@@ -149,7 +155,7 @@ export class PromptingContainer {
     }
     @HostListener('touchend', ['$event'])
     onTouchEnd(ev:TouchEvent){
-        console.log("Touch end!")
+        //console.log("Touch end!")
         // Reset offset shift
 
         let changedTouchesLen=ev.changedTouches.length;
@@ -159,13 +165,15 @@ export class PromptingContainer {
             let t=ev.changedTouches.item(0);
             if(t) {
                 let deltaX = Math.round(t.clientX - this.startX);
-                console.log("DeltaX: " + deltaX + "  width: " + this.e.offsetWidth)
-                if (deltaX > this.e.offsetWidth / 3) {
+                let touchMoveSpeed=deltaX/(ev.timeStamp-this.timeStamp);
+                let futureDeltaX=deltaX+(800*touchMoveSpeed);
+                //console.log("DeltaX: " + deltaX + " Future deltaX: " + futureDeltaX + "  width: " + this.e.offsetWidth)
+                if (futureDeltaX > this.e.offsetWidth / 2) {
                     //console.log("Swipe right detected!!")
                     this.swipedRight.emit()
                     this.e.style.left=-this.e.offsetLeft+"px";
                 }
-                if (-deltaX > this.e.offsetWidth / 3) {
+                if (-futureDeltaX > this.e.offsetWidth / 2) {
                     //console.log("Swipe left detected!!")
                     this.e.style.left=-this.e.offsetLeft+"px";
                     this.swipedLeft.emit()
@@ -173,24 +181,23 @@ export class PromptingContainer {
                 }
             }
         }
-        this.e.style.transition="left 0.6s";
 
+        // reset animated
+        this.e.style.transition="left 0.8s";
         this.e.style.left="0px";
-        //ev.preventDefault();
+        ev.preventDefault();
     }
     @HostListener('touchmove', ['$event'])
     onTouchMove(ev:TouchEvent){
-        console.log("Touch move!")
+        //console.log("Touch move!")
         let targetTouchesLen=ev.targetTouches.length;
         if(targetTouchesLen==1 && this.startX){
             // single touch
             let t=ev.targetTouches.item(0);
             if(t) {
                 let deltaX = Math.round(t.screenX - this.startX);
-                window.setTimeout(()=> {
-                    this.e.style.left = deltaX + "px";
-                });
-                console.log("Touch move delta x: "+deltaX)
+                this.e.style.left = deltaX + "px";
+               // console.log("Touch move delta x: "+deltaX)
             }
         }
         ev.preventDefault();
@@ -198,9 +205,9 @@ export class PromptingContainer {
     }
     @HostListener('touchcancel', ['$event'])
     onTouchCancel(ev:TouchEvent){
-        console.log("Touch cancel!")
+        //console.log("Touch cancel!")
         this.e.style.left="0px";
-        //ev.preventDefault();
+        ev.preventDefault();
     }
 
 }
