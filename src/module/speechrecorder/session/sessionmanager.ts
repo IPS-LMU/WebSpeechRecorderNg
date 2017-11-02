@@ -577,7 +577,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
-      if (this._audioDevices) {
+      if (this._audioDevices && this._audioDevices.length>0) {
         let fdi: MediaDeviceInfo | null = null;
 
         this.ac.deviceInfos((mdis) => {
