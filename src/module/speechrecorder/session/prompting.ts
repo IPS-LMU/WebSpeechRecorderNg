@@ -118,7 +118,7 @@ export class PromptingContainer {
   @Output() swipedRight=new EventEmitter();
   private e:HTMLDivElement;
   private startX:number | null=null
-    private  timeStamp:number |null;
+    private  touchStartTimeStamp:number |null;
 
     constructor(private ref: ElementRef) {
         type TouchStart ={
@@ -143,7 +143,7 @@ export class PromptingContainer {
             let t=ev.targetTouches.item(0);
             if(t) {
                 this.startX =Math.round(t.screenX);
-                this.timeStamp=ev.timeStamp;
+                this.touchStartTimeStamp=ev.timeStamp;
                 this.e.style.transition='none';
                 //console.log("Touch start x: "+this.startX)
             }
@@ -165,7 +165,10 @@ export class PromptingContainer {
             let t=ev.changedTouches.item(0);
             if(t) {
                 let deltaX = Math.round(t.clientX - this.startX);
-                let touchMoveSpeed=deltaX/(ev.timeStamp-this.timeStamp);
+                let touchMoveSpeed=0;
+                if(this.touchStartTimeStamp){
+                    deltaX/(ev.timeStamp-this.touchStartTimeStamp);
+                }
                 let futureDeltaX=deltaX+(800*touchMoveSpeed);
                 //console.log("DeltaX: " + deltaX + " Future deltaX: " + futureDeltaX + "  width: " + this.e.offsetWidth)
                 if (futureDeltaX > this.e.offsetWidth / 2) {
