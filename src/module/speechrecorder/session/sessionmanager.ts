@@ -60,6 +60,7 @@ export class Item {
   template: `
       <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
+                        [transportActions]="transportActions"
                         [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
        
@@ -88,6 +89,9 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
+      
+      /* Prevents horizontal scroll bar on swipe right */
+      overflow: hidden;
   }` ]
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {

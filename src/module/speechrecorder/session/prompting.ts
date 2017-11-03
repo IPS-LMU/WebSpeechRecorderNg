@@ -7,6 +7,7 @@ import {State as StartStopSignalState} from "../startstopsignal/startstopsignal"
 import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
+import {TransportActions} from "./controlpanel";
 
 @Component({
 
@@ -116,6 +117,8 @@ export class PromptingContainer {
   @Input() showPrompt: boolean;
   @Output() swipedLeft=new EventEmitter();
   @Output() swipedRight=new EventEmitter();
+    @Input() transportActions: TransportActions;
+
   private e:HTMLDivElement;
   private startX:number | null=null
     private  touchStartTimeStamp:number |null;
@@ -132,79 +135,85 @@ export class PromptingContainer {
     @HostListener('touchstart', ['$event'])
     onTouchstart(ev:TouchEvent){
         //console.log("Touch start! ")
-        let targetTouchesLen=ev.targetTouches.length;
-        //for(let ti=0;ti<ev.targetTouches.length;ti++){
-          //let t=ev.targetTouches.item(ti);
-          // All x values are the same ??
-          //console.log("Touch #"+ti+": pageX: "+t.pageX+" clientX: "+t.clientX+" screenX: "+t.screenX)
-        //}
-        if(targetTouchesLen==1){
-          // single touch
-            let t=ev.targetTouches.item(0);
-            if(t) {
-                this.startX =Math.round(t.screenX);
-                this.touchStartTimeStamp=ev.timeStamp;
-                this.e.style.transition='none';
-                //console.log("Touch start x: "+this.startX)
+        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled)){
+            let targetTouchesLen = ev.targetTouches.length;
+            //for(let ti=0;ti<ev.targetTouches.length;ti++){
+            //let t=ev.targetTouches.item(ti);
+            // All x values are the same ??
+            //console.log("Touch #"+ti+": pageX: "+t.pageX+" clientX: "+t.clientX+" screenX: "+t.screenX)
+            //}
+            if (targetTouchesLen == 1) {
+                // single touch
+                let t = ev.targetTouches.item(0);
+                if (t) {
+                    this.startX = Math.round(t.screenX);
+                    this.touchStartTimeStamp = ev.timeStamp;
+                    this.e.style.transition = 'none';
+                    //console.log("Touch start x: "+this.startX)
+                }
             }
-        }
 
-       ev.preventDefault();
-        //ev.stopPropagation()
-        //ev.stopImmediatePropagation()
+            ev.preventDefault();
+        }
     }
     @HostListener('touchend', ['$event'])
     onTouchEnd(ev:TouchEvent){
         //console.log("Touch end!")
         // Reset offset shift
+        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled)) {
 
-        let changedTouchesLen=ev.changedTouches.length;
-        //console.log(changedTouchesLen+" "+this.startX)
-        if(changedTouchesLen==1 && this.startX){
-            // single touch
-            let t=ev.changedTouches.item(0);
-            if(t) {
-                let deltaX = Math.round(t.clientX - this.startX);
-                let touchMoveSpeed=0;
-                if(this.touchStartTimeStamp){
-                    deltaX/(ev.timeStamp-this.touchStartTimeStamp);
-                }
-                let futureDeltaX=deltaX+(800*touchMoveSpeed);
-                //console.log("DeltaX: " + deltaX + " Future deltaX: " + futureDeltaX + "  width: " + this.e.offsetWidth)
-                if (futureDeltaX > this.e.offsetWidth / 2) {
-                    //console.log("Swipe right detected!!")
-                    this.swipedRight.emit()
-                    this.e.style.left=-this.e.offsetLeft+"px";
-                }
-                if (-futureDeltaX > this.e.offsetWidth / 2) {
-                    //console.log("Swipe left detected!!")
-                    this.e.style.left=-this.e.offsetLeft+"px";
-                    this.swipedLeft.emit()
-                } else {
+            let changedTouchesLen = ev.changedTouches.length;
+            //console.log(changedTouchesLen+" "+this.startX)
+            if (changedTouchesLen == 1 && this.startX) {
+                // single touch
+                let t = ev.changedTouches.item(0);
+                if (t) {
+                    let deltaX = Math.round(t.clientX - this.startX);
+                    let touchMoveSpeed = 0;
+                    if (this.touchStartTimeStamp) {
+                        deltaX / (ev.timeStamp - this.touchStartTimeStamp);
+                    }
+                    let futureDeltaX = deltaX + (800 * touchMoveSpeed);
+                    //console.log("DeltaX: " + deltaX + " Future deltaX: " + futureDeltaX + "  width: " + this.e.offsetWidth)
+                    if (futureDeltaX > this.e.offsetWidth / 2) {
+                        //console.log("Swipe right detected!!")
+                        this.swipedRight.emit()
+                        this.e.style.left = -this.e.offsetLeft + "px";
+                    }
+                    if (-futureDeltaX > this.e.offsetWidth / 2) {
+                        //console.log("Swipe left detected!!")
+                        this.e.style.left = -this.e.offsetLeft + "px";
+                        this.swipedLeft.emit()
+                    } else {
+                    }
                 }
             }
-        }
 
-        // reset animated
-        this.e.style.transition="left 0.8s";
-        this.e.style.left="0px";
-        ev.preventDefault();
+            // reset animated
+            this.e.style.transition = "left 0.8s";
+        }
+        this.startX=null;
+        this.touchStartTimeStamp=null;
+            this.e.style.left = "0px";
+            ev.preventDefault();
+
     }
     @HostListener('touchmove', ['$event'])
     onTouchMove(ev:TouchEvent){
         //console.log("Touch move!")
-        let targetTouchesLen=ev.targetTouches.length;
-        if(targetTouchesLen==1 && this.startX){
-            // single touch
-            let t=ev.targetTouches.item(0);
-            if(t) {
-                let deltaX = Math.round(t.screenX - this.startX);
-                this.e.style.left = deltaX + "px";
-               // console.log("Touch move delta x: "+deltaX)
+        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled)) {
+            let targetTouchesLen = ev.targetTouches.length;
+            if (targetTouchesLen == 1 && this.startX) {
+                // single touch
+                let t = ev.targetTouches.item(0);
+                if (t) {
+                    let deltaX = Math.round(t.screenX - this.startX);
+                    this.e.style.left = deltaX + "px";
+                    // console.log("Touch move delta x: "+deltaX)
+                }
             }
+            ev.preventDefault();
         }
-        ev.preventDefault();
-
     }
     @HostListener('touchcancel', ['$event'])
     onTouchCancel(ev:TouchEvent){
@@ -223,7 +232,7 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" (swipedLeft)="nextItem()" (swipedRight)="prevItem()"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [transportActions]="transportActions" (swipedLeft)="nextItem()" (swipedRight)="prevItem()"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -311,6 +320,7 @@ export class Prompting {
   @Input() showPrompt: boolean;
   @Input() items: Array<Item>;
   @Input() selectedItemIdx: number;
+    @Input() transportActions: TransportActions;
   @Input() enableDownload: boolean;
 
   @Input() audioSignalCollapsed:boolean;
