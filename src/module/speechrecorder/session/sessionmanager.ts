@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 import {SESSION_API_CTX, SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MatDialog} from "@angular/material";
+import {MatDialog,MatProgressBar} from "@angular/material";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {Session} from "./session";
@@ -65,7 +65,7 @@ export class Item {
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
        
     </app-sprprompting>
-    
+    <mat-progress-bar [value]="selectedItemIdx*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer.startAction"
                               [playStopAction]="controlAudioPlayer.stopAction"

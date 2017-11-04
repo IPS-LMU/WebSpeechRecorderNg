@@ -11,7 +11,7 @@ import {
 import {SessionManager} from "./session/sessionmanager";
 import {ScrollIntoViewDirective} from "../utils/scrollintoview";
 import {
-    MatButtonModule, MatDialogModule, MatIconModule, MatProgressSpinnerModule,
+    MatButtonModule, MatDialogModule, MatIconModule, MatProgressBar, MatProgressBarModule, MatProgressSpinnerModule,
     MatTooltipModule
 } from "@angular/material";
 import {HttpClientModule} from "@angular/common/http";
@@ -44,7 +44,7 @@ const SPR_ROUTES: Routes = [
   ],
     exports: [SpeechRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,
-    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressSpinnerModule,MatTooltipModule,HttpClientModule],
+    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressBarModule,MatProgressSpinnerModule,MatTooltipModule,HttpClientModule],
   providers: [SessionService,ProjectService,ScriptService,SpeechRecorderUploader]
 
 })
