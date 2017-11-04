@@ -163,8 +163,7 @@ export class PromptingContainer {
   @Input() showPrompt: boolean;
     @Input() selectedItemIdx: number;
     @Input() itemCount: number;
-  @Output() swipedLeft=new EventEmitter();
-  @Output() swipedRight=new EventEmitter();
+
     @Input() transportActions: TransportActions;
 
   private e:HTMLDivElement;
@@ -183,7 +182,9 @@ export class PromptingContainer {
     @HostListener('touchstart', ['$event'])
     onTouchstart(ev:TouchEvent){
         //console.log("Touch start! ")
-        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled)){
+        if(!(this.transportActions.fwdAction.disabled &&
+                this.transportActions.bwdAction.disabled &&
+                this.transportActions.nextAction.disabled)){
             let targetTouchesLen = ev.targetTouches.length;
             //for(let ti=0;ti<ev.targetTouches.length;ti++){
             //let t=ev.targetTouches.item(ti);
@@ -208,7 +209,8 @@ export class PromptingContainer {
     onTouchEnd(ev:TouchEvent){
         //console.log("Touch end!")
         // Reset offset shift
-        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled)) {
+        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled &&
+                this.transportActions.nextAction.disabled)) {
 
             let changedTouchesLen = ev.changedTouches.length;
             //console.log(changedTouchesLen+" "+this.startX)
@@ -225,13 +227,21 @@ export class PromptingContainer {
                     //console.log("DeltaX: " + deltaX + " Future deltaX: " + futureDeltaX + "  width: " + this.e.offsetWidth)
                     if (futureDeltaX > this.e.offsetWidth / 2) {
                         //console.log("Swipe right detected!!")
-                        this.swipedRight.emit()
+                        //this.swipedRight.emit()
+                        if(!this.transportActions.bwdAction.disabled){
+                            this.transportActions.bwdAction.perform();
+                        }
                         this.e.style.left = -this.e.offsetLeft + "px";
                     }
                     if (-futureDeltaX > this.e.offsetWidth / 2) {
                         //console.log("Swipe left detected!!")
                         this.e.style.left = -this.e.offsetLeft + "px";
-                        this.swipedLeft.emit()
+                        //this.swipedLeft.emit()
+                        if(!this.transportActions.nextAction.disabled){
+                            this.transportActions.nextAction.perform();
+                        }else if(!this.transportActions.fwdAction.disabled) {
+                            this.transportActions.fwdAction.perform();
+                        }
                     } else {
                     }
                 }
@@ -249,7 +259,8 @@ export class PromptingContainer {
     @HostListener('touchmove', ['$event'])
     onTouchMove(ev:TouchEvent){
         //console.log("Touch move!")
-        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled)) {
+        if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled &&
+                this.transportActions.nextAction.disabled)) {
             let targetTouchesLen = ev.targetTouches.length;
             if (targetTouchesLen == 1 && this.startX) {
                 // single touch
@@ -280,7 +291,7 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx" [transportActions]="transportActions" (swipedLeft)="nextItem()" (swipedRight)="prevItem()"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx" [transportActions]="transportActions"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
