@@ -15,7 +15,7 @@ import {TransportActions} from "./controlpanel";
 
   template: `
 
-    {{recinstructions}}
+    {{selectedItemIdx}}/{{itemCount-1}}: {{recinstructions}}
   `,
   styles: [`:host {
 
@@ -31,6 +31,8 @@ import {TransportActions} from "./controlpanel";
 })
 export class Recinstructions {
   @Input() recinstructions: string
+    @Input() selectedItemIdx: number;
+    @Input() itemCount: number;
 }
 
 @Component({
@@ -93,7 +95,7 @@ export class PromptContainer {
   selector: 'app-sprpromptingcontainer',
 
   template: `
-    <spr-recinstructions [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
+    <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount" [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
     <app-sprpromptcontainer [mediaitem]="showPrompt?promptItem?.mediaitems[0]:null"></app-sprpromptcontainer>
 
   `
@@ -115,6 +117,8 @@ export class PromptContainer {
 export class PromptingContainer {
   @Input() promptItem: PromptItem;
   @Input() showPrompt: boolean;
+    @Input() selectedItemIdx: number;
+    @Input() itemCount: number;
   @Output() swipedLeft=new EventEmitter();
   @Output() swipedRight=new EventEmitter();
     @Input() transportActions: TransportActions;
@@ -232,7 +236,7 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [transportActions]="transportActions" (swipedLeft)="nextItem()" (swipedRight)="prevItem()"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx" [transportActions]="transportActions" (swipedLeft)="nextItem()" (swipedRight)="prevItem()"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
