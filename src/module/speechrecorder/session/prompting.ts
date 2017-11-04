@@ -1,5 +1,5 @@
 import {
-    Component, ViewChild, Input, Output, EventEmitter, HostListener, ElementRef
+    Component, ViewChild, Input, Output, EventEmitter, HostListener, ElementRef, OnInit
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -49,8 +49,10 @@ export class Recinstructions {
     align-items: center; /* align vertical  center */
     background: white;
     text-align: center;
-    font-size: 2em;
+   /* font-size: 2em; */
     line-height: 1.2em;
+      font-weight: bold;
+     
     flex: 0 1;
   }
   `]
@@ -59,13 +61,17 @@ export class Prompter {
   @Input() promptText: string
 }
 
+export const VIRTUAL_HEIGHT=600;
+export const DEFAULT_PROMPT_FONTSIZE=48;
+export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
+
 @Component({
 
   selector: 'app-sprpromptcontainer',
 
   template: `
 
-    <app-sprprompter  [promptText]="mediaitem?.text"></app-sprprompter>
+    <app-sprprompter [style.font-size]="fontSize+'px'" [promptText]="mediaitem?.text"></app-sprprompter>
 
   `
   ,
@@ -84,8 +90,46 @@ export class Prompter {
   }
   `]
 })
-export class PromptContainer {
+export class PromptContainer implements  OnInit{
   @Input() mediaitem: Mediaitem;
+
+  fontSize:number;
+  defaultStyle: CSSStyleDeclaration;
+  defaultFontSizePx: number;
+  constructor(private elRef:ElementRef){}
+
+  ngOnInit(){
+      // try to parse default user agent font size (no comment about DOM API design ;) )
+      this.defaultStyle=window.getComputedStyle(this.elRef.nativeElement);
+      let defFontSizeStr=this.defaultStyle.fontSize;
+      defFontSizeStr=defFontSizeStr.trim();
+      if(defFontSizeStr.endsWith('px')){
+          // parseFloat ignores non number characters at the end (again no comment ;) )
+          this.defaultFontSizePx=parseFloat(defFontSizeStr);
+      }else{
+          // fallback
+          this.defaultFontSizePx=FALLBACK_DEF_USER_AGENT_FONT_SIZE;
+      }
+      this.resized();
+  }
+
+  @HostListener('window:resize', ['$event'])
+    onResize(event:Event):void {
+        this.resized();
+  }
+
+  private resized(){
+      let elH=this.elRef.nativeElement.offsetHeight;
+
+      // prompt text font size should scale according to prompt conatiner height
+      let scaledSize=Math.round((elH/VIRTUAL_HEIGHT)*DEFAULT_PROMPT_FONTSIZE);
+
+      // min prompt font size is default user agent size
+      this.fontSize=Math.max(scaledSize,this.defaultFontSizePx);
+
+     //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
+  }
+
 }
 
 
