@@ -99,16 +99,18 @@ export class PromptContainer implements  OnInit{
   constructor(private elRef:ElementRef){}
 
   ngOnInit(){
+
+    // fallback
+    this.defaultFontSizePx = FALLBACK_DEF_USER_AGENT_FONT_SIZE;
       // try to parse default user agent font size (no comment about DOM API design ;) )
       this.defaultStyle=window.getComputedStyle(this.elRef.nativeElement);
       let defFontSizeStr=this.defaultStyle.fontSize;
-      defFontSizeStr=defFontSizeStr.trim();
-      if(defFontSizeStr.endsWith('px')){
+      if(defFontSizeStr) {
+        defFontSizeStr = defFontSizeStr.trim();
+        if (defFontSizeStr.endsWith('px')) {
           // parseFloat ignores non number characters at the end (again no comment ;) )
-          this.defaultFontSizePx=parseFloat(defFontSizeStr);
-      }else{
-          // fallback
-          this.defaultFontSizePx=FALLBACK_DEF_USER_AGENT_FONT_SIZE;
+          this.defaultFontSizePx = parseFloat(defFontSizeStr);
+        }
       }
       this.resized();
   }
