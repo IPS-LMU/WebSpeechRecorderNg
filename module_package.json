@@ -1,13 +1,13 @@
 {
   "name": "speechrecorderng",
-  "version": "0.0.42",
+  "version": "0.0.44",
   "description": "Speech Recording Tool as Angular Module",
   "main": "bundles/speechrecorder.umd.js",
   "module": "module/index.js",
   "typings": "module/index.d.ts",
   "keywords": [
     "SpeechRecorder",
-    "angular4"
+    "angular5"
   ],
   "author": {
     "name": "Klaus Jänsch",
@@ -15,11 +15,12 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "@angular/core": "^4.3.1",
-    "@angular/common": "^4.3.1",
-    "@angular/http": "^4.3.1",
-    "@angular/material": "^2.0.0-beta.10",
-    "@angular/router": "^4.3.1",
-    "rxjs": "^5.0.1"
+    "@angular/core": "^5.0.0",
+    "@angular/common": "^5.0.0",
+    "@angular/http": "^5.0.0",
+    "@angular/material": "^5.0.0-rc.1",
+    "@angular/router": "^5.0.0",
+    "rxjs": "^5.5.2"
+
   }
 }

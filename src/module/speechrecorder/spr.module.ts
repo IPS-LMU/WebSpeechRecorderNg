@@ -26,7 +26,6 @@ import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionFinishedDialog} from "./session/session_finished_dialog";
 import {MessageDialog} from "../ui/message_dialog";
 import {LevelBarDisplay} from "../ui/livelevel_display";
-import {LevelBar} from "../audio/ui/livelevel";
 
 
 
