@@ -12,7 +12,7 @@
       "@angular/core": ["./node_modules/@angular/core"],
       "rxjs/*": ["./node_modules/rxjs/*"]
     },
-    "rootDir": "src",
+
     "outDir": "dist/module",
     "sourceMap": true,
     "inlineSources": true,
