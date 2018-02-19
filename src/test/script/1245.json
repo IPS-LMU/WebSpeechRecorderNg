@@ -58,7 +58,7 @@
         ]
       },
       {
-        "mode": "AUTOPROGRESS",
+        "mode": "AUTORECORDING",
         "name": "Recording Session",
         "order": "SEQUENTIAL",
         "promptphase": "PRERECORDING",
@@ -83,6 +83,9 @@
                 ]
               }
             ]
+          },
+          {
+            "promptItems": []
           },
           {
             "promptItems": [
