@@ -648,6 +648,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     return (this.status === Status.PRE_RECORDING || this.status === Status.RECORDING);
   }
 
+  isActive(): boolean{
+    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR))
+  }
+
     prevItem() {
         this.promptItemIdx--;
         if (this.promptItemIdx < 0) {

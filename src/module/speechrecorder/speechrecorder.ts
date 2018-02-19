@@ -196,7 +196,7 @@ export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener 
             window.addEventListener('beforeunload', (e) => {
                 console.log("Before page unload event");
 
-                if (this.dataSaved) {
+                if (this.dataSaved && !this.sm.isActive()) {
                     return;
                 } else {
                     // all this attempts to customize the message do not work anymore (for security reasons)!!
