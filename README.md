@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "^0.0.16"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "0.0.46"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -178,46 +178,52 @@ Example script:
       {
         "mode": "MANUAL",
         "name": "Introduction",
-        "promptUnits": [
+        "groups": [
           {
-            "itemcode": "I0",
-            "mediaitems": [
+            "promptItems": [
               {
-                "text": "Willkommen bei der IPS-Sprachaufnahme!"
-              }
-            ],
-          },
-          {
-            "itemcode": "I1",
-            "mediaitems": [
+                "itemcode": "I0",
+                "mediaitems": [
+                  {
+                    "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                  }
+                ],
+              },
               {
-                "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                "itemcode": "I1",
+                "mediaitems": [
+                  {
+                    "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                  }
+                ],
               }
-            ],
-          }
+           ],
         ],
         "training": false
       },{
          "mode": "AUTOPROGRESS",
          "name": "Recording Session",
-         "promptUnits": [
+         "groups": [
            {
-           "itemcode": "N0",
-           "recduration": 10000,
-           "mediaitems": [
-             {
-              "text": "What's your name?"
-             }
-            ],
-           },
-           {
-            "itemcode": "S0",
-            "mediaitems": [
-              {
-              "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-              }
-             ],
-           }
+            "promptItems": [
+               {
+               "itemcode": "N0",
+               "recduration": 10000,
+               "mediaitems": [
+                 {
+                  "text": "What's your name?"
+                 }
+                ],
+               },
+               {
+                "itemcode": "S0",
+                "mediaitems": [
+                  {
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                  }
+                 ],
+               }
+             ]
           ]
        }
     ]
