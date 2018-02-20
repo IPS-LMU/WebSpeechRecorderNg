@@ -1,6 +1,6 @@
 import {Injectable, InjectionToken} from "@angular/core";
 
-export let SPEECHRECORDER_CONFIG = new InjectionToken<SpeechRecorderConfig>('speechrecorder.config');
+export const SPEECHRECORDER_CONFIG = new InjectionToken<SpeechRecorderConfig>('speechrecorder.config');
 
 
 export enum ApiType {

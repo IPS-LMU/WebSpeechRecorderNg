@@ -13,7 +13,7 @@
       "rxjs/*": ["./node_modules/rxjs/*"]
     },
 
-    "outDir": "dist/module",
+    "outDir": "dist/module/",
     "sourceMap": true,
     "inlineSources": true,
     "target": "es5",
@@ -27,6 +27,7 @@
     "src/module/index.ts"
   ],
   "angularCompilerOptions": {
-    "strictMetadataEmit": true
+    "strictMetadataEmit": true,
+    "skipTemplateCodegen": true
   }
 }

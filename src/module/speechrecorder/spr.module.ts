@@ -29,8 +29,7 @@ import {LevelBarDisplay} from "../ui/livelevel_display";
 
 
 
-const SPR_ROUTES: Routes = [
-
+export const SPR_ROUTES: Routes = [
   { path: 'spr/session/:id',      component: SpeechRecorder },
   { path: 'spr',      component: SpeechRecorder }
 ];

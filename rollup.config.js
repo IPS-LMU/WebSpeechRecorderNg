@@ -1,5 +1,5 @@
 export default {
-  entry: 'dist/module/src/module/index.js',
+  entry: 'dist/module/index.js',
   dest: 'dist/module/bundles/speechrecorder.umd.js',
   sourceMap: false,
   format: 'umd',
