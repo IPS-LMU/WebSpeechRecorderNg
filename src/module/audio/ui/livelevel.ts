@@ -78,9 +78,11 @@ export class LevelBar implements LevelListener {
 
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
-    this.updateViewportPosition()
-    this.drawAll();
-    this.drawPlayPosition();
+    setTimeout(()=>{
+          this.updateViewportPosition()
+          this.drawAll();
+          this.drawPlayPosition();
+      });
   }
 
   private updateViewportPosition(){
@@ -139,7 +141,7 @@ export class LevelBar implements LevelListener {
     this.markerCanvas.height = this.ce.offsetHeight;
 
     // and move to viewport position
-   this.updateViewportPosition();
+    this.updateViewportPosition();
 
     this.drawAll();
     this.drawPlayPosition();
@@ -167,7 +169,7 @@ export class LevelBar implements LevelListener {
 
   private layoutStatic() {
 
-    let requiredWidth = this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH);
+    let requiredWidth = Math.round(this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH));
     if (this.virtualCanvas && this.ce) {
 
       this.virtualCanvas.style.width = requiredWidth + 'px';
@@ -183,7 +185,11 @@ export class LevelBar implements LevelListener {
       let newWidth = Math.round(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
       this.virtualCanvas.style.width = newWidth + 'px';
       this.ce.scrollLeft = newWidth - this.ce.offsetWidth;
-      this.layout();
+
+      //console.log("checkWidth: without layout()")
+
+       // do not call layout here it is triggered by the scroll event
+      //this.layout();
     }
   }
 
@@ -289,15 +295,16 @@ export class LevelBar implements LevelListener {
             i2 = this.dbValues.length;
           }
 
+          var c=0;
           for (let i = i1; i < i2; i++) {
-            let x = i * (LINE_DISTANCE + LINE_WIDTH);
-            let dbVals = this.dbValues[i];
-            if (dbVals) {
-              this.drawLevelLines(g, x, h, dbVals);
-            }
+              let x = i * (LINE_DISTANCE + LINE_WIDTH);
+              let dbVals = this.dbValues[i];
+              if (dbVals) {
+                  this.drawLevelLines(g, x, h, dbVals);
+                  c++;
+              }
 
           }
-
         }
 
       }
