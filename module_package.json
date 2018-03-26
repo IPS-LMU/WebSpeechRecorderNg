@@ -1,6 +1,6 @@
 {
   "name": "speechrecorderng",
-  "version": "0.0.52",
+  "version": "0.0.53",
   "description": "Speech Recording Tool as Angular Module",
   "main": "bundles/speechrecorder.umd.js",
   "module": "index.js",
