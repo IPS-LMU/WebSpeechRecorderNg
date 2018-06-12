@@ -9,6 +9,7 @@ import {Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 
+
 @Component({
 
   selector: 'spr-recinstructions',
@@ -177,7 +178,6 @@ export class PromptingContainer {
 
         }
     }
-
     ngOnInit(){
         this.e = this.ref.nativeElement;
     }
