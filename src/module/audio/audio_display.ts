@@ -1,28 +1,67 @@
 
-  import { Component,ViewChild,ElementRef,AfterContentInit,ChangeDetectorRef } from '@angular/core'
+  import {
+  Component,
+  ViewChild,
+  ElementRef,
+  AfterContentInit,
+  ChangeDetectorRef,
+  AfterViewInit,
+    Input
+  } from '@angular/core'
 	import { WavReader } from './impl/wavreader'
   import { AudioClip} from './persistor'
   import { AudioPlayer,AudioPlayerListener,AudioPlayerEvent,EventType } from './playback/player'
   import { AudioClipUIContainer } from './ui/container'
+  import {ActivatedRoute, Params, Router} from "@angular/router";
+  import {Status as SessionManagerStatus} from "../speechrecorder/session/sessionmanager";
+  import {AudioDisplayControl} from "./ui/audio_display_control";
+  import {Action} from "../action/action";
 
   @Component({
 
     selector: 'app-audiodisplay',
 
-    template: `<p>AudioSignal display</p>
+    template: `
 	<app-audio #audioSignalContainer></app-audio>
-    <button (click)="ap.start()" [disabled]="!startEnabled"></button> <button (click)="ap.stop()" [disabled]="!stopEnabled"></button>
-	<p>{{status}}</p>`,
-    styles: [`app-audiodisplay {
-      width: 100%;
-      height: 100%
-    }`]
+     <app-audiodisplaycontrol [playStartAction]="playStartAction" [playStopAction]="playStopAction"></app-audiodisplaycontrol> 
+    `,
+    styles: [
+        `:host {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        bottom: 0px;
+        /*left: 0px; */
+
+        height: 100%;
+        width: 100%;
+
+        overflow: hidden;
+
+        padding: 20px;
+        /* margin: 20px; */
+        /* border: 20px; */
+        z-index: 5;
+        box-sizing: border-box;
+        background-color: rgba(0, 0, 0, 0.75)
+
+      }`,
+        `app-audio {
+        flex: 2;
+        width: 100%;
+        height: 100%;
+      }`, `app-audiodisplay {
+        width: 100%;
+        height: 100%
+      }`]
 
   })
-	export class AudioDisplay implements AudioPlayerListener,AfterContentInit {
+	export class AudioDisplay implements AudioPlayerListener,AfterViewInit {
 		private _audioUrl:string;
-		startEnabled:boolean;
-		stopEnabled:boolean;
+		//startEnabled:boolean;
+		//stopEnabled:boolean;
+    playStartAction:Action;
+    playStopAction:Action;
 		aCtx:AudioContext;
 		ap:AudioPlayer;
 	   status:string;
@@ -35,27 +74,28 @@
 		audio:any;
 		updateTimerId:any;
 
+    //@ViewChild(AudioDisplayControl)
+    //private ctrl:AudioDisplayControl;
+
     @ViewChild(AudioClipUIContainer)
-
     private ac:AudioClipUIContainer;
-		constructor(private ref: ChangeDetectorRef) {
 
+		constructor(private route: ActivatedRoute,private ref: ChangeDetectorRef) {
+      this.playStartAction=new Action("Start");
 
-			// this.startBtn = <HTMLInputElement>(document.getElementById('startBtn'));
-			// this.stopBtn = <HTMLInputElement>(document.getElementById('stopBtn'));
-			//this.audio = document.getElementById('audio');
-			//var asc = <HTMLDivElement>document.getElementById('audioSignalContainer');
-			//this.audioSignal = new AudioSignal(asc);
-			//this.audioSonagram = new Sonagram(asc);
-			//this.ac = new AudioClipUIContainer();
-			//this.statusMsg = <HTMLElement>(document.getElementById('status'));
+      this.playStopAction=new Action("Stop");
+
 		}
 
-    ngAfterContentInit() {
-		//   this.init();
-		//   //this.audioUrl="http://www.phonetik.uni-muenchen.de/~klausj/Trappa1.wav";
-      // this.audioUrl="test/audio.wav";
-    }
+    ngAfterViewInit(){
+      this.init();
+		  this.route.queryParams.subscribe((params: Params) => {
+            if (params['url']) {
+                this.audioUrl=params['url'];
+            }
+          });
+
+      }
 
 		init() {
 			// this.startBtn.disabled = true;
@@ -70,11 +110,10 @@
 			} else {
 				this.aCtx = new AudioContext();
 				this.ap = new AudioPlayer(this.aCtx, this);
-			//	this.startBtn.disabled = true;
+        this.playStartAction.onAction=()=>this.ap.start();
+        this.playStopAction.onAction=()=>this.ap.stop();
 
 			}
-			//this.audioSignal.init();
-
 		}
 
 		get audioUrl():string {
@@ -86,6 +125,8 @@
 			this._audioUrl = value;
 			this.load();
 		}
+
+
 
 		started(){
 			//this.stopBtn.disabled=false;
@@ -150,7 +191,8 @@
 				//this.ac.layout();
                 // this.ap.startAction.addControl(this.startBtn, 'click');
                 // this.ap.stopAction.addControl(this.stopBtn, 'click');
-				this.startEnabled=true;
+				//this.ctrl.startEnabled=true;
+				this.playStartAction.disabled=false
 			});
 		}
 
@@ -168,16 +210,20 @@
 				// this.stopBtn.disabled = false;
 				this.status = 'Playback...';
 				this.updateTimerId = window.setInterval(e=>this.updatePlayPosition(), 50);
-				this.startEnabled=false;
-				this.stopEnabled=true;
+				//this.ctrl.startEnabled=false;
+				this.playStartAction.disabled=true;
+				//this.ctrl.stopEnabled=true;
+				this.playStopAction.disabled=false;
 			}else if(EventType.ENDED===e.type){
 				// this.startBtn.disabled=false;
 				// this.stopBtn.disabled=true;
 
 				this.status='Ready.';
 				window.clearInterval(this.updateTimerId);
-				this.startEnabled=true;
-				this.stopEnabled=false;
+				//this.ctrl.startEnabled=true;
+        this.playStartAction.disabled=false;
+				//this.ctrl.stopEnabled=false;
+				this.playStopAction.disabled=true;
 			}
 
 			//this.ref.markForCheck();
