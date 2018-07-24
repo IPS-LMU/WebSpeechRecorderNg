@@ -16,7 +16,9 @@ import {Action} from "../action/action";
   selector: 'app-audiodisplay',
 
   template: `
+   
     <app-audio #audioSignalContainer></app-audio>
+    
     <app-audiodisplaycontrol [playStartAction]="playStartAction"
                              [playStopAction]="playStopAction"></app-audiodisplaycontrol>
   `,
@@ -33,14 +35,19 @@ import {Action} from "../action/action";
       z-index: 5;
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0.75)
-    }`,
-      `app-audio {
+    }`,`
+    div {
       flex: 2;
       width: 100%;
+      background: darkgray;
+      box-sizing: border-box;
       height: 100%;
-    }`, `app-audiodisplay {
-      width: 100%;
-      height: 100%
+      position: relative;
+      overflow-x: scroll;
+      overflow-y: auto;
+    }`,
+      `app-audio {
+      
     }`]
 
 })

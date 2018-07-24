@@ -20,10 +20,9 @@ import {Component, ViewChild} from '@angular/core';
 
     margin: 0; 
     padding: 0; 
-    position: relative;
-    width: 100%;
-    height: 100%;
-    flex: 1;
+    /* position: relative; */
+    width: 1000px;
+    height: 400px;
     justify-content: center; /* align horizontal */
     align-items: center; /* align vertical */
     text-align: center;
