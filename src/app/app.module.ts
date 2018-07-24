@@ -18,6 +18,7 @@ import {AudioModule} from "../module/audio/audio.module";
 import {SPR_CFG} from "./app.config";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
+import {BaseCanvas, VirtualCanvasTest} from "../module/audio/ui/virtual_canvas";
 
 
 
@@ -30,14 +31,14 @@ const appRoutes: Routes = [
         redirectTo: 'session/',
         pathMatch: 'full'
     },
-    { path: 'audio_display', component: AudioDisplay
-    },
+    { path: 'audio_display', component: AudioDisplay},
+  { path: 'test_vc' ,component: VirtualCanvasTest },
   { path: '**', component: StartComponent  }
 ];
 
 @NgModule({
   declarations: [
-    AppComponent,StartComponent,SessionsComponent
+    AppComponent,StartComponent,SessionsComponent,VirtualCanvasTest
   ],
 
   imports: [
@@ -46,7 +47,7 @@ const appRoutes: Routes = [
     BrowserModule,SpeechRecorderModule.forRoot(SPR_CFG),AudioModule
   ],
   providers: [],
-
+  entryComponents: [BaseCanvas],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
