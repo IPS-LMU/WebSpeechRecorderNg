@@ -88,10 +88,13 @@ export class AudioCapture {
       }
       if (!labelsAvailable) {
         if (retry) {
-          // workaround to request permissions
-          let audioCnstrs = {echoCancelation: false}
-          navigator.mediaDevices.getUserMedia({audio: audioCnstrs}).then((s: MediaStream) => {
-            // stop immediately
+          // workaround to request permissions:
+          // Start a dummy session
+          let mediaStrCnstrs = <MediaStreamConstraints>{audio:
+              {echoCancelation: false}
+          };
+          navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
+            // and stop it immediately
             s.stop();
 
           });
