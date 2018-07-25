@@ -150,15 +150,17 @@ export class AudioSignal extends CanvasLayerComponent{
     self.onmessage = function (msg) {
 
       let audioData = msg.data.audioData;
+      let l=msg.data.l;
       let w = msg.data.w;
       let h = msg.data.h;
+      let vw=msg.data.vw;
       let chs = msg.data.chs;
       let frameLength = msg.data.frameLength;
       let psMinMax: Float32Array | null;
       psMinMax = null;
       if (audioData) {
         let chH = h / chs;
-        let framesPerPixel = frameLength / w;
+        let framesPerPixel = frameLength / vw;
         let y = 0;
         let pointsLen = w * chs;
         // one for min one for max
@@ -170,9 +172,10 @@ export class AudioSignal extends CanvasLayerComponent{
 
           chFramePos = ch * frameLength;
           for (let pii = 0; pii < w; pii++) {
+            let virtPii=l+pii;
             let pMin = Infinity;
             let pMax = -Infinity;
-            let pixelFramePos = Math.round(chFramePos + (pii * framesPerPixel));
+            let pixelFramePos = Math.round(chFramePos + (virtPii * framesPerPixel));
 
             // calculate pixel min/max amplitude
             for (let ai = 0; ai < framesPerPixel; ai++) {
@@ -201,11 +204,11 @@ export class AudioSignal extends CanvasLayerComponent{
       if (psMinMax) {
         psBuf = psMinMax.buffer;
       }
-      postMessage({psMinMax: psMinMax, w: msg.data.w, h: msg.data.h, chs: msg.data.chs}, [psBuf]);
+      postMessage({psMinMax: psMinMax, l:msg.data.l,t:msg.data.t,w: msg.data.w, h: msg.data.h, chs: msg.data.chs}, [psBuf]);
     }
   }
 
-  startRender(w: number, h: number) {
+  startRender(left:number,top:number,w: number, h: number,vw:number) {
 
     if (this.wo) {
       this.wo.terminate();
@@ -241,7 +244,7 @@ export class AudioSignal extends CanvasLayerComponent{
         }
       }
 
-      this.wo.postMessage({w: w, h: h, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
+      this.wo.postMessage({l:left,t:top,w: w, h: h,vw:vw, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
     } else {
       let g = this.signalCanvas.getContext("2d");
       if (g) {
@@ -253,6 +256,7 @@ export class AudioSignal extends CanvasLayerComponent{
 
   drawRendered(me: MessageEvent) {
 
+    //this.signalCanvas.style.left=me.data.l.toString()+'px';
     this.signalCanvas.width = me.data.w;
     this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");

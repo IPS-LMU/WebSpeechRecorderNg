@@ -15,7 +15,7 @@ import {Component, ViewChild} from '@angular/core';
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)" (mousemove)="mousemove($event)"
             (mouseleave)="mouseleave($event)"></canvas>
     <audio-signal></audio-signal>
-    <audio-sonagram></audio-sonagram>
+    
     </div>
   `,
   styles: [`div {
@@ -59,10 +59,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   dc: HTMLCanvasElement;
 
   @ViewChild('virtualCanvas') ceRef:ElementRef;
-
   ce: HTMLDivElement;
+
   @ViewChild(AudioSignal) as: AudioSignal;
-  @ViewChild(Sonagram) so: Sonagram;
+  //@ViewChild(Sonagram) so: Sonagram;
+
+  private clipLeft=0;
+  private clipTop=0;
+  private clipWidth:number|null=null;
+  private clipHeight:number|null=null;
 
   private _audioData:AudioBuffer|null;
   private _playFramePosition: number;
@@ -94,6 +99,8 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
 
+
+
   @HostListener('window:resize', ['$event'])
   onResize(event:Event):void {
     this.layout();
@@ -106,7 +113,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   mousemove(me: MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
-      this.layoutScaled();
+      //this.layoutScaled();
     }
   }
 
@@ -133,7 +140,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   onMousemove(me:MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
-      this.layoutScaled();
+      //this.layoutScaled();
     }
   }
 
@@ -198,38 +205,46 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     }
   }
 
-  layoutScaled() {
+  // layoutScaled() {
+  //
+  //   // // TODO test
+  //   // this.ce.style.width='1000px';
+  //   // this.ce.style.height='400px';
+  //
+  //   const offW = this.ce.offsetWidth;
+  //   const offH = this.ce.offsetHeight;
+  //
+  //   const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+  //   const asTop = 0;
+  //
+  //   const asH = Math.round(psH * this.dividerPosition);
+  //   const soH = Math.round(psH * (1 - this.dividerPosition));
+  //   const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+  //   const wStr = offW.toString() + 'px';
+  //
+  //   const dTop = asH;
+  //   const dTopStr = dTop.toString() + 'px';
+  //   this.dc.style.top = dTopStr;
+  //   this.dc.style.left = '0px';
+  //   this.dc.style.width = wStr;
+  //
+  //   this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+  //   this.dc.width = offW;
+  //   this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+  //
+  //   this.dc.style.width = wStr;
+  //   this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+  //   this.drawDivider();
+  //   //this.so.layoutBounds(0, soTop, offW, soH, false);
+  //   this.as.layoutBounds(0, 0, offW, asH, false);
+  // }
 
-    // // TODO test
-    // this.ce.style.width='1000px';
-    // this.ce.style.height='400px';
-
-    const offW = this.ce.offsetWidth;
-    const offH = this.ce.offsetHeight;
-
-    const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    const asTop = 0;
-
-    const asH = Math.round(psH * this.dividerPosition);
-    const soH = Math.round(psH * (1 - this.dividerPosition));
-    const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    const wStr = offW.toString() + 'px';
-
-    const dTop = asH;
-    const dTopStr = dTop.toString() + 'px';
-    this.dc.style.top = dTopStr;
-    this.dc.style.left = '0px';
-    this.dc.style.width = wStr;
-
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    this.dc.width = offW;
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-
-    this.dc.style.width = wStr;
-    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
-    this.drawDivider();
-    this.so.layoutBounds(0, soTop, offW, soH, false);
-    this.as.layoutBounds(0, 0, offW, asH, false);
+  clipBounds(left:number,top:number,width:number,height:number){
+    this.clipLeft=left;
+    this.clipTop=top;
+    this.clipWidth=width;
+    this.clipHeight=height;
+    this.layout();
   }
 
   layout() {
@@ -273,8 +288,14 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       this.dc.style.width = wStr;
       this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
       this.drawDivider();
-      this.as.layoutBounds(0, 0, offW, asH, true);
-      this.so.layoutBounds(0, soTop, offW, soH, true);
+
+      let cWidth=this.ce.clientWidth;
+      if(this.clipWidth){
+        cWidth=this.clipWidth;
+      }
+      console.log(this.clipLeft+ " "+cWidth);
+      this.as.layoutBounds(this.clipLeft, 0, cWidth, asH, offW,true);
+      //this.so.layoutBounds(0, soTop, offW, soH, true);
     }
   }
 
@@ -282,7 +303,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   set audioData(audioData: AudioBuffer | null) {
     this._audioData=audioData;
     this.as.setData(audioData);
-    this.so.setData(audioData);
+    //this.so.setData(audioData);
     this.layout();
   }
 
@@ -293,7 +314,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   set playFramePosition(playFramePosition: number) {
     this._playFramePosition = playFramePosition;
     this.as.playFramePosition = playFramePosition;
-    this.so.playFramePosition = playFramePosition;
+    //this.so.playFramePosition = playFramePosition;
   }
 }
 

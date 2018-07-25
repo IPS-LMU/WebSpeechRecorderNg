@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit,
+  AfterViewInit, HostListener, ElementRef,
 } from '@angular/core'
 
 
@@ -47,6 +47,7 @@ import {Action} from "../../action/action";
 })
 export class AudioDisplayScrollPane{
 
+  private spEl:HTMLElement;
   playStartAction: Action;
   playStopAction: Action;
 
@@ -54,8 +55,17 @@ export class AudioDisplayScrollPane{
   @ViewChild(AudioClipUIContainer)
   private ac: AudioClipUIContainer;
 
-  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef) {
 
+
+  constructor( private ref: ElementRef) {
+  this.spEl=this.ref.nativeElement;
+  }
+
+  @HostListener('scroll', ['$event'])
+  onScroll(se: Event) {
+    setTimeout(()=>{
+      this.ac.clipBounds(this.spEl.scrollLeft,this.spEl.scrollTop,this.spEl.clientWidth,this.spEl.clientHeight);
+    });
   }
 
   set audioData(audioData: AudioBuffer | null) {
