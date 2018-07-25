@@ -24,7 +24,7 @@ import {Component, ViewChild} from '@angular/core';
     padding: 0;
     top: 0;
     left: 0;
-    width: 1000px;
+    width: 100%;
     height: 100%;
 
     /*position: absolute;*/
@@ -52,6 +52,9 @@ import {Component, ViewChild} from '@angular/core';
 })
 export class AudioClipUIContainer implements OnInit,AfterViewInit {
   private static DIVIDER_PIXEL_SIZE = 10;
+
+  parentE: HTMLElement;
+
   @ViewChild('container') canvasRef: ElementRef;
   dc: HTMLCanvasElement;
 
@@ -61,13 +64,16 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   @ViewChild(AudioSignal) as: AudioSignal;
   @ViewChild(Sonagram) so: Sonagram;
 
+  private _audioData:AudioBuffer|null;
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
   private dividerPosition = 0.5;
 
-  constructor(private ref: ElementRef) {
+  private xZoom:number | null;
 
+  constructor(private ref: ElementRef) {
+  this.parentE=this.ref.nativeElement;
   }
 
   ngOnInit(){
@@ -228,8 +234,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   layout() {
     if(this.ce && this.dc) {
-      // // TODO test
-      this.ce.style.width='1000px';
+
+      const clientW=this.ce.clientWidth;
+      if(this.xZoom){
+        const newClW=Math.round(this._audioData.length/this.xZoom);
+        this.ce.style.width=newClW+'px';
+      }else{
+
+        this.ce.style.width=clientW+'px';
+      }
 
 
       const offW = this.ce.offsetWidth;
@@ -267,6 +280,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   @Input()
   set audioData(audioData: AudioBuffer | null) {
+    this._audioData=audioData;
     this.as.setData(audioData);
     this.so.setData(audioData);
     this.layout();
