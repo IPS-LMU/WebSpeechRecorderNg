@@ -11,21 +11,24 @@ import {Component, ViewChild} from '@angular/core';
 
   selector: 'app-audio',
   template: `
+    <div #virtualCanvas>
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)" (mousemove)="mousemove($event)"
             (mouseleave)="mouseleave($event)"></canvas>
     <audio-signal></audio-signal>
     <audio-sonagram></audio-sonagram>
+    </div>
   `,
-  styles: [`:host {
+  styles: [`div {
 
     margin: 0; 
-    padding: 0; 
-    /* position: relative; */
+    padding: 0;
+    top: 0;
+    left: 0;
     width: 1000px;
     height: 400px;
-    justify-content: center; /* align horizontal */
-    align-items: center; /* align vertical */
-    text-align: center;
+
+    /*position: absolute;*/
+    box-sizing: border-box;
   }`, `canvas{
     top: 0;
     left: 0;
@@ -50,11 +53,14 @@ import {Component, ViewChild} from '@angular/core';
 export class AudioClipUIContainer implements OnInit,AfterViewInit {
   private static DIVIDER_PIXEL_SIZE = 10;
   @ViewChild('container') canvasRef: ElementRef;
+  dc: HTMLCanvasElement;
+
+  @ViewChild('virtualCanvas') ceRef:ElementRef;
 
   ce: HTMLDivElement;
-  dc: HTMLCanvasElement;
   @ViewChild(AudioSignal) as: AudioSignal;
   @ViewChild(Sonagram) so: Sonagram;
+
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
@@ -65,12 +71,12 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   ngOnInit(){
-    this.ce = this.ref.nativeElement;
+    this.ce = this.ceRef.nativeElement;
     this.dc = this.canvasRef.nativeElement;
   }
 
   ngAfterViewInit() {
-    this.layout();
+     this.layout();
       let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
         mrs.forEach((mr:MutationRecord)=>{
           if('attributes'===mr.type && ('class'===mr.attributeName || 'style'===mr.attributeName)){
@@ -181,6 +187,11 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   layoutScaled() {
+
+    // // TODO test
+    // this.ce.style.width='1000px';
+    // this.ce.style.height='400px';
+
     const offW = this.ce.offsetWidth;
     const offH = this.ce.offsetHeight;
 
@@ -211,6 +222,10 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   layout() {
     if(this.ce && this.dc) {
+      // // TODO test
+      this.ce.style.width='1000px';
+      this.ce.style.height='400px';
+
       const offW = this.ce.offsetWidth;
       const offH = this.ce.offsetHeight;
 

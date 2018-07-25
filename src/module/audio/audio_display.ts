@@ -10,6 +10,7 @@ import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './p
 import {AudioClipUIContainer} from './ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
+import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 
 @Component({
 
@@ -17,7 +18,7 @@ import {Action} from "../action/action";
 
   template: `
    
-    <app-audio #audioSignalContainer></app-audio>
+    <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     
     <app-audiodisplaycontrol [playStartAction]="playStartAction"
                              [playStopAction]="playStopAction"></app-audiodisplaycontrol>
@@ -35,16 +36,6 @@ import {Action} from "../action/action";
       z-index: 5;
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0.75)
-    }`,`
-    div {
-      flex: 2;
-      width: 100%;
-      background: darkgray;
-      box-sizing: border-box;
-      height: 100%;
-      position: relative;
-      overflow-x: scroll;
-      overflow-y: auto;
     }`,
       `app-audio {
       
@@ -64,8 +55,8 @@ export class AudioDisplay implements AudioPlayerListener, AfterViewInit {
   audio: any;
   updateTimerId: any;
 
-  @ViewChild(AudioClipUIContainer)
-  private ac: AudioClipUIContainer;
+  @ViewChild(AudioDisplayScrollPane)
+  private ac: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef) {
     this.playStartAction = new Action("Start");
