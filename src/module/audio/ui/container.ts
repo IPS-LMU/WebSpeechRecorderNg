@@ -25,7 +25,7 @@ import {Component, ViewChild} from '@angular/core';
     top: 0;
     left: 0;
     width: 1000px;
-    height: 400px;
+    height: 100%;
 
     /*position: absolute;*/
     box-sizing: border-box;
@@ -158,10 +158,16 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     if (this.dc && this.dragStartMouseY && this.dragStartY) {
 
       const dragOffset = e.clientY - this.dragStartMouseY;
-      // console.log("Drag offset: ", dragOffset);
-      const newTop = (this.dragStartY + dragOffset);
-      this.dc.style.top = newTop.toString() + 'px';
       const ceHeight = this.ce.offsetHeight;
+
+      let newTop = (this.dragStartY + dragOffset);
+      if(newTop<0){
+        newTop=0;
+      }
+      if(newTop>ceHeight-AudioClipUIContainer.DIVIDER_PIXEL_SIZE){
+        newTop=ceHeight-AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      }
+      this.dc.style.top = newTop.toString() + 'px';
       this.dividerPosition = (this.dc.offsetTop + AudioClipUIContainer.DIVIDER_PIXEL_SIZE / 2) / ceHeight;
       if (this.dividerPosition > 1.0) {
         this.dividerPosition = 1.0;
@@ -224,7 +230,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     if(this.ce && this.dc) {
       // // TODO test
       this.ce.style.width='1000px';
-      this.ce.style.height='400px';
+
 
       const offW = this.ce.offsetWidth;
       const offH = this.ce.offsetHeight;
@@ -233,12 +239,16 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       const asTop = 0;
 
       const asH = Math.round(psH * this.dividerPosition);
-      const soH = Math.round(psH * (1 - this.dividerPosition));
+      //const soH = Math.round(psH * (1 - this.dividerPosition));
+      // teh rest
+      const soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH;
+
       const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
       const wStr = offW.toString() + 'px';
 
       const dTop = asH;
       const dTopStr = dTop.toString() + 'px';
+
       this.dc.style.top = dTopStr;
       this.dc.style.left = '0px';
       this.dc.style.width = wStr;
