@@ -95,7 +95,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
           }
         })
       });
-      heightListener.observe(this.ce,{attributes: true,childList: true, characterData: true});
+      heightListener.observe(this.parentE,{attributes: true,childList: true, characterData: true});
   }
 
 
