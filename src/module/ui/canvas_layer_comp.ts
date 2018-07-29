@@ -51,9 +51,9 @@ export abstract class CanvasLayerComponent{
       //});
 
     if (redraw) {
-      this.startRender(left,top,offW, offH,virtualWidth);
+      this.startDraw(left,top,offW, offH,virtualWidth);
     }
   }
 
-  abstract startRender(offsetLeft:number, offsetTop:number,offWidth:number,offsetHeight:number,virtualWidth:number):void;
+  abstract startDraw(offsetLeft:number, offsetTop:number,offWidth:number,offsetHeight:number,virtualWidth:number):void;
 }

@@ -208,7 +208,18 @@ export class AudioSignal extends CanvasLayerComponent{
     }
   }
 
-  startRender(left:number,top:number,w: number, h: number,vw:number) {
+    startDraw(left:number,top:number,w: number, h: number,vw:number) {
+        let g = this.signalCanvas.getContext("2d");
+        if (g) {
+            g.clearRect(0, 0,w, h);
+            g.fillStyle = "black";
+            g.fillRect(0, 0, w, h);
+        }
+        this.startRender(left, top, w, h, vw);
+    }
+
+
+    startRender(left:number,top:number,w: number, h: number,vw:number) {
 
     if (this.wo) {
       this.wo.terminate();
