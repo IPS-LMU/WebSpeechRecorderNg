@@ -209,9 +209,12 @@ export class AudioSignal extends CanvasLayerComponent{
   }
 
     startDraw(left:number,top:number,w: number, h: number,vw:number) {
+      this.signalCanvas.style.left=left.toString()+'px';
+      this.signalCanvas.width = w;
+      this.signalCanvas.height = h;
         let g = this.signalCanvas.getContext("2d");
         if (g) {
-            g.clearRect(0, 0,w, h);
+            //g.clearRect(0, 0,w, h);
             g.fillStyle = "black";
             g.fillRect(0, 0, w, h);
         }
@@ -219,7 +222,7 @@ export class AudioSignal extends CanvasLayerComponent{
     }
 
 
-    startRender(left:number,top:number,w: number, h: number,vw:number) {
+    private startRender(left:number,top:number,w: number, h: number,vw:number) {
 
     if (this.wo) {
       this.wo.terminate();
@@ -268,13 +271,13 @@ export class AudioSignal extends CanvasLayerComponent{
   drawRendered(me: MessageEvent) {
 
     //this.signalCanvas.style.left=me.data.l.toString()+'px';
-    this.signalCanvas.width = me.data.w;
-    this.signalCanvas.height = me.data.h;
+    //this.signalCanvas.width = me.data.w;
+    //this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");
     if (g) {
-      g.clearRect(0, 0, me.data.w, me.data.h);
-      g.fillStyle = "black";
-      g.fillRect(0, 0, me.data.w, me.data.h);
+      // g.clearRect(0, 0, me.data.w, me.data.h);
+      //g.fillStyle = "black";
+      //g.fillRect(0, 0, me.data.w, me.data.h);
       let pointsLen = me.data.w * me.data.chs;
       // one for min one for max
       let arrLen = pointsLen * 2;
