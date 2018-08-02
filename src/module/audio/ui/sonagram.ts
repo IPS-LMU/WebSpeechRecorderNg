@@ -146,16 +146,16 @@ export class Sonagram {
     }
   }
 
-  layout() {
+  // layout() {
+  //
+  //
+  //   var offW = this.sonagramCanvas.offsetWidth;
+  //   var offH = this.sonagramCanvas.offsetHeight;
+  //   this.layoutBounds(0, 0, offW, offH, true);
+  // }
 
 
-    var offW = this.sonagramCanvas.offsetWidth;
-    var offH = this.sonagramCanvas.offsetHeight;
-    this.layoutBounds(0, 0, offW, offH, true);
-  }
-
-
-  layoutBounds(left: number, top: number, offW: number, offH: number, redraw: boolean) {
+  layoutBounds(left: number, top: number, offW: number, offH: number, virtualWidth:number,redraw: boolean) {
 
     const leftStr = left.toString() + 'px';
     this.sonagramCanvas.style.left = leftStr;
@@ -190,7 +190,7 @@ export class Sonagram {
       //this.redraw();
       if (offW > 0) {
         if (offH > 0) {
-          this.startRender(offW, offH);
+          this.startDraw(left,top,offW, offH,virtualWidth);
         }
       }
     }
@@ -435,8 +435,10 @@ export class Sonagram {
 
     self.onmessage = function (msg) {
 
+      let l=msg.data.l;
       let w = msg.data.w;
       let h = msg.data.h;
+      let vw=msg.data.vw;
       let chs = msg.data.chs;
       let audioData = new Array(chs);
       for (let ch = 0; ch < chs; ch++) {
@@ -454,7 +456,7 @@ export class Sonagram {
       //console.log("Render method:");
       if (audioData) {
         let chH = Math.round(h / chs);
-        let framesPerPixel = frameLength / w;
+        let framesPerPixel = frameLength / vw;
         //console.log("Render: ", w, "x", h);
 
         let b = new Float32Array(dftSize);
@@ -470,7 +472,8 @@ export class Sonagram {
           // TODO center buffer
           let framePos = 0;
           for (let pii = 0; pii < w; pii++) {
-            framePos = Math.round(pii * framesPerPixel);
+            let virtPii=l+pii;
+            framePos = Math.round(virtPii * framesPerPixel);
             // calculate DFT at pixel position
             for (let i = 0; i < dftSize; i++) {
               let chDat = audioData[ch][framePos + i];
@@ -537,11 +540,25 @@ export class Sonagram {
           }
         }
       }
-      postMessage({imgData: imgData, w: msg.data.w, h: msg.data.h}, [imgData.buffer]);
+      postMessage({imgData: imgData, l:l,w: msg.data.w, h: msg.data.h,vw:vw}, [imgData.buffer]);
     }
   }
 
-  startRender(w: number, h: number) {
+  startDraw(left:number,top:number,w: number, h: number,vw:number) {
+    this.sonagramCanvas.style.left=left.toString()+'px';
+    this.sonagramCanvas.width = w;
+    this.sonagramCanvas.height = h;
+    let g = this.sonagramCanvas.getContext("2d");
+    if (g) {
+      //g.clearRect(0, 0,w, h);
+      g.fillStyle = "black";
+      g.fillRect(0, 0, w, h);
+    }
+    this.startRender(left, top, w, h, vw);
+  }
+
+
+  private startRender(left:number,top:number,w: number, h: number,vw:number) {
 
     if (this.wo) {
       this.wo.terminate();
@@ -579,7 +596,7 @@ export class Sonagram {
         }
 
       }
-      this.wo.postMessage({audioData: ada, w: w, h: h, chs: chs, frameLength: frameLength, dftSize: this.dftSize}, ada);
+      this.wo.postMessage({audioData: ada,l:left, w: w, h: h, vw:vw,chs: chs, frameLength: frameLength, dftSize: this.dftSize}, ada);
     } else {
       let g = this.sonagramCanvas.getContext("2d");
       if (g) {

@@ -15,7 +15,7 @@ import {Component, ViewChild} from '@angular/core';
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)" (mousemove)="mousemove($event)"
             (mouseleave)="mouseleave($event)"></canvas>
     <audio-signal></audio-signal>
-    
+    <audio-sonagram></audio-sonagram>
     </div>
   `,
   styles: [`div {
@@ -62,7 +62,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   ce: HTMLDivElement;
 
   @ViewChild(AudioSignal) as: AudioSignal;
-  //@ViewChild(Sonagram) so: Sonagram;
+  @ViewChild(Sonagram) so: Sonagram;
 
   private clipLeft=0;
   private clipTop=0;
@@ -295,7 +295,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       }
       console.log(this.clipLeft+ " "+cWidth);
       this.as.layoutBounds(this.clipLeft, 0, cWidth, asH, offW,true);
-      //this.so.layoutBounds(0, soTop, offW, soH, true);
+      this.so.layoutBounds(this.clipLeft, soTop, cWidth, soH, offW, true);
     }
   }
 
@@ -303,7 +303,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   set audioData(audioData: AudioBuffer | null) {
     this._audioData=audioData;
     this.as.setData(audioData);
-    //this.so.setData(audioData);
+    this.so.setData(audioData);
     this.layout();
   }
 
@@ -314,7 +314,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   set playFramePosition(playFramePosition: number) {
     this._playFramePosition = playFramePosition;
     this.as.playFramePosition = playFramePosition;
-    //this.so.playFramePosition = playFramePosition;
+    this.so.playFramePosition = playFramePosition;
   }
 }
 
