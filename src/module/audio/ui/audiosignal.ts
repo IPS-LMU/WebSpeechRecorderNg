@@ -272,6 +272,7 @@ export class AudioSignal extends CanvasLayerComponent{
     this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");
     if (g) {
+        // TODO duplicate: already done in startDraw
       g.clearRect(0, 0, me.data.w, me.data.h);
       g.fillStyle = "black";
       g.fillRect(0, 0, me.data.w, me.data.h);
