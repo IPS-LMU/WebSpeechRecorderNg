@@ -1,6 +1,7 @@
 import {Marker, Point} from './common'
 import {Component, ViewChild, ElementRef} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
+import {Dimension, Rectangle} from "../../math/2d/geometry";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -208,61 +209,72 @@ export class AudioSignal extends CanvasLayerComponent{
     }
   }
 
-    startDraw(left:number,top:number,w: number, h: number,vw:number) {
-      this.signalCanvas.style.left=left.toString()+'px';
-      this.signalCanvas.width = w;
-      this.signalCanvas.height = h;
+    startDraw(bounds:Rectangle,virtualDimension:Dimension) {
+      this.signalCanvas.style.left=bounds.position.left.toString()+'px';
+      this.signalCanvas.width = bounds.dimension.width;
+      this.signalCanvas.height = bounds.dimension.height;
         let g = this.signalCanvas.getContext("2d");
         if (g) {
             //g.clearRect(0, 0,w, h);
             g.fillStyle = "black";
-            g.fillRect(0, 0, w, h);
+            g.fillRect(0, 0, bounds.dimension.width, bounds.dimension.height);
         }
-        this.startRender(left, top, w, h, vw);
+        this.startRender(bounds,virtualDimension);
     }
 
 
-    private startRender(left:number,top:number,w: number, h: number,vw:number) {
+    private startRender(bounds:Rectangle,virtualDimension:Dimension) {
 
     if (this.wo) {
       this.wo.terminate();
       this.wo = null;
 
     }
-    if (this.audioData && w && h) {
-      w = Math.round(w);
-      h = Math.round(h);
+    if(bounds.dimension) {
 
+      let w = Math.round(bounds.dimension.width);
+      let h = Math.round(bounds.dimension.height);
 
-      this.wo = new Worker(this.workerURL);
+      if (this.audioData) {
+        this.wo = new Worker(this.workerURL);
 
-      let chs = this.audioData.numberOfChannels;
+        let chs = this.audioData.numberOfChannels;
 
-      let frameLength = this.audioData.getChannelData(0).length;
-      // if(frameLength != this.audioData.getChannelData(1).length){
-      //   alert("Ungleiche Länge");
-      // }
-      let ad = new Float32Array(chs * frameLength);
-      for (let ch = 0; ch < chs; ch++) {
-        ad.set(this.audioData.getChannelData(ch), ch * frameLength);
-      }
-      //let start = Date.now();
-      if (this.wo) {
-        this.wo.onmessage = (me) => {
-          //console.log("As rendertime: ", Date.now() - start);
-          this.drawRendered(me);
-          if (this.wo) {
-            this.wo.terminate();
-          }
-          this.wo = null;
+        let frameLength = this.audioData.getChannelData(0).length;
+        // if(frameLength != this.audioData.getChannelData(1).length){
+        //   alert("Ungleiche Länge");
+        // }
+        let ad = new Float32Array(chs * frameLength);
+        for (let ch = 0; ch < chs; ch++) {
+          ad.set(this.audioData.getChannelData(ch), ch * frameLength);
         }
-      }
+        //let start = Date.now();
+        if (this.wo) {
+          this.wo.onmessage = (me) => {
+            //console.log("As rendertime: ", Date.now() - start);
+            this.drawRendered(me);
+            if (this.wo) {
+              this.wo.terminate();
+            }
+            this.wo = null;
+          }
+        }
 
-      this.wo.postMessage({l:left,t:top,w: w, h: h,vw:vw, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
-    } else {
-      let g = this.signalCanvas.getContext("2d");
-      if (g) {
-        g.clearRect(0, 0, w, h);
+        this.wo.postMessage({
+          l: bounds.position.left,
+          t: bounds.position.top,
+          w: w,
+          h: h,
+          vw: virtualDimension.width,
+          chs: chs,
+          frameLength: frameLength,
+          audioData: ad
+        }, [ad.buffer]);
+      } else {
+        let g = this.signalCanvas.getContext("2d");
+        if (g) {
+          g.clearRect(0, 0, w, h);
+        }
       }
     }
   }

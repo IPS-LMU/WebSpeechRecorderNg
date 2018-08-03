@@ -10,6 +10,7 @@ import {
 import {AudioClipUIContainer} from '../ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../../action/action";
+import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 
 @Component({
 
@@ -64,7 +65,8 @@ export class AudioDisplayScrollPane{
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
     setTimeout(()=>{
-      this.ac.clipBounds(this.spEl.scrollLeft,this.spEl.scrollTop,this.spEl.clientWidth,this.spEl.clientHeight);
+      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
+      this.ac.clipBounds(cbr);
     });
   }
 

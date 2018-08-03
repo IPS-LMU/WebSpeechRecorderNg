@@ -1,31 +1,34 @@
+import {Dimension, Rectangle} from "../math/2d/geometry";
+
 export abstract class CanvasLayerComponent{
 
+  protected bounds:Rectangle;
   protected canvasLayers:Array<HTMLCanvasElement>;
 
   constructor(){
 
-    // TODO make clear that first elemnt is background canvas
+    // TODO make clear that first element is background canvas
     this.canvasLayers=new Array<HTMLCanvasElement>();
   }
 
-  layoutBounds(left: number, top: number, offW: number, offH: number, virtualWidth:number,redraw: boolean) {
+  layoutBounds(bounds:Rectangle, virtualWidth:number,redraw: boolean) {
 
     //this.canvasLayers.forEach(cl=>{
     for(let ci=0;ci<this.canvasLayers.length;ci++) {
       let cl = this.canvasLayers[ci];
-      const leftStyle=left.toString() + 'px';
+      const leftStyle=bounds.position.left.toString() + 'px';
       console.log("Canvas left: "+leftStyle)
-      cl.style.left = left.toString() + 'px';
+      cl.style.left = bounds.position.left.toString() + 'px';
       cl.style.top = top.toString() + 'px';
     }
-      if (offW) {
-        let wStr = offW.toString() + 'px';
+      if (bounds.dimension.width) {
+        let wStr = bounds.dimension.width.toString() + 'px';
 
           if (redraw) {
             // Do not set width of background canvas (causes flicker on start render)
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
-              cl.width = offW;
+              cl.width = bounds.dimension.width;
             }
           }
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
@@ -33,14 +36,14 @@ export abstract class CanvasLayerComponent{
           cl.style.width = wStr;
         }
       }
-      if (offH) {
-        let hStr = offH.toString() + 'px';
+      if (bounds.dimension.height) {
+        let hStr = bounds.dimension.height.toString() + 'px';
 
           if (redraw) {
             // Do not set height of background canvas (causes flicker on start render)
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
-              cl.height = offH;
+              cl.height = bounds.dimension.height;
             }
           }
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
@@ -51,9 +54,9 @@ export abstract class CanvasLayerComponent{
       //});
 
     if (redraw) {
-      this.startDraw(left,top,offW, offH,virtualWidth);
+      this.startDraw(bounds,new Dimension(virtualWidth,0));
     }
   }
 
-  abstract startDraw(offsetLeft:number, offsetTop:number,offWidth:number,offsetHeight:number,virtualWidth:number):void;
+  abstract startDraw(bounds:Rectangle,virtualDimension:Dimension):void;
 }

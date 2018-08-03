@@ -6,6 +6,7 @@ import {Sonagram} from './sonagram'
 import {Point} from './common'
 
 import {Component, ViewChild} from '@angular/core';
+import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 
 @Component({
 
@@ -64,10 +65,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   @ViewChild(AudioSignal) as: AudioSignal;
   @ViewChild(Sonagram) so: Sonagram;
 
-  private clipLeft=0;
-  private clipTop=0;
-  private clipWidth:number|null=null;
-  private clipHeight:number|null=null;
+
+  private _clipBounds:Rectangle|null=null;
+
 
   private _audioData:AudioBuffer|null;
   private _playFramePosition: number;
@@ -239,11 +239,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   //   this.as.layoutBounds(0, 0, offW, asH, false);
   // }
 
-  clipBounds(left:number,top:number,width:number,height:number){
-    this.clipLeft=left;
-    this.clipTop=top;
-    this.clipWidth=width;
-    this.clipHeight=height;
+  clipBounds(clipBounds:Rectangle){
+    this._clipBounds=clipBounds;
+
     this.layout();
   }
 
@@ -289,13 +287,20 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
       this.drawDivider();
 
+      let cLeft=0;
       let cWidth=this.ce.clientWidth;
-      if(this.clipWidth){
-        cWidth=this.clipWidth;
+      if(this._clipBounds){
+        cLeft=this._clipBounds.position.left;
+        cWidth=this._clipBounds.dimension.width;
       }
-      console.log(this.clipLeft+ " "+cWidth);
-      this.as.layoutBounds(this.clipLeft, 0, cWidth, asH, offW,true);
-      this.so.layoutBounds(this.clipLeft, soTop, cWidth, soH, offW, true);
+
+      let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
+
+      this.as.layoutBounds(asR, offW,true);
+
+      let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
+
+      this.so.layoutBounds(cLeft, soTop, cWidth, soH, offW, true);
     }
   }
 
