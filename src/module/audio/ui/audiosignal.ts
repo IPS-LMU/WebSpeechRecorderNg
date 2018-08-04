@@ -127,12 +127,20 @@ export class AudioSignal extends CanvasLayerComponent{
       let h = this.markerCanvas.height;
       let g = this.markerCanvas.getContext("2d");
       if (g) {
+        let vw=w;
+        if(this.virtualDimension){
+          vw=this.virtualDimension.width;
+        }
         g.clearRect(0, 0, w, h);
         if (this.audioData && this.audioData.numberOfChannels > 0) {
           let ch0 = this.audioData.getChannelData(0);
           let frameLength = ch0.length;
-          let framesPerPixel = frameLength / w;
-          let pixelPos = this._playFramePosition * w / frameLength;
+          //let framesPerPixel = frameLength / this.virtualDimension.width;
+          let vPixelPos = this._playFramePosition * vw / frameLength;
+          let pixelPos=vPixelPos;
+          if(this.bounds){
+            pixelPos=vPixelPos-this.bounds.position.left;
+          }
           g.fillStyle = 'red';
           g.strokeStyle = 'red';
           g.beginPath();

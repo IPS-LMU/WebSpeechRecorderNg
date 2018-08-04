@@ -296,7 +296,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 
-      this.as.layoutBounds(asR, offW,true);
+      this.as.layoutBounds(asR, new Dimension(offW,0),true);
 
       let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
 

@@ -1,8 +1,9 @@
-import {Dimension, Rectangle} from "../math/2d/geometry";
+import {Position,Dimension, Rectangle} from "../math/2d/geometry";
 
 export abstract class CanvasLayerComponent{
 
   protected bounds:Rectangle;
+  protected virtualDimension:Dimension;
   protected canvasLayers:Array<HTMLCanvasElement>;
 
   constructor(){
@@ -11,8 +12,19 @@ export abstract class CanvasLayerComponent{
     this.canvasLayers=new Array<HTMLCanvasElement>();
   }
 
-  layoutBounds(bounds:Rectangle, virtualWidth:number,redraw: boolean) {
+  toViewPortPosition(virtualPos:Position):Position{
 
+    if(this.bounds){
+      return new Position(virtualPos.left-this.bounds.position.left,virtualPos.top-this.bounds.position.top);
+    }else{
+      return virtualPos;
+    }
+  }
+
+  layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
+
+    this.bounds=bounds;
+    this.virtualDimension=virtualDimension;
     //this.canvasLayers.forEach(cl=>{
     for(let ci=0;ci<this.canvasLayers.length;ci++) {
       let cl = this.canvasLayers[ci];
@@ -54,7 +66,7 @@ export abstract class CanvasLayerComponent{
       //});
 
     if (redraw) {
-      this.startDraw(bounds,new Dimension(virtualWidth,0));
+      this.startDraw(bounds,virtualDimension);
     }
   }
 
