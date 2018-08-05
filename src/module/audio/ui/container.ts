@@ -113,7 +113,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   mousemove(me: MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
-      //this.layoutScaled();
+      this.layoutScaled();
     }
   }
 
@@ -140,7 +140,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   onMousemove(me:MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
-      //this.layoutScaled();
+      this.layoutScaled();
     }
   }
 
@@ -205,39 +205,56 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     }
   }
 
-  // layoutScaled() {
-  //
-  //   // // TODO test
-  //   // this.ce.style.width='1000px';
-  //   // this.ce.style.height='400px';
-  //
-  //   const offW = this.ce.offsetWidth;
-  //   const offH = this.ce.offsetHeight;
-  //
-  //   const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-  //   const asTop = 0;
-  //
-  //   const asH = Math.round(psH * this.dividerPosition);
-  //   const soH = Math.round(psH * (1 - this.dividerPosition));
-  //   const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-  //   const wStr = offW.toString() + 'px';
-  //
-  //   const dTop = asH;
-  //   const dTopStr = dTop.toString() + 'px';
-  //   this.dc.style.top = dTopStr;
-  //   this.dc.style.left = '0px';
-  //   this.dc.style.width = wStr;
-  //
-  //   this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-  //   this.dc.width = offW;
-  //   this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-  //
-  //   this.dc.style.width = wStr;
-  //   this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
-  //   this.drawDivider();
-  //   //this.so.layoutBounds(0, soTop, offW, soH, false);
-  //   this.as.layoutBounds(0, 0, offW, asH, false);
-  // }
+  layoutScaled() {
+
+    // // TODO test
+    // this.ce.style.width='1000px';
+    // this.ce.style.height='400px';
+
+    const offW = this.ce.offsetWidth;
+    const offH = this.ce.offsetHeight;
+
+    const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    const asTop = 0;
+
+    const asH = Math.round(psH * this.dividerPosition);
+    const soH = Math.round(psH * (1 - this.dividerPosition));
+    const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    const wStr = offW.toString() + 'px';
+
+    const dTop = asH;
+    const dTopStr = dTop.toString() + 'px';
+    this.dc.style.top = dTopStr;
+    this.dc.style.left = '0px';
+    this.dc.style.width = wStr;
+
+    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    this.dc.width = offW;
+    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+
+    this.dc.style.width = wStr;
+    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+    this.drawDivider();
+
+      let cLeft=0;
+      let cWidth=this.ce.clientWidth;
+      if(this._clipBounds){
+          cLeft=this._clipBounds.position.left;
+          cWidth=this._clipBounds.dimension.width;
+      }
+      let virtualDim=new Dimension(offW,0)
+      let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
+
+      this.as.layoutBounds(asR, virtualDim,false);
+
+      let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
+
+      this.so.layoutBounds(soR, virtualDim, false);
+
+
+    //this.so.layoutBounds(0, soTop, offW, soH, false);
+   // this.as.layoutBounds(0, 0, offW, asH, false);
+  }
 
   clipBounds(clipBounds:Rectangle){
     this._clipBounds=clipBounds;
