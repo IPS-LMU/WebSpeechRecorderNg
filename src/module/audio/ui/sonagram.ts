@@ -644,9 +644,11 @@ export class Sonagram  extends CanvasLayerComponent{
       let g = this.sonagramCanvas.getContext("2d");
       if (g) {
         let imgDataArr: Uint8ClampedArray = me.data.imgData;
-        let imgData = g.createImageData(me.data.w, me.data.h);
-        imgData.data.set(imgDataArr);
-        g.putImageData(imgData, 0, 0);
+        if(me.data.w>0 && me.data.h>0) {
+            let imgData = g.createImageData(me.data.w, me.data.h);
+            imgData.data.set(imgDataArr);
+            g.putImageData(imgData, 0, 0);
+        }
       }
     }
 
