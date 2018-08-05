@@ -135,7 +135,6 @@ export class AudioSignal extends CanvasLayerComponent{
         if (this.audioData && this.audioData.numberOfChannels > 0) {
           let ch0 = this.audioData.getChannelData(0);
           let frameLength = ch0.length;
-          //let framesPerPixel = frameLength / this.virtualDimension.width;
           let vPixelPos = this._playFramePosition * vw / frameLength;
           let pixelPos=vPixelPos;
           if(this.bounds){
@@ -217,31 +216,31 @@ export class AudioSignal extends CanvasLayerComponent{
     }
   }
 
-    startDraw(bounds:Rectangle,virtualDimension:Dimension) {
-      this.signalCanvas.style.left=bounds.position.left.toString()+'px';
-      this.signalCanvas.width = bounds.dimension.width;
-      this.signalCanvas.height = bounds.dimension.height;
+    startDraw() {
+      this.signalCanvas.style.left=this.bounds.position.left.toString()+'px';
+      this.signalCanvas.width = this.bounds.dimension.width;
+      this.signalCanvas.height = this.bounds.dimension.height;
         let g = this.signalCanvas.getContext("2d");
         if (g) {
             //g.clearRect(0, 0,w, h);
             g.fillStyle = "black";
-            g.fillRect(0, 0, bounds.dimension.width, bounds.dimension.height);
+            g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
         }
-        this.startRender(bounds,virtualDimension);
+        this.startRender();
     }
 
 
-    private startRender(bounds:Rectangle,virtualDimension:Dimension) {
+    private startRender() {
 
     if (this.wo) {
       this.wo.terminate();
       this.wo = null;
 
     }
-    if(bounds.dimension) {
+    if(this.bounds && this.bounds.dimension) {
 
-      let w = Math.round(bounds.dimension.width);
-      let h = Math.round(bounds.dimension.height);
+      let w = Math.round(this.bounds.dimension.width);
+      let h = Math.round(this.bounds.dimension.height);
 
       if (this.audioData) {
         this.wo = new Worker(this.workerURL);
@@ -269,11 +268,11 @@ export class AudioSignal extends CanvasLayerComponent{
         }
 
         this.wo.postMessage({
-          l: bounds.position.left,
-          t: bounds.position.top,
+          l: this.bounds.position.left,
+          t: this.bounds.position.top,
           w: w,
           h: h,
-          vw: virtualDimension.width,
+          vw: this.virtualDimension.width,
           chs: chs,
           frameLength: frameLength,
           audioData: ad

@@ -29,9 +29,9 @@ export abstract class CanvasLayerComponent{
     for(let ci=0;ci<this.canvasLayers.length;ci++) {
       let cl = this.canvasLayers[ci];
       const leftStyle=bounds.position.left.toString() + 'px';
-      console.log("Canvas left: "+leftStyle)
-      cl.style.left = bounds.position.left.toString() + 'px';
-      cl.style.top = top.toString() + 'px';
+        const topStyle=bounds.position.top.toString() + 'px';
+      cl.style.left = leftStyle;
+      cl.style.top = topStyle;
     }
       if (bounds.dimension.width) {
         let wStr = bounds.dimension.width.toString() + 'px';
@@ -41,6 +41,7 @@ export abstract class CanvasLayerComponent{
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
               cl.width = bounds.dimension.width;
+
             }
           }
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
@@ -66,9 +67,9 @@ export abstract class CanvasLayerComponent{
       //});
 
     if (redraw) {
-      this.startDraw(bounds,virtualDimension);
+      this.startDraw();
     }
   }
 
-  abstract startDraw(bounds:Rectangle,virtualDimension:Dimension):void;
+  abstract startDraw():void;
 }

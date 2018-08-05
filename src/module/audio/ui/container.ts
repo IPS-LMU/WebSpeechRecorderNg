@@ -294,13 +294,14 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
         cWidth=this._clipBounds.dimension.width;
       }
 
+      let virtualDim=new Dimension(offW,0)
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 
-      this.as.layoutBounds(asR, new Dimension(offW,0),true);
+      this.as.layoutBounds(asR, virtualDim,true);
 
       let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
 
-      this.so.layoutBounds(cLeft, soTop, cWidth, soH, offW, true);
+      this.so.layoutBounds(soR, virtualDim, true);
     }
   }
 

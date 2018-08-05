@@ -3,6 +3,8 @@ import {DSPUtils} from '../../dsp/utils'
 import {CSSUtils} from '../../utils/css_utils'
 import {Marker, Point} from './common';
 import {Component, ElementRef, ViewChild} from "@angular/core";
+import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
+import {Dimension, Rectangle} from "../../math/2d/geometry";
 
 
 declare function postMessage(message: any, transfer: Array<any>): void;
@@ -27,7 +29,7 @@ const DEFAULT_DFT_SIZE = 1024;
   }`]
 
 })
-export class Sonagram {
+export class Sonagram  extends CanvasLayerComponent{
 
   audioData: AudioBuffer | null;
   dft: DFTFloat32;
@@ -47,6 +49,7 @@ export class Sonagram {
   private dftSize = DEFAULT_DFT_SIZE;
 
   constructor(private ref: ElementRef) {
+    super();
     this.wo = null;
     this.audioData = null;
     this.markers = new Array<Marker>();
@@ -64,6 +67,10 @@ export class Sonagram {
     this.cursorCanvas.style.zIndex = '3';
     this.markerCanvas = this.markerCanvasRef.nativeElement;
     this.markerCanvas.style.zIndex = '2';
+
+      this.canvasLayers[0]=this.sonagramCanvas;
+      this.canvasLayers[1]=this.cursorCanvas;
+      this.canvasLayers[2]=this.markerCanvas;
 
   }
 
@@ -128,12 +135,19 @@ export class Sonagram {
       var h = this.markerCanvas.height;
       var g = this.markerCanvas.getContext("2d");
       if (g) {
+          let vw=w;
+          if(this.virtualDimension){
+              vw=this.virtualDimension.width;
+          }
         g.clearRect(0, 0, w, h);
         if (this.audioData && this.audioData.numberOfChannels > 0) {
           var ch0 = this.audioData.getChannelData(0);
           var frameLength = ch0.length;
-          var framesPerPixel = frameLength / w;
-          var pixelPos = this._playFramePosition * w / frameLength;
+            let vPixelPos = this._playFramePosition * vw / frameLength;
+            let pixelPos=vPixelPos;
+            if(this.bounds){
+                pixelPos=vPixelPos-this.bounds.position.left;
+            }
           g.fillStyle = 'red';
           g.strokeStyle = 'red';
           g.beginPath();
@@ -155,46 +169,48 @@ export class Sonagram {
   // }
 
 
-  layoutBounds(left: number, top: number, offW: number, offH: number, virtualWidth:number,redraw: boolean) {
+  // layoutBounds(left: number, top: number, offW: number, offH: number, virtualWidth:number,redraw: boolean) {
+  //
+  //   const leftStr = left.toString() + 'px';
+  //   this.sonagramCanvas.style.left = leftStr;
+  //   const topStr = top.toString() + 'px';
+  //   this.sonagramCanvas.style.top = topStr;
+  //   this.cursorCanvas.style.top = topStr;
+  //   this.markerCanvas.style.top = topStr;
+  //
+  //   if (offW) {
+  //     const wStr = offW.toString() + 'px';
+  //     if (redraw) {
+  //
+  //       this.cursorCanvas.width = offW;
+  //       this.markerCanvas.width = offW;
+  //     }
+  //     this.sonagramCanvas.style.width = wStr;
+  //     this.cursorCanvas.style.width = wStr;
+  //     this.markerCanvas.style.width = wStr;
+  //   }
+  //   if (offH) {
+  //     const hStr = offH.toString() + 'px';
+  //     if (redraw) {
+  //       this.cursorCanvas.height = offH;
+  //       this.markerCanvas.height = offH;
+  //     }
+  //     this.sonagramCanvas.style.height = hStr;
+  //     this.cursorCanvas.style.height = hStr;
+  //     this.markerCanvas.style.height = hStr;
+  //
+  //   }
+  //   if (redraw) {
+  //     //this.redraw();
+  //     if (offW > 0) {
+  //       if (offH > 0) {
+  //         this.startDraw(left,top,offW, offH,virtualWidth);
+  //       }
+  //     }
+  //   }
+  // }
 
-    const leftStr = left.toString() + 'px';
-    this.sonagramCanvas.style.left = leftStr;
-    const topStr = top.toString() + 'px';
-    this.sonagramCanvas.style.top = topStr;
-    this.cursorCanvas.style.top = topStr;
-    this.markerCanvas.style.top = topStr;
 
-    if (offW) {
-      const wStr = offW.toString() + 'px';
-      if (redraw) {
-
-        this.cursorCanvas.width = offW;
-        this.markerCanvas.width = offW;
-      }
-      this.sonagramCanvas.style.width = wStr;
-      this.cursorCanvas.style.width = wStr;
-      this.markerCanvas.style.width = wStr;
-    }
-    if (offH) {
-      const hStr = offH.toString() + 'px';
-      if (redraw) {
-        this.cursorCanvas.height = offH;
-        this.markerCanvas.height = offH;
-      }
-      this.sonagramCanvas.style.height = hStr;
-      this.cursorCanvas.style.height = hStr;
-      this.markerCanvas.style.height = hStr;
-
-    }
-    if (redraw) {
-      //this.redraw();
-      if (offW > 0) {
-        if (offH > 0) {
-          this.startDraw(left,top,offW, offH,virtualWidth);
-        }
-      }
-    }
-  }
 
 
   workerFunction() {
@@ -544,65 +560,77 @@ export class Sonagram {
     }
   }
 
-  startDraw(left:number,top:number,w: number, h: number,vw:number) {
-    this.sonagramCanvas.style.left=left.toString()+'px';
-    this.sonagramCanvas.width = w;
-    this.sonagramCanvas.height = h;
-    let g = this.sonagramCanvas.getContext("2d");
-    if (g) {
-      //g.clearRect(0, 0,w, h);
-      g.fillStyle = "black";
-      g.fillRect(0, 0, w, h);
-    }
-    this.startRender(left, top, w, h, vw);
+  startDraw() {
+      this.sonagramCanvas.style.left = this.bounds.position.left.toString() + 'px';
+      this.sonagramCanvas.width = this.bounds.dimension.width;
+      this.sonagramCanvas.height = this.bounds.dimension.height;
+      let g = this.sonagramCanvas.getContext("2d");
+      if (g) {
+          //g.clearRect(0, 0,w, h);
+          g.fillStyle = "black";
+          g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
+      }
+      this.startRender();
   }
 
-
-  private startRender(left:number,top:number,w: number, h: number,vw:number) {
+  private startRender() {
 
     if (this.wo) {
       this.wo.terminate();
       this.wo = null;
 
     }
-    if (this.audioData && w && h) {
-      w = Math.round(w);
-      h = Math.round(h);
+      if (this.bounds) {
+          let w = Math.round(this.bounds.dimension.width);
+          let h = Math.round(this.bounds.dimension.height);
 
-      this.wo = new Worker(this.workerURL);
 
-      let chs = this.audioData.numberOfChannels;
+          if (this.audioData) {
 
-      let frameLength = this.audioData.getChannelData(0).length;
-      let ada = new Array<ArrayBuffer>(chs);
-      for (let ch = 0; ch < chs; ch++) {
-        // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
-        ada[ch] = this.audioData.getChannelData(ch).buffer.slice(0);
-      }
-      let start = Date.now();
-      if (this.wo) {
-        this.wo.onmessage = (me) => {
-          this.drawRendered(me);
-          if (this.wo) {
-            this.wo.terminate();
+              this.wo = new Worker(this.workerURL);
+
+              let chs = this.audioData.numberOfChannels;
+
+              let frameLength = this.audioData.getChannelData(0).length;
+              let ada = new Array<ArrayBuffer>(chs);
+              for (let ch = 0; ch < chs; ch++) {
+                  // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                  ada[ch] = this.audioData.getChannelData(ch).buffer.slice(0);
+              }
+              let start = Date.now();
+              if (this.wo) {
+                  this.wo.onmessage = (me) => {
+                      this.drawRendered(me);
+                      if (this.wo) {
+                          this.wo.terminate();
+                      }
+                      this.wo = null;
+                  }
+              }
+              if (this.markerCanvas) {
+                  let g = this.markerCanvas.getContext("2d");
+                  if (g) {
+                      g.fillText("Rendering...", 10, 20);
+                  }
+
+              }
+              this.wo.postMessage({
+                  audioData: ada,
+                  l: this.bounds.position.left,
+                  w: w,
+                  h: h,
+                  vw: this.virtualDimension.width,
+                  chs: chs,
+                  frameLength: frameLength,
+                  dftSize: this.dftSize
+              }, ada);
+          } else {
+              let g = this.sonagramCanvas.getContext("2d");
+              if (g) {
+                  g.clearRect(0, 0, w, h);
+              }
           }
-          this.wo = null;
-        }
       }
-      if (this.markerCanvas) {
-        let g = this.markerCanvas.getContext("2d");
-        if (g) {
-          g.fillText("Rendering...", 10, 20);
-        }
-
-      }
-      this.wo.postMessage({audioData: ada,l:left, w: w, h: h, vw:vw,chs: chs, frameLength: frameLength, dftSize: this.dftSize}, ada);
-    } else {
-      let g = this.sonagramCanvas.getContext("2d");
-      if (g) {
-        g.clearRect(0, 0, w, h);
-      }
-    }
   }
 
   drawRendered(me: MessageEvent) {
