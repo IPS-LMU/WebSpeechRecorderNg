@@ -560,15 +560,18 @@ export class Sonagram  extends CanvasLayerComponent{
     }
   }
 
-  startDraw() {
+  startDraw(clear=true) {
+      if(clear) {
       this.sonagramCanvas.style.left = this.bounds.position.left.toString() + 'px';
       this.sonagramCanvas.width = this.bounds.dimension.width;
       this.sonagramCanvas.height = this.bounds.dimension.height;
-      let g = this.sonagramCanvas.getContext("2d");
-      if (g) {
-          //g.clearRect(0, 0,w, h);
-          g.fillStyle = "black";
-          g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
+
+          let g = this.sonagramCanvas.getContext("2d");
+          if (g) {
+              //g.clearRect(0, 0,w, h);
+              g.fillStyle = "white";
+              g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
+          }
       }
       this.startRender();
   }

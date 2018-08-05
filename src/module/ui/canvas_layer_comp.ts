@@ -21,7 +21,7 @@ export abstract class CanvasLayerComponent{
     }
   }
 
-  layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
+  layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean,clear?:boolean) {
 
     this.bounds=bounds;
     this.virtualDimension=virtualDimension;
@@ -67,9 +67,9 @@ export abstract class CanvasLayerComponent{
       //});
 
     if (redraw) {
-      this.startDraw();
+      this.startDraw(clear);
     }
   }
 
-  abstract startDraw():void;
+  abstract startDraw(clear:boolean):void;
 }

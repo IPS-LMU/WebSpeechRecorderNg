@@ -216,16 +216,19 @@ export class AudioSignal extends CanvasLayerComponent{
     }
   }
 
-    startDraw() {
+    startDraw(clear=true) {
+        if(clear) {
       this.signalCanvas.style.left=this.bounds.position.left.toString()+'px';
       this.signalCanvas.width = this.bounds.dimension.width;
       this.signalCanvas.height = this.bounds.dimension.height;
-        let g = this.signalCanvas.getContext("2d");
-        if (g) {
-            //g.clearRect(0, 0,w, h);
-            g.fillStyle = "black";
-            g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
-        }
+
+          let g = this.signalCanvas.getContext("2d");
+          if (g) {
+              //g.clearRect(0, 0,w, h);
+              g.fillStyle = "black";
+              g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
+          }
+      }
         this.startRender();
     }
 
@@ -289,14 +292,14 @@ export class AudioSignal extends CanvasLayerComponent{
 
   drawRendered(me: MessageEvent) {
 
-    //this.signalCanvas.style.left=me.data.l.toString()+'px';
-    //this.signalCanvas.width = me.data.w;
-    //this.signalCanvas.height = me.data.h;
+    this.signalCanvas.style.left=me.data.l.toString()+'px';
+    this.signalCanvas.width = me.data.w;
+    this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");
     if (g) {
-      // g.clearRect(0, 0, me.data.w, me.data.h);
-      //g.fillStyle = "black";
-      //g.fillRect(0, 0, me.data.w, me.data.h);
+        g.clearRect(0, 0, me.data.w, me.data.h);
+        g.fillStyle = "black";
+        g.fillRect(0, 0, me.data.w, me.data.h);
       let pointsLen = me.data.w * me.data.chs;
       // one for min one for max
       let arrLen = pointsLen * 2;

@@ -131,7 +131,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   onMouseup(me:MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
-      this.layout();
+      this.layout(false);
       this.dragStartY = null;
     }
   }
@@ -262,7 +262,8 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this.layout();
   }
 
-  layout() {
+  layout(clear=true) {
+
     if(this.ce && this.dc) {
 
       const clientW=this.ce.clientWidth;
@@ -314,11 +315,11 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       let virtualDim=new Dimension(offW,0)
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 
-      this.as.layoutBounds(asR, virtualDim,true);
+      this.as.layoutBounds(asR, virtualDim,true,clear);
 
       let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
 
-      this.so.layoutBounds(soR, virtualDim, true);
+      this.so.layoutBounds(soR, virtualDim, true,clear);
     }
   }
 
