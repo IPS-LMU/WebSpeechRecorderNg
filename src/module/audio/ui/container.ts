@@ -27,9 +27,8 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
     left: 0;
     width: 100%;
     height: 100%;
-
-    /*position: absolute;*/
-    box-sizing: border-box;
+    /* position: absolute; */ /* TODO container div position must not be 'static' (default) to cat as reference for the canvases */
+      box-sizing: border-box;
   }`, `canvas{
     top: 0;
     left: 0;
@@ -271,8 +270,8 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
         const newClW=Math.round(this._audioData.length/this.xZoom);
         this.ce.style.width=newClW+'px';
       }else{
-
-        this.ce.style.width=clientW+'px';
+          // TODO Sets width to zero in WebSpeechRecorder collapseable display
+          this.ce.style.width=clientW+'px';
       }
 
 
