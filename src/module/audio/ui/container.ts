@@ -27,8 +27,8 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
     left: 0;
     width: 100%;
     height: 100%;
-    /* position: absolute; */ /* TODO container div position must not be 'static' (default) to cat as reference for the canvases */
-      box-sizing: border-box;
+    position: relative; /* TODO container div position must not be 'static' (default) to act as reference for the canvases */
+    box-sizing: border-box;
   }`, `canvas{
     top: 0;
     left: 0;
@@ -74,7 +74,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   private dragStartY: number | null = null;
   private dividerPosition = 0.5;
 
-  private xZoom:number | null;
+  private xZoom:number | null=null;
 
   constructor(private ref: ElementRef) {
   this.parentE=this.ref.nativeElement;
@@ -266,12 +266,17 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     if(this.ce && this.dc) {
 
       const clientW=this.ce.clientWidth;
+      const offsetW=this.ce.offsetWidth;
+      const scrollW=this.ce.scrollWidth;
+      console.log("Audioclip container width: Client: "+clientW+", offset: "+offsetW+", scroll: "+scrollW);
       if(this.xZoom){
         const newClW=Math.round(this._audioData.length/this.xZoom);
         this.ce.style.width=newClW+'px';
       }else{
           // TODO Sets width to zero in WebSpeechRecorder collapseable display
-          this.ce.style.width=clientW+'px';
+
+        // Set the virtual canvas width to the visible width only
+        this.ce.style.width = clientW + 'px';
       }
 
 
