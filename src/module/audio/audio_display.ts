@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit,
+  AfterViewInit, Input, AfterContentInit,
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -19,9 +19,10 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
   template: `
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-    
-    <app-audiodisplaycontrol [playStartAction]="playStartAction"
-                             [playStopAction]="playStopAction"></app-audiodisplaycontrol>
+
+    <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled">Start</button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled">Stop</button>
+    Zoom:<button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
+    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><p>{{status}}
   `,
   styles: [
       `:host {
@@ -46,6 +47,10 @@ export class AudioDisplay implements AudioPlayerListener, AfterViewInit {
   private _audioUrl: string;
   playStartAction: Action;
   playStopAction: Action;
+
+  zoomInAction:Action;
+  zoomOutAction:Action;
+
   aCtx: AudioContext;
   ap: AudioPlayer;
   status: string;
@@ -61,9 +66,12 @@ export class AudioDisplay implements AudioPlayerListener, AfterViewInit {
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef) {
     this.playStartAction = new Action("Start");
     this.playStopAction = new Action("Stop");
+
   }
 
   ngAfterViewInit() {
+    this.zoomOutAction=this.ac.zoomOutAction;
+    this.zoomInAction=this.ac.zoomInAction;
     this.init();
     this.route.queryParams.subscribe((params: Params) => {
       if (params['url']) {

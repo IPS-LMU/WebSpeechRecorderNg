@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, HostListener, ElementRef,
+  AfterViewInit, HostListener, ElementRef, Output,
 } from '@angular/core'
 
 
@@ -38,8 +38,8 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
     padding: 0;
     top: 0;
     left: 0;
-    width: 1000px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
 
     /*position: absolute;*/
     box-sizing: border-box;
@@ -49,8 +49,11 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 export class AudioDisplayScrollPane{
 
   private spEl:HTMLElement;
-  playStartAction: Action;
-  playStopAction: Action;
+
+  @Output() zoomInAction:Action=new Action('+');
+  @Output() zoomOutAction:Action=new Action('-');
+  zoomFitToPanelAction:Action;
+  zoomFixFitToPanelAction:Action;
 
 
   @ViewChild(AudioClipUIContainer)
@@ -60,6 +63,19 @@ export class AudioDisplayScrollPane{
 
   constructor( private ref: ElementRef) {
   this.spEl=this.ref.nativeElement;
+
+    this.zoomInAction.onAction=(e)=>{
+      this.ac.fixFitToPanel=false
+      let oldXZoom=this.ac.xZoom
+      let newXzoom=oldXZoom*2;
+      this.ac.xZoom=newXzoom;
+    }
+    this.zoomOutAction.onAction=(e)=>{
+      this.ac.fixFitToPanel=false
+      let oldXZoom=this.ac.xZoom
+      let newXzoom=oldXZoom/2;
+      this.ac.xZoom=newXzoom;
+    }
   }
 
   @HostListener('scroll', ['$event'])
@@ -72,6 +88,10 @@ export class AudioDisplayScrollPane{
 
   set audioData(audioData: AudioBuffer | null) {
     this.ac.audioData=audioData;
+    if(audioData){
+      this.zoomOutAction.disabled=false
+      this.zoomInAction.disabled=false
+    }
   }
 
   set playFramePosition(framePos:number){

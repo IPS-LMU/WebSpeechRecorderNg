@@ -51,6 +51,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 
 })
 export class AudioClipUIContainer implements OnInit,AfterViewInit {
+
   private static DIVIDER_PIXEL_SIZE = 10;
 
   parentE: HTMLElement;
@@ -74,7 +75,27 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   private dragStartY: number | null = null;
   private dividerPosition = 0.5;
 
-  private xZoom:number | null=null;
+  private _xZoom:number | null=null; // pixels per second
+  get xZoom(): number | null {
+    return this._xZoom;
+  }
+
+  set xZoom(value: number | null) {
+    this._xZoom = value;
+    this.layout()
+  }
+
+  private _fixFitToPanel=true;
+  set fixFitToPanel(value: boolean) {
+    this._fixFitToPanel = value;
+    if(value) {
+      this._xZoom = null;
+    }else{
+      // hold current zoom value
+      this._xZoom=this.ce.offsetWidth/this._audioData.duration;
+    }
+    this.layout()
+  }
 
   constructor(private ref: ElementRef) {
   this.parentE=this.ref.nativeElement;
@@ -269,15 +290,19 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       const offsetW=this.ce.offsetWidth;
       const scrollW=this.ce.scrollWidth;
       console.log("Audioclip container width: Client: "+clientW+", offset: "+offsetW+", scroll: "+scrollW);
-      if(this.xZoom){
-        const newClW=Math.round(this._audioData.length/this.xZoom);
-        this.ce.style.width=newClW+'px';
-      }else{
-          // TODO Sets width to zero in WebSpeechRecorder collapseable display
 
-        // Set the virtual canvas width to the visible width only
-        this.ce.style.width = clientW + 'px';
+          // TODO Sets width to zero in WebSpeechRecorder collapseable display
+      if(!this._fixFitToPanel) {
+        if (this._xZoom) {
+          const newClW = Math.round( this._xZoom*this._audioData.duration );
+          this.ce.style.width = newClW + 'px';
+        } else {
+          // Set the virtual canvas width to the visible width only
+          this.ce.style.width = clientW + 'px';
+        }
       }
+
+      this._xZoom=this.ce.offsetWidth/this._audioData.duration;
 
 
       const offW = this.ce.offsetWidth;
