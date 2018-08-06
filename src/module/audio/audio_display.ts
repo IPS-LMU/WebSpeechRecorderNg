@@ -19,10 +19,12 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
   template: `
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-
+  
+    <div #controlPanel>
     <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled">Start</button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled">Stop</button>
     Zoom:<button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><p>{{status}}
+    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
+    </div><p>{{status}}
   `,
   styles: [
       `:host {
@@ -37,9 +39,6 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
       z-index: 5;
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0.75)
-    }`,
-      `app-audio {
-      
     }`]
 
 })
