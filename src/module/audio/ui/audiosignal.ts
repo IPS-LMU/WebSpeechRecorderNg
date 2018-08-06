@@ -138,7 +138,7 @@ export class AudioSignal extends CanvasLayerComponent{
           let vPixelPos = this._playFramePosition * vw / frameLength;
           let pixelPos=vPixelPos;
           if(this.bounds){
-            pixelPos=vPixelPos-this.bounds.position.left;
+            pixelPos=Math.round(vPixelPos-this.bounds.position.left);
           }
           g.fillStyle = 'red';
           g.strokeStyle = 'red';
@@ -218,15 +218,16 @@ export class AudioSignal extends CanvasLayerComponent{
 
     startDraw(clear=true) {
         if(clear) {
-      this.signalCanvas.style.left=this.bounds.position.left.toString()+'px';
-      this.signalCanvas.width = this.bounds.dimension.width;
-      this.signalCanvas.height = this.bounds.dimension.height;
+
+      this.signalCanvas.style.left=Math.round(this.bounds.position.left).toString()+'px';
+      this.signalCanvas.width = Math.round(this.bounds.dimension.width);
+      this.signalCanvas.height = Math.round(this.bounds.dimension.height);
 
           let g = this.signalCanvas.getContext("2d");
           if (g) {
               //g.clearRect(0, 0,w, h);
               g.fillStyle = "black";
-              g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
+              g.fillRect(0, 0, Math.round(this.bounds.dimension.width), Math.round(this.bounds.dimension.height));
           }
       }
         this.startRender();
@@ -271,11 +272,11 @@ export class AudioSignal extends CanvasLayerComponent{
         }
 
         this.wo.postMessage({
-          l: this.bounds.position.left,
-          t: this.bounds.position.top,
+          l: Math.round(this.bounds.position.left),
+          t: Math.round(this.bounds.position.top),
           w: w,
           h: h,
-          vw: this.virtualDimension.width,
+          vw: Math.round(this.virtualDimension.width),
           chs: chs,
           frameLength: frameLength,
           audioData: ad

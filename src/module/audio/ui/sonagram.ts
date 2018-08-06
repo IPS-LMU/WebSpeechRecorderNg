@@ -146,7 +146,7 @@ export class Sonagram  extends CanvasLayerComponent{
             let vPixelPos = this._playFramePosition * vw / frameLength;
             let pixelPos=vPixelPos;
             if(this.bounds){
-                pixelPos=vPixelPos-this.bounds.position.left;
+                pixelPos=Math.round(vPixelPos-this.bounds.position.left);
             }
           g.fillStyle = 'red';
           g.strokeStyle = 'red';
@@ -562,15 +562,17 @@ export class Sonagram  extends CanvasLayerComponent{
 
   startDraw(clear=true) {
       if(clear) {
-      this.sonagramCanvas.style.left = this.bounds.position.left.toString() + 'px';
-      this.sonagramCanvas.width = this.bounds.dimension.width;
-      this.sonagramCanvas.height = this.bounds.dimension.height;
+      this.sonagramCanvas.style.left = Math.round(this.bounds.position.left).toString() + 'px';
+      let intW=Math.round(this.bounds.dimension.width)
+        let intH=Math.round(this.bounds.dimension.height)
+      this.sonagramCanvas.width = intW;
+      this.sonagramCanvas.height = intH;
 
           let g = this.sonagramCanvas.getContext("2d");
           if (g) {
               //g.clearRect(0, 0,w, h);
               g.fillStyle = "white";
-              g.fillRect(0, 0, this.bounds.dimension.width, this.bounds.dimension.height);
+              g.fillRect(0, 0, intW, intH);
           }
       }
       this.startRender();
@@ -619,10 +621,10 @@ export class Sonagram  extends CanvasLayerComponent{
               }
               this.wo.postMessage({
                   audioData: ada,
-                  l: this.bounds.position.left,
+                  l: Math.round(this.bounds.position.left),
                   w: w,
                   h: h,
-                  vw: this.virtualDimension.width,
+                  vw: Math.round(this.virtualDimension.width),
                   chs: chs,
                   frameLength: frameLength,
                   dftSize: this.dftSize

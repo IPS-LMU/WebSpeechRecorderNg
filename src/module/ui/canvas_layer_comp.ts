@@ -28,37 +28,39 @@ export abstract class CanvasLayerComponent{
     //this.canvasLayers.forEach(cl=>{
     for(let ci=0;ci<this.canvasLayers.length;ci++) {
       let cl = this.canvasLayers[ci];
-      const leftStyle=bounds.position.left.toString() + 'px';
-        const topStyle=bounds.position.top.toString() + 'px';
+      const leftStyle=Math.round(bounds.position.left).toString() + 'px';
+        const topStyle=Math.round(bounds.position.top).toString() + 'px';
       cl.style.left = leftStyle;
       cl.style.top = topStyle;
     }
       if (bounds.dimension.width) {
-        let wStr = bounds.dimension.width.toString() + 'px';
-
+        let intW=Math.round(bounds.dimension.width);
           if (redraw) {
+
             // Do not set width of background canvas (causes flicker on start render)
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
-              cl.width = bounds.dimension.width;
-
+              cl.width = intW;
             }
+
           }
+        let wStr = intW.toString() + 'px';
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
           let cl = this.canvasLayers[ci];
           cl.style.width = wStr;
         }
       }
       if (bounds.dimension.height) {
-        let hStr = bounds.dimension.height.toString() + 'px';
-
+        let intH=Math.round(bounds.dimension.height)
           if (redraw) {
+
             // Do not set height of background canvas (causes flicker on start render)
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
-              cl.height = bounds.dimension.height;
+              cl.height = intH;
             }
           }
+        let hStr = intH.toString() + 'px';
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
           let cl = this.canvasLayers[ci];
           cl.style.height = hStr;

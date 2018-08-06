@@ -69,12 +69,19 @@ export class AudioDisplayScrollPane{
       let oldXZoom=this.ac.xZoom
       let newXzoom=oldXZoom*2;
       this.ac.xZoom=newXzoom;
+
+      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
+      this.ac.clipBounds(cbr);
+
     }
     this.zoomOutAction.onAction=(e)=>{
       this.ac.fixFitToPanel=false
       let oldXZoom=this.ac.xZoom
       let newXzoom=oldXZoom/2;
       this.ac.xZoom=newXzoom;
+
+      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
+      this.ac.clipBounds(cbr);
     }
   }
 

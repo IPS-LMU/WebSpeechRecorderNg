@@ -92,7 +92,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       this._xZoom = null;
     }else{
       // hold current zoom value
-      this._xZoom=this.ce.offsetWidth/this._audioData.duration;
+      //this._xZoom=this.ce.offsetWidth/this._audioData.duration;
     }
     this.layout()
   }
