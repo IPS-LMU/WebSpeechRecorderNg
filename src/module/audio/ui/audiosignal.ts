@@ -94,8 +94,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         if (show) {
 
           let pp = this.canvasMousePos(this.cursorCanvas, e);
-          let offX = e.offsetX - this.cursorCanvas.offsetLeft;
-          let offY = e.offsetY - this.cursorCanvas.offsetTop;
+          let offX = e.offsetX;
+          let offY = e.offsetY;
           let pixelPos = offX;
           g.fillStyle = 'yellow';
           g.strokeStyle = 'yellow';

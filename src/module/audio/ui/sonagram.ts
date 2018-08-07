@@ -102,8 +102,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 g.clearRect(0, 0, w, h);
                 if (show) {
                     const pp = this.canvasMousePos(this.cursorCanvas, e);
-                    const offX = e.offsetX - this.cursorCanvas.offsetLeft;
-                    const offY = e.offsetY - this.cursorCanvas.offsetTop;
+                    const offX = e.offsetX ;
+                    const offY = e.offsetY ;
                     const pixelPos = offX;
                     g.fillStyle = 'yellow';
                     g.strokeStyle = 'yellow';
