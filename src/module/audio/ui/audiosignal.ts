@@ -2,6 +2,7 @@ import {Marker, Point} from './common'
 import {Component, ViewChild, ElementRef} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -24,9 +25,8 @@ declare function postMessage(message: any, transfer: Array<any>): void;
   }`]
 
 })
-export class AudioSignal extends CanvasLayerComponent{
+export class AudioSignal extends AudioCanvasLayerComponent{
 
-  audioData: AudioBuffer | null;
   n: any;
   ce: HTMLDivElement;
   @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
@@ -127,19 +127,9 @@ export class AudioSignal extends CanvasLayerComponent{
       let h = this.markerCanvas.height;
       let g = this.markerCanvas.getContext("2d");
       if (g) {
-        let vw=w;
-        if(this.virtualDimension){
-          vw=this.virtualDimension.width;
-        }
         g.clearRect(0, 0, w, h);
-        if (this.audioData && this.audioData.numberOfChannels > 0) {
-          let ch0 = this.audioData.getChannelData(0);
-          let frameLength = ch0.length;
-          let vPixelPos = this._playFramePosition * vw / frameLength;
-          let pixelPos=vPixelPos;
-          if(this.bounds){
-            pixelPos=Math.round(vPixelPos-this.bounds.position.left);
-          }
+        let pixelPos=this.frameToViewPortXPixelPosition(this._playFramePosition);
+        if(pixelPos){
           g.fillStyle = 'red';
           g.strokeStyle = 'red';
           g.beginPath();

@@ -12,6 +12,14 @@ export abstract class CanvasLayerComponent{
     this.canvasLayers=new Array<HTMLCanvasElement>();
   }
 
+  toXViewPortPixelPosition(virtualX:number){
+    let pixelPos=virtualX;
+      if(this.bounds){
+          pixelPos=Math.round(virtualX-this.bounds.position.left);
+      }
+      return pixelPos;
+  }
+
   toViewPortPosition(virtualPos:Position):Position{
 
     if(this.bounds){
