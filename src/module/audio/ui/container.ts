@@ -293,7 +293,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
           // TODO Sets width to zero in WebSpeechRecorder collapseable display
       if(!this._fixFitToPanel) {
-        if (this._xZoom) {
+        if (this._xZoom && this._audioData) {
           const newClW = Math.round( this._xZoom*this._audioData.duration );
           this.ce.style.width = newClW + 'px';
         } else {
@@ -302,7 +302,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
         }
       }
 
-      this._xZoom=this.ce.offsetWidth/this._audioData.duration;
+      if(this._audioData) {
+        this._xZoom = this.ce.offsetWidth / this._audioData.duration;
+      }
 
 
       const offW = this.ce.offsetWidth;
@@ -317,20 +319,26 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       const soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH;
 
       const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-      const wStr = offW.toString() + 'px';
+      const wStr = offW + 'px';
 
+      let left=0;
+      let intW=offW;
+      if(this._clipBounds) {
+        intW = Math.round(this._clipBounds.dimension.width);
+        left=Math.round(this._clipBounds.position.left);
+      }
       const dTop = asH;
-      const dTopStr = dTop.toString() + 'px';
+      const dTopStr = dTop + 'px';
 
       this.dc.style.top = dTopStr;
-      this.dc.style.left = '0px';
-      this.dc.style.width = wStr;
+      this.dc.style.left = left+'px';
+
+      this.dc.style.width = intW+'px';
 
       this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-      this.dc.width = offW;
+      this.dc.width = intW;
       this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
 
-      this.dc.style.width = wStr;
       this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
       this.drawDivider();
 
@@ -342,6 +350,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       }
 
       let virtualDim=new Dimension(offW,0)
+
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 
       this.as.layoutBounds(asR, virtualDim,true,clear);

@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, AfterContentInit,
+  AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked,
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -42,7 +42,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
     }`]
 
 })
-export class AudioDisplay implements AudioPlayerListener, AfterViewInit {
+export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
   private _audioUrl: string;
   playStartAction: Action;
   playStopAction: Action;
@@ -63,14 +63,29 @@ export class AudioDisplay implements AudioPlayerListener, AfterViewInit {
   private ac: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef) {
+    //console.log("constructor: "+this.ac);
     this.playStartAction = new Action("Start");
     this.playStopAction = new Action("Stop");
 
   }
 
-  ngAfterViewInit() {
+  ngOnInit(){
+    //console.log("OnInit: "+this.ac);
     this.zoomOutAction=this.ac.zoomOutAction;
     this.zoomInAction=this.ac.zoomInAction;
+  }
+
+  ngAfterContentInit(){
+    //console.log("AfterContentInit: "+this.ac);
+  }
+
+  ngAfterContentChecked(){
+    //console.log("AfterContentChecked: "+this.ac);
+  }
+
+  ngAfterViewInit() {
+    //console.log("AfterViewInit: "+this.ac);
+
     this.init();
     this.route.queryParams.subscribe((params: Params) => {
       if (params['url']) {
@@ -78,6 +93,11 @@ export class AudioDisplay implements AudioPlayerListener, AfterViewInit {
       }
     });
   }
+
+  ngAfterViewChecked(){
+    //console.log("AfterViewChecked: "+this.ac);
+  }
+
 
   init() {
 

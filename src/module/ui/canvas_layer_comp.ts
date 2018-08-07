@@ -28,8 +28,8 @@ export abstract class CanvasLayerComponent{
     //this.canvasLayers.forEach(cl=>{
     for(let ci=0;ci<this.canvasLayers.length;ci++) {
       let cl = this.canvasLayers[ci];
-      const leftStyle=Math.round(bounds.position.left).toString() + 'px';
-        const topStyle=Math.round(bounds.position.top).toString() + 'px';
+      const leftStyle=bounds.position.left+ 'px';
+        const topStyle=bounds.position.top + 'px';
       cl.style.left = leftStyle;
       cl.style.top = topStyle;
     }
@@ -60,7 +60,7 @@ export abstract class CanvasLayerComponent{
               cl.height = intH;
             }
           }
-        let hStr = intH.toString() + 'px';
+        let hStr = intH + 'px';
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
           let cl = this.canvasLayers[ci];
           cl.style.height = hStr;
