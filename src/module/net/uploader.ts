@@ -161,6 +161,7 @@
                   // The response body may contain clues as to what went wrong,
                   console.log(`Upload error: Server returned code ${err.status}, body was: ${err.error}`);
                 }
+                this.processError()
               });
         }
 
