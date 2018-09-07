@@ -3,11 +3,11 @@
     import {ResponseContentType} from "@angular/http";
 
     // state of an upload
-    export enum UploadStatus {IDLE = 1, UPLOADING = 2, ABORT = 3, DONE = 0, ERR = -1}
+    export enum UploadStatus {IDLE = 1, UPLOADING = 2,  ABORT = 3, DONE = 0, ERR = -1}
 
     // state of the uploader
     // TRY_UPLOADING is uploading state after an error (for example if disconnected from server)
-    export enum UploaderStatus { DONE = 0, UPLOADING = 1, TRY_UPLOADING = 2, ERR = -1}
+    export enum UploaderStatus { DONE = 0, UPLOADING = 1, TRY_UPLOADING = 2,NEXT = 3, ERR = -1}
 
     export class UploaderStatusChangeEvent {
         private _sizeQueued:number;
@@ -43,7 +43,7 @@
                 return 100;
             }
             let percent = Math.floor(this._sizeDone * 100 / this._sizeQueued);
-            console.log("Upload status: queued: "+this._sizeQueued+", done: "+this._sizeDone+", "+percent+"%")
+            //console.log("Upload status: queued: "+this._sizeQueued+", done: "+this._sizeDone+", "+percent+"%")
             return percent;
         }
 
@@ -51,7 +51,7 @@
 
     export class Upload {
 
-        private _data:any;
+        private _data:Blob;
         private _url:string;
         status: UploadStatus;
 
@@ -68,6 +68,11 @@
         get data():Blob {
             return this._data;
         }
+
+      public toString = () : string => {
+
+        return `Upload: Status: ${this.status}, URL: ${this._url}, Size: ${this._data.size}`;
+      }
     }
 
     export class Uploader {
@@ -80,6 +85,9 @@
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
 
+        private retryTimerRunning=false;
+        private retryTimerId: number;
+
         constructor(private http: HttpClient,private withCredentials:boolean=false) {
             this.que = new Array<Upload>();
         }
@@ -89,9 +97,9 @@
 
             ul.status = UploadStatus.DONE;
 
-            // remove upload rom queue
+            // remove upload from queue
             for (let i = 0; i < this.que.length; i++) {
-                if (this.que[i] == ul) {
+                if (this.que[i] === ul) {
                     // found, remove
                     this.que.splice(i, 1);
                     let ulSize = ul.data.size;
@@ -100,7 +108,7 @@
                 }
             }
             // set to done for now...
-            this.status = UploaderStatus.DONE;
+            this.status = UploaderStatus.NEXT;
             // continue
             this.process();
         }
@@ -113,33 +121,6 @@
             } else {
                 this.status = UploaderStatus.UPLOADING;
             }
-
-            // this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).toPromise()
-            //   .then(response => {
-            //
-            //     //console.log("Upload ret val:" + response.status + " " + response.statusText);
-            //     //if (response.status >= 200 && response.status < 300) {
-            //       if (this.DEBUG_DELAY) {
-            //         window.setTimeout(() => {
-            //           this.uploadDone(ul);
-            //         }, this.DEBUG_DELAY);
-            //       } else {
-            //         this.uploadDone(ul);
-            //
-            //       }
-            //     // } else {
-            //     //   ul.status = UploadStatus.ERR;
-            //     //   this.processError();
-            //     // }
-            //   })
-            //   .catch((e)=>{
-            //
-            //     // abort not supported by Angular HTTP ?
-            //     console.log("Upload error: "+e.toString());
-            //
-            //     ul.status = UploadStatus.ERR;
-            //     this.processError();
-            //   });
 
             this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).subscribe(
               data => {
@@ -159,61 +140,80 @@
                 } else {
                   // The backend returned an unsuccessful response code.
                   // The response body may contain clues as to what went wrong,
-                  console.log(`Upload error: Server returned code ${err.status}, body was: ${err.error}`);
+                  console.log(`Upload error: Server returned code ${err.status}`);
                 }
-                this.processError()
+                this.processError(ul)
               });
         }
 
-        private processError() {
-
+        private processError(ul:Upload) {
+            ul.status=UploadStatus.ERR
             this.status = UploaderStatus.ERR;
+
+
+
             let ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);
             if (this.listener) {
                 this.listener(ue);
             }
 
-            window.setTimeout(() => {
+            // set retry timer
+            this.retryTimerId=window.setTimeout(() => {
+                this.retryTimerRunning=false;
                 this.process();
             }, this.RETRY_DELAY);
-
+            this.retryTimerRunning=true;
         }
 
-        private process() {
-
-            let pul: Upload | null = null;
-
-            // only serial uploads for now
-            if (UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
-
-                let s = this.que.length;
-                for (let i = 0; i < s; i++) {
-                let ul = this.que[i];
-                    if (ul.status === UploadStatus.IDLE) {
-                        this.startUpload(ul);
-                        pul = ul;
-                        break;
-                }
-                }
-                if (!pul) {
-                // now failed uploads
-                for (let i = 0; i < s; i++) {
-                    let ul = this.que[i];
-                    if (ul.status === UploadStatus.ERR) {
-                        this.startUpload(ul);
-                        pul = ul;
-                        break;
-                    }
-                }
-                }
-            }
-            let ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);
-            if (this.listener) {
-                this.listener(ue);
-            }
-
-
+      private process() {
+        // clear retry timer if set
+        if(this.retryTimerRunning){
+          window.clearTimeout(this.retryTimerId)
+          this.retryTimerRunning=false
         }
+
+        let pul: Upload | null = null;
+
+        //console.log("Upload process, status: "+this.status)
+        // only serial uploads for now
+        if (UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
+          //console.log("Check IDLE uploads...")
+          let s = this.que.length;
+          for (let i = 0; i < s; i++) {
+            let ul = this.que[i];
+            //console.log("Upload "+ul+" status:"+ul.status)
+            if (ul.status === UploadStatus.IDLE) {
+              //console.log("Upload "+ul+" startUpload")
+              this.startUpload(ul);
+              pul = ul;
+              break;
+            }
+          }
+          if (!pul) {
+            //console.log("Check ERR uploads...")
+            // now failed uploads
+            for (let i = 0; i < s; i++) {
+              let ul = this.que[i];
+              //console.log("Upload "+ul+" status:"+ul.status)
+              if (ul.status === UploadStatus.ERR) {
+                //console.log("Upload (ERR) "+ul+" startUpload")
+                this.startUpload(ul);
+                pul = ul;
+                break;
+              }
+            }
+          }
+        }
+        if(!pul){
+          this.status=UploaderStatus.DONE
+        }
+        let ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);
+        if (this.listener) {
+          this.listener(ue);
+        }
+
+
+      }
 
         queueUpload(ul: Upload) {
             if (ul) {
