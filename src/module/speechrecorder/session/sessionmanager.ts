@@ -712,9 +712,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       maxRecordingTimeMs = this.promptItem.recduration;
     }
     this.maxRecTimerId = window.setTimeout(() => {
-      this.maxRecTimerRunning = false;
-      this.status = Status.STOPPING_STOP;
-      this.ac.stop();
+      this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
@@ -750,6 +748,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.promptItem.postrecording) {
       postDelay = this.promptItem.postrecording;
     }
+    console.log("Postrecording delay: "+postDelay)
 
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
@@ -771,6 +770,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       postDelay = this.promptItem.postrecording;
     }
 
+
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_PAUSE;
@@ -784,6 +784,16 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       window.clearTimeout(this.maxRecTimerId);
       this.maxRecTimerRunning = false;
     }
+    this.ac.stop();
+  }
+
+  stopRecordingMaxRec(){
+    if(this.postRecTimerRunning){
+        window.clearTimeout(this.postRecTimerId);
+        this.postRecTimerRunning=false;
+    }
+    this.maxRecTimerRunning = false;
+    this.status = Status.STOPPING_STOP;
     this.ac.stop();
   }
 
