@@ -28,6 +28,8 @@
             "promptItems": [
               {
                 "itemcode": "I1",
+                "recduration":8000,
+                "postrecording": 2000,
                 "recinstructions": {
                   "recinstructions": "Hier finden Sie kurze Anleitungen"
                 },
@@ -70,6 +72,7 @@
               {
                 "itemcode": "N0",
                 "recduration": 10000,
+
                 "recinstructions": {
                   "recinstructions": "Please answer:"
                 },
