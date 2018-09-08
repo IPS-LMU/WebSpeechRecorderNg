@@ -221,36 +221,25 @@ export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener 
 			return true;
         }
 
-        uploadUpdate(ue: UploaderStatusChangeEvent) {
-            let upStatus = ue.status;
-            this.dataSaved = (UploaderStatus.DONE === upStatus);
-            let percentUpl = ue.percentDone();
+  uploadUpdate(ue: UploaderStatusChangeEvent) {
+    let upStatus = ue.status;
+    this.dataSaved = (UploaderStatus.DONE === upStatus);
+    let percentUpl = ue.percentDone();
+    if (UploaderStatus.ERR === upStatus) {
+      this.sm.uploadStatus = 'warn'
+    } else {
+      if (percentUpl < 50) {
+        this.sm.uploadStatus = 'accent'
+      } else {
+        this.sm.uploadStatus = 'success'
+      }
+      this.sm.uploadProgress = percentUpl;
+    }
 
-            if(percentUpl<50){
-              this.sm.uploadStatus='accent'
-            }else{
-              this.sm.uploadStatus='success'
-            }
-            this.sm.uploadProgress=percentUpl;
+    this.changeDetectorRef.detectChanges()
+  }
 
-            // set progress bar type
-            // CSS class active (animated striped) consumes too much CPU
-            if (UploaderStatus.UPLOADING === upStatus) {
-
-            } else if (UploaderStatus.DONE === upStatus) {
-
-            } else if (UploaderStatus.TRY_UPLOADING === upStatus) {
-              this.sm.uploadStatus='success'
-            } else if (UploaderStatus.ERR === upStatus) {
-              this.sm.uploadStatus='warn'
-            }
-
-            //this.uploadProgresBarDivEl.style.width = percentUpl.toString() + '%';
-            //this.uploadProgresBarDivEl.innerText = "Upload " + ue.sizeDone + " of " + ue.sizeQueued + " bytes";
-            this.changeDetectorRef.detectChanges()
-        }
-
-    configure() {
+  configure() {
 
 
 

@@ -62,7 +62,6 @@ export class UploadStatus {
     }
 
     this._value = value;
-    console.log('Spinner value: ' + this._value)
   };
 
   @Input() status: string;
