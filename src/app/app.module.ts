@@ -13,7 +13,7 @@ import {
   MatMenuModule,
   MatToolbarModule
 } from "@angular/material";
-import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorder.module";
+import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
 import {AudioModule} from "../../projects/speechrecorderng/src/lib/audio/audio.module";
 import {SPR_CFG} from "./app.config";
 import {FlexLayoutModule} from "@angular/flex-layout";
