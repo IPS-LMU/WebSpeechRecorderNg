@@ -2,19 +2,19 @@ import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit} from '@a
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
-} from '../audio/playback/player';
-import { Script } from './script/script'
-import { SessionManager,Status as SessionManagerStatus} from  './session/sessionmanager';
-import { UploaderStatusChangeEvent, UploaderStatus } from '../net/uploader';
+} from './audio/playback/player';
+import { Script } from './speechrecorder/script/script'
+import { SessionManager,Status as SessionManagerStatus} from './speechrecorder/session/sessionmanager';
+import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import 'rxjs/add/operator/switchMap';
-import {SessionService} from "./session/session.service";
-import {ScriptService} from "./script/script.service";
-import {SpeechRecorderUploader} from "./spruploader";
-import {Session} from "./session/session";
-import {Project} from "./project/project";
-import {ProjectService} from "./project/project.service";
-import {AudioContextProvider} from "../audio/context";
+import {SessionService} from "./speechrecorder/session/session.service";
+import {ScriptService} from "./speechrecorder/script/script.service";
+import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
+import {Session} from "./speechrecorder/session/session";
+import {Project} from "./speechrecorder/project/project";
+import {ProjectService} from "./speechrecorder/project/project.service";
+import {AudioContextProvider} from "./audio/context";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -37,7 +37,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechRecorder implements OnInit,AfterViewInit,AudioPlayerListener {
+export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
 	  mode:Mode;
 		controlAudioPlayer:AudioPlayer;

@@ -2,7 +2,7 @@ import {Inject, Injectable, Optional} from '@angular/core';
 import {Http} from "@angular/http";
 import 'rxjs/add/operator/toPromise';
 
-import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 export const SESSION_API_CTX='session';
 

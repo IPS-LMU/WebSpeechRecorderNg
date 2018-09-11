@@ -3,7 +3,7 @@ import { NgModule} from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
 import { StartComponent} from "./start/start";
-import {AudioDisplay} from '../module/audio/audio_display';
+import {AudioDisplay} from '../../projects/speechrecorderng/src/lib/audio/audio_display';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
   MatButtonModule,
@@ -13,8 +13,8 @@ import {
   MatMenuModule,
   MatToolbarModule
 } from "@angular/material";
-import {SpeechRecorderModule} from "../module/speechrecorder/spr.module";
-import {AudioModule} from "../module/audio/audio.module";
+import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorder.module";
+import {AudioModule} from "../../projects/speechrecorderng/src/lib/audio/audio.module";
 import {SPR_CFG} from "./app.config";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
@@ -43,7 +43,7 @@ const appRoutes: Routes = [
   imports: [
       RouterModule.forRoot(appRoutes),FlexLayoutModule,BrowserAnimationsModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
 
-    BrowserModule,SpeechRecorderModule.forRoot(SPR_CFG),AudioModule
+    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule
   ],
   providers: [],
 

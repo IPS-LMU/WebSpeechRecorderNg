@@ -1,4 +1,4 @@
-import {ApiType, SpeechRecorderConfig} from "../module/speechrecorder/spr.config";
+import {ApiType, SpeechRecorderConfig} from "../../projects/speechrecorderng/src/lib/spr.config";
 
 
 export const SPR_CFG: SpeechRecorderConfig = {

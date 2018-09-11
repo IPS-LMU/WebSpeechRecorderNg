@@ -2,7 +2,7 @@ import {Inject, Injectable, Optional} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 
-import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 
