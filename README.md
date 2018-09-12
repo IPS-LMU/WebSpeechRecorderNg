@@ -260,6 +260,4 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 
 ### Build module
 
-Run `npm run module_transpile` and `npm run rollup_module` to build the module. The build artifacts will be stored in the `dist/module` directory.
-Copy `module_package.json` to `dist/module/package.json` and change to directory `dist/module`.
-Run `npm pack` to pack the NPM package.  
+Run `npm run build_module` to build the module. The build artifacts will be stored in the `dist/speechrecorderng` directory.
