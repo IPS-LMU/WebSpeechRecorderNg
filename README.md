@@ -1,6 +1,6 @@
 # SpeechRecorderNg
 
-A Speech Recording Tool implemented as an Angular 5 module.
+A Speech Recording Tool implemented as an Angular 6 module.
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli).
@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "0.0.64"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "0.1.1"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -20,13 +20,13 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import {SpeechRecorder, SpeechRecorderConfig, SpeechRecorderModule} from 'speechrecorderng'
+import {SpeechrecorderngComponent, SpeechRecorderConfig, SpeechrecorderngModule} from 'speechrecorderng'
 import {RouterModule, Routes} from '@angular/router';
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {MdButtonModule, MdDialogModule, MdIconModule, MdMenuModule, MdToolbarModule} from "@angular/material";
 
 const MY_APP_ROUTES: Routes = [
-  { path: 'spr', component: SpeechRecorder}
+  { path: 'spr', component: SpeechrecorderngComponent}
 ];
 
 const SPR_CFG:SpeechRecorderConfig={
@@ -38,7 +38,7 @@ const SPR_CFG:SpeechRecorderConfig={
     AppComponent
   ],
   imports: [
-    RouterModule.forRoot(MY_APP_ROUTES),BrowserModule,BrowserAnimationsModule,SpeechRecorderModule.forRoot(SPR_CFG)
+    RouterModule.forRoot(MY_APP_ROUTES),BrowserModule,BrowserAnimationsModule,SpeechrecorderngModule.forRoot(SPR_CFG)
     ],
   providers: [],
   bootstrap: [AppComponent]
