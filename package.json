@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.0.65",
+  "version": "0.1.0",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -8,9 +8,8 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "apply_version": "node bin/apply_version.js",
-    "prepare_module_package": "node bin/copy_module_package_cfg.js",
-    "build_module": "npm run module_transpile && npm run rollup_module && npm run minify_module && npm run prepare_module_package",
+    "apply_module_version": "node bin/apply_version.js",
+    "build_module": "npm run apply_module_version && ng build speechrecorderng",
     "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
     "publish_module": "cd dist && cd speechrecorderng && rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",
@@ -43,7 +42,7 @@
     "intl": "^1.2.5",
     "rxjs": "6.2.2",
     "webpack": "^4.18.0",
-    "zone.js": "^0.8.18",
+    "zone.js": "^0.8.26",
     "rxjs-compat": "6.2.2"
   },
   "devDependencies": {
@@ -72,6 +71,7 @@
     "tslint": "~5.11.0",
     "typescript": "2.9.2",
     "uglify-js": "^3.4.9",
-    "fs-extra": "^7.0.0"
+    "fs-extra": "^7.0.0",
+    "ajv": "^6.5.3"
   }
 }
