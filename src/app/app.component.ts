@@ -1,5 +1,5 @@
 import {Component, Inject} from '@angular/core';
-import { VERSION } from '../module/speechrecorder/spr.module.version'
+import { VERSION } from '../../projects/speechrecorderng/src/lib/spr.module.version'
 
 
 @Component({

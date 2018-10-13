@@ -13,7 +13,7 @@ import {SESSION_API_CTX, SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {MatDialog,MatProgressBar} from "@angular/material";
 import {SpeechRecorderUploader} from "../spruploader";
-import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {AudioDevice} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";

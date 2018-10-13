@@ -15,6 +15,22 @@
     "lib": [
       "es2016",
       "dom"
-    ]
+    ],
+    "paths": {
+      "speechrecorderng": [
+        "dist/speechrecorderng",
+        "dist/speechrecorderng"
+      ],
+      "speechrecorderng/*": [
+        "dist/speechrecorderng/*",
+        "dist/speechrecorderng/*"
+      ],
+      "speechrecorder": [
+        "dist/speechrecorder"
+      ],
+      "speechrecorder/*": [
+        "dist/speechrecorder/*"
+      ]
+    }
   }
 }

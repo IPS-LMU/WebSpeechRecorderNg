@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "web-speech-recorder-ng": {
+     "web-speech-recorder-ng": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
@@ -112,6 +112,41 @@
               "e2e/tsconfig.e2e.json"
             ],
             "exclude": []
+          }
+        }
+      }
+    },
+    "speechrecorderng": {
+      "root": "projects/speechrecorderng",
+      "sourceRoot": "projects/speechrecorderng/src",
+      "projectType": "library",
+      "prefix": "lib",
+      "targets": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/speechrecorderng/tsconfig.lib.json",
+            "project": "projects/speechrecorderng/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/speechrecorderng/src/test.ts",
+            "tsConfig": "projects/speechrecorderng/tsconfig.spec.json",
+            "karmaConfig": "projects/speechrecorderng/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/speechrecorderng/tsconfig.lib.json",
+              "projects/speechrecorderng/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
           }
         }
       }
