@@ -298,8 +298,9 @@ export class PromptingContainer {
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
        
-            <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                       [audioData]="displayAudioBuffer"></app-audio>
+            <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
+                       [audioData]="displayAudioBuffer"></app-audiodisplay>
+      
         
     </div>
 
