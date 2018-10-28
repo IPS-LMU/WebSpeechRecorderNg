@@ -1,8 +1,8 @@
 import {
-  Component,
-  ViewChild,
-  ChangeDetectorRef,
-  AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked,
+    Component,
+    ViewChild,
+    ChangeDetectorRef,
+    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -44,6 +44,9 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 })
 export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
   private _audioUrl: string;
+
+  parentE: HTMLElement;
+
   playStartAction: Action;
   playStopAction: Action;
 
@@ -59,11 +62,13 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
   audio: any;
   updateTimerId: any;
 
+
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
 
-  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef) {
+  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
+      this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
     this.playStopAction = new Action("Stop");
 
@@ -87,12 +92,22 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
     //console.log("AfterViewInit: "+this.ac);
 
     this.init();
+      this.layout();
+      let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
+          mrs.forEach((mr:MutationRecord)=>{
+              if('attributes'===mr.type && ('class'===mr.attributeName || 'style'===mr.attributeName)){
+                  this.layout();
+              }
+          })
+      });
+      heightListener.observe(this.parentE,{attributes: true,childList: true, characterData: true});
     this.route.queryParams.subscribe((params: Params) => {
       if (params['url']) {
         this.audioUrl = params['url'];
       }
     });
   }
+
 
   ngAfterViewChecked(){
     //console.log("AfterViewChecked: "+this.ac);
@@ -113,6 +128,10 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
       this.playStopAction.onAction = () => this.ap.stop();
 
     }
+  }
+
+  layout(){
+    this.ac.layout();
   }
 
   get audioUrl(): string {
@@ -169,12 +188,17 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
 
     var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
       console.log("Samplerate: ", audioBuffer.sampleRate);
-      var clip = new AudioClip(audioBuffer);
+      this.audioData=audioBuffer;
+    });
+  }
+
+  @Input()
+  set audioData(audioBuffer: AudioBuffer){
+      let clip = new AudioClip(audioBuffer);
 
       this.ac.audioData = audioBuffer;
       this.ap.audioClip = clip;
       this.playStartAction.disabled = false
-    });
   }
 
 

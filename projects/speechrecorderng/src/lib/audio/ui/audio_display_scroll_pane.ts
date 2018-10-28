@@ -1,8 +1,8 @@
 import {
-  Component,
-  ViewChild,
-  ChangeDetectorRef,
-  AfterViewInit, HostListener, ElementRef, Output,
+    Component,
+    ViewChild,
+    ChangeDetectorRef,
+    AfterViewInit, HostListener, ElementRef, Output, OnInit,
 } from '@angular/core'
 
 
@@ -46,7 +46,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
   }`]
 
 })
-export class AudioDisplayScrollPane{
+export class AudioDisplayScrollPane {
 
   private spEl:HTMLElement;
 
@@ -62,29 +62,30 @@ export class AudioDisplayScrollPane{
 
 
   constructor( private ref: ElementRef) {
-  this.spEl=this.ref.nativeElement;
+      this.spEl = this.ref.nativeElement;
 
-    this.zoomInAction.onAction=(e)=>{
-      this.ac.fixFitToPanel=false
-      let oldXZoom=this.ac.xZoom
-      let newXzoom=oldXZoom*2;
-      this.ac.xZoom=newXzoom;
+      this.zoomInAction.onAction = (e) => {
+          this.ac.fixFitToPanel = false
+          let oldXZoom = this.ac.xZoom
+          let newXzoom = oldXZoom * 2;
+          this.ac.xZoom = newXzoom;
 
-      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
-      this.ac.clipBounds(cbr);
+          let cbr = new Rectangle(new Position(this.spEl.scrollLeft, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
+          this.ac.clipBounds(cbr);
 
-    }
-    this.zoomOutAction.onAction=(e)=>{
-      this.ac.fixFitToPanel=false
-      let cbr1=new Rectangle(new Position((this.spEl.scrollLeft/2)-this.spEl.clientWidth,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
-      this.ac.clipBounds(cbr1);
-      let oldXZoom=this.ac.xZoom
-      let newXzoom=oldXZoom/2;
-      this.ac.xZoom=newXzoom;
+      }
+      this.zoomOutAction.onAction = (e) => {
+          this.ac.fixFitToPanel = false
+          let cbr1 = new Rectangle(new Position((this.spEl.scrollLeft / 2) - this.spEl.clientWidth, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
+          this.ac.clipBounds(cbr1);
+          let oldXZoom = this.ac.xZoom
+          let newXzoom = oldXZoom / 2;
+          this.ac.xZoom = newXzoom;
 
-      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
-      this.ac.clipBounds(cbr);
-    }
+          let cbr = new Rectangle(new Position(this.spEl.scrollLeft, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
+          this.ac.clipBounds(cbr);
+      }
+
   }
 
   @HostListener('scroll', ['$event'])
@@ -94,6 +95,10 @@ export class AudioDisplayScrollPane{
       this.ac.clipBounds(cbr);
     });
   }
+
+  layout(){
+          this.ac.layout();
+    }
 
   set audioData(audioData: AudioBuffer | null) {
     this.ac.audioData=audioData;
