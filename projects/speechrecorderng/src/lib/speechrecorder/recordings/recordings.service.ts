@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient, HttpParams, HttpResponse} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpParams, HttpResponse} from "@angular/common/http";
 import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
@@ -15,6 +15,8 @@ import {Observable} from "rxjs";
 
 
 export const REC_API_CTX='recfile'
+
+
 
 @Injectable()
 export class RecordingService {
@@ -44,7 +46,7 @@ export class RecordingService {
 
   }
 
-  getRecording(projectName: string, sessId: string | number, itemcode: string): Observable<HttpResponse<ArrayBuffer>> {
+  private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string): Observable<HttpResponse<ArrayBuffer>> {
 
     let recUrl = this.recordingCtxUrl + '/' + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
       SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode;
@@ -64,25 +66,34 @@ export class RecordingService {
 
   }
 
-  decodeRecording(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string) {
+  // TODO test
+  fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string):Observable<RecordingFile|null> {
 
-
-  let obs=this.getRecording(projectName, sessId, itemcode);
-  obs.subscribe(resp => {
-      if (resp.status == 404) {
-        return null;
-      } else {
-        if (resp.ok) {
-          // TODO callbacks
-
-        } else {
-          return null;
-        }
-      }
+    let wobs = new Observable<RecordingFile | null>(observer=>{
+      let obs = this.fetchAudiofile(projectName, sessId, itemcode);
+      obs.subscribe(resp => {
+          let dec=aCtx.decodeAudioData(resp.body);
+          dec.then(ab=>{
+              let rf=new RecordingFile(sessId,itemcode,ab);
+              observer.next(rf);
+              observer.complete();
+          })
+        },
+        (error: HttpErrorResponse) => {
+          if (error.status == 404) {
+            // Interpret not as an error, the file ist not recorded yet
+            observer.next(null);
+            observer.complete()
+          }else{
+            // all other states are errors
+            observer.error(error);
+            observer.complete();
+          }
+        });
     });
 
+    return wobs;
   }
-
 }
 
 
