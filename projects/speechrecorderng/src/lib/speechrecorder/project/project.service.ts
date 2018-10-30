@@ -9,10 +9,10 @@ import {Project} from "./project";
 import {UUID} from "../../utils/utils";
 
 
-export const PROJECT_API_CTX='project'
 
 @Injectable()
 export class ProjectService {
+  public static readonly PROJECT_API_CTX='project'
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
   private httpParams:HttpParams;
@@ -30,7 +30,7 @@ export class ProjectService {
       this.withCredentials=config.withCredentials;
     }
 
-    this.projectCtxUrl = apiEndPoint + PROJECT_API_CTX;
+    this.projectCtxUrl = apiEndPoint + ProjectService.PROJECT_API_CTX;
     this.httpParams=new HttpParams();
     this.httpParams.set('cache','false');
   }

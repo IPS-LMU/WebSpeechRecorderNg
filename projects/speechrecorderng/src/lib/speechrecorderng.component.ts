@@ -148,6 +148,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
 
+    fetchRecordings(sess:Session,script:Script){
+
+    }
+
+
         setSession(session:any){
 		    if(session) {
                 console.log("Session ID: " + session.sessionId);
