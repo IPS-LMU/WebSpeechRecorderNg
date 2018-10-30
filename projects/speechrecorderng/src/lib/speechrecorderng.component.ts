@@ -15,6 +15,7 @@ import {Session} from "./speechrecorder/session/session";
 import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
+import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -60,6 +61,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
                 private sessionsService:SessionService,
                 private projectService:ProjectService,
                 private scriptService:ScriptService,
+                private recfileService:RecordingService,
                 private uploader:SpeechRecorderUploader) {
 		}
 
@@ -137,7 +139,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
         this.scriptService.getScript(sess.script).then(script=>{
           this.setScript(script)
           this.sm.session=sess;
-          this.sm.start();
+          //this.sm.start();
+          this.fetchRecordings(sess,script);
         })
           .catch(reason =>{
             this.sm.statusMsg=reason;
@@ -150,6 +153,34 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     fetchRecordings(sess:Session,script:Script){
 
+        let itemcodes=new Array<string>();
+        script.sections.forEach(s=>s.groups.forEach(g=>g.promptItems.forEach(pi=>{
+            let ic=pi.itemcode;
+            if(ic){
+                itemcodes.push(ic);
+            }
+        })));
+
+        itemcodes.forEach(ic=>{
+            let prjNm=null;
+            if(this.project){
+                prjNm=this.project.name;
+            }
+            let rfObs=this.recfileService.fetchRecordingFile(new AudioContext(),prjNm,sess.sessionId,ic);
+            rfObs.subscribe((rf)=>{
+                if(rf) {
+                    console.log("Rec file: " + rf.itemCode + " exists.")
+                }else{
+                    console.log("Rec file: " + ic + " does not yet exist.")
+                }
+            },(error:any)=>{
+                console.error("Rec file "+ic +" check failed !")
+            },()=>{
+                console.log("Rec file "+ic+" existence check complete.")
+
+            });
+        })
+        this.sm.start();
     }
 
 

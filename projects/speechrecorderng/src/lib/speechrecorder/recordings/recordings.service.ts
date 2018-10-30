@@ -48,8 +48,12 @@ export class RecordingService {
 
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string): Observable<HttpResponse<ArrayBuffer>> {
 
-    let recUrl = this.recordingCtxUrl + '/' + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode;
+    let recUrl = this.recordingCtxUrl + '/' + ProjectService.PROJECT_API_CTX;
+    if(projectName) {
+        recUrl = recUrl + '/' + projectName;
+    }
+    recUrl=recUrl+ '/' +SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode;
+
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
@@ -67,7 +71,7 @@ export class RecordingService {
   }
 
   // TODO test
-  fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string):Observable<RecordingFile|null> {
+  fetchRecordingFile(aCtx: AudioContext, projectName: string| null, sessId: string | number, itemcode: string):Observable<RecordingFile|null> {
 
     let wobs = new Observable<RecordingFile | null>(observer=>{
       let obs = this.fetchAudiofile(projectName, sessId, itemcode);
