@@ -21,7 +21,7 @@ import {TransportActions} from "./controlpanel";
   styles: [`:host {
 
     justify-content: left; /* align horizontal center */
-    align-items: left; /* align vertical  center */
+    align-items: flex-start; /* align vertical  center */
     background: white;
     text-align: left;
     font-size: 1em;
