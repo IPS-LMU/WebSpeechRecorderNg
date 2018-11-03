@@ -319,7 +319,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
             //console.log("Min: ",pv);
             g.lineTo(pii, y + (chH / 2) - pv);
           }
-          for (let pii = <number>me.data.w; pii >= 0; pii--) {
+          for (let pii = <number>me.data.w-1; pii >= 0; pii--) {
             let psMin = me.data.psMinMax[psMinPos + pii];
             let pv = psMin * chH / 2;
             //console.log("Max: ",pv);
