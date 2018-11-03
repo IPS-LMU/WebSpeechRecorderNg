@@ -71,6 +71,7 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
     this.playStopAction = new Action("Stop");
+    this.status="Player created.";
 
   }
 
