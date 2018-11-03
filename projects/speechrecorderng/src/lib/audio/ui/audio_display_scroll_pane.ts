@@ -52,8 +52,8 @@ export class AudioDisplayScrollPane {
 
   @Output() zoomInAction:Action=new Action('+');
   @Output() zoomOutAction:Action=new Action('-');
-  zoomFitToPanelAction:Action;
-  zoomFixFitToPanelAction:Action;
+  @Output() zoomFitToPanelAction:Action=new Action("Fit to panel");
+  zoomFixFitToPanelAction:Action=new Action("Fix fit to panel");
 
 
   @ViewChild(AudioClipUIContainer)
@@ -72,7 +72,7 @@ export class AudioDisplayScrollPane {
 
           let cbr = new Rectangle(new Position(this.spEl.scrollLeft, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
           this.ac.clipBounds(cbr);
-
+          this.zoomFitToPanelAction.disabled=false
       }
       this.zoomOutAction.onAction = (e) => {
           this.ac.fixFitToPanel = false
@@ -84,6 +84,21 @@ export class AudioDisplayScrollPane {
 
           let cbr = new Rectangle(new Position(this.spEl.scrollLeft, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
           this.ac.clipBounds(cbr);
+          this.zoomFitToPanelAction.disabled=false
+      }
+
+      this.zoomFitToPanelAction.onAction = (e) => {
+            //set temporary to fit fit to panel TODO should not be avoided
+          this.ac.fixFitToPanel=true;
+          // set container div width to this (viewport) width
+          this.ac.ce.style.width=this.spEl.offsetWidth+'px';
+          // we don't need  clip bounds
+          this.ac.clipBounds(null);
+          // reset xzom which trigegrs relayout and repaint
+          this.ac.xZoom = null;
+          // reset temporyr fix fit to panel
+          this.ac.fixFitToPanel=false;
+          this.zoomFitToPanelAction.disabled=true
       }
 
   }

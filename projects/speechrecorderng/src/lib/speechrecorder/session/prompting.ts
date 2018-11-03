@@ -8,6 +8,7 @@ import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
+import {Action} from "../../action/action";
 
 
 @Component({
@@ -299,7 +300,9 @@ export class PromptingContainer {
     <div #asCt [class.active]="!audioSignalCollapsed">
        
             <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                       [audioData]="displayAudioBuffer"></app-audiodisplay>
+                       [audioData]="displayAudioBuffer"
+                              [playStartAction]="playStartAction"
+                              [playStopAction]="playStopAction"></app-audiodisplay>
       
         
     </div>
@@ -387,6 +390,8 @@ export class Prompting {
 
   @Input() audioSignalCollapsed:boolean;
   @Input() displayAudioBuffer:AudioBuffer | null;
+    @Input() playStartAction: Action;
+    @Input() playStopAction: Action;
   @Output() onItemSelect = new EventEmitter<number>();
     @Output() onNextItem = new EventEmitter();
     @Output() onPrevItem = new EventEmitter();

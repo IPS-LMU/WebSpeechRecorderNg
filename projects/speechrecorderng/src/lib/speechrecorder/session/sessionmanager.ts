@@ -62,7 +62,9 @@ export class Item {
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
+                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
+                        [playStartAction]="controlAudioPlayer.startAction"
+                        [playStopAction]="controlAudioPlayer.stopAction">
        
     </app-sprprompting>
     <mat-progress-bar [value]="selectedItemIdx*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
