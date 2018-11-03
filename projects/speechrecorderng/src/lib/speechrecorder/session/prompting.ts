@@ -362,7 +362,7 @@ export class PromptingContainer {
 
         overflow: hidden;
         
-        padding: 20px; 
+        padding: 0px; 
         /* margin: 20px; */
         /* border: 20px; */
         z-index: 5;
