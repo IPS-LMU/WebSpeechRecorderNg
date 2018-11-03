@@ -367,7 +367,7 @@ export class PromptingContainer {
         /* border: 20px; */
         z-index: 5;
         box-sizing: border-box;
-       background-color: rgba(0,0,0,0.75)
+       background-color: rgba(0,0,0,0)
         
     }`
   ]
