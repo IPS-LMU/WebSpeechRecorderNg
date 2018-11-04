@@ -67,11 +67,11 @@ import { AudioClip } from '../persistor'
             return this._stopAction;
         }
 
-        set audioClip(audioClip:AudioClip) {
+        set audioClip(audioClip:AudioClip| null) {
 
             var length = 0;
             var chs = 0;
-            if (audioClip.buffer) {
+            if (audioClip && audioClip.buffer) {
                 chs = audioClip.buffer.numberOfChannels;
                 if (chs > 0) {
                     length = audioClip.buffer.length;
@@ -79,9 +79,12 @@ import { AudioClip } from '../persistor'
                         // TODO exception
                     }
                 }
+                this.audioBuffer = audioClip.buffer;
+            }else{
+                this.audioBuffer=null;
             }
 
-            this.audioBuffer = audioClip.buffer;
+
         }
 
         set audioBuffer(audioBuffer:AudioBuffer | null) {
