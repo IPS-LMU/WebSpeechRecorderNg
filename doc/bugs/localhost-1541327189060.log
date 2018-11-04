@@ -1,0 +1,476 @@
+core.js:3123 Angular is running in the development mode. Call enableProdMode() to enable the production mode.
+sessionmanager.ts:227 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
+push../projects/speechrecorderng/src/lib/speechrecorder/session/sessionmanager.ts.SessionManager.init @ sessionmanager.ts:227
+SessionManager @ sessionmanager.ts:184
+createClass @ core.js:9311
+createDirectiveInstance @ core.js:9186
+createViewNodes @ core.js:10406
+callViewAction @ core.js:10722
+execComponentViewsAction @ core.js:10641
+createViewNodes @ core.js:10434
+createRootView @ core.js:10320
+callWithDebugContext @ core.js:11351
+debugCreateRootView @ core.js:10838
+push../node_modules/@angular/core/fesm5/core.js.ComponentFactory_.create @ core.js:8666
+push../node_modules/@angular/core/fesm5/core.js.ComponentFactoryBoundToModule.create @ core.js:3315
+push../node_modules/@angular/core/fesm5/core.js.ViewContainerRef_.createComponent @ core.js:8776
+push../node_modules/@angular/router/fesm5/router.js.RouterOutlet.activateWith @ router.js:4709
+push../node_modules/@angular/router/fesm5/router.js.ActivateRoutes.activateRoutes @ router.js:4054
+(anonymous) @ router.js:4006
+push../node_modules/@angular/router/fesm5/router.js.ActivateRoutes.activateChildRoutes @ router.js:4005
+push../node_modules/@angular/router/fesm5/router.js.ActivateRoutes.activate @ router.js:3930
+(anonymous) @ router.js:3860
+(anonymous) @ Observable.js:59
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.SafeSubscriber.__tryOrUnsub @ Subscriber.js:195
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.SafeSubscriber.next @ Subscriber.js:133
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber._next @ Subscriber.js:77
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber.notifyNext @ mergeMap.js:79
+push../node_modules/rxjs/_esm5/internal/InnerSubscriber.js.InnerSubscriber._next @ InnerSubscriber.js:15
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+(anonymous) @ scalar.js:5
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ subscribeTo.js:21
+subscribeToResult @ subscribeToResult.js:6
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._innerSub @ mergeMap.js:70
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._tryNext @ mergeMap.js:67
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._next @ mergeMap.js:50
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber.notifyNext @ mergeMap.js:79
+push../node_modules/rxjs/_esm5/internal/InnerSubscriber.js.InnerSubscriber._next @ InnerSubscriber.js:15
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/takeLast.js.TakeLastSubscriber._complete @ takeLast.js:57
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber._complete @ Subscriber.js:84
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._complete @ mergeMap.js:75
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+(anonymous) @ subscribeToArray.js:8
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/scan.js.ScanOperator.call @ scan.js:23
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/takeLast.js.TakeLastOperator.call @ takeLast.js:24
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ subscribeTo.js:21
+subscribeToResult @ subscribeToResult.js:6
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._innerSub @ mergeMap.js:70
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._tryNext @ mergeMap.js:67
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._next @ mergeMap.js:50
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber.notifyNext @ mergeMap.js:79
+push../node_modules/rxjs/_esm5/internal/InnerSubscriber.js.InnerSubscriber._next @ InnerSubscriber.js:15
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber.notifyNext @ mergeMap.js:79
+push../node_modules/rxjs/_esm5/internal/InnerSubscriber.js.InnerSubscriber._next @ InnerSubscriber.js:15
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/every.js.EverySubscriber.notifyComplete @ every.js:30
+push../node_modules/rxjs/_esm5/internal/operators/every.js.EverySubscriber._complete @ every.js:47
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._complete @ mergeMap.js:75
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+(anonymous) @ subscribeToArray.js:8
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/every.js.EveryOperator.call @ every.js:14
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ subscribeTo.js:21
+subscribeToResult @ subscribeToResult.js:6
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._innerSub @ mergeMap.js:70
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._tryNext @ mergeMap.js:67
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._next @ mergeMap.js:50
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/every.js.EverySubscriber.notifyComplete @ every.js:30
+push../node_modules/rxjs/_esm5/internal/operators/every.js.EverySubscriber._complete @ every.js:47
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._complete @ mergeMap.js:75
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+(anonymous) @ subscribeToArray.js:8
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/every.js.EveryOperator.call @ every.js:14
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ subscribeTo.js:21
+subscribeToResult @ subscribeToResult.js:6
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._innerSub @ mergeMap.js:70
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._tryNext @ mergeMap.js:67
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._next @ mergeMap.js:50
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber.notifyNext @ mergeMap.js:79
+push../node_modules/rxjs/_esm5/internal/InnerSubscriber.js.InnerSubscriber._next @ InnerSubscriber.js:15
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+(anonymous) @ scalar.js:5
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ subscribeTo.js:21
+subscribeToResult @ subscribeToResult.js:6
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._innerSub @ mergeMap.js:70
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._tryNext @ mergeMap.js:67
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._next @ mergeMap.js:50
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber.notifyNext @ mergeMap.js:79
+push../node_modules/rxjs/_esm5/internal/InnerSubscriber.js.InnerSubscriber._next @ InnerSubscriber.js:15
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+(anonymous) @ scalar.js:5
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ subscribeTo.js:21
+subscribeToResult @ subscribeToResult.js:6
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._innerSub @ mergeMap.js:70
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._tryNext @ mergeMap.js:67
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._next @ mergeMap.js:50
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber._next @ Subscriber.js:77
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapSubscriber._next @ map.js:41
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/tap.js.TapSubscriber._next @ tap.js:51
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/operators/takeLast.js.TakeLastSubscriber._complete @ takeLast.js:57
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapSubscriber._complete @ mergeMap.js:75
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.complete @ Subscriber.js:66
+(anonymous) @ scalar.js:6
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable._trySubscribe @ Observable.js:42
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:28
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/takeLast.js.TakeLastOperator.call @ takeLast.js:24
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/tap.js.DoOperator.call @ tap.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/catchError.js.CatchOperator.call @ catchError.js:17
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/mergeMap.js.MergeMapOperator.call @ mergeMap.js:28
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+push../node_modules/rxjs/_esm5/internal/operators/map.js.MapOperator.call @ map.js:18
+push../node_modules/rxjs/_esm5/internal/Observable.js.Observable.subscribe @ Observable.js:23
+(anonymous) @ Observable.js:57
+ZoneAwarePromise @ zone.js:891
+Promise.then (async)
+scheduleMicroTask @ zone.js:578
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.scheduleTask @ zone.js:410
+push../node_modules/zone.js/dist/zone.js.Zone.scheduleTask @ zone.js:232
+push../node_modules/zone.js/dist/zone.js.Zone.scheduleMicroTask @ zone.js:252
+scheduleResolveOrReject @ zone.js:862
+ZoneAwarePromise.then @ zone.js:962
+push../node_modules/@angular/core/fesm5/core.js.PlatformRef.bootstrapModule @ core.js:4353
+./src/main.ts @ main.ts:11
+__webpack_require__ @ bootstrap:78
+0 @ main.ts:11
+__webpack_require__ @ bootstrap:78
+checkDeferredModules @ bootstrap:45
+webpackJsonpCallback @ bootstrap:32
+(anonymous) @ main.js:1
+context.ts:29 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
+push../projects/speechrecorderng/src/lib/audio/context.ts.AudioContextProvider.audioSystem @ context.ts:29
+push../projects/speechrecorderng/src/lib/speechrecorderng.component.ts.SpeechrecorderngComponent.ngOnInit @ speechrecorderng.component.ts:67
+checkAndUpdateDirectiveInline @ core.js:9250
+checkAndUpdateNodeInline @ core.js:10514
+checkAndUpdateNode @ core.js:10476
+debugCheckAndUpdateNode @ core.js:11109
+debugCheckDirectivesFn @ core.js:11069
+(anonymous) @ SpeechrecorderngComponent_Host.ngfactory.js? [sm]:1
+debugUpdateDirectives @ core.js:11061
+checkAndUpdateView @ core.js:10458
+callViewAction @ core.js:10699
+execEmbeddedViewsAction @ core.js:10662
+checkAndUpdateView @ core.js:10459
+callViewAction @ core.js:10699
+execComponentViewsAction @ core.js:10641
+checkAndUpdateView @ core.js:10464
+callWithDebugContext @ core.js:11351
+debugCheckAndUpdateView @ core.js:11029
+push../node_modules/@angular/core/fesm5/core.js.ViewRef_.detectChanges @ core.js:8845
+(anonymous) @ core.js:4581
+push../node_modules/@angular/core/fesm5/core.js.ApplicationRef.tick @ core.js:4581
+(anonymous) @ core.js:4473
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.invoke @ zone.js:388
+onInvoke @ core.js:3824
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.invoke @ zone.js:387
+push../node_modules/zone.js/dist/zone.js.Zone.run @ zone.js:138
+push../node_modules/@angular/core/fesm5/core.js.NgZone.run @ core.js:3738
+next @ core.js:4473
+schedulerFn @ core.js:3555
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.SafeSubscriber.__tryOrUnsub @ Subscriber.js:195
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.SafeSubscriber.next @ Subscriber.js:133
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber._next @ Subscriber.js:77
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/Subject.js.Subject.next @ Subject.js:47
+push../node_modules/@angular/core/fesm5/core.js.EventEmitter.emit @ core.js:3539
+checkStable @ core.js:3793
+onHasTask @ core.js:3837
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.hasTask @ zone.js:441
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate._updateTaskCount @ zone.js:461
+push../node_modules/zone.js/dist/zone.js.Zone._updateTaskCount @ zone.js:285
+push../node_modules/zone.js/dist/zone.js.Zone.runTask @ zone.js:205
+drainMicroTaskQueue @ zone.js:595
+Promise.then (async)
+scheduleMicroTask @ zone.js:578
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.scheduleTask @ zone.js:410
+push../node_modules/zone.js/dist/zone.js.Zone.scheduleTask @ zone.js:232
+push../node_modules/zone.js/dist/zone.js.Zone.scheduleMicroTask @ zone.js:252
+scheduleResolveOrReject @ zone.js:862
+ZoneAwarePromise.then @ zone.js:962
+push../node_modules/@angular/core/fesm5/core.js.PlatformRef.bootstrapModule @ core.js:4353
+./src/main.ts @ main.ts:11
+__webpack_require__ @ bootstrap:78
+0 @ main.ts:11
+__webpack_require__ @ bootstrap:78
+checkDeferredModules @ bootstrap:45
+webpackJsonpCallback @ bootstrap:32
+(anonymous) @ main.js:1
+audio_display.ts:93 The Web Audio autoplay policy will be re-enabled in Chrome 71 (December 2018). Please check that your website is compatible with it. https://goo.gl/7K7WLu
+push../projects/speechrecorderng/src/lib/audio/audio_display.ts.AudioDisplay.ngOnInit @ audio_display.ts:93
+checkAndUpdateDirectiveInline @ core.js:9250
+checkAndUpdateNodeInline @ core.js:10514
+checkAndUpdateNode @ core.js:10476
+debugCheckAndUpdateNode @ core.js:11109
+debugCheckDirectivesFn @ core.js:11069
+(anonymous) @ Prompting.html:9
+debugUpdateDirectives @ core.js:11061
+checkAndUpdateView @ core.js:10458
+callViewAction @ core.js:10699
+execComponentViewsAction @ core.js:10641
+checkAndUpdateView @ core.js:10464
+callViewAction @ core.js:10699
+execComponentViewsAction @ core.js:10641
+checkAndUpdateView @ core.js:10464
+callViewAction @ core.js:10699
+execComponentViewsAction @ core.js:10641
+checkAndUpdateView @ core.js:10464
+callViewAction @ core.js:10699
+execEmbeddedViewsAction @ core.js:10662
+checkAndUpdateView @ core.js:10459
+callViewAction @ core.js:10699
+execComponentViewsAction @ core.js:10641
+checkAndUpdateView @ core.js:10464
+callWithDebugContext @ core.js:11351
+debugCheckAndUpdateView @ core.js:11029
+push../node_modules/@angular/core/fesm5/core.js.ViewRef_.detectChanges @ core.js:8845
+(anonymous) @ core.js:4581
+push../node_modules/@angular/core/fesm5/core.js.ApplicationRef.tick @ core.js:4581
+(anonymous) @ core.js:4473
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.invoke @ zone.js:388
+onInvoke @ core.js:3824
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.invoke @ zone.js:387
+push../node_modules/zone.js/dist/zone.js.Zone.run @ zone.js:138
+push../node_modules/@angular/core/fesm5/core.js.NgZone.run @ core.js:3738
+next @ core.js:4473
+schedulerFn @ core.js:3555
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.SafeSubscriber.__tryOrUnsub @ Subscriber.js:195
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.SafeSubscriber.next @ Subscriber.js:133
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber._next @ Subscriber.js:77
+push../node_modules/rxjs/_esm5/internal/Subscriber.js.Subscriber.next @ Subscriber.js:54
+push../node_modules/rxjs/_esm5/internal/Subject.js.Subject.next @ Subject.js:47
+push../node_modules/@angular/core/fesm5/core.js.EventEmitter.emit @ core.js:3539
+checkStable @ core.js:3793
+onHasTask @ core.js:3837
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.hasTask @ zone.js:441
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate._updateTaskCount @ zone.js:461
+push../node_modules/zone.js/dist/zone.js.Zone._updateTaskCount @ zone.js:285
+push../node_modules/zone.js/dist/zone.js.Zone.runTask @ zone.js:205
+drainMicroTaskQueue @ zone.js:595
+Promise.then (async)
+scheduleMicroTask @ zone.js:578
+push../node_modules/zone.js/dist/zone.js.ZoneDelegate.scheduleTask @ zone.js:410
+push../node_modules/zone.js/dist/zone.js.Zone.scheduleTask @ zone.js:232
+push../node_modules/zone.js/dist/zone.js.Zone.scheduleMicroTask @ zone.js:252
+scheduleResolveOrReject @ zone.js:862
+ZoneAwarePromise.then @ zone.js:962
+push../node_modules/@angular/core/fesm5/core.js.PlatformRef.bootstrapModule @ core.js:4353
+./src/main.ts @ main.ts:11
+__webpack_require__ @ bootstrap:78
+0 @ main.ts:11
+__webpack_require__ @ bootstrap:78
+checkDeferredModules @ bootstrap:45
+webpackJsonpCallback @ bootstrap:32
+(anonymous) @ main.js:1
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+capture.ts:119 Audio device: Id: default groupId: 5971e007183285dd86c6b9c71afdf048ce0a894e1b689bd07b50b14d42b800d9 label: Standardeinstellung - Mikrofonarray (Realtek High Definition Audio) kind: audioinput
+capture.ts:119 Audio device: Id: communications groupId: 5971e007183285dd86c6b9c71afdf048ce0a894e1b689bd07b50b14d42b800d9 label: Kommunikation - Mikrofonarray (Realtek High Definition Audio) kind: audioinput
+capture.ts:119 Audio device: Id: 8b67145b08c054cb4eea5f1643d7c0ae502c340f0e071f80a5c4c03ca7d4fcf9 groupId: 5971e007183285dd86c6b9c71afdf048ce0a894e1b689bd07b50b14d42b800d9 label: Mikrofonarray (Realtek High Definition Audio) kind: audioinput
+capture.ts:119 Audio device: Id: f7a97885746ca26d47c7930d9d10180e8480ebf3bd18f4c8410b8015e2f34655 groupId: e0e1cf3ea1c242c2af970f7754b84ecb0e21841b6666baefa6df999c0dabc7b0 label:  kind: videoinput
+capture.ts:119 Audio device: Id: 26b9d31cfdd0ca157fc595819cc0c6d1d2f58b7f6909722028f82efa8dcaa1d1 groupId: 3bc5753d8608adee9b93092bb150e8b620dda7040f086d9437c6851ca31304bd label:  kind: videoinput
+capture.ts:119 Audio device: Id: default groupId: 5971e007183285dd86c6b9c71afdf048ce0a894e1b689bd07b50b14d42b800d9 label: Standardeinstellung - Lautsprecher (Realtek High Definition Audio) kind: audiooutput
+capture.ts:119 Audio device: Id: communications groupId: 5971e007183285dd86c6b9c71afdf048ce0a894e1b689bd07b50b14d42b800d9 label: Kommunikation - Lautsprecher (Realtek High Definition Audio) kind: audiooutput
+capture.ts:119 Audio device: Id: 9df3eabfb7389b100fb2234c5871810a1ca41d2f6730e4f33212d6fe4cb28a6d groupId: 5971e007183285dd86c6b9c71afdf048ce0a894e1b689bd07b50b14d42b800d9 label: Lautsprecher (Realtek High Definition Audio) kind: audiooutput
+speechrecorderng.component.ts:153 Session ID: 2
+speechrecorderng.component.ts:111 Session associated project: Demo1
+speechrecorderng.component.ts:271 Project name: Demo1
+speechrecorderng.component.ts:275 Project requested recording channel count: 1
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+sessionmanager.ts:641 Open session with default audio device for 1 channels
+capture.ts:142 User agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36
+capture.ts:158 Setting media track constraints for Google Chrome.
+capture.ts:226 Track audio info: id: aea889a6-f7af-4fa4-9156-9b20a96d6c24 kind: audio label: "Standardeinstellung - Mikrofonarray (Realtek High Definition Audio)"
+capture.ts:241 Source audio node: channels: 2 samplerate: 48000
+capture.ts:253 Audio worker NOT implemented.
+capture.ts:259 Audio worklet processor NOT implemented.
+capture.ts:268 Audio script processor implemented!!
+sessionmanager.ts:753 Postrecording delay: 500
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 5552, offset: 5552, scroll: 5552
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 3915
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 1388, offset: 1388, scroll: 1388
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 2776, offset: 2776, scroll: 2776
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 694, offset: 694, scroll: 694
+container.ts:292 Audioclip container width: Client: 347, offset: 347, scroll: 347
+container.ts:292 Audioclip container width: Client: 347, offset: 347, scroll: 694
+container.ts:292 Audioclip container width: Client: 347, offset: 347, scroll: 694
+container.ts:292 Audioclip container width: Client: 347, offset: 347, scroll: 347
+container.ts:292 Audioclip container width: Client: 174, offset: 174, scroll: 174
+container.ts:292 Audioclip container width: Client: 174, offset: 174, scroll: 694
+container.ts:292 Audioclip container width: Client: 174, offset: 174, scroll: 694
+container.ts:292 Audioclip container width: Client: 174, offset: 174, scroll: 174
+container.ts:292 Audioclip container width: Client: 87, offset: 87, scroll: 87
+container.ts:292 Audioclip container width: Client: 87, offset: 87, scroll: 694
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+sessionmanager.ts:753 Postrecording delay: 2000
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+30590765-b9de-4b84-829d-2f14be38fbde:200 Uncaught RangeError: Invalid typed array length: -13880
+    at new Uint8ClampedArray (<anonymous>)
+    at self.onmessage (30590765-b9de-4b84-829d-2f14be38fbde:200)
+self.onmessage @ 30590765-b9de-4b84-829d-2f14be38fbde:200
+container.ts:292 Audioclip container width: Client: 163, offset: 163, scroll: 694
+container.ts:292 Audioclip container width: Client: 163, offset: 163, scroll: 694
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+container.ts:292 Audioclip container width: Client: 0, offset: 0, scroll: 0
+30590765-b9de-4b84-829d-2f14be38fbde:200 Uncaught RangeError: Invalid typed array length: -13880
+    at new Uint8ClampedArray (<anonymous>)
+    at self.onmessage (30590765-b9de-4b84-829d-2f14be38fbde:200)
+self.onmessage @ 30590765-b9de-4b84-829d-2f14be38fbde:200
+container.ts:292 Audioclip container width: Client: 255, offset: 255, scroll: 694
