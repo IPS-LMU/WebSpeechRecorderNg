@@ -84,6 +84,15 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
       this.zoomFitToPanelAction=this.ac.zoomFitToPanelAction;
     this.zoomOutAction=this.ac.zoomOutAction;
     this.zoomInAction=this.ac.zoomInAction;
+      var n = <any>navigator;
+      var w = <any>window;
+      AudioContext = w.AudioContext || w.webkitAudioContext;
+      if (typeof AudioContext !== 'function') {
+          this.status = 'ERROR: Browser does not support Web Audio API!';
+      } else {
+          this.aCtx = new AudioContext();
+          this.ap = new AudioPlayer(this.aCtx, this);
+      }
   }
 
   ngAfterContentInit(){
@@ -95,9 +104,10 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
   }
 
   ngAfterViewInit() {
-    //console.log("AfterViewInit: "+this.ac);
-
-    this.init();
+      if (this.aCtx && this.ap) {
+          this.playStartAction.onAction = () => this.ap.start();
+          this.playStopAction.onAction = () => this.ap.stop();
+      }
       this.layout();
       let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
           mrs.forEach((mr:MutationRecord)=>{
@@ -122,18 +132,7 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
 
   init() {
 
-    var n = <any>navigator;
-    var w = <any>window;
-    AudioContext = w.AudioContext || w.webkitAudioContext;
-    if (typeof AudioContext !== 'function') {
-      this.status = 'ERROR: Browser does not support Web Audio API!';
-    } else {
-      this.aCtx = new AudioContext();
-      this.ap = new AudioPlayer(this.aCtx, this);
-      this.playStartAction.onAction = () => this.ap.start();
-      this.playStopAction.onAction = () => this.ap.stop();
 
-    }
   }
 
   layout(){
@@ -200,11 +199,19 @@ export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentIni
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
-      let clip = new AudioClip(audioBuffer);
-
       this.ac.audioData = audioBuffer;
-      this.ap.audioClip = clip;
-      this.playStartAction.disabled = false
+      if(audioBuffer) {
+          let clip = new AudioClip(audioBuffer);
+          if (this.ap){
+              this.ap.audioClip = clip;
+                this.playStartAction.disabled = false
+            }
+      }else{
+          this.playStartAction.disabled = true
+          if (this.ap){
+              this.ap.audioClip = null;
+          }
+      }
   }
 
 
