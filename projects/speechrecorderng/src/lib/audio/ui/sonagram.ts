@@ -449,7 +449,6 @@ export class Sonagram extends AudioCanvasLayerComponent {
             let chs = msg.data.chs;
             let audioData = new Array(chs);
             for (let ch = 0; ch < chs; ch++) {
-                // TODO can we use the transferred array directly?
                 audioData[ch] = new Float32Array(msg.data['audioData'][ch]);
             }
 
@@ -459,9 +458,13 @@ export class Sonagram extends AudioCanvasLayerComponent {
             let dftBands = dftSize / 2;
             let dft = new DFTFloat32(dftSize);
             let wf = new GaussianWindow(dftSize);
-            let imgData = new Uint8ClampedArray(w * h * 4);
+            let arrSize=w*h*4;
+            if(arrSize<0){
+                arrSize=0
+            }
+            let imgData = new Uint8ClampedArray(arrSize);
             //console.log("Render method:");
-            if (audioData) {
+            if (audioData && arrSize>0) {
                 let chH = Math.round(h / chs);
                 let framesPerPixel = frameLength / vw;
                 //console.log("Render: ", w, "x", h);
@@ -581,7 +584,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
             let h = Math.round(this.bounds.dimension.height);
 
 
-            if (this.audioData) {
+            if (this.audioData && w>0 && h>0) {
 
                 this.wo = new Worker(this.workerURL);
 
