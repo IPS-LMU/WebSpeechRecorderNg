@@ -289,7 +289,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       const clientW=this.ce.clientWidth;
       const offsetW=this.ce.offsetWidth;
       const scrollW=this.ce.scrollWidth;
-      console.log("Audioclip container width: Client: "+clientW+", offset: "+offsetW+", scroll: "+scrollW);
+      //console.log("Audioclip container width: Client: "+clientW+", offset: "+offsetW+", scroll: "+scrollW);
 
           // TODO Sets width to zero in WebSpeechRecorder collapseable display
       if(!this._fixFitToPanel) {
@@ -303,7 +303,12 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       }
 
       if(this._audioData) {
-        this._xZoom = this.ce.offsetWidth / this._audioData.duration;
+        let ow=this.ce.offsetWidth;
+        if(ow<1){
+          // at least one pixel width to avoid x-zoom zero values
+          ow=1;
+        }
+        this._xZoom = ow / this._audioData.duration;
       }
 
 
