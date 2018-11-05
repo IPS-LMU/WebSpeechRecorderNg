@@ -1,0 +1,212 @@
+[ {
+  "bigendian" : false,
+  "bytes" : 376880,
+  "channels" : 1,
+  "date" : "2018-02-23T21:42:55.609+01:00",
+  "encoding" : "PCM_SIGNED",
+  "format" : "WAVE",
+  "frames" : 188416,
+  "maxLevel" : 0.367889404296875,
+  "quantisation" : 16,
+  "recording" : {
+    "mediaitems" : [ {
+      "alt" : "Microphone position",
+      "annotationTemplate" : false,
+      "author" : "VOYS Project, Phonetics Institute, Munich University, Christoph Draxler",
+      "autoplay" : false,
+      "charSet" : "",
+      "mimetype" : "image/jpeg",
+      "modal" : false,
+      "src" : "http://www.phonetik.uni-muenchen.de/forschung/Bas/Experimente/voys/microphone_settings_001.jpg",
+      "text" : "Please check the microphone position"
+    } ],
+    "itemcode" : "X5",
+    "rectype" : "audio",
+    "prerecdelay" : 500,
+    "postrecdelay" : 500,
+    "recduration" : 10000,
+    "recinstructions" : {
+      "mimetype" : "text/plain",
+      "recinstructions" : "Check the microphone position"
+    },
+    "beep" : "false",
+    "finalsilence" : 0
+  },
+  "recordingFileId" : 101236545,
+  "recordingTracks" : [ {
+    "channelIndex" : 0,
+    "estimatedSNR" : 142.22436847381263,
+    "maxLevel" : 0.367889404296875,
+    "recordingTrackId" : 101236546
+  } ],
+  "samplerate" : 48000.0,
+  "signalFile" : "file:/vdata/CM_test/101236542/101236542X5_00.wav",
+  "version" : 0
+}, {
+  "bigendian" : false,
+  "bytes" : 360496,
+  "channels" : 1,
+  "date" : "2018-02-23T21:42:51.327+01:00",
+  "encoding" : "PCM_SIGNED",
+  "format" : "WAVE",
+  "frames" : 180224,
+  "maxLevel" : 0.348846435546875,
+  "quantisation" : 16,
+  "recording" : {
+    "mediaitems" : [ {
+      "annotationTemplate" : false,
+      "author" : "VOYS Project, Phonetics Institute, Munich University, Christoph Draxler",
+      "autoplay" : false,
+      "mimetype" : "text/UTF-8",
+      "modal" : false,
+      "text" : "Welcome to the VOYS speech recordings in Scotland."
+    } ],
+    "itemcode" : "X0",
+    "rectype" : "audio",
+    "prerecdelay" : 1000,
+    "postrecdelay" : 500,
+    "recduration" : 8000,
+    "recinstructions" : {
+      "mimetype" : "text/plain",
+      "recinstructions" : "Please read"
+    },
+    "beep" : "false",
+    "finalsilence" : 0
+  },
+  "recordingFileId" : 101236543,
+  "recordingTracks" : [ {
+    "channelIndex" : 0,
+    "estimatedSNR" : 126.76331089266844,
+    "maxLevel" : 0.348846435546875,
+    "recordingTrackId" : 101236544
+  } ],
+  "samplerate" : 48000.0,
+  "signalFile" : "file:/vdata/CM_test/101236542/101236542X0_00.wav",
+  "version" : 0
+}, {
+  "bigendian" : false,
+  "bytes" : 393264,
+  "channels" : 1,
+  "date" : "2018-02-23T21:43:03.687+01:00",
+  "encoding" : "PCM_SIGNED",
+  "format" : "WAVE",
+  "frames" : 196608,
+  "maxLevel" : 0.292694091796875,
+  "quantisation" : 16,
+  "recording" : {
+    "mediaitems" : [ {
+      "alt" : "Microphone position",
+      "annotationTemplate" : false,
+      "author" : "VOYS Project, Phonetics Institute, Munich University, Christoph Draxler",
+      "autoplay" : false,
+      "charSet" : "",
+      "mimetype" : "image/jpeg",
+      "modal" : false,
+      "src" : "http://www.phonetik.uni-muenchen.de/forschung/Bas/Experimente/voys/microphone_settings_002.jpg",
+      "text" : "Please check the recording level"
+    } ],
+    "itemcode" : "X6",
+    "rectype" : "audio",
+    "prerecdelay" : 500,
+    "postrecdelay" : 500,
+    "recduration" : 10000,
+    "recinstructions" : {
+      "mimetype" : "text/plain",
+      "recinstructions" : "Check the audio levels"
+    },
+    "beep" : "false",
+    "finalsilence" : 0
+  },
+  "recordingFileId" : 101236547,
+  "recordingTracks" : [ {
+    "channelIndex" : 0,
+    "estimatedSNR" : 80.51607547820802,
+    "maxLevel" : 0.292694091796875,
+    "recordingTrackId" : 101236548
+  } ],
+  "samplerate" : 48000.0,
+  "signalFile" : "file:/vdata/CM_test/101236542/101236542X6_00.wav",
+  "version" : 0
+}, {
+  "bigendian" : false,
+  "bytes" : 1458224,
+  "channels" : 1,
+  "date" : "2018-02-23T21:43:44.384+01:00",
+  "encoding" : "PCM_SIGNED",
+  "format" : "WAVE",
+  "frames" : 729088,
+  "maxLevel" : 0.382049560546875,
+  "quantisation" : 16,
+  "recording" : {
+    "mediaitems" : [ {
+      "annotationTemplate" : false,
+      "author" : "VOYS Project, Phonetics Institute, Munich University, Christoph Draxler",
+      "autoplay" : false,
+      "mimetype" : "text/UTF-8",
+      "modal" : false,
+      "text" : "This is a test item to adjust the microphone levels. Please make sure the green signal is clearly visible, but does not touch the upper or lower boundary."
+    } ],
+    "itemcode" : "I1",
+    "rectype" : "audio",
+    "prerecdelay" : 1000,
+    "postrecdelay" : 500,
+    "recduration" : 12000,
+    "recinstructions" : {
+      "mimetype" : "text/plain",
+      "recinstructions" : "Please read in your normal voice"
+    },
+    "beep" : "false",
+    "finalsilence" : 0
+  },
+  "recordingFileId" : 101236549,
+  "recordingTracks" : [ {
+    "channelIndex" : 0,
+    "estimatedSNR" : 170.49622034330395,
+    "maxLevel" : 0.382049560546875,
+    "recordingTrackId" : 101236550
+  } ],
+  "samplerate" : 48000.0,
+  "signalFile" : "file:/vdata/CM_test/101236542/101236542X1_00.wav",
+  "version" : 0
+}, {
+  "bigendian" : false,
+  "bytes" : 639024,
+  "channels" : 1,
+  "date" : "2018-02-23T21:43:46.318+01:00",
+  "encoding" : "PCM_SIGNED",
+  "format" : "WAVE",
+  "frames" : 319488,
+  "maxLevel" : 0.358062744140625,
+  "quantisation" : 16,
+  "recording" : {
+    "mediaitems" : [ {
+      "annotationTemplate" : false,
+      "author" : "VOYS Project, Phonetics Institute, Munich University, Christoph Draxler",
+      "autoplay" : false,
+      "mimetype" : "text/UTF-8",
+      "modal" : false,
+      "text" : "This is a test item to adjust the microphone levels. Please make sure the green signal is clearly visible, but does not touch the upper or lower boundary."
+    } ],
+    "itemcode" : "X1",
+    "rectype" : "audio",
+    "prerecdelay" : 1000,
+    "postrecdelay" : 500,
+    "recduration" : 12000,
+    "recinstructions" : {
+      "mimetype" : "text/plain",
+      "recinstructions" : "Please read in your normal voice"
+    },
+    "beep" : "false",
+    "finalsilence" : 0
+  },
+  "recordingFileId" : 101236551,
+  "recordingTracks" : [ {
+    "channelIndex" : 0,
+    "estimatedSNR" : 229.61227603784747,
+    "maxLevel" : 0.358062744140625,
+    "recordingTrackId" : 101236552
+  } ],
+  "samplerate" : 48000.0,
+  "signalFile" : "file:/vdata/CM_test/101236542/101236542X1_01.wav",
+  "version" : 1
+} ]

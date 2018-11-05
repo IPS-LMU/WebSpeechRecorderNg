@@ -7,7 +7,7 @@ import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
-import {RecordingFile} from "../recording";
+import {RecordingFile, RecordingFileDescriptor} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
 import {reject} from "q";
@@ -22,34 +22,47 @@ export const REC_API_CTX='recfile'
 export class RecordingService {
 
   public static readonly REC_API_CTX = 'recfile'
-  private recordingCtxUrl: string;
+  private apiEndPoint: string;
   private withCredentials: boolean = false;
   private httpParams: HttpParams;
 
   constructor(private http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) private config?: SpeechRecorderConfig) {
 
-    let apiEndPoint = ''
+    this.apiEndPoint = ''
 
     if (config && config.apiEndPoint) {
-      apiEndPoint = config.apiEndPoint;
+      this.apiEndPoint = config.apiEndPoint;
     }
-    if (apiEndPoint !== '') {
-      apiEndPoint = apiEndPoint + '/'
+    if (this.apiEndPoint !== '') {
+      this.apiEndPoint = this.apiEndPoint + '/'
     }
     if (config != null && config.withCredentials != null) {
       this.withCredentials = config.withCredentials;
     }
 
-    this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
+    //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
     this.httpParams = new HttpParams();
     this.httpParams.set('cache', 'false');
 
   }
 
-  private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string): Observable<HttpResponse<ArrayBuffer>> {
+  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
 
-    let recUrl = this.recordingCtxUrl + '/' + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode;
+    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
+      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
+    }
+    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{params:this.httpParams,withCredentials:this.withCredentials});
+    return wobs;
+  }
+
+  private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
+
+    let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
+      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode+'/'+version;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
@@ -67,14 +80,14 @@ export class RecordingService {
   }
 
   // TODO test
-  fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string):Observable<RecordingFile|null> {
+  fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string,version:number):Observable<RecordingFile|null> {
 
     let wobs = new Observable<RecordingFile | null>(observer=>{
-      let obs = this.fetchAudiofile(projectName, sessId, itemcode);
+      let obs = this.fetchAudiofile(projectName, sessId, itemcode,version);
       obs.subscribe(resp => {
           let dec=aCtx.decodeAudioData(resp.body);
           dec.then(ab=>{
-              let rf=new RecordingFile(sessId,itemcode,ab);
+              let rf=new RecordingFile(sessId,itemcode,version,ab);
               observer.next(rf);
               observer.complete();
           })

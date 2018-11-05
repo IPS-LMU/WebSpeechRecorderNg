@@ -3,7 +3,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
-import {RecordingFile} from '../recording'
+import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
     Component, ViewChild, ChangeDetectorRef, Inject,
@@ -24,6 +24,7 @@ import {TransportActions} from "./controlpanel";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {AudioClipUIContainer} from "../../audio/ui/container";
+import {RecordingService} from "../recordings/recordings.service";
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -161,6 +162,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               public dialog: MatDialog,
+              private recFileService:RecordingService,
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
@@ -425,6 +427,28 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
+  promptIndex(itemcode:string):number {
+    let pix = 0;
+
+    for (let si = 0; si < this._script.sections.length; si++) {
+      let section = this._script.sections[si];
+      let gs = section.groups;
+      for(let gi=0;gi<gs.length;gi++) {
+        let pis=gs[gi].promptItems;
+        let pisLen = pis.length;
+        this.promptItemCount += pisLen;
+        for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
+          let pi = pis[piSectIdx];
+          let ic=pi.itemcode;
+          if(ic === itemcode){
+            return pix;
+          }
+          pix++;
+        }
+      }
+    }
+  }
+
     currPromptIndex() {
         let idx = 0;
         // count index of previous sections
@@ -496,8 +520,28 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
-      this.displayAudioBuffer = ab;
-      this.controlAudioPlayer.audioBuffer = ab;
+      if(ab) {
+        this.displayAudioBuffer = ab;
+        this.controlAudioPlayer.audioBuffer = ab;
+      }else{
+        this.recFileService.fetchRecordingFile(null,this._session.project,this._session.sessionId,this._displayRecFile.itemCode,this._displayRecFile.version).subscribe((rf)=>{
+          let fab=null;
+          if(rf) {
+            fab = rf.audioBuffer;
+          }else{
+            this.statusMsg='Recording file could not be loaded.'
+            this.statusAlertType='error'
+          }
+            this.displayAudioBuffer = fab;
+            this.controlAudioPlayer.audioBuffer = fab;
+
+        },err=>{
+          console.error("Could not load recording file from server: "+err)
+          this.statusMsg='Recording file could not be loaded: '+err
+          this.statusAlertType='error'
+        })
+      }
+
     } else {
       this.displayAudioBuffer = null;
       this.controlAudioPlayer.audioBuffer = null;
@@ -797,6 +841,30 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.ac.stop();
   }
 
+  addRecordingFileByDescriptor(rfd:RecordingFileDescriptor){
+      let prIdx=this.promptIndex(rfd.recording.itemcode)
+    if(prIdx) {
+      let it = this.items[prIdx];
+      if (it) {
+        if (!it.recs) {
+          it.recs = new Array<RecordingFile>();
+        }
+        let rf = new RecordingFile(this._session.sessionId, rfd.recording.itemcode,rfd.version, null);
+        it.recs[rfd.version]=rf;
+
+      } else {
+        console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      }
+    }else{
+      console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+    }
+  }
+
+  addRecordingFileByPromptIndex(promptIndex:number, rf:RecordingFile){
+
+  }
+
+
   stopped() {
     this.transportActions.startAction.disabled = false;
     this.transportActions.stopAction.disabled = true;
@@ -810,14 +878,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let ic = this.promptItem.itemcode;
     if (this._session && ic) {
       let sessId: string | number = this._session.sessionId;
-      let rf = new RecordingFile(sessId, ic, ad);
       let cpIdx = this.currPromptIndex();
-      let it = this.items[cpIdx];
+      let it = this.items[this.promptItemIdx];
       if (!it.recs) {
         it.recs = new Array<RecordingFile>();
       }
+      let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
-
 
       if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
