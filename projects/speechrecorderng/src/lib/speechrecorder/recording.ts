@@ -13,7 +13,7 @@ export class RecordingFileDescriptor {
 
     export class RecordingFile {
 
-      _audioBuffer:AudioBuffer;
+      audioBuffer:AudioBuffer;
       sessionId:string|number;
       itemCode:string;
       version:number;
@@ -22,13 +22,11 @@ export class RecordingFileDescriptor {
           this.sessionId=sessionId;
           this.itemCode=itemcode;
           this.version=version;
-          this._audioBuffer=audioBuffer;
+          this.audioBuffer=audioBuffer;
           this.uuid=UUID.generate();
       }
 
-      get audioBuffer():AudioBuffer{
-        return this._audioBuffer;
-      }
+
 
       filenameString():string{
         let fns:string='';

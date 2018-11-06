@@ -25,6 +25,7 @@ import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {RecordingService} from "../recordings/recordings.service";
+import {Observable, Subscription} from "rxjs";
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -157,6 +158,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer: AudioPlayer;
+
+  private audioFetchSubscription:Subscription|null;
 
   private destroyed=false;
 
@@ -524,16 +527,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.displayAudioBuffer = ab;
         this.controlAudioPlayer.audioBuffer = ab;
       }else{
-        this.recFileService.fetchRecordingFile(null,this._session.project,this._session.sessionId,this._displayRecFile.itemCode,this._displayRecFile.version).subscribe((rf)=>{
+        // clear for now ...
+        this.displayAudioBuffer = null;
+        this.controlAudioPlayer.audioBuffer = null;
+        //... and try to fetch from server
+        this.audioFetchSubscription=this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
           let fab=null;
           if(rf) {
-            fab = rf.audioBuffer;
+            fab=this._displayRecFile.audioBuffer;
           }else{
             this.statusMsg='Recording file could not be loaded.'
             this.statusAlertType='error'
           }
             this.displayAudioBuffer = fab;
             this.controlAudioPlayer.audioBuffer = fab;
+          this.showRecording();
 
         },err=>{
           console.error("Could not load recording file from server: "+err)
@@ -587,6 +595,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.promptItem = this.group.promptItems[this.promptItemIdx];
 
     this.selectedItemIdx = this.currPromptIndex();
+
+    if(this.audioFetchSubscription){
+      this.audioFetchSubscription.unsubscribe()
+    }
 
     this.clearPrompt();
     if (this.section.promptphase === 'IDLE') {
