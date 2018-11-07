@@ -9,7 +9,7 @@ import {
     Component, ViewChild, ChangeDetectorRef, Inject,
     AfterViewInit, HostListener, OnDestroy
 } from "@angular/core";
-import {SESSION_API_CTX, SessionService} from "./session.service";
+import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {MatDialog,MatProgressBar} from "@angular/material";
 import {SpeechRecorderUploader} from "../spruploader";
@@ -832,7 +832,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           apiEndPoint = apiEndPoint + '/'
         }
 
-        let sessionsUrl = apiEndPoint + SESSION_API_CTX;
+        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
         let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
 
