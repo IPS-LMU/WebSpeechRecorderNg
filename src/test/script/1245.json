@@ -7,7 +7,7 @@
         "mode": "MANUAL",
         "name": "Introduction",
         "order": "SEQUENTIAL",
-        "promptphase": "IDLE",
+
         "speakerDisplay": true,
         "training": true,
         "groups": [

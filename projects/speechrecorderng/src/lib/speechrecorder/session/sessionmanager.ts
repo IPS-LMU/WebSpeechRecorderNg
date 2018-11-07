@@ -545,7 +545,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.selectedItemIdx = this.currPromptIndex();
 
     this.clearPrompt();
-    if (this.section.promptphase === 'IDLE') {
+    if (!this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
     }
 
