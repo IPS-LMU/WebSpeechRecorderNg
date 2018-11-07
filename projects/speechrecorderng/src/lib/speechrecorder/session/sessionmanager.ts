@@ -439,7 +439,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       for(let gi=0;gi<gs.length;gi++) {
         let pis=gs[gi].promptItems;
         let pisLen = pis.length;
-        this.promptItemCount += pisLen;
         for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
           let pi = pis[piSectIdx];
           let ic=pi.itemcode;
@@ -450,6 +449,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
       }
     }
+    return null;
   }
 
     currPromptIndex() {
@@ -855,7 +855,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   addRecordingFileByDescriptor(rfd:RecordingFileDescriptor){
       let prIdx=this.promptIndex(rfd.recording.itemcode)
-    if(prIdx) {
+    if(prIdx!==null) {
       let it = this.items[prIdx];
       if (it) {
         if (!it.recs) {
@@ -891,7 +891,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this._session && ic) {
       let sessId: string | number = this._session.sessionId;
       let cpIdx = this.currPromptIndex();
-      let it = this.items[this.promptItemIdx];
+      let it = this.items[cpIdx];
       if (!it.recs) {
         it.recs = new Array<RecordingFile>();
       }
