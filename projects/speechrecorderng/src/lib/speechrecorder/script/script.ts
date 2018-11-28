@@ -12,6 +12,7 @@ export interface Mediaitem {
 }
 
 export interface PromptItem {
+  type?:string;
   itemcode?: string,
   prerecording: number,
   recduration?: number,

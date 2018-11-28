@@ -61,11 +61,11 @@ export class Item {
       <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
-                        [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
+                        [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
        
     </app-sprprompting>
-    <mat-progress-bar [value]="selectedItemIdx*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
+    <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer.startAction"
                               [playStopAction]="controlAudioPlayer.stopAction"
@@ -143,7 +143,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private autorecording: boolean;
 
   items: Array<Item>;
-  selectedItemIdx: number;
+  //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
   displayAudioBuffer: AudioBuffer | null;
@@ -543,35 +543,43 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.group = this.section.groups[this.groupIdxInSection];
     this.promptItem = this.group.promptItems[this.promptItemIdxInGroup];
 
-    this.selectedItemIdx = this.promptIndex;
+    //this.selectedItemIdx = this.promptIndex;
 
     this.clearPrompt();
-    if (!this.section.promptphase || this.section.promptphase === 'IDLE') {
+
+    let isNonrecording=(this.promptItem.type==='nonrecording')
+
+    if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
     }
 
+    if(isNonrecording){
+      this.startStopSignalState = StartStopSignalState.OFF;
+      this.transportActions.startAction.disabled=true
+    }else {
+      let it = this.items[this.promptIndex];
+      if (!it.recs) {
+        it.recs = new Array<RecordingFile>();
+      }
 
-    let it = this.items[this.selectedItemIdx];
-    if (!it.recs) {
-      it.recs = new Array<RecordingFile>();
-    }
+      let recentRecFile: RecordingFile | null = null;
+      let availRecfiles: number = it.recs.length;
+      if (availRecfiles > 0) {
+        let rfVers: number = availRecfiles - 1;
+        recentRecFile = it.recs[rfVers];
+        this.displayRecFile = recentRecFile;
+        this.displayRecFileVersion = rfVers;
 
-    let recentRecFile: RecordingFile | null = null;
-    let availRecfiles: number = it.recs.length;
-    if (availRecfiles > 0) {
-      let rfVers: number = availRecfiles - 1;
-      recentRecFile = it.recs[rfVers];
-      this.displayRecFile = recentRecFile;
-      this.displayRecFileVersion = rfVers;
-
-    } else {
-      this.displayRecFile = null;
-      this.displayRecFileVersion = 0;
+      } else {
+        this.displayRecFile = null;
+        this.displayRecFileVersion = 0;
+      }
+      if (!temporary) {
+        this.showRecording();
+      }
+      this.startStopSignalState = StartStopSignalState.IDLE;
+      this.transportActions.startAction.disabled=false
     }
-    if(!temporary) {
-      this.showRecording();
-    }
-    this.startStopSignalState = StartStopSignalState.IDLE;
 
   }
 
@@ -676,7 +684,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   opened() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Ready.';
-    this.transportActions.startAction.disabled = false;
+    this.transportActions.startAction.disabled = true;
     this.transportActions.fwdAction.disabled = false
     this.transportActions.bwdAction.disabled = false
   }
