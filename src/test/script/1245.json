@@ -4,6 +4,12 @@
     "scriptId": 1245,
     "sections": [
       {
+        "name": "Empty section test",
+        "speakerDisplay": false,
+        "training": false,
+        "groups": []
+      },
+      {
         "mode": "MANUAL",
         "name": "Introduction",
         "order": "SEQUENTIAL",
