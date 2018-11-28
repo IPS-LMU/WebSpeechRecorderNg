@@ -20,11 +20,13 @@ import {Item} from './sessionmanager';
       <ng-container *ngIf="items">
 
         <tr *ngFor="let item of items; let itIdx=index;"
-            (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx" [scrollIntoView]="itIdx===selectedItemIdx">
+            (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
+            [scrollIntoViewToBottom]="itIdx===selectedItemIdx">
           <td>{{itIdx}}</td>
           <td>{{item.promptAsString}}</td>
-          <td><mat-icon *ngIf="item.recs && item.recs.length>0">done</mat-icon>
-            
+          <td>
+            <mat-icon *ngIf="item.recs && item.recs.length>0">done</mat-icon>
+
           </td>
         </tr>
       </ng-container>
