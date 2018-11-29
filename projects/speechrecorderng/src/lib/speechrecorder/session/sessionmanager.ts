@@ -63,11 +63,11 @@ export class Item {
       <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
-                        [selectedItemIdx]="selectedItemIdx" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
+                        [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
        
     </app-sprprompting>
-    <mat-progress-bar [value]="selectedItemIdx*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
+    <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer.startAction"
                               [playStopAction]="controlAudioPlayer.stopAction"
@@ -129,18 +129,23 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   _session: Session;
   _script: Script;
 
+  private _promptIndex:number;
   private section: Section;
   group: Group;
   promptItem:PromptItem;
   showPrompt: boolean;
 
+  // index of current section
   sectIdx: number;
-  groupIdx: number;
-  promptItemIdx: number;
+  // index of current group in section
+  groupIdxInSection: number;
+  // index of current prompt item in group
+  promptItemIdxInGroup: number;
+
   private autorecording: boolean;
 
   items: Array<Item>;
-  selectedItemIdx: number;
+  //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
   displayAudioBuffer: AudioBuffer | null;
@@ -198,8 +203,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private init() {
     this.sectIdx = 0;
-    this.groupIdx = 0;
-    this.promptItemIdx=0;
+    this.groupIdxInSection = 0;
+    this.promptItemIdxInGroup=0;
     this.autorecording = false;
     this.transportActions.startAction.disabled = true;
     this.transportActions.stopAction.disabled = true;
@@ -326,12 +331,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   set script(script: any) {
     this._script = script;
     this.loadScript();
-
-    this.sectIdx = 0;
-    this.groupIdx = 0;
-    this.promptItemIdx=0;
-
-    this.applyItem();
+    if(this.promptItemCount>0) {
+      this.promptIndex = 0;
+    }
   }
 
   set channelCount(channelCount: number) {
@@ -356,9 +358,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
-  itemSelect(itemIdx: number) {
-    if (this.status !== Status.IDLE) {
-      return;
+  get promptIndex():number{
+    return this._promptIndex;
+  }
+
+  set promptIndex(promptIndex:number){
+    if(promptIndex<0 || promptIndex>=this.promptItemCount){
+      throw new Error("Prompt index out of range")
     }
     let i = 0;
     let sections=this._script.sections;
@@ -370,10 +376,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         let pis=gs[gi].promptItems;
 
         let pisSize = pis.length;
-        if (itemIdx < i + pisSize) {
+        if (promptIndex < i + pisSize) {
           this.sectIdx = si;
-          this.groupIdx=gi;
-          this.promptItemIdx = itemIdx - i;
+          this.groupIdxInSection=gi;
+          this.promptItemIdxInGroup = promptIndex - i;
           found=true;
           break;
         } else {
@@ -381,8 +387,22 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
       }
     }
+    if(found){
+      this._promptIndex=promptIndex;
+    }else{
+      throw new Error("Internal error: Prompt index not found")
+    }
     this.applyItem();
   }
+
+  itemSelect(itemIdx: number) {
+    if (this.status === Status.IDLE) {
+      this.promptIndex=itemIdx;
+    }
+
+  }
+
+
 
   startItem() {
     this.transportActions.startAction.disabled = true;
@@ -412,25 +432,27 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let section = this._script.sections[si];
       let gs = section.groups;
       for(let gi=0;gi<gs.length;gi++) {
-        let pis=gs[gi].promptItems;
-        let pisLen = pis.length;
-        this.promptItemCount += pisLen;
-        for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
-          let pi = pis[piSectIdx];
-          let promptAsStr = '';
-          if (pi.mediaitems && pi.mediaitems.length > 0) {
-            promptAsStr = pi.mediaitems[0].text;
-          }
 
-          let it = new Item(promptAsStr, section.training);
-          this.items.push(it);
-          ln++;
-        }
+          let pis = gs[gi].promptItems;
+
+          let pisLen = pis.length;
+          this.promptItemCount += pisLen;
+          for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
+            let pi = pis[piSectIdx];
+            let promptAsStr = '';
+            if (pi.mediaitems && pi.mediaitems.length > 0) {
+              promptAsStr = pi.mediaitems[0].text;
+            }
+
+            let it = new Item(promptAsStr, section.training);
+            this.items.push(it);
+            ln++;
+          }
       }
     }
   }
 
-  promptIndex(itemcode:string):number {
+  promptIndexByItemcode(itemcode:string):number {
     let pix = 0;
 
     for (let si = 0; si < this._script.sections.length; si++) {
@@ -451,28 +473,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
     return null;
   }
-
-    currPromptIndex() {
-        let idx = 0;
-        // count index of previous sections
-        for (let si = 0; si < this.sectIdx; si++) {
-            let section = this._script.sections[si];
-            let gs = section.groups;
-            // TODO use map reduce
-            for (let gi = 0; gi < gs.length; gi++) {
-                idx += gs[gi].promptItems.length;
-            }
-        }
-
-        for (let gi = 0; gi < this.groupIdx; gi++) {
-            idx += this.section.groups[gi].promptItems.length;
-        }
-
-        // and add position in this section
-        idx += this.promptItemIdx;
-        return idx;
-    }
-
 
   clearPrompt() {
     //this.prompting.promptContainer.prompter.promptText='';
@@ -588,45 +588,61 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.changeDetectorRef.detectChanges();
   }
 
+
+  isRecordingItem():boolean{
+    return(this.promptItem!=null && this.promptItem.type!=='nonrecording')
+  }
+
+  updateStartActionDisableState(){
+    this.transportActions.startAction.disabled=!(this.ac && this.ac.opened && this.isRecordingItem());
+  }
+
   applyItem(temporary=false) {
 
     this.section = this._script.sections[this.sectIdx]
-    this.group = this.section.groups[this.groupIdx];
-    this.promptItem = this.group.promptItems[this.promptItemIdx];
+    this.group = this.section.groups[this.groupIdxInSection];
+    this.promptItem = this.group.promptItems[this.promptItemIdxInGroup];
 
-    this.selectedItemIdx = this.currPromptIndex();
+    //this.selectedItemIdx = this.promptIndex;
 
     if(this.audioFetchSubscription){
       this.audioFetchSubscription.unsubscribe()
     }
 
     this.clearPrompt();
-    if (!this.section.promptphase || this.section.promptphase === 'IDLE') {
+
+    let isNonrecording=(this.promptItem.type==='nonrecording')
+
+    if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
     }
 
+    if(isNonrecording){
+      this.startStopSignalState = StartStopSignalState.OFF;
+    }else {
+      let it = this.items[this.promptIndex];
+      if (!it.recs) {
+        it.recs = new Array<RecordingFile>();
+      }
 
-    let it = this.items[this.selectedItemIdx];
-    if (!it.recs) {
-      it.recs = new Array<RecordingFile>();
-    }
+      let recentRecFile: RecordingFile | null = null;
+      let availRecfiles: number = it.recs.length;
+      if (availRecfiles > 0) {
+        let rfVers: number = availRecfiles - 1;
+        recentRecFile = it.recs[rfVers];
+        this.displayRecFile = recentRecFile;
+        this.displayRecFileVersion = rfVers;
 
-    let recentRecFile: RecordingFile | null = null;
-    let availRecfiles: number = it.recs.length;
-    if (availRecfiles > 0) {
-      let rfVers: number = availRecfiles - 1;
-      recentRecFile = it.recs[rfVers];
-      this.displayRecFile = recentRecFile;
-      this.displayRecFileVersion = rfVers;
-
-    } else {
-      this.displayRecFile = null;
-      this.displayRecFileVersion = 0;
+      } else {
+        this.displayRecFile = null;
+        this.displayRecFileVersion = 0;
+      }
+      if (!temporary) {
+        this.showRecording();
+      }
+      this.startStopSignalState = StartStopSignalState.IDLE;
     }
-    if(!temporary) {
-      this.showRecording();
-    }
-    this.startStopSignalState = StartStopSignalState.IDLE;
+    this.updateStartActionDisableState()
 
   }
 
@@ -709,45 +725,29 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
     prevItem() {
-        this.promptItemIdx--;
-        if (this.promptItemIdx < 0) {
-            this.groupIdx--;
-            if (this.groupIdx < 0) {
-                this.sectIdx--;
-                if (this.sectIdx < 0) {
-                    this.sectIdx = this._script.sections.length - 1;
-                }
-                this.groupIdx = this._script.sections[this.sectIdx].groups.length - 1;
-            }
-            this.promptItemIdx = this._script.sections[this.sectIdx].groups[this.groupIdx].promptItems.length - 1;
-        }
-        this.applyItem();
+       let newPrIdx=this._promptIndex;
+       newPrIdx--;
+       if(newPrIdx<0){
+         newPrIdx=this.promptItemCount-1;
+       }
+       this.promptIndex=newPrIdx;
     }
 
+
   nextItem() {
-    let scriptLength = this._script.sections.length;
-    let currSectLength = this._script.sections[this.sectIdx].groups.length;
-    let currGroupLength = this._script.sections[this.sectIdx].groups[this.groupIdx].promptItems.length;
-    this.promptItemIdx++;
-    if(this.promptItemIdx>=currGroupLength) {
-        this.groupIdx++;
-        this.promptItemIdx=0;
-        if (this.groupIdx >= currSectLength) {
-            this.sectIdx++;
-            this.groupIdx = 0;
-            if (this.sectIdx >= scriptLength) {
-                this.sectIdx = 0;
-            }
-        }
+    let newPrIdx=this._promptIndex;
+    newPrIdx++;
+    if(newPrIdx>=this.promptItemCount){
+      newPrIdx=0;
     }
-    this.applyItem();
+    this.promptIndex=newPrIdx;
   }
 
 
   opened() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Ready.';
-    this.transportActions.startAction.disabled = false;
+    this.updateStartActionDisableState()
     this.transportActions.fwdAction.disabled = false
     this.transportActions.bwdAction.disabled = false
   }
@@ -854,7 +854,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   addRecordingFileByDescriptor(rfd:RecordingFileDescriptor){
-      let prIdx=this.promptIndex(rfd.recording.itemcode)
+      let prIdx=this.promptIndexByItemcode(rfd.recording.itemcode)
     if(prIdx!==null) {
       let it = this.items[prIdx];
       if (it) {
@@ -878,7 +878,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
 
   stopped() {
-    this.transportActions.startAction.disabled = false;
+    this.updateStartActionDisableState()
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
@@ -890,7 +890,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let ic = this.promptItem.itemcode;
     if (this._session && ic) {
       let sessId: string | number = this._session.sessionId;
-      let cpIdx = this.currPromptIndex();
+      let cpIdx = this.promptIndex;
       let it = this.items[cpIdx];
       if (!it.recs) {
         it.recs = new Array<RecordingFile>();

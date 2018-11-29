@@ -2,15 +2,16 @@
 
 import {Directive, ElementRef, Input} from "@angular/core";
 @Directive({
-  selector: "[scrollIntoView]"
+  selector: "[scrollIntoViewToBottom]"
 })
 export class ScrollIntoViewDirective{
 
   constructor(private elRef:ElementRef){}
   @Input()
-  set scrollIntoView(siv:boolean){
+  set scrollIntoViewToBottom(siv:boolean){
       if(siv){
         this.elRef.nativeElement.scrollIntoView(false);
       }
   }
+
 }

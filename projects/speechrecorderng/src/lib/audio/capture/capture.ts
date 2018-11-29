@@ -38,6 +38,9 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
+  get opened(): boolean {
+    return this._opened;
+  }
 
   static BUFFER_SIZE: number = 8192;
   context: any;
@@ -55,6 +58,7 @@ export class AudioCapture {
   n: Navigator;
   audioOutStream: SequenceAudioFloat32OutStream | null;
   private disconnectStreams = true;
+  private _opened=false;
   private capturing = false;
 
   framesRecorded: number;
@@ -293,6 +297,7 @@ export class AudioCapture {
             }
           }
         }
+        this._opened=true;
         if (this.listener) {
 
           this.listener.opened();
@@ -349,6 +354,7 @@ export class AudioCapture {
         mts[i].stop();
       }
     }
+    this._opened=false;
   }
 
   audioBuffer(): AudioBuffer {

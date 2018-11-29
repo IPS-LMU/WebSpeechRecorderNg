@@ -9,7 +9,7 @@ import {
   PromptContainer, Prompter, Prompting, PromptingContainer, Recinstructions,
 } from "./speechrecorder/session/prompting";
 import {SessionManager} from "./speechrecorder/session/sessionmanager";
-import {ScrollIntoViewDirective} from "./utils/scrollintoview";
+import {ScrollIntoViewDirective} from "./utils/scrollIntoViewToBottom";
 import {
     MatButtonModule, MatDialogModule, MatIconModule, MatProgressBar, MatProgressBarModule, MatProgressSpinnerModule,
     MatTooltipModule
