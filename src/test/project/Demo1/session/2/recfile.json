@@ -1,0 +1,42 @@
+[ {
+  "bigendian" : false,
+  "bytes" : 1458224,
+  "channels" : 1,
+  "date" : "2018-02-23T21:43:44.384+01:00",
+  "encoding" : "PCM_SIGNED",
+  "format" : "WAVE",
+  "frames" : 729088,
+  "maxLevel" : 0.382049560546875,
+  "quantisation" : 16,
+  "recording" : {
+    "mediaitems" : [ {
+      "annotationTemplate" : false,
+      "author" : "VOYS Project, Phonetics Institute, Munich University, Christoph Draxler",
+      "autoplay" : false,
+      "mimetype" : "text/UTF-8",
+      "modal" : false,
+      "text" : "This is a test item to adjust the microphone levels. Please make sure the green signal is clearly visible, but does not touch the upper or lower boundary."
+    } ],
+    "itemcode" : "I0",
+    "rectype" : "audio",
+    "prerecdelay" : 1000,
+    "postrecdelay" : 500,
+    "recduration" : 12000,
+    "recinstructions" : {
+      "mimetype" : "text/plain",
+      "recinstructions" : "Please read in your normal voice"
+    },
+    "beep" : "false",
+    "finalsilence" : 0
+  },
+  "recordingFileId" : 101236549,
+  "recordingTracks" : [ {
+    "channelIndex" : 0,
+    "estimatedSNR" : 170.49622034330395,
+    "maxLevel" : 0.382049560546875,
+    "recordingTrackId" : 101236550
+  } ],
+  "samplerate" : 48000.0,
+  "signalFile" : "file:/vdata/CM_test/101236542/101236542X1_00.wav",
+  "version" : 0
+} ]

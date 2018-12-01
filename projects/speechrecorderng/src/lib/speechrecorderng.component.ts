@@ -15,6 +15,8 @@ import {Session} from "./speechrecorder/session/session";
 import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
+import {RecordingService} from "./speechrecorder/recordings/recordings.service";
+import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -43,6 +45,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 		controlAudioPlayer:AudioPlayer;
 		audio:any;
 
+	_project:Project|null;
   sessionId: string;
   session:Session;
 
@@ -60,6 +63,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
                 private sessionsService:SessionService,
                 private projectService:ProjectService,
                 private scriptService:ScriptService,
+                private recFilesService:RecordingService,
                 private uploader:SpeechRecorderUploader) {
 		}
 
@@ -137,7 +141,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
         this.scriptService.getScript(sess.script).then(script=>{
           this.setScript(script)
           this.sm.session=sess;
-          this.sm.start();
+          //this.sm.start();
+          this.fetchRecordings(sess,this.script)
         })
           .catch(reason =>{
             this.sm.statusMsg=reason;
@@ -145,6 +150,31 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             console.log("Error fetching script: "+reason)
           });
       }
+    }
+
+
+    fetchRecordings(sess:Session,script:Script){
+        let rfsObs=this.recFilesService.recordingFileDescrList(this.project.name,sess.sessionId);
+        rfsObs.subscribe((rfs:Array<RecordingFileDescriptor>)=>{
+          if(rfs) {
+            if(rfs instanceof Array) {
+              rfs.forEach((rf) => {
+                // TODO test output for now
+                console.log("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                this.sm.addRecordingFileByDescriptor(rf);
+              })
+            }else{
+              console.error('Expected type array for list of already recorded files ')
+            }
+          }else{
+            console.log("Recording file list: " + rfs);
+          }
+        },()=>{
+          // we start the session anyway
+          this.sm.start();
+        },()=>{
+          this.sm.start();
+        })
     }
 
 
@@ -265,6 +295,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
   set project(project: Project) {
 
+		  this._project=project;
     let chCnt = 2;
 
     if (project) {
@@ -279,6 +310,10 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
     this.sm.channelCount = chCnt;
 
+  }
+
+  get project():Project{
+		  return this._project;
   }
 
 

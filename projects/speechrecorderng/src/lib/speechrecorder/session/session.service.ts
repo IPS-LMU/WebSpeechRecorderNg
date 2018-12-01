@@ -6,11 +6,11 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.co
 import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 
-export const SESSION_API_CTX='session';
+
 
 @Injectable()
 export class SessionService {
-
+  public static readonly SESSION_API_CTX='session';
   private sessionsUrl:string;
   private withCredentials:boolean=false;
 
@@ -27,7 +27,7 @@ export class SessionService {
     if(config!=null && config.withCredentials!=null){
       this.withCredentials=config.withCredentials;
     }
-    this.sessionsUrl = apiEndPoint + SESSION_API_CTX;
+    this.sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
   }
 
   getSession(id: string): Promise<Session> {

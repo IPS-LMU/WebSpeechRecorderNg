@@ -4,10 +4,16 @@
     "scriptId": 1245,
     "sections": [
       {
+        "name": "Empty section test",
+        "speakerDisplay": false,
+        "training": false,
+        "groups": []
+      },
+      {
         "mode": "MANUAL",
         "name": "Introduction",
         "order": "SEQUENTIAL",
-        "promptphase": "IDLE",
+
         "speakerDisplay": true,
         "training": true,
         "groups": [
@@ -42,6 +48,17 @@
                 ]
               }
             ]
+          },{
+            "promptItems" : [ {
+              "type" : "recording",
+              "mediaitems" : [ {
+                "annotationTemplate" : false,
+                "mimetype" : "image/png",
+                "src" : "resources/vlcsnap-2012-07-10-17h47m32s147.png",
+                "text" : ""
+              } ],
+              "itemcode" : "demo_001"
+            } ]
           },
           {
             "promptItems": [

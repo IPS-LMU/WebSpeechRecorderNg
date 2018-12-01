@@ -1,22 +1,32 @@
 import { UUID } from '../utils/utils'
+import {PromptItem} from "./script/script";
 
+
+export class RecordingFileDescriptor {
+
+  //sessionId:string|number;
+  recording:PromptItem;
+  version:number;
+  constructor() {}
+
+}
 
     export class RecordingFile {
 
-      _audioBuffer:AudioBuffer;
+      audioBuffer:AudioBuffer;
       sessionId:string|number;
       itemCode:string;
+      version:number;
       uuid:string;
-      constructor(sessionId:string|number,itemcode:string,audioBuffer:AudioBuffer) {
+      constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer) {
           this.sessionId=sessionId;
           this.itemCode=itemcode;
-          this._audioBuffer=audioBuffer;
+          this.version=version;
+          this.audioBuffer=audioBuffer;
           this.uuid=UUID.generate();
       }
 
-      get audioBuffer():AudioBuffer{
-        return this._audioBuffer;
-      }
+
 
       filenameString():string{
         let fns:string='';

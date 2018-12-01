@@ -6,7 +6,7 @@ import {
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
-import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
+import {AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
 import {AudioClipUIContainer} from './ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
@@ -56,19 +56,13 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   zoomInAction:Action;
   zoomOutAction:Action;
 
-
- // aCtx: AudioContext;
-
   status: string;
-
-  currentLoader: XMLHttpRequest | null;
 
   audio: any;
   updateTimerId: any;
 
-
   @ViewChild(AudioDisplayScrollPane)
-  private ac: AudioDisplayScrollPane;
+  private audioDisplayScrollPane: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
@@ -81,9 +75,9 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
-      this.zoomFitToPanelAction=this.ac.zoomFitToPanelAction;
-    this.zoomOutAction=this.ac.zoomOutAction;
-    this.zoomInAction=this.ac.zoomInAction;
+      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
+    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
       var n = <any>navigator;
       var w = <any>window;
 
@@ -123,7 +117,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   }
 
   layout(){
-    this.ac.layout();
+    this.audioDisplayScrollPane.layout();
   }
 
 
@@ -135,7 +129,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
-      this.ac.audioData = audioBuffer;
+      this.audioDisplayScrollPane.audioData = audioBuffer;
       if(audioBuffer) {
           let clip = new AudioClip(audioBuffer);
 
@@ -146,7 +140,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
 
   set playFramePosition(playFramePosition:number){
-      this.ac.playFramePosition = playFramePosition
+      this.audioDisplayScrollPane.playFramePosition = playFramePosition
   }
 
   error() {

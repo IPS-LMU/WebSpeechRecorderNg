@@ -9,6 +9,7 @@ import {Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
+import {AudioDisplay} from "../../audio/audio_display";
 
 
 @Component({
@@ -379,7 +380,7 @@ export class PromptingContainer {
 
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(AudioClipUIContainer) audioClipUIContainer: AudioClipUIContainer;
+  @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;
