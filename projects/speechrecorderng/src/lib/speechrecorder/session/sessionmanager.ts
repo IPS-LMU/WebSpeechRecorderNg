@@ -331,9 +331,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   set script(script: any) {
     this._script = script;
     this.loadScript();
-    if(this.promptItemCount>0) {
-      this.promptIndex = 0;
-    }
   }
 
   set channelCount(channelCount: number) {
@@ -711,8 +708,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         console.log("Open session with default audio device for "+this._channelCount+" channels");
         this.ac.open(this._channelCount);
       }
-
-
+    }
+    if(this.promptItemCount>0) {
+      this.promptIndex = 0;
     }
   }
 
