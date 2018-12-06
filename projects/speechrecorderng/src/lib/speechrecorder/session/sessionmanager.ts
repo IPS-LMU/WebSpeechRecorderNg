@@ -333,9 +333,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   set script(script: any) {
     this._script = script;
     this.loadScript();
-    if(this.promptItemCount>0) {
-      this.promptIndex = 0;
-    }
   }
 
   set channelCount(channelCount: number) {
@@ -713,8 +710,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         console.log("Open session with default audio device for "+this._channelCount+" channels");
         this.ac.open(this._channelCount);
       }
-
-
+    }
+    if(this.promptItemCount>0) {
+      this.promptIndex = 0;
     }
   }
 
@@ -985,7 +983,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private updateControlPlaybackPosition() {
     if (this._controlAudioPlayer.playPositionFrames) {
-
       this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
@@ -995,15 +992,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (EventType.READY === e.type) {
 
     } else if (EventType.STARTED === e.type) {
+      //this.status = 'Playback...';
       this.updateTimerId = window.setInterval(e => this.updateControlPlaybackPosition(), 50);
-        //this.status = 'Playback...';
-        console.log("Started playback pos update timer")
 
     } else if (EventType.ENDED === e.type) {
       //.status='Ready.';
-
       window.clearInterval(this.updateTimerId);
-        console.log("Stopped playback pos update timer")
 
     }
 
