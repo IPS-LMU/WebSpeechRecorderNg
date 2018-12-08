@@ -597,7 +597,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   updateStartActionDisableState(){
-    this.transportActions.startAction.disabled=!(this.ac && this.ac.opened && this.isRecordingItem());
+    this.transportActions.startAction.disabled=!(this.ac  && this.isRecordingItem());
   }
 
   applyItem(temporary=false) {
