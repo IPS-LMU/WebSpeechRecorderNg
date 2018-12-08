@@ -332,9 +332,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   set script(script: any) {
     this._script = script;
     this.loadScript();
-    if(this.promptItemCount>0) {
-      this.promptIndex = 0;
-    }
   }
 
   set channelCount(channelCount: number) {
@@ -729,8 +726,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         //this.ac.open(this._channelCount);
         this.enableStartUserGesture()
       }
-
-
+    }
+    if(this.promptItemCount>0) {
+      this.promptIndex = 0;
     }
   }
 
