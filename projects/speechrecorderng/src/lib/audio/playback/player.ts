@@ -105,6 +105,7 @@ import { AudioClip } from '../persistor'
 
         start() {
             if(!this._startAction.disabled && !this.running) {
+                this.context.resume();
                 this.sourceBufferNode = this.context.createBufferSource();
                 this.sourceBufferNode.buffer = this._audioBuffer;
                 this.sourceBufferNode.connect(this.context.destination);

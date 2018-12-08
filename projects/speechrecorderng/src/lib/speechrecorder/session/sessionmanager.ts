@@ -233,6 +233,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       return;
     } else {
       let context = new w.AudioContext();
+      console.info("State of audio context: "+context.state)
 
       if (!navigator.mediaDevices) {
         this.status = Status.ERROR;
@@ -416,8 +417,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.section.mode === 'AUTORECORDING') {
       this.autorecording = true;
     }
-    this.ac.start();
 
+    if(!this.ac.opened) {
+      console.log("Open session with default audio device for " + this._channelCount + " channels");
+      this.ac.open(this._channelCount);
+    }else {
+      this.ac.start();
+    }
   }
 
 
@@ -690,6 +696,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
           if (fdi) {
             // matching device found
+
+            // Not able to open devive here since Chrome 71
+            // Chrome 71 requires a user gesture before the AudioContext can be resumed
+            // sessionmanager.ts:712 Open session with default audio device for 1 channels
+            // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
+            // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
             console.log("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
             this.ac.open(this._channelCount, fdi.deviceId);
           } else {
@@ -708,8 +720,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           }
         });
       } else {
-        console.log("Open session with default audio device for "+this._channelCount+" channels");
-        this.ac.open(this._channelCount);
+        // Not able to open devive here since Chrome 71
+        // Chrome 71 requires a user gesture before the AudioContext can be resumed
+        // sessionmanager.ts:712 Open session with default audio device for 1 channels
+        // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
+        // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
+        //console.log("Open session with default audio device for "+this._channelCount+" channels");
+        //this.ac.open(this._channelCount);
+        this.enableStartUserGesture()
       }
 
 
@@ -744,12 +762,22 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
 
-  opened() {
+  enableStartUserGesture() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Ready.';
-    this.updateStartActionDisableState()
+    //this.updateStartActionDisableState()
+    this.transportActions.startAction.disabled=!(this.ac && this.isRecordingItem());
     this.transportActions.fwdAction.disabled = false
     this.transportActions.bwdAction.disabled = false
+  }
+
+  opened() {
+    // this.statusAlertType = 'info';
+    // this.statusMsg = 'Ready.';
+    // this.updateStartActionDisableState()
+    // this.transportActions.fwdAction.disabled = false
+    // this.transportActions.bwdAction.disabled = false
+    this.ac.start();
   }
 
   started() {
