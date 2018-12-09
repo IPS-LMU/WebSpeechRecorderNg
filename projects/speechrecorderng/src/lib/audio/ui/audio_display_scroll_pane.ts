@@ -94,7 +94,7 @@ export class AudioDisplayScrollPane {
       }
 
       this.zoomFitToPanelAction.onAction = (e) => {
-            //set temporary to fit fit to panel TODO should not be avoided
+
           this.ac.fixFitToPanel=true;
           // set container div width to this (viewport) width
           this.ac.ce.style.width=this.spEl.offsetWidth+'px';
