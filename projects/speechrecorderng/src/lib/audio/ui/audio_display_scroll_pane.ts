@@ -66,7 +66,10 @@ export class AudioDisplayScrollPane {
 
       this.zoomInAction.onAction = (e) => {
           this.ac.fixFitToPanel = false
-          let oldXZoom = this.ac.xZoom
+          let oldXZoom = this.ac.currentXZoom()
+          if(oldXZoom === null){
+              return;
+          }
           let newXzoom = oldXZoom * 2;
           this.ac.xZoom = newXzoom;
 
@@ -78,7 +81,10 @@ export class AudioDisplayScrollPane {
           this.ac.fixFitToPanel = false
           let cbr1 = new Rectangle(new Position((this.spEl.scrollLeft / 2) - this.spEl.clientWidth, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
           this.ac.clipBounds(cbr1);
-          let oldXZoom = this.ac.xZoom
+          let oldXZoom = this.ac.currentXZoom()
+          if(oldXZoom === null){
+              return;
+          }
           let newXzoom = oldXZoom / 2;
           this.ac.xZoom = newXzoom;
 
@@ -96,8 +102,8 @@ export class AudioDisplayScrollPane {
           this.ac.clipBounds(null);
           // reset xzom which trigegrs relayout and repaint
           this.ac.xZoom = null;
-          // reset temporyr fix fit to panel
-          this.ac.fixFitToPanel=false;
+          // // reset temporary fix fit to panel
+          // this.ac.fixFitToPanel=false;
           this.zoomFitToPanelAction.disabled=true
       }
 
