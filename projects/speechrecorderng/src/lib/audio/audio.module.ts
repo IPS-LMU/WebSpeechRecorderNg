@@ -11,9 +11,10 @@ import {MatButtonModule,MatDialogModule, MatIconModule} from "@angular/material"
 import {AudioDisplayControl} from "./ui/audio_display_control";
 import {ScrollPaneHorizontal} from "./ui/scroll_pane_horizontal";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
+import {AudioDisplayPlayer} from "./audio_player";
 
 @NgModule({
-    declarations: [ScrollPaneHorizontal,AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplay,AudioDisplayScrollPane,AudioDisplayControl,LevelBar],
+    declarations: [ScrollPaneHorizontal,AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplayPlayer,AudioDisplay,AudioDisplayScrollPane,AudioDisplayControl,LevelBar],
     exports: [ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayControl,LevelBar],
     imports: [CommonModule,MatIconModule,MatButtonModule,MatDialogModule]
 })

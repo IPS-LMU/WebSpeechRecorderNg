@@ -14,7 +14,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 
 @Component({
 
-  selector: 'app-audiodisplay',
+  selector: 'app-audiodisplayplayer',
 
   template: `
    
@@ -42,7 +42,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
     }`]
 
 })
-export class AudioDisplay implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
   private _audioUrl: string;
 
   parentE: HTMLElement;
