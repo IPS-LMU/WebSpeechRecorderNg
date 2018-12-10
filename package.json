@@ -14,12 +14,6 @@
     "publish_module": "cd dist && cd speechrecorderng && rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",
     "build": "ng build",
-    "build_devel_klausj_www": "ng build --dev --base-href='/~klausj/demos/wsr/ng_devel/dist/'",
-    "install_devel_klausj_www": "rsync --delete -a dist /vdata/users_public_html/klausj/www/demos/wsr/ng_devel/ && cp htaccess_www_klausj.txt /vdata/users_public_html/klausj/www/demos/wsr/ng_devel/dist/.htaccess",
-    "build_install_devel_klausj_www": "npm run build_devel_klausj_www && npm run install_devel_klausj_www",
-    "build_klausj_www": "npm run apply_version && ng build --prod --base-href='/~klausj/demos/wsr/ng/dist/'",
-    "install_klausj_www": "rsync --delete -a dist /vdata/users_public_html/klausj/www/demos/wsr/ng/ && cp htaccess_www_klausj.txt /vdata/users_public_html/klausj/www/demos/wsr/ng/dist/.htaccess",
-    "build_install_klausj_www": "npm run build_klausj_www && npm run install_klausj_www",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
