@@ -124,7 +124,13 @@ export class AudioCapture {
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString,) {
+  open(channelCount: number, selDeviceId?: ConstrainDOMString){
+      this.context.resume().then(()=>{
+        this._open(channelCount,selDeviceId);
+      })
+  }
+
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString,) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
@@ -304,6 +310,7 @@ export class AudioCapture {
         }
       }, (e) => {
         console.log(e);
+
         if (this.listener) {
 
           this.listener.error();
@@ -313,6 +320,7 @@ export class AudioCapture {
   }
 
   start() {
+
     this.initData();
     if (this.audioOutStream) {
       this.audioOutStream.nextStream()
