@@ -64,7 +64,9 @@ export class Item {
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer">
+                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
+                        [playStartAction]="controlAudioPlayer.startAction"
+                        [playStopAction]="controlAudioPlayer.stopAction">
        
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
@@ -1009,7 +1011,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private updateControlPlaybackPosition() {
     if (this._controlAudioPlayer.playPositionFrames) {
-      this.prompting.audioClipUIContainer.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+      this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
   }

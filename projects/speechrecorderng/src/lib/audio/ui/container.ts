@@ -6,27 +6,29 @@ import {Sonagram} from './sonagram'
 import {Point} from './common'
 
 import {Component, ViewChild} from '@angular/core';
+import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 
 @Component({
 
   selector: 'app-audio',
   template: `
+    <div #virtualCanvas>
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)" (mousemove)="mousemove($event)"
             (mouseleave)="mouseleave($event)"></canvas>
     <audio-signal></audio-signal>
     <audio-sonagram></audio-sonagram>
+    </div>
   `,
-  styles: [`:host {
+  styles: [`div {
 
     margin: 0; 
-    padding: 0; 
-    position: relative;
+    padding: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    flex: 1;
-    justify-content: center; /* align horizontal */
-    align-items: center; /* align vertical */
-    text-align: center;
+    position: relative; /* TODO container div position must not be 'static' (default) to act as reference for the canvases */
+    box-sizing: border-box;
   }`, `canvas{
     top: 0;
     left: 0;
@@ -49,42 +51,76 @@ import {Component, ViewChild} from '@angular/core';
 
 })
 export class AudioClipUIContainer implements OnInit,AfterViewInit {
-  private static DIVIDER_PIXEL_SIZE = 10;
-  @ViewChild('container') canvasRef: ElementRef;
 
-  ce: HTMLDivElement;
+  private static DIVIDER_PIXEL_SIZE = 10;
+
+  parentE: HTMLElement;
+
+  @ViewChild('container') canvasRef: ElementRef;
   dc: HTMLCanvasElement;
+
+  @ViewChild('virtualCanvas') ceRef: ElementRef;
+  ce: HTMLDivElement;
+
   @ViewChild(AudioSignal) as: AudioSignal;
   @ViewChild(Sonagram) so: Sonagram;
+
+
+  private _clipBounds: Rectangle | null = null;
+
+
+  private _audioData: AudioBuffer | null;
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
   private dividerPosition = 0.5;
 
-  constructor(private ref: ElementRef) {
-
+  private _xZoom: number | null = null; // pixels per second
+  get xZoom(): number | null {
+    return this._xZoom;
   }
 
-  ngOnInit(){
-    this.ce = this.ref.nativeElement;
+  set xZoom(value: number | null) {
+    this._xZoom = value;
+    this.layout()
+  }
+
+  private _fixFitToPanel = true;
+  set fixFitToPanel(value: boolean) {
+    this._fixFitToPanel = value;
+    if (value) {
+      this._xZoom = null;
+    } else {
+      // hold current zoom value
+      //this._xZoom=this.ce.offsetWidth/this._audioData.duration;
+    }
+    this.layout()
+  }
+
+  constructor(private ref: ElementRef) {
+    this.parentE = this.ref.nativeElement;
+  }
+
+  ngOnInit() {
+    this.ce = this.ceRef.nativeElement;
     this.dc = this.canvasRef.nativeElement;
   }
 
   ngAfterViewInit() {
     this.layout();
-      let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
-        mrs.forEach((mr:MutationRecord)=>{
-          if('attributes'===mr.type && ('class'===mr.attributeName || 'style'===mr.attributeName)){
-            this.layout();
-          }
-        })
-      });
-      heightListener.observe(this.ce,{attributes: true,childList: true, characterData: true});
+    let heightListener = new MutationObserver((mrs: Array<MutationRecord>, mo: MutationObserver) => {
+      mrs.forEach((mr: MutationRecord) => {
+        if ('attributes' === mr.type && ('class' === mr.attributeName || 'style' === mr.attributeName)) {
+          this.layout();
+        }
+      })
+    });
+    heightListener.observe(this.parentE, {attributes: true, childList: true, characterData: true});
   }
 
 
   @HostListener('window:resize', ['$event'])
-  onResize(event:Event):void {
+  onResize(event: Event): void {
     this.layout();
   }
 
@@ -110,16 +146,16 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   @HostListener('document:mouseup', ['$event'])
-  onMouseup(me:MouseEvent) {
+  onMouseup(me: MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
-      this.layout();
+      this.layout(false);
       this.dragStartY = null;
     }
   }
 
   @HostListener('document:mousemove', ['$event'])
-  onMousemove(me:MouseEvent) {
+  onMousemove(me: MouseEvent) {
     if (this.dragStartY != null) {
       this.dividerDrag(me);
       this.layoutScaled();
@@ -153,10 +189,16 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     if (this.dc && this.dragStartMouseY && this.dragStartY) {
 
       const dragOffset = e.clientY - this.dragStartMouseY;
-      // console.log("Drag offset: ", dragOffset);
-      const newTop = (this.dragStartY + dragOffset);
-      this.dc.style.top = newTop.toString() + 'px';
       const ceHeight = this.ce.offsetHeight;
+
+      let newTop = (this.dragStartY + dragOffset);
+      if (newTop < 0) {
+        newTop = 0;
+      }
+      if (newTop > ceHeight - AudioClipUIContainer.DIVIDER_PIXEL_SIZE) {
+        newTop = ceHeight - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      }
+      this.dc.style.top = newTop.toString() + 'px';
       this.dividerPosition = (this.dc.offsetTop + AudioClipUIContainer.DIVIDER_PIXEL_SIZE / 2) / ceHeight;
       if (this.dividerPosition > 1.0) {
         this.dividerPosition = 1.0;
@@ -173,7 +215,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     const w = this.dc.width;
     const h = this.dc.height;
     const g = this.dc.getContext('2d');
-    if (g) {
+    if (g && w>10 && h>=1) {
       g.fillStyle = 'white';
       g.fillRect(0, 0, w, h);
       g.fillStyle = 'black';
@@ -182,6 +224,12 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   layoutScaled() {
+
+    console.log("Layout scaled.")
+    // // TODO test
+    // this.ce.style.width='1000px';
+    // this.ce.style.height='400px';
+
     const offW = this.ce.offsetWidth;
     const offH = this.ce.offsetHeight;
 
@@ -206,43 +254,137 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this.dc.style.width = wStr;
     this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
     this.drawDivider();
-    this.so.layoutBounds(0, soTop, offW, soH, false);
-    this.as.layoutBounds(0, 0, offW, asH, false);
+
+    let cLeft = 0;
+    let cWidth = this.ce.clientWidth;
+    if (this._clipBounds) {
+      cLeft = this._clipBounds.position.left;
+      cWidth = this._clipBounds.dimension.width;
+    }
+    let virtualDim = new Dimension(offW, 0)
+    let asR = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, asH));
+
+    this.as.layoutBounds(asR, virtualDim, false);
+
+    let soR = new Rectangle(new Position(cLeft, soTop), new Dimension(cWidth, soH));
+
+    this.so.layoutBounds(soR, virtualDim, false);
+
+
+    //this.so.layoutBounds(0, soTop, offW, soH, false);
+    // this.as.layoutBounds(0, 0, offW, asH, false);
   }
 
-  layout() {
+  clipBounds(clipBounds: Rectangle) {
+    this._clipBounds = clipBounds;
+
+    this.layout();
+  }
+
+
+  currentXZoom(): number | null {
+    let xz = this._xZoom;
+    if (xz==null && this._audioData) {
+      let ow = this.ce.offsetWidth;
+      if (ow < 1) {
+        // at least one pixel width to avoid x-zoom zero values
+        ow = 1;
+      }
+      xz = ow / this._audioData.duration;
+    }
+    return xz;
+  }
+
+  layout(clear=true) {
+
     if(this.ce && this.dc) {
+
+      const clientW=this.ce.clientWidth;
+      const offsetW=this.ce.offsetWidth;
+      const scrollW=this.ce.scrollWidth;
+
+      if(!this._fixFitToPanel) {
+        if (this._xZoom && this._audioData) {
+          // Set the virtual canvas width according to the value of the user selected xZoom value
+          const newClW = Math.round( this._xZoom*this._audioData.duration );
+          this.ce.style.width = newClW + 'px';
+        } else {
+          // Set the virtual canvas width to the visible width only
+          this.ce.style.width = clientW + 'px';
+        }
+      }
+
+      if(this._audioData) {
+        let ow=this.ce.offsetWidth;
+        if(ow<1){
+          // at least one pixel width to avoid x-zoom zero values
+          ow=1;
+        }
+      }
+
       const offW = this.ce.offsetWidth;
       const offH = this.ce.offsetHeight;
 
-      const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      let psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+      if(psH<0){
+        psH=0;
+      }
       const asTop = 0;
 
       const asH = Math.round(psH * this.dividerPosition);
-      const soH = Math.round(psH * (1 - this.dividerPosition));
+
+      let soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH;
+      if(soH<0){
+        soH=0;
+      }
+
       const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-      const wStr = offW.toString() + 'px';
+      const wStr = offW + 'px';
 
+      let left=0;
+      let intW=offW;
+      if(this._clipBounds) {
+        intW = Math.round(this._clipBounds.dimension.width);
+        left=Math.round(this._clipBounds.position.left);
+      }
       const dTop = asH;
-      const dTopStr = dTop.toString() + 'px';
+      const dTopStr = dTop + 'px';
+
       this.dc.style.top = dTopStr;
-      this.dc.style.left = '0px';
-      this.dc.style.width = wStr;
+      this.dc.style.left = left+'px';
+
+      this.dc.style.width = intW+'px';
 
       this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-      this.dc.width = offW;
+      this.dc.width = intW;
       this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
 
-      this.dc.style.width = wStr;
       this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
       this.drawDivider();
-      this.as.layoutBounds(0, 0, offW, asH, true);
-      this.so.layoutBounds(0, soTop, offW, soH, true);
+
+      let cLeft=0;
+      let cWidth=this.ce.clientWidth;
+      if(this._clipBounds){
+        cLeft=this._clipBounds.position.left;
+        cWidth=this._clipBounds.dimension.width;
+      }
+
+      let virtualDim=new Dimension(offW,0)
+
+
+      let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
+
+      this.as.layoutBounds(asR, virtualDim,true,clear);
+
+      let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
+
+      this.so.layoutBounds(soR, virtualDim, true,clear);
     }
   }
 
   @Input()
   set audioData(audioData: AudioBuffer | null) {
+    this._audioData=audioData;
     this.as.setData(audioData);
     this.so.setData(audioData);
     this.layout();

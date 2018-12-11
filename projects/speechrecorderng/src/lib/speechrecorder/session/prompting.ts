@@ -8,6 +8,8 @@ import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
+import {Action} from "../../action/action";
+import {AudioDisplay} from "../../audio/audio_display";
 
 
 @Component({
@@ -21,7 +23,7 @@ import {TransportActions} from "./controlpanel";
   styles: [`:host {
 
     justify-content: left; /* align horizontal center */
-    align-items: left; /* align vertical  center */
+    align-items: flex-start; /* align vertical  center */
     background: white;
     text-align: left;
     font-size: 1em;
@@ -182,7 +184,7 @@ export class PromptingContainer {
         this.e = this.ref.nativeElement;
     }
     @HostListener('touchstart', ['$event'])
-    onTouchstart(ev:TouchEvent){
+    onTouchstart(ev:TouchEvent | any){
         //console.log("Touch start! ")
         if(!(this.transportActions.fwdAction.disabled &&
                 this.transportActions.bwdAction.disabled &&
@@ -208,7 +210,7 @@ export class PromptingContainer {
         }
     }
     @HostListener('touchend', ['$event'])
-    onTouchEnd(ev:TouchEvent){
+    onTouchEnd(ev:TouchEvent | any){
         //console.log("Touch end!")
         // Reset offset shift
         if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled &&
@@ -259,7 +261,7 @@ export class PromptingContainer {
 
     }
     @HostListener('touchmove', ['$event'])
-    onTouchMove(ev:TouchEvent){
+    onTouchMove(ev:TouchEvent | any ){
         //console.log("Touch move!")
         if(!(this.transportActions.fwdAction.disabled && this.transportActions.bwdAction.disabled &&
                 this.transportActions.nextAction.disabled)) {
@@ -277,7 +279,7 @@ export class PromptingContainer {
         }
     }
     @HostListener('touchcancel', ['$event'])
-    onTouchCancel(ev:TouchEvent){
+    onTouchCancel(ev:TouchEvent | any){
         //console.log("Touch cancel!")
         this.e.style.left="0px";
         ev.preventDefault();
@@ -298,8 +300,11 @@ export class PromptingContainer {
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
        
-            <app-audio #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                       [audioData]="displayAudioBuffer"></app-audio>
+            <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
+                       [audioData]="displayAudioBuffer"
+                              [playStartAction]="playStartAction"
+                              [playStopAction]="playStopAction"></app-audiodisplay>
+      
         
     </div>
 
@@ -361,12 +366,12 @@ export class PromptingContainer {
 
         overflow: hidden;
         
-        padding: 20px; 
+        padding: 0px; 
         /* margin: 20px; */
         /* border: 20px; */
         z-index: 5;
         box-sizing: border-box;
-       background-color: rgba(0,0,0,0.75)
+       background-color: rgba(0,0,0,0)
         
     }`
   ]
@@ -375,7 +380,7 @@ export class PromptingContainer {
 
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(AudioClipUIContainer) audioClipUIContainer: AudioClipUIContainer;
+  @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;
@@ -386,6 +391,8 @@ export class Prompting {
 
   @Input() audioSignalCollapsed:boolean;
   @Input() displayAudioBuffer:AudioBuffer | null;
+    @Input() playStartAction: Action;
+    @Input() playStopAction: Action;
   @Output() onItemSelect = new EventEmitter<number>();
     @Output() onNextItem = new EventEmitter();
     @Output() onPrevItem = new EventEmitter();

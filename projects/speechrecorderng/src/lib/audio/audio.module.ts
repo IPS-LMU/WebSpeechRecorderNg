@@ -9,10 +9,13 @@ import {LevelBar} from "./ui/livelevel";
 import {CommonModule} from "@angular/common";
 import {MatButtonModule,MatDialogModule, MatIconModule} from "@angular/material";
 import {AudioDisplayControl} from "./ui/audio_display_control";
+import {ScrollPaneHorizontal} from "./ui/scroll_pane_horizontal";
+import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
+import {AudioDisplayPlayer} from "./audio_player";
 
 @NgModule({
-    declarations: [AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplay,AudioDisplayControl,LevelBar],
-    exports: [AudioClipUIContainer,AudioDisplay,AudioDisplayControl,LevelBar],
+    declarations: [ScrollPaneHorizontal,AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplayPlayer,AudioDisplay,AudioDisplayScrollPane,AudioDisplayControl,LevelBar],
+    exports: [ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayControl,LevelBar],
     imports: [CommonModule,MatIconModule,MatButtonModule,MatDialogModule]
 })
 export class AudioModule{

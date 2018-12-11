@@ -1,46 +1,71 @@
+import {Position,Dimension, Rectangle} from "../math/2d/geometry";
+
 export abstract class CanvasLayerComponent{
 
+  protected bounds:Rectangle;
+  protected virtualDimension:Dimension;
   protected canvasLayers:Array<HTMLCanvasElement>;
 
   constructor(){
 
-    // TODO make clear that first elemnt is background canvas
+    // TODO make clear that first element is background canvas
     this.canvasLayers=new Array<HTMLCanvasElement>();
   }
 
-  layoutBounds(left: number, top: number, offW: number, offH: number, redraw: boolean) {
+  toXViewPortPixelPosition(virtualX:number){
+    let pixelPos=virtualX;
+      if(this.bounds){
+          pixelPos=Math.round(virtualX-this.bounds.position.left);
+      }
+      return pixelPos;
+  }
 
+  toViewPortPosition(virtualPos:Position):Position{
+
+    if(this.bounds){
+      return new Position(virtualPos.left-this.bounds.position.left,virtualPos.top-this.bounds.position.top);
+    }else{
+      return virtualPos;
+    }
+  }
+
+  layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean,clear?:boolean) {
+
+    this.bounds=bounds;
+    this.virtualDimension=virtualDimension;
     //this.canvasLayers.forEach(cl=>{
     for(let ci=0;ci<this.canvasLayers.length;ci++) {
       let cl = this.canvasLayers[ci];
-      cl.style.left = left.toString() + 'px';
-      cl.style.top = top.toString() + 'px';
+      const leftStyle=bounds.position.left+ 'px';
+        const topStyle=bounds.position.top + 'px';
+      cl.style.left = leftStyle;
+      cl.style.top = topStyle;
     }
-      if (offW) {
-        let wStr = offW.toString() + 'px';
-
+      if (bounds.dimension.width) {
+        let intW=Math.round(bounds.dimension.width);
           if (redraw) {
             // Do not set width of background canvas (causes flicker on start render)
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
-              cl.width = offW;
+              cl.width = intW;
             }
           }
+        let wStr = intW.toString() + 'px';
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
           let cl = this.canvasLayers[ci];
           cl.style.width = wStr;
         }
       }
-      if (offH) {
-        let hStr = offH.toString() + 'px';
-
+      if (bounds.dimension.height) {
+        let intH=Math.round(bounds.dimension.height)
           if (redraw) {
             // Do not set height of background canvas (causes flicker on start render)
             for(let ci=1;ci<this.canvasLayers.length;ci++) {
               let cl = this.canvasLayers[ci];
-              cl.height = offH;
+              cl.height = intH;
             }
           }
+        let hStr = intH + 'px';
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
           let cl = this.canvasLayers[ci];
           cl.style.height = hStr;
@@ -49,9 +74,10 @@ export abstract class CanvasLayerComponent{
       //});
 
     if (redraw) {
-      this.startRender(offW, offH);
+
+      this.startDraw(clear);
     }
   }
 
-  abstract startRender(offWidth:number,offsetHeight:number):void;
+  abstract startDraw(clear:boolean):void;
 }

@@ -1,0 +1,3 @@
+Audio display uses separate player. Should use audioplayer which is shared with sessionmanager.
+
+copy audio_display.ts to audio_player.ts and remove player from audio_display.ts

@@ -18,6 +18,7 @@ import {AudioModule} from "../../projects/speechrecorderng/src/lib/audio/audio.m
 import {SPR_CFG} from "./app.config";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
+import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
 
 
 
@@ -30,7 +31,7 @@ const appRoutes: Routes = [
         redirectTo: 'session/',
         pathMatch: 'full'
     },
-    { path: 'audio_display', component: AudioDisplay
+    { path: 'audio_display', component: AudioDisplayPlayer
     },
   { path: '**', component: StartComponent  }
 ];

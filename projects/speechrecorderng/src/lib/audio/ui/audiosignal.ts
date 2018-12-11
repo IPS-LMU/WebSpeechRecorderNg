@@ -1,6 +1,8 @@
 import {Marker, Point} from './common'
 import {Component, ViewChild, ElementRef} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
+import {Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -23,9 +25,8 @@ declare function postMessage(message: any, transfer: Array<any>): void;
   }`]
 
 })
-export class AudioSignal extends CanvasLayerComponent{
+export class AudioSignal extends AudioCanvasLayerComponent{
 
-  audioData: AudioBuffer | null;
   n: any;
   ce: HTMLDivElement;
   @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
@@ -93,8 +94,8 @@ export class AudioSignal extends CanvasLayerComponent{
         if (show) {
 
           let pp = this.canvasMousePos(this.cursorCanvas, e);
-          let offX = e.offsetX - this.cursorCanvas.offsetLeft;
-          let offY = e.offsetY - this.cursorCanvas.offsetTop;
+          let offX = e.offsetX;
+          let offY = e.offsetY;
           let pixelPos = offX;
           g.fillStyle = 'yellow';
           g.strokeStyle = 'yellow';
@@ -127,11 +128,8 @@ export class AudioSignal extends CanvasLayerComponent{
       let g = this.markerCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
-        if (this.audioData && this.audioData.numberOfChannels > 0) {
-          let ch0 = this.audioData.getChannelData(0);
-          let frameLength = ch0.length;
-          let framesPerPixel = frameLength / w;
-          let pixelPos = this._playFramePosition * w / frameLength;
+        let pixelPos=this.frameToViewPortXPixelPosition(this._playFramePosition);
+        if(pixelPos){
           g.fillStyle = 'red';
           g.strokeStyle = 'red';
           g.beginPath();
@@ -150,15 +148,18 @@ export class AudioSignal extends CanvasLayerComponent{
     self.onmessage = function (msg) {
 
       let audioData = msg.data.audioData;
+      let l=msg.data.l;
       let w = msg.data.w;
       let h = msg.data.h;
+      let vw=msg.data.vw;
       let chs = msg.data.chs;
       let frameLength = msg.data.frameLength;
-      let psMinMax: Float32Array | null;
-      psMinMax = null;
-      if (audioData) {
-        let chH = h / chs;
-        let framesPerPixel = frameLength / w;
+      let psMinMax= new Float32Array(0);
+
+      if(audioData && w>=0 && vw>0) {
+
+        let framesPerPixel = frameLength / vw;
+
         let y = 0;
         let pointsLen = w * chs;
         // one for min one for max
@@ -170,16 +171,19 @@ export class AudioSignal extends CanvasLayerComponent{
 
           chFramePos = ch * frameLength;
           for (let pii = 0; pii < w; pii++) {
+            let virtPii=l+pii;
             let pMin = Infinity;
             let pMax = -Infinity;
-            let pixelFramePos = Math.round(chFramePos + (pii * framesPerPixel));
+            let pixelFramePos = Math.round(chFramePos + (virtPii * framesPerPixel));
 
             // calculate pixel min/max amplitude
             for (let ai = 0; ai < framesPerPixel; ai++) {
               let framePos = pixelFramePos + ai;
 
-              //let a = this.audioData.getChannelData(ch)[framePos++];
-              let a = audioData[framePos];
+              let a = 0;
+              if(framePos>=0 && framePos<audioData.length){
+                a=audioData[framePos];
+              }
               if (a < pMin) {
                 pMin = a;
               }
@@ -197,55 +201,80 @@ export class AudioSignal extends CanvasLayerComponent{
 
         }
       }
-      let psBuf;
-      if (psMinMax) {
-        psBuf = psMinMax.buffer;
-      }
-      postMessage({psMinMax: psMinMax, w: msg.data.w, h: msg.data.h, chs: msg.data.chs}, [psBuf]);
+
+
+      postMessage({psMinMax: psMinMax, l:msg.data.l,t:msg.data.t,w: msg.data.w, h: msg.data.h, chs: msg.data.chs}, [psMinMax.buffer]);
     }
   }
 
-  startRender(w: number, h: number) {
+  startDraw(clear = true) {
+    if (clear) {
+
+      this.signalCanvas.style.left = Math.round(this.bounds.position.left).toString() + 'px';
+      this.signalCanvas.width = Math.round(this.bounds.dimension.width);
+      this.signalCanvas.height = Math.round(this.bounds.dimension.height);
+
+      let g = this.signalCanvas.getContext("2d");
+      if (g) {
+        //g.clearRect(0, 0,w, h);
+        g.fillStyle = "black";
+        g.fillRect(0, 0, Math.round(this.bounds.dimension.width), Math.round(this.bounds.dimension.height));
+      }
+    }
+    this.startRender();
+  }
+
+
+  private startRender() {
 
     if (this.wo) {
       this.wo.terminate();
       this.wo = null;
-
     }
-    if (this.audioData && w && h) {
-      w = Math.round(w);
-      h = Math.round(h);
+    if (this.bounds && this.bounds.dimension) {
 
+      let w = Math.round(this.bounds.dimension.width);
+      let h = Math.round(this.bounds.dimension.height);
 
-      this.wo = new Worker(this.workerURL);
+      if (this.audioData && w>0 && h>0) {
+        this.wo = new Worker(this.workerURL);
 
-      let chs = this.audioData.numberOfChannels;
+        let chs = this.audioData.numberOfChannels;
 
-      let frameLength = this.audioData.getChannelData(0).length;
-      // if(frameLength != this.audioData.getChannelData(1).length){
-      //   alert("Ungleiche Länge");
-      // }
-      let ad = new Float32Array(chs * frameLength);
-      for (let ch = 0; ch < chs; ch++) {
-        ad.set(this.audioData.getChannelData(ch), ch * frameLength);
-      }
-      //let start = Date.now();
-      if (this.wo) {
-        this.wo.onmessage = (me) => {
-          //console.log("As rendertime: ", Date.now() - start);
-          this.drawRendered(me);
-          if (this.wo) {
-            this.wo.terminate();
-          }
-          this.wo = null;
+        let frameLength = this.audioData.getChannelData(0).length;
+        // if(frameLength != this.audioData.getChannelData(1).length){
+        //   alert("Ungleiche Länge");
+        // }
+        let ad = new Float32Array(chs * frameLength);
+        for (let ch = 0; ch < chs; ch++) {
+          ad.set(this.audioData.getChannelData(ch), ch * frameLength);
         }
-      }
-
-      this.wo.postMessage({w: w, h: h, chs: chs, frameLength: frameLength, audioData: ad}, [ad.buffer]);
-    } else {
-      let g = this.signalCanvas.getContext("2d");
-      if (g) {
-        g.clearRect(0, 0, w, h);
+        //let start = Date.now();
+        if (this.wo) {
+          this.wo.onmessage = (me) => {
+            //console.log("As rendertime: ", Date.now() - start);
+            this.drawRendered(me);
+            if (this.wo) {
+              this.wo.terminate();
+            }
+            this.wo = null;
+          }
+        }
+        this.wo.postMessage({
+          l: Math.round(this.bounds.position.left),
+          t: Math.round(this.bounds.position.top),
+          w: w,
+          h: h,
+          vw: Math.round(this.virtualDimension.width),
+          chs: chs,
+          frameLength: frameLength,
+          audioData: ad
+        }, [ad.buffer]);
+      } else {
+        let g = this.signalCanvas.getContext("2d");
+        if (g) {
+          g.clearRect(0, 0, w, h);
+        }
       }
     }
   }
@@ -253,6 +282,7 @@ export class AudioSignal extends CanvasLayerComponent{
 
   drawRendered(me: MessageEvent) {
 
+    this.signalCanvas.style.left=me.data.l.toString()+'px';
     this.signalCanvas.width = me.data.w;
     this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");
@@ -285,14 +315,18 @@ export class AudioSignal extends CanvasLayerComponent{
           for (let pii = 0; pii < me.data.w; pii++) {
             let psMax = me.data.psMinMax[psMaxPos + pii];
             let pv = psMax * chH / 2;
-            //console.log("Min: ",pv);
-            g.lineTo(pii, y + (chH / 2) - pv);
+            let yd=y + (chH / 2) - pv;
+            //console.log("LineTo: : "+pii+" "+yd)
+            g.lineTo(pii, yd);
           }
-          for (let pii = <number>me.data.w; pii >= 0; pii--) {
+          let revPixelStart=me.data.w-1;
+
+          for (let pii = revPixelStart; pii >= 0; pii--) {
             let psMin = me.data.psMinMax[psMinPos + pii];
             let pv = psMin * chH / 2;
-            //console.log("Max: ",pv);
-            g.lineTo(pii, y + (chH / 2) - pv);
+            let yd=y + (chH / 2) - pv;
+            //console.log("LineTo: : "+pii+" "+yd)
+            g.lineTo(pii, yd);
           }
           g.closePath();
 

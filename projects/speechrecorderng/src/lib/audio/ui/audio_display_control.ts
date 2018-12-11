@@ -8,7 +8,7 @@
     selector: 'app-audiodisplaycontrol',
 
     template: `<button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled">Start</button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled">Stop</button>
-	<p>{{status}}</p>`,
+    Zoom:<button (click)="zoomInAction.perform()" [disabled]="zoomInAction.disabled">{{zoomInAction.name}}</button><p>{{status}}</p>`,
     styles: [
         `:host {
         flex: 0;
@@ -20,6 +20,7 @@
 		private _audioUrl:string;
     @Input() playStartAction:Action;
     @Input() playStopAction:Action;
+    zoomInAction:Action=new Action('+');
 
 	   status:string;
 
