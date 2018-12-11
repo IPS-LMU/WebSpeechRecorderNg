@@ -458,6 +458,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
             let dftBands = dftSize / 2;
             let dft = new DFTFloat32(dftSize);
             let wf = new GaussianWindow(dftSize);
+
             let arrSize=w*h*4;
             if(arrSize<0){
                 arrSize=0
@@ -476,27 +477,42 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 let p = 0;
                 for (let ch = 0; ch < chs; ch++) {
                     p = ch * frameLength;
+                    let chDataLen=audioData[ch].length;
                     let x = 0;
+                    // initialize DFT array buffer
                     sona[ch] = new Array(w);
-                    //let chData = this.audioData.getChannelData(ch);
-                    // TODO center buffer
                     let framePos = 0;
                     for (let pii = 0; pii < w; pii++) {
                         let virtPii = l + pii;
-                        framePos = Math.round(virtPii * framesPerPixel);
-                        // calculate DFT at pixel position
+                        // Position of sample data frame is pixel position mapped to audio frame position.
+                       // Then "center" the frame by shifting left by half the DFT size (=dftBands)
+                        framePos = Math.round((virtPii * framesPerPixel)-dftBands);
+                        // fill DFT buffer with windowed sample values
                         for (let i = 0; i < dftSize; i++) {
-                            let chDat = audioData[ch][framePos + i];
+                            let samplePos=framePos + i;
+                            // initialize for negative sample positions and out of bounds positions
+                            let chDat=0;
+
+                            // Set audio sample if available
+                            if(samplePos>=0 && samplePos < chDataLen) {
+                              chDat = audioData[ch][samplePos];
+                            }
+
+                            // apply Window
                             b[i] = chDat * wf.getScale(i);
                         }
+                        // Calc DFT magnitudes
                         let spectr = dft.processRealMagnitude(b);
-                        sona[ch][pii] = spectr;
+
+                        // Get maximum value of spectral energy
                         for (let s = 0; s < dftBands; s++) {
                             let psd = (2 * Math.pow(spectr[s], 2)) / dftBands;
                             if (psd > maxPsd) {
                                 maxPsd = psd;
                             }
                         }
+                        // Set render model data for this pixel
+                        sona[ch][pii] = spectr;
                     }
                 }
                 //maxPsd = (2 * Math.pow(max, 2)) / dftBands;
