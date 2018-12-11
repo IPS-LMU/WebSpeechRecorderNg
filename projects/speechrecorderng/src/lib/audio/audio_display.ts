@@ -38,7 +38,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
       padding: 20px;
       z-index: 5;
       box-sizing: border-box;
-      background-color: rgba(0, 0, 0, 0.75)
+      background-color: rgba(230, 230, 230, 0.75)
     }`]
 
 })
