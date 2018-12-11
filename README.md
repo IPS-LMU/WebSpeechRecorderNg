@@ -1,6 +1,6 @@
 # SpeechRecorderNg
 
-A Speech Recording Tool implemented as an Angular 6 module.
+A Speech Recording Tool implemented as an Angular 7 module.
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli).
@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "0.1.1"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "0.4.4"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -243,15 +243,10 @@ There might be multiple uploads for one recording item, when the subject repeats
 A GET request to the URL should return the latest upload.  
 
 
-   
-## Development
-
-The Git package contains a main application to test the module.
-The code for the module is in `src/module`, the application code in `src/app`.
 
 ### Development server
 
-Run `npm run start` or `ng serve` for a development server. Navigate to `http://localhost:4200/spr/session/2`. The app will automatically reload if you change any of the source files.
+Run `ng serve` for a development server. Navigate to `http://localhost:4200/spr/session/2`. The app will automatically reload if you change any of the source files.
 
 ### Build
 
@@ -261,3 +256,8 @@ Run `ng build` to build the project. The build artifacts will be stored in the `
 ### Build module
 
 Run `npm run build_module` to build the module. The build artifacts will be stored in the `dist/speechrecorderng` directory.
+
+
+### Clean dist
+
+Remove folder `dist`.
