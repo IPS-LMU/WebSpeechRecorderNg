@@ -1,4 +1,5 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
+import 'hammerjs';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {AudioModule} from "./audio/audio.module";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
