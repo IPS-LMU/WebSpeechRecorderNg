@@ -1,10 +1,9 @@
-import {Inject, Injectable, Optional} from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
-import 'rxjs/add/operator/toPromise';
-
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {UUID} from "../../utils/utils";
+import {Observable} from "rxjs";
 
 
 
@@ -30,7 +29,7 @@ export class SessionService {
     this.sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
   }
 
-  getSession(id: string): Promise<Session> {
+  sessionObserver(id: string): Observable<Session> {
 
     let sessUrl = this.sessionsUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {
@@ -38,20 +37,10 @@ export class SessionService {
       // append UUID to make request URL unique to avoid localhost server caching
       sessUrl = sessUrl + '.json?requestUUID='+UUID.generate();
     }
-    let sessProms = this.http.get(sessUrl,{ withCredentials: this.withCredentials }).toPromise()
-      .then(response => {
+    return this.http.get<Session>(sessUrl,{ withCredentials: this.withCredentials });
 
-        return response;
-      })
-      .catch(this.handleError);
-
-    return sessProms;
   }
 
-  private handleError(error: any): Promise<any> {
-    console.error('An error occurred', error); // for demo purposes only
-    return Promise.reject(error.message || error);
-  }
 }
 
 
