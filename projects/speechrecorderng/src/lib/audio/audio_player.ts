@@ -11,6 +11,7 @@ import {AudioClipUIContainer} from './ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
+import {AudioContextProvider} from "./context";
 
 @Component({
 
@@ -84,14 +85,11 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.zoomFitToPanelAction=this.ac.zoomFitToPanelAction;
     this.zoomOutAction=this.ac.zoomOutAction;
     this.zoomInAction=this.ac.zoomInAction;
-      var n = <any>navigator;
-      var w = <any>window;
-      AudioContext = w.AudioContext || w.webkitAudioContext;
-      if (typeof AudioContext !== 'function') {
-          this.status = 'ERROR: Browser does not support Web Audio API!';
-      } else {
-          this.aCtx = new AudioContext();
-          this.ap = new AudioPlayer(this.aCtx, this);
+     try {
+       this.aCtx = AudioContextProvider.audioContextInstance();
+       this.ap = new AudioPlayer(this.aCtx, this);
+     }catch(err){
+          this.status = err.message;
       }
   }
 

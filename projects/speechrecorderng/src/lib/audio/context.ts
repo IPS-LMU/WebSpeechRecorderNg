@@ -1,36 +1,26 @@
-export class AudioSystem{
-  constructor(public audioContext:AudioContext| null){
-
-  }
-}
 
 export class AudioContextProvider
 {
+  private static _audioContext:AudioContext| null=null;
 
-
-    //public static audioContext: AudioContext=new AudioContext();
-
-    // the typical singleton pattern does not pass the Typescript compiler if the strict settings for export modules are used
- // ngc message:  Metadata collected contains an error that will be reported at runtime: Only initialized variables and constants can be referenced because the value of this variable is needed by the template compiler.
-
-  private static _audioSystem:AudioSystem=new AudioSystem(null);
-  //private static _audioContext:AudioContext| null;
-  //   public static audioContext()
-  //   {
-  //       if(AudioContext && !this._audioContext){
-  //           this._audioContext=new AudioContext();
-  //       }
-  //       return this._audioContext;
-  //   }
-  public static audioSystem()
+  public static audioContextInstance():AudioContext
   {
 
-      if (AudioContext && !this._audioSystem.audioContext) {
-        this._audioSystem=new AudioSystem(new AudioContext());
+    if (!this._audioContext) {
+      let w = <any>window;
+      let n = <any>navigator;
+
+      w.AudioContext = w.AudioContext || w.webkitAudioContext;
+      let debugFail = false;
+      if (!w.AudioContext || typeof w.AudioContext !== 'function' || debugFail) {
+        throw new Error('Browser does not support Web Audio API!');
+        return;
+      } else {
+        this._audioContext= new w.AudioContext();
       }
 
-
-
-     return this._audioSystem;
+    }
+    return this._audioContext;
   }
+
 }
