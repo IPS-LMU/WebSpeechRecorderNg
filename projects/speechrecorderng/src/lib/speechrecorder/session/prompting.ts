@@ -225,7 +225,7 @@ export class PromptingContainer {
                     let deltaX = Math.round(t.clientX - this.startX);
                     let touchMoveSpeed = 0;
                     if (this.touchStartTimeStamp) {
-                        deltaX / (ev.timeStamp - this.touchStartTimeStamp);
+                        touchMoveSpeed=deltaX / (ev.timeStamp - this.touchStartTimeStamp);
                     }
                     let futureDeltaX = deltaX + (800 * touchMoveSpeed);
                     //console.log("DeltaX: " + deltaX + " Future deltaX: " + futureDeltaX + "  width: " + this.e.offsetWidth)
