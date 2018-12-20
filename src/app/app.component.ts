@@ -9,7 +9,7 @@ import { VERSION } from '../../projects/speechrecorderng/src/lib/spr.module.vers
 })
 export class AppComponent {
   sprVersion=VERSION;
-  title='SpeechRecorder Angular Demo'
+  title='SpeechRecorder Angular PWA Demo'
   shortTitle='SpeechRecorder'
   constructor(){
   }
