@@ -26,6 +26,7 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {RecordingService} from "../recordings/recordings.service";
 import {Observable, Subscription} from "rxjs";
+import {AudioContextProvider} from "../../audio/context";
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -65,14 +66,14 @@ export class Item {
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
-                        [playStartAction]="controlAudioPlayer.startAction"
-                        [playStopAction]="controlAudioPlayer.stopAction">
+                        [playStartAction]="controlAudioPlayer?.startAction"
+                        [playStopAction]="controlAudioPlayer?.stopAction">
        
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
     <spr-recordingitemdisplay #levelbardisplay
-                              [playStartAction]="controlAudioPlayer.startAction"
-                              [playStopAction]="controlAudioPlayer.stopAction"
+                              [playStartAction]="controlAudioPlayer?.startAction"
+                              [playStopAction]="controlAudioPlayer?.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
                               [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
@@ -206,22 +207,37 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private init() {
     this.sectIdx = 0;
     this.groupIdxInSection = 0;
-    this.promptItemIdxInGroup=0;
+    this.promptItemIdxInGroup = 0;
     this.autorecording = false;
     this.transportActions.startAction.disabled = true;
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
-
-    let w = <any>window;
-    let n = <any>navigator;
-
-    w.AudioContext = w.AudioContext || w.webkitAudioContext;
-    let debugFail = false;
-    if (!w.AudioContext || typeof w.AudioContext !== 'function' || debugFail) {
+    let context=null;
+    try {
+      context = AudioContextProvider.audioContextInstance()
+    } catch (err) {
       this.status = Status.ERROR;
-      let errMsg = 'Browser does not support Web Audio API!';
+      let errMsg = err.message;
+      this.statusMsg = 'ERROR: ' + errMsg;
+      this.statusAlertType = 'error';
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Error',
+          msg: errMsg,
+          advise: 'Please use a supported browser.',
+        }
+      });
+      return;
+    }
+
+    console.info("State of audio context: " + context.state)
+
+    if (!navigator.mediaDevices) {
+      this.status = Status.ERROR;
+      let errMsg = 'Browser does not support Media streams!';
       this.statusMsg = 'ERROR: ' + errMsg;
       this.statusAlertType = 'error';
       this.dialog.open(MessageDialog, {
@@ -234,12 +250,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       });
       return;
     } else {
-      let context = new w.AudioContext();
-      console.info("State of audio context: "+context.state)
-
-      if (!navigator.mediaDevices) {
-        this.status = Status.ERROR;
-        let errMsg = 'Browser does not support Media streams!';
+      this.ac = new AudioCapture(context);
+      if (this.ac) {
+        this.transportActions.startAction.onAction = () => this.startItem();
+        this.ac.listener = this;
+        this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+        this.ac.listDevices();
+      } else {
+        this.transportActions.startAction.disabled = true;
+        let errMsg = 'Browser does not support Media/Audio API!';
         this.statusMsg = 'ERROR: ' + errMsg;
         this.statusAlertType = 'error';
         this.dialog.open(MessageDialog, {
@@ -251,40 +270,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           }
         });
         return;
-      } else {
-        this.ac = new AudioCapture(context);
-        if (this.ac) {
-          this.transportActions.startAction.onAction = () => this.startItem();
-          this.ac.listener = this;
-          this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
-        } else {
-          this.transportActions.startAction.disabled = true;
-          let errMsg = 'Browser does not support Media/Audio API!';
-          this.statusMsg = 'ERROR: ' + errMsg;
-          this.statusAlertType = 'error';
-          this.dialog.open(MessageDialog, {
-            data: {
-              type: 'error',
-              title: 'Error',
-              msg: errMsg,
-              advise: 'Please use a supported browser.',
-            }
-          });
-          return;
-        }
-        this.transportActions.stopAction.onAction = () => this.stopItem();
-        this.transportActions.nextAction.onAction = () => this.stopItem();
-        this.transportActions.pauseAction.onAction = () => this.pauseItem();
-        this.transportActions.fwdAction.onAction = () => this.nextItem();
-        this.transportActions.bwdAction.onAction = () => this.prevItem();
-        this.playStartAction.onAction = () => this.controlAudioPlayer.start();
-
       }
-      this.ac.listDevices();
+      this.transportActions.stopAction.onAction = () => this.stopItem();
+      this.transportActions.nextAction.onAction = () => this.stopItem();
+      this.transportActions.pauseAction.onAction = () => this.pauseItem();
+      this.transportActions.fwdAction.onAction = () => this.nextItem();
+      this.transportActions.bwdAction.onAction = () => this.prevItem();
+      this.playStartAction.onAction = () => this.controlAudioPlayer.start();
+
     }
+
     this.startStopSignalState = StartStopSignalState.OFF;
 
-  }
+}
 
   @HostListener('window:keypress', ['$event'])
   onKeyPress(ke: KeyboardEvent) {

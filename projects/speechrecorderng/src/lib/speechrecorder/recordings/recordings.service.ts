@@ -3,14 +3,12 @@
  */
 import {Inject, Injectable} from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpParams, HttpResponse} from "@angular/common/http";
-import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
 import {RecordingFile, RecordingFileDescriptor} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
-import {reject} from "q";
 import {Observable} from "rxjs";
 
 

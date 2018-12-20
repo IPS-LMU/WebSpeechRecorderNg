@@ -3,10 +3,10 @@
  */
 import {Inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from "@angular/common/http";
-import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Script} from "./script";
 import {UUID} from "../../utils/utils";
+import {Observable} from "rxjs";
 
 
 export const SCRIPT_API_CTX='script'
@@ -35,7 +35,7 @@ export class ScriptService {
     this.httpParams.set('cache','false');
   }
 
-  getScript(id:string | number):Promise<Script>{
+  scriptObservable(id:string | number):Observable<Script>{
 
     let scriptUrl = this.scriptCtxUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {
@@ -43,21 +43,10 @@ export class ScriptService {
       // append UUID to make request URL unique to avoid localhost server caching
       scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
     }
-    let scriptProms = this.http.get(scriptUrl,{params:this.httpParams, withCredentials: this.withCredentials }).toPromise()
-      .then(response => {
-        return response;
-      })
-      .catch(this.handleError);
+    return  this.http.get<Script>(scriptUrl,{params:this.httpParams, withCredentials: this.withCredentials })
 
-    return scriptProms;
    }
 
-    private handleError(error: any): Promise<any> {
-
-        let errMsg='Could not load script '+error.message;
-        console.error(errMsg, error);
-        return Promise.reject(errMsg);
-    }
 }
 
 

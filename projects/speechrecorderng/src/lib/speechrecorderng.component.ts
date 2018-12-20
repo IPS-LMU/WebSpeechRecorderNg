@@ -7,7 +7,6 @@ import { Script } from './speechrecorder/script/script'
 import { SessionManager,Status as SessionManagerStatus} from './speechrecorder/session/sessionmanager';
 import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
-import 'rxjs/add/operator/switchMap';
 import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
@@ -19,9 +18,6 @@ import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
 
 export enum Mode {SINGLE_SESSION,DEMO}
-
-
-
 
 @Component({
 
@@ -52,10 +48,6 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
   script:Script;
     dataSaved: boolean = true;
   @ViewChild(SessionManager) sm:SessionManager;
-    //statusDisplay:StatusDisplay;
-
-
-    currentPromptIdx:number;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,
@@ -68,18 +60,16 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 		}
 
     ngOnInit() {
-      let audioSystem=AudioContextProvider.audioSystem();
-      if (!audioSystem || !audioSystem.audioContext) {
-        let reason = 'ERROR: Browser does not support Web Audio API!';
-        this.sm.statusMsg=reason;
-        this.sm.statusAlertType='error';
-        console.log("Error fetching project config: "+reason)
-      } else {
-
-        this.controlAudioPlayer = new AudioPlayer(audioSystem.audioContext, this);
+		  try {
+        let audioContext = AudioContextProvider.audioContextInstance()
+        this.controlAudioPlayer = new AudioPlayer(audioContext, this);
         this.sm.controlAudioPlayer=this.controlAudioPlayer;
         this.sm.statusAlertType='info';
         this.sm.statusMsg = 'Player initialized.';
+      }catch(err){
+        this.sm.statusMsg=err.message;
+        this.sm.statusAlertType='error';
+        console.log(err.message)
       }
     }
        ngAfterViewInit(){
@@ -104,19 +94,19 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
     fetchSession(sessionId:string){
-      let sess= this.sessionsService.getSession(sessionId);
+      let sessObs= this.sessionsService.sessionObserver(sessionId);
 
-      if(sess) {
-        sess.then(sess => {
+      if(sessObs) {
+        sessObs.subscribe(sess => {
           this.setSession(sess);
 
 
           if (sess.project) {
             console.log("Session associated project: "+sess.project)
-            this.projectService.getProject(sess.project).then(project=>{
+            this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);
-            }).catch(reason =>{
+            },reason =>{
               this.sm.statusMsg=reason;
               this.sm.statusAlertType='error';
               console.log("Error fetching project config: "+reason)
@@ -126,8 +116,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             console.log("Session has no associated project. Using default configuration.")
             this.fetchScript(sess);
           }
-        })
-          .catch(reason => {
+        },
+        (reason) => {
             this.sm.statusMsg = reason;
             this.sm.statusAlertType = 'error';
             console.log("Error fetching session " + reason)
@@ -138,13 +128,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     fetchScript(sess:Session){
       if(sess.script){
-        this.scriptService.getScript(sess.script).then(script=>{
+        this.scriptService.scriptObservable(sess.script).subscribe(script=>{
           this.setScript(script)
           this.sm.session=sess;
-          //this.sm.start();
           this.fetchRecordings(sess,this.script)
-        })
-          .catch(reason =>{
+        },reason =>{
             this.sm.statusMsg=reason;
             this.sm.statusAlertType='error';
             console.log("Error fetching script: "+reason)

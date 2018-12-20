@@ -14,14 +14,14 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     selector: 'spr-recordingitemdisplay',
     template: `
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
-        <button matTooltip="Start playback" (click)="playStartAction.perform()"
-                [disabled]="playStartAction.disabled"
-                [style.color]="playStartAction.disabled ? 'grey' : 'green'">
+        <button matTooltip="Start playback" (click)="playStartAction?.perform()"
+                [disabled]="playStartAction?.disabled"
+                [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
-        <button matTooltip="Stop playback" (click)="playStopAction.perform()"
-                [disabled]="playStopAction.disabled"
-                [style.color]="playStopAction.disabled ? 'grey' : 'yellow'">
+        <button matTooltip="Stop playback" (click)="playStopAction?.perform()"
+                [disabled]="playStopAction?.disabled"
+                [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
         <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null"

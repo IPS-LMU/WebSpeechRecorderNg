@@ -3,10 +3,10 @@
  */
 import {Inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from "@angular/common/http";
-import 'rxjs/add/operator/toPromise';
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Project} from "./project";
 import {UUID} from "../../utils/utils";
+import {Observable} from "rxjs";
 
 
 
@@ -35,7 +35,7 @@ export class ProjectService {
     this.httpParams.set('cache','false');
   }
 
-  getProject(id:string):Promise<Project>{
+  projectObservable(id:string):Observable<Project>{
 
     let projectUrl = this.projectCtxUrl + '/' + id;
     if (this.config && this.config.apiType === ApiType.FILES) {
@@ -44,22 +44,10 @@ export class ProjectService {
       projectUrl = projectUrl + '.json?requestUUID='+UUID.generate();
 
     }
+     return this.http.get<Project>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
 
-    let projectProms = this.http.get(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials}).toPromise()
-      .then(response => {
-        return response;
-      })
-      .catch(this.handleError);
-
-    return projectProms;
    }
 
-    private handleError(error: any): Promise<any> {
-
-        let errMsg='Could not load project '+error.message;
-        console.error(errMsg, error);
-        return Promise.reject(errMsg);
-    }
 }
 
 
