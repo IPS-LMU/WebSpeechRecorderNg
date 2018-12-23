@@ -1,0 +1,4 @@
+The body element is styled for the fit to page SpeechRecorder, but I need
+another style for the WikiSpeech parts of the application.
+How can I switch the body style?
+https://stackoverflow.com/questions/34881401/style-html-body-from-web-component-angular-2

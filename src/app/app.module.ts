@@ -21,12 +21,16 @@ import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
+import { ProjectsComponent } from './project/projects/projects.component';
 
 
 
 const appRoutes: Routes = [
 
-  { path: 'session',
+  { path: 'wsp/project',
+    component: ProjectsComponent
+  },
+  { path: 'wsp/project/:projectName/session',
     component: SessionsComponent
   },
     { path: 'test',
@@ -35,12 +39,13 @@ const appRoutes: Routes = [
     },
     { path: 'audio_display', component: AudioDisplayPlayer
     },
+
   { path: '**', component: StartComponent  }
 ];
 
 @NgModule({
   declarations: [
-    AppComponent,StartComponent,SessionsComponent
+    AppComponent,StartComponent,SessionsComponent, ProjectsComponent
   ],
 
   imports: [

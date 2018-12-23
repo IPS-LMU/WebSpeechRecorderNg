@@ -4,6 +4,7 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.co
 import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
+import {ProjectService} from "../project/project.service";
 
 
 
@@ -38,6 +39,18 @@ export class SessionService {
       sessUrl = sessUrl + '.json?requestUUID='+UUID.generate();
     }
     return this.http.get<Session>(sessUrl,{ withCredentials: this.withCredentials });
+
+  }
+
+  projectSessionsObserver(projectName: string): Observable<Array<Session>> {
+
+    let sesssUrl = ProjectService.PROJECT_API_CTX +'/'+projectName+'/'+SessionService.SESSION_API_CTX
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      sesssUrl = sesssUrl + '_list.json?requestUUID='+UUID.generate();
+    }
+    return this.http.get<Array<Session>>(sesssUrl,{ withCredentials: this.withCredentials });
 
   }
 

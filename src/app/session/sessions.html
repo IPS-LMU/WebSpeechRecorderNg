@@ -4,3 +4,10 @@
   <input matInput placeholder="Session ID">
 </mat-form-field>
 </form>
+
+<h3>Sessions</h3>
+<ul>
+  <li *ngFor="let session of sessions">
+    {{session.sessionId}}
+  </li>
+</ul>

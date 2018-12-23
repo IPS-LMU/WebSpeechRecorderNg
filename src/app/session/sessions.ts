@@ -1,4 +1,7 @@
-import {Component, Inject} from '@angular/core';
+import {AfterViewInit, Component, Inject} from '@angular/core';
+import {ActivatedRoute, Params} from "@angular/router";
+import {SessionService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
+import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
 
 
 
@@ -7,8 +10,21 @@ import {Component, Inject} from '@angular/core';
   templateUrl: 'sessions.html'
 
 })
-export class SessionsComponent {
+export class SessionsComponent implements  AfterViewInit {
 
-  constructor(){
+  sessions:Array<Session>
+  constructor(private route: ActivatedRoute, private sessionService: SessionService) {
   }
+
+  ngAfterViewInit() {
+    this.route.params.subscribe((params: Params) => {
+      let projectName = params['projectName'];
+      if (projectName) {
+        this.sessionService.projectSessionsObserver(projectName).subscribe(sesss=>{
+          this.sessions=sesss;
+        })
+      }
+    })
+  }
+
 }
