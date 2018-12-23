@@ -1,0 +1,77 @@
+import {Injectable} from "@angular/core";
+import {SessionFinishedDialog} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session_finished_dialog";
+import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
+import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
+import {Observable} from "rxjs";
+
+@Injectable()
+export class SprDb {
+
+    public static dbName='speechrecorder'
+    public static dbVersion=2;
+
+    private _store:IDBDatabase|null=null
+    constructor(){
+    }
+
+    static sprDbFactory():SprDb{
+       let sprDb=new SprDb();
+
+        return sprDb;
+    }
+
+
+
+    prepare():Observable<IDBDatabase> {
+        let obs = new Observable<IDBDatabase>((subscriber) => {
+
+            // if (this._store) {
+            //     subscriber.next(this._store)
+            //     subscriber.complete()
+            // } else {
+                console.info("Prepare indexed database...")
+                if (indexedDB) {
+                    let or: IDBOpenDBRequest;
+                    or = indexedDB.open(SprDb.dbName, SprDb.dbVersion);
+                    or.onupgradeneeded = (ev) => {
+                        let db = or.result
+
+                        if (!db.objectStoreNames.contains('session')) {
+                            db.createObjectStore('session', {keyPath: 'sessionId'});
+                        }
+                        if (ev.oldVersion) {
+                            console.info("Upgraded indexed database " + SprDb.dbName + " schema from version " + ev.oldVersion + " to " + ev.newVersion)
+                        } else {
+                            console.info("Created indexed database " + SprDb.dbName + " schema version " + ev.newVersion)
+                        }
+                    }
+                    or.onsuccess = () => {
+                        console.info("Opened indexed database")
+
+                        //
+                        // let testTr = or.result.transaction('session', 'readwrite');
+                        // let testSession: Session;
+                        // testSession = {sessionId: UUID.generate(), project: 'Demo1', script: '1245'}
+                        // testTr.objectStore('session').add(testSession)
+                        // testTr.oncomplete = () => {
+                            this._store = or.result
+
+                            subscriber.next(this._store)
+                            subscriber.complete()
+                       // }
+                    }
+
+                    or.onerror = (err) => {
+
+                        console.error("Could not open indexed database: " + SprDb.dbName + ": " + err)
+                        subscriber.error(err)
+                    }
+                } else {
+                    console.info("Browser does not support indexed databases")
+                    subscriber.error();
+                }
+            //}
+        });
+        return obs;
+    }
+}

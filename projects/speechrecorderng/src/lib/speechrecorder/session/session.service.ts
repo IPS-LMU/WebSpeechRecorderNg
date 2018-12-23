@@ -5,6 +5,7 @@ import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 import {ProjectService} from "../project/project.service";
+import {SprDb} from "../../../../../../src/app/db/inddb";
 
 
 
@@ -14,7 +15,7 @@ export class SessionService {
   private sessionsUrl:string;
   private withCredentials:boolean=false;
 
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(private sprDb:SprDb,private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     let apiEndPoint = ''
 
@@ -28,6 +29,8 @@ export class SessionService {
       this.withCredentials=config.withCredentials;
     }
     this.sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+
+
   }
 
   sessionObserver(id: string): Observable<Session> {
@@ -50,11 +53,46 @@ export class SessionService {
       // append UUID to make request URL unique to avoid localhost server caching
       sesssUrl = sesssUrl + '_list.json?requestUUID='+UUID.generate();
     }
-    return this.http.get<Array<Session>>(sesssUrl,{ withCredentials: this.withCredentials });
+
+    let obs=new Observable<Array<Session>>(subscriber => {
+      let obsHttp = this.http.get<Array<Session>>(sesssUrl, {withCredentials: this.withCredentials});
+      obsHttp.subscribe(value => {
+        // OK fresh data from server
+        subscriber.next(value)
+
+      }, err => {
+        console.info("Fetching sessions from server failed")
+        let obs = this.sprDb.prepare();
+        obs.subscribe(value => {
+              let sessTr = value.transaction('session')
+              let sSto = sessTr.objectStore('session');
+              let allS = sSto.getAll();
+              allS.onsuccess=(ev)=>{
+                console.info("Found " + allS.result.length + " sessions")
+                subscriber.next(<Array<Session>>allS.result);
+                subscriber.complete()
+            }
+
+            }, (err) => {
+              console.info("Db store not available")
+              subscriber.error(err)
+
+            }, () => {
+              //subscriber.complete()
+            }
+        )
+      }, () => {
+        subscriber.complete()
+      });
+    })
+  return obs
+
 
   }
 
 }
+
+
 
 
 
