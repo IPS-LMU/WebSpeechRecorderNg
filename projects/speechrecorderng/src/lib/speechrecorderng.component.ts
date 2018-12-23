@@ -1,4 +1,4 @@
-import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit} from '@angular/core'
+import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, ElementRef, Renderer2} from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
@@ -16,6 +16,7 @@ import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
+import {Renderer3} from "@angular/core/src/render3/interfaces/renderer";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -51,6 +52,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,
+                private elRef:ElementRef,
+                    private renderer: Renderer2,
                 private changeDetectorRef: ChangeDetectorRef,
                 private sessionsService:SessionService,
                 private projectService:ProjectService,
@@ -60,6 +63,23 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 		}
 
     ngOnInit() {
+        let n=this.elRef.nativeElement;
+
+        //let n:any=ne;
+        do {
+            console.log("El: "+n)
+            n=this.renderer.parentNode(n)
+            if(n instanceof HTMLBodyElement || n instanceof HTMLHtmlElement){
+                console.log("Apply fit to page style to el: "+n)
+                // n.style.height='100%'
+                // n.style.margin='0px';
+                // n.style.padding='0px';
+                this.renderer.setStyle(n, "height", '100%');
+                this.renderer.setStyle(n, "margin", 0)
+                this.renderer.setStyle(n, "padding", 0)
+            }
+        }while(n && ! (n instanceof HTMLHtmlElement))
+
 		  try {
         let audioContext = AudioContextProvider.audioContextInstance()
         this.controlAudioPlayer = new AudioPlayer(audioContext, this);
@@ -73,6 +93,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
       }
     }
        ngAfterViewInit(){
+
 
 		  if(this.sm.status!== SessionManagerStatus.ERROR) {
         let initSuccess = this.init();

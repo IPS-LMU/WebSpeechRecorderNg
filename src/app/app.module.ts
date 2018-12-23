@@ -22,7 +22,7 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { ProjectsComponent } from './project/projects/projects.component';
-
+import {APP_BASE_HREF} from '@angular/common';
 
 
 const appRoutes: Routes = [
@@ -53,7 +53,7 @@ const appRoutes: Routes = [
 
     BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
-  providers: [],
+  providers: [{provide: APP_BASE_HREF, useValue: '/'}],
 
   bootstrap: [AppComponent]
 })
