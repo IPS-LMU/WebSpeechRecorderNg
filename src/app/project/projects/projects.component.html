@@ -1,0 +1,7 @@
+<ul>
+  <li *ngFor="let project of projects">
+    {{project.name}}
+
+    <a routerLink="/wsp/project/{{project.name}}/session">Select project</a>
+  </li>
+</ul>
