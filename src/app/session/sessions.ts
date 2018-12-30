@@ -30,4 +30,8 @@ export class SessionsComponent implements  AfterViewInit {
     })
   }
 
+  addNewSession(){
+
+  }
+
 }

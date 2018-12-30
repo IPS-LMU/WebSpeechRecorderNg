@@ -4,6 +4,26 @@ import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder
 import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
 import {Observable} from "rxjs";
 
+
+export class Sync{
+    id?:number;
+    _objectStoreName:string;
+    _objectId:string|number;
+
+    constructor(objectStoreName:string,objectId:string|number){
+        this._objectStoreName=objectStoreName
+        this._objectId=objectId
+    }
+
+    get objectStoreName():string{
+       return  this._objectStoreName
+    }
+
+    get objectId():string|number{
+        return this._objectId
+    }
+}
+
 @Injectable()
 export class SprDb {
 
@@ -36,8 +56,17 @@ export class SprDb {
                     or.onupgradeneeded = (ev) => {
                         let db = or.result
 
+                        if (!db.objectStoreNames.contains('_sync')) {
+                            db.createObjectStore('_sync', {keyPath: 'id', autoIncrement:true});
+                        }
+                        if (!db.objectStoreNames.contains('project')) {
+                            db.createObjectStore('project', {keyPath: 'projectId'});
+                        }
                         if (!db.objectStoreNames.contains('session')) {
                             db.createObjectStore('session', {keyPath: 'sessionId'});
+                        }
+                        if (!db.objectStoreNames.contains('script')) {
+                            db.createObjectStore('script', {keyPath: 'scriptId'});
                         }
                         if (ev.oldVersion) {
                             console.info("Upgraded indexed database " + SprDb.dbName + " schema from version " + ev.oldVersion + " to " + ev.newVersion)

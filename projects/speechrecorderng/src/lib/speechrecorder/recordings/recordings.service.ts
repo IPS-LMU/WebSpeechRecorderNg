@@ -22,7 +22,6 @@ export class RecordingService {
   public static readonly REC_API_CTX = 'recfile'
   private apiEndPoint: string;
   private withCredentials: boolean = false;
-  private httpParams: HttpParams;
   //private debugDelay:number=10000;
   private debugDelay:number=0;
 
@@ -39,41 +38,42 @@ export class RecordingService {
     if (config != null && config.withCredentials != null) {
       this.withCredentials = config.withCredentials;
     }
-
-    //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-    this.httpParams = new HttpParams();
-    this.httpParams.set('cache', 'false');
-
   }
 
   recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
 
     let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
       SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
+    let httpParams=new HttpParams()
+    httpParams.set('cache', 'false');
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
+      recFilesUrl = recFilesUrl + '.json'
+      httpParams.set('requestUUID',UUID.generate())
     }
-    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{params:this.httpParams,withCredentials:this.withCredentials});
+
+    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{params:httpParams,withCredentials:this.withCredentials});
     return wobs;
   }
 
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
-
+    let httpParams=new HttpParams()
+    httpParams.set('cache', 'false');
     let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
       SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode+'/'+version;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      recUrl = recUrl + '.wav?requestUUID=' + UUID.generate();
+      recUrl = recUrl + '.wav'
+      httpParams.append('requestUUID=',UUID.generate())
     }
 
 
     return this.http.get(recUrl, {
       observe: 'response',
       responseType: 'arraybuffer',
-      params: this.httpParams,
+      params: httpParams,
       withCredentials: this.withCredentials
     });
 
