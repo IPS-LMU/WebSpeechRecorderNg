@@ -11,9 +11,12 @@ export interface Mediaitem {
   text: string;
 }
 
-export interface PromptItem {
+export interface ItemCodeProvider{
+  itemcode?: string
+}
+
+export interface PromptItem extends ItemCodeProvider {
   type?:string;
-  itemcode?: string,
   prerecording: number,
   recduration?: number,
   postrecording: number,
@@ -33,8 +36,12 @@ export interface Section {
 }
 
 export interface Script {
+  scriptId: string|number;
+  project?:string;
   sections: Array<Section>;
 }
+
+
 
 
 

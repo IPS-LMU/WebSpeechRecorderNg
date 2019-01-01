@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
-import {SessionFinishedDialog} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session_finished_dialog";
-import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
-import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
+import {SessionFinishedDialog} from "../speechrecorder/session/session_finished_dialog";
+import {Session} from "../speechrecorder/session/session";
+import {UUID} from "../utils/utils";
 import {Observable} from "rxjs";
 
 
@@ -28,7 +28,7 @@ export class Sync{
 export class SprDb {
 
     public static dbName='speechrecorder'
-    public static dbVersion=2;
+    public static dbVersion=3;
 
     private _store:IDBDatabase|null=null
     constructor(){
@@ -66,7 +66,16 @@ export class SprDb {
                             db.createObjectStore('session', {keyPath: 'sessionId'});
                         }
                         if (!db.objectStoreNames.contains('script')) {
-                            db.createObjectStore('script', {keyPath: 'scriptId'});
+                            let scrStore=db.createObjectStore('script', {keyPath: 'scriptId'});
+                            scrStore.createIndex('projectIdx', ['project'], {unique:false});
+                        }
+                        // if (!db.objectStoreNames.contains('project_script')) {
+                        //     let scrStore=db.createObjectStore('project_script',{keyPath:['project','scriptId']});
+                        // }
+                        if (!db.objectStoreNames.contains('recfile')) {
+                            let rfStore=db.createObjectStore('recfile', {keyPath: 'uuid'});
+                            //rfStore.createIndex('prjSess', ['project','sessionId'], {unique:false});
+                            rfStore.createIndex('prjSessItemcode', ['project','sessionId','itemcode'], {unique:false});
                         }
                         if (ev.oldVersion) {
                             console.info("Upgraded indexed database " + SprDb.dbName + " schema from version " + ev.oldVersion + " to " + ev.newVersion)

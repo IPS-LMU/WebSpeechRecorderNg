@@ -23,7 +23,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { ProjectsComponent } from './project/projects/projects.component';
 import {APP_BASE_HREF} from '@angular/common';
-import {SprDb} from "./db/inddb";
+import {SprDb} from "../../projects/speechrecorderng/src/lib/db/inddb";
 import {SessionService} from "../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
 
 

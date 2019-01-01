@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Project} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project";
 import {ProjectService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
+import {ScriptService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
 
 @Component({
   selector: 'app-projects',
@@ -13,7 +14,7 @@ export class ProjectsComponent implements OnInit {
 
   private _projects:Array<Project>;
 
-  constructor(private projectService:ProjectService) { }
+  constructor(private projectService:ProjectService,private scriptService:ScriptService) { }
 
   ngOnInit() {
     this.fetchProjects()
@@ -24,13 +25,22 @@ export class ProjectsComponent implements OnInit {
   }
 
   fetchProjects():void{
-      this.projectService.projectsObservable().subscribe(value => {
-        this._projects=value;
+      this.projectService.projectsObservable().subscribe(prjs => {
+
+        prjs.forEach((prj)=>{
+          this.scriptService.projectScriptsObserver(prj.name).subscribe((v)=>{
+
+          },(err)=>{
+            this._projects=prjs
+          },()=>{
+            this._projects=prjs
+          })
+        })
       })
   }
 
   select(project:Project){
-    // TODO
+    // TODO get the scripts at this point?
   }
 
 }

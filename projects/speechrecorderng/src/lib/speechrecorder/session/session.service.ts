@@ -5,7 +5,7 @@ import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 import {ProjectService} from "../project/project.service";
-import {SprDb, Sync} from "../../../../../../src/app/db/inddb";
+import {SprDb, Sync} from "../../db/inddb";
 
 
 
@@ -138,7 +138,7 @@ export class SessionService {
         console.info("Adding session to db")
         let obs = this.sprDb.prepare();
         obs.subscribe(value => {
-          let sessTr = value.transaction('session')
+          let sessTr = value.transaction('session','readwrite')
           let sSto = sessTr.objectStore('session');
           sSto.add(session)
           sessTr.oncomplete = () => {
@@ -148,8 +148,8 @@ export class SessionService {
             },(err)=>{
               // Offline or other HTTP error
               // mark for delayed synchronisation
-              let syncTr = value.transaction('_sync')
-              let syncSto = sessTr.objectStore('_sync');
+              let syncTr = value.transaction('_sync','readwrite')
+              let syncSto = syncTr.objectStore('_sync');
               let sync=new Sync('session',session.sessionId)
               syncSto.add(sync)
               syncTr.oncomplete=()=>{

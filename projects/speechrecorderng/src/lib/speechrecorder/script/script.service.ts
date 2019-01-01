@@ -9,7 +9,8 @@ import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 import {Session} from "../session/session";
 import {ProjectService} from "../project/project.service";
-import {SprDb} from "../../../../../../src/app/db/inddb";
+import {SprDb, Sync} from "../../db/inddb";
+import {forEach} from "@angular/router/src/utils/collection";
 
 interface ScriptServiceRESTParams{
   'order-direction'?: string,
@@ -23,24 +24,25 @@ export class ScriptService {
   public static readonly SCRIPT_KEYNAME='script';
   // Limit of fetched scripts count
   public static readonly SCRIPTS_FETCH_COUNT_LIMIT=100;
+  private apiEndPoint:string;
   private scriptCtxUrl:string;
   private withCredentials:boolean=false;
 
   constructor(private sprDb:SprDb,private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
-    let apiEndPoint = ''
+    this.apiEndPoint = ''
 
     if(config && config.apiEndPoint) {
-      apiEndPoint=config.apiEndPoint;
+      this.apiEndPoint=config.apiEndPoint;
     }
-    if(apiEndPoint !== ''){
-      apiEndPoint=apiEndPoint+'/'
+    if(this.apiEndPoint !== ''){
+      this.apiEndPoint=this.apiEndPoint+'/'
     }
     if(config!=null && config.withCredentials!=null){
       this.withCredentials=config.withCredentials;
     }
 
-    this.scriptCtxUrl = apiEndPoint + ScriptService.SCRIPT_KEYNAME;
+    this.scriptCtxUrl = this.apiEndPoint + ScriptService.SCRIPT_KEYNAME;
 
   }
 
@@ -52,8 +54,7 @@ export class ScriptService {
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      scriptUrl = scriptUrl + '.json';
-      httpParams.append('requestUUID',UUID.generate())
+      scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
     }
     return  this.http.get<Script>(scriptUrl,{params:httpParams, withCredentials: this.withCredentials })
 
@@ -65,14 +66,14 @@ export class ScriptService {
     let httpParams=new HttpParams()
     httpParams.set('cache','false');
 
-    let scrsUrl = ProjectService.PROJECT_API_CTX +'/'+projectName+'/'+ScriptService.SCRIPT_KEYNAME
+    let scrsUrl = this.apiEndPoint+ '/'+ProjectService.PROJECT_API_CTX +'/'+projectName+'/'+ScriptService.SCRIPT_KEYNAME
 
 
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      scrsUrl = scrsUrl + '_list.json';
-      httpParams.append('requestUUID',UUID.generate())
+      scrsUrl = scrsUrl + '/_list.json?requestUUID='+UUID.generate();
+
     }else{
       httpParams.append('order-direction','DESC')
       httpParams.append('order-by', 'sessions._size')
@@ -81,10 +82,46 @@ export class ScriptService {
 
     let obs=new Observable<Array<Script>>(subscriber => {
       let obsHttp = this.http.get<Array<Script>>(scrsUrl, {params:httpParams,withCredentials: this.withCredentials});
-      obsHttp.subscribe(value => {
+      obsHttp.subscribe(scripts => {
         // OK fresh data from server
-        // TODO save to indexed db
-        subscriber.next(value)
+        // save to indexed db
+        let scrsObs = this.sprDb.prepare();
+        scrsObs.subscribe(db => {
+          let scrTr = db.transaction('script','readwrite')
+          let scrSto = scrTr.objectStore('script');
+          // delete old scripts
+          let scrPrjIdx=scrSto.index('projectIdx')
+          let r=scrPrjIdx.getAllKeys(IDBKeyRange.only([projectName]));
+          r.onsuccess= (ev) => {
+              r.result.forEach((k)=>{
+                scrSto.delete(k)
+              })
+          }
+
+          scripts.forEach((scr)=>{
+            scr.project=projectName
+            scrSto.put(scr)
+          })
+
+          scrTr.oncomplete = () => {
+            subscriber.next(scripts)
+          }
+          scrTr.onerror = () => {
+            // We have frech scripts from server
+            // Proceed though indexed db failed
+            console.error("Failed to store scripts from server")
+            subscriber.next(scripts)
+
+          }
+        },(err)=>{
+          // We have frech scripts from server
+          // Proceed though indexed db failed
+          console.error("Failed to store scripts from server")
+          subscriber.next(scripts)
+
+        })
+
+
 
       }, err => {
         console.info("Fetching scripts from server failed")
@@ -92,6 +129,7 @@ export class ScriptService {
         obs.subscribe(value => {
               let scrsTr = value.transaction(ScriptService.SCRIPT_KEYNAME)
               let sSto = scrsTr.objectStore(ScriptService.SCRIPT_KEYNAME);
+              // TODO only scripts for certain project
               let allS = sSto.getAll();
               allS.onsuccess=(ev)=>{
                 console.info("Found " + allS.result.length + " scripts in indexed db")

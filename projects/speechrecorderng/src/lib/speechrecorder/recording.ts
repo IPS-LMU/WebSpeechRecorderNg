@@ -1,11 +1,13 @@
 import { UUID } from '../utils/utils'
-import {PromptItem} from "./script/script";
+import {ItemCodeProvider, PromptItem} from "./script/script";
+
+
 
 
 export class RecordingFileDescriptor {
 
   //sessionId:string|number;
-  recording:PromptItem;
+  recording:ItemCodeProvider;
   version:number;
   constructor() {}
 
@@ -42,4 +44,36 @@ export class RecordingFileDescriptor {
         return fns;
       }
     }
+
+export class RecordingFileDTO {
+
+    audioBlob:Blob;
+    sessionId:string|number;
+    itemCode:string;
+    version:number;
+    uuid:string;
+    constructor(recordingFile:RecordingFile,audioBlob:Blob) {
+        this.uuid=recordingFile.uuid;
+        this.sessionId=recordingFile.sessionId;
+        this.itemCode=recordingFile.itemCode;
+        this.version=recordingFile.version;
+        this.audioBlob=audioBlob;
+    }
+
+
+
+    filenameString():string{
+        let fns:string='';
+        if(this.sessionId){
+            fns+=this.sessionId;
+            fns+='_';
+        }
+        if(this.itemCode){
+            fns+=this.itemCode;
+            fns+='_';
+        }
+        fns+=this.uuid;
+        return fns;
+    }
+}
 

@@ -6,10 +6,13 @@ import {HttpClient, HttpErrorResponse, HttpParams, HttpResponse} from "@angular/
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
-import {RecordingFile, RecordingFileDescriptor} from "../recording";
+import {RecordingFile, RecordingFileDescriptor, RecordingFileDTO} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
 import {Observable} from "rxjs";
+import {SprDb, Sync} from "../../db/inddb";
+import {Session} from "../session/session";
+import {PromptItem} from "../../../public_api";
 
 
 export const REC_API_CTX='recfile'
@@ -19,13 +22,13 @@ export const REC_API_CTX='recfile'
 @Injectable()
 export class RecordingService {
 
-  public static readonly REC_API_CTX = 'recfile'
+  public static readonly KEYNAME = 'recfile'
   private apiEndPoint: string;
   private withCredentials: boolean = false;
   //private debugDelay:number=10000;
   private debugDelay:number=0;
 
-  constructor(private http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) private config?: SpeechRecorderConfig) {
+  constructor(private sprDb:SprDb,private http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) private config?: SpeechRecorderConfig) {
 
     this.apiEndPoint = ''
 
@@ -43,7 +46,7 @@ export class RecordingService {
   recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
 
     let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
+      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.KEYNAME;
     let httpParams=new HttpParams()
     httpParams.set('cache', 'false');
     if (this.config && this.config.apiType === ApiType.FILES) {
@@ -52,16 +55,59 @@ export class RecordingService {
       recFilesUrl = recFilesUrl + '.json'
       httpParams.set('requestUUID',UUID.generate())
     }
+    let obs=new Observable<Array<RecordingFileDescriptor>>(subscriber => {
+      let httpObs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{params:httpParams,withCredentials:this.withCredentials});
+      httpObs.subscribe(value=>{
+        subscriber.next(value);
+      },err=>{
+        let rfDescrs=new Array<RecordingFileDescriptor>()
+        let idbObs = this.sprDb.prepare();
+        idbObs.subscribe(value => {
 
-    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{params:httpParams,withCredentials:this.withCredentials});
-    return wobs;
+          let sessStoreName=RecordingService.KEYNAME
+          if(value.objectStoreNames.contains(sessStoreName)){
+            let rfTr = value.transaction(sessStoreName)
+            let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
+            let sessIdx=rfSto.index('prjSessItemcode')
+            let allS=sessIdx.getAll(IDBKeyRange.only([projectName, sessId]));
+
+            allS.onsuccess = (ev) => {
+              console.info("Found " + allS.result.length + " recFiles")
+              let allRfDtos:Array<RecordingFileDTO>=allS.result;
+              rfDescrs=allRfDtos.map(value=>{
+                let rfDescr=new RecordingFileDescriptor()
+                let pi={itemcode:value.itemCode}
+                rfDescr.recording=pi
+                rfDescr.version=value.version
+                return rfDescr
+              })
+
+              subscriber.next(<Array<RecordingFileDescriptor>>rfDescrs);
+              subscriber.complete()
+            }
+            allS.onerror= (ev)=>{
+              subscriber.error()
+            }
+          }else{
+            subscriber.next(rfDescrs);
+            subscriber.complete()
+          }
+        },(err)=>{
+          subscriber.error(err)
+        })
+      },()=>{
+          subscriber.complete()
+      })
+    })
+    return obs;
+
   }
 
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
     let httpParams=new HttpParams()
     httpParams.set('cache', 'false');
     let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode+'/'+version;
+      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.KEYNAME + '/' + itemcode+'/'+version;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
@@ -84,6 +130,10 @@ export class RecordingService {
   fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,recordingFile:RecordingFile):Observable<RecordingFile|null> {
 
     let wobs = new Observable<RecordingFile>(observer=>{
+
+      let idbObs=new Observable<RecordingFile>(subscriber => {
+
+      })
 
       let obs = this.fetchAudiofile(projectName, recordingFile.sessionId, recordingFile.itemCode,recordingFile.version);
 
@@ -157,6 +207,65 @@ export class RecordingService {
 
     return wobs;
   }
+
+
+  postRecordingFileObserver(recFile:RecordingFileDTO,restUrl:string): Observable<RecordingFileDTO> {
+    //return this.http.post<RecordingFile>(restUrl, recFile,{withCredentials: this.withCredentials});
+    //TODO
+    return new Observable<RecordingFileDTO>(subscriber => {
+      subscriber.error(new Error('RecordingFile upload not implemented yet.'))
+    })
+  }
+
+  addRecordingFileObserver(recFile:RecordingFileDTO,restUrl:string,upload:boolean): Observable<RecordingFileDTO> {
+
+    let obs=new Observable<RecordingFileDTO>(subscriber => {
+
+      let obs = this.sprDb.prepare();
+      obs.subscribe(value => {
+        let sessStoNm=RecordingService.KEYNAME;
+
+        let rfTr = value.transaction(sessStoNm,'readwrite')
+        let rfSto = rfTr.objectStore(sessStoNm);
+        rfSto.add(recFile)
+        rfTr.oncomplete = () => {
+          if(upload) {
+            this.postRecordingFileObserver(recFile, restUrl).subscribe((value) => {
+              // stored to db and to server
+              subscriber.next(value)
+            }, (err) => {
+              // Offline or other HTTP error
+              // mark for delayed synchronisation
+              let syncTr = value.transaction('_sync','readwrite')
+              let syncSto = rfTr.objectStore('_sync');
+              let sync = new Sync(sessStoNm, recFile.uuid)
+              syncSto.add(sync)
+              syncTr.oncomplete = () => {
+                // OK: stored to db and marked for sync
+                subscriber.next(recFile)
+                subscriber.complete()
+              }
+              syncTr.onerror = () => {
+                subscriber.error(err)
+              }
+            }, () => {
+              // OK stored to db and to server complete
+              subscriber.complete()
+            })
+          }else{
+            subscriber.next(recFile)
+            subscriber.complete()
+          }
+        }
+      },(err)=>{
+        subscriber.error(err)
+      })
+    });
+    return obs;
+  }
+
+
+
 }
 
 

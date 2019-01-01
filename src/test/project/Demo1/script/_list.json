@@ -1,0 +1,275 @@
+[{
+  "name": "Test1",
+  "type": "script",
+  "scriptId": 1245,
+  "sections": [
+    {
+      "name": "Empty section test",
+      "speakerDisplay": false,
+      "training": false,
+      "groups": []
+    },
+    {
+      "mode": "MANUAL",
+      "name": "Introduction",
+      "order": "SEQUENTIAL",
+
+      "speakerDisplay": true,
+      "training": true,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "I0",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "I1",
+              "recduration":8000,
+              "postrecording": 2000,
+              "recinstructions": {
+                "recinstructions": "Hier finden Sie kurze Anleitungen"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                }
+              ]
+            }
+          ]
+        },{
+          "promptItems" : [ {
+            "type" : "recording",
+            "mediaitems" : [ {
+              "annotationTemplate" : false,
+              "mimetype" : "image/png",
+              "src" : "resources/vlcsnap-2012-07-10-17h47m32s147.png",
+              "text" : ""
+            } ],
+            "itemcode" : "demo_001"
+          } ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "I2",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Jetzt geht's los!"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "name": "Recording Session",
+      "order": "SEQUENTIAL",
+      "promptphase": "PRERECORDING",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "N0",
+              "recduration": 10000,
+
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "autoplay": false,
+                  "mimetype": "text/plain",
+                  "text": "What's your name?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "S0",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "S1",
+              "recinstructions": {
+                "recinstructions": "Bitte lesen:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Heute ist schönes Frühlingswetter."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+
+    },
+    {
+      "mode": "AUTORECORDING",
+      "name": "Recording Session",
+      "order": "SEQUENTIAL",
+      "promptphase": "PRERECORDING",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "AN0",
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "recduration": 10000,
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "scope": "APPLICATION",
+                  "text": "What's your name?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "AS0",
+              "recinstructions": {
+                "recinstructions": "Please read the digits:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "2 7 4 1 6 8 3 9 5 0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "AS1",
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "How did you get here today?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "name": "Recording Session",
+      "order": "SEQUENTIAL",
+      "promptphase": "RECORDING",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "ARN0",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "recduration": 10000,
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mediaitemId": 1258,
+                  "mimetype": "text/plain",
+                  "text": "What's your name?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "ARS0",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Please read the digits:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "2 7 4 1 6 8 3 9 5 0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "ARS1",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mediaitemId": 1300,
+                  "mimetype": "text/plain",
+                  "text": "How did you get here today?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+
+    }
+  ]
+}
+
+]

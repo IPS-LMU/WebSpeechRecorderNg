@@ -1,4 +1,4 @@
-import {SprDb, Sync} from "../../../../../src/app/db/inddb";
+import {SprDb, Sync} from "../db/inddb";
 import {HttpClient} from "@angular/common/http";
 import {Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";

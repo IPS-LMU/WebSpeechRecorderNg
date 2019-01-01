@@ -3,7 +3,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
-import {RecordingFile, RecordingFileDescriptor} from '../recording'
+import {RecordingFile, RecordingFileDescriptor, RecordingFileDTO} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
     Component, ViewChild, ChangeDetectorRef, Inject,
@@ -924,33 +924,61 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
 
-      if (this.enableUploadRecordings) {
-        // TODO use SpeechRecorderconfig resp. RecfileService
-        //new REST API URL
+      // if (this.enableUploadRecordings) {
+      //   // TODO use SpeechRecorderconfig resp. RecfileService
+      //   //new REST API URL
+      //
+      //   let apiEndPoint = '';
+      //
+      //   if (this.config && this.config.apiEndPoint) {
+      //     apiEndPoint = this.config.apiEndPoint;
+      //   }
+      //   if (apiEndPoint !== '') {
+      //     apiEndPoint = apiEndPoint + '/'
+      //   }
+      //
+      //   let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+      //   let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+      //
+      //
+      //
+      //     // convert asynchronously to 16-bit integer PCM
+      //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+      //     // TODO duplicate conversion for manual download
+      //     //console.log("Build wav writer...");
+      //     let ww = new WavWriter();
+      //     ww.writeAsync(ad, (wavFile) => {
+      //       this.postRecording(wavFile, recUrl);
+      //     });
+      // }
 
-        let apiEndPoint = '';
+      let apiEndPoint = '';
 
-        if (this.config && this.config.apiEndPoint) {
-          apiEndPoint = this.config.apiEndPoint;
-        }
-        if (apiEndPoint !== '') {
-          apiEndPoint = apiEndPoint + '/'
-        }
-
-        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-        let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-
-
-
-          // convert asynchronously to 16-bit integer PCM
-          // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-          // TODO duplicate conversion for manual download
-          //console.log("Build wav writer...");
-          let ww = new WavWriter();
-          ww.writeAsync(ad, (wavFile) => {
-            this.postRecording(wavFile, recUrl);
-          });
+      if (this.config && this.config.apiEndPoint) {
+        apiEndPoint = this.config.apiEndPoint;
       }
+      if (apiEndPoint !== '') {
+        apiEndPoint = apiEndPoint + '/'
+      }
+
+      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+      let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+
+      let ww = new WavWriter();
+      ww.writeAsync(ad, (wavFile) => {
+        let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+        let rfDto = new RecordingFileDTO(rf, wavBlob)
+        this.recFileService.addRecordingFileObserver(rfDto, recUrl, this.enableUploadRecordings).subscribe((value) => {
+
+        }, (err) => {
+          console.log("Recording file store error: " + err)
+        }, () => {
+          console.log("Recording file stored to indexed db")
+        })
+      });
+
+
+
     }
 
     // check complete session
