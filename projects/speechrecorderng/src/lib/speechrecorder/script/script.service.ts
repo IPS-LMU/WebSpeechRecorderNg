@@ -11,6 +11,7 @@ import {Session} from "../session/session";
 import {ProjectService} from "../project/project.service";
 import {SprDb, Sync} from "../../db/inddb";
 import {forEach} from "@angular/router/src/utils/collection";
+import {GenericSprService} from "../generic_sync_service";
 
 interface ScriptServiceRESTParams{
   'order-direction'?: string,
@@ -20,27 +21,15 @@ interface ScriptServiceRESTParams{
 }
 
 @Injectable()
-export class ScriptService {
+export class ScriptService extends GenericSprService<Script>{
   public static readonly SCRIPT_KEYNAME='script';
   // Limit of fetched scripts count
   public static readonly SCRIPTS_FETCH_COUNT_LIMIT=100;
-  private apiEndPoint:string;
+
   private scriptCtxUrl:string;
-  private withCredentials:boolean=false;
 
-  constructor(private sprDb:SprDb,private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
-
-    this.apiEndPoint = ''
-
-    if(config && config.apiEndPoint) {
-      this.apiEndPoint=config.apiEndPoint;
-    }
-    if(this.apiEndPoint !== ''){
-      this.apiEndPoint=this.apiEndPoint+'/'
-    }
-    if(config!=null && config.withCredentials!=null){
-      this.withCredentials=config.withCredentials;
-    }
+  constructor(protected sprDb:SprDb,protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+    super(ScriptService.SCRIPT_KEYNAME,sprDb,http,config)
 
     this.scriptCtxUrl = this.apiEndPoint + ScriptService.SCRIPT_KEYNAME;
 
@@ -56,8 +45,8 @@ export class ScriptService {
       // append UUID to make request URL unique to avoid localhost server caching
       scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
     }
-    return  this.http.get<Script>(scriptUrl,{params:httpParams, withCredentials: this.withCredentials })
-
+    //return  this.http.get<Script>(scriptUrl,{params:httpParams, withCredentials: this.withCredentials })
+    return this.getAndCacheEntity(id, scriptUrl,httpParams)
    }
 
   projectScriptsObserver(projectName: string): Observable<Array<Script>> {
@@ -134,6 +123,9 @@ export class ScriptService {
               allS.onsuccess=(ev)=>{
                 console.info("Found " + allS.result.length + " scripts in indexed db")
                 subscriber.next(<Array<Script>>allS.result);
+
+              }
+              scrsTr.oncomplete=(ev)=>{
                 subscriber.complete()
               }
 

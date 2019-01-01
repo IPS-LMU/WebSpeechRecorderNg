@@ -7,30 +7,21 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.co
 import {Project} from "./project";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
+import {GenericSprService} from "../generic_sync_service";
+import {SprDb} from "../../db/inddb";
 
 
 
 @Injectable()
-export class ProjectService {
+export class ProjectService extends GenericSprService<Project>{
   public static readonly PROJECT_API_CTX='project'
   private projectCtxUrl:string;
-  private withCredentials:boolean=false;
+  //private withCredentials:boolean=false;
   private httpParams:HttpParams;
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(protected sprDb:SprDb,protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+    super(ProjectService.PROJECT_API_CTX,sprDb,http,config)
 
-    let apiEndPoint = ''
-
-    if(config && config.apiEndPoint) {
-      apiEndPoint=config.apiEndPoint;
-    }
-    if(apiEndPoint !== ''){
-      apiEndPoint=apiEndPoint+'/'
-    }
-    if(config!=null && config.withCredentials!=null){
-      this.withCredentials=config.withCredentials;
-    }
-
-    this.projectCtxUrl = apiEndPoint + ProjectService.PROJECT_API_CTX;
+    this.projectCtxUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX;
     this.httpParams=new HttpParams();
     this.httpParams.set('cache','false');
   }
@@ -44,8 +35,10 @@ export class ProjectService {
       projectUrl = projectUrl + '_list.json?requestUUID='+UUID.generate();
 
     }
-    return this.http.get<Array<Project>>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
-
+    //return this.http.get<Array<Project>>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
+    let httpParams=new HttpParams();
+    httpParams.set('cache','false');
+    return this.getAndCacheEntities(projectUrl,httpParams)
   }
 
   projectObservable(id:string):Observable<Project>{
@@ -57,7 +50,9 @@ export class ProjectService {
       projectUrl = projectUrl + '.json?requestUUID='+UUID.generate();
 
     }
-     return this.http.get<Project>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
+     //return this.http.get<Project>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
+
+    return this.getAndCacheEntity(id,projectUrl,this.httpParams)
 
    }
 

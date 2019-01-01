@@ -68,8 +68,10 @@ export class RecordingService {
           if(value.objectStoreNames.contains(sessStoreName)){
             let rfTr = value.transaction(sessStoreName)
             let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
-            let sessIdx=rfSto.index('prjSessItemcode')
-            let allS=sessIdx.getAll(IDBKeyRange.only([projectName, sessId]));
+            //let sessIdx=rfSto.index('sessIdItemcodeIdx')
+            let sessIdx=rfSto.index('sessIdIdx')
+            console.log("Get all recording from sessionId: "+sessId)
+            let allS=sessIdx.getAll(IDBKeyRange.only([sessId]));
 
             allS.onsuccess = (ev) => {
               console.info("Found " + allS.result.length + " recFiles")
@@ -132,8 +134,59 @@ export class RecordingService {
     let wobs = new Observable<RecordingFile>(observer=>{
 
       let idbObs=new Observable<RecordingFile>(subscriber => {
+        this.sprDb.prepare().subscribe(value => {
 
+          let rfTr = value.transaction(RecordingService.KEYNAME)
+          let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
+          let sessIdx=rfSto.index('sessIdItemcodeIdx')
+
+          console.log("Get all recordings for sessionId and itemcode: " + recordingFile.sessionId+ " "+recordingFile.itemCode)
+          let allS = sessIdx.getAll(IDBKeyRange.only([recordingFile.sessionId,recordingFile.itemCode]));
+
+          allS.onsuccess = (ev) => {
+            console.info("Found " + allS.result.length + " recFiles")
+            let allRfDtos: Array<RecordingFileDTO> = allS.result;
+            let hVers = -1;
+            let hVersRfDto: RecordingFileDTO;
+            for (let i = 0; i < allRfDtos.length; i++) {
+              let rfDto = allRfDtos[i]
+              if (rfDto.version > hVers) {
+                hVers = rfDto.version
+                hVersRfDto = rfDto
+              }
+            }
+
+            let fileReader = new FileReader();
+            fileReader.onload = (ev) => {
+
+              let arrBuf: ArrayBuffer = <ArrayBuffer>fileReader.result
+              let dec = aCtx.decodeAudioData(arrBuf);
+              dec.then(ab => {
+                let rf = new RecordingFile(hVersRfDto.sessionId, hVersRfDto.itemCode, hVersRfDto.version, ab);
+                if (this.debugDelay > 0) {
+                  window.setTimeout(() => {
+
+                    observer.next(rf);
+                    observer.complete();
+                  }, this.debugDelay);
+                } else {
+                  observer.next(rf);
+                  observer.complete();
+                }
+              });
+              fileReader.readAsArrayBuffer(hVersRfDto.audioBlob);
+
+
+            }
+          }
+          allS.onerror = (ev) => {
+            subscriber.error()
+          }
+        }, (err) => {
+          subscriber.error(err)
+        })
       })
+
 
       let obs = this.fetchAudiofile(projectName, recordingFile.sessionId, recordingFile.itemCode,recordingFile.version);
 

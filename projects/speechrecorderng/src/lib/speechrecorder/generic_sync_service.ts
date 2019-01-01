@@ -1,5 +1,5 @@
 import {SprDb, Sync} from "../db/inddb";
-import {HttpClient} from "@angular/common/http";
+import {HttpClient, HttpParams} from "@angular/common/http";
 import {Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 
@@ -7,17 +7,16 @@ import {Observable} from "rxjs";
 
 export class GenericSprService<T> {
 
-    private withCredentials: boolean = false;
+    protected apiEndPoint=''
+    protected withCredentials: boolean = false;
 
-    constructor(private keyname: string, private sprDb: SprDb, private http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) private config?: SpeechRecorderConfig) {
-
-        let apiEndPoint = ''
+    constructor(private keyname: string, protected sprDb: SprDb, protected http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) protected config?: SpeechRecorderConfig) {
 
         if (config && config.apiEndPoint) {
-            apiEndPoint = config.apiEndPoint;
+            this.apiEndPoint = config.apiEndPoint;
         }
-        if (apiEndPoint !== '') {
-            apiEndPoint = apiEndPoint + '/'
+        if (this.apiEndPoint !== '') {
+            this.apiEndPoint = this.apiEndPoint + '/'
         }
         if (config != null && config.withCredentials != null) {
             this.withCredentials = config.withCredentials;
@@ -67,6 +66,143 @@ export class GenericSprService<T> {
                 subscriber.error(err)
             })
         });
+        return obs;
+    }
+
+
+    getAndCacheEntity(entityId: string|number,restUrl:string,httpParams:HttpParams):Observable<T>{
+        let obs=new Observable<T>(subscriber => {
+            this.http.get<T>(restUrl, {params:httpParams,withCredentials: this.withCredentials}).subscribe((entity)=>{
+
+                // add or update fetched entity to indexed db
+                let obs = this.sprDb.prepare();
+                obs.subscribe(db => {
+                    let tr = db.transaction(this.keyname,'readwrite')
+                    let sto = tr.objectStore(this.keyname);
+                    sto.put(entity)
+                    tr.oncomplete = () => {
+                        subscriber.next(entity)
+                        subscriber.complete()
+                    }
+                    tr.onerror = () => {
+                        subscriber.next(entity)
+                        subscriber.complete()
+                    }
+                },(err)=>{
+                    subscriber.next(entity)
+                    subscriber.complete()
+                })
+            },(error)=>{
+                // HTTP fetch failed, try to find in ind db cache
+                let obs = this.sprDb.prepare();
+                obs.subscribe(db => {
+                    let tr = db.transaction(this.keyname)
+                    let sto = tr.objectStore(this.keyname);
+                    console.log("Get entity ID: "+entityId+" from store: "+this.keyname)
+                    let r=sto.get(entityId)
+                    r.onsuccess=(ev)=>{
+                        console.log("Got entity ID: "+entityId+" : "+r.result)
+                        subscriber.next(r.result)
+                    }
+                    tr.oncomplete = () => {
+                        console.log("Transaction complete: got entity ID: "+entityId+" : "+r.result)
+                        subscriber.complete()
+                    }
+                    tr.onerror = () => {
+                        subscriber.error(error)
+                    }
+                },(err)=>{
+                    subscriber.error(error)
+                })
+            },()=>{
+
+            })
+
+        })
+        return obs;
+    }
+
+    getAndCacheEntities(restUrl:string,httpParams:HttpParams,indexName?:string,constr?:Array<string>):Observable<Array<T>>{
+        let obs=new Observable<Array<T>>(subscriber => {
+            this.http.get<Array<T>>(restUrl, {params:httpParams,withCredentials: this.withCredentials}).subscribe((entities)=>{
+
+                // add or update fetched entity to indexed db
+                let obs = this.sprDb.prepare();
+                obs.subscribe(db => {
+                    let tr = db.transaction(this.keyname,'readwrite')
+                    let sto = tr.objectStore(this.keyname);
+
+                    // delete old entities
+                    if(indexName) {
+                        let idx = sto.index(indexName)
+                        let r = idx.getAllKeys(IDBKeyRange.only(constr));
+                        r.onsuccess = (ev) => {
+                            r.result.forEach((k) => {
+                                sto.delete(k)
+                            })
+                        }
+                    }else{
+                        let r = sto.getAllKeys();
+                        r.onsuccess = (ev) => {
+                            r.result.forEach((k) => {
+                                sto.delete(k)
+                                console.info("Delete async: "+k)
+                            })
+                        }
+                    }
+                    entities.forEach((entity)=>{
+                        let r=sto.put(entity)
+                        console.info("Put async: "+entity)
+
+                    })
+
+                    tr.oncomplete = () => {
+                        subscriber.next(entities)
+                        subscriber.complete()
+                    }
+                    tr.onerror = (ev) => {
+                        // We have frech scripts from server
+                        // Proceed though indexed db failed
+                        console.info("Indexed DB error "+ev)
+
+                        subscriber.next(entities)
+                        subscriber.complete()
+                    }
+                },(err)=>{
+                    subscriber.next(entities)
+                    subscriber.complete()
+                })
+            },(error)=>{
+                // HTTP fetch failed, try to find in ind db cache
+                let obs = this.sprDb.prepare();
+                obs.subscribe(db => {
+                    let tr = db.transaction(this.keyname)
+                    let sto = tr.objectStore(this.keyname);
+                    let ra:IDBRequest;
+                    if(indexName) {
+                        let idx = sto.index(indexName);
+                        ra = idx.getAll(IDBKeyRange.only(constr));
+                    }else{
+                        ra = sto.getAll();
+                    }
+                    ra.onsuccess= (ev) => {
+                        subscriber.next(ra.result)
+                    }
+
+                    tr.oncomplete = () => {
+                        subscriber.complete()
+                    }
+                    tr.onerror = () => {
+                        subscriber.error(error)
+                    }
+                },(err)=>{
+                    subscriber.error(error)
+                })
+            },()=>{
+
+            })
+
+        })
         return obs;
     }
 

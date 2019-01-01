@@ -35,7 +35,7 @@ export class SessionsComponent implements  AfterViewInit {
 
   addNewSession(){
     // TODO test only
-    let ns:Session={sessionId: UUID.generate(), project: 'Demo1', script: '1245'}
+    let ns:Session={sessionId: UUID.generate(), project: 'Demo1', script: 1245}
     this.sessionService.projectAddSessionObserver(ns.project,ns).subscribe((s)=>{
       this.sessions.push(s);
     },(err)=>{

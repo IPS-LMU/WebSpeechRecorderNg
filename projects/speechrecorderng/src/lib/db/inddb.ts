@@ -60,7 +60,7 @@ export class SprDb {
                             db.createObjectStore('_sync', {keyPath: 'id', autoIncrement:true});
                         }
                         if (!db.objectStoreNames.contains('project')) {
-                            db.createObjectStore('project', {keyPath: 'projectId'});
+                            db.createObjectStore('project', {keyPath: 'name'});
                         }
                         if (!db.objectStoreNames.contains('session')) {
                             db.createObjectStore('session', {keyPath: 'sessionId'});
@@ -74,8 +74,8 @@ export class SprDb {
                         // }
                         if (!db.objectStoreNames.contains('recfile')) {
                             let rfStore=db.createObjectStore('recfile', {keyPath: 'uuid'});
-                            //rfStore.createIndex('prjSess', ['project','sessionId'], {unique:false});
-                            rfStore.createIndex('prjSessItemcode', ['project','sessionId','itemcode'], {unique:false});
+                            rfStore.createIndex('sessIdIdx', ['sessionId'], {unique:false});
+                            rfStore.createIndex('sessIdItemcodeIdx', ['sessionId','itemCode'], {unique:false});
                         }
                         if (ev.oldVersion) {
                             console.info("Upgraded indexed database " + SprDb.dbName + " schema from version " + ev.oldVersion + " to " + ev.newVersion)
