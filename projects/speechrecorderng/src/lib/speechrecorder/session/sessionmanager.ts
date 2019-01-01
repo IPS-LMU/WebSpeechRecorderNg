@@ -535,15 +535,17 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.controlAudioPlayer.audioBuffer = null;
         //... and try to fetch from server
         this.audioFetchSubscription=this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
-          let fab=null;
+          let fab:AudioBuffer|null=null;
+
           if(rf) {
             fab=this._displayRecFile.audioBuffer;
+            console.log("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
           }else{
             this.statusMsg='Recording file could not be loaded.'
             this.statusAlertType='error'
           }
-            this.displayAudioBuffer = fab;
-            this.controlAudioPlayer.audioBuffer = fab;
+          this.displayAudioBuffer = fab;
+          this.controlAudioPlayer.audioBuffer = fab;
           this.showRecording();
 
         },err=>{
@@ -609,6 +611,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //this.selectedItemIdx = this.promptIndex;
 
     if(this.audioFetchSubscription){
+      console.log("Unsubscribed audio fetch observer.")
       this.audioFetchSubscription.unsubscribe()
     }
 
