@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.51.21",
+  "version": "0.51.22",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -37,6 +37,7 @@
     "@angular/pwa": "^0.11.4",
     "@angular/router": "^7.1.4",
     "@angular/service-worker": "^7.1.4",
+    "material-design-icons": "^3.0.1",
     "core-js": "^2.5.7",
     "hammerjs": "^2.0.8",
     "intl": "^1.2.5",

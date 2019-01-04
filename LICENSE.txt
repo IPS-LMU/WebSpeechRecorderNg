@@ -1,0 +1,3 @@
+WebSpeechRecorderNg is licensed under the MIT license.
+
+This package contains the directory 'iconfont' of the Google Material Design Icons package version 3.0.1 (https://github.com/google/material-design-icons or NPM package material-design-icons) which is licensed under the Apache License 2.0
