@@ -80,8 +80,6 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
 
         // Alternatives
         // Requires CSS file added to app
-        //this.renderer.addClass(this.d.documentElement,'fitToScreen')
-        //this.renderer.addClass(this.d.body,'fitToScreen')
         //
         // Angular omponent styles cannot be apllied to html and body element
         // Adding style sheet programmatically to document is hacky
@@ -98,13 +96,13 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
         this.bodyPaddingSave=bodyStyle.padding
 
         // Apply fit to page properties
-        this.d.documentElement.style.height='100%';
-        this.d.documentElement.style.margin='0';
-        this.d.documentElement.style.padding='0';
+        this.renderer.setStyle(this.d.documentElement,'height','100%')
+        this.renderer.setStyle(this.d.documentElement,'margin','0');
+        this.renderer.setStyle(this.d.documentElement,'padding','0');
 
-        this.d.body.style.height='100%';
-        this.d.body.style.margin='0';
-        this.d.body.style.padding='0';
+        this.renderer.setStyle(this.d.body,'height','100%');
+        this.renderer.setStyle(this.d.body,'margin','0');
+        this.renderer.setStyle(this.d.body,'padding','0');
 
         this.initAudio();
 
@@ -112,10 +110,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
 
     ngOnDestroy(){
 
-        //this.renderer.removeClass(this.d.documentElement,'fitToScreen')
-        //this.renderer.removeClass(this.d.body,'fitToScreen')
-
         // Restore main app html and body CSS properties
+        // Hmm... use renderer here as well ??
         this.d.documentElement.style.height=this.htmlHeightSave;
         this.d.documentElement.style.margin=this.htmlMarginSave;
         this.d.documentElement.style.padding=this.htmlPaddingSave;
