@@ -1,4 +1,13 @@
-import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, ElementRef, Renderer2} from '@angular/core'
+import {
+    Component,
+    ViewChild,
+    ChangeDetectorRef,
+    AfterViewInit,
+    OnInit,
+    ElementRef,
+    Renderer2,
+    OnDestroy, Inject
+} from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
@@ -17,6 +26,8 @@ import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
 import {Renderer3} from "@angular/core/src/render3/interfaces/renderer";
+import {SprDb} from "./db/inddb";
+import {DOCUMENT} from "@angular/common";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -27,16 +38,10 @@ export enum Mode {SINGLE_SESSION,DEMO}
   template: `
     <app-sprrecordingsession></app-sprrecordingsession>
   `,
-  styles: [`:host{
-    flex: 2;
-    display: flex;
-    flex-direction: column;
-    min-height:0;      
-
-  }`]
+    styleUrls: ['speechrecorder.component.css']
 
 })
-export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener {
+export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy,AudioPlayerListener {
 
 	  mode:Mode;
 		controlAudioPlayer:AudioPlayer;
@@ -48,39 +53,80 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
   script:Script;
     dataSaved: boolean = true;
+    private htmlHeightSave:string;
+    private htmlMarginSave:string;
+    private htmlPaddingSave:string;
+    private bodyHeightSave:string;
+    private bodyMarginSave:string;
+    private bodyPaddingSave:string;
   @ViewChild(SessionManager) sm:SessionManager;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,
                 private elRef:ElementRef,
+                    @Inject(DOCUMENT) private d: Document,
                     private renderer: Renderer2,
                 private changeDetectorRef: ChangeDetectorRef,
                 private sessionsService:SessionService,
                 private projectService:ProjectService,
                 private scriptService:ScriptService,
                 private recFilesService:RecordingService,
-                private uploader:SpeechRecorderUploader) {
+                private uploader:SpeechRecorderUploader,
+                    private sprDb:SprDb) {
 		}
 
     ngOnInit() {
-        let n=this.elRef.nativeElement;
+        // Set CSS for fit to screen mode
 
-        //let n:any=ne;
-        do {
-            console.log("El: "+n)
-            n=this.renderer.parentNode(n)
-            if(n instanceof HTMLBodyElement || n instanceof HTMLHtmlElement){
-                console.log("Apply fit to page style to el: "+n)
-                // n.style.height='100%'
-                // n.style.margin='0px';
-                // n.style.padding='0px';
-                this.renderer.setStyle(n, "height", '100%');
-                this.renderer.setStyle(n, "margin", 0)
-                this.renderer.setStyle(n, "padding", 0)
-            }
-        }while(n && ! (n instanceof HTMLHtmlElement))
+        // Alternatives
+        // Requires CSS file added to app
+        //this.renderer.addClass(this.d.documentElement,'fitToScreen')
+        //this.renderer.addClass(this.d.body,'fitToScreen')
+        //
+        // Angular omponent styles cannot be apllied to html and body element
+        // Adding style sheet programmatically to document is hacky
+        //
 
-		  try {
+        // Save CSS properties set by the main application
+        let htmlStyle=this.d.documentElement.style
+        this.htmlHeightSave=htmlStyle.height
+        this.htmlMarginSave=htmlStyle.margin
+        this.htmlMarginSave=htmlStyle.padding
+        let bodyStyle=this.d.body.style
+        this.bodyHeightSave=bodyStyle.height
+        this.bodyMarginSave=bodyStyle.margin
+        this.bodyPaddingSave=bodyStyle.padding
+
+        // Apply fit to page properties
+        this.d.documentElement.style.height='100%';
+        this.d.documentElement.style.margin='0';
+        this.d.documentElement.style.padding='0';
+
+        this.d.body.style.height='100%';
+        this.d.body.style.margin='0';
+        this.d.body.style.padding='0';
+
+        this.initAudio();
+
+    }
+
+    ngOnDestroy(){
+
+        //this.renderer.removeClass(this.d.documentElement,'fitToScreen')
+        //this.renderer.removeClass(this.d.body,'fitToScreen')
+
+        // Restore main app html and body CSS properties
+        this.d.documentElement.style.height=this.htmlHeightSave;
+        this.d.documentElement.style.margin=this.htmlMarginSave;
+        this.d.documentElement.style.padding=this.htmlPaddingSave;
+
+        this.d.body.style.height=this.bodyHeightSave;
+        this.d.body.style.margin=this.bodyMarginSave;
+        this.d.body.style.padding=this.bodyPaddingSave;
+    }
+
+    private initAudio(){
+        try {
         let audioContext = AudioContextProvider.audioContextInstance()
         this.controlAudioPlayer = new AudioPlayer(audioContext, this);
         this.sm.controlAudioPlayer=this.controlAudioPlayer;
@@ -96,25 +142,45 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
 		  if(this.sm.status!== SessionManagerStatus.ERROR) {
+
         let initSuccess = this.init();
         if (initSuccess) {
+
+
           this.route.queryParams.subscribe((params: Params) => {
             if (params['sessionId']) {
-              this.fetchSession(params['sessionId']);
+              this.initSession(params['sessionId']);
             }
           });
 
           this.route.params.subscribe((params: Params) => {
             let routeParamsId = params['id'];
             if (routeParamsId) {
-              this.fetchSession(routeParamsId);
+              this.initSession(routeParamsId);
             }
           })
         }
       }
     }
 
+    private initSession(sessionId:string){
+        this.sm.statusAlertType='info';
+        this.sm.statusMsg = 'Preparing database...';
+        this.sprDb.prepare().subscribe((db)=>{},(err)=>{
+            // no indexed db avail, proceed anyway
+            this.sm.statusAlertType='info';
+            this.sm.statusMsg = 'No database available.';
+            this.fetchSession(sessionId);
+        },()=>{
+            this.sm.statusAlertType='info';
+            this.sm.statusMsg = 'Database opened.';
+            this.fetchSession(sessionId);
+        })
+    }
+
     fetchSession(sessionId:string){
+        this.sm.statusAlertType='info';
+        this.sm.statusMsg = 'Get session information...';
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
