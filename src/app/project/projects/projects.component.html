@@ -2,7 +2,7 @@
   <p *ngIf="projects && projects.length==0">No associated projects found.</p>
   <li *ngFor="let project of projects">
     {{project.name}}
-
+    <button (click)="select(project)">Select project</button>
     <a routerLink="/wsp/project/{{project.name}}/session">Select project</a>
   </li>
 </ul>

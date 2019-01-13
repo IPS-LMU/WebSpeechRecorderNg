@@ -4,6 +4,8 @@
       <mat-icon>menu</mat-icon>
     </button>
     <mat-menu #menu="matMenu" yPosition="below" [overlapTrigger]="false">
+        <button mat-menu-item routerLink='wsp/project' routerLinkActive='active'>Projects</button>
+        <!--<button mat-menu-item routerLink='wsp/project' routerLinkActive='active'>Sessions</button>-->
       <button mat-menu-item  [matMenuTriggerFor]="helpMenu">Help</button>
       <mat-menu #helpMenu="matMenu" xPosition="after" [overlapTrigger]="false">
         <p>WebSpeechRecorderNg {{sprVersion}}</p>

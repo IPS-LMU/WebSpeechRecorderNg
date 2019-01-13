@@ -8,8 +8,8 @@ import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
 
 @Component({
   selector: 'app-sessions',
-  templateUrl: 'sessions.html'
-
+  templateUrl: 'sessions.html',
+  styles:[]
 })
 export class SessionsComponent implements  AfterViewInit {
 

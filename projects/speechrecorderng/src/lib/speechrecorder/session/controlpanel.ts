@@ -1,6 +1,6 @@
 import {Action} from '../../action/action'
 import {
-  Component, ViewChild, Input, EventEmitter, Output
+  Component, ViewChild, Input, EventEmitter, Output, HostListener
 } from "@angular/core";
 
 import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
@@ -40,7 +40,7 @@ export class StatusDisplay {
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{_value}}%
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{_value}}% <p *ngIf="online">Online</p><p *ngIf="!online">Offline</p>
   `,
   styles: [`:host {
     flex: 1;
@@ -50,6 +50,7 @@ export class StatusDisplay {
   }`]
 })
 export class UploadStatus {
+  online:boolean=true;
   spinnerMode = 'determinate'
   spinnerColor = 'default'
   _value = 100
@@ -65,6 +66,15 @@ export class UploadStatus {
   };
 
   @Input() status: string;
+
+  @HostListener('window:online', ['$event'])
+  onLine(event: Event): void {
+    this.online=true;
+  }
+  @HostListener('window:offline', ['$event'])
+  offLine(event: Event): void {
+    this.online=false;
+  }
 }
 
 
@@ -237,7 +247,7 @@ export class TransportPanel {
 
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
 
-    <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
+    <app-uploadstatus [value]="uploadProgress"
                       [status]="uploadStatus"></app-uploadstatus>
   `,
   styles: [`:host {
