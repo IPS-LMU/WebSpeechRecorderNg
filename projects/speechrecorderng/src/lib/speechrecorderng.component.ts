@@ -53,6 +53,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
 
   script:Script;
     dataSaved: boolean = true;
+
+    private d:Document;
     private htmlHeightSave:string;
     private htmlMarginSave:string;
     private htmlPaddingSave:string;
@@ -64,7 +66,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
 		constructor(private route: ActivatedRoute,
                     private router: Router,
                 private elRef:ElementRef,
-                    @Inject(DOCUMENT) private d: Document,
+                    @Inject(DOCUMENT) private dAsAny: any,
                     private renderer: Renderer2,
                 private changeDetectorRef: ChangeDetectorRef,
                 private sessionsService:SessionService,
@@ -73,6 +75,9 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
                 private recFilesService:RecordingService,
                 private uploader:SpeechRecorderUploader,
                     private sprDb:SprDb) {
+
+      // Workaround for https://github.com/angular/angular/issues/20351
+      this.d=this.dAsAny as Document;
 		}
 
     ngOnInit() {
