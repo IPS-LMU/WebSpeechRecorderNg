@@ -8,5 +8,11 @@ export const SPR_CFG: SpeechRecorderConfig = {
   enableUploadRecordings: false
 };
 
+// export const SPR_CFG:SpeechRecorderConfig={
+//   apiEndPoint: 'api/v1',
+//   apiType: null,
+//   withCredentials:true
+// }
+
 
 

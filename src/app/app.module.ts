@@ -25,6 +25,7 @@ import { ProjectsComponent } from './project/projects/projects.component';
 import {APP_BASE_HREF} from '@angular/common';
 import {SprDb} from "../../projects/speechrecorderng/src/lib/db/inddb";
 import {SessionService} from "../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
+import {SpeechrecorderngComponent} from "../../projects/speechrecorderng/src/public_api";
 
 
 const appRoutes: Routes = [
@@ -35,6 +36,10 @@ const appRoutes: Routes = [
   { path: 'wsp/project/:projectName/session',
     component: SessionsComponent
   },
+  { path: 'spr',
+    component: SpeechrecorderngComponent
+  },
+
     { path: 'test',
         redirectTo: 'session/',
         pathMatch: 'full'
@@ -56,7 +61,7 @@ const appRoutes: Routes = [
     BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [
-      {provide: APP_BASE_HREF, useValue: '/'},
+
       {provide: SprDb,
     useFactory: SprDb.sprDbFactory,
     deps: []}
