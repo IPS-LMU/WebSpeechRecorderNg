@@ -85,28 +85,32 @@ export class ScriptService extends GenericSprService<Script>{
               r.result.forEach((k)=>{
                 scrSto.delete(k)
               })
+              scripts.forEach((scr)=>{
+              scr.project=projectName
+              scrSto.put(scr)
+              })
           }
 
-          scripts.forEach((scr)=>{
-            scr.project=projectName
-            scrSto.put(scr)
-          })
 
           scrTr.oncomplete = () => {
+            console.log("Scripts store transaction completed")
             subscriber.next(scripts)
+            subscriber.complete()
           }
           scrTr.onerror = () => {
             // We have frech scripts from server
             // Proceed though indexed db failed
             console.error("Failed to store scripts from server")
             subscriber.next(scripts)
+            subscriber.complete()
 
           }
         },(err)=>{
-          // We have frech scripts from server
+          // We have fresh scripts from server
           // Proceed though indexed db failed
           console.error("Failed to store scripts from server")
           subscriber.next(scripts)
+          subscriber.complete()
 
         })
 
@@ -138,7 +142,7 @@ export class ScriptService extends GenericSprService<Script>{
             }
         )
       }, () => {
-        subscriber.complete()
+        //subscriber.complete()
       });
     })
     return obs
