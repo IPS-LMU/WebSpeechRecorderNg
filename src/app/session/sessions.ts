@@ -15,7 +15,7 @@ import {ScriptService} from "../../../projects/speechrecorderng/src/lib/speechre
 })
 export class SessionsComponent implements  AfterViewInit {
 
-  private projectName:string;
+  projectName:string;
   sessions:Array<Session>
   constructor(private route: ActivatedRoute, private chDetRef:ChangeDetectorRef,private scriptService:ScriptService,private sessionService: SessionService) {
   }

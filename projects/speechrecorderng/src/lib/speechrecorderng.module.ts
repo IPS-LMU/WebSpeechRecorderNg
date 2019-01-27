@@ -32,7 +32,7 @@ import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 
 
 export const SPR_ROUTES: Routes = [
-  { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
+  { path: 'spr/session/:sessionId',      component: SpeechrecorderngComponent },
   { path: 'spr',      component: SpeechrecorderngComponent }
 ];
 

@@ -8,7 +8,7 @@
 <h3>Sessions</h3>
 <ul>
   <li *ngFor="let session of sessions">
-    {{session.sessionId}} <a routerLink="/spr/session/{{session.sessionId}}" routerLinkActive="active">Start recording</a>
+    {{session.sessionId}} <a routerLink="/wsp/project/{{projectName}}/session/{{session.sessionId}}" routerLinkActive="active">Open recorder</a>
   </li>
 </ul>
 <p>

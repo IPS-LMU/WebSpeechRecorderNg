@@ -155,7 +155,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
           });
 
           this.route.params.subscribe((params: Params) => {
-            let routeParamsId = params['id'];
+            let routeParamsId = params['sessionId'];
             if (routeParamsId) {
               this.initSession(routeParamsId);
             }

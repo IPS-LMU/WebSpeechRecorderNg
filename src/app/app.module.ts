@@ -36,6 +36,9 @@ const appRoutes: Routes = [
   { path: 'wsp/project/:projectName/session',
     component: SessionsComponent
   },
+  { path: 'wsp/project/:projectName/session/:sessionId',
+    component: SpeechrecorderngComponent
+  },
   { path: 'spr',
     component: SpeechrecorderngComponent
   },
