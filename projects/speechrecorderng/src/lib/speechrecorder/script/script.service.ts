@@ -70,52 +70,10 @@ export class ScriptService extends GenericSprService<Script>{
     }
 
     let obs=new Observable<Array<Script>>(subscriber => {
+        let scripts;
       let obsHttp = this.http.get<Array<Script>>(scrsUrl, {params:httpParams,withCredentials: this.withCredentials});
-      obsHttp.subscribe(scripts => {
-        // OK fresh data from server
-        // save to indexed db
-        let scrsObs = this.sprDb.prepare();
-        scrsObs.subscribe(db => {
-          let scrTr = db.transaction('script','readwrite')
-          let scrSto = scrTr.objectStore('script');
-          // delete old scripts
-          let scrPrjIdx=scrSto.index('projectIdx')
-          let r=scrPrjIdx.getAllKeys(IDBKeyRange.only([projectName]));
-          r.onsuccess= (ev) => {
-              r.result.forEach((k)=>{
-                scrSto.delete(k)
-              })
-              scripts.forEach((scr)=>{
-              scr.project=projectName
-              scrSto.put(scr)
-              })
-          }
-
-
-          scrTr.oncomplete = () => {
-            console.log("Scripts store transaction completed")
-            subscriber.next(scripts)
-            subscriber.complete()
-          }
-          scrTr.onerror = () => {
-            // We have frech scripts from server
-            // Proceed though indexed db failed
-            console.error("Failed to store scripts from server")
-            subscriber.next(scripts)
-            subscriber.complete()
-
-          }
-        },(err)=>{
-          // We have fresh scripts from server
-          // Proceed though indexed db failed
-          console.error("Failed to store scripts from server")
-          subscriber.next(scripts)
-          subscriber.complete()
-
-        })
-
-
-
+      obsHttp.subscribe(nextScripts => {
+          scripts=nextScripts;
       }, err => {
         console.info("Fetching scripts from server failed")
         let obs = this.sprDb.prepare();
@@ -142,7 +100,49 @@ export class ScriptService extends GenericSprService<Script>{
             }
         )
       }, () => {
-        //subscriber.complete()
+          // OK fresh data from server
+          // save to indexed db
+          let scrsObs = this.sprDb.prepare();
+          scrsObs.subscribe(db => {
+              let scrTr = db.transaction('script','readwrite')
+              let scrSto = scrTr.objectStore('script');
+              // delete old scripts
+              let scrPrjIdx=scrSto.index('projectIdx')
+              let r=scrPrjIdx.getAllKeys(IDBKeyRange.only([projectName]));
+              r.onsuccess= (ev) => {
+                  r.result.forEach((k)=>{
+                      scrSto.delete(k)
+                  })
+                  scripts.forEach((scr)=>{
+                      scr.project=projectName
+                      scrSto.put(scr)
+                  })
+              }
+
+
+              scrTr.oncomplete = () => {
+                  console.log("Scripts store transaction completed")
+                  subscriber.next(scripts)
+                  subscriber.complete()
+              }
+              scrTr.onerror = () => {
+                  // We have frech scripts from server
+                  // Proceed though indexed db failed
+                  console.error("Failed to store scripts from server")
+                  subscriber.next(scripts)
+                  subscriber.complete()
+
+              }
+          },(err)=>{
+              // We have fresh scripts from server
+              // Proceed though indexed db failed
+              console.error("Failed to store scripts from server")
+              subscriber.next(scripts)
+              subscriber.complete()
+
+          })
+
+
       });
     })
     return obs

@@ -72,26 +72,13 @@ export class GenericSprService<T> {
 
     getAndCacheEntity(entityId: string|number,restUrl:string,httpParams:HttpParams):Observable<T>{
         let obs=new Observable<T>(subscriber => {
-            this.http.get<T>(restUrl, {params:httpParams,withCredentials: this.withCredentials}).subscribe((entity)=>{
+            let entity:T;
+            let entitiesReceived=0;
+            this.http.get<T>(restUrl, {params:httpParams,withCredentials: this.withCredentials}).subscribe((nextEntity)=>{
+                entitiesReceived++;
 
-                // add or update fetched entity to indexed db
-                let obs = this.sprDb.prepare();
-                obs.subscribe(db => {
-                    let tr = db.transaction(this.keyname,'readwrite')
-                    let sto = tr.objectStore(this.keyname);
-                    sto.put(entity)
-                    tr.oncomplete = () => {
-                        subscriber.next(entity)
-                        subscriber.complete()
-                    }
-                    tr.onerror = () => {
-                        subscriber.next(entity)
-                        subscriber.complete()
-                    }
-                },(err)=>{
-                    subscriber.next(entity)
-                    subscriber.complete()
-                })
+                entity=nextEntity;
+
             },(error)=>{
                 // HTTP fetch failed, try to find in ind db cache
                 let obs = this.sprDb.prepare();
@@ -115,7 +102,28 @@ export class GenericSprService<T> {
                     subscriber.error(error)
                 })
             },()=>{
-
+                if(entitiesReceived>1){
+                    subscriber.error("Ambiguous result. Expected exactly one entity!")
+                }else {
+                    // add or update fetched entity to indexed db
+                    let obs = this.sprDb.prepare();
+                    obs.subscribe(db => {
+                        let tr = db.transaction(this.keyname, 'readwrite')
+                        let sto = tr.objectStore(this.keyname);
+                        sto.put(entity)
+                        tr.oncomplete = () => {
+                            subscriber.next(entity)
+                            subscriber.complete()
+                        }
+                        tr.onerror = () => {
+                            subscriber.next(entity)
+                            subscriber.complete()
+                        }
+                    }, (err) => {
+                        subscriber.next(entity)
+                        subscriber.complete()
+                    })
+                }
             })
 
         })
@@ -124,54 +132,12 @@ export class GenericSprService<T> {
 
     getAndCacheEntities(restUrl:string,httpParams:HttpParams,indexName?:string,constr?:Array<string>):Observable<Array<T>>{
         let obs=new Observable<Array<T>>(subscriber => {
-            this.http.get<Array<T>>(restUrl, {params:httpParams,withCredentials: this.withCredentials}).subscribe((entities)=>{
+            let entities:Array<T>;
+            let entitiesReceived=0;
+            this.http.get<Array<T>>(restUrl, {params:httpParams,withCredentials: this.withCredentials}).subscribe((nextEntities)=>{
+                entitiesReceived++;
+                entities=nextEntities;
 
-                // add or update fetched entity to indexed db
-                let obs = this.sprDb.prepare();
-                obs.subscribe(db => {
-                    let tr = db.transaction(this.keyname,'readwrite')
-                    let sto = tr.objectStore(this.keyname);
-
-                    // delete old entities
-                    if(indexName) {
-                        let idx = sto.index(indexName)
-                        let r = idx.getAllKeys(IDBKeyRange.only(constr));
-                        r.onsuccess = (ev) => {
-                            r.result.forEach((k) => {
-                                sto.delete(k)
-                            })
-                        }
-                    }else{
-                        let r = sto.getAllKeys();
-                        r.onsuccess = (ev) => {
-                            r.result.forEach((k) => {
-                                sto.delete(k)
-                                console.info("Delete async: "+k)
-                            })
-                        }
-                    }
-                    entities.forEach((entity)=>{
-                        let r=sto.put(entity)
-                        console.info("Put async: "+entity)
-
-                    })
-
-                    tr.oncomplete = () => {
-                        subscriber.next(entities)
-                        subscriber.complete()
-                    }
-                    tr.onerror = (ev) => {
-                        // We have frech scripts from server
-                        // Proceed though indexed db failed
-                        console.info("Indexed DB error "+ev)
-
-                        subscriber.next(entities)
-                        subscriber.complete()
-                    }
-                },(err)=>{
-                    subscriber.next(entities)
-                    subscriber.complete()
-                })
             },(error)=>{
                 // HTTP fetch failed, try to find in ind db cache
                 let obs = this.sprDb.prepare();
@@ -199,7 +165,48 @@ export class GenericSprService<T> {
                     subscriber.error(error)
                 })
             },()=>{
+                // add or update fetched entity to indexed db
+                let obs = this.sprDb.prepare();
+                obs.subscribe(db => {
+                    let tr = db.transaction(this.keyname,'readwrite')
+                    let sto = tr.objectStore(this.keyname);
 
+                    // delete old entities
+                    let r;
+                    if(indexName) {
+                        let idx = sto.index(indexName)
+                        r = idx.getAllKeys(IDBKeyRange.only(constr));
+                    }else {
+                        r = sto.getAllKeys();
+                    }
+                    r.onsuccess = (ev) => {
+                        r.result.forEach((k) => {
+                            sto.delete(k)
+                        })
+
+                        entities.forEach((entity)=>{
+                            let r=sto.put(entity)
+                            console.info("Put async: "+entity)
+
+                        })
+                    }
+
+                    tr.oncomplete = () => {
+                        // OK  fresh data from HTTP stored to db
+                        subscriber.next(entities)
+                        subscriber.complete()
+                    }
+                    tr.onerror = (ev) => {
+                        // We have fresh entities from server, bt indexed db storage failed
+                        console.info("Indexed DB error "+ev)
+                        // Proceed anyway
+                        subscriber.next(entities)
+                        subscriber.complete()
+                    }
+                },(err)=>{
+                    subscriber.next(entities)
+                    subscriber.complete()
+                })
             })
 
         })
