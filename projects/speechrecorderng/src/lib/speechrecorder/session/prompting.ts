@@ -361,7 +361,7 @@ export class PromptingContainer {
         bottom: 0px;
         /*left: 0px; */
 
-        height: 80%;
+        height: 90%;
         width: 100%;
 
         overflow: hidden;
