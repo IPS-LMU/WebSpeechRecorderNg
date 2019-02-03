@@ -30,7 +30,8 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
       height: 100%;
       position: relative;
       overflow-x: scroll;
-      overflow-y: auto;
+      overflow-y: auto; /* scrollbar should never appear */
+      /*overflow-y:hidden;  */
     }`,
     `app-audio {
 

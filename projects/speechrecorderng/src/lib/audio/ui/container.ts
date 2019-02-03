@@ -236,8 +236,8 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
     const asTop = 0;
 
-    const asH = Math.round(psH * this.dividerPosition);
-    const soH = Math.round(psH * (1 - this.dividerPosition));
+    const asH = Math.round(psH * this.dividerPosition)-1;
+    const soH = Math.round(psH * (1 - this.dividerPosition))-1;
     const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
     const wStr = offW.toString() + 'px';
 
@@ -325,15 +325,18 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       const offW = this.ce.offsetWidth;
       const offH = this.ce.offsetHeight;
 
+      // distributable space of pane for audiosignal and sonagram
       let psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
       if(psH<0){
         psH=0;
       }
       const asTop = 0;
 
-      const asH = Math.round(psH * this.dividerPosition);
+      // audiosignal height
+      const asH = Math.round(psH * this.dividerPosition)-1;
 
-      let soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH;
+      // rest for sonagram
+      let soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH-1;
       if(soH<0){
         soH=0;
       }
