@@ -1,0 +1,12 @@
+<form (ngSubmit)="importScript()" ngForm>
+
+  <input type="file" (change)="importFileChanged($event)">
+  <button type="submit" [disabled]="!isImportable()">Import</button>
+</form>
+
+<h3>Sessions</h3>
+<ul>
+  <li *ngFor="let script of scripts">
+    {{script.scriptId}}
+  </li>
+</ul>

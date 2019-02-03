@@ -17,9 +17,9 @@ export interface ItemCodeProvider{
 
 export interface PromptItem extends ItemCodeProvider {
   type?:string;
-  prerecording: number,
+  prerecording?: number,
   recduration?: number,
-  postrecording: number,
+  postrecording?: number,
   recinstructions?: Recinstructions,
   mediaitems: Array<Mediaitem>
 }

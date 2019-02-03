@@ -26,6 +26,8 @@ import {APP_BASE_HREF} from '@angular/common';
 import {SprDb} from "../../projects/speechrecorderng/src/lib/db/inddb";
 import {SessionService} from "../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
 import {SpeechrecorderngComponent} from "../../projects/speechrecorderng/src/public_api";
+import {ScriptsComponent} from "./script/scripts";
+import {FormsModule} from "@angular/forms";
 
 
 const appRoutes: Routes = [
@@ -38,6 +40,9 @@ const appRoutes: Routes = [
   },
   { path: 'wsp/project/:projectName/session/:sessionId',
     component: SpeechrecorderngComponent
+  },
+  { path: 'wsp/project/:projectName/script',
+    component: ScriptsComponent
   },
   { path: 'spr',
     component: SpeechrecorderngComponent
@@ -55,11 +60,11 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,StartComponent,SessionsComponent, ProjectsComponent
+    AppComponent,StartComponent,SessionsComponent,ScriptsComponent, ProjectsComponent
   ],
 
   imports: [
-      RouterModule.forRoot(appRoutes),FlexLayoutModule,BrowserAnimationsModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+      RouterModule.forRoot(appRoutes),FormsModule,FlexLayoutModule,BrowserAnimationsModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
 
     BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
