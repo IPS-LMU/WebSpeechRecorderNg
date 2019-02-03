@@ -34,18 +34,19 @@ export class GenericSprService<T> {
 
             let obs = this.sprDb.prepare();
             obs.subscribe(value => {
-                let sessTr = value.transaction(this.keyname)
+                let sessTr = value.transaction([this.keyname,'_sync'],"readwrite")
                 let sSto = sessTr.objectStore(this.keyname);
                 sSto.add(entity)
                 sessTr.oncomplete = () => {
+
                     this.postEntityObserver(entity,restUrl).subscribe((value)=>{
                         // stored to db and to server
                         subscriber.next(value)
                     },(err)=>{
                         // Offline or other HTTP error
                         // mark for delayed synchronisation
-                        let syncTr = value.transaction('_sync')
-                        let syncSto = sessTr.objectStore('_sync');
+                        let syncTr = value.transaction('_sync',"readwrite")
+                        let syncSto = syncTr.objectStore('_sync');
                         let sync=new Sync(this.keyname,entityId)
                         syncSto.add(sync)
                         syncTr.oncomplete=()=>{
