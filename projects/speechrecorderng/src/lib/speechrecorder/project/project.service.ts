@@ -18,6 +18,9 @@ export class ProjectService extends GenericSprService<Project>{
   private projectCtxUrl:string;
   //private withCredentials:boolean=false;
   private httpParams:HttpParams;
+
+  selectedProject:Project=null;
+
   constructor(protected sprDb:SprDb,protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
     super(ProjectService.PROJECT_API_CTX,sprDb,http,config)
 
