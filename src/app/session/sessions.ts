@@ -5,6 +5,7 @@ import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder
 import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
 import {ProjectService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 import {ScriptService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
+import {Script} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
 
 
 
@@ -37,22 +38,28 @@ export class SessionsComponent implements  AfterViewInit {
   }
 
   addNewSession(){
-
-    this.scriptService.projectScriptsObserver(this.projectName).subscribe((scripts)=>{
-      console.log("Scripts: "+scripts.length)
-      if(scripts && scripts.length>0) {
-        let sessionScript=scripts[0];
-        let ns: Session = {sessionId: UUID.generate(), project: this.projectName, script: sessionScript.scriptId}
-        this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
-          this.sessions.push(s);
-        }, (err)=> {
-              console.log("Scripts: ERROR")
-        },
-          () => {
-            console.log("Scripts: COMPLETE")
-        })
-      }
-    })
+    let sessionScript:Script=null;
+    this.scriptService.rnadomProjectScriptObserver(this.projectName).subscribe((script)=> {
+      sessionScript=script;
+    },(err)=> {
+      // TODO err
+      console.log("Scripts: ERROR")
+    },()=>{
+        if(sessionScript) {
+          let ns: Session = {sessionId: UUID.generate(), project: this.projectName, script: sessionScript.scriptId}
+          this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
+                this.sessions.push(s);
+              }, (err) => {
+                // TODO err
+                console.log("Scripts: ERROR")
+              },
+              () => {
+                console.log("Scripts: COMPLETE")
+              })
+        }else{
+          // TODO err
+        }
+      })
 
   }
 

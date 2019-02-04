@@ -49,6 +49,28 @@ export class ScriptService extends GenericSprService<Script>{
     return this.getAndCacheEntity(id, scriptUrl,httpParams)
    }
 
+
+   rnadomProjectScriptObserver(projectName: string):Observable<Script>{
+      let obs=new Observable<Script>((subscriber) => {
+          let scripts:Array<Script>;
+          let allscrsObs=this.projectScriptsObserver(projectName).subscribe((nextScrs)=>{
+              scripts=nextScrs;
+          },(err)=>{
+              subscriber.error(err)
+          },()=>{
+              let lenScrs=scripts.length;
+              if(lenScrs>0) {
+                  // TODO is this corrcet?
+                  let scrsRanIdx = Math.floor(Math.random() * lenScrs);
+                  let ranScr = scripts[scrsRanIdx];
+                  subscriber.next(ranScr);
+              } // else no next call
+              subscriber.complete();
+          })
+      });
+     return obs;
+   }
+
   projectScriptsObserver(projectName: string): Observable<Array<Script>> {
 
     // Example URL: /api/v1/project/_iOS_Test/script?order-direction=DESC&order-by=sessions._size&limit=10

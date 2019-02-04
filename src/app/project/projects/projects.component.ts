@@ -12,7 +12,7 @@ import {Router} from "@angular/router";
 export class ProjectsComponent implements OnInit {
 
   private _projects:Array<Project>;
-  selectedProject:Project|null=null;
+  //selectedProject:Project|null=null;
 
   constructor(private router:Router,private projectService:ProjectService,private scriptService:ScriptService) { }
 
@@ -36,8 +36,8 @@ export class ProjectsComponent implements OnInit {
           },()=>{
             this._projects=prjs
             // auto select project if only one associated
-            if(!this.selectedProject && this._projects.length==1){
-              this.selectedProject=this._projects[0]
+            if(!this.projectService.selectedProject && this._projects.length==1){
+              this.projectService.selectedProject=this._projects[0]
             }
           })
         })
@@ -45,8 +45,8 @@ export class ProjectsComponent implements OnInit {
   }
 
   select(project:Project){
-    this.selectedProject=project;
-    this.router.navigate(['/wsp','project',this.selectedProject.name,'session'])
+    this.projectService.selectedProject=project;
+    this.router.navigate(['/wsp','project',this.projectService.selectedProject.name,'session'])
   }
 
 }

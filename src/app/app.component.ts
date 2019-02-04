@@ -1,8 +1,9 @@
 import {AfterViewInit, Component, Inject} from '@angular/core';
 import { VERSION } from '../../projects/speechrecorderng/src/lib/spr.module.version'
 import * as ts from "typescript/lib/tsserverlibrary";
-import ProjectService = ts.server.ProjectService;
+
 import {ActivatedRoute, Params, Route} from "@angular/router";
+import {ProjectService} from "../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 
 
 @Component({
@@ -14,18 +15,20 @@ export class AppComponent implements AfterViewInit{
   sprVersion=VERSION;
   title='SpeechRecorder Angular PWA Demo'
   shortTitle='SpeechRecorder'
-  projectName:string;
-  constructor(private route:ActivatedRoute) {
+
+  constructor(private projectService:ProjectService) {
   }
 
   ngAfterViewInit(){
-    // TODO How to get the name of the currently selected project?
-    let pObs=this.route.params.subscribe((params)=>{
 
-    },(err)=>{
+  }
 
-    },()=>{
-
-    })
+  get projectName():string|null{
+    let selPrj=this.projectService.selectedProject
+    if(selPrj){
+      return selPrj.name;
+    }else{
+      return null;
+    }
   }
 }
