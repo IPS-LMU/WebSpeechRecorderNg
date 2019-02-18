@@ -3,6 +3,8 @@ import {Project} from "../../../../projects/speechrecorderng/src/lib/speechrecor
 import {ProjectService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 import {ScriptService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
 import {Router} from "@angular/router";
+import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {UniqueProjectNameValidator} from "./project.name.validator";
 
 @Component({
   selector: 'app-projects',
@@ -13,12 +15,27 @@ export class ProjectsComponent implements OnInit {
 
   private _projects:Array<Project>;
   //selectedProject:Project|null=null;
+  private newProject:Project= {name:''};
 
-  constructor(private router:Router,private projectService:ProjectService,private scriptService:ScriptService) { }
+  projectForm:FormGroup;
+
+  constructor(private router:Router,private projectService:ProjectService,private scriptService:ScriptService,private projectnameValidator:UniqueProjectNameValidator) { }
 
   ngOnInit() {
-    this.fetchProjects()
+
+    this.projectForm = new FormGroup({
+        'name': new FormControl(this.newProject.name, {
+
+            asyncValidators: [this.projectnameValidator.validate.bind(this.projectnameValidator)],
+            updateOn: "change"
+          }
+        )
+      });
+      this.fetchProjects()
+
   }
+
+  get name() { return this.projectForm.get('name'); }
 
   get projects(): Array<Project> {
     return this._projects;

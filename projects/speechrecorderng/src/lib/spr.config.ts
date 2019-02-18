@@ -4,7 +4,7 @@ export const SPEECHRECORDER_CONFIG = new InjectionToken<SpeechRecorderConfig>('s
 
 
 export enum ApiType {
-  NORMAL,FILES
+  NORMAL,STANDALONE,FILES
 }
 @Injectable()
 export class SpeechRecorderConfig{
