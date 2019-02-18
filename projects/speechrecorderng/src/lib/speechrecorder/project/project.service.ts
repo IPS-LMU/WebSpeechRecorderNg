@@ -75,6 +75,18 @@ export class ProjectService extends GenericSprService<Project>{
     return this.entityExists(id, projectUrl, this.httpParams)
   }
 
+  projectAddObservable(newProject:Project):Observable<Project>{
+
+    let projectUrl = this.projectCtxUrl + '/' + newProject.name;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      projectUrl = projectUrl + '.json?requestUUID='+UUID.generate();
+
+    }
+    return this.addEntityObserver(newProject,newProject.name,projectUrl);
+  }
+
 }
 
 

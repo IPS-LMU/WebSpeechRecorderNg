@@ -5,7 +5,7 @@ import {AppComponent} from './app.component';
 import {StartComponent} from "./start/start";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
-  MatButtonModule,
+  MatButtonModule, MatCardContent, MatCardModule,
   MatDialogModule,
   MatFormFieldModule,
   MatIconModule,
@@ -63,7 +63,7 @@ const appRoutes: Routes = [
   ],
 
   imports: [
-      RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+      RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatCardModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatInputModule,MatDialogModule,
 
     BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],

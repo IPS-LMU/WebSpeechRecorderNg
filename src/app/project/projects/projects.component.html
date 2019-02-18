@@ -1,28 +1,26 @@
+<mat-card-content>
 <ul>
   <p *ngIf="projects && projects.length==0">No associated projects found.</p>
   <li *ngFor="let project of projects">
     {{project.name}}
-    <button (click)="select(project)">Select project</button>
-    <a routerLink="/wsp/project/{{project.name}}/session">Select project</a>
+    <button mat-raised-button (click)="select(project)">Select project</button>
+
   </li>
 </ul>
+</mat-card-content>
+<mat-card-content>
+<form [formGroup]="projectForm" #formDir="ngForm">
 
-<form [formGroup]="projectForm" #formDir="ngForm">>
 
-  <div class="form-group">
-
+    <mat-form-field>
+        <mat-error *ngIf="nameField.invalid">Project name invalid.</mat-error>
     <label for="name">Name</label>
-    <input id="name" class="form-control"
-           formControlName="name" required >
+    <input id="name" formControlName="name" matInput autocomplete="off" required >
 
-    <div *ngIf="name.invalid && (name.dirty || name.touched)"
-         class="alert alert-danger">
 
-      <div *ngIf="name.pending">Validating...</div>
-      <div *ngIf="name.invalid" class="alert alert-danger alter-ego-errors">Project name invalid.</div>
-    </div>
-  </div>
+    </mat-form-field>
 
-  <button (click)="addNewProject()">New project</button>
+    <button mat-raised-button [disabled]="projectForm.invalid" (click)="addNewProject()">New project</button>
 </form>
 
+</mat-card-content>

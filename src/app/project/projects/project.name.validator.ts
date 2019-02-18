@@ -14,8 +14,24 @@ export class UniqueProjectNameValidator implements AsyncValidator {
     // );
     //
 
-    return this.projectService.projectObservable(ctrl.value);
+    let obs=new Observable<ValidationErrors>(subscriber =>{
 
+        this.projectService.projectExists(ctrl.value).subscribe((exists)=>{
+          let vErrs:ValidationErrors={}
+          console.log("Does project name "+ctrl.value+ " exist: "+exists)
+          if(exists){
+            vErrs['name']='Project '+ctrl.value+' already exists!'
+          }
+          subscriber.next(vErrs);
+        },(err)=>{
+          subscriber.error(err)
+        },()=>{
+          console.log("Project name "+ctrl.value+ " check completed.")
+          subscriber.complete();
+        })
+    })
+
+    return obs;
 
   }
 }

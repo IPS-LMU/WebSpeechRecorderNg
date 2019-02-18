@@ -5,6 +5,7 @@ import {ScriptService} from "../../../../projects/speechrecorderng/src/lib/speec
 import {Router} from "@angular/router";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {UniqueProjectNameValidator} from "./project.name.validator";
+import {MatButton, MatCardContent,MatFormField,MatInput} from "@angular/material";
 
 @Component({
   selector: 'app-projects',
@@ -26,8 +27,8 @@ export class ProjectsComponent implements OnInit {
     this.projectForm = new FormGroup({
         'name': new FormControl(this.newProject.name, {
 
-            asyncValidators: [this.projectnameValidator.validate.bind(this.projectnameValidator)],
-            updateOn: "change"
+            asyncValidators: [this.projectnameValidator.validate.bind(this)],
+
           }
         )
       });
@@ -35,7 +36,7 @@ export class ProjectsComponent implements OnInit {
 
   }
 
-  get name() { return this.projectForm.get('name'); }
+  get nameField() { return this.projectForm.get('name'); }
 
   get projects(): Array<Project> {
     return this._projects;
@@ -58,6 +59,17 @@ export class ProjectsComponent implements OnInit {
             }
           })
         })
+      })
+  }
+
+  addNewProject(){
+      this.newProject.name=this.nameField.value;
+      this.projectService.projectAddObservable(this.newProject).subscribe((n)=>{
+
+      },(err)=>{
+          // TODO
+      },()=>{
+          this.fetchProjects()
       })
   }
 
