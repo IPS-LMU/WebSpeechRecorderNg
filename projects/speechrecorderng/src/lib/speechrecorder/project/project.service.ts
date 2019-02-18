@@ -31,17 +31,22 @@ export class ProjectService extends GenericSprService<Project>{
 
   projectsObservable():Observable<Array<Project>>{
 
-    let projectUrl = this.projectCtxUrl + '/';
-    if (this.config && this.config.apiType === ApiType.FILES) {
-      // for development and demo
-      // append UUID to make request URL unique to avoid localhost server caching
-      projectUrl = projectUrl + '_list.json?requestUUID='+UUID.generate();
+    if(this.config.apiType === ApiType.STANDALONE){
 
+
+    }else {
+      let projectUrl = this.projectCtxUrl + '/';
+      if (this.config && this.config.apiType === ApiType.FILES) {
+        // for development and demo
+        // append UUID to make request URL unique to avoid localhost server caching
+        projectUrl = projectUrl + '_list.json?requestUUID=' + UUID.generate();
+
+      }
+      //return this.http.get<Array<Project>>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
+      let httpParams = new HttpParams();
+      httpParams.set('cache', 'false');
+      return this.getAndCacheEntities(projectUrl, httpParams)
     }
-    //return this.http.get<Array<Project>>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
-    let httpParams=new HttpParams();
-    httpParams.set('cache','false');
-    return this.getAndCacheEntities(projectUrl,httpParams)
   }
 
   projectObservable(id:string):Observable<Project>{
@@ -58,6 +63,17 @@ export class ProjectService extends GenericSprService<Project>{
     return this.getAndCacheEntity(id,projectUrl,this.httpParams)
 
    }
+
+  projectExists(id: string): Observable<boolean> {
+    let projectUrl = this.projectCtxUrl + '/' + id;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      projectUrl = projectUrl + '.json?requestUUID=' + UUID.generate();
+
+    }
+    return this.entityExists(id, projectUrl, this.httpParams)
+  }
 
 }
 

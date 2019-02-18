@@ -1,15 +1,15 @@
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule} from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { AppComponent } from './app.component';
-import { StartComponent} from "./start/start";
-import {AudioDisplay} from '../../projects/speechrecorderng/src/lib/audio/audio_display';
+import {BrowserModule} from '@angular/platform-browser';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {AppComponent} from './app.component';
+import {StartComponent} from "./start/start";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import {
   MatButtonModule,
   MatDialogModule,
   MatFormFieldModule,
-  MatIconModule, MatInputModule,
+  MatIconModule,
+  MatInputModule,
   MatMenuModule,
   MatToolbarModule
 } from "@angular/material";
@@ -19,15 +19,14 @@ import {SPR_CFG} from "./app.config";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
-import { ServiceWorkerModule } from '@angular/service-worker';
-import { environment } from '../environments/environment';
-import { ProjectsComponent } from './project/projects/projects.component';
-import {APP_BASE_HREF} from '@angular/common';
+import {ServiceWorkerModule} from '@angular/service-worker';
+import {environment} from '../environments/environment';
+import {ProjectsComponent} from './project/projects/projects.component';
 import {SprDb} from "../../projects/speechrecorderng/src/lib/db/inddb";
-import {SessionService} from "../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
-import {SpeechrecorderngComponent} from "../../projects/speechrecorderng/src/public_api";
+import {ApiType, SpeechrecorderngComponent} from "../../projects/speechrecorderng/src/public_api";
 import {ScriptsComponent} from "./script/scripts";
-import {FormsModule} from "@angular/forms";
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import {UniqueProjectNameValidator} from "./project/projects/project.name.validator";
 
 
 const appRoutes: Routes = [
@@ -64,7 +63,7 @@ const appRoutes: Routes = [
   ],
 
   imports: [
-      RouterModule.forRoot(appRoutes),FormsModule,FlexLayoutModule,BrowserAnimationsModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+      RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
 
     BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
@@ -77,5 +76,20 @@ const appRoutes: Routes = [
 
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  constructor(){
+    let apiTypeStr=environment.apiType;
+    console.log("API Mode: "+apiTypeStr)
+    if(apiTypeStr==='standalone'){
+      SPR_CFG.apiType=ApiType.STANDALONE
+    }else if(apiTypeStr==='files'){
+      SPR_CFG.apiType=ApiType.FILES
+    }else if(apiTypeStr==='normal'){
+      SPR_CFG.apiType=ApiType.NORMAL
+    }
+
+
+
+  }
+}
 

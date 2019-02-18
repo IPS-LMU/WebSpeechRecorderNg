@@ -5,6 +5,6 @@
 
 export const environment = {
   production: false,
-  apiType: 'standalone',
+  apiType: 'files',
   apiEndPoint: 'test'
 };

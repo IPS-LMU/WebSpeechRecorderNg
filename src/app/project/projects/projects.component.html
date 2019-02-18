@@ -6,3 +6,23 @@
     <a routerLink="/wsp/project/{{project.name}}/session">Select project</a>
   </li>
 </ul>
+
+<form [formGroup]="projectForm" #formDir="ngForm">>
+
+  <div class="form-group">
+
+    <label for="name">Name</label>
+    <input id="name" class="form-control"
+           formControlName="name" required >
+
+    <div *ngIf="name.invalid && (name.dirty || name.touched)"
+         class="alert alert-danger">
+
+      <div *ngIf="name.pending">Validating...</div>
+      <div *ngIf="name.invalid" class="alert alert-danger alter-ego-errors">Project name invalid.</div>
+    </div>
+  </div>
+
+  <button (click)="addNewProject()">New project</button>
+</form>
+
