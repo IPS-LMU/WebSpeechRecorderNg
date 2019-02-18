@@ -3,12 +3,14 @@ import {HttpClient, HttpParams} from "@angular/common/http";
 import {Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 
-import {Observable} from "rxjs";
+import {Observable, Subscriber} from "rxjs";
 
 export class GenericSprService<T> {
 
     protected apiEndPoint=''
     protected withCredentials: boolean = false;
+    
+    protected static online:boolean=true;
 
     constructor(private keyname: string, protected sprDb: SprDb, protected http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) protected config?: SpeechRecorderConfig) {
 
@@ -28,6 +30,22 @@ export class GenericSprService<T> {
         return this.http.post<T>(restUrl, entity,{withCredentials: this.withCredentials});
     }
 
+    private markForSync(subscriber:Subscriber<T>,db:IDBDatabase,entity:T,entityId:string|number){
+        // Offline or other HTTP error
+        // mark for delayed synchronisation
+        let syncTr = db.transaction('_sync',"readwrite")
+        let syncSto = syncTr.objectStore('_sync');
+        let sync=new Sync(this.keyname,entityId)
+        syncSto.add(sync)
+        syncTr.oncomplete=()=>{
+            // OK: stored to db and marked for sync
+            subscriber.next(entity)
+            subscriber.complete()
+        }
+        syncTr.onerror=()=>{
+            subscriber.error()
+        }
+    }
     addEntityObserver(entity:T,entityId:string|number,restUrl:string): Observable<T> {
 
         let obs=new Observable<T>(subscriber => {
@@ -38,30 +56,20 @@ export class GenericSprService<T> {
                 let sSto = sessTr.objectStore(this.keyname);
                 sSto.add(entity)
                 sessTr.oncomplete = () => {
-
-                    this.postEntityObserver(entity,restUrl).subscribe((value)=>{
-                        // stored to db and to server
-                        subscriber.next(value)
-                    },(err)=>{
-                        // Offline or other HTTP error
-                        // mark for delayed synchronisation
-                        let syncTr = value.transaction('_sync',"readwrite")
-                        let syncSto = syncTr.objectStore('_sync');
-                        let sync=new Sync(this.keyname,entityId)
-                        syncSto.add(sync)
-                        syncTr.oncomplete=()=>{
-                            // OK: stored to db and marked for sync
-                            subscriber.next(entity)
+                    if(GenericSprService.online) {
+                        this.postEntityObserver(entity, restUrl).subscribe((value) => {
+                            // stored to db and to server
+                            subscriber.next(value)
+                        }, (err) => {
+                            this.markForSync(subscriber, value, entity, entityId);
+                        }, () => {
+                            // OK stored to db and to server complete
                             subscriber.complete()
-                        }
-                        syncTr.onerror=()=>{
-                            subscriber.error(err)
-                        }
-                    },() => {
-                        // OK stored to db and to server complete
-                        subscriber.complete()
-                    })
-
+                        })
+                    }else{
+                        // do not try, but mark for sync
+                        this.markForSync(subscriber, value, entity, entityId);
+                    }
                 }
             },(err)=>{
                 subscriber.error(err)
