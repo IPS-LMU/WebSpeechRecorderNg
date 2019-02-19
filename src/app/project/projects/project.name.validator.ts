@@ -8,17 +8,17 @@ export class UniqueProjectNameValidator implements AsyncValidator {
   constructor(private projectService: ProjectService) {}
 
   validate(ctrl: AbstractControl): Promise<ValidationErrors | null> | Observable<ValidationErrors | null> {
-    // return this.projectService.isAlterEgoTaken(ctrl.value).pipe(
-    //   map(isTaken => (isTaken ? { uniqueAlterEgo: true } : null)),
-    //   catchError(() => null)
-    // );
-    //
+
+    // see https://stackoverflow.com/questions/48864049/mat-error-doesnt-show-up-on-error
+    // without this method call it does not work properly
+    ctrl.markAsTouched();
 
     let obs=new Observable<ValidationErrors>(subscriber =>{
 
         this.projectService.projectExists(ctrl.value).subscribe((exists)=>{
+          //ctrl.markAsPending()
           let vErrs:ValidationErrors={}
-          console.log("Does project name "+ctrl.value+ " exist: "+exists)
+          //console.log("Does project name "+ctrl.value+ " exist: "+exists)
           if(exists){
             vErrs['name']='Project '+ctrl.value+' already exists!'
           }
@@ -26,7 +26,7 @@ export class UniqueProjectNameValidator implements AsyncValidator {
         },(err)=>{
           subscriber.error(err)
         },()=>{
-          console.log("Project name "+ctrl.value+ " check completed.")
+          //console.log("Project name "+ctrl.value+ " check completed.")
           subscriber.complete();
         })
     })
