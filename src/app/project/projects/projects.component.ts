@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {AfterContentChecked, AfterViewInit, Component, OnInit} from '@angular/core';
 import {Project} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project";
 import {ProjectService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 import {ScriptService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
@@ -12,7 +12,7 @@ import {MatButton, MatCardContent,MatFormField,MatInput} from "@angular/material
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.css']
 })
-export class ProjectsComponent implements OnInit {
+export class ProjectsComponent implements OnInit,AfterViewInit {
 
   private _projects:Array<Project>;
   //selectedProject:Project|null=null;
@@ -20,21 +20,23 @@ export class ProjectsComponent implements OnInit {
 
   projectForm:FormGroup;
 
-  constructor(private router:Router,private projectService:ProjectService,private scriptService:ScriptService,private projectnameValidator:UniqueProjectNameValidator) { }
+  constructor(private router:Router,private projectService:ProjectService,private scriptService:ScriptService,private projectnameValidator:UniqueProjectNameValidator) {}
 
   ngOnInit() {
 
     this.projectForm = new FormGroup({
-        'name': new FormControl(this.newProject.name, {
-
-            asyncValidators: [this.projectnameValidator.validate.bind(this)],
-
-          }
-        )
-      });
-      this.fetchProjects()
-
+      'name': new FormControl(this.newProject.name,{
+        validators:Validators.required,
+        asyncValidators:this.projectnameValidator.validate.bind(this)
+    })
+    });
   }
+
+  ngAfterViewInit(): void {
+
+    this.fetchProjects()
+  }
+
 
   get nameField() { return this.projectForm.get('name'); }
 

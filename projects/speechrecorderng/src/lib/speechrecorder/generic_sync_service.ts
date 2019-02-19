@@ -11,8 +11,17 @@ export class GenericSprService<T> {
     protected withCredentials: boolean = false;
     
     protected static online:boolean=true;
+    protected static standalone:boolean=false;
 
     constructor(public keyname: string, protected sprDb: SprDb, protected http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) protected config?: SpeechRecorderConfig) {
+
+        if(config && config.apiType && config.apiType===ApiType.STANDALONE){
+
+          GenericSprService.standalone=true;
+          GenericSprService.online=false;
+        }
+
+        console.log("Standalone: "+GenericSprService.standalone)
 
         if (config && config.apiEndPoint) {
             this.apiEndPoint = config.apiEndPoint;
@@ -66,7 +75,7 @@ export class GenericSprService<T> {
                             // OK stored to db and to server complete
                             subscriber.complete()
                         })
-                    }else{
+                    }else if(!GenericSprService.standalone){
                         // do not try, but mark for sync
                         this.markForSync(subscriber, entTr, entity, entityId);
                     }
@@ -222,7 +231,7 @@ export class GenericSprService<T> {
 
     getAndCacheEntities(restUrl:string,httpParams:HttpParams,indexName?:string,constr?:Array<string>):Observable<Array<T>>{
       let obs:Observable<Array<T>>;
-      if(this.config && this.config.apiType === ApiType.STANDALONE){
+      if(GenericSprService.standalone){
         obs=this.cachedEntities(indexName,constr);
       }else {
 

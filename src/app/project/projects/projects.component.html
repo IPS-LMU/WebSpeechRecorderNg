@@ -9,13 +9,13 @@
 </ul>
 </mat-card-content>
 <mat-card-content>
-<form [formGroup]="projectForm" #formDir="ngForm">
+<form [formGroup]="projectForm">
 
 
     <mat-form-field>
         <mat-error *ngIf="nameField.invalid">Project name invalid.</mat-error>
     <label for="name">Name</label>
-    <input id="name" formControlName="name" matInput autocomplete="off" required >
+    <input id="name" formControlName="name" matInput autocomplete="off">
 
 
     </mat-form-field>

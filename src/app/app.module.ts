@@ -88,8 +88,6 @@ export class AppModule {
       SPR_CFG.apiType=ApiType.NORMAL
     }
 
-
-
   }
 }
 

@@ -29,24 +29,20 @@ export class ProjectService extends GenericSprService<Project>{
     this.httpParams.set('cache','false');
   }
 
-  projectsObservable():Observable<Array<Project>>{
+  projectsObservable(): Observable<Array<Project>> {
 
-    if(this.config.apiType === ApiType.STANDALONE){
+    let projectUrl = this.projectCtxUrl + '/';
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      projectUrl = projectUrl + '_list.json?requestUUID=' + UUID.generate();
 
-
-    }else {
-      let projectUrl = this.projectCtxUrl + '/';
-      if (this.config && this.config.apiType === ApiType.FILES) {
-        // for development and demo
-        // append UUID to make request URL unique to avoid localhost server caching
-        projectUrl = projectUrl + '_list.json?requestUUID=' + UUID.generate();
-
-      }
-      //return this.http.get<Array<Project>>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
-      let httpParams = new HttpParams();
-      httpParams.set('cache', 'false');
-      return this.getAndCacheEntities(projectUrl, httpParams)
     }
+    //return this.http.get<Array<Project>>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
+    let httpParams = new HttpParams();
+    httpParams.set('cache', 'false');
+    return this.getAndCacheEntities(projectUrl, httpParams)
+
   }
 
   projectObservable(id:string):Observable<Project>{
