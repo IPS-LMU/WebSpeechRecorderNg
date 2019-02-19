@@ -1,12 +1,12 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit,
-    OnInit,
-    ElementRef,
-    Renderer2,
-    OnDestroy, Inject
+  Component,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit,
+  OnInit,
+  ElementRef,
+  Renderer2,
+  OnDestroy, Inject, AfterViewChecked
 } from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
@@ -41,7 +41,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
     styleUrls: ['speechrecorder.component.css']
 
 })
-export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy,AudioPlayerListener {
+export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerListener {
 
 	  mode:Mode;
 		controlAudioPlayer:AudioPlayer;
@@ -111,6 +111,27 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
 
         this.initAudio();
 
+      if(this.sm.status!== SessionManagerStatus.ERROR) {
+
+        let initSuccess = this.init();
+        if (initSuccess) {
+
+
+          this.route.queryParams.subscribe((params: Params) => {
+            if (params['sessionId']) {
+              this.initSession(params['sessionId']);
+            }
+          });
+
+          this.route.params.subscribe((params: Params) => {
+            let routeParamsId = params['sessionId'];
+            if (routeParamsId) {
+              this.initSession(routeParamsId);
+            }
+          })
+        }
+      }
+
     }
 
     ngOnDestroy(){
@@ -139,30 +160,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
         console.log(err.message)
       }
     }
-       ngAfterViewInit(){
 
-
-		  if(this.sm.status!== SessionManagerStatus.ERROR) {
-
-        let initSuccess = this.init();
-        if (initSuccess) {
-
-
-          this.route.queryParams.subscribe((params: Params) => {
-            if (params['sessionId']) {
-              this.initSession(params['sessionId']);
-            }
-          });
-
-          this.route.params.subscribe((params: Params) => {
-            let routeParamsId = params['sessionId'];
-            if (routeParamsId) {
-              this.initSession(routeParamsId);
-            }
-          })
-        }
-      }
-    }
 
     private initSession(sessionId:string){
         this.sm.statusAlertType='info';
@@ -171,12 +169,22 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy
             // no indexed db avail, proceed anyway
             this.sm.statusAlertType='info';
             this.sm.statusMsg = 'No database available.';
+
             this.fetchSession(sessionId);
         },()=>{
             this.sm.statusAlertType='info';
             this.sm.statusMsg = 'Database opened.';
+
             this.fetchSession(sessionId);
         })
+
+      // Fixes
+      // ERROR Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Preparing database...'.
+      //  at viewDebugError (core.js:19006)
+
+      // But why does the error occur? initSession is called asynchronously
+      // Fixed: call initSession from ngOnInit()
+      //this.changeDetectorRef.detectChanges()
     }
 
     fetchSession(sessionId:string){
