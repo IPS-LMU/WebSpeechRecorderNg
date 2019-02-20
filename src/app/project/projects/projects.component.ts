@@ -52,15 +52,16 @@ export class ProjectsComponent implements OnInit,AfterViewInit {
           this.scriptService.projectScriptsObserver(prj.name).subscribe((v)=>{
 
           },(err)=>{
-            this._projects=prjs
+            //this._projects=prjs
           },()=>{
-            this._projects=prjs
+            //this._projects=prjs
             // auto select project if only one associated
             if(!this.projectService.selectedProject && this._projects.length==1){
               this.projectService.selectedProject=this._projects[0]
             }
           })
         })
+        this._projects=prjs
       })
   }
 

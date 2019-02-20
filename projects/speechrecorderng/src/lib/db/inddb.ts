@@ -28,7 +28,7 @@ export class Sync{
 export class SprDb {
 
     public static dbName='speechrecorder'
-    public static dbVersion=3;
+    public static dbVersion=4;
 
     private _store:IDBDatabase|null=null
     constructor(){
@@ -63,8 +63,14 @@ export class SprDb {
                             db.createObjectStore('project', {keyPath: 'name'});
                         }
                         if (!db.objectStoreNames.contains('session')) {
-                            db.createObjectStore('session', {keyPath: 'sessionId'});
+                            let sessStore=db.createObjectStore('session', {keyPath: 'sessionId'});
+                            sessStore.createIndex('projectIdx', ['project'], {unique:false});
+                        }else if(ev.oldVersion<4){
+                            let sessTr=db.transaction('session','readwrite')
+                            let sessStore=sessTr.objectStore('session')
+                           sessStore.createIndex('projectIdx', ['project'], {unique:false});
                         }
+
                         if (!db.objectStoreNames.contains('script')) {
                             let scrStore=db.createObjectStore('script', {keyPath: 'scriptId'});
                             scrStore.createIndex('projectIdx', ['project'], {unique:false});

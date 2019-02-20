@@ -6,17 +6,17 @@ import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 import {ProjectService} from "../project/project.service";
 import {SprDb, Sync} from "../../db/inddb";
+import {GenericSprService} from "../generic_sync_service";
 
 
 
 @Injectable()
-export class SessionService {
+export class SessionService extends GenericSprService<Session>{
   public static readonly SESSION_API_CTX='session';
   private sessionsUrl:string;
-  private withCredentials:boolean=false;
 
-  constructor(private sprDb:SprDb,private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
-
+  constructor(protected sprDb:SprDb,protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+    super(SessionService.SESSION_API_CTX,sprDb,http,config)
     let apiEndPoint = ''
 
     if(config && config.apiEndPoint) {
@@ -86,38 +86,41 @@ export class SessionService {
       sesssUrl = sesssUrl + '_list.json?requestUUID='+UUID.generate();
     }
 
-    let obs=new Observable<Array<Session>>(subscriber => {
-      let obsHttp = this.http.get<Array<Session>>(sesssUrl, {withCredentials: this.withCredentials});
-      obsHttp.subscribe(value => {
-        // OK fresh data from server
-        subscriber.next(value)
+    return this.getAndCacheEntities(sesssUrl, new HttpParams(),'projectIdx',[projectName]);
 
-      }, err => {
-        console.info("Fetching sessions from server failed")
-        let obs = this.sprDb.prepare();
-        obs.subscribe(value => {
-              let sessTr = value.transaction('session')
-              let sSto = sessTr.objectStore('session');
-              let allS = sSto.getAll();
-              allS.onsuccess=(ev)=>{
-                console.info("Found " + allS.result.length + " sessions")
-                subscriber.next(<Array<Session>>allS.result);
-                subscriber.complete()
-            }
 
-            }, (err) => {
-              console.info("Db store not available")
-              subscriber.error(err)
-
-            }, () => {
-              //subscriber.complete()
-            }
-        )
-      }, () => {
-        subscriber.complete()
-      });
-    })
-  return obs
+  //   let obs=new Observable<Array<Session>>(subscriber => {
+  //     let obsHttp = this.http.get<Array<Session>>(sesssUrl, {withCredentials: this.withCredentials});
+  //     obsHttp.subscribe(value => {
+  //       // OK fresh data from server
+  //       subscriber.next(value)
+  //
+  //     }, err => {
+  //       console.info("Fetching sessions from server failed")
+  //       let obs = this.sprDb.prepare();
+  //       obs.subscribe(value => {
+  //             let sessTr = value.transaction('session')
+  //             let sSto = sessTr.objectStore('session');
+  //             let allS = sSto.getAll();
+  //             allS.onsuccess=(ev)=>{
+  //               console.info("Found " + allS.result.length + " sessions")
+  //               subscriber.next(<Array<Session>>allS.result);
+  //               subscriber.complete()
+  //           }
+  //
+  //           }, (err) => {
+  //             console.info("Db store not available")
+  //             subscriber.error(err)
+  //
+  //           }, () => {
+  //             //subscriber.complete()
+  //           }
+  //       )
+  //     }, () => {
+  //       subscriber.complete()
+  //     });
+  //   })
+  // return obs
 
 
   }
