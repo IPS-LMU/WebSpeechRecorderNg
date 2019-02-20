@@ -15,7 +15,7 @@ import {
 } from "@angular/material";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
 import {AudioModule} from "../../projects/speechrecorderng/src/lib/audio/audio.module";
-import {SPR_CFG} from "./app.config";
+import {SPR_CFG} from "../environments/environment";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
@@ -78,15 +78,6 @@ const appRoutes: Routes = [
 })
 export class AppModule {
   constructor(){
-    let apiTypeStr=environment.apiType;
-    console.log("API Mode: "+apiTypeStr)
-    if(apiTypeStr==='standalone'){
-      SPR_CFG.apiType=ApiType.STANDALONE
-    }else if(apiTypeStr==='files'){
-      SPR_CFG.apiType=ApiType.FILES
-    }else if(apiTypeStr==='normal'){
-      SPR_CFG.apiType=ApiType.NORMAL
-    }
 
   }
 }
