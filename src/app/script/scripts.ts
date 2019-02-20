@@ -130,6 +130,7 @@ export class ScriptsComponent implements  AfterViewInit {
 
           s.sections.push(section)
         }
+        s.project=this.projectName
         let addedScr:Script;
         this.scriptService.addEntityObserver(s,s.scriptId,'bla').subscribe((ns)=>{
             addedScr=ns;
