@@ -28,7 +28,7 @@ export class Sync{
 export class SprDb {
 
     public static dbName='speechrecorder'
-    public static dbVersion=4;
+    public static dbVersion=5;
 
     private _store:IDBDatabase|null=null
     constructor(){
@@ -55,6 +55,7 @@ export class SprDb {
                     or = indexedDB.open(SprDb.dbName, SprDb.dbVersion);
                     or.onupgradeneeded = (ev) => {
                         let db = or.result
+                        let tr=or.transaction
 
                         if (!db.objectStoreNames.contains('_sync')) {
                             db.createObjectStore('_sync', {keyPath: 'id', autoIncrement:true});
@@ -65,9 +66,9 @@ export class SprDb {
                         if (!db.objectStoreNames.contains('session')) {
                             let sessStore=db.createObjectStore('session', {keyPath: 'sessionId'});
                             sessStore.createIndex('projectIdx', ['project'], {unique:false});
-                        }else if(ev.oldVersion<4){
-                            let sessTr=db.transaction('session','readwrite')
-                            let sessStore=sessTr.objectStore('session')
+                        }else if(ev.oldVersion<5){
+
+                            let sessStore=tr.objectStore('session')
                            sessStore.createIndex('projectIdx', ['project'], {unique:false});
                         }
 
