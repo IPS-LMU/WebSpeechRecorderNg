@@ -115,7 +115,12 @@ export class ScriptsComponent implements  OnInit {
           let xmlSrc = <string>fileReader.result;
           let doc = xmlParser.parseFromString(xmlSrc, <SupportedType>importFile.type);
           let s: Script = {scriptId: UUID.generate(), sections: new Array<Section>()};
+
           let scrEl = doc.documentElement;
+          let idAttr=scrEl.getAttribute('id')
+          if(idAttr){
+            s.id=idAttr
+          }
           let sctEls = scrEl.getElementsByTagName('section')
           for (let si = 0; si < sctEls.length; si++) {
             let sct = sctEls[si];
