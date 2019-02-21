@@ -65,6 +65,8 @@ export class GenericSprService<T> {
                 let entSto = entTr.objectStore(keyNm);
                 entSto.add(entity)
                 entTr.oncomplete = () => {
+
+                    // TODO if conditions are confusing here
                     if(GenericSprService.online) {
                         this.postEntityObserver(entity, restUrl).subscribe((value) => {
                             // stored to db and to server
@@ -78,6 +80,10 @@ export class GenericSprService<T> {
                     }else if(!GenericSprService.standalone){
                         // do not try, but mark for sync
                         this.markForSync(subscriber, entTr, entity, entityId);
+                    }else{
+                        // Standalone
+                        subscriber.next(entity)
+                        subscriber.complete()
                     }
                 }
             },(err)=>{
