@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Inject} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Params} from "@angular/router";
 import {SessionService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
 import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
@@ -14,16 +14,14 @@ import {Script} from "../../../projects/speechrecorderng/src/lib/speechrecorder/
   templateUrl: 'sessions.html',
   styles:[]
 })
-export class SessionsComponent implements  AfterViewInit {
+export class SessionsComponent implements  OnInit {
 
   projectName:string;
   sessions:Array<Session>
   constructor(private route: ActivatedRoute, private chDetRef:ChangeDetectorRef,private scriptService:ScriptService,private sessionService: SessionService) {
   }
 
-
-
-  ngAfterViewInit() {
+  ngOnInit() {
     this.route.params.subscribe((params: Params) => {
       this.projectName = params['projectName'];
       if (this.projectName) {
