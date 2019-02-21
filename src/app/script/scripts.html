@@ -1,12 +1,12 @@
 
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Scripts of project {{projectName}}</mat-card-title>
+    <mat-card-title>Scripts of project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
   </mat-card-header>
   <mat-card-content>
     <table mat-table>
   <tr *ngFor="let script of scripts">
-    <td>{{script.scriptId}}</td>
+    <td class="monospaced">{{script.scriptId}}</td>
   </tr>
     </table>
   </mat-card-content>
@@ -14,7 +14,7 @@
 
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Import script for project {{projectName}}</mat-card-title>
+    <mat-card-title>Import script for project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
   </mat-card-header>
 
   <mat-card-content>

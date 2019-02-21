@@ -6,7 +6,7 @@
         <p *ngIf="projects && projects.length==0">No associated projects found.</p>
         <table mat-table>
             <tr *ngFor="let project of projects">
-                <td>{{project.name}}</td>
+                <td class="monospaced">{{project.name}}</td>
                 <td>
                     <button mat-raised-button (click)="select(project)">Select project</button>
                 </td>

@@ -1,16 +1,22 @@
 <mat-card>
-  <h3>Sessions of project {{projectName}}</h3>
+  <mat-card-header>
+   <mat-card-title>Sessions of project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
+  </mat-card-header>
   <mat-card-content>
 <table mat-table>
   <tr *ngFor="let session of sessions">
-    <td>{{session.sessionId}}</td>
+    <td class="monospaced">{{session.sessionId}}</td>
     <td><a routerLink="/wsp/project/{{projectName}}/session/{{session.sessionId}}" routerLinkActive="active">Open recorder</a></td>
   </tr>
 </table>
   </mat-card-content>
 </mat-card>
+
 <mat-card>
-  <h3>Create new session for project {{projectName}}</h3>
+  <mat-card-header>
+  <mat-card-title>Create new session for project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
+  </mat-card-header>
   <mat-card-content>
 <button mat-raised-button  (click)="addNewSession()">New session</button>
   </mat-card-content>
+</mat-card>
