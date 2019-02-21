@@ -1,17 +1,3 @@
-
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Scripts of project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
-  </mat-card-header>
-  <mat-card-content>
-    <table mat-table>
-  <tr mat-row *ngFor="let script of scripts">
-    <td class="monospaced">{{script.scriptId}}</td><td>{{script.id}}</td>
-  </tr>
-    </table>
-  </mat-card-content>
-</mat-card>
-
 <mat-card>
   <mat-card-header>
     <mat-card-title>Import script for project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
@@ -20,15 +6,37 @@
   <mat-card-content>
     <form (ngSubmit)="importScript()" ngForm>
 
-       <input #scriptFileInput [hidden]="true" type="file" accept="application/xml, text/xml" (change)="importFileChanged($event)">
-        <button mat-raised-button #uploadButton (click)="uploadScriptFiles();scriptFileInput.click()">Upload script XML file</button>
+      <input #scriptFileInput [hidden]="true" type="file" accept="application/xml, text/xml" (change)="importFileChanged($event)">
+      <button mat-raised-button #uploadButton (click)="uploadScriptFiles();scriptFileInput.click()">Upload script XML file</button>
 
 
       <mat-spinner *ngIf="uploading" diameter="20"></mat-spinner>
-    <ul *ngIf="importFileList!=null">
-      <li *ngFor="let fileEntry of importFileList">{{fileEntry.name}}</li>
-    </ul>
-      <button mat-raised-button [type]="submit" [disabled]="!isImportable()">Import</button>
+      <ul *ngIf="importFileList!=null">
+        <li *ngFor="let fileEntry of importFileList">{{fileEntry.name}}</li>
+      </ul>
+      <button mat-raised-button type="submit" [disabled]="!isImportable()">Import</button>
     </form>
   </mat-card-content>
 </mat-card>
+
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Scripts of project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <table mat-table [dataSource]="scripts">
+
+      <ng-container matColumnDef="scriptId">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell class="monospaced" *matCellDef="let element">{{element.scriptId}}</td>
+      </ng-container>
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell class="monospaced" *matCellDef="let element">{{element.id}}</td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </mat-card-content>
+</mat-card>
+

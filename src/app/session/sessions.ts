@@ -12,27 +12,32 @@ import {Script} from "../../../projects/speechrecorderng/src/lib/speechrecorder/
 @Component({
   selector: 'app-sessions',
   templateUrl: 'sessions.html',
-  styles:[]
+  styleUrls: ['../../speechrecorder_mat.scss']
 })
 export class SessionsComponent implements  OnInit {
 
   projectName:string;
   sessions:Array<Session>
+    displayedColumns: string[] = ['sessionId','action'];
   constructor(private route: ActivatedRoute, private chDetRef:ChangeDetectorRef,private scriptService:ScriptService,private sessionService: SessionService) {
   }
 
   ngOnInit() {
     this.route.params.subscribe((params: Params) => {
       this.projectName = params['projectName'];
-      if (this.projectName) {
-        this.sessionService.projectSessionsObserver(this.projectName).subscribe(sesss=>{
-          console.info("List " + sesss.length + " sessions")
-          this.sessions=sesss;
-          console.log(this.sessions)
-          this.chDetRef.detectChanges()
-        })
-      }
+      this.fetchSessions()
     })
+  }
+
+  fetchSessions(){
+    if (this.projectName) {
+      this.sessionService.projectSessionsObserver(this.projectName).subscribe(sesss=>{
+        console.info("List " + sesss.length + " sessions")
+        this.sessions=sesss;
+        console.log(this.sessions)
+        //this.chDetRef.detectChanges()
+      })
+    }
   }
 
   addNewSession(){
@@ -46,6 +51,8 @@ export class SessionsComponent implements  OnInit {
         if(sessionScript) {
           let ns: Session = {sessionId: UUID.generate(), project: this.projectName, script: sessionScript.scriptId}
           this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
+                console.log("Scripts: NEXT (push) "+s.sessionId)
+                //mat-table does not update here !!
                 this.sessions.push(s);
               }, (err) => {
                 // TODO err
@@ -53,6 +60,8 @@ export class SessionsComponent implements  OnInit {
               },
               () => {
                 console.log("Scripts: COMPLETE")
+                // refresh table
+                this.fetchSessions()
               })
         }else{
           // TODO err

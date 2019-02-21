@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.51.25",
+  "version": "0.52.0",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -17,6 +17,8 @@
     "build": "ng build",
     "build_prod": "ng build --prod",
     "build_all_prod": "npm run build_module && npm run build_prod",
+    "build_standalone_prod": "ng build --prod --configuration=standalone_production",
+    "build_standalone_all_prod": "npm run build_module && npm run build_standalone_prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -76,6 +78,7 @@
     "tslib": "^1.9.3",
     "tslint": "~5.12.1",
     "uglify-js": "^3.4.9",
-    "webpack-dev-server": "^3.2.0"
+    "webpack-dev-server": "^3.2.0",
+    "loaders.css": "^0.1.2"
   }
 }

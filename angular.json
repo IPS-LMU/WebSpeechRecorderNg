@@ -23,7 +23,8 @@
               "src/manifest.json"
             ],
             "styles": [
-              "src/main.scss"
+              "src/main.scss",
+              "src/styles.css"
             ],
             "scripts": []
           },
@@ -45,7 +46,25 @@
                 }
               ],
               "serviceWorker": true
+            },"standalone_production": {
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.standalone.prod.ts"
+                }
+              ],
+              "serviceWorker": true
             }
+
           }
         },
         "serve": {
@@ -55,6 +74,8 @@
           },
           "configurations": {
             "production": {
+              "browserTarget": "web-speech-recorder-ng:build:production"
+            },"standalone_production": {
               "browserTarget": "web-speech-recorder-ng:build:production"
             }
           }
@@ -74,7 +95,9 @@
             "tsConfig": "src/tsconfig.spec.json",
             "scripts": [],
             "styles": [
-              "src/main.scss"
+              "src/main.scss",
+              "src/styles.css"
+
             ],
             "assets": [
               "src/assets",

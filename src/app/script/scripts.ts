@@ -18,7 +18,7 @@ interface HTMLInputEvent extends Event {
 @Component({
   selector: 'app-scripts',
   templateUrl: 'scripts.html',
-  styles:[]
+  styleUrls: ['../../speechrecorder_mat.scss']
 })
 export class ScriptsComponent implements  OnInit {
 
@@ -27,6 +27,8 @@ export class ScriptsComponent implements  OnInit {
   importFileList:FileList=null;
   @ViewChild('scriptFileInput') scriptFileInput:HTMLInputElement;
   uploading=false;
+
+  displayedColumns: string[] = ['scriptId','id'];
   constructor(private route: ActivatedRoute, private chDetRef:ChangeDetectorRef,private scriptService:ScriptService) {
   }
 

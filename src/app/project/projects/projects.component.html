@@ -1,39 +1,57 @@
 <mat-card>
     <mat-card-header>
-        <mat-card-title>Your projects</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-        <p *ngIf="projects && projects.length==0">No associated projects found.</p>
-        <table mat-table>
-            <tr *ngFor="let project of projects">
-                <td class="monospaced">{{project.name}}</td>
-                <td>
-                    <button mat-raised-button (click)="select(project)">Select project</button>
-                </td>
-
-            </tr>
-        </table>
-    </mat-card-content>
-</mat-card>
-<mat-card>
-    <mat-card-header>
         <mat-card-title>Add new project</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-
-        <form [formGroup]="projectForm">
+        <form  class="flexForm" [formGroup]="projectForm">
 
 
             <mat-form-field>
                 <mat-error *ngIf="nameField.invalid">Project name invalid.</mat-error>
                 <label for="name">Name</label>
-                <input id="name" formControlName="name" matInput autocomplete="off">
+                <input id="name" formControlName="name" matInput autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 
+
+            </mat-form-field>
+            <mat-form-field>
+
+
+                <select matNativeControl required name="channels" placeholder="Number of channels">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
 
             </mat-form-field>
 
             <button mat-raised-button [disabled]="projectForm.invalid" (click)="addNewProject()">New project</button>
         </form>
-
     </mat-card-content>
 </mat-card>
+
+
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>Your projects</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <p *ngIf="projects && projects.length==0">No associated projects found.</p>
+        <table mat-table [dataSource]="projects">
+
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell padded *matCellDef="let element">{{element.name}}</td>
+            </ng-container>
+            <ng-container matColumnDef="channels">
+                <th mat-header-cell *matHeaderCellDef>Channels</th>
+                <td mat-cell padded *matCellDef="let element">{{channels(element)}}</td>
+            </ng-container>
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Action</th>
+                <td mat-cell *matCellDef="let element"><button mat-raised-button (click)="select(element)">Select</button></td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+    </mat-card-content>
+</mat-card>
+

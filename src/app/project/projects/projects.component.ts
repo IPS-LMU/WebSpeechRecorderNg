@@ -2,20 +2,20 @@ import {AfterContentChecked, AfterViewInit, Component, OnInit} from '@angular/co
 import {Project} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project";
 import {ProjectService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 import {ScriptService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
-import {Router,Route} from "@angular/router";
+import {Router} from "@angular/router";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {UniqueProjectNameValidator} from "./project.name.validator";
-import {MatButton, MatCardContent,MatFormField,MatInput} from "@angular/material";
+
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html',
-  styleUrls: ['./projects.component.css']
+  styleUrls: ['../../../speechrecorder_mat.scss']
 })
 export class ProjectsComponent implements OnInit,AfterViewInit {
 
   private _projects:Array<Project>;
-  //selectedProject:Project|null=null;
+  displayedColumns: string[] = ['name','channels','action'];
   private newProject:Project= {name:''};
 
   projectForm:FormGroup;
@@ -28,7 +28,9 @@ export class ProjectsComponent implements OnInit,AfterViewInit {
       'name': new FormControl(this.newProject.name,{
         validators:Validators.required,
         asyncValidators:this.projectnameValidator.validate.bind(this)
-    })
+    }),
+      'channels': new FormControl(this.newProjectChannels)
+
     });
   }
 
@@ -42,6 +44,24 @@ export class ProjectsComponent implements OnInit,AfterViewInit {
 
   get projects(): Array<Project> {
     return this._projects;
+  }
+
+  newProjectChannels(){
+    // default
+    let chs=2;
+    if (this.newProject && this.newProject.audioFormat){
+      chs=this.newProject.audioFormat.channels
+    }
+    return chs;
+  }
+
+  channels(project:Project){
+    // default
+    let chs=2;
+    if (project && project.audioFormat){
+      chs=project.audioFormat.channels
+    }
+    return chs;
   }
 
   fetchProjects():void{
@@ -72,6 +92,7 @@ export class ProjectsComponent implements OnInit,AfterViewInit {
       },(err)=>{
           // TODO
       },()=>{
+          this.projectForm.reset()
           this.fetchProjects()
       })
   }
