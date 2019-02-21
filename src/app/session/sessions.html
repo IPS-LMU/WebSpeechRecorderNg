@@ -1,16 +1,16 @@
-<form>
-<mat-form-field>
-  <mat-label>Session ID</mat-label>
-  <input matInput placeholder="Session ID">
-</mat-form-field>
-</form>
-
-<h3>Sessions</h3>
-<ul>
-  <li *ngFor="let session of sessions">
-    {{session.sessionId}} <a routerLink="/wsp/project/{{projectName}}/session/{{session.sessionId}}" routerLinkActive="active">Open recorder</a>
-  </li>
-</ul>
-<p>
-<button (click)="addNewSession()">New session</button>
-</p>
+<mat-card>
+  <h3>Sessions of project {{projectName}}</h3>
+  <mat-card-content>
+<table mat-table>
+  <tr *ngFor="let session of sessions">
+    <td>{{session.sessionId}}</td>
+    <td><a routerLink="/wsp/project/{{projectName}}/session/{{session.sessionId}}" routerLinkActive="active">Open recorder</a></td>
+  </tr>
+</table>
+  </mat-card-content>
+</mat-card>
+<mat-card>
+  <h3>Create new session for project {{projectName}}</h3>
+  <mat-card-content>
+<button mat-raised-button  (click)="addNewSession()">New session</button>
+  </mat-card-content>

@@ -2,7 +2,7 @@ import {AfterContentChecked, AfterViewInit, Component, OnInit} from '@angular/co
 import {Project} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project";
 import {ProjectService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 import {ScriptService} from "../../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
-import {Router} from "@angular/router";
+import {Router,Route} from "@angular/router";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {UniqueProjectNameValidator} from "./project.name.validator";
 import {MatButton, MatCardContent,MatFormField,MatInput} from "@angular/material";

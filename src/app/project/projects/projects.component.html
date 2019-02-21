@@ -1,26 +1,39 @@
-<mat-card-content>
-<ul>
-  <p *ngIf="projects && projects.length==0">No associated projects found.</p>
-  <li *ngFor="let project of projects">
-    {{project.name}}
-    <button mat-raised-button (click)="select(project)">Select project</button>
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>Your projects</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <p *ngIf="projects && projects.length==0">No associated projects found.</p>
+        <table mat-table>
+            <tr *ngFor="let project of projects">
+                <td>{{project.name}}</td>
+                <td>
+                    <button mat-raised-button (click)="select(project)">Select project</button>
+                </td>
 
-  </li>
-</ul>
-</mat-card-content>
-<mat-card-content>
-<form [formGroup]="projectForm">
+            </tr>
+        </table>
+    </mat-card-content>
+</mat-card>
+<mat-card>
+    <mat-card-header>
+        <mat-card-title>Add new project</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+
+        <form [formGroup]="projectForm">
 
 
-    <mat-form-field>
-        <mat-error *ngIf="nameField.invalid">Project name invalid.</mat-error>
-    <label for="name">Name</label>
-    <input id="name" formControlName="name" matInput autocomplete="off">
+            <mat-form-field>
+                <mat-error *ngIf="nameField.invalid">Project name invalid.</mat-error>
+                <label for="name">Name</label>
+                <input id="name" formControlName="name" matInput autocomplete="off">
 
 
-    </mat-form-field>
+            </mat-form-field>
 
-    <button mat-raised-button [disabled]="projectForm.invalid" (click)="addNewProject()">New project</button>
-</form>
+            <button mat-raised-button [disabled]="projectForm.invalid" (click)="addNewProject()">New project</button>
+        </form>
 
-</mat-card-content>
+    </mat-card-content>
+</mat-card>
