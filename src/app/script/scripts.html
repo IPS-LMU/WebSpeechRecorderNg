@@ -5,8 +5,8 @@
   </mat-card-header>
   <mat-card-content>
     <table mat-table>
-  <tr *ngFor="let script of scripts">
-    <td class="monospaced">{{script.scriptId}}</td>
+  <tr mat-row *ngFor="let script of scripts">
+    <td class="monospaced">{{script.scriptId}}</td><td>{{script.id}}</td>
   </tr>
     </table>
   </mat-card-content>

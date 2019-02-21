@@ -38,6 +38,7 @@ export interface Section {
 export interface Script {
   scriptId: string|number;
   project?:string;
+  id?:string
   sections: Array<Section>;
 }
 
