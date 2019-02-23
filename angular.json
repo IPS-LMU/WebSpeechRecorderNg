@@ -26,7 +26,9 @@
               "src/main.scss",
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/jszip/dist/jszip.js"
+            ]
           },
           "configurations": {
             "production": {

@@ -6,6 +6,7 @@ import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
 import {ProjectService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/project/project.service";
 import {ScriptService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
 import {Script} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
+import * as JSZip from "jszip";
 
 
 
@@ -27,6 +28,7 @@ export class SessionsComponent implements  OnInit {
       this.projectName = params['projectName'];
       this.fetchSessions()
     })
+
   }
 
   fetchSessions(){
@@ -68,6 +70,31 @@ export class SessionsComponent implements  OnInit {
         }
       })
 
+  }
+
+  downloadSessionArchive(sessionId: string|number){
+    console.log("Start download session: "+sessionId)
+    let jsz=new JSZip();
+    jsz.file('Testfile1','TestContent1!\n')
+    jsz.generateAsync({type:"blob"})
+        .then(function(content) {
+          // see FileSaver.js
+
+          let rfUrl = URL.createObjectURL(content);
+
+          // TODO Angular compatible ??
+          let dataDnlLnk = document.createElement("a");
+
+          dataDnlLnk.name = 'session';
+          dataDnlLnk.href = rfUrl;
+
+          document.body.appendChild(dataDnlLnk);
+
+            dataDnlLnk.setAttribute('download', 'test1_session.zip');
+            dataDnlLnk.click();
+
+          document.body.removeChild(dataDnlLnk);
+        });
   }
 
 }
