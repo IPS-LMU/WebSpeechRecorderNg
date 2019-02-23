@@ -27,6 +27,7 @@ import {ApiType, SpeechrecorderngComponent} from "../../projects/speechrecordern
 import {ScriptsComponent} from "./script/scripts";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {UniqueProjectNameValidator} from "./project/projects/project.name.validator";
+import {CommonModule} from "@angular/common";
 
 
 const appRoutes: Routes = [
@@ -65,7 +66,7 @@ const appRoutes: Routes = [
   imports: [
       RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatCardModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatInputModule,MatDialogModule,MatProgressSpinnerModule,MatTableModule,
 
-    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
+    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),CommonModule,AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [
 
