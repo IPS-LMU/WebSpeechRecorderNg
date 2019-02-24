@@ -325,6 +325,117 @@ export class RecordingService {
     return wobs;
   }
 
+
+  // getCachedOrFetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,sessionId:string,rfDescrs:Array<RecordingFileDescriptor>):Observable<RecordingFile|null> {
+  //
+  //
+  //   let obss=new Array<Observable<RecordingFile>>();
+  //   rfDescrs.forEach((rfDescr)=>{
+  //
+  //     let ic = rfDescr.recording.itemcode
+  //     let ve = rfDescr.version
+  //     let rf = new RecordingFile(sessionId, ic, ve, null);
+  //
+  //
+  //   })
+  //   let wobs = new Observable<RecordingFile>(observer=> {
+  //     // Try indexed db cache
+  //     this.sprDb.prepare().subscribe(value => {
+  //
+  //       let rfTr = value.transaction(RecordingService.KEYNAME)
+  //       let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
+  //       let sessIdx = rfSto.index('sessIdItemcodeIdx')
+  //
+  //       console.log("Get all recordings for sessionId and itemcode: " + recordingFile.sessionId + " " + recordingFile.itemCode)
+  //       let allS = sessIdx.getAll(IDBKeyRange.only([recordingFile.sessionId, recordingFile.itemCode]));
+  //
+  //       allS.onsuccess = (ev) => {
+  //         console.info("Found " + allS.result.length + " recFiles")
+  //         let allRfDtos: Array<RecordingFileDTO> = allS.result;
+  //         if (allRfDtos.length > 0) {
+  //
+  //
+  //           let hVers = -1;
+  //           let hVersRfDto: RecordingFileDTO;
+  //           for (let i = 0; i < allRfDtos.length; i++) {
+  //             let rfDto = allRfDtos[i]
+  //             if (rfDto.version > hVers) {
+  //               hVers = rfDto.version
+  //               hVersRfDto = rfDto
+  //             }
+  //           }
+  //           console.info("Selected itemcode: " + hVersRfDto.itemCode + ' version: ' + hVersRfDto.version)
+  //           let fileReader = new FileReader();
+  //           fileReader.onload = (ev) => {
+  //             console.info("File (Blob) reader onload...")
+  //             let arrBuf: ArrayBuffer = <ArrayBuffer>fileReader.result
+  //             console.info("Arr buffer byte len: " + arrBuf.byteLength)
+  //             let dec = aCtx.decodeAudioData(arrBuf);
+  //             dec.then(ab => {
+  //               console.info("Audio file decoded.")
+  //               if (!ab) {
+  //                 console.error("Audio buffer is null!!")
+  //               }
+  //               //let rf = new RecordingFile(hVersRfDto.sessionId, hVersRfDto.itemCode, hVersRfDto.version, ab);
+  //               recordingFile.audioBuffer = ab
+  //               //rf.uuid=hVersRfDto.uuid
+  //               observer.next(recordingFile);
+  //               observer.complete();
+  //
+  //             });
+  //             dec.catch((reason) => {
+  //               console.error("Audio decoding failed! " + reason)
+  //               observer.error(reason)
+  //             })
+  //           }
+  //           fileReader.readAsArrayBuffer(hVersRfDto.audioBlob);
+  //         } else {
+  //           let obs = this.fetchAudiofile(projectName, recordingFile.sessionId, recordingFile.itemCode, recordingFile.version);
+  //           obs.subscribe(resp => {
+  //                 let dec = aCtx.decodeAudioData(resp.body);
+  //                 dec.then(ab => {
+  //                   recordingFile.audioBuffer = ab;
+  //                   if (this.debugDelay > 0) {
+  //                     window.setTimeout(() => {
+  //
+  //                       observer.next(recordingFile);
+  //                       observer.complete();
+  //                     }, this.debugDelay);
+  //                   } else {
+  //                     observer.next(recordingFile);
+  //                     observer.complete();
+  //                   }
+  //                 })
+  //               },
+  //               (error: HttpErrorResponse) => {
+  //
+  //                 if (error.status == 404) {
+  //                   // Interpret not as an error, the file ist not recorded yet
+  //                   // Does not work correctly when development server is used, which does not store the recordings
+  //                   observer.next(null);
+  //                   observer.complete()
+  //                 } else {
+  //                   // all other states are errors
+  //                   //observer.error(error);
+  //                   //observer.complete();
+  //
+  //
+  //                 }
+  //               });
+  //
+  //         }
+  //       }
+  //       allS.onerror = (ev) => {
+  //         observer.error()
+  //       }
+  //     }, (err) => {
+  //       observer.error(err)
+  //     })
+  //   });
+  //
+  //   return wobs;
+  // }
+
   fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string,version:number):Observable<RecordingFile|null> {
 
     let wobs = new Observable<RecordingFile | null>(observer=>{
