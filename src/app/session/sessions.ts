@@ -14,6 +14,11 @@ import {AudioContextProvider} from "../../../projects/speechrecorderng/src/lib/a
 import {RecordingFile} from "../../../projects/speechrecorderng/src/lib/speechrecorder/recording";
 import {WavWriter} from "../../../projects/speechrecorderng/src/lib/audio/impl/wavwriter";
 import {forEach} from "@angular/router/src/utils/collection";
+import {Observable} from "rxjs";
+import { zip as ObsZip,of } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+import {last} from "rxjs/operators";
 
 
 
@@ -110,6 +115,31 @@ export class SessionsComponent implements  OnInit {
           });
   }
 
+
+
+  addAudioFileToZipObservable(audioContext:AudioContext,rf:RecordingFile,rfNm:string,jsz:JSZip):Observable<RecordingFile>{
+
+    return new Observable<RecordingFile>(subscriber => {
+
+        this.recService.getCachedOrFetchAndApplyRecordingFile(audioContext, this.projectName, rf).subscribe((rfa) => {
+          // TODO duplicate code: sessionmanager.ts
+
+          let ab: AudioBuffer = rfa.audioBuffer;
+          let ww = new WavWriter();
+          let wavFile = ww.writeAsync(ab, (wavFile) => {
+            let blob = new Blob([wavFile], {type: 'audio/wav'});
+            //  TODO version should not appear in overwrite mode
+
+            jsz.file(rfNm, blob)
+            subscriber.next(rfa)
+            subscriber.complete()
+          })
+
+        })
+      }
+    );
+  }
+
   downloadSessionArchive(sessionId: string){
     let jsz=new JSZip();
       let audioContext = AudioContextProvider.audioContextInstance()
@@ -123,35 +153,32 @@ export class SessionsComponent implements  OnInit {
           this.recService.recordingFileDescrList(this.projectName,sessionId).subscribe((rfsDescr)=> {
               let rfsSize=rfsDescr.length
               if(rfsSize>0) {
+                  let rfObss=new Array<Observable<RecordingFile>>();
                   for (let rfi = 0; rfi < rfsSize; rfi++) {
                       let rfDescr = rfsDescr[rfi]
                       let ic = rfDescr.recording.itemcode
                       let ve = rfDescr.version
                       let rf = new RecordingFile(sessionId, ic, ve, null);
-                      // TODO should be possible to do it more elegant
-                      // e.g. Observable of recfile service which calls next for each rec file (making use of the Observable capabilities)
-                      // generate the ZIP on complete()
 
-                      // TODO ...and it does NOT work
-                      // when the last file is prepared before others they will not make it in the ZIP archive !!
+                     let rfNm = sessionId + ic + '_' + ve + '.wav';
+                     // Add an observable for each audio file
 
-                      let last = (rfi == rfsDescr.length - 1);
-                      this.recService.getCachedOrFetchAndApplyRecordingFile(audioContext, this.projectName, rf).subscribe((rfa) => {
-                          // TODO duplicate code: sessionmanager.ts
-
-                          let ab: AudioBuffer = rfa.audioBuffer;
-                          let ww = new WavWriter();
-                          let wavFile = ww.writeAsync(ab, (wavFile) => {
-                              let blob = new Blob([wavFile], {type: 'audio/wav'});
-                              //  TODO version should not appear in overwrite mode
-                              let rfNm = sessionId + ic + '_' + ve + '.wav';
-                              jsz.file(rfNm, blob)
-                              if (last) {
-                                  this.generateZip(jsz, name, zipFilename)
-                              }
-                          })
-                      })
+                     rfObss.push(this.addAudioFileToZipObservable(audioContext,rf,rfNm,jsz));
                   }
+
+                  // Confusing here: zip function has nothing to do with zip archive
+                // This rxjs function goes subsequently through each observable and waits for it to complete
+
+                  ObsZip(...rfObss).subscribe((n)=>{
+                    //console.log("Built all zip audio entries")
+                  },(err)=>{
+                    console.error("error waiting for audiofiles "+err)
+                  },()=>{
+                    this.generateZip(jsz, name, zipFilename)
+                  })
+
+
+
               }else{
                   // empty session will be packed as well
                   this.generateZip(jsz, name, zipFilename)

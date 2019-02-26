@@ -235,11 +235,10 @@ export class RecordingService {
         let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
         let sessIdx = rfSto.index('sessIdItemcodeIdx')
 
-        console.log("Get all recordings for sessionId and itemcode: " + recordingFile.sessionId + " " + recordingFile.itemCode)
+        //console.log("Get all recordings for sessionId and itemcode: " + recordingFile.sessionId + " " + recordingFile.itemCode)
         let allS = sessIdx.getAll(IDBKeyRange.only([recordingFile.sessionId, recordingFile.itemCode]));
 
         allS.onsuccess = (ev) => {
-          console.info("Found " + allS.result.length + " recFiles")
           let allRfDtos: Array<RecordingFileDTO> = allS.result;
           if (allRfDtos.length > 0) {
 
@@ -253,15 +252,11 @@ export class RecordingService {
                 hVersRfDto = rfDto
               }
             }
-            console.info("Selected itemcode: " + hVersRfDto.itemCode + ' version: ' + hVersRfDto.version)
             let fileReader = new FileReader();
             fileReader.onload = (ev) => {
-              console.info("File (Blob) reader onload...")
               let arrBuf: ArrayBuffer = <ArrayBuffer>fileReader.result
-              console.info("Arr buffer byte len: " + arrBuf.byteLength)
               let dec = aCtx.decodeAudioData(arrBuf);
               dec.then(ab => {
-                console.info("Audio file decoded.")
                 if (!ab) {
                   console.error("Audio buffer is null!!")
                 }
