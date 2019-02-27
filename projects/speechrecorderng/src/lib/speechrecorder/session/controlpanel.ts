@@ -247,7 +247,7 @@ export class TransportPanel {
 
     <app-sprtransport [actions]="transportActions"></app-sprtransport>
 
-    <app-uploadstatus [value]="uploadProgress"
+    <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus"></app-uploadstatus>
   `,
   styles: [`:host {
