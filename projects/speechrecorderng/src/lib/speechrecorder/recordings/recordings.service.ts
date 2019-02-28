@@ -242,14 +242,29 @@ export class RecordingService {
           let allRfDtos: Array<RecordingFileDTO> = allS.result;
           if (allRfDtos.length > 0) {
 
+            let rfDtoToFetch:RecordingFileDTO=null;
 
-            let hVers = -1;
-            let hVersRfDto: RecordingFileDTO;
+            let vers:number;
+
+            if(recordingFile.version!=null) {
+              vers=recordingFile.version
+            }else{
+
+              // version not given, return latest
+              let hVers = -1;
+              for (let i = 0; i < allRfDtos.length; i++) {
+                let rfDto = allRfDtos[i]
+                if (rfDto.version > hVers) {
+                  hVers = rfDto.version
+                }
+              }
+              vers=hVers;
+            }
             for (let i = 0; i < allRfDtos.length; i++) {
               let rfDto = allRfDtos[i]
-              if (rfDto.version > hVers) {
-                hVers = rfDto.version
-                hVersRfDto = rfDto
+              if(rfDto.version==vers){
+                rfDtoToFetch=rfDto;
+                break;
               }
             }
             let fileReader = new FileReader();
@@ -260,9 +275,7 @@ export class RecordingService {
                 if (!ab) {
                   console.error("Audio buffer is null!!")
                 }
-                //let rf = new RecordingFile(hVersRfDto.sessionId, hVersRfDto.itemCode, hVersRfDto.version, ab);
                 recordingFile.audioBuffer = ab
-                //rf.uuid=hVersRfDto.uuid
                 observer.next(recordingFile);
                 observer.complete();
 
@@ -272,7 +285,7 @@ export class RecordingService {
                 observer.error(reason)
               })
             }
-            fileReader.readAsArrayBuffer(hVersRfDto.audioBlob);
+            fileReader.readAsArrayBuffer(rfDtoToFetch.audioBlob);
           } else {
             let obs = this.fetchAudiofile(projectName, recordingFile.sessionId, recordingFile.itemCode, recordingFile.version);
             obs.subscribe(resp => {
