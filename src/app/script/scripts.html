@@ -7,14 +7,14 @@
     <form (ngSubmit)="importScript()" ngForm>
 
       <input #scriptFileInput [hidden]="true" type="file" accept="application/xml, text/xml" (change)="importFileChanged($event)">
-      <button mat-raised-button #uploadButton (click)="uploadScriptFiles();scriptFileInput.click()">Upload script XML file</button>
+      <button mat-raised-button #uploadButton  color="primary" (click)="uploadScriptFiles();scriptFileInput.click()">Upload script XML file</button>
 
 
       <mat-spinner *ngIf="uploading" diameter="20"></mat-spinner>
       <ul *ngIf="importFileList!=null">
         <li *ngFor="let fileEntry of importFileList">{{fileEntry.name}}</li>
       </ul>
-      <button mat-raised-button type="submit" [disabled]="!isImportable()">Import</button>
+      <button mat-raised-button type="submit"  color="primary" [disabled]="!isImportable()">Import</button>
     </form>
   </mat-card-content>
 </mat-card>
