@@ -25,7 +25,14 @@ import {Item} from './sessionmanager';
           <td>{{itIdx}}</td>
           <td>{{item.promptAsString}}</td>
           <td>
-            <mat-icon *ngIf="item.recs && item.recs.length>0">done</mat-icon>
+            <mat-icon *ngIf="item.recs && item.recs.length>0"
+                      [matBadge]="item.recs.length"
+                      [matBadgeHidden]="!item.recs || item.recs.length<2"
+                      matBadgeOverlap="false"
+                      matBadgeSize="small"
+                      matBadgePosition="below after"
+                      [matBadgeDisabled]="!(itIdx===selectedItemIdx)"
+            >done</mat-icon>
 
           </td>
         </tr>
@@ -95,5 +102,15 @@ export class Progress {
       this.onRowSelect.emit(rowIdx);
       this.onDownloadDoneAction.emit(rowIdx);
     }
+  }
+
+  itemRecsVersions(idx:number):number{
+    if(this.items){
+      let item=this.items[idx]
+      if(item.recs){
+        return item.recs.length
+      }
+    }
+    return 0;
   }
 }

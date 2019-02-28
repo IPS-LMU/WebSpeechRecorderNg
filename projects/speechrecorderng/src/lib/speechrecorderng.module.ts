@@ -12,8 +12,9 @@ import {
 import {SessionManager} from "./speechrecorder/session/sessionmanager";
 import {ScrollIntoViewDirective} from "./utils/scrollIntoViewToBottom";
 import {
-    MatButtonModule, MatDialogModule, MatIconModule, MatProgressBar, MatProgressBarModule, MatProgressSpinnerModule,
-    MatTooltipModule
+  MatBadgeModule,
+  MatButtonModule, MatDialogModule, MatIconModule, MatProgressBar, MatProgressBarModule, MatProgressSpinnerModule,
+  MatTooltipModule
 } from "@angular/material";
 import {HttpClientModule} from "@angular/common/http";
 import {SessionService} from "./speechrecorder/session/session.service";
@@ -44,7 +45,7 @@ export const SPR_ROUTES: Routes = [
   ],
     exports: [SpeechrecorderngComponent],
   imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,
-    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressBarModule,MatProgressSpinnerModule,MatTooltipModule,HttpClientModule],
+    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressBarModule,MatProgressSpinnerModule,MatTooltipModule,MatBadgeModule,HttpClientModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,SpeechRecorderUploader]
 
 })
