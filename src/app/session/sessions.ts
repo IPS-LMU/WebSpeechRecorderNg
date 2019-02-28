@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, Renderer2} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params} from "@angular/router";
 import {SessionService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
 import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
@@ -19,6 +19,7 @@ import { zip as ObsZip,of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {last} from "rxjs/operators";
+import {MatSort, MatTableDataSource} from "@angular/material";
 
 
 
@@ -31,9 +32,9 @@ export class SessionsComponent implements  OnInit {
 
   projectName:string;
   sessions:Array<Session>
-    displayedColumns: string[] = ['sessionId','action'];
-  //zip.workerScriptsPath
-
+    displayedColumns: string[] = ['date','sessionId','action'];
+    dataSource:MatTableDataSource<Session>;
+    @ViewChild(MatSort) sort: MatSort;
     private d:Document;
   constructor(private route: ActivatedRoute,
               private chDetRef:ChangeDetectorRef,
@@ -43,9 +44,16 @@ export class SessionsComponent implements  OnInit {
               private recService:RecordingService,
               private sessionService: SessionService) {
       this.d=dAsAny as Document;
+      this.sessions=new Array<Session>()
+      this.dataSource=new MatTableDataSource(this.sessions)
   }
 
+
   ngOnInit() {
+
+      this.dataSource.sort=this.sort
+
+
     this.route.params.subscribe((params: Params) => {
       this.projectName = params['projectName'];
       this.fetchSessions()
@@ -58,6 +66,7 @@ export class SessionsComponent implements  OnInit {
       this.sessionService.projectSessionsObserver(this.projectName).subscribe(sesss=>{
         console.info("List " + sesss.length + " sessions")
         this.sessions=sesss;
+        this.dataSource.data=this.sessions
         console.log(this.sessions)
         //this.chDetRef.detectChanges()
       })
@@ -73,7 +82,7 @@ export class SessionsComponent implements  OnInit {
       console.log("Scripts: ERROR")
     },()=>{
         if(sessionScript) {
-          let ns: Session = {sessionId: UUID.generate(), project: this.projectName, script: sessionScript.scriptId}
+          let ns: Session = {sessionId: UUID.generate(), project: this.projectName, script: sessionScript.scriptId,date:new Date()}
           this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
                 console.log("Scripts: NEXT (push) "+s.sessionId)
                 //mat-table does not update here !!

@@ -3,7 +3,7 @@
   <mat-card-title>Create new session for project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
 </mat-card-header>
 <mat-card-content>
-  <button mat-raised-button   color="primary" (click)="addNewSession()">New session</button>
+  <button mat-raised-button   color="primary" (click)="addNewSession()"><mat-icon>add_box</mat-icon> New session</button>
 </mat-card-content>
 </mat-card>
 <mat-card>
@@ -11,10 +11,14 @@
    <mat-card-title>Sessions of project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>
   </mat-card-header>
   <mat-card-content>
-<table mat-table [dataSource]="sessions">
+<table mat-table matSort matSortActive="date" matSortDirection="desc"  [dataSource]="dataSource">
   <ng-container matColumnDef="sessionId">
-    <th mat-header-cell *matHeaderCellDef>ID</th>
-    <td mat-cell class="monospaced" *matCellDef="let element">{{element.sessionId}}</td>
+  <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+  <td mat-cell class="monospaced" *matCellDef="let element">{{element.sessionId}}</td>
+</ng-container>
+  <ng-container matColumnDef="date">
+    <th mat-header-cell *matHeaderCellDef mat-sort-header start="desc">Created</th>
+    <td mat-cell *matCellDef="let element">{{element.date | date:'medium'}}</td>
   </ng-container>
   <ng-container matColumnDef="action">
     <th mat-header-cell *matHeaderCellDef>Action</th>
