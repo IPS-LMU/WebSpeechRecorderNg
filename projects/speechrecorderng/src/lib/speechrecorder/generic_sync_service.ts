@@ -214,6 +214,18 @@ export class GenericSprService<T> {
           let ra: IDBRequest;
           if (indexName) {
             let idx = sto.index(indexName);
+               // getAll() is not implemented by Microsoft Edge:
+              // https://stackoverflow.com/questions/48797756/indexeddb-microsoft-edge-getall-method
+              //  Not willing to use this shim
+              // https://github.com/dumbmatter/IndexedDB-getAll-shim/blob/master/IndexedDB-getAll-shim.js
+              // The reason is that Edge defines its own API:
+              // https://docs.microsoft.com/en-us/openspecs/ie_standards/ms-indexeddb-2/d9530987-7e8f-47b6-b801-e2b26bc271c5
+              // https://docs.microsoft.com/en-us/openspecs/ie_standards/ms-indexeddb-2/c8175119-5737-421e-9f0e-cf2b91735e93
+              //
+              // No comments. Just not recommend Edge for WebSpeechRecorderNg, though it has the best implementations of audio related APIs.
+              //
+              // TODO disable Indexed db when running in Edge and recommend user to user different browser
+              // TODO HowTo detect this
             ra = idx.getAll(IDBKeyRange.only(constr));
           } else {
             ra = sto.getAll();
