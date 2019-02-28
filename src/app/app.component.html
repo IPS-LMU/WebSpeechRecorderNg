@@ -13,8 +13,10 @@
       </mat-menu>
     </mat-menu>
     &nbsp;<span fxShow.xs="false">{{title}}</span><span fxShow.xs="true" fxShow="false">{{shortTitle}}</span>
-
-
+    <span class="fill-remaining-space"></span>
+    <button *ngIf="(projectName!=null)" mat-button routerLink='wsp/project/{{projectName}}/session'>
+        <mat-icon>close</mat-icon>
+    </button>
 </mat-toolbar>
 <router-outlet></router-outlet>
 
