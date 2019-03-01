@@ -1,5 +1,14 @@
 import {
-    Component, ViewChild, Input, Output, EventEmitter, HostListener, ElementRef, OnInit
+  Component,
+  ViewChild,
+  Input,
+  Output,
+  EventEmitter,
+  HostListener,
+  ElementRef,
+  OnInit,
+  AfterViewInit,
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -93,7 +102,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
   }
   `]
 })
-export class PromptContainer implements  OnInit{
+export class PromptContainer implements  OnInit,AfterContentChecked{
   @Input() mediaitem: Mediaitem;
 
   fontSize:number;
@@ -113,9 +122,15 @@ export class PromptContainer implements  OnInit{
         if (defFontSizeStr.endsWith('px')) {
           // parseFloat ignores non number characters at the end (again no comment ;) )
           this.defaultFontSizePx = parseFloat(defFontSizeStr);
+          //console.info("Default font size: "+this.defaultFontSizePx)
         }
       }
-      this.resized();
+    //this.resized();
+  }
+
+
+  ngAfterContentChecked(): void {
+    this.resized()
   }
 
   @HostListener('window:resize', ['$event'])
@@ -123,15 +138,18 @@ export class PromptContainer implements  OnInit{
         this.resized();
   }
 
-  private resized(){
-      let elH=this.elRef.nativeElement.offsetHeight;
+  private resized() {
+    let elH = this.elRef.nativeElement.offsetHeight;
 
-      // prompt text font size should scale according to prompt conatiner height
-      let scaledSize=Math.round((elH/VIRTUAL_HEIGHT)*DEFAULT_PROMPT_FONTSIZE);
+    // prompt text font size should scale according to prompt conatiner height
+    let scaledSize = Math.round((elH / VIRTUAL_HEIGHT) * DEFAULT_PROMPT_FONTSIZE);
 
-      // min prompt font size is default user agent size
-      this.fontSize=Math.max(scaledSize,this.defaultFontSizePx);
-
+    // min prompt font size is default user agent size
+    let newSize = Math.max(scaledSize, this.defaultFontSizePx);
+    if (this.fontSize !== newSize) {
+      this.fontSize = newSize;
+    }
+      //console.info("Font size: "+this.fontSize)
      //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
   }
 
