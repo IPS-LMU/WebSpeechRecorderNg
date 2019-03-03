@@ -1,3 +1,25 @@
+<!--
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Add new script</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form  class="flexForm" [formGroup]="scriptForm">
+
+
+      <mat-form-field>
+
+        <label for="name">Name</label>
+        <input id="name" formControlName="name" matInput autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+
+
+      </mat-form-field>
+
+      <button mat-raised-button [disabled]="scriptForm.invalid"  color="primary" (click)="addNewScript()"><mat-icon>add_box</mat-icon> New script</button>
+    </form>
+  </mat-card-content>
+</mat-card>
+-->
 <mat-card>
   <mat-card-header>
     <mat-card-title>Import script for project <span  class="monospaced">"{{projectName}}"</span></mat-card-title>

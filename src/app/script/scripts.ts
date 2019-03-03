@@ -10,6 +10,7 @@ import {
   Script,
   Section
 } from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
+import {FormControl, FormGroup, Validators} from "@angular/forms";
 
 interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget;
@@ -24,6 +25,8 @@ export class ScriptsComponent implements  OnInit {
 
   projectName:string;
   scripts:Array<Script>
+  //scriptForm:FormGroup;
+  //newScript:Script;
   importFileList:FileList=null;
   @ViewChild('scriptFileInput') scriptFileInput:HTMLInputElement;
   uploading=false;
@@ -35,11 +38,16 @@ export class ScriptsComponent implements  OnInit {
 
 
   ngOnInit() {
+    // this.scriptForm = new FormGroup({
+    //   'name': new FormControl(this.newScript.id)
+    // });
     this.route.params.subscribe((params: Params) => {
       this.projectName = params['projectName'];
         this.fetchScripts()
     })
   }
+
+  //get nameField() { return this.scriptForm.get('name'); }
 
   fetchScripts(){
       if (this.projectName) {
@@ -51,6 +59,18 @@ export class ScriptsComponent implements  OnInit {
           })
       }
   }
+  // addNewScript(){
+  //   this.newScript.id=this.nameField.value;
+  //   // this.scriptService.scriptAddObservable(this.projectName,this.newScript).subscribe((n)=>{
+  //   //
+  //   // },(err)=>{
+  //   //   // TODO
+  //   // },()=>{
+  //   //   this.scriptForm.reset()
+  //   //   this.fetchScripts()
+  //   // })
+  // }
+
 
   uploadScriptFiles(){
     this.uploading=true;
@@ -60,7 +80,7 @@ export class ScriptsComponent implements  OnInit {
 
   importFileChanged(event: HTMLInputEvent){
     let et=event.target;
-    console.log("Chaneg: "+event)
+
     let files=et.files;
     this.uploading=false
     for(let i=0;i<files.length;i++) {
