@@ -53,9 +53,8 @@
               "type" : "recording",
               "mediaitems" : [ {
                 "annotationTemplate" : false,
-                "mimetype" : "image/png",
-                "src" : "resources/vlcsnap-2012-07-10-17h47m32s147.png",
-                "text" : ""
+                "mimetype": "image/jpg",
+                "src": "resources/images/IMG_2447.JPG"
               } ],
               "itemcode" : "demo_001"
             } ]
@@ -261,6 +260,24 @@
                     "mediaitemId": 1300,
                     "mimetype": "text/plain",
                     "text": "How did you get here today?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "IMG1",
+                "prerecording": 500,
+                "recinstructions": {
+                  "recinstructions": "Describe the image:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "image/jpg",
+                    "src": "resources/images/IMG_2447.JPG"
                   }
                 ]
               }

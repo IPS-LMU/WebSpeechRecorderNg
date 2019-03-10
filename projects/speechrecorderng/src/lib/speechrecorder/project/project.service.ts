@@ -35,17 +35,27 @@ export class ProjectService {
     this.httpParams.set('cache','false');
   }
 
-  projectObservable(id:string):Observable<Project>{
-
-    let projectUrl = this.projectCtxUrl + '/' + id;
+  private appendRequestUUIDForDevelopmentServer(url:string):string{
+    let resUrl=url;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      projectUrl = projectUrl + '.json?requestUUID='+UUID.generate();
+      resUrl = resUrl + '.json?requestUUID='+UUID.generate();
 
     }
-     return this.http.get<Project>(projectUrl,{ params:this.httpParams,withCredentials: this.withCredentials})
+    return resUrl
+  }
 
+  projectUrl(id:string):string{
+    return this.appendRequestUUIDForDevelopmentServer(this.projectCtxUrl + '/' + id)
+  }
+
+  projectResourceUrl(projectId: string,relResourcePath:string):string{
+    return this.projectCtxUrl + '/' + projectId +'/'+relResourcePath
+  }
+
+  projectObservable(id:string):Observable<Project>{
+     return this.http.get<Project>(this.projectUrl(id),{ params:this.httpParams,withCredentials: this.withCredentials})
    }
 
 }

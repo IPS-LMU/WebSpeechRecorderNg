@@ -24,7 +24,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession></app-sprrecordingsession>
+    <app-sprrecordingsession [projectName]="project?.name"></app-sprrecordingsession>
   `,
   styles: [`:host{
     flex: 2;
@@ -103,6 +103,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
           if (sess.project) {
             console.log("Session associated project: "+sess.project)
+
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);

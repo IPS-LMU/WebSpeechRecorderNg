@@ -1,5 +1,15 @@
 import {
-    Component, ViewChild, Input, Output, EventEmitter, HostListener, ElementRef, OnInit
+    Component,
+    ViewChild,
+    Input,
+    Output,
+    EventEmitter,
+    HostListener,
+    ElementRef,
+    OnInit,
+    AfterViewChecked,
+    Renderer2,
+    ChangeDetectorRef, HostBinding
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -10,6 +20,7 @@ import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
+import {ProjectService} from "../project/project.service";
 
 
 @Component({
@@ -44,7 +55,8 @@ export class Recinstructions {
 
   template: `
 
-    {{promptText}}
+      <!--<ng-template [ngIf]="text">{{text}}</ng-template>-->
+      <!-- <img *ngIf="src" #promptImage [src]="srcUrl()" [height]="prompterHeight-20" /> -->
   `,
   styles: [`:host {
 
@@ -55,13 +67,93 @@ export class Recinstructions {
    /* font-size: 2em; */
     line-height: 1.2em;
       font-weight: bold;
-     
+      /* Use only natural size of the prompt */
+      /* The prompter compnent then ets aligned vertically centered */
     flex: 0 1;
-  }
-  `]
+      
+  }`,`:host(.fill) {
+     /* Use all space to scale images */
+      flex: 3;
+      width: 100%;
+      height: 100%;
+      /* A separate flex container might be necessayr to alighn centered */
+    vertical-align: middle; /* TODO does not work, image is not vertically centered */
+  }`]
 })
 export class Prompter {
-  @Input() promptText: string
+    @Input() projectName:string|null;
+    private _promptMediaItems: Array<Mediaitem>
+
+    @Input() prompterHeight: number
+    private _text:string=null;
+    private _src:string=null;
+    mimetype:string;
+    private currPromptChild:HTMLElement=null;
+
+    @HostBinding('class.fill') public prompterStyleFill = false;
+
+    //@ViewChild('promptImage') promptImage:HTMLImageElement;
+
+    constructor(private elRef:ElementRef,private renderer:Renderer2,private projectService:ProjectService){
+
+    }
+
+    get text() {
+
+        return this._text;
+    }
+    get src() {
+
+        return this._src;
+    }
+
+    srcUrl():string{
+        if(this._src){
+            return this.projectService.projectResourceUrl(this.projectName,this._src);
+        }
+        return null;
+    }
+
+    @Input() set promptMediaItems(pMis:Array<Mediaitem>) {
+        this._promptMediaItems = pMis
+        if (this.currPromptChild != null) {
+            this.renderer.removeChild(this.elRef.nativeElement,this.currPromptChild)
+        }
+        if(this._promptMediaItems && this._promptMediaItems.length==1){
+            let mi=this._promptMediaItems[0]
+            this.mimetype='text/plain'
+            if(mi.mimetype){
+                this.mimetype=mi.mimetype.trim();
+            }
+            if(this.mimetype==='text/plain'){
+                this._text=mi.text
+                this._src=null;
+                this.currPromptChild=this.renderer.createText(this._text)
+                this.prompterStyleFill=false
+                this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+            }else if(this.mimetype.startsWith('image')){
+                this._text=null;
+                this._src=mi.src
+                let promptImage=new Image()
+
+                this.currPromptChild=promptImage
+                this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+                this.renderer.setStyle(this.currPromptChild,"max-width","100%")
+                this.renderer.setStyle(this.currPromptChild,"max-height","100%")
+                this.renderer.setStyle(this.currPromptChild,"vertical-align", "middle");
+                this.prompterStyleFill=true
+                //console.log(promptImage.naturalWidth + "x"+promptImage.naturalHeight);
+                promptImage.onload=(ev:ProgressEvent)=>{
+
+                }
+                promptImage.src=this.srcUrl()
+            }
+
+        }else{
+            this._text=null
+            this._src=null
+        }
+    }
 }
 
 export const VIRTUAL_HEIGHT=600;
@@ -74,32 +166,36 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
 
   template: `
 
-    <app-sprprompter [style.font-size]="fontSize+'px'" [promptText]="mediaitem?.text"></app-sprprompter>
+    <app-sprprompter [projectName]="projectName" [style.font-size]="fontSize+'px'" [prompterHeight]="prompterHeight"  [promptMediaItems]="mediaitems"></app-sprprompter>
 
   `
   ,
-  styles: [`:host {
+    styles: [`:host {
 
-    flex: 3; /* the container consumes all available space */
-    padding: 10pt;
-    /* height: 100%; */
-    justify-content: center; /* align horizontal center*/
-    align-items: center; /* align vertical center */
-    background: white;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    min-height: 0px;
-  }
+        flex: 3; /* the container consumes all available space */
+        padding: 10pt;
+        /* height: 100%; */
+        justify-content: center; /* align horizontal center*/
+        align-items: center; /* align vertical center */
+        background: white;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        min-height: 0px;
+        width: 100%;
+    }
   `]
 })
 export class PromptContainer implements  OnInit{
-  @Input() mediaitem: Mediaitem;
+    @Input() projectName:string|null;
+  @Input() mediaitems: Array<Mediaitem>;
+  @ViewChild(Prompter) prompter:Prompter;
 
+  prompterHeight:number=VIRTUAL_HEIGHT
   fontSize:number;
   defaultStyle: CSSStyleDeclaration;
   defaultFontSizePx: number;
-  constructor(private elRef:ElementRef){}
+  constructor(private elRef:ElementRef,private changeDetectorRef:ChangeDetectorRef){}
 
   ngOnInit(){
 
@@ -123,17 +219,20 @@ export class PromptContainer implements  OnInit{
         this.resized();
   }
 
-  private resized(){
-      let elH=this.elRef.nativeElement.offsetHeight;
+    private resized(){
+        //console.log("Prompter container size: "+this.elRef.nativeElement.offsetWidth+"x"+this.elRef.nativeElement.offsetHeight)
+        let elH=this.elRef.nativeElement.offsetHeight;
 
-      // prompt text font size should scale according to prompt conatiner height
-      let scaledSize=Math.round((elH/VIRTUAL_HEIGHT)*DEFAULT_PROMPT_FONTSIZE);
+        this.prompterHeight=elH;
+        // prompt text font size should scale according to prompt conatiner height
+        let scaledSize=Math.round((elH/VIRTUAL_HEIGHT)*DEFAULT_PROMPT_FONTSIZE);
 
-      // min prompt font size is default user agent size
-      this.fontSize=Math.max(scaledSize,this.defaultFontSizePx);
+        // min prompt font size is default user agent size
+        this.fontSize=Math.max(scaledSize,this.defaultFontSizePx);
 
-     //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
-  }
+        //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
+
+    }
 
 }
 
@@ -145,7 +244,7 @@ export class PromptContainer implements  OnInit{
 
   template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount" [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
-    <app-sprpromptcontainer [mediaitem]="showPrompt?promptItem?.mediaitems[0]:null"></app-sprpromptcontainer>
+    <app-sprpromptcontainer [projectName]="projectName" [mediaitems]="showPrompt?promptItem?.mediaitems:null"></app-sprpromptcontainer>
 
   `
   ,
@@ -164,6 +263,7 @@ export class PromptContainer implements  OnInit{
   `]
 })
 export class PromptingContainer {
+    @Input() projectName:string|null;
   @Input() promptItem: PromptItem;
   @Input() showPrompt: boolean;
     @Input() selectedItemIdx: number;
@@ -295,7 +395,7 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx" [transportActions]="transportActions"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt" [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx" [transportActions]="transportActions"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -381,6 +481,7 @@ export class PromptingContainer {
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
   @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
+  @Input() projectName:string|null;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;

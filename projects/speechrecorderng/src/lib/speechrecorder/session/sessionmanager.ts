@@ -6,8 +6,8 @@ import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
-    Component, ViewChild, ChangeDetectorRef, Inject,
-    AfterViewInit, HostListener, OnDestroy
+  Component, ViewChild, ChangeDetectorRef, Inject,
+  AfterViewInit, HostListener, OnDestroy, Input
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -61,7 +61,8 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
-      <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
+      <app-sprprompting [projectName]="projectName" 
+                        [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
@@ -101,6 +102,7 @@ export class Item {
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
+  @Input() projectName:string|null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;
