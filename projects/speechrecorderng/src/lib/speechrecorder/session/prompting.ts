@@ -7,7 +7,6 @@ import {
     HostListener,
     ElementRef,
     OnInit,
-    AfterViewChecked,
     Renderer2,
     ChangeDetectorRef, HostBinding
 } from "@angular/core";
