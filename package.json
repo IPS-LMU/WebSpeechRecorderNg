@@ -15,7 +15,7 @@
     "start": "ng serve",
     "run_http_server": "http-server -p 8080 -c-1 dist",
     "build": "ng build",
-    "build_prod": "ng build --prod",
+    "build_prod": "ng build --prod -c production",
     "build_all_prod": "npm run build_module && npm run build_prod",
     "build_standalone_prod": "ng build --prod --configuration=standalone_production",
     "build_standalone_all_prod": "npm run build_module && npm run build_standalone_prod",
