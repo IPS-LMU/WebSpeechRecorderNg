@@ -8,7 +8,7 @@ export const environment = {
 
 export const SPR_CFG: SpeechRecorderConfig = {
   apiEndPoint: 'test',
-  apiType: ApiType.FILES,
+  apiType: ApiType.STANDALONE,
   enableDownloadRecordings: true,
   enableUploadRecordings: false
 };
