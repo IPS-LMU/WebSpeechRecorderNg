@@ -1,5 +1,6 @@
 
     import {HttpClient, HttpErrorResponse} from "@angular/common/http";
+    import { timeout } from 'rxjs/operators'
     import {ResponseContentType} from "@angular/http";
 
     // state of an upload
@@ -76,7 +77,10 @@
     }
 
     export class Uploader {
-        RETRY_DELAY: number = 30000;
+        POST_MIN_TIMEOUT=120000; // 2min plus ...
+        POST_TIMEOUT_PER_KB=1000;  // ... 1s per kB
+
+        RETRY_DELAY: number = 30000; // retry every 30s
         DEBUG_DELAY: number = 0;
         //DEBUG_DELAY:number=0;
         private status: UploaderStatus = UploaderStatus.DONE;
@@ -122,7 +126,11 @@
                 this.status = UploaderStatus.UPLOADING;
             }
 
-            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).subscribe(
+            let dSize=ul.data.size
+            let timeoutForDataSize=dSize*this.POST_TIMEOUT_PER_KB/1000;
+            let timeoVal:number=Math.round(this.POST_MIN_TIMEOUT+timeoutForDataSize)
+            // pipe(timeout()) is not the same as xhr.timeout
+            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
               data => {
 
                 if (this.DEBUG_DELAY) {
