@@ -1,14 +1,14 @@
 import {
-  Component,
-  ViewChild,
-  Input,
-  Output,
-  EventEmitter,
-  HostListener,
-  ElementRef,
-  OnInit,
-  AfterViewInit,
-  AfterContentChecked
+    Component,
+    ViewChild,
+    Input,
+    Output,
+    EventEmitter,
+    HostListener,
+    ElementRef,
+    OnInit,
+    AfterViewInit,
+    AfterContentChecked, AfterViewChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -59,18 +59,35 @@ export class Recinstructions {
 
     justify-content: center; /* align horizontal center */
     align-items: center; /* align vertical  center */
-    background: white;
+    background: yellow;
     text-align: center;
    /* font-size: 2em; */
     line-height: 1.2em;
       font-weight: bold;
      
-    flex: 0 1;
+    flex: 0;
   }
   `]
 })
 export class Prompter {
   @Input() promptText: string
+    constructor(private elRef:ElementRef){}
+
+    width():number{
+      if(this.elRef){
+        if(this.elRef.nativeElement){
+            return this.elRef.nativeElement.clientWidth
+        }
+      }
+      return null
+    }
+    height():number{
+        if(this.elRef){
+            if(this.elRef.nativeElement){
+                return this.elRef.nativeElement.clientHeight
+            }
+        }
+    }
 }
 
 export const VIRTUAL_HEIGHT=600;
@@ -81,20 +98,19 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
 
   selector: 'app-sprpromptcontainer',
 
-  template: `
-
-    <app-sprprompter [style.font-size]="fontSize+'px'" [promptText]="mediaitem?.text"></app-sprprompter>
-
+  template: `      
+    <app-sprprompter #prompter [style.font-size]="fontSize+'px'" [style.display]="prDisplay" [promptText]="mediaitem?.text"></app-sprprompter>
   `
   ,
   styles: [`:host {
 
     flex: 3; /* the container consumes all available space */
-    padding: 10pt;
+    padding: 0pt;
+      width:100%;
     /* height: 100%; */
     justify-content: center; /* align horizontal center*/
     align-items: center; /* align vertical center */
-    background: white;
+    background: lightgoldenrodyellow;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -102,12 +118,18 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
   }
   `]
 })
-export class PromptContainer implements  OnInit,AfterContentChecked{
-  @Input() mediaitem: Mediaitem;
+export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChecked{
+  _mediaitem: Mediaitem;
 
   fontSize:number;
+  fontSizeChanged=false
+    prDisplay='none';
   defaultStyle: CSSStyleDeclaration;
   defaultFontSizePx: number;
+  measureContext: CanvasRenderingContext2D;
+
+    //@ViewChild('measureCanvas') measureCanvasRef: ElementRef;
+    @ViewChild(Prompter) prompter: Prompter;
   constructor(private elRef:ElementRef){}
 
   ngOnInit(){
@@ -126,31 +148,93 @@ export class PromptContainer implements  OnInit,AfterContentChecked{
         }
       }
     //this.resized();
+
+
+      //this.measureContext=this.measureCanvasRef.nativeElement.getContext("2d");
+
   }
 
+  @Input() set mediaitem(mediaitem:Mediaitem){
+      this._mediaitem=mediaitem
+      this.fontSizeChanged=false;
+      this.prDisplay='none'
+      this.fontSizeToFit();
+  }
+
+  get mediaitem():Mediaitem{
+      return this._mediaitem;
+  }
 
   ngAfterContentChecked(): void {
-    this.resized()
+      if(!this.fontSizeChanged) {
+          this.resized()
+      }else {
+          this.fontSizeToFit()
+      }
   }
+    ngAfterViewChecked(): void {
+        //this.resized()
+    }
 
   @HostListener('window:resize', ['$event'])
     onResize(event:Event):void {
+      this.fontSizeChanged=false;
+
         this.resized();
+
   }
 
   private resized() {
-    let elH = this.elRef.nativeElement.offsetHeight;
+      if(this.elRef){
+          let elH = this.elRef.nativeElement.offsetHeight;
 
-    // prompt text font size should scale according to prompt conatiner height
-    let scaledSize = Math.round((elH / VIRTUAL_HEIGHT) * DEFAULT_PROMPT_FONTSIZE);
+          // prompt text font size should scale according to prompt container height
+          let scaledSize = Math.round((elH / VIRTUAL_HEIGHT) * DEFAULT_PROMPT_FONTSIZE);
 
-    // min prompt font size is default user agent size
-    let newSize = Math.max(scaledSize, this.defaultFontSizePx);
-    if (this.fontSize !== newSize) {
-      this.fontSize = newSize;
-    }
+
+          // min prompt font size is default user agent size
+          let newSize = Math.max(scaledSize, this.defaultFontSizePx);
+          if (this.fontSize !== newSize) {
+              this.prDisplay='none'
+              this.fontSize = newSize;
+          }
+      }
+      window.setTimeout(()=>this.fontSizeToFit())
       //console.info("Font size: "+this.fontSize)
      //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
+
+  }
+
+
+  private fontSizeToFit(){
+      if(this._mediaitem ) {
+          // let ctxFnt=this.measureContext.font
+          //   console.log(ctxFnt)
+          // this.measureContext.font=this.fontSize+"px sans-serif"
+          // ctxFnt=this.measureContext.font
+          // console.log(ctxFnt)
+          // let textSize = this.measureContext.measureText(this._mediaitem.text)
+          // if(this.elRef.nativeElement instanceof HTMLDivElement) {
+          //     let divEl = <HTMLDivElement>this.elRef.nativeElement
+          //     console.log("padding left: " + divEl.style.paddingLeft)
+          //     console.log("padding: " + divEl.style.padding)
+            if(this.prompter && this.elRef) {
+                let nEl = this.elRef.nativeElement
+                console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height())
+                if(this.fontSize>=6 && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
+                    this.prDisplay='none'
+                    this.fontSize=this.fontSize-1
+                    console.log("Decreased font size: "+this.fontSize )
+                    this.fontSizeChanged=true
+                    window.setTimeout(()=>this.fontSizeToFit())
+                }else{
+                    this.prDisplay='flex'
+                }
+            }
+
+
+          //console.log("Prompt text width: "+textSize.width+" "+this.elRef.nativeElement.offsetWidth+"x"+this.elRef.nativeElement.offsetHeight)
+      }
   }
 
 }
