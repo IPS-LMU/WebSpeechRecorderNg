@@ -122,8 +122,10 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
 export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChecked{
   _mediaitem: Mediaitem;
 
+  fsmc=0;
   fontSize:number;
   fontSizeChanged=false
+    contentChecked=false;
     prDisplay='none';
   defaultStyle: CSSStyleDeclaration;
   defaultFontSizePx: number;
@@ -158,6 +160,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
   @Input() set mediaitem(mediaitem:Mediaitem){
       this._mediaitem=mediaitem
       this.fontSizeChanged=false;
+      this.contentChecked=false
       this.prDisplay='none'
       this.fontSizeToFit();
   }
@@ -167,10 +170,16 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
   }
 
   ngAfterContentChecked(): void {
-      if(!this.fontSizeChanged) {
-          this.resized()
-      }else {
+      if(this.fontSizeChanged) {
+          console.log("ngaftercontentchecked, call fontSizeToFit");
           this.fontSizeToFit()
+
+      }else {
+          if(!this.contentChecked) {
+              this.contentChecked = true;
+              console.log("ngaftercontentchecked, call resized");
+              this.resized()
+          }
       }
   }
     ngAfterViewChecked(): void {
@@ -200,6 +209,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
               this.fontSize = newSize;
           }
       }
+      console.log("resized, call fontSizeToFit hook "+this.fsmc);
       window.setTimeout(()=>this.fontSizeToFit())
       //console.info("Font size: "+this.fontSize)
      //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
@@ -208,6 +218,8 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
 
 
   private fontSizeToFit(){
+      this.fsmc++;
+      console.log("fontSizeToFit #"+this.fsmc);
       if(this._mediaitem ) {
           // let ctxFnt=this.measureContext.font
           //   console.log(ctxFnt)
@@ -221,15 +233,20 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
           //     console.log("padding: " + divEl.style.padding)
             if(this.prompter && this.elRef) {
                 let nEl = this.elRef.nativeElement
-                console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height())
+                console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
                 if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
                     this.prDisplay='none'
                     this.fontSize=this.fontSize-1
                     console.log("Decreased font size: "+this.fontSize )
                     this.fontSizeChanged=true
+                    this.contentChecked=false
                     window.setTimeout(()=>this.fontSizeToFit())
                 }else{
-                    this.prDisplay='flex'
+                    console.log("prDisplay: "+this.prDisplay)
+                    if(this.prDisplay!=='flex') {
+                        this.prDisplay = 'flex'
+                    }
+                    this.fontSizeChanged=false
                 }
             }
 
