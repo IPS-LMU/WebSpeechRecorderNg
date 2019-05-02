@@ -92,6 +92,7 @@ export class Prompter {
 
 export const VIRTUAL_HEIGHT=600;
 export const DEFAULT_PROMPT_FONTSIZE=48;
+export const MIN_FONT_SIZE=6;
 export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
 
 @Component({
@@ -221,7 +222,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
             if(this.prompter && this.elRef) {
                 let nEl = this.elRef.nativeElement
                 console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height())
-                if(this.fontSize>=6 && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
+                if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
                     this.prDisplay='none'
                     this.fontSize=this.fontSize-1
                     console.log("Decreased font size: "+this.fontSize )
