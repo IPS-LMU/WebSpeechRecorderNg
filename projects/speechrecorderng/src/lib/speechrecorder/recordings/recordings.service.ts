@@ -248,12 +248,14 @@ export class RecordingService {
 
             if(recordingFile.version!=null) {
               vers=recordingFile.version
+              //console.info("Requested version: "+vers)
             }else{
 
               // version not given, return latest
               let hVers = -1;
               for (let i = 0; i < allRfDtos.length; i++) {
                 let rfDto = allRfDtos[i]
+                //console.info("RfDTO idx "+i+" version: "+rfDto.version+", currently highest version: "+hVers)
                 if (rfDto.version > hVers) {
                   hVers = rfDto.version
                 }
@@ -267,25 +269,29 @@ export class RecordingService {
                 break;
               }
             }
-            let fileReader = new FileReader();
-            fileReader.onload = (ev) => {
-              let arrBuf: ArrayBuffer = <ArrayBuffer>fileReader.result
-              let dec = aCtx.decodeAudioData(arrBuf);
-              dec.then(ab => {
-                if (!ab) {
-                  console.error("Audio buffer is null!!")
-                }
-                recordingFile.audioBuffer = ab
-                observer.next(recordingFile);
-                observer.complete();
+            if(rfDtoToFetch) {
+              let fileReader = new FileReader();
+              fileReader.onload = (ev) => {
+                let arrBuf: ArrayBuffer = <ArrayBuffer>fileReader.result
+                let dec = aCtx.decodeAudioData(arrBuf);
+                dec.then(ab => {
+                  if (!ab) {
+                    console.error("Audio buffer is null!!")
+                  }
+                  recordingFile.audioBuffer = ab
+                  observer.next(recordingFile);
+                  observer.complete();
 
-              });
-              dec.catch((reason) => {
-                console.error("Audio decoding failed! " + reason)
-                observer.error(reason)
-              })
+                });
+                dec.catch((reason) => {
+                  console.error("Audio decoding failed! " + reason)
+                  observer.error(reason)
+                })
+              }
+              fileReader.readAsArrayBuffer(rfDtoToFetch.audioBlob);
+            }else{
+              console.error("Recording file: session: "+recordingFile.sessionId+", itemcode: "+recordingFile.itemCode+", version: "+vers+" not found!")
             }
-            fileReader.readAsArrayBuffer(rfDtoToFetch.audioBlob);
           } else {
             let obs = this.fetchAudiofile(projectName, recordingFile.sessionId, recordingFile.itemCode, recordingFile.version);
             obs.subscribe(resp => {
