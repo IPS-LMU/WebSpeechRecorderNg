@@ -154,7 +154,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
 
 
       //this.measureContext=this.measureCanvasRef.nativeElement.getContext("2d");
-
+      this.contentChecked = false;
   }
 
   @Input() set mediaitem(mediaitem:Mediaitem){
@@ -162,7 +162,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
       this.fontSizeChanged=false;
       this.contentChecked=false
       this.prDisplay='none'
-      this.fontSizeToFit();
+      this.resized()
   }
 
   get mediaitem():Mediaitem{
@@ -171,14 +171,14 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
 
   ngAfterContentChecked(): void {
       if(this.fontSizeChanged) {
-          console.log("ngaftercontentchecked, call fontSizeToFit");
+          //console.log("ngaftercontentchecked, call fontSizeToFit");
+          // check prompter size again
           this.fontSizeToFit()
-
       }else {
           if(!this.contentChecked) {
               this.contentChecked = true;
-              console.log("ngaftercontentchecked, call resized");
-              this.resized()
+              //console.log("ngaftercontentchecked, call resized");
+              this.fontSizeToFit();
           }
       }
   }
@@ -189,13 +189,12 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
   @HostListener('window:resize', ['$event'])
     onResize(event:Event):void {
       this.fontSizeChanged=false;
-
         this.resized();
-
   }
 
   private resized() {
       if(this.elRef){
+          this.contentChecked=false
           let elH = this.elRef.nativeElement.offsetHeight;
 
           // prompt text font size should scale according to prompt container height
@@ -209,7 +208,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
               this.fontSize = newSize;
           }
       }
-      console.log("resized, call fontSizeToFit hook "+this.fsmc);
+      //console.log("resized, call fontSizeToFit hook "+this.fsmc);
       window.setTimeout(()=>this.fontSizeToFit())
       //console.info("Font size: "+this.fontSize)
      //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
@@ -233,7 +232,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
           //     console.log("padding: " + divEl.style.padding)
             if(this.prompter && this.elRef) {
                 let nEl = this.elRef.nativeElement
-                console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
+                //console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
                 if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
                     this.prDisplay='none'
                     this.fontSize=this.fontSize-1
@@ -242,7 +241,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
                     this.contentChecked=false
                     window.setTimeout(()=>this.fontSizeToFit())
                 }else{
-                    console.log("prDisplay: "+this.prDisplay)
+                    //console.log("prDisplay: "+this.prDisplay)
                     if(this.prDisplay!=='flex') {
                         this.prDisplay = 'flex'
                     }
