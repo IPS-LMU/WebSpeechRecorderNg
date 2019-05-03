@@ -87,6 +87,20 @@
                 ]
               }
             ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "VL3",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "„Wind und Sonne machten Wette,\nWer die meisten Kräfte hätte,\nEinen armen Wandersmann\nSeiner Kleider zu berauben.\n\nWind begann;\nDoch sein Schnauben\nTat ihm nichts; der Wandersmann\nZog den Mantel dichter an.\nWind verzweifelt nun und ruht;\nUnd ein lieber Sonnenschein\nFüllt mit holder, sanfter Gluth\nWanderers Gebein.\n\nHüllt er nun sich tiefer ein?\nNein!\nAb wirft er nun sein Gewand,\nUnd die Sonne überwand.\n\nÜbermacht, Vernunftgewalt\nMacht und läßt uns kalt;\nWarme Christusliebe –\nWer, der kalt ihr bliebe?“\n\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel. Wind und Sonne machten Wette,\\nWer die meisten Kräfte hätte,\\nEinen armen Wandersmann\\nSeiner Kleider zu berauben.\\n\\nWind begann;\\nDoch sein Schnauben\\nTat ihm nichts; der Wandersmann\\nZog den Mantel dichter an.\\nWind verzweifelt nun und ruht;\\nUnd ein lieber Sonnenschein\\nFüllt mit holder, sanfter Gluth\\nWanderers Gebein.\\n\\nHüllt er nun sich tiefer ein?\\nNein!\\nAb wirft er nun sein Gewand,\\nUnd die Sonne überwand.\\n\\nÜbermacht, Vernunftgewalt\\nMacht und läßt uns kalt;\\nWarme Christusliebe –\\nWer, der kalt ihr bliebe?“\\n\\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel.\n"
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
