@@ -59,7 +59,8 @@ export class Recinstructions {
 
     justify-content: center; /* align horizontal center */
     align-items: center; /* align vertical  center */
-    background: yellow;
+    /* background: yellow; */
+      background: white;
     text-align: center;
    /* font-size: 2em; */
     line-height: 1.2em;
@@ -111,7 +112,8 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
     /* height: 100%; */
     justify-content: center; /* align horizontal center*/
     align-items: center; /* align vertical center */
-    background: lightgoldenrodyellow;
+    /* background: lightgoldenrodyellow; */
+      background: white;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -218,7 +220,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
 
   private fontSizeToFit(){
       this.fsmc++;
-      console.log("fontSizeToFit #"+this.fsmc);
+      //console.log("fontSizeToFit #"+this.fsmc);
       if(this._mediaitem ) {
           // let ctxFnt=this.measureContext.font
           //   console.log(ctxFnt)
@@ -236,7 +238,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
                 if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
                     this.prDisplay='none'
                     this.fontSize=this.fontSize-1
-                    console.log("Decreased font size: "+this.fontSize )
+                    //console.log("Decreased font size: "+this.fontSize )
                     this.fontSizeChanged=true
                     this.contentChecked=false
                     window.setTimeout(()=>this.fontSizeToFit())
