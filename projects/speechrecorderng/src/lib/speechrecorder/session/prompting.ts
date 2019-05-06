@@ -61,7 +61,6 @@ export class Recinstructions {
 
     justify-content: center; /* align horizontal center */
     align-items: center; /* align vertical  center */
-    /* background: yellow; */
       background: white;
     text-align: center;
    /* font-size: 2em; */
@@ -95,7 +94,6 @@ export class Prompter {
     @HostBinding('class.fill') public prompterStyleFill = false;
 
 
-    //@Input() promptText: string
     constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService){}
 
     get text() {
@@ -187,7 +185,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
   selector: 'app-sprpromptcontainer',
 
   template: `      
-    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.display]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
+    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
   `
   ,
   styles: [`:host {
@@ -199,7 +197,6 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
 
     justify-content: center; /* align horizontal center*/
     align-items: center; /* align vertical center */
-    /* background: lightgoldenrodyellow; */
       background: white;
     text-align: center;
     display: flex;
@@ -209,20 +206,19 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
   }
   `]
 })
-export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChecked{
+export class PromptContainer implements OnInit,AfterContentChecked {
     @Input() projectName: string | null;
     private _mediaitems: Array<Mediaitem>;
 
   prompterHeight: number = VIRTUAL_HEIGHT
   fontSize:number;
-  fontSizeChanged=false
+  fontSizeChange=false
     contentChecked=false;
-    prDisplay='none';
+  prDisplay='hidden';
   defaultStyle: CSSStyleDeclaration;
   defaultFontSizePx: number;
-  measureContext: CanvasRenderingContext2D;
 
-    //@ViewChild('measureCanvas') measureCanvasRef: ElementRef;
+  autoFontSize=false;
     @ViewChild(Prompter) prompter: Prompter;
   constructor(private elRef:ElementRef){}
 
@@ -241,53 +237,65 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
           //console.info("Default font size: "+this.defaultFontSizePx)
         }
       }
-    //this.resized();
-
-
-      //this.measureContext=this.measureCanvasRef.nativeElement.getContext("2d");
       this.contentChecked = false;
   }
 
+  ngAfterContentChecked(): void {
+    if(this.autoFontSize) {
+      if (this.fontSizeChange) {
+          //console.log("ngaftercontentchecked, call fontSizeToFit");
+          // check prompter size again
+          this.fontSizeToFit()
+      }else {
+        // font size was checked, but we need to check again after angular content check
+          if(!this.contentChecked) {
+              this.contentChecked = true;
+          //console.log("ngaftercontentchecked, not font size changed, call ");
+          this.fontSizeToFit()
+        }
+          }
+      }
+  }
+
+
   @Input() set mediaitems(mediaitems:Array<Mediaitem>){
       this._mediaitems=mediaitems
-      this.fontSizeChanged=false;
-      this.contentChecked=false
-
-      this.prDisplay='none'
-      this.resized()
-      this.prompter.promptMediaItems=this._mediaitems
-  }
+    let mimetype:string|null=null;
+    if (this._mediaitems && this._mediaitems.length == 1) {
+      let mi = this._mediaitems[0]
+      mimetype = 'text/plain'
+      if (mi.mimetype) {
+        mimetype = mi.mimetype.trim();
+      }
+    }
+    this.prompter.promptMediaItems=this._mediaitems
+    this.autoFontSize=(mimetype === 'text/plain');
+    if(this.autoFontSize){
+        this.fontSizeChange = true;
+        this.contentChecked = false
+        this.prDisplay = 'hidden'
+        this.layout()
+      }
+    }
 
   get mediaitems():Array<Mediaitem>{
       return this._mediaitems;
   }
 
-  ngAfterContentChecked(): void {
-      if(this.fontSizeChanged) {
-          //console.log("ngaftercontentchecked, call fontSizeToFit");
-          // check prompter size again
-          this.fontSizeToFit()
-      }else {
-          if(!this.contentChecked) {
-              this.contentChecked = true;
-              //console.log("ngaftercontentchecked, call resized");
-              this.fontSizeToFit();
-          }
-      }
-  }
-    ngAfterViewChecked(): void {
-        //this.resized()
-    }
+
 
   @HostListener('window:resize', ['$event'])
     onResize(event:Event):void {
-      this.fontSizeChanged=false;
-        this.resized();
+    //console.debug("onresize, call fontSizeToFit hook ");
+    this.layout();
   }
 
-  private resized() {
-      if(this.elRef){
+  private layout() {
+    if(this.autoFontSize && this.elRef) {
+
+      this.fontSizeChange=true;
           this.contentChecked=false
+      this.prDisplay = 'hidden'
           let elH = this.elRef.nativeElement.offsetHeight;
 
           // prompt text font size should scale according to prompt container height
@@ -297,52 +305,46 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
           // min prompt font size is default user agent size
           let newSize = Math.max(scaledSize, this.defaultFontSizePx);
           if (this.fontSize !== newSize) {
-              this.prDisplay='none'
               this.fontSize = newSize;
           }
-      }
-      //console.log("resized, call fontSizeToFit hook "+this.fsmc);
-      window.setTimeout(()=>this.fontSizeToFit())
-      //console.info("Font size: "+this.fontSize)
-     //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
 
+      //console.log("layout, call fontSizeToFit hook ");
+      window.setTimeout(()=>this.fontSizeToFit())
+
+  }
   }
 
 
   private fontSizeToFit(){
       //this.fsmc++;
       //console.log("fontSizeToFit #"+this.fsmc);
-      if(this._mediaitems ) {
-          // let ctxFnt=this.measureContext.font
-          //   console.log(ctxFnt)
-          // this.measureContext.font=this.fontSize+"px sans-serif"
-          // ctxFnt=this.measureContext.font
-          // console.log(ctxFnt)
-          // let textSize = this.measureContext.measureText(this._mediaitem.text)
-          // if(this.elRef.nativeElement instanceof HTMLDivElement) {
-          //     let divEl = <HTMLDivElement>this.elRef.nativeElement
-          //     console.log("padding left: " + divEl.style.paddingLeft)
-          //     console.log("padding: " + divEl.style.padding)
-            if(this.prompter && this.elRef) {
+      if(this._mediaitems && this.prompter && this.elRef) {
                 let nEl = this.elRef.nativeElement
                 //console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
                 if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
-                    this.prDisplay='none'
+                    // prompter oversizes prompter container. Decrease font size.
+                    // set invisible during font size checks
+                    this.prDisplay='hidden'
+                  // decrease font size
                     this.fontSize=this.fontSize-1
                     //console.log("Decreased font size: "+this.fontSize )
-                    this.fontSizeChanged=true
+                  // Set flags
+                    this.fontSizeChange=true
                     this.contentChecked=false
+                  // hook the next check
                     window.setTimeout(()=>this.fontSizeToFit())
                 }else{
+                  // prompter fits in  prompter container, font size should be fine
+
                     //console.log("prDisplay: "+this.prDisplay)
-                    if(this.prDisplay!=='flex') {
-                        this.prDisplay = 'flex'
-                    }
-                    this.fontSizeChanged=false
+
+                  //if(this.contentChecked && ! this.fontSizeChange) {
+                    //console.log("Display!")
+                    // set prompter visible now
+                  this.prDisplay = 'visible'
+                  //}
+                  this.fontSizeChange = false
                 }
-            }
-
-
           //console.log("Prompt text width: "+textSize.width+" "+this.elRef.nativeElement.offsetWidth+"x"+this.elRef.nativeElement.offsetHeight)
       }
   }
