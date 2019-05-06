@@ -32,8 +32,8 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
-        <span matTooltip="Peak level"
-              [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">Peak: {{peakDbLvl | number:'1.1-1'}} dB </span>
+        <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span matTooltip="Peak level"
+                                                                        [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr></table></div>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
