@@ -9,7 +9,7 @@ import {
   OnInit,
   AfterViewChecked,
   Renderer2,
-  ChangeDetectorRef, HostBinding
+  ChangeDetectorRef, HostBinding, AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -117,6 +117,22 @@ export class Prompter {
     return null;
   }
 
+    width():number{
+      if(this.elRef){
+        if(this.elRef.nativeElement){
+            return this.elRef.nativeElement.clientWidth
+        }
+      }
+      return null
+    }
+    height():number{
+        if(this.elRef){
+            if(this.elRef.nativeElement){
+                return this.elRef.nativeElement.clientHeight
+            }
+        }
+    }
+
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
@@ -163,6 +179,7 @@ export class Prompter {
 
 export const VIRTUAL_HEIGHT = 600;
 export const DEFAULT_PROMPT_FONTSIZE = 48;
+export const MIN_FONT_SIZE=6;
 export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
 
 @Component({
@@ -170,10 +187,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
   selector: 'app-sprpromptcontainer',
 
   template: `
-
-    <app-sprprompter [projectName]="projectName" [style.font-size]="fontSize+'px'" [prompterHeight]="prompterHeight"
-                     [promptMediaItems]="mediaitems"></app-sprprompter>
-
+    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.display]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
   `
   ,
   styles: [`:host {
@@ -190,22 +204,25 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
     display: flex;
     flex-direction: column;
     min-height: 0px;
-    width: 100%;
+    /* width: 100%; */
   }
   `]
 })
-export class PromptContainer implements OnInit {
+export class PromptContainer implements OnInit,AfterContentChecked {
   @Input() projectName: string | null;
-  @Input() mediaitems: Array<Mediaitem>;
-  @ViewChild(Prompter) prompter: Prompter;
+    private _mediaitems: Array<Mediaitem>;
 
   prompterHeight: number = VIRTUAL_HEIGHT
   fontSize: number;
+  fontSizeChanged=false
+    contentChecked=false;
+    prDisplay='none';
   defaultStyle: CSSStyleDeclaration;
   defaultFontSizePx: number;
 
-  constructor(private elRef: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
-  }
+    //@ViewChild('measureCanvas') measureCanvasRef: ElementRef;
+    @ViewChild(Prompter) prompter: Prompter;
+  constructor(private elRef:ElementRef){}
 
   ngOnInit() {
 
@@ -219,32 +236,116 @@ export class PromptContainer implements OnInit {
       if (defFontSizeStr.endsWith('px')) {
         // parseFloat ignores non number characters at the end (again no comment ;) )
         this.defaultFontSizePx = parseFloat(defFontSizeStr);
+          //console.info("Default font size: "+this.defaultFontSizePx)
+        }
+      }
+    //this.resized();
+
+
+      //this.measureContext=this.measureCanvasRef.nativeElement.getContext("2d");
+      this.contentChecked = false;
+  }
+
+  ngAfterContentChecked(): void {
+    if(this.fontSizeChanged) {
+      //console.log("ngaftercontentchecked, call fontSizeToFit");
+      // check prompter size again
+      this.fontSizeToFit()
+    }else {
+      if(!this.contentChecked) {
+        this.contentChecked = true;
+        //console.log("ngaftercontentchecked, call resized");
+        this.fontSizeToFit();
       }
     }
-    this.resized();
   }
+
+
+  @Input() set mediaitems(mediaitems:Array<Mediaitem>){
+      this._mediaitems=mediaitems
+      this.fontSizeChanged=false;
+      this.contentChecked=false
+
+      this.prDisplay='none'
+      this.resized()
+      this.prompter.promptMediaItems=this._mediaitems
+  }
+
+  get mediaitems():Array<Mediaitem>{
+      return this._mediaitems;
+      }
+
+
 
   @HostListener('window:resize', ['$event'])
   onResize(event: Event): void {
+      this.fontSizeChanged=false;
     this.resized();
   }
 
   private resized() {
-    //console.log("Prompter container size: "+this.elRef.nativeElement.offsetWidth+"x"+this.elRef.nativeElement.offsetHeight)
+      if(this.elRef){
+          this.contentChecked=false
     let elH = this.elRef.nativeElement.offsetHeight;
 
-    this.prompterHeight = elH;
-    // prompt text font size should scale according to prompt conatiner height
+          // prompt text font size should scale according to prompt container height
     let scaledSize = Math.round((elH / VIRTUAL_HEIGHT) * DEFAULT_PROMPT_FONTSIZE);
 
     // min prompt font size is default user agent size
-    this.fontSize = Math.max(scaledSize, this.defaultFontSizePx);
-
+          let newSize = Math.max(scaledSize, this.defaultFontSizePx);
+          if (this.fontSize !== newSize) {
+              this.prDisplay='none'
+              this.fontSize = newSize;
+          }
+      }
+      //console.log("resized, call fontSizeToFit hook "+this.fsmc);
+      window.setTimeout(()=>this.fontSizeToFit())
+      //console.info("Font size: "+this.fontSize)
     //console.log("Def font size: "+this.defaultFontSizePx+"px, prompt font size: "+this.fontSize+"px")
 
   }
 
+
+  private fontSizeToFit(){
+      //this.fsmc++;
+      //console.log("fontSizeToFit #"+this.fsmc);
+      if(this._mediaitems ) {
+          // let ctxFnt=this.measureContext.font
+          //   console.log(ctxFnt)
+          // this.measureContext.font=this.fontSize+"px sans-serif"
+          // ctxFnt=this.measureContext.font
+          // console.log(ctxFnt)
+          // let textSize = this.measureContext.measureText(this._mediaitem.text)
+          // if(this.elRef.nativeElement instanceof HTMLDivElement) {
+          //     let divEl = <HTMLDivElement>this.elRef.nativeElement
+          //     console.log("padding left: " + divEl.style.paddingLeft)
+          //     console.log("padding: " + divEl.style.padding)
+            if(this.prompter && this.elRef) {
+                let nEl = this.elRef.nativeElement
+                //console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
+                if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
+                    this.prDisplay='none'
+                    this.fontSize=this.fontSize-1
+                    //console.log("Decreased font size: "+this.fontSize )
+                    this.fontSizeChanged=true
+                    this.contentChecked=false
+                    window.setTimeout(()=>this.fontSizeToFit())
+                }else{
+                    //console.log("prDisplay: "+this.prDisplay)
+                    if(this.prDisplay!=='flex') {
+                        this.prDisplay = 'flex'
+                    }
+                    this.fontSizeChanged=false
 }
+            }
+
+
+          //console.log("Prompt text width: "+textSize.width+" "+this.elRef.nativeElement.offsetWidth+"x"+this.elRef.nativeElement.offsetHeight)
+      }
+  }
+
+}
+
 
 
 @Component({
