@@ -43,7 +43,7 @@ import {StartStopSignal, State} from '../startstopsignal'
       padding: 2px;
       height: 170px;
       max-height: 170px;
-      flex: 0;
+      flex: 0 0 content;
     }
     `]
 })
