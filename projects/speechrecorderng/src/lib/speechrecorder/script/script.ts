@@ -8,7 +8,9 @@ export interface Recinstructions{
   recinstructions:string;
 }
 export interface Mediaitem {
-  text: string;
+  text?: string,
+  src?: string,
+  mimetype?:string
 }
 
 export interface ItemCodeProvider{

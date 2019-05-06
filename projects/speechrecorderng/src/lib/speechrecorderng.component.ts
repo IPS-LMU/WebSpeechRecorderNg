@@ -36,7 +36,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession></app-sprrecordingsession>
+    <app-sprrecordingsession [projectName]="project?.name"></app-sprrecordingsession>
   `,
     styleUrls: ['speechrecorder.component.css']
 

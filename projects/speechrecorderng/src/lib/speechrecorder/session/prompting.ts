@@ -8,7 +8,7 @@ import {
     ElementRef,
     OnInit,
     AfterViewInit,
-    AfterContentChecked, AfterViewChecked
+    AfterContentChecked, AfterViewChecked, HostBinding, Renderer2
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -19,6 +19,7 @@ import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
+import {ProjectService} from "../project/project.service";
 
 
 @Component({
@@ -53,7 +54,8 @@ export class Recinstructions {
 
   template: `
 
-    {{promptText}}
+    <!--<ng-template [ngIf]="text">{{text}}</ng-template>-->
+    <!-- <img *ngIf="src" #promptImage [src]="srcUrl()" [height]="prompterHeight-20" /> -->
   `,
   styles: [`:host {
 
@@ -65,14 +67,53 @@ export class Recinstructions {
    /* font-size: 2em; */
     line-height: 1.2em;
       font-weight: bold;
+    /* Use only natural size of the prompt */
+    /* The prompter compnent then ets aligned vertically centered */
+    flex: 0 1;
+      
      
-    flex: 0;
-  }
-  `]
+  }`, `:host(.fill) {
+    /* Use all space to scale images */
+    flex: 3;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
+    /* A separate flex container might be necessayr to alighn centered */
+    vertical-align: middle; /* TODO does not work, image is not vertically centered */
+  }`]
 })
 export class Prompter {
-  @Input() promptText: string
-    constructor(private elRef:ElementRef){}
+    @Input() projectName: string | null;
+    private _promptMediaItems: Array<Mediaitem>
+    @Input() prompterHeight: number
+    private _text: string = null;
+    private _src: string = null;
+    mimetype: string;
+    private currPromptChild: HTMLElement = null;
+
+    @HostBinding('class.fill') public prompterStyleFill = false;
+
+
+    //@Input() promptText: string
+    constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService){}
+
+    get text() {
+
+        return this._text;
+    }
+
+    get src() {
+
+        return this._src;
+    }
+
+    srcUrl(): string {
+        if (this._src) {
+            return this.projectService.projectResourceUrl(this.projectName, this._src);
+        }
+        return null;
+    }
 
     width():number{
       if(this.elRef){
@@ -89,6 +130,51 @@ export class Prompter {
             }
         }
     }
+
+    @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
+        this._promptMediaItems = pMis
+        if (this.currPromptChild != null) {
+            this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
+        }
+        if (this._promptMediaItems && this._promptMediaItems.length == 1) {
+            let mi = this._promptMediaItems[0]
+            this.mimetype = 'text/plain'
+            if (mi.mimetype) {
+                this.mimetype = mi.mimetype.trim();
+            }
+            if (this.mimetype === 'text/plain') {
+                this._text = mi.text
+                this._src = null;
+                this.currPromptChild = this.renderer.createText(this._text)
+                this.prompterStyleFill = false
+                this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+            } else if (this.mimetype.startsWith('image')) {
+                this._text = null;
+                this._src = mi.src
+                let promptImage = new Image()
+
+                this.currPromptChild = promptImage
+                this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+                this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
+                this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
+                this.renderer.setStyle(this.currPromptChild, "flex-grow", "0")
+                this.prompterStyleFill = true
+                // TODO vertical alignment
+                // https://stackoverflow.com/questions/7273338/how-to-vertically-align-an-image-inside-a-div
+
+                //console.log(promptImage.naturalWidth + "x"+promptImage.naturalHeight);
+                promptImage.onload = (ev: ProgressEvent) => {
+
+                }
+                promptImage.src = this.srcUrl()
+            }
+
+        } else {
+            this._text = null
+            this._src = null
+        }
+    }
+
 }
 
 export const VIRTUAL_HEIGHT=600;
@@ -101,15 +187,16 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
   selector: 'app-sprpromptcontainer',
 
   template: `      
-    <app-sprprompter #prompter [style.font-size]="fontSize+'px'" [style.display]="prDisplay" [promptText]="mediaitem?.text"></app-sprprompter>
+    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.display]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
   `
   ,
   styles: [`:host {
 
     flex: 3; /* the container consumes all available space */
-    padding: 0pt;
-      width:100%;
-    /* height: 100%; */
+    padding: 10pt;
+    height: 100%;
+    max-height: 100%;
+
     justify-content: center; /* align horizontal center*/
     align-items: center; /* align vertical center */
     /* background: lightgoldenrodyellow; */
@@ -118,13 +205,15 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
     display: flex;
     flex-direction: column;
     min-height: 0px;
+    /* width: 100%; */
   }
   `]
 })
 export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChecked{
-  _mediaitem: Mediaitem;
+    @Input() projectName: string | null;
+    private _mediaitems: Array<Mediaitem>;
 
-  fsmc=0;
+  prompterHeight: number = VIRTUAL_HEIGHT
   fontSize:number;
   fontSizeChanged=false
     contentChecked=false;
@@ -159,16 +248,18 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
       this.contentChecked = false;
   }
 
-  @Input() set mediaitem(mediaitem:Mediaitem){
-      this._mediaitem=mediaitem
+  @Input() set mediaitems(mediaitems:Array<Mediaitem>){
+      this._mediaitems=mediaitems
       this.fontSizeChanged=false;
       this.contentChecked=false
+
       this.prDisplay='none'
       this.resized()
+      this.prompter.promptMediaItems=this._mediaitems
   }
 
-  get mediaitem():Mediaitem{
-      return this._mediaitem;
+  get mediaitems():Array<Mediaitem>{
+      return this._mediaitems;
   }
 
   ngAfterContentChecked(): void {
@@ -219,9 +310,9 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
 
 
   private fontSizeToFit(){
-      this.fsmc++;
+      //this.fsmc++;
       //console.log("fontSizeToFit #"+this.fsmc);
-      if(this._mediaitem ) {
+      if(this._mediaitems ) {
           // let ctxFnt=this.measureContext.font
           //   console.log(ctxFnt)
           // this.measureContext.font=this.fontSize+"px sans-serif"
@@ -266,7 +357,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
 
   template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount" [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
-    <app-sprpromptcontainer [mediaitem]="showPrompt?promptItem?.mediaitems[0]:null"></app-sprpromptcontainer>
+    <app-sprpromptcontainer [projectName]="projectName" [mediaitems]="showPrompt?promptItem?.mediaitems:null"></app-sprpromptcontainer>
 
   `
   ,
@@ -285,6 +376,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
   `]
 })
 export class PromptingContainer {
+  @Input() projectName: string | null;
   @Input() promptItem: PromptItem;
   @Input() showPrompt: boolean;
     @Input() selectedItemIdx: number;
@@ -416,7 +508,9 @@ export class PromptingContainer {
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [promptItem]="promptItem" [showPrompt]="showPrompt" [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx" [transportActions]="transportActions"></app-sprpromptingcontainer>
+    <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
+                               [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
+                               [transportActions]="transportActions"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -482,7 +576,7 @@ export class PromptingContainer {
         bottom: 0px;
         /*left: 0px; */
 
-        height: 90%;
+      height: 80%;
         width: 100%;
 
         overflow: hidden;
@@ -502,6 +596,7 @@ export class PromptingContainer {
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
   @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
+  @Input() projectName: string | null;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;
