@@ -157,7 +157,7 @@ export class Prompter {
                 this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
                 this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
                 this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
-                this.renderer.setStyle(this.currPromptChild, "flex-grow", "0")
+
                 this.prompterStyleFill = true
                 // TODO vertical alignment
                 // https://stackoverflow.com/questions/7273338/how-to-vertically-align-an-image-inside-a-div
