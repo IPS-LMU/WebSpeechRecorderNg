@@ -168,10 +168,16 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
           }
         },()=>{
           // we start the session anyway
-          this.sm.start();
+          this.startSession()
         },()=>{
-          this.sm.start();
+          this.startSession()
         })
+    }
+
+
+    private startSession(){
+
+		  this.sm.start();
     }
 
 

@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
+import {Status as SessionStatus} from "./session";
 import {MatDialog,MatProgressBar} from "@angular/material";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
@@ -175,6 +176,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               public dialog: MatDialog,
+              private sessionService:SessionService,
               private recFileService:RecordingService,
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
@@ -654,6 +656,16 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   start() {
 
+    if(this._session.status==="CREATED") {
+      this._session.status = "LOADED";
+      if(!this._session.loadedDate) {
+        this._session.loadedDate = new Date();
+      }
+    }
+    //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
+    let sessObs=this.sessionService.putSessionObserver(this._session)
+    sessObs.subscribe();
+
     if (this.ac) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
@@ -784,7 +796,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
+    if(this._session.status==="LOADED") {
 
+      if (this.section.training) {
+        this._session.status = "STARTED_TRAINING"
+        if(!this._session.startedTrainingDate) {
+          this._session.startedTrainingDate = new Date();
+        }
+      } else {
+        this._session.status = "STARTED"
+        if(!this._session.startedDate) {
+          this._session.startedDate = new Date();
+        }
+      }
+      this.sessionService.putSessionObserver(this._session).subscribe()
+    }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
     }
@@ -971,6 +997,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.status = Status.IDLE;
     let startNext=false;
     if (complete) {
+      if(this._session.status!=="COMPLETED" && this._session.status!=="SEALED" ) {
+          this._session.status = "COMPLETED"
+          if(!this._session.completedDate) {
+            this._session.completedDate = new Date()
+          }
+         this.sessionService.putSessionObserver(this._session).subscribe()
+      }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
     } else {
