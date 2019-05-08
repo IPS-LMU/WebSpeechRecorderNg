@@ -1,6 +1,7 @@
 {
   "debugMode": true,
   "sessionId": 2,
+  "type": "TEST",
   "project": "Demo1",
 
   "script": 1245

@@ -62,6 +62,7 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
+    <app-warningbar [show]="isTestSession()" warningText="Test-recording only!"></app-warningbar>
       <app-sprprompting [projectName]="projectName" 
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
@@ -314,6 +315,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.transportActions.bwdAction.perform();
     }
   }
+
+  isTestSession():boolean {
+    return (this._session && (this._session.type === 'TEST' || this._session.type === 'SINUS_TEST'))
+  }
+
 
   set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
     if (this._controlAudioPlayer) {
