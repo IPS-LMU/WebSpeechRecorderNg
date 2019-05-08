@@ -1,8 +1,9 @@
 {
   "debugMode": true,
   "sessionId": 2,
-  "type": "NORMAL",
+  "type": "NORM",
   "project": "Demo1",
-
+  "status": "CREATED",
+  "sealed": false,
   "script": 1245
 }

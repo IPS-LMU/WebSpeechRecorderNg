@@ -29,6 +29,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Observable, Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 
+
 export const RECFILE_API_CTX = 'recfile';
 
 
@@ -83,7 +84,7 @@ export class Item {
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [currentRecording]="displayAudioBuffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
@@ -159,6 +160,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   displayLevelInfos: LevelInfos | null;
 
   promptItemCount: number;
+
+  readonly=false
 
   statusMsg: string;
   statusAlertType: string;
@@ -415,6 +418,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   startItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
+    if(this.readonly){
+      return
+    }
     this.transportActions.fwdAction.disabled = true
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
@@ -653,7 +659,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (!temporary) {
         this.showRecording();
       }
-      this.startStopSignalState = StartStopSignalState.IDLE;
+      if(!this.readonly) {
+        this.startStopSignalState = StartStopSignalState.IDLE;
+      }
     }
     this.updateStartActionDisableState()
 
@@ -662,17 +670,32 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   start() {
 
-    if(this._session.status==="CREATED") {
-      this._session.status = "LOADED";
-      if(!this._session.loadedDate) {
-        this._session.loadedDate = new Date();
+    if (this._session.sealed) {
+      this.readonly = true
+      this.statusMsg = 'Session sealed!';
+      //let dialogRef = this.dialog.open(SessionSealedDialog, {});
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Error',
+          msg: "This session is sealed. Recordings cannot be added anymore.",
+          advise: 'Please ask your experimenter what to do (e.g start a new session).',
+        }
+      });
+    } else {
+      if (this._session.status === "CREATED") {
+        this._session.status = "LOADED";
+        if (!this._session.loadedDate) {
+          this._session.loadedDate = new Date();
+        }
+      } else {
+        this._session.restartedDate = new Date();
       }
+      this.sessionService.putSessionObserver(this._session).subscribe()
     }
     //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
-    let sessObs=this.sessionService.putSessionObserver(this._session)
-    sessObs.subscribe();
 
-    if (this.ac) {
+    if (!this.readonly && this.ac) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
@@ -750,6 +773,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if(this.promptItemCount>0) {
       this.promptIndex = 0;
     }
+    this.enableNavigation()
   }
 
   isRecording(): boolean {
@@ -785,6 +809,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusMsg = 'Ready.';
     //this.updateStartActionDisableState()
     this.transportActions.startAction.disabled=!(this.ac && this.isRecordingItem());
+
+  }
+
+  enableNavigation(){
     this.transportActions.fwdAction.disabled = false
     this.transportActions.bwdAction.disabled = false
   }
@@ -1003,7 +1031,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.status = Status.IDLE;
     let startNext=false;
     if (complete) {
-      if(this._session.status!=="COMPLETED" && this._session.status!=="SEALED" ) {
+      if(!this._session.sealed && this._session.status!=="COMPLETED") {
           this._session.status = "COMPLETED"
           if(!this._session.completedDate) {
             this._session.completedDate = new Date()

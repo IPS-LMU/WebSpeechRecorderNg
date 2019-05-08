@@ -154,14 +154,14 @@ export class TransportActions {
 })
 export class TransportPanel {
 
-
+  @Input() readonly:boolean;
   @Input() actions: TransportActions;
 
   startStopNextButtonName:string;
     startStopNextButtonIconName:string;
 
   startDisabled() {
-    return !this.actions || this.actions.startAction.disabled
+    return !this.actions || this.readonly || this.actions.startAction.disabled
   }
 
   stopDisabled() {
@@ -235,7 +235,7 @@ export class TransportPanel {
     <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
 
-    <app-sprtransport [actions]="transportActions"></app-sprtransport>
+    <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
     <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus"></app-uploadstatus>
@@ -261,6 +261,7 @@ export class ControlPanel {
   @ViewChild(StatusDisplay) statusDisplay: StatusDisplay;
   @ViewChild(TransportPanel) transportPanel: TransportPanel;
 
+  @Input() readonly:boolean
   @Input() transportActions: TransportActions
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
