@@ -62,6 +62,7 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
+    <app-warningbar [show]="isTestSession()" warningText="Test-recording only!"></app-warningbar>
       <app-sprprompting [projectName]="projectName" 
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
@@ -82,7 +83,7 @@ export class Item {
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [currentRecording]="displayAudioBuffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
@@ -158,6 +159,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   displayLevelInfos: LevelInfos | null;
 
   promptItemCount: number;
+
+  readonly=false
 
   statusMsg: string;
   statusAlertType: string;
@@ -315,6 +318,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
+  isTestSession():boolean {
+    return (this._session && (this._session.type === 'TEST' || this._session.type === 'SINUS_TEST'))
+  }
+
+
   set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
     if (this._controlAudioPlayer) {
       //this._controlAudioPlayer.listener=null;
@@ -409,6 +417,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   startItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
+    if(this.readonly){
+      return
+    }
     this.transportActions.fwdAction.disabled = true
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
@@ -650,7 +661,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (!temporary) {
         this.showRecording();
       }
+      if(!this.readonly) {
       this.startStopSignalState = StartStopSignalState.IDLE;
+    }
     }
     this.updateStartActionDisableState()
 
@@ -659,17 +672,32 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   start() {
 
+    if (this._session.sealed) {
+      this.readonly = true
+      this.statusMsg = 'Session sealed!';
+      //let dialogRef = this.dialog.open(SessionSealedDialog, {});
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Error',
+          msg: "This session is sealed. Recordings cannot be added anymore.",
+          advise: 'Please ask your experimenter what to do (e.g start a new session).',
+        }
+      });
+    } else {
     if(this._session.status==="CREATED") {
       this._session.status = "LOADED";
       if(!this._session.loadedDate) {
         this._session.loadedDate = new Date();
       }
+      } else {
+        this._session.restartedDate = new Date();
+      }
+      this.sessionService.putSessionObserver(this._session).subscribe()
     }
     //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
-    let sessObs=this.sessionService.putSessionObserver(this._session)
-    sessObs.subscribe();
 
-    if (this.ac) {
+    if (!this.readonly && this.ac) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
@@ -747,6 +775,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if(this.promptItemCount>0) {
       this.promptIndex = 0;
     }
+    this.enableNavigation()
   }
 
   isRecording(): boolean {
@@ -782,6 +811,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusMsg = 'Ready.';
     //this.updateStartActionDisableState()
     this.transportActions.startAction.disabled=!(this.ac && this.isRecordingItem());
+
+  }
+
+  enableNavigation(){
     this.transportActions.fwdAction.disabled = false
     this.transportActions.bwdAction.disabled = false
   }
@@ -955,33 +988,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
 
-      // if (this.enableUploadRecordings) {
-      //   // TODO use SpeechRecorderconfig resp. RecfileService
-      //   //new REST API URL
-      //
-      //   let apiEndPoint = '';
-      //
-      //   if (this.config && this.config.apiEndPoint) {
-      //     apiEndPoint = this.config.apiEndPoint;
-      //   }
-      //   if (apiEndPoint !== '') {
-      //     apiEndPoint = apiEndPoint + '/'
-      //   }
-      //
-      //   let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-      //   let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-      //
-      //
-      //
-      //     // convert asynchronously to 16-bit integer PCM
-      //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-      //     // TODO duplicate conversion for manual download
-      //     //console.log("Build wav writer...");
-      //     let ww = new WavWriter();
-      //     ww.writeAsync(ad, (wavFile) => {
-      //       this.postRecording(wavFile, recUrl);
-      //     });
-      // }
+      if (this.enableUploadRecordings) {
+        // TODO use SpeechRecorderconfig resp. RecfileService
+        //new REST API URL
 
       let apiEndPoint = '';
 
@@ -995,6 +1004,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
       let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
+
+
+          // convert asynchronously to 16-bit integer PCM
+          // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+          // TODO duplicate conversion for manual download
+          //console.log("Build wav writer...");
       let ww = new WavWriter();
       ww.writeAsync(ad, (wavFile) => {
         let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
@@ -1007,9 +1022,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           console.log("Recording file stored to indexed db")
         })
       });
-
-
-
+      }
     }
 
     // check complete session
@@ -1028,7 +1041,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.status = Status.IDLE;
     let startNext=false;
     if (complete) {
-      if(this._session.status!=="COMPLETED" && this._session.status!=="SEALED" ) {
+      if(!this._session.sealed && this._session.status!=="COMPLETED") {
           this._session.status = "COMPLETED"
           if(!this._session.completedDate) {
             this._session.completedDate = new Date()

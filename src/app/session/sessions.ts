@@ -82,7 +82,7 @@ export class SessionsComponent implements  OnInit {
       console.log("Scripts: ERROR")
     },()=>{
         if(sessionScript) {
-          let ns: Session = {sessionId: UUID.generate(), status: "CREATED", project: this.projectName, script: sessionScript.scriptId,date:new Date()}
+          let ns: Session = {sessionId: UUID.generate(), status: "CREATED", type: 'NORM', project: this.projectName, script: sessionScript.scriptId,date:new Date()}
           this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
                 console.log("Scripts: NEXT (push) "+s.sessionId)
                 //mat-table does not update here !!

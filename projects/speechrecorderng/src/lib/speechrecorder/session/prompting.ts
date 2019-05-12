@@ -7,8 +7,9 @@ import {
     HostListener,
     ElementRef,
     OnInit,
-    AfterViewInit,
-    AfterContentChecked, AfterViewChecked, HostBinding, Renderer2
+  AfterViewChecked,
+  Renderer2,
+  ChangeDetectorRef, HostBinding, AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -391,10 +392,9 @@ export class PromptingContainer {
     private  touchStartTimeStamp:number |null;
 
     constructor(private ref: ElementRef) {
-        type TouchStart ={
-
+    type TouchStart = {}
         }
-    }
+
     ngOnInit(){
         this.e = this.ref.nativeElement;
     }

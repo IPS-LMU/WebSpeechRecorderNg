@@ -229,10 +229,18 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
           this.sm.session=sess;
           this.fetchRecordings(sess,this.script)
         },reason =>{
-            this.sm.statusMsg=reason;
+          let errMsg="Error fetching recording script: "+reason
+           console.log(errMsg)
+            this.sm.statusMsg=errMsg;
             this.sm.statusAlertType='error';
-            console.log("Error fetching script: "+reason)
+
           });
+      }else{
+        let errMsg="No recording script is defined for this session with ID "+sess.sessionId;
+        console.log(this.sm.statusMsg)
+        this.sm.statusMsg=errMsg;
+        this.sm.statusAlertType='error';
+
       }
     }
 
@@ -255,10 +263,16 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
           }
         },()=>{
           // we start the session anyway
-          this.sm.start();
+          this.startSession()
         },()=>{
-          this.sm.start();
+          this.startSession()
         })
+    }
+
+
+    private startSession(){
+
+          this.sm.start();
     }
 
 
