@@ -80,6 +80,24 @@ export class AudioCapture {
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => this.printDevices(l));
   }
 
+
+  private dummySession(){
+    // workaround to request permissions:
+    // Start a dummy session
+    let mediaStrCnstrs = <MediaStreamConstraints>{audio:
+        {echoCancelation: false}
+    };
+    console.log("Starting dummy session to request audio permissions...")
+    navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
+      // and stop it immediately
+      console.log("Dummy session: Got stream. Stopping")
+      s.stop();
+
+    },reason => {
+      console.log("Dummy session rejected.")
+    });
+  }
+
   deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true) {
 
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
@@ -91,17 +109,9 @@ export class AudioCapture {
         }
       }
       if (!labelsAvailable) {
+        console.log("Media device enumeration: No labels.")
         if (retry) {
-          // workaround to request permissions:
-          // Start a dummy session
-          let mediaStrCnstrs = <MediaStreamConstraints>{audio:
-              {echoCancelation: false}
-          };
-          navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
-            // and stop it immediately
-            s.stop();
-
-          });
+          this.dummySession()
           // retry (only once)
           this.deviceInfos(cb, false);
         } else {
@@ -109,6 +119,16 @@ export class AudioCapture {
         }
       } else {
         cb(l);
+      }
+    },(reason)=>{
+      //rejected
+      console.log("Media device enumeration rejected.")
+      if (retry) {
+        this.dummySession()
+        // retry (only once)
+        this.deviceInfos(cb, false);
+      } else {
+        cb(null);
       }
     });
 
