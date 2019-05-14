@@ -264,7 +264,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
         this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
-        this.ac.listDevices();
+        // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
+        //this.ac.listDevices();
       } else {
         this.transportActions.startAction.disabled = true;
         let errMsg = 'Browser does not support Media/Audio API!';
@@ -709,6 +710,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         let fdi: MediaDeviceInfo | null = null;
 
         this.ac.deviceInfos((mdis) => {
+          if(mdis){
+            this.ac.printDevices(mdis)
+          }
           if (mdis && this._audioDevices) {
             for (let adI = 0; adI < this._audioDevices.length; adI++) {
               let ad = this._audioDevices[adI];

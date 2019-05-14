@@ -1,5 +1,6 @@
 import {StreamLevelMeasure} from "../dsp/level_measure";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
+import {forEach} from "@angular/router/src/utils/collection";
 
 interface AudioWorker extends Worker {
   terminate (): void;
@@ -81,21 +82,14 @@ export class AudioCapture {
   }
 
 
-  private dummySession(){
+  private dummySession():Promise<MediaStream>{
     // workaround to request permissions:
     // Start a dummy session
     let mediaStrCnstrs = <MediaStreamConstraints>{audio:
         {echoCancelation: false}
     };
-    console.log("Starting dummy session to request audio permissions...")
-    navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
-      // and stop it immediately
-      console.log("Dummy session: Got stream. Stopping")
-      s.stop();
+    return navigator.mediaDevices.getUserMedia(mediaStrCnstrs);
 
-    },reason => {
-      console.log("Dummy session rejected.")
-    });
   }
 
   deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true) {
@@ -111,22 +105,62 @@ export class AudioCapture {
       if (!labelsAvailable) {
         console.log("Media device enumeration: No labels.")
         if (retry) {
-          this.dummySession()
-          // retry (only once)
-          this.deviceInfos(cb, false);
+          console.log("Starting dummy session to request audio permissions...")
+
+            this.dummySession().then((s: MediaStream) => {
+            // and stop it immediately
+
+            console.log("Dummy session.")
+            if(s) {
+              console.log("Got stream: " + s + " .")
+              let ats=s.getTracks();
+              for(let atIdx=0;atIdx<ats.length;atIdx++){
+                console.log("Stop track: #" + atIdx)
+                ats[atIdx].stop();
+              }
+
+            }else{
+              console.log("No dummy stream")
+            }
+            // retry (only once)
+            this.deviceInfos(cb, false);
+          },reason => {
+            console.log("Dummy session rejected.")
+            // TODO error callback
+            cb(null);
+          });
         } else {
           cb(null);
         }
       } else {
+        // success
         cb(l);
       }
-    },(reason)=>{
+    },(reason)=> {
       //rejected
       console.log("Media device enumeration rejected.")
       if (retry) {
-        this.dummySession()
-        // retry (only once)
-        this.deviceInfos(cb, false);
+        console.log("Starting dummy session to request audio permissions...")
+        this.dummySession().then((s: MediaStream) => {
+          // and stop it immediately
+          console.log("Dummy session.")
+          if(s) {
+            console.log("Got stream: " + s + " .")
+            let ats=s.getTracks();
+            for(let atIdx=0;atIdx<ats.length;atIdx++){
+              console.log("Stop track: #" + atIdx)
+              ats[atIdx].stop();
+            }
+          }else{
+            console.log("No dummy stream")
+          }
+          // retry (only once)
+          this.deviceInfos(cb, false);
+        }, reason => {
+          console.log("Dummy session rejected.")
+          // TODO error callback
+          cb(null);
+        });
       } else {
         cb(null);
       }
