@@ -80,47 +80,106 @@ export class AudioCapture {
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => this.printDevices(l));
   }
 
-  deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true) {
+
+  private dummySession():Promise<MediaStream>{
+    // workaround to request permissions:
+    // Start a dummy session
+    let mediaStrCnstrs = <MediaStreamConstraints>{audio:
+        {echoCancelation: false}
+    };
+    return navigator.mediaDevices.getUserMedia(mediaStrCnstrs);
+
+  }
+
+
+  private stopAllSessionTracks(mediaStream:MediaStream){
+      let ats = mediaStream.getTracks();
+      for (let atIdx = 0; atIdx < ats.length; atIdx++) {
+        console.log("Stop dummy session track: #" + atIdx)
+        ats[atIdx].stop();
+      }
+  }
+
+  deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true,dummyStream?:MediaStream) {
 
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
-      let labelsAvailable = false;
+      let labelAvail = false;
       for (let i = 0; i < l.length; i++) {
         let di = l[i];
         if (di.label) {
-          labelsAvailable = true;
+          labelAvail = true;
         }
       }
-      if (!labelsAvailable) {
+      if (!labelAvail) {
+        console.log("Media device enumeration: No labels.")
         if (retry) {
-          // workaround to request permissions:
-          // Start a dummy session
-          let mediaStrCnstrs = <MediaStreamConstraints>{audio:
-              {echoCancelation: false}
-          };
-          navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
-            // and stop it immediately
-            s.stop();
+          console.log("Starting dummy session to request audio permissions...")
 
+          this.dummySession().then((s: MediaStream) => {
+            // and stop it immediately
+
+
+            if (s) {
+              console.log("Got dummy session stream: " + s + " .")
+            } else {
+              console.log("No dummy stream")
+            }
+            // retry (only once)
+            this.deviceInfos(cb, false, s);
+          }, reason => {
+            console.log("Dummy session rejected.")
+            // TODO error callback
+            cb(null);
           });
-          // retry (only once)
-          this.deviceInfos(cb, false);
         } else {
           cb(null);
         }
       } else {
+        // success
         cb(l);
       }
+      if (dummyStream) {
+        this.stopAllSessionTracks(dummyStream);
+      }
+    }, (reason) => {
+      //rejected
+      console.log("Media device enumeration rejected.")
+      if (retry) {
+        console.log("Starting dummy session to request audio permissions...")
+        this.dummySession().then((s: MediaStream) => {
+          // and stop it immediately
+          console.log("Dummy session.")
+          if (s) {
+            console.log("Got dummy session stream: " + s + " .")
+          } else {
+            console.log("No dummy stream")
+          }
+          // retry (only once)
+          this.deviceInfos(cb, false, s);
+        }, reason => {
+          console.log("Dummy session rejected.")
+          // TODO error callback
+          cb(null);
+        });
+      } else {
+        cb(null);
+      }
+      if (dummyStream) {
+        this.stopAllSessionTracks(dummyStream);
+      }
     });
-
   }
 
+  printDevice(di:MediaDeviceInfo){
+    console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind );
+  }
 
   printDevices(l: MediaDeviceInfo[]): void {
     let selDeviceId = '___dummy___';
     for (let i = 0; i < l.length; i++) {
       let di = l[i];
+        this.printDevice(di)
 
-      console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
   }
 
