@@ -92,7 +92,16 @@ export class AudioCapture {
 
   }
 
-  deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true) {
+
+  private stopAllSessionTracks(mediaStream:MediaStream){
+      let ats = mediaStream.getTracks();
+      for (let atIdx = 0; atIdx < ats.length; atIdx++) {
+        console.log("Stop dummy session track: #" + atIdx)
+        ats[atIdx].stop();
+      }
+  }
+
+  deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true,dummyStream?:MediaStream) {
 
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
       let labelsAvailable = false;
@@ -110,20 +119,14 @@ export class AudioCapture {
             this.dummySession().then((s: MediaStream) => {
             // and stop it immediately
 
-            console.log("Dummy session.")
-            if(s) {
-              console.log("Got stream: " + s + " .")
-              let ats=s.getTracks();
-              for(let atIdx=0;atIdx<ats.length;atIdx++){
-                console.log("Stop track: #" + atIdx)
-                ats[atIdx].stop();
-              }
 
+            if(s) {
+              console.log("Got dummy session stream: " + s + " .")
             }else{
               console.log("No dummy stream")
             }
             // retry (only once)
-            this.deviceInfos(cb, false);
+            this.deviceInfos(cb, false,s);
           },reason => {
             console.log("Dummy session rejected.")
             // TODO error callback
@@ -136,6 +139,9 @@ export class AudioCapture {
         // success
         cb(l);
       }
+      if(dummyStream){
+        this.stopAllSessionTracks(dummyStream);
+      }
     },(reason)=> {
       //rejected
       console.log("Media device enumeration rejected.")
@@ -145,17 +151,12 @@ export class AudioCapture {
           // and stop it immediately
           console.log("Dummy session.")
           if(s) {
-            console.log("Got stream: " + s + " .")
-            let ats=s.getTracks();
-            for(let atIdx=0;atIdx<ats.length;atIdx++){
-              console.log("Stop track: #" + atIdx)
-              ats[atIdx].stop();
-            }
+            console.log("Got dummy session stream: " + s + " .")
           }else{
             console.log("No dummy stream")
           }
           // retry (only once)
-          this.deviceInfos(cb, false);
+          this.deviceInfos(cb, false,s);
         }, reason => {
           console.log("Dummy session rejected.")
           // TODO error callback
@@ -164,7 +165,12 @@ export class AudioCapture {
       } else {
         cb(null);
       }
+      if(dummyStream){
+        this.stopAllSessionTracks(dummyStream);
+      }
     });
+
+
 
   }
 
