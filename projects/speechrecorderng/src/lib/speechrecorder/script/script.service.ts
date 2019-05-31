@@ -50,7 +50,7 @@ export class ScriptService extends GenericSprService<Script>{
    }
 
 
-   rnadomProjectScriptObserver(projectName: string):Observable<Script>{
+   randomProjectScriptObserver(projectName: string):Observable<Script>{
       let obs=new Observable<Script>((subscriber) => {
           let scripts:Array<Script>;
           let allscrsObs=this.projectScriptsObserver(projectName).subscribe((nextScrs)=>{

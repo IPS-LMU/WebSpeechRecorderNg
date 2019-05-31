@@ -75,7 +75,7 @@ export class SessionsComponent implements  OnInit {
 
   addNewSession(){
     let sessionScript:Script=null;
-    this.scriptService.rnadomProjectScriptObserver(this.projectName).subscribe((script)=> {
+    this.scriptService.randomProjectScriptObserver(this.projectName).subscribe((script)=> {
       sessionScript=script;
     },(err)=> {
       // TODO err
