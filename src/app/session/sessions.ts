@@ -36,6 +36,7 @@ export class SessionsComponent implements  OnInit {
     dataSource:MatTableDataSource<Session>;
     @ViewChild(MatSort) sort: MatSort;
     private d:Document;
+    private newSessionDisabled=true;
   constructor(private route: ActivatedRoute,
               private chDetRef:ChangeDetectorRef,
               private renderer:Renderer2,
@@ -50,14 +51,29 @@ export class SessionsComponent implements  OnInit {
 
 
   ngOnInit() {
-
       this.dataSource.sort=this.sort
-
 
     this.route.params.subscribe((params: Params) => {
       this.projectName = params['projectName'];
       this.fetchSessions()
+        this.updateNewSessionDisabled()
     })
+  }
+
+  updateNewSessionDisabled(){
+      let sessionScript:Script=null;
+      this.scriptService.randomProjectScriptObserver(this.projectName).subscribe((script)=> {
+          sessionScript=script;
+      },(err)=> {
+          this.newSessionDisabled=true
+          console.log("Scripts: ERROR")
+      },()=>{
+          if(sessionScript) {
+              this.newSessionDisabled=false
+          }else{
+              this.newSessionDisabled=true
+          }
+      })
 
   }
 
