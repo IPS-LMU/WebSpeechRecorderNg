@@ -988,23 +988,24 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
 
+      let recUrl: string=null;
       if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
 
-      let apiEndPoint = '';
+        let apiEndPoint = '';
 
-      if (this.config && this.config.apiEndPoint) {
-        apiEndPoint = this.config.apiEndPoint;
+        if (this.config && this.config.apiEndPoint) {
+          apiEndPoint = this.config.apiEndPoint;
+        }
+        if (apiEndPoint !== '') {
+          apiEndPoint = apiEndPoint + '/'
+        }
+
+        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+        recUrl = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+
       }
-      if (apiEndPoint !== '') {
-        apiEndPoint = apiEndPoint + '/'
-      }
-
-      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-      let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-
-
 
           // convert asynchronously to 16-bit integer PCM
           // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
@@ -1022,7 +1023,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           console.log("Recording file stored to indexed db")
         })
       });
-      }
+
     }
 
     // check complete session
