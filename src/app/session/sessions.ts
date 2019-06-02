@@ -66,7 +66,7 @@ export class SessionsComponent implements  OnInit {
           sessionScript=script;
       },(err)=> {
           this.newSessionDisabled=true
-          console.log("Scripts: ERROR")
+          console.error("Scripts: ERROR")
       },()=>{
           if(sessionScript) {
               this.newSessionDisabled=false
@@ -83,7 +83,7 @@ export class SessionsComponent implements  OnInit {
         console.info("List " + sesss.length + " sessions")
         this.sessions=sesss;
         this.dataSource.data=this.sessions
-        console.log(this.sessions)
+        //console.log(this.sessions)
         //this.chDetRef.detectChanges()
       })
     }
@@ -95,20 +95,20 @@ export class SessionsComponent implements  OnInit {
       sessionScript=script;
     },(err)=> {
       // TODO err
-      console.log("Scripts: ERROR")
+      console.error("Scripts: ERROR")
     },()=>{
         if(sessionScript) {
           let ns: Session = {sessionId: UUID.generate(), status: "CREATED", type: 'NORM', project: this.projectName, script: sessionScript.scriptId,date:new Date()}
           this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
-                console.log("Scripts: NEXT (push) "+s.sessionId)
+                //console.log("Scripts: NEXT (push) "+s.sessionId)
                 //mat-table does not update here !!
                 this.sessions.push(s);
               }, (err) => {
                 // TODO err
-                console.log("Scripts: ERROR")
+                console.error("Scripts: ERROR")
               },
               () => {
-                console.log("Scripts: COMPLETE")
+                //console.debug("Scripts: COMPLETE")
                 // refresh table
                 this.fetchSessions()
               })

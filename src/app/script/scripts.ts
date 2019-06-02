@@ -74,7 +74,7 @@ export class ScriptsComponent implements  OnInit {
 
   uploadScriptFiles(){
     this.uploading=true;
-    console.log("Uploading ...")
+    //console.log("Uploading ...")
     //this.scriptFileInput.click()
   }
 
@@ -83,9 +83,9 @@ export class ScriptsComponent implements  OnInit {
 
     let files=et.files;
     this.uploading=false
-    for(let i=0;i<files.length;i++) {
-      console.log(files[i].name+": "+files[i].type);
-    }
+    // for(let i=0;i<files.length;i++) {
+    //   console.debug(files[i].name+": "+files[i].type);
+    // }
     this.importFileList=files;
   }
 
@@ -109,7 +109,7 @@ export class ScriptsComponent implements  OnInit {
     let pi:PromptItem={mediaitems:new Array<Mediaitem>()};
     if(piEl.tagName==='recording'){
       pi.itemcode=piEl.getAttribute('itemcode');
-      console.log(pi.itemcode)
+      //console.log(pi.itemcode)
     }else if(piEl.tagName==='nonrecording'){
         //TODO
     }
@@ -125,7 +125,7 @@ export class ScriptsComponent implements  OnInit {
   }
 
   importScript(){
-    console.log("Import script!");
+    console.debug("Import script!");
     let xmlParser=new DOMParser();
     let fileReader=new FileReader()
     if(this.importFileList) {
@@ -133,7 +133,7 @@ export class ScriptsComponent implements  OnInit {
         let importFile = this.importFileList[i]
         fileReader.readAsText(importFile);
         fileReader.onload = (pe) => {
-          console.log(fileReader.result)
+          //console.debug(fileReader.result)
           let xmlSrc = <string>fileReader.result;
           let doc = xmlParser.parseFromString(xmlSrc, <SupportedType>importFile.type);
           let s: Script = {scriptId: UUID.generate(), sections: new Array<Section>()};
@@ -146,7 +146,7 @@ export class ScriptsComponent implements  OnInit {
           let sctEls = scrEl.getElementsByTagName('section')
           for (let si = 0; si < sctEls.length; si++) {
             let sct = sctEls[si];
-            console.log("parse section " + si)
+            //console.log("parse section " + si)
 
 
             let section: Section = {mode: "MANUAL", promptphase: "IDLE", training: false, groups: new Array<Group>()};

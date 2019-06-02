@@ -121,7 +121,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
 
   started() {
-    console.log("Play started");
+    console.debug("Play started");
     this.status = 'Playing...';
   }
 

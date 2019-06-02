@@ -431,7 +431,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
 
     if(!this.ac.opened) {
-      console.log("Open session with default audio device for " + this._channelCount + " channels");
+      console.info("Open session with default audio device for " + this._channelCount + " channels");
       this.ac.open(this._channelCount);
     }else {
       this.ac.start();
@@ -554,7 +554,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
           if(rf) {
             fab=this._displayRecFile.audioBuffer;
-            console.log("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
+            console.debug("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
           }else{
             this.statusMsg='Recording file could not be loaded.'
             this.statusAlertType='error'
@@ -626,7 +626,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //this.selectedItemIdx = this.promptIndex;
 
     if(this.audioFetchSubscription){
-      console.log("Unsubscribed audio fetch observer.")
+      console.debug("Unsubscribed audio fetch observer.")
       this.audioFetchSubscription.unsubscribe()
     }
 
@@ -744,7 +744,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             // sessionmanager.ts:712 Open session with default audio device for 1 channels
             // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
             // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
-            console.log("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
+            console.info("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
             this.ac.open(this._channelCount, fdi.deviceId);
           } else {
             // device not found
@@ -894,7 +894,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.promptItem.postrecording) {
       postDelay = this.promptItem.postrecording;
     }
-    console.log("Postrecording delay: "+postDelay)
+    //console.debug("Postrecording delay: "+postDelay)
 
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
@@ -955,10 +955,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 
@@ -1018,9 +1018,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.recFileService.addRecordingFileObserver(rfDto, recUrl, this.enableUploadRecordings).subscribe((value) => {
 
         }, (err) => {
-          console.log("Recording file store error: " + err)
+          console.error("Recording file store error: " + err)
         }, () => {
-          console.log("Recording file stored to indexed db")
+          console.info("Recording file stored to indexed db")
         })
       });
 

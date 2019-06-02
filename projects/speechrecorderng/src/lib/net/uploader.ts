@@ -136,11 +136,11 @@
               (err: HttpErrorResponse) => {
                 if (err.error instanceof Error) {
                   // A client-side or network error occurred. Handle it accordingly.
-                  console.log('Upload error occurred:', err.error.message);
+                  console.error('Upload error occurred:', err.error.message);
                 } else {
                   // The backend returned an unsuccessful response code.
                   // The response body may contain clues as to what went wrong,
-                  console.log(`Upload error: Server returned code ${err.status}`);
+                  console.error(`Upload error: Server returned code ${err.status}`);
                 }
                 this.processError(ul)
               });
