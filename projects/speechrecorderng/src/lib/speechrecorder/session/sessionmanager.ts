@@ -111,8 +111,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
-  @ViewChild(Prompting) prompting: Prompting;
-  @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+  @ViewChild(Prompting, { static: true }) prompting: Prompting;
+  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay: LevelBarDisplay;
 
 
   startStopSignalState: StartStopSignalState;

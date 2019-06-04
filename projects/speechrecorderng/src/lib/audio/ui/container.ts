@@ -56,14 +56,14 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   parentE: HTMLElement;
 
-  @ViewChild('container') canvasRef: ElementRef;
+  @ViewChild('container', { static: true }) canvasRef: ElementRef;
   dc: HTMLCanvasElement;
 
-  @ViewChild('virtualCanvas') ceRef: ElementRef;
+  @ViewChild('virtualCanvas', { static: true }) ceRef: ElementRef;
   ce: HTMLDivElement;
 
-  @ViewChild(AudioSignal) as: AudioSignal;
-  @ViewChild(Sonagram) so: Sonagram;
+  @ViewChild(AudioSignal, { static: true }) as: AudioSignal;
+  @ViewChild(Sonagram, { static: true }) so: Sonagram;
 
 
   private _clipBounds: Rectangle | null = null;

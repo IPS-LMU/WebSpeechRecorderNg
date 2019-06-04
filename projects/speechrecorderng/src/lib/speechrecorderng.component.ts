@@ -61,7 +61,7 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
     private bodyHeightSave:string;
     private bodyMarginSave:string;
     private bodyPaddingSave:string;
-  @ViewChild(SessionManager) sm:SessionManager;
+  @ViewChild(SessionManager, { static: true }) sm:SessionManager;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,

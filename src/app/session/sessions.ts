@@ -34,7 +34,7 @@ export class SessionsComponent implements  OnInit {
   sessions:Array<Session>
     displayedColumns: string[] = ['date','sessionId','action'];
     dataSource:MatTableDataSource<Session>;
-    @ViewChild(MatSort) sort: MatSort;
+    @ViewChild(MatSort, { static: true }) sort: MatSort;
     private d:Document;
     private newSessionDisabled=true;
   constructor(private route: ActivatedRoute,
