@@ -2,14 +2,13 @@ import {ApiType, SpeechRecorderConfig} from "../../projects/speechrecorderng/src
 
 export const environment = {
   production: false,
-  apiType: 'files',
+  apiType: 'standalone',
   apiEndPoint: 'test'
 };
 
 export const SPR_CFG: SpeechRecorderConfig = {
   apiEndPoint: 'test',
-  apiType: ApiType.FILES,
+  apiType: ApiType.STANDALONE,
   enableDownloadRecordings: true,
   enableUploadRecordings: false
 };
-
