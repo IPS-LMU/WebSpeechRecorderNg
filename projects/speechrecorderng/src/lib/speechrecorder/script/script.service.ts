@@ -10,7 +10,6 @@ import {Observable} from "rxjs";
 import {Session} from "../session/session";
 import {ProjectService} from "../project/project.service";
 import {SprDb, Sync} from "../../db/inddb";
-import {forEach} from "@angular/router/src/utils/collection";
 import {GenericSprService} from "../generic_sync_service";
 
 interface ScriptServiceRESTParams{
