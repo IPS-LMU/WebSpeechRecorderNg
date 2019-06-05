@@ -11,6 +11,7 @@ import {
   Section
 } from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
 
 interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget;
@@ -78,15 +79,18 @@ export class ScriptsComponent implements  OnInit {
     //this.scriptFileInput.click()
   }
 
-  importFileChanged(event: HTMLInputEvent){
+  importFileChanged(event: Event){
     let et=event.target;
 
-    let files=et.files;
-    this.uploading=false
-    // for(let i=0;i<files.length;i++) {
-    //   console.debug(files[i].name+": "+files[i].type);
-    // }
-    this.importFileList=files;
+    if(et instanceof HTMLInputElement)
+    {
+      let files = et.files;
+      this.uploading = false
+      // for(let i=0;i<files.length;i++) {
+      //   console.debug(files[i].name+": "+files[i].type);
+      // }
+      this.importFileList = files;
+    }
   }
 
   isImportable(){
@@ -123,6 +127,25 @@ export class ScriptsComponent implements  OnInit {
     }
     return pi;
   }
+
+  addNewScript(){
+
+        let ns: Script = {scriptId: UUID.generate(), project: this.projectName,sections:new Array<Section>()}
+        this.scriptService.addProjectScript(ns.project, ns).subscribe((s) => {
+              //console.log("Scripts: NEXT (push) "+s.sessionId)
+              //mat-table does not update here !!
+              this.scripts.push(s);
+            }, (err) => {
+              // TODO err
+              console.error("Scripts: ERROR")
+            },
+            () => {
+              //console.debug("Scripts: COMPLETE")
+              // refresh table
+              this.fetchScripts()
+            })
+  }
+
 
   importScript(){
     console.debug("Import script!");

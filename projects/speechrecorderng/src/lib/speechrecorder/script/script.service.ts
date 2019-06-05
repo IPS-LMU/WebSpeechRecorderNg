@@ -111,7 +111,66 @@ export class ScriptService extends GenericSprService<Script>{
       }
       return this.addEntityObserver(script,script.scriptId,scrUrl);
   }
-
+    // postProjectScriptObserver(session:Script): Observable<Session> {
+    //
+    //     let sesssUrl = ProjectService.PROJECT_API_CTX +'/'+session.project+'/'+SessionService.SESSION_API_CTX +'/'+session.sessionId
+    //
+    //     return this.http.post<Session>(sesssUrl, session,{withCredentials: this.withCredentials});
+    //
+    // }
+    //
+    //
+    // projectAddSessionObserver(projectName: string,script:Script): Observable<Script> {
+    //
+    //     let scrUrl = this.apiEndPoint+ '/'+ProjectService.PROJECT_API_CTX +'/'+projectName+'/'+ScriptService.SCRIPT_KEYNAME+'/'+script.scriptId
+    //
+    //
+    //     if (this.config && this.config.apiType === ApiType.FILES) {
+    //         // for development and demo
+    //         // append UUID to make request URL unique to avoid localhost server caching
+    //         scrUrl = scrUrl + '/.json?requestUUID='+UUID.generate();
+    //
+    //     }
+    //     let obs=new Observable<Script>(subscriber => {
+    //
+    //         console.info("Adding script to db")
+    //         let obs = this.sprDb.prepare();
+    //         obs.subscribe(value => {
+    //             let scrTr = value.transaction('script','readwrite')
+    //             let sSto = scrTr.objectStore('script');
+    //             sSto.add(script)
+    //             scrTr.oncomplete = () => {
+    //                 this.postProjectScriptObserver(script).subscribe((s)=>{
+    //                     // stored to db and to server
+    //                     subscriber.next(script)
+    //                 },(err)=>{
+    //                     // Offline or other HTTP error
+    //                     // mark for delayed synchronisation
+    //                     let syncTr = value.transaction('_sync','readwrite')
+    //                     let syncSto = syncTr.objectStore('_sync');
+    //                     let sync=new Sync('script',script.scriptId)
+    //                     syncSto.add(sync)
+    //                     syncTr.oncomplete=()=>{
+    //                         // OK: stored to db and marked for sync
+    //                         subscriber.next(script)
+    //                         subscriber.complete()
+    //                     }
+    //                     syncTr.onerror=()=>{
+    //                         subscriber.error(err)
+    //                     }
+    //                 },() => {
+    //                     // OK stored to db and to server complete
+    //                     subscriber.complete()
+    //                 })
+    //
+    //             }
+    //         },(err)=>{
+    //             subscriber.error(err)
+    //         })
+    //     });
+    //     return obs;
+    // }
+    //
 
 
 }

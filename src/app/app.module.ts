@@ -32,6 +32,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {UniqueProjectNameValidator} from "./project/projects/project.name.validator";
 import {CommonModule} from "@angular/common";
 import { ProjectComponent } from './project/project/project.component';
+import { ScriptComponent } from './script/script.component';
 
 
 const appRoutes: Routes = [
@@ -64,7 +65,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,StartComponent,SessionsComponent,ScriptsComponent, ProjectsComponent, ProjectComponent
+    AppComponent,StartComponent,SessionsComponent,ScriptsComponent, ProjectsComponent, ProjectComponent, ScriptComponent
   ],
 
   imports: [
