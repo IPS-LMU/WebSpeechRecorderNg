@@ -33,6 +33,7 @@ import {UniqueProjectNameValidator} from "./project/projects/project.name.valida
 import {CommonModule} from "@angular/common";
 import { ProjectComponent } from './project/project/project.component';
 import { ScriptComponent } from './script/script.component';
+import {MatNativeDateModule, MatTreeModule} from "@angular/material";
 
 
 const appRoutes: Routes = [
@@ -45,6 +46,9 @@ const appRoutes: Routes = [
   },
   { path: 'wsp/project/:projectName/session/:sessionId',
     component: SpeechrecorderngComponent
+  },
+  { path: 'wsp/project/:projectName/script/:scriptId',
+    component: ScriptComponent
   },
   { path: 'wsp/project/:projectName/script',
     component: ScriptsComponent
@@ -69,7 +73,7 @@ const appRoutes: Routes = [
   ],
 
   imports: [
-      RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatCardModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatInputModule,MatDialogModule,MatProgressSpinnerModule,MatTableModule,MatTooltipModule,MatSortModule,
+      RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatCardModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatInputModule,MatDialogModule,MatProgressSpinnerModule,MatTableModule,MatTooltipModule,MatSortModule,MatTreeModule, MatNativeDateModule,
 
     BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),CommonModule,AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],

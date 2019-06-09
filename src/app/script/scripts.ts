@@ -32,7 +32,7 @@ export class ScriptsComponent implements  OnInit {
   @ViewChild('scriptFileInput', { static: true }) scriptFileInput:HTMLInputElement;
   uploading=false;
 
-  displayedColumns: string[] = ['scriptId','id'];
+  displayedColumns: string[] = ['scriptId','id','action'];
   constructor(private route: ActivatedRoute, private chDetRef:ChangeDetectorRef,private scriptService:ScriptService) {
   }
 
