@@ -10,10 +10,14 @@ import {ProjectService} from "../project/project.service";
 
 @Injectable()
 export class SessionService {
+  get uploadCount(): number {
+    return this._uploadCount;
+  }
   public static readonly SESSION_API_CTX='session';
   private apiEndPoint='';
   private sessionsUrl:string;
   private withCredentials:boolean=false;
+  private _uploadCount=0;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
@@ -42,13 +46,35 @@ export class SessionService {
   }
 
 
-  putSessionObserver(session:Session): Observable<Session> {
+  putSessionObserver(session: Session): Observable<Session> {
 
-    let sesssUrl = this.apiEndPoint+ProjectService.PROJECT_API_CTX +'/'+session.project+'/'+SessionService.SESSION_API_CTX +'/'+session.sessionId
+    let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.sessionId
 
     //console.log("PUT session ID: "+session.sessionId+ " status: "+session.status)
-    return this.http.put<Session>(sesssUrl, session,{withCredentials: this.withCredentials});
+    let wrapObs = new Observable<Session>(subscriber => {
+      this._uploadCount++;
+      let debugDelay = 30000;
+      console.log("Warning: TODO: Debug delay: " + debugDelay + " ms, upload count: " + this.uploadCount + " Remove this in version 0.12.12 !");
+      window.setTimeout(() => {
+        console.log("Warning: TODO: Debug delayed session object PUT, upload count: " + this.uploadCount);
+        let obs = this.http.put<Session>(sesssUrl, session, {withCredentials: this.withCredentials});
+        obs.subscribe((value) => {
+          subscriber.next(value);
+        }, error => {
+          this._uploadCount--;
+          console.log("Error: Session object PUT, upload count: " + this.uploadCount);
+          subscriber.error(error);
+        }, () => {
 
+          console.log("Warning: TODO: Debug delay: " + debugDelay + " ms, upload count: " + this.uploadCount + " Remove this in version 0.12.12 !");
+
+          this._uploadCount--;
+          console.log("Warning: TODO: Debug delay expired, upload count now: " + this.uploadCount);
+          subscriber.complete();
+        });
+      }, debugDelay)
+    });
+    return wrapObs;
   }
 
 }

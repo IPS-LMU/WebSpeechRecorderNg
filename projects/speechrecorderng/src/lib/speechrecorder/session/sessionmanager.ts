@@ -796,7 +796,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   isActive(): boolean{
-    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR))
+    this.sessionService.uploadCount>0;
+    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.sessionService.uploadCount>0)
   }
 
     prevItem() {

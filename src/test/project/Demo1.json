@@ -5,6 +5,14 @@
     "audioFormat" : {
       "channels": 1
     },
+  "audioDevices": [
+    {
+      "name": ".*Sennheiser.*SC60.*",
+      "playback": false,
+      "regex": true
+    }
+
+  ],
     "speakerWindowShowStopRecordAction": true
 
 }
