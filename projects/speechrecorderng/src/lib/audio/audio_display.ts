@@ -6,8 +6,6 @@ import {
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
-import {AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
-import {AudioClipUIContainer} from './ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";

@@ -1,6 +1,5 @@
 import {StreamLevelMeasure} from "../dsp/level_measure";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
-import {forEach} from "@angular/router/src/utils/collection";
 
 interface AudioWorker extends Worker {
   terminate (): void;
