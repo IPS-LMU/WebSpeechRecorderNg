@@ -71,6 +71,7 @@
     "tslib": "^1.9.3",
     "tslint": "~5.13.1",
     "typescript": "3.2.4",
-    "uglify-js": "^3.4.9"
+    "uglify-js": "^3.4.9",
+    "extend": ">=3.0.2"
   }
 }
