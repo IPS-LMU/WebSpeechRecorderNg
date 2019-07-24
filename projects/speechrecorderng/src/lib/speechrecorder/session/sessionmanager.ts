@@ -63,7 +63,8 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
-    <app-warningbar [show]="isTestSession()" warningText="Test-recording only!"></app-warningbar>
+    <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
+    <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
       <app-sprprompting [projectName]="projectName" 
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
@@ -322,7 +323,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   isTestSession():boolean {
-    return (this._session && (this._session.type === 'TEST' || this._session.type === 'SINUS_TEST'))
+    return (this._session && (this._session.type === 'TEST' || this._session.type==='TEST_DEF_A' || this._session.type === 'SINUS_TEST'))
+  }
+
+  isDefaultAudioTestSession():boolean {
+    return (this._session && (this._session.type==='TEST_DEF_A'))
+  }
+
+  isDefaultAudioTestSessionOverwriteingProjectRequirements():boolean {
+    return (this._session && (this._session.type==='TEST_DEF_A') && this.audioDevices && this._audioDevices.length>0)
   }
 
 
@@ -706,7 +715,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
-      if (this._audioDevices && this._audioDevices.length>0) {
+      if (this._session.type!=='TEST_DEF_A' && this._audioDevices && this._audioDevices.length>0) {
         let fdi: MediaDeviceInfo | null = null;
 
         this.ac.deviceInfos((mdis) => {

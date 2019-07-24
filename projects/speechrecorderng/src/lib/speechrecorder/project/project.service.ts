@@ -7,6 +7,7 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.co
 import {Project} from "./project";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
+import {PlatformLocation} from "@angular/common";
 
 
 
@@ -16,7 +17,9 @@ export class ProjectService {
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
   private httpParams:HttpParams;
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(private http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+
+    console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
 
     let apiEndPoint = ''
 
