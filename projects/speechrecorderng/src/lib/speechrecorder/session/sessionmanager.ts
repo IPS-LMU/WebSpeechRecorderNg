@@ -715,14 +715,25 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
-      if (this._session.type!=='TEST_DEF_A' && this._audioDevices && this._audioDevices.length>0) {
-        let fdi: MediaDeviceInfo | null = null;
-
-        this.ac.deviceInfos((mdis) => {
-          if(mdis){
-            this.ac.printDevices(mdis)
+      this.ac.deviceInfos((mdis) => {
+        let audioCaptureDeviceAvail: boolean = false;
+        let audioPlayDeviceAvail: boolean = false;
+        if (mdis) {
+          this.ac.printDevices(mdis)
+          if (mdis.length > 0) {
+            for (let mdii = 0; mdii < mdis.length; mdii++) {
+              let mdi = mdis[mdii];
+              let kind=mdi.kind;
+              if(kind === "audioinput"){
+                audioCaptureDeviceAvail=true;
+              }else if(kind=== "audiooutput"){
+                audioPlayDeviceAvail=true;
+              }
+            }
           }
-          if (mdis && this._audioDevices) {
+
+          if (this._session.type !== 'TEST_DEF_A' && this._audioDevices && this._audioDevices.length > 0) {
+            let fdi: MediaDeviceInfo | null = null;
             for (let adI = 0; adI < this._audioDevices.length; adI++) {
               let ad = this._audioDevices[adI];
               if (ad.playback) {
@@ -732,6 +743,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               }
               for (let mdii = 0; mdii < mdis.length; mdii++) {
                 let mdi = mdis[mdii];
+                let kind=mdi.kind;
+                if(kind === "audioinput"){
+                  audioCaptureDeviceAvail=true;
+                }else if(kind=== "audiooutput"){
+                  audioPlayDeviceAvail=true;
+                }
                 if (ad.regex) {
                   //console.log("Match?: \'"+mdi.label+"\' \'"+ad.name+"\'");
                   if (mdi.label.match(ad.name)) {
@@ -751,48 +768,98 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                 break;
               }
             }
+
+            if (fdi) {
+              // matching device found
+
+              // Not able to open device here since Chrome 71
+              // Chrome 71 requires a user gesture before the AudioContext can be resumed
+              // sessionmanager.ts:712 Open session with default audio device for 1 channels
+              // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
+              // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
+
+              //this.ac.open(this._channelCount, fdi.deviceId);
+              console.log("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+              this._selectedDeviceId = fdi.deviceId;
+
+              this.enableStartUserGesture()
+            } else {
+              // device not found
+              this.statusMsg = 'ERROR: Required audio device not available!';
+              this.statusAlertType = 'error';
+              this.readonly = true;
+
+              this.dialog.open(MessageDialog, {
+                data: {
+                  type: 'error',
+                  title: 'Required audio device',
+                  msg: "Required audio device not found",
+                  advice: "Please connect a suitable audio device for this project and retry (press the browser reload button)."
+                }
+              })
+            }
+          }else{
+            if(!audioCaptureDeviceAvail && !audioPlayDeviceAvail){
+              // no device found
+              this.statusMsg = 'ERROR: No audio device available!';
+              this.statusAlertType = 'warn';
+              //this.readonly = true;
+
+              this.dialog.open(MessageDialog, {
+                data: {
+                  type: 'warn',
+                  title: 'No audio device',
+                  msg: "No audio device found",
+                  advice: "Please connect an audio device and retry (press the browser reload button) or try to continue anyway."
+                }
+              })
+            }else {
+              if (!this.readonly && !audioCaptureDeviceAvail) {
+                // no device found
+                this.statusMsg = 'WARNING: No audio capture device available!';
+                this.statusAlertType = 'warning';
+                //this.readonly = true;
+
+                this.dialog.open(MessageDialog, {
+                  data: {
+                    type: 'warning',
+                    title: 'No audio capture device',
+                    msg: "No audio capture device found",
+                    advice: "Please connect an audio capture device and retry (press the browser reload button) or try to continue anyway."
+                  }
+                })
+              }
+              if (!audioPlayDeviceAvail) {
+                // no device found
+                this.statusMsg = 'WARNING: No audio playback device available!';
+                this.statusAlertType = 'warn';
+                //this.readonly = true;
+
+                this.dialog.open(MessageDialog, {
+                  data: {
+                    type: 'warn',
+                    title: 'No audio playback device',
+                    msg: "No audio playback device found",
+                    advice: "Please connect an audio playback device and retry (press the browser reload button) or try to continue anyway."
+                  }
+                })
+              }
+            }
+
+              // Not able to open device here since Chrome 71
+              // Chrome 71 requires a user gesture before the AudioContext can be resumed
+              // sessionmanager.ts:712 Open session with default audio device for 1 channels
+              // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
+              // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
+              //console.log("Open session with default audio device for "+this._channelCount+" channels");
+              //this.ac.open(this._channelCount);
+
+              // enable start gesture anyway
+              this.enableStartUserGesture()
           }
+        }
 
-          if (fdi) {
-            // matching device found
-
-            // Not able to open device here since Chrome 71
-            // Chrome 71 requires a user gesture before the AudioContext can be resumed
-            // sessionmanager.ts:712 Open session with default audio device for 1 channels
-            // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
-            // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
-
-            //this.ac.open(this._channelCount, fdi.deviceId);
-            console.log("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
-            this._selectedDeviceId=fdi.deviceId;
-
-            this.enableStartUserGesture()
-          } else {
-            // device not found
-            this.statusMsg = 'ERROR: Required audio device not available!';
-            this.statusAlertType = 'error';
-            this.readonly=true;
-
-            this.dialog.open(MessageDialog, {
-              data: {
-                type: 'error',
-                title: 'Required audio device',
-                msg: "Required audio device not found",
-                advice: "Please connect a suitable audio device for this project and retry."
-              },
-            })
-          }
-        });
-      } else {
-        // Not able to open devive here since Chrome 71
-        // Chrome 71 requires a user gesture before the AudioContext can be resumed
-        // sessionmanager.ts:712 Open session with default audio device for 1 channels
-        // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
-        // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
-        //console.log("Open session with default audio device for "+this._channelCount+" channels");
-        //this.ac.open(this._channelCount);
-        this.enableStartUserGesture()
-      }
+      });
     }
     if(this.promptItemCount>0) {
       this.promptIndex = 0;
