@@ -830,7 +830,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                 })
               }
               if (!audioPlayDeviceAvail) {
-                // no device found
+                // Firefox does not enumerate audiooutput devices
+                // Do not show this warning, because it would always appear on Firefox
+                // See https://bugzilla.mozilla.org/show_bug.cgi?id=1152401
+
+             /*   // no device found
                 this.statusMsg = 'WARNING: No audio playback device available!';
                 this.statusAlertType = 'warn';
                 //this.readonly = true;
@@ -842,7 +846,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                     msg: "No audio playback device found",
                     advice: "Please connect an audio playback device and retry (press the browser reload button) or try to continue anyway."
                   }
-                })
+                })*/
               }
             }
 
