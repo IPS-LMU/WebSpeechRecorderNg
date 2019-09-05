@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params} from "@angular/router";
 import {ScriptService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
 import {
@@ -8,17 +8,48 @@ import {
     Section
 } from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
 import {MatTreeNestedDataSource} from "@angular/material";
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
+import {CollectionViewer} from "@angular/cdk/collections";
+import {merge} from "rxjs/index";
+import {map} from "rxjs/operators";
 
 interface ScriptTreeNode {
     name: string;
     type: string;
+    //isExpanded: boolean;
     prompt?: string;
     children?: ScriptTreeNode[];
     section?: Section;
     group?:Group;
     promptItem?:PromptItem;
+}
+
+export class ScriptTreeDataSource extends MatTreeNestedDataSource<ScriptTreeNode>{
+    dataChange = new BehaviorSubject<ScriptTreeNode[]>([]);
+
+    constructor(private _treeControl: NestedTreeControl<ScriptTreeNode>) {
+        super()
+    }
+
+    get data(): ScriptTreeNode[] { return this.dataChange.value; }
+    set data(value: ScriptTreeNode[]) {
+        this._treeControl.dataNodes = value;
+
+        this.dataChange.next(value);
+    }
+    connect(collectionViewer: CollectionViewer): Observable<ScriptTreeNode[]> {
+        // this._treeControl.expansionModel.onChange.subscribe(change => {
+        //     if ((change as SelectionChange<DynamicFlatNode>).added ||
+        //         (change as SelectionChange<DynamicFlatNode>).removed) {
+        //         this.handleTreeControl(change as SelectionChange<DynamicFlatNode>);
+        //     }
+        // });
+        //
+        // return merge(collectionViewer.viewChange, this.dataChange).pipe(map(() => this.data));
+
+        return merge(collectionViewer.viewChange,this.dataChange).pipe(map(()=>this.data))
+    }
 }
 
 @Component({
@@ -31,9 +62,9 @@ export class ScriptComponent implements OnInit {
     private projectName:string;
     private script:Script;
     treeControl = new NestedTreeControl<ScriptTreeNode>(node => node.children);
-    dataSource:MatTreeNestedDataSource<ScriptTreeNode>=new MatTreeNestedDataSource<ScriptTreeNode>()
+    dataSource:ScriptTreeDataSource=new ScriptTreeDataSource(this.treeControl)
 
-  constructor(private route: ActivatedRoute,private scriptService:ScriptService) { }
+  constructor(private route: ActivatedRoute,private scriptService:ScriptService,private changeDetectorRef: ChangeDetectorRef) { }
 
     ngOnInit() {
         this.route.params.subscribe((params: Params) => {
@@ -112,8 +143,19 @@ export class ScriptComponent implements OnInit {
             parentNode.group.promptItems.push(pi);
             //parent.children.push({item: name} as TodoItemNode);
             //this.dataChange.next(this.data);
-            this.dataSource.data=this.scriptDataSource()
+            //this.dataSource.data=this.scriptDataSource()
+            let dataSrcTmp=this.dataSource.data;
+            //this.dataSource.data=null;
+            //this.dataSource.data=dataSrcTmp;
+            this.dataSource.dataChange.next(dataSrcTmp)
+            //this.changeDetectorRef.detectChanges()
+
         }
     }
+
+}
+
+
+export class ScriptTreeFlatComponent{
 
 }
