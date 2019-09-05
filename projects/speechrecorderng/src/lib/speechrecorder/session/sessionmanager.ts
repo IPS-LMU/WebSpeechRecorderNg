@@ -830,23 +830,30 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                 })
               }
               if (!audioPlayDeviceAvail) {
-                // Firefox does not enumerate audiooutput devices
-                // Do not show this warning, because it would always appear on Firefox
-                // See https://bugzilla.mozilla.org/show_bug.cgi?id=1152401
+                  // Firefox does not enumerate audiooutput devices
+                  // Do not show this warning, because it would always appear on Firefox
+                  // When https://bugzilla.mozilla.org/show_bug.cgi?id=1498512 is fixed the warning can be enabled for Firefox as well
 
-             /*   // no device found
-                this.statusMsg = 'WARNING: No audio playback device available!';
-                this.statusAlertType = 'warn';
-                //this.readonly = true;
+                  // It is already implemneted but kept behind a preference setting https://bugzilla.mozilla.org/show_bug.cgi?id=1152401
 
-                this.dialog.open(MessageDialog, {
-                  data: {
-                    type: 'warn',
-                    title: 'No audio playback device',
-                    msg: "No audio playback device found",
-                    advice: "Please connect an audio playback device and retry (press the browser reload button) or try to continue anyway."
+
+                  // Output devices are listed if about:config media.setsinkid.enabled=true
+                  // but default setting is false
+                  if (!navigator.userAgent.match(".*Firefox.*")) {
+                      // no device found
+                      this.statusMsg = 'WARNING: No audio playback device available!';
+                      this.statusAlertType = 'warn';
+                      //this.readonly = true;
+
+                      this.dialog.open(MessageDialog, {
+                          data: {
+                              type: 'warn',
+                              title: 'No audio playback device',
+                              msg: "No audio playback device found",
+                              advice: "Please connect an audio playback device and retry (press the browser reload button) or try to continue anyway."
+                          }
+                      })
                   }
-                })*/
               }
             }
 
