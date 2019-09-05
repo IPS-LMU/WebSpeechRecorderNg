@@ -85,7 +85,7 @@ export class Item {
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [captureDeviceInfos]="captureDeviceInfos" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
@@ -111,6 +111,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;
 
+  captureDeviceInfos:MediaDeviceInfo[]=null
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|null=null;
@@ -720,17 +721,20 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         let audioPlayDeviceAvail: boolean = false;
         if (mdis) {
           this.ac.printDevices(mdis)
+            let cdis=new Array<MediaDeviceInfo>()
           if (mdis.length > 0) {
             for (let mdii = 0; mdii < mdis.length; mdii++) {
               let mdi = mdis[mdii];
               let kind=mdi.kind;
               if(kind === "audioinput"){
                 audioCaptureDeviceAvail=true;
+                cdis.push(mdi)
               }else if(kind=== "audiooutput"){
                 audioPlayDeviceAvail=true;
               }
             }
           }
+        this.captureDeviceInfos=cdis;
 
           if (this._session.type !== 'TEST_DEF_A' && this._audioDevices && this._audioDevices.length > 0) {
             let fdi: MediaDeviceInfo | null = null;

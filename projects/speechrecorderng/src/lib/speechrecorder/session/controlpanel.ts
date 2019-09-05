@@ -234,7 +234,8 @@ export class TransportPanel {
   template: `
     <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
-
+    <audio-devicechooser [mediaDeviceInfos]="captureDeviceInfos"></audio-devicechooser>
+    
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
     <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
@@ -262,6 +263,7 @@ export class ControlPanel {
   @ViewChild(TransportPanel) transportPanel: TransportPanel;
 
   @Input() readonly:boolean
+  @Input() captureDeviceInfos:MediaDeviceInfo[]
   @Input() transportActions: TransportActions
   @Input() statusMsg: string;
   @Input() statusAlertType: string;

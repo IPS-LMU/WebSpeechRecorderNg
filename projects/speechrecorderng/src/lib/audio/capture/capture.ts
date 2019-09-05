@@ -61,6 +61,8 @@ export class AudioCapture {
   private capturing = false;
 
   framesRecorded: number;
+  track: MediaStreamTrack;
+  trackChangeListener:(track:MediaStreamTrack|null)=>void;
 
   constructor(context: any) {
     this.context = context;
@@ -79,6 +81,9 @@ export class AudioCapture {
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => this.printDevices(l));
   }
 
+  onTrackChange(_trackChangeListener:(track:MediaStreamTrack|null)=>void){
+      this.trackChangeListener=_trackChangeListener;
+  }
 
   private dummySession():Promise<MediaStream>{
     // workaround to request permissions:
@@ -290,8 +295,10 @@ export class AudioCapture {
 
         for (let i = 0; i < aTracks.length; i++) {
           let aTrack = aTracks[i];
-
           console.log("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
+        }
+        if(aTracks.length==1 && this.trackChangeListener){
+            this.trackChangeListener(aTracks[0]);
         }
 
         let vTracks = s.getVideoTracks();
@@ -300,6 +307,7 @@ export class AudioCapture {
           console.log("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
         }
         this.mediaStream = this.context.createMediaStreamSource(s);
+
         // stream channel count ( is always 2 !)
         let streamChannelCount: number = this.mediaStream.channelCount;
 
@@ -421,6 +429,9 @@ export class AudioCapture {
       }
     }
     this._opened=false;
+    if(this.trackChangeListener){
+        this.trackChangeListener(null)
+    }
   }
 
   audioBuffer(): AudioBuffer {
