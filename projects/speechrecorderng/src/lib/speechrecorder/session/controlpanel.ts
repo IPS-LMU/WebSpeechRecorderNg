@@ -232,14 +232,17 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
+      <div>
     <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                           class="hidden-xs"></app-sprstatusdisplay>
-    <audio-devicechooser [mediaDeviceInfos]="captureDeviceInfos"></audio-devicechooser>
-    
+    <audio-devicechooser class="hidden-xs" [label]="'Recording device'" [disabled]="captureDeviceSelectDisabled" [mediaDeviceInfos]="captureDeviceInfos" [selectedDeviceId]="selectedCaptureDeviceId" (selectedDeviceEventEmitter)="selectedCaptureDeviceIdChanged($event)"></audio-devicechooser>
+      </div>
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
+      <div>
     <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus"></app-uploadstatus>
+      </div>
   `,
   styles: [`:host {
     flex: 0; /* only required vertical space */
@@ -254,7 +257,9 @@ export class TransportPanel {
     min-height: min-content; /* important */
   }`, `
     div {
-      flex: 0;
+      display: flex;
+      flex-direction: row;
+      flex: 10;
     }
   `]
 })
@@ -264,6 +269,18 @@ export class ControlPanel {
 
   @Input() readonly:boolean
   @Input() captureDeviceInfos:MediaDeviceInfo[]
+  @Input() selectedCaptureDeviceId:string=null
+  @Input() captureDeviceSelectDisabled=false
+
+  // @Input() @Output() get selectedCaptureDeviceId():string| null{
+  //   return this._selectedCaptureDeviceId
+  // }
+  //
+  // set selectedCaptureDeviceId(selCapDevId:string| null){
+  //     this._selectedCaptureDeviceId=selCapDevId
+  //   console.log("Control panel, sel capture dev ID: "+selCapDevId)
+  // }
+
   @Input() transportActions: TransportActions
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
@@ -271,6 +288,13 @@ export class ControlPanel {
   @Input() uploadProgress: number;
   @Input() currentRecording: AudioBuffer;
   @Input() enableUploadRecordings: boolean;
+
+  @Output() selectedCaptureDeviceEventEmitter=new EventEmitter<string| null>()
+
+  selectedCaptureDeviceIdChanged(event){
+    console.log("Control panel, sel capture dev ID: "+event)
+    this.selectedCaptureDeviceEventEmitter.emit(event)
+  }
 
   constructor(public dialog: MatDialog) {
 

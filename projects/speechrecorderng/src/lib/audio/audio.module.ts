@@ -14,11 +14,13 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioDisplayPlayer} from "./audio_player";
 import {DeviceChooser} from "./ui/devices";
 import {MatSelectModule} from "@angular/material/select";
+import {MatInputModule} from "@angular/material/input";
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
     declarations: [ScrollPaneHorizontal,AudioClipUIContainer,AudioSignal,Sonagram,AudioDisplayPlayer,AudioDisplay,AudioDisplayScrollPane,AudioDisplayControl,LevelBar,DeviceChooser],
     exports: [ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayControl,LevelBar,DeviceChooser],
-    imports: [CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatSelectModule]
+    imports: [CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatSelectModule, MatInputModule, FormsModule]
 })
 export class AudioModule{
 
