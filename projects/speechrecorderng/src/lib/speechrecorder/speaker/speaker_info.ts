@@ -7,14 +7,18 @@ import {Speaker} from "./speaker";
 
     template: `
     <div matTooltip="Speaker data info">
-        <p>Speaker:</p>
-    <p *ngIf="speaker?.code">Code: {{speaker?.code}}</p>
+        Speaker: <span *ngIf="speaker?.code"> {{speaker?.code}}</span> <span *ngIf="speaker?.name"> {{speaker?.name}}</span> <span *ngIf="speaker?.forename"> {{speaker?.forename}}</span> <span *ngIf="speaker?.dateOfBirth"> {{speaker?.dateOfBirth | date}}</span>
     </div>
   `,
     styles: [`:host {
     flex: 1;
-  
-  }`]
+        padding: 10pt;
+        background-color: white;
+  }`,`div {
+        border: 1px;
+        background-color: lightgrey;
+        font-weight: bolder;
+    }`]
 
 })
 

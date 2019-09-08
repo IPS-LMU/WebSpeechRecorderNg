@@ -21,6 +21,7 @@ import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
+import {Speaker} from "../speaker/speaker";
 
 
 @Component({
@@ -511,8 +512,8 @@ export class PromptingContainer {
 @Component({
   selector: 'spr-progress-speaker-container',
 
-  template: `
-      
+  template: `      
+      <spr-speakerinfo [speaker]="speaker"></spr-speakerinfo>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
   `,
@@ -521,8 +522,8 @@ export class PromptingContainer {
       margin: 0;
       padding: 0;
       background: lightgrey;
-      width: 100%; /* use all horizontal available space */
-      flex: 0;
+     
+     flex: 0 0 content;
       display: flex;
       flex-direction: column;
       min-height: 1px;
@@ -536,8 +537,13 @@ export class ProgressAndSpeakerContainer{
   @Input() items: Array<Item>;
   @Input() selectedItemIdx: number;
   @Output() onItemSelect = new EventEmitter<number>();
+  speaker: Speaker;
   itemSelect(rowIdx: number) {
     this.onItemSelect.emit(rowIdx);
+  }
+
+  constructor(){
+    this.speaker={speakerId:0,code:'ABC',name:'Jänsch',forename:'Klaus',dateOfBirth:new Date()}
   }
 
 }
