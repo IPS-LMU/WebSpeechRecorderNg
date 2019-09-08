@@ -3,18 +3,22 @@ import {Component, EventEmitter, Input, Output} from "@angular/core";
 @Component({
     selector: 'audio-devicechooser',
     template: `
-        <mat-form-field>
+        <mat-form-field style="width:100%">
             <mat-label>{{label}}</mat-label>
-            <select matNativeControl [(ngModel)]="selectedDeviceId" name="selectedDeviceId" [disabled]="disabled">
-                <option *ngFor="let info of mediaDeviceInfos" [value]="info.deviceId" [selected]="info.deviceId===selectedDeviceId">
-                    {{info.label}}
+            <select  matNativeControl [(ngModel)]="selectedDeviceId" name="selectedDeviceId" [disabled]="disabled">
+                <option   *ngFor="let mediaDeviceInfo of mediaDeviceInfos" [value]="mediaDeviceInfo.deviceId" >
+                    {{mediaDeviceInfo.label}}
                 </option>
             </select>
         </mat-form-field>
     `,
     styles: [`:host {
         flex: 1
-  }`]
+  }`,`devSelect{
+        max-width:1000px;
+        width: 1000px;
+        min-width: 1000px;
+    }`]
 })
 export class DeviceChooser{
     @Input() mediaDeviceInfos:MediaDeviceInfo[]

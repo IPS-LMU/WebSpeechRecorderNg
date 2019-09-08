@@ -232,15 +232,14 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
-      <div>
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
-                          class="hidden-xs"></app-sprstatusdisplay>
-    <audio-devicechooser class="hidden-xs" [label]="'Recording device'" [disabled]="captureDeviceSelectDisabled" [mediaDeviceInfos]="captureDeviceInfos" [selectedDeviceId]="selectedCaptureDeviceId" (selectedDeviceEventEmitter)="selectedCaptureDeviceIdChanged($event)"></audio-devicechooser>
+      <div  fxHide.xs  class="hidden-xs">
+        <audio-devicechooser  [label]="'Recording device'" [disabled]="captureDeviceSelectDisabled" [mediaDeviceInfos]="captureDeviceInfos" [selectedDeviceId]="selectedCaptureDeviceId" (selectedDeviceEventEmitter)="selectedCaptureDeviceIdChanged($event)"></audio-devicechooser>
       </div>
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
-      <div>
-    <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <div fxHide.xs  class="hidden-xs">
+        <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"></app-sprstatusdisplay>
+        <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus"></app-uploadstatus>
       </div>
   `,
@@ -271,15 +270,6 @@ export class ControlPanel {
   @Input() captureDeviceInfos:MediaDeviceInfo[]
   @Input() selectedCaptureDeviceId:string=null
   @Input() captureDeviceSelectDisabled=false
-
-  // @Input() @Output() get selectedCaptureDeviceId():string| null{
-  //   return this._selectedCaptureDeviceId
-  // }
-  //
-  // set selectedCaptureDeviceId(selCapDevId:string| null){
-  //     this._selectedCaptureDeviceId=selCapDevId
-  //   console.log("Control panel, sel capture dev ID: "+selCapDevId)
-  // }
 
   @Input() transportActions: TransportActions
   @Input() statusMsg: string;
