@@ -6,18 +6,19 @@ import {Speaker} from "./speaker";
     selector: 'spr-speakerinfo',
 
     template: `
-    <div matTooltip="Speaker data info">
-        Speaker: <span *ngIf="speaker?.code"> {{speaker?.code}}</span> <span *ngIf="speaker?.name"> {{speaker?.name}}</span> <span *ngIf="speaker?.forename"> {{speaker?.forename}}</span> <span *ngIf="speaker?.dateOfBirth"> {{speaker?.dateOfBirth | date}}</span>
-    </div>
+    <table matTooltip="Speaker data info">
+        <tr><td>Speaker:</td><td style="text-align: right"><span *ngIf="speaker?.code"> {{speaker?.code}}</span> <span *ngIf="speaker?.name"> {{speaker?.name}}</span> <span *ngIf="speaker?.forename"> {{speaker?.forename}}</span> <span *ngIf="speaker?.dateOfBirth"> {{speaker?.dateOfBirth | date}}</span></td></tr>
+    </table>
   `,
     styles: [`:host {
     flex: 1;
-        padding: 10pt;
+       
         background-color: white;
-  }`,`div {
+  }`,`table {
+        width: 100%;
         border: 1px;
         background-color: lightgrey;
-        font-weight: bolder;
+        font-weight: bold;
     }`]
 
 })

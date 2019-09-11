@@ -31,6 +31,7 @@ import {MessageDialog} from "./ui/message_dialog";
 import {LevelBarDisplay} from "./ui/livelevel_display";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {SpeakerInfo} from "./speechrecorder/speaker/speaker_info";
+import {ProjectInfo} from "./speechrecorder/project/project_info";
 
 
 
@@ -42,7 +43,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [ControlPanel,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective,SpeakerInfo,ProgressAndSpeakerContainer],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective,ProjectInfo,SpeakerInfo,ProgressAndSpeakerContainer],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],

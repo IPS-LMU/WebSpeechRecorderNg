@@ -16,7 +16,7 @@ import {MatDialog,MatProgressBar} from "@angular/material";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import {AudioDevice} from "../project/project";
+import {AudioDevice, Project} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
@@ -65,7 +65,7 @@ export class Item {
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [projectName]="projectName" 
+      <app-sprprompting [project]="project" 
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
@@ -106,7 +106,7 @@ export class Item {
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
-  @Input() projectName:string|null;
+  @Input() project:Project|null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;

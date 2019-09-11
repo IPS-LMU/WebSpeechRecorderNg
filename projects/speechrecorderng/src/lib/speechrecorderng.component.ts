@@ -24,7 +24,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession [projectName]="project?.name"></app-sprrecordingsession>
+    <app-sprrecordingsession [project]="project"></app-sprrecordingsession>
   `,
   styles: [`:host{
     flex: 2;

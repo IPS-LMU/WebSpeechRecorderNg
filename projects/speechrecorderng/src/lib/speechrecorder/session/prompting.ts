@@ -22,6 +22,7 @@ import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
 import {Speaker} from "../speaker/speaker";
+import {Project} from "../project/project";
 
 
 @Component({
@@ -512,8 +513,9 @@ export class PromptingContainer {
 @Component({
   selector: 'spr-progress-speaker-container',
 
-  template: `      
-      <spr-speakerinfo fxHide.xs [speaker]="speaker"></spr-speakerinfo>
+  template: `
+    <spr-projectinfo fxHide.xs [project]="project"></spr-projectinfo>
+    <spr-speakerinfo fxHide.xs [speaker]="speaker"></spr-speakerinfo>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
   `,
@@ -531,12 +533,23 @@ export class PromptingContainer {
     app-sprprogress {
       z-index: 3;
     }
-  `]
+  `,`spr-projectinfo {
+    padding-top: 10pt;
+    padding-left: 5pt;
+    padding-right: 5pt;
+    padding-bottom: 1pt;
+  }`,`spr-speakerinfo {
+    padding-top: 1pt;
+    padding-left: 5pt;
+    padding-right: 5pt;
+    padding-bottom: 10pt;
+  }`]
 })
 export class ProgressAndSpeakerContainer{
   @Input() items: Array<Item>;
   @Input() selectedItemIdx: number;
   @Output() onItemSelect = new EventEmitter<number>();
+  @Input() project:Project
   speaker: Speaker;
   itemSelect(rowIdx: number) {
     this.onItemSelect.emit(rowIdx);
@@ -555,10 +568,10 @@ export class ProgressAndSpeakerContainer{
   template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
+    <app-sprpromptingcontainer [projectName]="project?.name" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <spr-progress-speaker-container (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
+    <spr-progress-speaker-container [project]="project" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
     <div #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
@@ -642,7 +655,7 @@ export class ProgressAndSpeakerContainer{
 export class Prompting {
   @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
   @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
-  @Input() projectName: string | null;
+  @Input() project: Project | null;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;
