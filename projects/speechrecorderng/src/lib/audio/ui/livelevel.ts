@@ -201,10 +201,23 @@ export class LevelBar implements LevelListener {
     this.drawPlayPosition();
   }
 
+  private drawLevelBackground(g: CanvasRenderingContext2D, x: number, h: number){
+    g.strokeStyle = 'black';
+    g.fillStyle = 'black';
+    g.lineWidth = LINE_WIDTH+LINE_DISTANCE;
+    g.beginPath();
+    g.moveTo(x, 0);
+    g.lineTo(x, h);
+    g.closePath();
+    g.stroke();
+  }
+
   private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
 
+    this.drawLevelBackground(g,x,h);
+    g.lineWidth = LINE_WIDTH;
     if (dbVal >= this.warnDBLevel) {
       g.strokeStyle = 'red';
       g.fillStyle = 'red';
@@ -226,14 +239,16 @@ export class LevelBar implements LevelListener {
   private drawLevelLines(g: CanvasRenderingContext2D, x: number, h: number, dbVals: Array<number>) {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
+    this.drawLevelBackground(g,x,h);
+
     let chH = Math.floor(h / dbVals.length);
+    g.lineWidth = LINE_WIDTH;
     for (let ch = 0; ch < dbVals.length; ch++) {
       let dbVal = dbVals[ch];
       let y = Math.floor(ch * chH);
       if (dbVal >= this.warnDBLevel) {
         g.strokeStyle = 'red';
         g.fillStyle = 'red';
-
       } else {
         g.strokeStyle = '#00c853';
         g.fillStyle = '#00c853';
@@ -266,10 +281,8 @@ export class LevelBar implements LevelListener {
       let h = this.liveLevelCanvas.height;
       let g = this.liveLevelCanvas.getContext("2d");
       if (g) {
-        g.fillStyle = 'black';
-        if (!this._streamingMode && !this._staticLevelInfos) {
-          g.fillStyle = 'grey'
-        }
+        // clear canvas
+        g.fillStyle = 'grey';
         g.fillRect(0, 0, w, h);
 
         g.lineWidth = LINE_WIDTH;
