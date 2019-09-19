@@ -204,12 +204,7 @@ export class LevelBar implements LevelListener {
   private drawLevelBackground(g: CanvasRenderingContext2D, x: number, h: number){
     g.strokeStyle = 'black';
     g.fillStyle = 'black';
-    g.lineWidth = LINE_WIDTH+LINE_DISTANCE;
-    g.beginPath();
-    g.moveTo(x, 0);
-    g.lineTo(x, h);
-    g.closePath();
-    g.stroke();
+    g.fillRect(x,0,LINE_WIDTH+LINE_DISTANCE,h)
   }
 
   private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
