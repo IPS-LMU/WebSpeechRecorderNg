@@ -186,8 +186,6 @@ export class LevelBar implements LevelListener {
       this.virtualCanvas.style.width = newWidth + 'px';
       this.ce.scrollLeft = newWidth - this.ce.offsetWidth;
 
-      //console.log("checkWidth: without layout()")
-
        // do not call layout here it is triggered by the scroll event
       //this.layout();
     }
