@@ -211,7 +211,7 @@ export class LevelBar implements LevelListener {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
 
-    this.drawLevelBackground(g,x,h);
+    this.drawLevelBackground(g,xc,h);
     g.lineWidth = LINE_WIDTH;
     if (dbVal >= this.warnDBLevel) {
       g.strokeStyle = 'red';
@@ -234,7 +234,7 @@ export class LevelBar implements LevelListener {
   private drawLevelLines(g: CanvasRenderingContext2D, x: number, h: number, dbVals: Array<number>) {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
-    this.drawLevelBackground(g,x,h);
+    this.drawLevelBackground(g,xc,h);
 
     let chH = Math.floor(h / dbVals.length);
     g.lineWidth = LINE_WIDTH;
