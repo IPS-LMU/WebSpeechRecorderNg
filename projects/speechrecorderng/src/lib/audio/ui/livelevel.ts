@@ -182,7 +182,7 @@ export class LevelBar implements LevelListener {
   private checkWidth() {
     let requiredWidth = this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH);
     if (this.virtualCanvas.offsetWidth - requiredWidth < this.ce.offsetWidth * OVERFLOW_THRESHOLD) {
-      let newWidth = Math.round(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
+      let newWidth = Math.floor(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
       this.virtualCanvas.style.width = newWidth + 'px';
       this.ce.scrollLeft = newWidth - this.ce.offsetWidth;
 
