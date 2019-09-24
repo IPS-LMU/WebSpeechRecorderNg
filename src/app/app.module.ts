@@ -38,7 +38,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,StartComponent,SessionsComponent
+    AppComponent,StartComponent,SessionsComponent,
   ],
 
   imports: [
