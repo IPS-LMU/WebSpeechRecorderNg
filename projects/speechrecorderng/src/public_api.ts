@@ -2,18 +2,19 @@
  * Public API Surface of speechrecorderng
  */
 
-export {AudioModule} from './lib/audio/audio.module'
+
+export {SpeechrecorderngModule} from './lib/speechrecorderng.module'
+export {VERSION} from './lib/spr.module.version'
+export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
+
+export {UUID} from "./lib/utils/utils"
+export {Action} from "./lib/action/action";
 
 export {AudioClip} from './lib/audio/persistor'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
 export {AudioClipUIContainer} from './lib/audio/ui/container'
 export {AudioDisplayScrollPane} from "./lib/audio/ui/audio_display_scroll_pane";
 export {AudioContextProvider} from "./lib/audio/context";
-
-export {SpeechrecorderngModule} from './lib/speechrecorderng.module'
-export {VERSION} from './lib/spr.module.version'
-
-export {Action} from "./lib/action/action";
 
 export {ProjectService} from './lib/speechrecorder/project/project.service'
 export {Session} from './lib/speechrecorder/session/session'
