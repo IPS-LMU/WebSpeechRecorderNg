@@ -98,35 +98,29 @@ export class Sonagram extends AudioCanvasLayerComponent {
             const w = this.cursorCanvas.width;
             const h = this.cursorCanvas.height;
             const g = this.cursorCanvas.getContext('2d');
-            if (g) {
-                g.clearRect(0, 0, w, h);
-                if (show) {
-                    const pp = this.canvasMousePos(this.cursorCanvas, e);
-                    const offX = e.offsetX ;
-                    const offY = e.offsetY ;
-                    const pixelPos = offX;
-                    g.fillStyle = 'yellow';
-                    g.strokeStyle = 'yellow';
+          if (g) {
+            g.clearRect(0, 0, w, h);
+            if (show) {
+              const pp = this.canvasMousePos(this.cursorCanvas, e);
+              let xViewPortPixelpos = e.offsetX;
 
-                    g.beginPath();
-                    g.moveTo(pixelPos, 0);
-                    g.lineTo(pixelPos, h);
-                    g.closePath();
+              g.fillStyle = 'yellow';
+              g.strokeStyle = 'yellow';
+              g.beginPath();
+              g.moveTo(xViewPortPixelpos, 0);
+              g.lineTo(xViewPortPixelpos, h);
+              g.closePath();
 
-                    g.stroke();
+              g.stroke();
+              if (this.audioData) {
 
-                    if (this.audioData) {
-                        var ch0 = this.audioData.getChannelData(0);
-                        var frameLength = ch0.length;
-                        var framesPerPixel = frameLength / w;
-                        var framePos = framesPerPixel * pixelPos;
-                        var framePosRound = Math.round(framePos);
-                        g.font = '14px sans-serif';
-                        g.fillStyle = 'yellow';
-                        g.fillText(framePosRound.toString(), pixelPos + 2, 50);
-                    }
-                }
+                let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
+                g.font = '14px sans-serif';
+                g.fillStyle = 'yellow';
+                g.fillText(framePosRound.toString(), xViewPortPixelpos + 2, 50);
+              }
             }
+          }
         }
     }
 
