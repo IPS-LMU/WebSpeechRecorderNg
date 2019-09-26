@@ -7,6 +7,7 @@ import {Point} from './common'
 
 import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioClip,Selection} from "../persistor";
 
 @Component({
 
@@ -70,6 +71,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
 
   private _audioData: AudioBuffer | null;
+  private _selection: Selection=null;
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
@@ -387,6 +389,21 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this._audioData=audioData;
     this.as.setData(audioData);
     this.so.setData(audioData);
+    this.layout();
+  }
+
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+      let audioData:AudioBuffer=null;
+      let selection:Selection=null;
+      if(audioClip){
+        audioData=audioClip.buffer;
+        selection=audioClip.selection;
+      }
+      this._audioData = audioData;
+      this.as.setData(this._audioData);
+      this.so.setData(this._audioData);
+      this._selection=selection;
     this.layout();
   }
 

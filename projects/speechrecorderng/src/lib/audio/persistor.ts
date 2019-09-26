@@ -1,9 +1,9 @@
 import { PCMAudioFormat} from './format'
 
     export class AudioClip {
+
         private _buffer: AudioBuffer;
-        private _format: PCMAudioFormat;
-        private _data: Array<Float32Array>;
+        private _selection:Selection=null;
 
         constructor(buffer: AudioBuffer) {
             this._buffer = buffer;
@@ -12,6 +12,14 @@ import { PCMAudioFormat} from './format'
         get buffer() {
             return this._buffer;
         };
+
+      get selection(): Selection {
+        return this._selection;
+      }
+
+      set selection(value: Selection) {
+        this._selection = value;
+      }
     }
 
     export interface Reader {
@@ -20,4 +28,21 @@ import { PCMAudioFormat} from './format'
     export interface Writer {
         write(audioData: AudioClip): Blob;
     }
+
+    export class Selection{
+      private _startFrame:number;
+      private _endFrame:number;
+
+      constructor(startFrame:number,endFrame:number){
+        this._startFrame=startFrame
+        this._endFrame=endFrame;
+      }
+      get endFrame(): number {
+        return this._endFrame;
+      }
+      get startFrame(): number {
+        return this._startFrame;
+      }
+    }
+
 
