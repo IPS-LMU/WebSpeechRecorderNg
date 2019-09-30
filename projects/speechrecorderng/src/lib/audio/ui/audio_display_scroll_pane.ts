@@ -112,12 +112,20 @@ export class AudioDisplayScrollPane {
 
   }
 
+
+  updateClipBounds(){
+    let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
+    this.ac.clipBounds(cbr);
+  }
+
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
-    setTimeout(()=>{
-      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
-      this.ac.clipBounds(cbr);
-    });
+     this.updateClipBounds()
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event): void {
+    this.updateClipBounds()
   }
 
   layout(){
