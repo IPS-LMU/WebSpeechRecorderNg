@@ -16,7 +16,7 @@ import {AudioClip,Selection} from "../persistor";
     <div #virtualCanvas>
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)"></canvas>
-    <audio-signal></audio-signal>
+    <audio-signal [selecting]="selecting" [selection]="selection" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selection"></audio-signal>
     <audio-sonagram></audio-sonagram>
     </div>
   `,
@@ -71,7 +71,8 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
 
   private _audioData: AudioBuffer | null;
-  private _selection: Selection=null;
+  selecting: Selection=null;
+  selection: Selection=null;
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
@@ -159,6 +160,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     }
   }
 
+  selectingChanged(s:Selection){
+    this.selecting=s
+  }
 
   private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
     const cr = c.getBoundingClientRect();
@@ -386,15 +390,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   @Input()
   set audioClip(audioClip: AudioClip | null) {
       let audioData:AudioBuffer=null;
-      let selection:Selection=null;
+      let sel:Selection=null;
       if(audioClip){
         audioData=audioClip.buffer;
-        selection=audioClip.selection;
+        sel=audioClip.selection;
       }
       this._audioData = audioData;
       this.as.setData(this._audioData);
       this.so.setData(this._audioData);
-      this._selection=selection;
+      this.selection=sel;
     this.layout();
   }
 

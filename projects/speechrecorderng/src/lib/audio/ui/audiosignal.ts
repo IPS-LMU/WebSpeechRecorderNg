@@ -1,8 +1,9 @@
 import {Marker, Point} from './common'
-import {Component, ViewChild, ElementRef} from '@angular/core';
+import {Component, ViewChild, ElementRef, Output, EventEmitter, Input} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {Selection} from "../persistor";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -32,6 +33,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
   @ViewChild('cursor') cursorCanvasRef: ElementRef;
   @ViewChild('marker') playPosCanvasRef: ElementRef;
+
   signalCanvas: HTMLCanvasElement;
   cursorCanvas: HTMLCanvasElement;
   markerCanvas: HTMLCanvasElement;
@@ -81,8 +83,21 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       this.select(this.selectStartX, me.offsetX);
     }
     this.selectStartX=null;
-    this.updateCursorCanvas(me);
+    //this.updateCursorCanvas(me);
   }
+
+    //@Input() set selection(selection:Selection){
+     //       super.selection=selection
+
+    drawSelection() {
+    if (this.cursorCanvas) {
+            let h = this.cursorCanvas.height;
+            let g = this.cursorCanvas.getContext("2d");
+            if(g) {
+                this._drawSelection(g, h)
+            }
+        }
+    }
 
   get playFramePosition(): number {
     return this._playFramePosition;
@@ -101,10 +116,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     return p;
   }
 
-  drawSelection(g:CanvasRenderingContext2D,h:number){
-    if(this.selection){
-      let s=this.selection.startFrame
-      let e=this.selection.endFrame
+  _drawSelection(g:CanvasRenderingContext2D,h:number){
+    if(this._selection){
+      let s=this._selection.startFrame
+      let e=this._selection.endFrame
       let xs=this.frameToViewPortXPixelPosition(s)
       let xe=this.frameToViewPortXPixelPosition(e)
       let sw=xe-xs
@@ -132,9 +147,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         }
         if(this.selectStartX && me){
           // draw temporay selection
-          this.drawSelect(g,this.selectStartX,me.offsetX-this.selectStartX,h)
+          //this.drawSelect(g,this.selectStartX,me.offsetX-this.selectStartX,h)
+            //this.selectingChange(this.selectStartX,me.offsetX-this.selectStartX);
         }else {
-          this.drawSelection(g, h)
+          this.drawSelection()
         }
         if(me && showCursorPosition) {
           this.drawCursorPosition(me,g,h)

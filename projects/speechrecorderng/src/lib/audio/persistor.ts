@@ -43,6 +43,9 @@ import { PCMAudioFormat} from './format'
       get startFrame(): number {
         return this._startFrame;
       }
+      toString(){
+          return "Selection: start: "+this.startFrame+" end: "+this.endFrame+" frame"
+      }
     }
 
 
