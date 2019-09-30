@@ -13,7 +13,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
   selector: 'app-audio',
   template: `
     <div #virtualCanvas>
-    <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)" (mousemove)="mousemove($event)"
+    <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)"></canvas>
     <audio-signal></audio-signal>
     <audio-sonagram></audio-sonagram>
@@ -130,13 +130,6 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this.dividerCursorPosition(me, true);
   }
 
-  mousemove(me: MouseEvent) {
-    if (this.dragStartY != null) {
-      this.dividerDrag(me);
-      this.layoutScaled();
-    }
-  }
-
   mouseleave(me: MouseEvent) {
     this.dividerCursorPosition(me, false);
   }
@@ -226,8 +219,6 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   layoutScaled() {
-
-    //console.log("Layout scaled.")
 
     const offW = this.ce.offsetWidth;
     const offH = this.ce.offsetHeight;
