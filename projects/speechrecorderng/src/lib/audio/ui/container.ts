@@ -86,13 +86,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   private _fixFitToPanel = true;
+
   set fixFitToPanel(value: boolean) {
     this._fixFitToPanel = value;
     if (value) {
+      // we don't need  clip bounds
+      this._clipBounds=null;
       this._xZoom = null;
     } else {
       // hold current zoom value
-      //this._xZoom=this.ce.offsetWidth/this._audioData.duration;
     }
     this.layout()
   }
@@ -225,10 +227,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   layoutScaled() {
 
-    console.log("Layout scaled.")
-    // // TODO test
-    // this.ce.style.width='1000px';
-    // this.ce.style.height='400px';
+    //console.log("Layout scaled.")
 
     const offW = this.ce.offsetWidth;
     const offH = this.ce.offsetHeight;
@@ -257,7 +256,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
     let cLeft = 0;
     let cWidth = this.ce.clientWidth;
-    if (this._clipBounds) {
+    if ( !this._fixFitToPanel && this._clipBounds) {
       cLeft = this._clipBounds.position.left;
       cWidth = this._clipBounds.dimension.width;
     }
@@ -269,13 +268,10 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     let soR = new Rectangle(new Position(cLeft, soTop), new Dimension(cWidth, soH));
 
     this.so.layoutBounds(soR, virtualDim, false);
-
-
-    //this.so.layoutBounds(0, soTop, offW, soH, false);
-    // this.as.layoutBounds(0, 0, offW, asH, false);
   }
 
   clipBounds(clipBounds: Rectangle) {
+
     this._clipBounds = clipBounds;
 
     this.layout();
@@ -303,18 +299,23 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       const offsetW=this.ce.offsetWidth;
       const scrollW=this.ce.scrollWidth;
 
-      if(!this._fixFitToPanel) {
-        if (this._xZoom && this._audioData) {
-          // Set the virtual canvas width according to the value of the user selected xZoom value
-          const newClW = Math.round( this._xZoom*this._audioData.duration );
-          this.ce.style.width = newClW + 'px';
-        } else {
-          // Set the virtual canvas width to the visible width only
-          this.ce.style.width = clientW + 'px';
-        }
-      }
+      //console.log("Cw: "+clientW+" ow: "+offsetW+" sw: "+scrollW+ " cb: "+this._clipBounds)
 
-      if(this._audioData) {
+      if(this._audioData){
+        if(this._fixFitToPanel) {
+          // Set the virtual canvas width to the visible width only
+          this.ce.style.width = '100%';
+        }else{
+          if (this._xZoom) {
+            // Set the virtual canvas width according to the value of the user selected xZoom value
+            const newClW = Math.round( this._xZoom*this._audioData.duration );
+            this.ce.style.width = newClW + 'px';
+          } else {
+            // Set the virtual canvas width to the visible width only
+            this.ce.style.width = clientW + 'px';
+          }
+        }
+
         let ow=this.ce.offsetWidth;
         if(ow<1){
           // at least one pixel width to avoid x-zoom zero values
@@ -343,7 +344,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let left=0;
       let intW=offW;
-      if(this._clipBounds) {
+      if( !this._fixFitToPanel && this._clipBounds) {
         intW = Math.round(this._clipBounds.dimension.width);
         left=Math.round(this._clipBounds.position.left);
       }
@@ -364,13 +365,12 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let cLeft=0;
       let cWidth=this.ce.clientWidth;
-      if(this._clipBounds){
+      if(!this._fixFitToPanel &&  this._clipBounds){
         cLeft=this._clipBounds.position.left;
         cWidth=this._clipBounds.dimension.width;
       }
 
       let virtualDim=new Dimension(offW,0)
-
 
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 

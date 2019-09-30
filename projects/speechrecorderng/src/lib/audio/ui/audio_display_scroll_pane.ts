@@ -95,16 +95,19 @@ export class AudioDisplayScrollPane {
 
       this.zoomFitToPanelAction.onAction = (e) => {
 
-          this.ac.fixFitToPanel=true;
+          this.zoomFitToPanelAction.disabled=true
+
           // set container div width to this (viewport) width
           this.ac.ce.style.width=this.spEl.offsetWidth+'px';
-          // we don't need  clip bounds
-          this.ac.clipBounds(null);
+
+          this.ac.fixFitToPanel=true;
+
+          //this.ac.clipBounds(null);
           // reset xzom which trigegrs relayout and repaint
-          this.ac.xZoom = null;
+          //this.ac.xZoom = null;
           // // reset temporary fix fit to panel
           // this.ac.fixFitToPanel=false;
-          this.zoomFitToPanelAction.disabled=true
+
       }
 
   }
