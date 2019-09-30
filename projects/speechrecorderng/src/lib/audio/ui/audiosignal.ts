@@ -94,26 +94,22 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         if (show) {
 
           let pp = this.canvasMousePos(this.cursorCanvas, e);
-          let offX = e.offsetX;
-          let offY = e.offsetY;
-          let pixelPos = offX;
+          let xViewPortPixelpos = e.offsetX;
+
           g.fillStyle = 'yellow';
           g.strokeStyle = 'yellow';
           g.beginPath();
-          g.moveTo(pixelPos, 0);
-          g.lineTo(pixelPos, h);
+          g.moveTo(xViewPortPixelpos, 0);
+          g.lineTo(xViewPortPixelpos, h);
           g.closePath();
 
           g.stroke();
           if (this.audioData) {
-            let ch0 = this.audioData.getChannelData(0);
-            let frameLength = ch0.length;
-            let framesPerPixel = frameLength / w;
-            let framePos = framesPerPixel * pixelPos;
-            let framePosRound = Math.round(framePos);
+
+            let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
             g.font = '14px sans-serif';
             g.fillStyle = 'yellow';
-            g.fillText(framePosRound.toString(), pixelPos + 2, 50);
+            g.fillText(framePosRound.toString(), xViewPortPixelpos + 2, 50);
           }
         }
       }
