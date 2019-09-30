@@ -246,9 +246,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this.dc.style.left = '0px';
     this.dc.style.width = wStr;
 
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    this.dc.width = offW;
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    //this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    //this.dc.width = offW;
+    //this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
 
     this.dc.style.width = wStr;
     this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
