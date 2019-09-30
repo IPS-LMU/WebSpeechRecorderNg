@@ -77,8 +77,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
   selectionCommit(me:MouseEvent){
-
-    this.select(this.selectStartX,me.offsetX);
+    if(this.selectStartX) {
+      this.select(this.selectStartX, me.offsetX);
+    }
     this.selectStartX=null;
     this.updateCursorCanvas(me);
   }
@@ -126,6 +127,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       let g = this.cursorCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
+        if(!showCursorPosition){
+          this.selectStartX=null
+        }
         if(this.selectStartX && me){
           // draw temporay selection
           this.drawSelect(g,this.selectStartX,me.offsetX-this.selectStartX,h)
