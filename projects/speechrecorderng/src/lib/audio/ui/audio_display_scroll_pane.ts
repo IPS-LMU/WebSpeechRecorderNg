@@ -95,26 +95,37 @@ export class AudioDisplayScrollPane {
 
       this.zoomFitToPanelAction.onAction = (e) => {
 
-          this.ac.fixFitToPanel=true;
+          this.zoomFitToPanelAction.disabled=true
+
           // set container div width to this (viewport) width
           this.ac.ce.style.width=this.spEl.offsetWidth+'px';
-          // we don't need  clip bounds
-          this.ac.clipBounds(null);
+
+          this.ac.fixFitToPanel=true;
+
+          //this.ac.clipBounds(null);
           // reset xzom which trigegrs relayout and repaint
-          this.ac.xZoom = null;
+          //this.ac.xZoom = null;
           // // reset temporary fix fit to panel
           // this.ac.fixFitToPanel=false;
-          this.zoomFitToPanelAction.disabled=true
+
       }
 
+      }
+
+
+  updateClipBounds(){
+    let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
+    this.ac.clipBounds(cbr);
   }
 
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
-    setTimeout(()=>{
-      let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
-      this.ac.clipBounds(cbr);
-    });
+     this.updateClipBounds()
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event): void {
+    this.updateClipBounds()
   }
 
   layout(){

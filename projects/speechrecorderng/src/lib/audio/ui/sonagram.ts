@@ -102,28 +102,24 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 g.clearRect(0, 0, w, h);
                 if (show) {
                     const pp = this.canvasMousePos(this.cursorCanvas, e);
-                    const offX = e.offsetX ;
-                    const offY = e.offsetY ;
-                    const pixelPos = offX;
+              let xViewPortPixelpos = e.offsetX;
+
                     g.fillStyle = 'yellow';
                     g.strokeStyle = 'yellow';
 
                     g.beginPath();
-                    g.moveTo(pixelPos, 0);
-                    g.lineTo(pixelPos, h);
+              g.moveTo(xViewPortPixelpos, 0);
+              g.lineTo(xViewPortPixelpos, h);
                     g.closePath();
 
                     g.stroke();
 
                     if (this.audioData) {
-                        var ch0 = this.audioData.getChannelData(0);
-                        var frameLength = ch0.length;
-                        var framesPerPixel = frameLength / w;
-                        var framePos = framesPerPixel * pixelPos;
-                        var framePosRound = Math.round(framePos);
+
+                let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
                         g.font = '14px sans-serif';
                         g.fillStyle = 'yellow';
-                        g.fillText(framePosRound.toString(), pixelPos + 2, 50);
+                g.fillText(framePosRound.toString(), xViewPortPixelpos + 2, 50);
                     }
                 }
             }

@@ -140,12 +140,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
 
-  drawCursorPosition(e: MouseEvent) {
+  drawCursorPosition(e: MouseEvent,g:CanvasRenderingContext2D,h:number) {
 
     if (this.cursorCanvas) {
-
-      let h = this.cursorCanvas.height;
-      let g = this.cursorCanvas.getContext("2d");
       if (g) {
 
           let pp = this.canvasMousePos(this.cursorCanvas, e);
