@@ -89,12 +89,22 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     //@Input() set selection(selection:Selection){
      //       super.selection=selection
 
+  drawSelecting() {
+    if (this.cursorCanvas) {
+      let h = this.cursorCanvas.height;
+      let g = this.cursorCanvas.getContext("2d");
+      if(g) {
+        this._drawSelection(this._selecting, g,h)
+      }
+    }
+  }
+
     drawSelection() {
     if (this.cursorCanvas) {
             let h = this.cursorCanvas.height;
             let g = this.cursorCanvas.getContext("2d");
             if(g) {
-                this._drawSelection(g, h)
+                this._drawSelection(this._selection,g, h)
             }
         }
     }
@@ -116,12 +126,12 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     return p;
   }
 
-  _drawSelection(g:CanvasRenderingContext2D,h:number){
-    if(this._selection){
-      let s=this._selection.startFrame
-      let e=this._selection.endFrame
-      let xs=this.frameToViewPortXPixelPosition(s)
-      let xe=this.frameToViewPortXPixelPosition(e)
+  _drawSelection(s:Selection,g:CanvasRenderingContext2D,h:number){
+    if(s){
+      let sf=s.startFrame
+      let ef=s.endFrame
+      let xs=this.frameToViewPortXPixelPosition(sf)
+      let xe=this.frameToViewPortXPixelPosition(ef)
       let sw=xe-xs
       this.drawSelect(g,xs,sw,h)
     }
@@ -148,7 +158,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         if(this.selectStartX && me){
           // draw temporay selection
           //this.drawSelect(g,this.selectStartX,me.offsetX-this.selectStartX,h)
-            //this.selectingChange(this.selectStartX,me.offsetX-this.selectStartX);
+            this.selectingChange(this.selectStartX,me.offsetX);
         }else {
           this.drawSelection()
         }

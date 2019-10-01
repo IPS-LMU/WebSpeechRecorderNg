@@ -16,7 +16,7 @@ import {AudioClip,Selection} from "../persistor";
     <div #virtualCanvas>
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)"></canvas>
-    <audio-signal [selecting]="selecting" [selection]="selection" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selection"></audio-signal>
+    <audio-signal [selecting]="selecting" [selection]="selection" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-signal>
     <audio-sonagram></audio-sonagram>
     </div>
   `,
@@ -162,6 +162,10 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   selectingChanged(s:Selection){
     this.selecting=s
+  }
+
+  selectionChanged(s:Selection){
+    this.selection=s
   }
 
   private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
