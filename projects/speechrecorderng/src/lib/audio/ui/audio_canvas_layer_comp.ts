@@ -1,21 +1,26 @@
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Selection} from '../persistor'
-import {EventEmitter, Input, Output} from "@angular/core";
+import {ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core";
 import {Marker} from "./common";
 
 export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   audioData: AudioBuffer=null;
   _pointerPosition:Marker=null;
 
+  protected selectStartX:number=null;
+
+  @ViewChild('cursor') cursorCanvasRef: ElementRef;
+  cursorCanvas: HTMLCanvasElement;
+
   @Input() set pointerPosition(pointerPosition:Marker){
     this._pointerPosition=pointerPosition
-    this.drawPointerPosition()
+    this.drawCursorLayer()
   }
 
   _selecting: Selection =null
   @Input() set selecting(selecting:Selection){
     this._selecting=selecting
-    this.drawSelecting()
+    this.drawCursorLayer()
   }
 
   get selecting():Selection{
@@ -25,20 +30,53 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
    _selection: Selection =null
   @Input() set selection(selection:Selection){
     this._selection=selection
-    this.drawSelection()
+    this.drawCursorLayer()
   }
 
   get selection():Selection{
     return this._selection
   }
 
-  abstract drawPointerPosition();
-  abstract drawSelecting();
-  abstract drawSelection();
+    selectionStart(me:MouseEvent){
+        this.selection=null
+        this.selectStartX=me.offsetX;
+    }
 
-  @Output() pointerPositionEventEmitter = new EventEmitter<Marker>();
-  @Output() selectingEventEmitter = new EventEmitter<Selection>();
-  @Output() selectedEventEmitter = new EventEmitter<Selection>();
+    selectionCommit(me:MouseEvent){
+        if(this.selectStartX) {
+            this.select(this.selectStartX, me.offsetX);
+        }
+        this.selectStartX=null;
+    }
+
+    updateCursorCanvas(me:MouseEvent=null,showCursorPosition=true){
+        if (this.cursorCanvas) {
+            let w = this.cursorCanvas.width;
+            let h = this.cursorCanvas.height;
+            let g = this.cursorCanvas.getContext("2d");
+
+            if (!showCursorPosition) {
+                this.selectStartX = null
+            }
+            if (me) {
+                if (this.selectStartX) {
+                    this.pointerPositionChanged(null)
+                    this.selectingChange(this.selectStartX, me.offsetX);
+                } else {
+                    if (showCursorPosition) {
+                        this.pointerPositionChanged(me.offsetX)
+                    }else{
+                        this.pointerPositionChanged(null)
+                    }
+                }
+
+            }
+        }
+    }
+
+    @Output() pointerPositionEventEmitter = new EventEmitter<Marker>();
+    @Output() selectingEventEmitter = new EventEmitter<Selection>();
+    @Output() selectedEventEmitter = new EventEmitter<Selection>();
 
   frameToViewPortXPixelPosition(framePos: number): number | null {
     if (this.audioData && this.audioData.numberOfChannels > 0) {
@@ -88,11 +126,57 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
     this.selectingEventEmitter.emit(ns)
   }
 
-  select(xFrom:number,xTo:number){
-    let frameStart=this.viewPortXPixelToFramePosition(xFrom)
-    let frameEnd=this.viewPortXPixelToFramePosition(xTo)
-    let ns=new Selection(frameStart,frameEnd)
-    this.selectedEventEmitter.emit(ns)
-  }
+    select(xFrom:number,xTo:number){
+        let frameStart=this.viewPortXPixelToFramePosition(xFrom)
+        let frameEnd=this.viewPortXPixelToFramePosition(xTo)
+        let ns=new Selection(frameStart,frameEnd)
+        this.selectedEventEmitter.emit(ns)
+    }
+
+    drawCursorLayer(){
+        if (this.cursorCanvas) {
+            let w = this.cursorCanvas.width;
+            let h = this.cursorCanvas.height;
+            let g = this.cursorCanvas.getContext("2d");
+            if(g) {
+                g.clearRect(0, 0, w, h);
+                let s:Selection=null;
+                if(this._selecting){
+                    s=this._selecting
+                }else if(this._selection){
+                    s=this._selection
+                }
+                if(s){
+                    let sf=s.startFrame
+                    let ef=s.endFrame
+                    let xs=this.frameToViewPortXPixelPosition(sf)
+                    let xe=this.frameToViewPortXPixelPosition(ef)
+                    let sw=xe-xs
+                    g.fillStyle = 'rgba(100%,100%,0%,50%)';
+                    g.fillRect(xs,0,sw,h);
+                }
+
+                if(this._pointerPosition){
+
+                    let framePos=this._pointerPosition.framePosition
+                    let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
+
+                    g.fillStyle = 'yellow';
+                    g.strokeStyle = 'yellow';
+                    g.beginPath();
+                    g.moveTo(xViewPortPixelpos, 0);
+                    g.lineTo(xViewPortPixelpos, h);
+                    g.closePath();
+
+                    g.stroke();
+                    if (this.audioData) {
+                        g.font = '14px sans-serif';
+                        g.fillStyle = 'yellow';
+                        g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);
+                    }
+                }
+            }
+        }
+    }
 
 }

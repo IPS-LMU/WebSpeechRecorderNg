@@ -17,8 +17,8 @@ const DEFAULT_DFT_SIZE = 1024;
     selector: 'audio-sonagram',
     template: `
         <canvas #sonagram></canvas>
-        <canvas #cursor (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
-                (mouseleave)="drawCursorPosition($event, false)"></canvas>
+        <canvas #cursor (mousedown)="selectionStart($event)" (mouseup)="selectionCommit($event)"  (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
+                (mouseleave)="updateCursorCanvas($event, false)"></canvas>
         <canvas #marker></canvas>`,
 
     styles: [`canvas {
@@ -36,10 +36,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
     n: any;
     ce: HTMLDivElement;
     sonagramCanvas: HTMLCanvasElement;
-    cursorCanvas: HTMLCanvasElement;
+    //cursorCanvas: HTMLCanvasElement;
     markerCanvas: HTMLCanvasElement;
     @ViewChild('sonagram') sonagramCanvasRef: ElementRef;
-    @ViewChild('cursor') cursorCanvasRef: ElementRef;
+
     @ViewChild('marker') markerCanvasRef: ElementRef;
     markers: Array<Marker>;
     private _playFramePosition: number;
@@ -149,16 +149,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
         }
     }
 
-    drawPointerPosition() {
 
-    }
-
-    drawSelecting(){
-
-    }
-    drawSelection(){
-
-    }
 
     // layout() {
     //
@@ -593,6 +584,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
         }
         this.startRender();
+        this.drawCursorLayer()
     }
 
     private startRender() {

@@ -31,11 +31,11 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   n: any;
   ce: HTMLDivElement;
   @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
-  @ViewChild('cursor') cursorCanvasRef: ElementRef;
+  //@ViewChild('cursor') cursorCanvasRef: ElementRef;
   @ViewChild('marker') playPosCanvasRef: ElementRef;
 
   signalCanvas: HTMLCanvasElement;
-  cursorCanvas: HTMLCanvasElement;
+
   markerCanvas: HTMLCanvasElement;
 
   //markers: Array<Marker>;
@@ -43,7 +43,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   private wo: Worker | null;
   private workerURL: string;
 
-  private selectStartX:number=null;
+
 
   constructor(private ref: ElementRef) {
     super();
@@ -66,86 +66,12 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
 
     this.canvasLayers[0]=this.signalCanvas;
-
     this.canvasLayers[1]=this.cursorCanvas;
     this.canvasLayers[2]=this.markerCanvas;
 
   }
 
-  selectionStart(me:MouseEvent){
-    this.selection=null
-    this.selectStartX=me.offsetX;
-//    console.log("sel start: offset: "+me.offsetX+" client: "+me.clientX+" frame: "+this.viewPortXPixelToFramePosition(me.offsetX))
-  }
 
-  selectionCommit(me:MouseEvent){
-    if(this.selectStartX) {
-      this.select(this.selectStartX, me.offsetX);
-    }
-    this.selectStartX=null;
-    //this.updateCursorCanvas(me);
-  }
-
-
-  drawCursorLayer(){
-
-    if (this.cursorCanvas) {
-      let w = this.cursorCanvas.width;
-      let h = this.cursorCanvas.height;
-      let g = this.cursorCanvas.getContext("2d");
-      if(g) {
-        g.clearRect(0, 0, w, h);
-        let s:Selection=null;
-        if(this._selecting){
-          s=this._selecting
-        }else if(this._selection){
-          s=this._selection
-        }
-        if(s){
-          let sf=s.startFrame
-          let ef=s.endFrame
-          let xs=this.frameToViewPortXPixelPosition(sf)
-          let xe=this.frameToViewPortXPixelPosition(ef)
-          let sw=xe-xs
-          this.drawSelect(g,xs,sw,h)
-        }
-
-        if(this._pointerPosition){
-
-          let framePos=this._pointerPosition.framePosition
-          let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
-
-          g.fillStyle = 'yellow';
-          g.strokeStyle = 'yellow';
-          g.beginPath();
-          g.moveTo(xViewPortPixelpos, 0);
-          g.lineTo(xViewPortPixelpos, h);
-          g.closePath();
-
-          g.stroke();
-          if (this.audioData) {
-            g.font = '14px sans-serif';
-            g.fillStyle = 'yellow';
-            g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);
-          }
-        }
-
-      }
-    }
-  }
-
-
-  drawPointerPosition() {
-    this.drawCursorLayer()
-  }
-
-  drawSelecting() {
-    this.drawCursorLayer()
-  }
-
-    drawSelection() {
-      this.drawCursorLayer()
-    }
 
   get playFramePosition(): number {
     return this._playFramePosition;
@@ -156,85 +82,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     this.drawPlayPosition();
   }
 
-  private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
-    let cr = c.getBoundingClientRect();
-    let p = new Point();
-    p.x = e.x - cr.left;
-    p.y = e.y - cr.top;
-    return p;
-  }
 
-  _drawSelection(s:Selection,g:CanvasRenderingContext2D,h:number){
-    if(s){
-      let sf=s.startFrame
-      let ef=s.endFrame
-      let xs=this.frameToViewPortXPixelPosition(sf)
-      let xe=this.frameToViewPortXPixelPosition(ef)
-      let sw=xe-xs
-      this.drawSelect(g,xs,sw,h)
-    }
-  }
-
-  drawSelect(g:CanvasRenderingContext2D,x:number,w:number,h:number) {
-          g.fillStyle = 'rgba(100%,100%,0%,50%)';
-          //g.strokeStyle = 'yellow';
-          g.fillRect(x,0,w,h);
-  }
-
-
-
-  updateCursorCanvas(me:MouseEvent=null,showCursorPosition=true){
-    if (this.cursorCanvas) {
-      let w = this.cursorCanvas.width;
-      let h = this.cursorCanvas.height;
-      let g = this.cursorCanvas.getContext("2d");
-
-      if (!showCursorPosition) {
-        this.selectStartX = null
-      }
-      if (me) {
-        if (this.selectStartX) {
-          this.pointerPositionChanged(null)
-          this.selectingChange(this.selectStartX, me.offsetX);
-        } else {
-          if (showCursorPosition) {
-            this.pointerPositionChanged(me.offsetX)
-          }else{
-            this.pointerPositionChanged(null)
-          }
-        }
-
-      }
-    }
-  }
-
-
-  drawCursorPosition(e: MouseEvent,g:CanvasRenderingContext2D,h:number) {
-
-    if (this.cursorCanvas) {
-      if (g) {
-
-          let pp = this.canvasMousePos(this.cursorCanvas, e);
-          let xViewPortPixelpos = e.offsetX;
-
-          g.fillStyle = 'yellow';
-          g.strokeStyle = 'yellow';
-          g.beginPath();
-          g.moveTo(xViewPortPixelpos, 0);
-          g.lineTo(xViewPortPixelpos, h);
-          g.closePath();
-
-          g.stroke();
-          if (this.audioData) {
-
-            let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
-            g.font = '14px sans-serif';
-            g.fillStyle = 'yellow';
-            g.fillText(framePosRound.toString(), xViewPortPixelpos + 2, 50);
-          }
-        }
-    }
-  }
 
   drawPlayPosition() {
     if (this.markerCanvas) {
@@ -256,8 +104,6 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       }
     }
   }
-
-
 
   workerFunction() {
     self.onmessage = function (msg) {
@@ -337,7 +183,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       }
     }
     this.startRender();
-    this.updateCursorCanvas();
+    this.drawCursorLayer()
   }
 
 
