@@ -1,9 +1,17 @@
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Selection} from '../persistor'
 import {EventEmitter, Input, Output} from "@angular/core";
+import {Marker} from "./common";
 
 export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   audioData: AudioBuffer=null;
+  _pointerPosition:Marker=null;
+
+  @Input() set pointerPosition(pointerPosition:Marker){
+    this._pointerPosition=pointerPosition
+    this.drawPointerPosition()
+  }
+
   _selecting: Selection =null
   @Input() set selecting(selecting:Selection){
     this._selecting=selecting
@@ -23,9 +31,12 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   get selection():Selection{
     return this._selection
   }
+
+  abstract drawPointerPosition();
   abstract drawSelecting();
   abstract drawSelection();
 
+  @Output() pointerPositionEventEmitter = new EventEmitter<Marker>();
   @Output() selectingEventEmitter = new EventEmitter<Selection>();
   @Output() selectedEventEmitter = new EventEmitter<Selection>();
 
@@ -59,6 +70,15 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
       let framePosRound = Math.round(framePos);
       return framePosRound;
     }
+  }
+
+  pointerPositionChanged(xPosition:number| null){
+    let pointerPosition:Marker=null
+    if(xPosition){
+      pointerPosition=new Marker()
+      pointerPosition.framePosition=this.viewPortXPixelToFramePosition(xPosition)
+    }
+    this.pointerPositionEventEmitter.emit(pointerPosition)
   }
 
   selectingChange(xFrom:number,xTo:number){

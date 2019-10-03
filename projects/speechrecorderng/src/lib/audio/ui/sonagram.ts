@@ -149,6 +149,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
         }
     }
 
+    drawPointerPosition() {
+
+    }
+
     drawSelecting(){
 
     }

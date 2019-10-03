@@ -3,7 +3,7 @@ import {
 } from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
-import {Point} from './common'
+import {Marker, Point} from './common'
 
 import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
@@ -16,7 +16,7 @@ import {AudioClip,Selection} from "../persistor";
     <div #virtualCanvas>
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)"></canvas>
-    <audio-signal [selecting]="selecting" [selection]="selection" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-signal>
+    <audio-signal [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-signal>
     <audio-sonagram></audio-sonagram>
     </div>
   `,
@@ -71,6 +71,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
 
   private _audioData: AudioBuffer | null;
+  pointer: Marker=null;
   selecting: Selection=null;
   selection: Selection=null;
   private _playFramePosition: number;
@@ -158,6 +159,10 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
       this.dividerDrag(me);
       this.layoutScaled();
     }
+  }
+
+  pointerPositionChanged(pp:Marker){
+    this.pointer=pp
   }
 
   selectingChanged(s:Selection){
