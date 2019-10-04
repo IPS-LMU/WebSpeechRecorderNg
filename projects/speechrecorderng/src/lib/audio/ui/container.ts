@@ -167,7 +167,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this.pointer=pp
   }
 
-  selectingChanged(s:Selection){
+  selectingChanged(s:Selection| null){
     this.selecting=s
   }
 
