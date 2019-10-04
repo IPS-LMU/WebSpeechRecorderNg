@@ -152,7 +152,7 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
                     let xs=this.frameToViewPortXPixelPosition(sf)
                     let xe=this.frameToViewPortXPixelPosition(ef)
                     let sw=xe-xs
-                    g.fillStyle = 'rgba(100%,100%,0%,50%)';
+                    g.fillStyle = 'rgba(0%,0%,100%,25%)';
                     g.fillRect(xs,0,sw,h);
                 }
 
