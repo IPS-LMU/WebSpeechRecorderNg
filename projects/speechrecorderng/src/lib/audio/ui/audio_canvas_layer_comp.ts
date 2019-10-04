@@ -3,6 +3,19 @@ import {Selection} from '../persistor'
 import {ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core";
 import {Marker} from "./common";
 
+
+export class ViewSelection{
+  get startX(): number {
+    return this._startX;
+  }
+
+  get endX(): number {
+    return this._endX;
+  }
+
+  constructor(private _startX:number, private _endX:number){}
+}
+
 export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   audioData: AudioBuffer=null;
   _pointerPosition:Marker=null;
@@ -18,7 +31,7 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   }
 
   _selecting: Selection =null
-  @Input() set selecting(selecting:Selection){
+  @Input() set selecting(selecting:Selection| null){
     this._selecting=selecting
     this.drawCursorLayer()
   }
@@ -38,15 +51,17 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   }
 
     selectionStart(me:MouseEvent){
-        this.selection=null
-        this.selectStartX=me.offsetX;
+      //this.select(null);
+      this.selectStartX=me.offsetX;
     }
 
     selectionCommit(me:MouseEvent){
+      let vs:ViewSelection=null;
         if(this.selectStartX) {
-            this.select(this.selectStartX, me.offsetX);
+            vs=new ViewSelection(this.selectStartX,me.offsetX)
         }
         this.selectStartX=null;
+      this.select(vs);
     }
 
     updateCursorCanvas(me:MouseEvent=null,showCursorPosition=true){
@@ -57,11 +72,13 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
 
             if (!showCursorPosition) {
                 this.selectStartX = null
+                // TODO if selection (NOT selecting!) exists and moue moves out (e.g. to split slider) the selection is removed. Why?
+                //this.selectingChange(null)
             }
             if (me) {
                 if (this.selectStartX) {
                     this.pointerPositionChanged(null)
-                    this.selectingChange(this.selectStartX, me.offsetX);
+                    this.selectingChange(new ViewSelection(this.selectStartX, me.offsetX));
                 } else {
                     if (showCursorPosition) {
                         this.pointerPositionChanged(me.offsetX)
@@ -119,17 +136,23 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
     this.pointerPositionEventEmitter.emit(pointerPosition)
   }
 
-  selectingChange(xFrom:number,xTo:number){
-    let frameStart=this.viewPortXPixelToFramePosition(xFrom)
-    let frameEnd=this.viewPortXPixelToFramePosition(xTo)
-    let ns=new Selection(frameStart,frameEnd)
+  selectingChange(viewSel:ViewSelection| null){
+    let ns:Selection=null
+    if(viewSel) {
+      let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
+      let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
+      ns = new Selection(frameStart, frameEnd)
+    }
     this.selectingEventEmitter.emit(ns)
   }
 
-    select(xFrom:number,xTo:number){
-        let frameStart=this.viewPortXPixelToFramePosition(xFrom)
-        let frameEnd=this.viewPortXPixelToFramePosition(xTo)
-        let ns=new Selection(frameStart,frameEnd)
+    select(viewSel:ViewSelection| null){
+      let ns:Selection=null
+      if(viewSel) {
+        let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
+        let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
+        let ns = new Selection(frameStart, frameEnd)
+      }
         this.selectedEventEmitter.emit(ns)
     }
 
@@ -159,20 +182,22 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
                 if(this._pointerPosition){
 
                     let framePos=this._pointerPosition.framePosition
-                    let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
+                    if(framePos) {
+                      let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
 
-                    g.fillStyle = 'yellow';
-                    g.strokeStyle = 'yellow';
-                    g.beginPath();
-                    g.moveTo(xViewPortPixelpos, 0);
-                    g.lineTo(xViewPortPixelpos, h);
-                    g.closePath();
+                      g.fillStyle = 'yellow';
+                      g.strokeStyle = 'yellow';
+                      g.beginPath();
+                      g.moveTo(xViewPortPixelpos, 0);
+                      g.lineTo(xViewPortPixelpos, h);
+                      g.closePath();
 
-                    g.stroke();
-                    if (this.audioData) {
+                      g.stroke();
+                      if (this.audioData) {
                         g.font = '14px sans-serif';
                         g.fillStyle = 'yellow';
                         g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);
+                      }
                     }
                 }
             }

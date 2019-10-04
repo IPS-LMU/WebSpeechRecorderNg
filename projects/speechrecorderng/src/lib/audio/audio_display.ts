@@ -5,7 +5,7 @@ import {
     AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
-import {AudioClip} from './persistor'
+import {AudioClip, Selection} from './persistor'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
@@ -42,6 +42,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 })
 export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
   private _audioUrl: string;
+
 
   parentE: HTMLElement;
 
@@ -127,12 +128,20 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   @Input()
   set audioData(audioBuffer: AudioBuffer){
       this.audioDisplayScrollPane.audioData = audioBuffer;
-      if(audioBuffer) {
-          let clip = new AudioClip(audioBuffer);
+      this.playStartAction.disabled = (audioBuffer!==null)
+  }
 
-      }else{
-          this.playStartAction.disabled = true
-      }
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+
+    let audioData:AudioBuffer=null;
+    let sel:Selection=null;
+    if(audioClip){
+      audioData=audioClip.buffer;
+      sel=audioClip.selection;
+    }
+    this.audioDisplayScrollPane.audioClip = audioClip;
+    this.playStartAction.disabled = (audioData!==null)
   }
 
 

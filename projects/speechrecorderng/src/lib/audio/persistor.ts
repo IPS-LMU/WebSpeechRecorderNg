@@ -1,9 +1,12 @@
 import { PCMAudioFormat} from './format'
+import {Observable} from "rxjs";
+import {Observer} from "../utils/observer";
 
     export class AudioClip {
 
         private _buffer: AudioBuffer;
         private _selection:Selection=null;
+        selectionObserver:Observer<Selection>|null;
 
         constructor(buffer: AudioBuffer) {
             this._buffer = buffer;
@@ -19,7 +22,11 @@ import { PCMAudioFormat} from './format'
 
       set selection(value: Selection) {
         this._selection = value;
+        if(this.selectionObserver){
+          this.selectionObserver.update(this._selection)
+        }
       }
+
     }
 
     export interface Reader {
