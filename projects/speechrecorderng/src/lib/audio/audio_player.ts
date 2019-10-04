@@ -5,7 +5,7 @@ import {
     AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
-import {AudioClip} from './persistor'
+import {AudioClip, Selection} from './persistor'
 import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
 import {AudioClipUIContainer} from './ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
@@ -24,7 +24,7 @@ import {AudioContextProvider} from "./context";
     <div #controlPanel>
     <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled" [style.color]="playStartAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled" [style.color]="playStopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
     Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
+    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
     </div><p>{{status}}
   `,
   styles: [
@@ -54,6 +54,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   playStopAction: Action;
 
   zoomFitToPanelAction:Action;
+  zoomSelectedAction:Action
   zoomInAction:Action;
   zoomOutAction:Action;
 
@@ -82,6 +83,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
+    this.zoomSelectedAction=this.ac.zoomSelectedAction
       this.zoomFitToPanelAction=this.ac.zoomFitToPanelAction;
     this.zoomOutAction=this.ac.zoomOutAction;
     this.zoomInAction=this.ac.zoomInAction;
@@ -191,7 +193,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
     var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
       console.log("Samplerate: ", audioBuffer.sampleRate);
-      this.audioData=audioBuffer;
+      //this.audioData=audioBuffer;
+      this.audioClip=new AudioClip(audioBuffer)
     });
   }
 
@@ -210,6 +213,25 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
               this.ap.audioClip = null;
           }
       }
+  }
+
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+
+    let audioData:AudioBuffer=null;
+    let sel:Selection=null;
+    if(audioClip){
+      audioData=audioClip.buffer;
+      sel=audioClip.selection;
+    }
+    if(audioData) {
+      this.playStartAction.disabled =(!this.ap)
+    }else{
+      this.playStartAction.disabled = true
+    }
+
+    this.ac.audioClip=audioClip
+    this.ap.audioClip=audioClip
   }
 
 

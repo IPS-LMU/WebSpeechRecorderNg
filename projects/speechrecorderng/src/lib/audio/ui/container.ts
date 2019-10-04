@@ -8,6 +8,7 @@ import {Marker, Point} from './common'
 import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip,Selection} from "../persistor";
+import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 
 @Component({
 
@@ -69,7 +70,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   private _clipBounds: Rectangle | null = null;
 
-
+  private _audioClip:AudioClip | null=null;
   private _audioData: AudioBuffer | null;
   pointer: Marker=null;
   selecting: Selection=null;
@@ -172,6 +173,13 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   selectionChanged(s:Selection){
     this.selection=s
+    if(this._audioClip){
+      // notify audioclip selection observer
+      let selObs=this._audioClip.selectionObserver
+      if(selObs){
+        selObs.update(this.selection)
+      }
+    }
     this.selectionEventEmitter.emit(this.selection)
   }
 
@@ -392,6 +400,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   @Input()
   set audioData(audioData: AudioBuffer | null) {
+    this._audioClip=null
     this._audioData=audioData;
     this.as.setData(audioData);
     this.so.setData(audioData);
@@ -400,6 +409,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {
+    this._audioClip=audioClip
       let audioData:AudioBuffer=null;
       let sel:Selection=null;
       if(audioClip){

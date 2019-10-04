@@ -3,6 +3,7 @@ import {Selection} from '../persistor'
 import {ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core";
 import {Marker} from "./common";
 
+
 export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
   audioData: AudioBuffer=null;
   _pointerPosition:Marker=null;
@@ -159,20 +160,22 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
                 if(this._pointerPosition){
 
                     let framePos=this._pointerPosition.framePosition
-                    let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
+                    if(framePos) {
+                      let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
 
-                    g.fillStyle = 'yellow';
-                    g.strokeStyle = 'yellow';
-                    g.beginPath();
-                    g.moveTo(xViewPortPixelpos, 0);
-                    g.lineTo(xViewPortPixelpos, h);
-                    g.closePath();
+                      g.fillStyle = 'yellow';
+                      g.strokeStyle = 'yellow';
+                      g.beginPath();
+                      g.moveTo(xViewPortPixelpos, 0);
+                      g.lineTo(xViewPortPixelpos, h);
+                      g.closePath();
 
-                    g.stroke();
-                    if (this.audioData) {
+                      g.stroke();
+                      if (this.audioData) {
                         g.font = '14px sans-serif';
                         g.fillStyle = 'yellow';
                         g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);
+                      }
                     }
                 }
             }

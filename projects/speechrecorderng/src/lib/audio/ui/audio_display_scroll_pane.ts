@@ -1,8 +1,8 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit, HostListener, ElementRef, Output, OnInit,
+  Component,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit, HostListener, ElementRef, Output, OnInit, Input,
 } from '@angular/core'
 
 
@@ -11,6 +11,7 @@ import {AudioClipUIContainer} from '../ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../../action/action";
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioClip, Selection} from "../persistor";
 
 @Component({
 
@@ -18,7 +19,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 
   template: `
    
-    <app-audio #audioSignalContainer></app-audio>
+    <app-audio #audioSignalContainer (selectionEventEmitter)="selectionChanged($event)"></app-audio>
     
   `,
   styles: [
@@ -52,6 +53,7 @@ export class AudioDisplayScrollPane {
 
   @Output() zoomInAction:Action=new Action('+');
   @Output() zoomOutAction:Action=new Action('-');
+  @Output() zoomSelectedAction:Action=new Action("Selected");
   @Output() zoomFitToPanelAction:Action=new Action("Fit to panel");
   zoomFixFitToPanelAction:Action=new Action("Fix fit to panel");
 
@@ -110,6 +112,11 @@ export class AudioDisplayScrollPane {
 
       }
 
+      this.zoomSelectedAction.onAction=(e)=>{
+        alert("not implemented yet")
+        this.zoomFitToPanelAction.disabled=false
+      }
+
       }
 
 
@@ -132,13 +139,32 @@ export class AudioDisplayScrollPane {
           this.ac.layout();
     }
 
-  set audioData(audioData: AudioBuffer | null) {
-    this.ac.audioData=audioData;
-    if(audioData){
-      this.zoomOutAction.disabled=false
-      this.zoomInAction.disabled=false
+    selectionChanged(s:Selection| null){
+      this.zoomSelectedAction.disabled=(s==null)
     }
+
+  set audioData(audioData: AudioBuffer | null) {
+
+    this.ac.audioData=audioData;
+      this.zoomOutAction.disabled=(!audioData)
+      this.zoomInAction.disabled=(!audioData)
   }
+
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+
+    let audioData:AudioBuffer=null;
+    let sel:Selection=null;
+    if(audioClip){
+      audioData=audioClip.buffer;
+      sel=audioClip.selection;
+    }
+
+    this.ac.audioClip=audioClip
+    this.zoomOutAction.disabled=(!audioData)
+    this.zoomInAction.disabled=(!audioData)
+  }
+
 
   set playFramePosition(framePos:number){
     this.ac.playFramePosition=framePos;
