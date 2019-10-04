@@ -1,5 +1,5 @@
 import {
-    ElementRef, AfterViewInit, HostListener, Input, OnInit
+  ElementRef, AfterViewInit, HostListener, Input, OnInit, Output, EventEmitter
 } from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
@@ -74,6 +74,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   pointer: Marker=null;
   selecting: Selection=null;
   selection: Selection=null;
+  @Output() selectionEventEmitter = new EventEmitter<Selection>();
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
@@ -171,6 +172,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   selectionChanged(s:Selection){
     this.selection=s
+    this.selectionEventEmitter.emit(this.selection)
   }
 
   private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
