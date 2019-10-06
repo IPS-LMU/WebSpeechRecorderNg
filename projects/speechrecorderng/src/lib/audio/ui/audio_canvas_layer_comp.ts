@@ -72,8 +72,7 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
 
             if (!showCursorPosition) {
                 this.selectStartX = null
-                // TODO if selection (NOT selecting!) exists and moue moves out (e.g. to split slider) the selection is removed. Why?
-                //this.selectingChange(null)
+                this.selectingChange(null)
             }
             if (me) {
                 if (this.selectStartX) {
