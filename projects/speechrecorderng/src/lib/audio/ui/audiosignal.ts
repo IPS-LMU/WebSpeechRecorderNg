@@ -2,7 +2,7 @@ import {Marker, Point} from './common'
 import {Component, ViewChild, ElementRef, Output, EventEmitter, Input} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
-import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {AudioCanvasLayerComponent, BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {Selection} from "../persistor";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
@@ -50,7 +50,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     this.wo = null;
     let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
     this.workerURL = window.URL.createObjectURL(wb);
-    this.audioData = null;
+    this._audioData = null;
     //this.markers = new Array<Marker>();
   }
 
@@ -198,18 +198,18 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       let w = Math.round(this.bounds.dimension.width);
       let h = Math.round(this.bounds.dimension.height);
 
-      if (this.audioData && w>0 && h>0) {
+      if (this._audioData && w>0 && h>0) {
         this.wo = new Worker(this.workerURL);
 
-        let chs = this.audioData.numberOfChannels;
+        let chs = this._audioData.numberOfChannels;
 
-        let frameLength = this.audioData.getChannelData(0).length;
+        let frameLength = this._audioData.getChannelData(0).length;
         // if(frameLength != this.audioData.getChannelData(1).length){
         //   alert("Ungleiche Länge");
         // }
         let ad = new Float32Array(chs * frameLength);
         for (let ch = 0; ch < chs; ch++) {
-          ad.set(this.audioData.getChannelData(ch), ch * frameLength);
+          ad.set(this._audioData.getChannelData(ch), ch * frameLength);
         }
         //let start = Date.now();
         if (this.wo) {
@@ -255,7 +255,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       let pointsLen = me.data.w * me.data.chs;
       // one for min one for max
       let arrLen = pointsLen * 2;
-      if (this.audioData) {
+      if (this._audioData) {
         let std = Date.now();
 
         let chH = me.data.h / me.data.chs;
@@ -311,12 +311,12 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       g.clearRect(0, 0, w, h);
       g.fillStyle = "black";
       g.fillRect(0, 0, w, h);
-      if (this.audioData) {
+      if (this._audioData) {
         let std = Date.now();
-        let chs = this.audioData.numberOfChannels;
+        let chs = this._audioData.numberOfChannels;
         let chH = h / chs;
 
-        let frameLength = this.audioData.getChannelData(0).length;
+        let frameLength = this._audioData.getChannelData(0).length;
 
         let framesPerPixel = frameLength / w;
         let y = 0;
@@ -332,7 +332,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
             // calculate pixel min/max amplitude
             for (let ai = 0; ai < framesPerPixel; ai++) {
               //let framePos=(pii*framesPerPixel)+ai;
-              let a = this.audioData.getChannelData(ch)[framePos++];
+              let a = this._audioData.getChannelData(ch)[framePos++];
 
               if (a < pMin) {
                 pMin = a;
@@ -379,7 +379,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
   setData(audioData: AudioBuffer | null) {
-    this.audioData = audioData;
+    this._audioData = audioData;
     this.playFramePosition = 0;
   }
 

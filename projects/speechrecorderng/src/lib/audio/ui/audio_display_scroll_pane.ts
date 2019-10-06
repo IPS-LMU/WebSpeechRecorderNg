@@ -112,9 +112,16 @@ export class AudioDisplayScrollPane {
 
       }
 
-      this.zoomSelectedAction.onAction=(e)=>{
-        alert("not implemented yet")
-        this.zoomFitToPanelAction.disabled=false
+      this.zoomSelectedAction.onAction=(e)=> {
+          //alert("not implemented yet")
+          let s = this.ac.selection
+          if (s) {
+              let x1=this.ac.frameToViewPortXPixelPosition(s.startFrame);
+              let x2=this.ac.frameToViewPortXPixelPosition(s.endFrame)
+              let cbr = new Rectangle(new Position(x1, this.spEl.scrollTop), new Dimension(x2-x1, this.spEl.clientHeight));
+          this.ac.clipBounds(cbr);
+          this.zoomFitToPanelAction.disabled = false
+      }
       }
 
       }

@@ -8,7 +8,7 @@ import {Marker, Point} from './common'
 import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip,Selection} from "../persistor";
-import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 
 @Component({
 
@@ -52,7 +52,7 @@ import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
   }`]
 
 })
-export class AudioClipUIContainer implements OnInit,AfterViewInit {
+export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent implements OnInit,AfterViewInit {
 
   private static DIVIDER_PIXEL_SIZE = 10;
 
@@ -68,10 +68,8 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   @ViewChild(Sonagram) so: Sonagram;
 
 
-  private _clipBounds: Rectangle | null = null;
-
+  //private _clipBounds: Rectangle | null = null;
   private _audioClip:AudioClip | null=null;
-  private _audioData: AudioBuffer | null;
   pointer: Marker=null;
   selecting: Selection=null;
   selection: Selection=null;
@@ -96,7 +94,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this._fixFitToPanel = value;
     if (value) {
       // we don't need  clip bounds
-      this._clipBounds=null;
+      this.bounds=null;
       this._xZoom = null;
     } else {
       // hold current zoom value
@@ -106,6 +104,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   constructor(private ref: ElementRef) {
+    super()
     this.parentE = this.ref.nativeElement;
   }
 
@@ -272,11 +271,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
     let cLeft = 0;
     let cWidth = this.ce.clientWidth;
-    if ( !this._fixFitToPanel && this._clipBounds) {
-      cLeft = this._clipBounds.position.left;
-      cWidth = this._clipBounds.dimension.width;
+    if ( !this._fixFitToPanel && this.bounds) {
+      cLeft = this.bounds.position.left;
+      cWidth = this.bounds.dimension.width;
     }
     let virtualDim = new Dimension(offW, 0)
+
+    let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
+    this.layoutBounds(r, virtualDim, false);
+
     let asR = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, asH));
 
     this.as.layoutBounds(asR, virtualDim, false);
@@ -287,7 +290,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   clipBounds(clipBounds: Rectangle) {
-    this._clipBounds = clipBounds;
+    this.bounds = clipBounds;
 
     this.layout();
   }
@@ -359,9 +362,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let left=0;
       let intW=offW;
-      if( !this._fixFitToPanel && this._clipBounds) {
-        intW = Math.round(this._clipBounds.dimension.width);
-        left=Math.round(this._clipBounds.position.left);
+      if( !this._fixFitToPanel && this.bounds) {
+        intW = Math.round(this.bounds.dimension.width);
+        left=Math.round(this.bounds.position.left);
       }
       const dTop = asH;
       const dTopStr = dTop + 'px';
@@ -380,13 +383,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let cLeft=0;
       let cWidth=this.ce.clientWidth;
-      if(!this._fixFitToPanel &&  this._clipBounds){
-        cLeft=this._clipBounds.position.left;
-        cWidth=this._clipBounds.dimension.width;
+      if(!this._fixFitToPanel &&  this.bounds){
+        cLeft=this.bounds.position.left;
+        cWidth=this.bounds.dimension.width;
       }
 
       let virtualDim=new Dimension(offW,0)
 
+      let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
+      this.layoutBounds(r, virtualDim, false);
 
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 
