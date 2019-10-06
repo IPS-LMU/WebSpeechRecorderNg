@@ -151,7 +151,7 @@ export abstract class AudioCanvasLayerComponent extends CanvasLayerComponent {
       if(viewSel) {
         let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
         let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-        let ns = new Selection(frameStart, frameEnd)
+        ns = new Selection(frameStart, frameEnd)
       }
         this.selectedEventEmitter.emit(ns)
     }
