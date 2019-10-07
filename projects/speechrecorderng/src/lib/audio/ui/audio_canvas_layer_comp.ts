@@ -1,6 +1,6 @@
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Selection} from '../persistor'
-import {ElementRef, EventEmitter, Input, Output, ViewChild} from "@angular/core";
+import {ElementRef, EventEmitter, HostListener, Input, Output, ViewChild} from "@angular/core";
 import {Marker} from "./common";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 
@@ -64,6 +64,12 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
       let xVirtualPixelPos=this.toXVirtualPixelPosition(xViewPortPixelPos)
       let framesPerPixel = frameLength / vw;
       let framePos = framesPerPixel * xVirtualPixelPos;
+      if(framePos<0){
+        framePos=0
+      }
+      if(framePos>=frameLength){
+        framePos=frameLength-1
+      }
       let framePosRound = Math.round(framePos);
       return framePosRound;
     }
@@ -125,6 +131,11 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     @ViewChild('cursor') cursorCanvasRef: ElementRef;
     cursorCanvas: HTMLCanvasElement;
 
+  @HostListener('document:mouseup', ['$event'])
+  onMouseup(me: MouseEvent) {
+    this.selectionCommit(me)
+  }
+
     layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean,clear?:boolean) {
         super.layoutBounds(bounds,virtualDimension,redraw)
         if (redraw) {
@@ -164,11 +175,11 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
     selectionCommit(me:MouseEvent){
         let vs:ViewSelection=null;
-        if(this.selectStartX) {
-            vs=new ViewSelection(this.selectStartX,me.offsetX)
+        if(this.selectStartX!=null) {
+          vs=new ViewSelection(this.selectStartX,me.offsetX)
+          this.selectStartX=null;
+          this.select(vs);
         }
-        this.selectStartX=null;
-        this.select(vs);
     }
 
 
@@ -181,10 +192,10 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
             let h = this.cursorCanvas.height;
             let g = this.cursorCanvas.getContext("2d");
 
-            if (!showCursorPosition) {
-                this.selectStartX = null
-                this.selectingChange(null)
-            }
+            // if (!showCursorPosition) {
+            //     this.selectStartX = null
+            //     this.selectingChange(null)
+            // }
             if (me) {
                 if (this.selectStartX) {
                     this.pointerPositionChanged(null)
@@ -228,9 +239,9 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     select(viewSel:ViewSelection| null){
         let ns:Selection=null
         if(viewSel) {
-            let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
-            let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            ns = new Selection(frameStart, frameEnd)
+          let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
+          let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
+          ns=new Selection(frameStart,frameEnd)
         }
         this.selectedEventEmitter.emit(ns)
     }

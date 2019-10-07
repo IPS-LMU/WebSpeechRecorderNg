@@ -17,7 +17,7 @@ const DEFAULT_DFT_SIZE = 1024;
     selector: 'audio-sonagram',
     template: `
         <canvas #sonagram></canvas>
-        <canvas #cursor (mousedown)="selectionStart($event)" (mouseup)="selectionCommit($event)"  (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
+        <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
                 (mouseleave)="updateCursorCanvas($event, false)"></canvas>
         <canvas #marker></canvas>`,
 

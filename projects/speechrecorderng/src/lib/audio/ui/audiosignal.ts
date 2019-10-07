@@ -1,5 +1,5 @@
 import {Marker, Point} from './common'
-import {Component, ViewChild, ElementRef, Output, EventEmitter, Input} from '@angular/core';
+import {Component, ViewChild, ElementRef, Output, EventEmitter, Input, HostListener} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent, BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
@@ -13,7 +13,7 @@ declare function postMessage(message: any, transfer: Array<any>): void;
   selector: 'audio-signal',
   template: `
     <canvas #audioSignal></canvas>
-    <canvas #cursor (mousedown)="selectionStart($event)" (mouseup)="selectionCommit($event)"  (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
+    <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
             (mouseleave)="updateCursorCanvas($event, false)"></canvas>
     <canvas #marker></canvas>`,
 
@@ -70,6 +70,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     this.canvasLayers[2]=this.markerCanvas;
 
   }
+
 
 
 
