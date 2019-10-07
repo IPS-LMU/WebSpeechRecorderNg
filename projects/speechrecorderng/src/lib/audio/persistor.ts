@@ -50,8 +50,16 @@ import {Observer} from "../utils/observer";
       get startFrame(): number {
         return this._startFrame;
       }
+
+      get leftFrame(): number {
+        return (this._startFrame <= this._endFrame) ? this._startFrame : this._endFrame
+      }
+      get rightFrame(): number {
+        return (this._startFrame <= this._endFrame) ? this._endFrame : this._startFrame
+      }
+
       toString(){
-          return "Selection: start: "+this.startFrame+" end: "+this.endFrame+" frame"
+          return "Selection: from: "+this.leftFrame+" to: "+this.rightFrame+" frame"
       }
     }
 
