@@ -174,6 +174,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     this.selection=s
     if(this._audioClip){
       // notify audioclip selection observer
+      this._audioClip.selection=s
       let selObs=this._audioClip.selectionObserver
       if(selObs){
         selObs.update(this.selection)
