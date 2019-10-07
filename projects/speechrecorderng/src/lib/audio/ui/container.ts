@@ -412,6 +412,10 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     this.layout();
   }
 
+  get audioData():AudioBuffer|null{
+    return this._audioData
+  }
+
   @Input()
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip

@@ -103,28 +103,33 @@ export class AudioDisplayScrollPane {
           this.ac.ce.style.width=this.spEl.offsetWidth+'px';
 
           this.ac.fixFitToPanel=true;
-
-          //this.ac.clipBounds(null);
-          // reset xzom which trigegrs relayout and repaint
-          //this.ac.xZoom = null;
-          // // reset temporary fix fit to panel
-          // this.ac.fixFitToPanel=false;
-
       }
 
-      this.zoomSelectedAction.onAction=(e)=> {
-          //alert("not implemented yet")
-          let s = this.ac.selection
-          if (s) {
-              let x1=this.ac.frameToViewPortXPixelPosition(s.startFrame);
-              let x2=this.ac.frameToViewPortXPixelPosition(s.endFrame)
-              let cbr = new Rectangle(new Position(x1, this.spEl.scrollTop), new Dimension(x2-x1, this.spEl.clientHeight));
-          this.ac.clipBounds(cbr);
-          this.zoomFitToPanelAction.disabled = false
-      }
-      }
+    this.zoomSelectedAction.onAction=(e)=> {
+      //alert("not implemented yet")
+      let s = this.ac.selection
+      if (s) {
+        // reset auto fit to panel mode
+        this.ac.fixFitToPanel=false
 
+        // calculate selection length in seconds
+        let selFrLen=s.endFrame-s.startFrame
+        let selLenInSecs=selFrLen/this.ac.audioData.sampleRate
+        // calculate corresponding xZoom value
+        let newXZoom=this.spEl.clientWidth/selLenInSecs
+        // apply xZoom
+        this.ac.xZoom=newXZoom
+
+        // Move viewport to show selection
+        let x1=this.ac.frameToXPixelPosition(s.startFrame)
+        this.spEl.scrollLeft=x1;
+
+        this.updateClipBounds()
+        this.zoomFitToPanelAction.disabled = false
       }
+    }
+
+  }
 
 
   updateClipBounds(){

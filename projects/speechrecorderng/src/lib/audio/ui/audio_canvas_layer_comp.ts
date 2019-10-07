@@ -20,7 +20,11 @@ export class ViewSelection{
 export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponent {
   protected _audioData: AudioBuffer=null;
 
-  frameToViewPortXPixelPosition(framePos: number): number | null {
+  /**
+   * Returns pixel position depending on current zoom setting.
+   * @param framePos audio frame (sample) position
+   */
+  frameToXPixelPosition(framePos: number): number | null {
     if (this._audioData && this._audioData.numberOfChannels > 0) {
       let ch0 = this._audioData.getChannelData(0);
       let frameLength = ch0.length;
@@ -28,9 +32,22 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
       if (this.virtualDimension) {
         vw = this.virtualDimension.width;
       }
-      let vPixelPos = framePos * vw / frameLength;
-      let pixelPos = this.toXViewPortPixelPosition(vPixelPos);
+      let pixelPos = framePos * vw / frameLength;
       return pixelPos;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Returns pixel position in view port (visible window of scroll pane).
+   * @param framePos audio frame (sample) position
+   */
+  frameToViewPortXPixelPosition(framePos: number): number | null {
+    let pixelPos=this.frameToXPixelPosition(framePos);
+    if(pixelPos!=null){
+      let vPixelPos = this.toXViewPortPixelPosition(pixelPos);
+      return vPixelPos;
     } else {
       return null;
     }
