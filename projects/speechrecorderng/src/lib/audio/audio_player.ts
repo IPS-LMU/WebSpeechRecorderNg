@@ -25,6 +25,7 @@ import {AudioContextProvider} from "./context";
     <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled" [style.color]="playStartAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled" [style.color]="playStopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
     Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
     <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
+        {{_audioClip?.selection}}
     </div><p>{{status}}
   `,
   styles: [
@@ -60,6 +61,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
 
   aCtx: AudioContext;
+  _audioClip:AudioClip=null;
   ap: AudioPlayer;
   status: string;
 
@@ -217,7 +219,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {
-
+    this._audioClip=audioClip
     let audioData:AudioBuffer=null;
     let sel:Selection=null;
     if(audioClip){
