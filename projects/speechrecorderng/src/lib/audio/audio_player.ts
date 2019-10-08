@@ -42,7 +42,7 @@ import {MatCheckbox} from "@angular/material/checkbox";
       padding: 20px;
       z-index: 5;
       box-sizing: border-box;
-      background-color: rgba(0.75,0.75 , 0.75, 0.75)
+          background-color: rgba(230, 230, 230, 0.75)
     }`]
 
 })
@@ -76,7 +76,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
 
   @ViewChild(AudioDisplayScrollPane)
-  private ac: AudioDisplayScrollPane;
+  private audioDisplayScrollPane: AudioDisplayScrollPane;
 
   @ViewChild(MatCheckbox)
   private autoplaySelectedCheckbox:MatCheckbox
@@ -93,10 +93,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
-    this.zoomSelectedAction=this.ac.zoomSelectedAction
-      this.zoomFitToPanelAction=this.ac.zoomFitToPanelAction;
-    this.zoomOutAction=this.ac.zoomOutAction;
-    this.zoomInAction=this.ac.zoomInAction;
+    this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
+      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
+    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
      try {
        this.aCtx = AudioContextProvider.audioContextInstance();
        this.ap = new AudioPlayer(this.aCtx, this);
@@ -147,7 +147,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   }
 
   layout(){
-    this.ac.layout();
+    this.audioDisplayScrollPane.layout();
   }
 
   get audioUrl(): string {
@@ -211,7 +211,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
-      this.ac.audioData = audioBuffer;
+      this.audioDisplayScrollPane.audioData = audioBuffer;
       if(audioBuffer) {
           let clip = new AudioClip(audioBuffer);
           if (this.ap){
@@ -256,7 +256,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.playSelectionAction.disabled=true
     }
 
-    this.ac.audioClip=audioClip
+    this.audioDisplayScrollPane.audioClip=audioClip
     this.ap.audioClip=audioClip
   }
 
@@ -264,7 +264,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   updatePlayPosition() {
 
     if (this.ap && this.ap.playPositionFrames) {
-      this.ac.playFramePosition = this.ap.playPositionFrames;
+      this.audioDisplayScrollPane.playFramePosition = this.ap.playPositionFrames;
     }
   }
 
