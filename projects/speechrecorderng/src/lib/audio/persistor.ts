@@ -6,9 +6,10 @@ import {Observer} from "../utils/observer";
 
         private _buffer: AudioBuffer;
         private _selection:Selection=null;
-        selectionObserver:Observer<Selection>|null;
+        private selectionObservers:Array<(audioClip:AudioClip)=>void>;
 
         constructor(buffer: AudioBuffer) {
+          this.selectionObservers=new Array<(audioClip:AudioClip)=>void>()
             this._buffer = buffer;
         }
 
@@ -22,11 +23,24 @@ import {Observer} from "../utils/observer";
 
       set selection(value: Selection) {
         this._selection = value;
-        if(this.selectionObserver){
-          this.selectionObserver.update(this._selection)
+        this.selectionObservers.forEach((obs)=> {
+          obs(this)
+        });
+      }
+
+      addSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void,init=false){
+        let obsAlreadyInList=this.selectionObservers.find((obs)=>(obs===selectionObserver))
+        if(!obsAlreadyInList) {
+          this.selectionObservers.push(selectionObserver)
+        }
+        if(init){
+          selectionObserver(this)
         }
       }
 
+      removeSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void){
+        this.selectionObservers=this.selectionObservers.filter((obs)=>{obs!==selectionObserver})
+      }
     }
 
     export interface Reader {
