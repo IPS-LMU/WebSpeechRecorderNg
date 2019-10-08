@@ -91,7 +91,7 @@ import {Observer} from "../../utils/observer";
                 }
                 this.audioBuffer = audioClip.buffer;
                 audioClip.addSelectionObserver((ac)=>{
-                  this._startSelectionAction.disabled=(ac.selection!=null)
+                  this._startSelectionAction.disabled=(ac.selection!=null && this.context!=null)
                 },true)
             }else{
                 this.audioBuffer=null;
@@ -135,12 +135,17 @@ import {Observer} from "../../utils/observer";
 
                 this.playStartTime = this.context.currentTime;
                 this._startAction.disabled = true;
+                this._startSelectionAction.disabled=true
                 this._stopAction.disabled = false;
                 //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
                 if (this.listener) {
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                 }
             }
+        }
+
+        startSelectionDisabled(){
+          return !(this._audioClip && this._audioClip.selection && this.context)
         }
 
       startSelected() {
@@ -170,6 +175,7 @@ import {Observer} from "../../utils/observer";
           }
           this.playStartTime = this.context.currentTime-offset;
           this._startAction.disabled = true;
+          this._startSelectionAction.disabled=true
           this._stopAction.disabled = false;
           //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
           if (this.listener) {
@@ -196,6 +202,7 @@ import {Observer} from "../../utils/observer";
             window.clearInterval(this.timerVar);
 
             this._startAction.disabled = !(this.audioBuffer);
+          this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
             if (this.listener) {

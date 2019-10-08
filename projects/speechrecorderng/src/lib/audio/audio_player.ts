@@ -12,6 +12,7 @@ import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
 
@@ -22,7 +23,8 @@ import {AudioContextProvider} from "./context";
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
   
     <div #controlPanel>
-    <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled" [style.color]="playStartAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled" [style.color]="playStopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
+    <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled" [style.color]="playStartAction.disabled ? 'grey' : 'green'" ><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled" [style.color]="playStopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
+        <mat-checkbox #autoplaySelectionCheckbox >Autoplay selection</mat-checkbox>
     Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
     <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
         {{_audioClip?.selection}} <button *ngIf="_audioClip?.selection" (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
@@ -40,7 +42,7 @@ import {AudioContextProvider} from "./context";
       padding: 20px;
       z-index: 5;
       box-sizing: border-box;
-      background-color: rgba(0, 0, 0, 0.75)
+      background-color: rgba(0.75,0.75 , 0.75, 0.75)
     }`]
 
 })
@@ -75,6 +77,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
+
+  @ViewChild(MatCheckbox)
+  private autoplaySelectedCheckbox:MatCheckbox
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
@@ -219,6 +224,11 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
               this.ap.audioClip = null;
           }
       }
+    this.playSelectionAction.disabled=true
+  }
+
+  startSelectionDisabled(){
+    return !(this._audioClip && this._audioClip.selection && this.ap!=null)
   }
 
   @Input()
@@ -232,13 +242,18 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this._audioClip.addSelectionObserver((ac)=>{
 
           this.playSelectionAction.disabled = (!this.ap || !ac.selection)
+          if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
+            this.ap.startSelected()
+          }
 
       })
     }
     if(audioData) {
       this.playStartAction.disabled =(!this.ap)
+      this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{
       this.playStartAction.disabled = true
+      this.playSelectionAction.disabled=true
     }
 
     this.ac.audioClip=audioClip
@@ -258,11 +273,13 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.status = 'Playback...';
       this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
       this.playStartAction.disabled = true;
+      this.playSelectionAction.disabled=true
       this.playStopAction.disabled = false;
     } else if (EventType.ENDED === e.type) {
       this.status = 'Ready.';
       window.clearInterval(this.updateTimerId);
       this.playStartAction.disabled = false;
+      this.playSelectionAction.disabled=this.startSelectionDisabled()
       this.playStopAction.disabled = true;
     }
 
