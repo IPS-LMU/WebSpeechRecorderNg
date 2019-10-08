@@ -128,7 +128,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   @Input()
   set audioData(audioBuffer: AudioBuffer){
       this.audioDisplayScrollPane.audioData = audioBuffer;
-      this.playStartAction.disabled = (audioBuffer!==null)
+      this.playStartAction.disabled = (audioBuffer==null)
   }
 
   @Input()
