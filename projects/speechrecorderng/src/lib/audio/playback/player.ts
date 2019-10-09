@@ -46,6 +46,8 @@ import {Observer} from "../../utils/observer";
 
         private timerVar:number;
 
+        autoPlaySelected:boolean
+
         constructor(context:AudioContext, listener:AudioPlayerListener) {
            this.context=context;
             this.listener=listener;
@@ -90,9 +92,13 @@ import {Observer} from "../../utils/observer";
                     }
                 }
                 this.audioBuffer = audioClip.buffer;
-                audioClip.addSelectionObserver((ac)=>{
-                  this._startSelectionAction.disabled=(ac.selection!=null && this.context!=null)
-                },true)
+                audioClip.addSelectionObserver((ac)=> {
+                    this._startSelectionAction.disabled = (ac.selection == null || this.context == null)
+                    if (this.context != null && ac.selection && this.autoPlaySelected) {
+                      this.startSelected()
+                    }
+                  }
+                )
             }else{
                 this.audioBuffer=null;
             }
@@ -105,11 +111,13 @@ import {Observer} from "../../utils/observer";
             this._audioBuffer = audioBuffer;
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
+                this._startSelectionAction.disabled=this.startSelectionDisabled()
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
             }else{
                 this._startAction.disabled = true;
+                this._startSelectionAction.disabled=true
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
                 }

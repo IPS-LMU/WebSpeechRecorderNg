@@ -9,6 +9,7 @@ import {AudioClip, Selection} from './persistor'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
+import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
 
@@ -20,8 +21,10 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
   
     <div #controlPanel>
     <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled" [style.color]="playStartAction?.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled" [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
+        <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay selection</mat-checkbox>  
     Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
+        <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
+        {{_audioClip?.selection}} <button *ngIf="_audioClip?.selection" (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
     </div><p>{{status}}
   `,
   styles: [
@@ -41,32 +44,37 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 
 })
 export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
-  private _audioUrl: string;
-
 
   parentE: HTMLElement;
+  _audioClip:AudioClip
 
   @Input()
   playStartAction: Action;
   @Input()
   playStopAction: Action;
+  @Input()
+  playSelectionAction:Action
 
   zoomFitToPanelAction:Action;
+  zoomSelectedAction:Action
   zoomInAction:Action;
   zoomOutAction:Action;
 
   status: string;
 
   audio: any;
-  updateTimerId: any;
 
   @ViewChild(AudioDisplayScrollPane)
-  private audioDisplayScrollPane: AudioDisplayScrollPane;
+  audioDisplayScrollPane: AudioDisplayScrollPane;
+
+  @ViewChild(MatCheckbox)
+  private autoplaySelectedCheckbox:MatCheckbox
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
+    this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
 
@@ -74,6 +82,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
+    this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
       this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
     this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
@@ -140,10 +149,14 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
       audioData=audioClip.buffer;
       sel=audioClip.selection;
     }
+    this._audioClip=audioClip
     this.audioDisplayScrollPane.audioClip = audioClip;
-    this.playStartAction.disabled = (audioData!==null)
+    //this.playStartAction.disabled = (audioData!==null)
   }
 
+  autoPlaySelectionChange(ev:Event){
+
+  }
 
   set playFramePosition(playFramePosition:number){
       this.audioDisplayScrollPane.playFramePosition = playFramePosition

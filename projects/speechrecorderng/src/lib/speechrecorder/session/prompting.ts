@@ -21,6 +21,7 @@ import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
+import {AudioClip} from "../../audio/persistor";
 
 
 @Component({
@@ -524,8 +525,9 @@ export class PromptingContainer {
     <div #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                        [audioData]="displayAudioBuffer"
+                        [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
+                        [playSelectionAction]="playSelectionAction"
                         [playStopAction]="playStopAction"></app-audiodisplay>
 
 
@@ -614,8 +616,9 @@ export class Prompting {
   @Input() enableDownload: boolean;
 
   @Input() audioSignalCollapsed: boolean;
-  @Input() displayAudioBuffer: AudioBuffer | null;
+  @Input() displayAudioClip: AudioClip | null;
   @Input() playStartAction: Action;
+  @Input() playSelectionAction: Action;
   @Input() playStopAction: Action;
   @Output() onItemSelect = new EventEmitter<number>();
   @Output() onNextItem = new EventEmitter();
