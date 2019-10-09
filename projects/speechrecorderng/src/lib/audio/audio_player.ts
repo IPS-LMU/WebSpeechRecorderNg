@@ -52,16 +52,16 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   parentE: HTMLElement;
 
   @Input()
-  playStartAction: Action;
+  playStartAction: Action<void>;
   @Input()
-  playStopAction: Action;
+  playStopAction: Action<void>;
   @Input()
-  playSelectionAction:Action
+  playSelectionAction:Action<void>
 
-  zoomFitToPanelAction:Action;
-  zoomSelectedAction:Action
-  zoomInAction:Action;
-  zoomOutAction:Action;
+  zoomFitToPanelAction:Action<void>;
+  zoomSelectedAction:Action<void>
+  zoomInAction:Action<void>;
+  zoomOutAction:Action<void>;
 
 
   aCtx: AudioContext;

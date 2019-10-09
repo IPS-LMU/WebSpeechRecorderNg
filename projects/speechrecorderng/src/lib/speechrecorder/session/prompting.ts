@@ -528,6 +528,7 @@ export class PromptingContainer {
                         [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
                         [playSelectionAction]="playSelectionAction"
+                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                         [playStopAction]="playStopAction"></app-audiodisplay>
 
 
@@ -617,9 +618,10 @@ export class Prompting {
 
   @Input() audioSignalCollapsed: boolean;
   @Input() displayAudioClip: AudioClip | null;
-  @Input() playStartAction: Action;
-  @Input() playSelectionAction: Action;
-  @Input() playStopAction: Action;
+  @Input() playStartAction: Action<void>;
+  @Input() playSelectionAction: Action<void>;
+  @Input() autoPlayOnSelectToggleAction:Action<boolean>
+  @Input() playStopAction: Action<void>;
   @Output() onItemSelect = new EventEmitter<number>();
   @Output() onNextItem = new EventEmitter();
   @Output() onPrevItem = new EventEmitter();

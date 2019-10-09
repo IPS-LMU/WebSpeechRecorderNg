@@ -51,11 +51,11 @@ export class AudioDisplayScrollPane {
 
   private spEl:HTMLElement;
 
-  @Output() zoomInAction:Action=new Action('+');
-  @Output() zoomOutAction:Action=new Action('-');
-  @Output() zoomSelectedAction:Action=new Action("Selected");
-  @Output() zoomFitToPanelAction:Action=new Action("Fit to panel");
-  zoomFixFitToPanelAction:Action=new Action("Fix fit to panel");
+  @Output() zoomInAction:Action<void>=new Action('+');
+  @Output() zoomOutAction:Action<void>=new Action('-');
+  @Output() zoomSelectedAction:Action<void>=new Action("Selected");
+  @Output() zoomFitToPanelAction:Action<void>=new Action("Fit to panel");
+  zoomFixFitToPanelAction:Action<void>=new Action("Fix fit to panel");
 
 
   @ViewChild(AudioClipUIContainer)

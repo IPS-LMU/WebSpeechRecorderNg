@@ -27,11 +27,15 @@ import {Observer} from "../../utils/observer";
     }
 
     export class AudioPlayer {
+        get autoPlayOnSelectToggleAction(): Action<boolean> {
+            return this._autoPlayOnSelectToggleAction;
+        }
         public static DEFAULT_BUFSIZE:number = 8192;
         private running=false;
-        private _startAction:Action;
-      private _startSelectionAction:Action;
-        private _stopAction:Action;
+        private _startAction:Action<void>;
+      private _startSelectionAction:Action<void>;
+        private _autoPlayOnSelectToggleAction:Action<boolean>
+        private _stopAction:Action<void>;
         bufSize:number;
         context:AudioContext;
         listener:AudioPlayerListener;
@@ -46,7 +50,6 @@ import {Observer} from "../../utils/observer";
 
         private timerVar:number;
 
-        autoPlaySelected:boolean
 
         constructor(context:AudioContext, listener:AudioPlayerListener) {
            this.context=context;
@@ -62,6 +65,7 @@ import {Observer} from "../../utils/observer";
             this._startSelectionAction=new Action('Start selected')
             this._startSelectionAction.disabled=true
              this._startSelectionAction.onAction = ()=>this.startSelected();
+            this._autoPlayOnSelectToggleAction=new Action("Autoplay on select",false)
             this._stopAction = new Action('Stop');
             this._stopAction.disabled = true;
             this._stopAction.onAction = ()=>this.stop();
@@ -94,7 +98,7 @@ import {Observer} from "../../utils/observer";
                 this.audioBuffer = audioClip.buffer;
                 audioClip.addSelectionObserver((ac)=> {
                     this._startSelectionAction.disabled = (ac.selection == null || this.context == null)
-                    if (this.context != null && ac.selection && this.autoPlaySelected) {
+                    if (this.context != null && ac.selection && this._autoPlayOnSelectToggleAction.value) {
                       this.startSelected()
                     }
                   }

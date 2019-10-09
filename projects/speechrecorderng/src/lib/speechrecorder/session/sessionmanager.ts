@@ -74,6 +74,7 @@ export class Item {
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
                         [playStartAction]="controlAudioPlayer?.startAction"
                         [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+                        [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
                         [playStopAction]="controlAudioPlayer?.stopAction">
        
     </app-sprprompting>
@@ -135,7 +136,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   transportActions: TransportActions;
   dnlLnk: HTMLAnchorElement;
-  playStartAction: Action;
+  playStartAction: Action<void>;
   audio: any;
 
   _session: Session;

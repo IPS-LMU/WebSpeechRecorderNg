@@ -9,7 +9,8 @@ import {AudioClip, Selection} from './persistor'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
-import {MatCheckbox} from "@angular/material/checkbox";
+import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
+import {MatSelectChange} from "@angular/material/select";
 
 @Component({
 
@@ -49,16 +50,18 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   _audioClip:AudioClip
 
   @Input()
-  playStartAction: Action;
+  playStartAction: Action<void>;
   @Input()
-  playStopAction: Action;
+  playStopAction: Action<void>;
   @Input()
-  playSelectionAction:Action
+  playSelectionAction:Action<void>
+    @Input()
+    autoPlayOnSelectToggleAction:Action<boolean>
 
-  zoomFitToPanelAction:Action;
-  zoomSelectedAction:Action
-  zoomInAction:Action;
-  zoomOutAction:Action;
+  zoomFitToPanelAction:Action<void>;
+  zoomSelectedAction:Action<void>
+  zoomInAction:Action<void>;
+  zoomOutAction:Action<void>;
 
   status: string;
 
@@ -154,8 +157,10 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
     //this.playStartAction.disabled = (audioData!==null)
   }
 
-  autoPlaySelectionChange(ev:Event){
-
+  autoPlaySelectionChange(ch:MatCheckboxChange){
+      if(this.autoPlayOnSelectToggleAction) {
+          this.autoPlayOnSelectToggleAction.perform(ch.checked)
+      }
   }
 
   set playFramePosition(playFramePosition:number){

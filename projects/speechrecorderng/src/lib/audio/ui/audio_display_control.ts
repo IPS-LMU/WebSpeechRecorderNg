@@ -18,9 +18,9 @@
   })
 	export class AudioDisplayControl implements AfterContentInit {
 		private _audioUrl:string;
-    @Input() playStartAction:Action;
-    @Input() playStopAction:Action;
-    zoomInAction:Action=new Action('+');
+    @Input() playStartAction:Action<void>;
+    @Input() playStopAction:Action<void>;
+    zoomInAction:Action<void>=new Action('+');
 
 	   status:string;
 
