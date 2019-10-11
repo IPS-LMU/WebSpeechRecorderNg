@@ -81,7 +81,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   @ViewChild(MatCheckbox)
   private autoplaySelectedCheckbox:MatCheckbox
 
-  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
+  constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
