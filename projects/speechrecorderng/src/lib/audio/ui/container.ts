@@ -257,10 +257,6 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     this.dc.style.left = '0px';
     this.dc.style.width = wStr;
 
-    //this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    //this.dc.width = offW;
-    //this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-
     this.dc.style.width = wStr;
     this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
     this.drawDivider();
@@ -416,7 +412,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
       let audioData:AudioBuffer=null;
-      let sel:Selection=null;
+    let sel:Selection=null;
       if(audioClip){
         audioData=audioClip.buffer;
         sel=audioClip.selection;
@@ -424,7 +420,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       this._audioData = audioData;
       this.as.setData(this._audioData);
       this.so.setData(this._audioData);
-      this.selection=sel;
+      this.selecting=null
+      this.selection=sel
     this.layout();
   }
 

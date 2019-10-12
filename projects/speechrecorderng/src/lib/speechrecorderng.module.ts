@@ -39,6 +39,9 @@ import {LevelBar} from "./audio/ui/livelevel";
 import {AudioDisplayScrollPane} from "./audio/ui/audio_display_scroll_pane";
 import {UUID} from "./utils/utils";
 import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatCard, MatCardModule} from "@angular/material/card";
+import {MatDividerModule} from "@angular/material/divider";
+import {MatGridListModule} from "@angular/material/grid-list";
 
 
 
@@ -55,7 +58,7 @@ export const SPR_ROUTES: Routes = [
     MessageDialog,SessionFinishedDialog
   ],
     exports: [SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
-  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule],
+  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule,MatGridListModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,SpeechRecorderUploader]
 
 })

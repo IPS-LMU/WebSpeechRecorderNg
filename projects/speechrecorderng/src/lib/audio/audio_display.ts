@@ -20,13 +20,25 @@ import {MatSelectChange} from "@angular/material/select";
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
   
-    <div #controlPanel>
+    <div #controlPanel style="display:flex;flex-direction: row;" >
+           <fieldset>
+
+               <legend>Play</legend>
+
     <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled" [style.color]="playStartAction?.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled" [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
-        <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay selection</mat-checkbox>  
-    Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
+           <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay selection</mat-checkbox>
+           </fieldset>
+        <fieldset>
+
+            <legend>Zoom</legend>
+        <button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
         <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
-        {{_audioClip?.selection}} <button *ngIf="_audioClip?.selection" (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
-    </div><p>{{status}}
+        </fieldset>
+        <fieldset>
+            <legend>Selection</legend>
+            {{_audioClip?.selection?.leftFrame}} <span *ngIf="_audioClip?.selection">to</span> {{_audioClip?.selection?.rightFrame}} <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
+        </fieldset>
+    </div>
   `,
   styles: [
       `:host {
@@ -41,7 +53,14 @@ import {MatSelectChange} from "@angular/material/select";
       z-index: 5;
       box-sizing: border-box;
       background-color: rgba(230, 230, 230, 0.75)
-    }`]
+    }`,`          
+          legend{
+              margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
+      }`,`
+        fieldset{
+            border: 1px darkgray solid
+      }
+      `]
 
 })
 export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {

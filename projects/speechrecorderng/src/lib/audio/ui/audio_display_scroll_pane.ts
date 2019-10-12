@@ -172,6 +172,7 @@ export class AudioDisplayScrollPane {
       sel=audioClip.selection;
     }
 
+    this.selectionChanged(sel)
     this.ac.audioClip=audioClip
     this.zoomOutAction.disabled=(!audioData)
     this.zoomInAction.disabled=(!audioData)
