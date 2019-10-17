@@ -168,6 +168,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   statusMsg: string;
   statusAlertType: string;
 
+  private processingRecording=false
+
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
   audioSignalCollapsed = true;
@@ -883,8 +885,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   isActive(): boolean{
-    this.sessionService.uploadCount>0;
-    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.sessionService.uploadCount>0)
+    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording || this.sessionService.uploadCount>0)
   }
 
     prevItem() {
@@ -1111,9 +1112,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
           // TODO duplicate conversion for manual download
           //console.log("Build wav writer...");
+          this.processingRecording=true
           let ww = new WavWriter();
           ww.writeAsync(ad, (wavFile) => {
             this.postRecording(wavFile, recUrl);
+            this.processingRecording=false
           });
       }
     }
