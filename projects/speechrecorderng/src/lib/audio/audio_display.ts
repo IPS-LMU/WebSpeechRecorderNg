@@ -36,7 +36,7 @@ import {MatSelectChange} from "@angular/material/select";
         </fieldset>
         <fieldset>
             <legend>Selection</legend>
-            {{_audioClip?.selection?.leftFrame}} <span *ngIf="_audioClip?.selection">to</span> {{_audioClip?.selection?.rightFrame}} <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
+            {{_audioClip?.selection?.leftFrame}} <span *ngIf="_audioClip?.selection">to</span> {{_audioClip?.selection?.rightFrame}} <button (click)="clearSelection()" [disabled]="_audioClip?.selection==null" [style.color]="_audioClip?.selection!=null ? 'red' : 'grey'"><mat-icon>clear</mat-icon></button> <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
         </fieldset>
     </div>
   `,
@@ -144,6 +144,12 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
 
   }
+
+    clearSelection(){
+      if(this._audioClip!=null){
+          this._audioClip.selection=null
+      }
+    }
 
   layout(){
     this.audioDisplayScrollPane.layout();
