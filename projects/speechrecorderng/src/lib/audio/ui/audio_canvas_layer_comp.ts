@@ -161,6 +161,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     _selection: Selection =null
     @Input() set selection(selection:Selection){
         this._selection=selection
+        this.selecting=null
         this.drawCursorLayer()
     }
 
