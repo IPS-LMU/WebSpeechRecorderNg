@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "0.9.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "0.18.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -237,7 +237,7 @@ SpeechRecorder stores the recording in browser memory first. The recordings are 
 
 Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
 
-Content-Type: audio/wave
+Content-Type: audio/wav
 
 There might be multiple uploads for one recording item, when the subject repeats a recording. The server is responsible to handle this uploads.
 A GET request to the URL should return the latest upload.  
