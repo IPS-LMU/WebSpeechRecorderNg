@@ -239,6 +239,7 @@ export class TransportPanel {
 
     <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus"></app-uploadstatus>
+    <mat-icon [style.visibility]="ready?'hidden':'visible'">hourglass_empty</mat-icon>
   `,
   styles: [`:host {
     flex: 0; /* only required vertical space */
@@ -261,8 +262,10 @@ export class ControlPanel {
   @ViewChild(StatusDisplay) statusDisplay: StatusDisplay;
   @ViewChild(TransportPanel) transportPanel: TransportPanel;
 
+
   @Input() readonly:boolean
   @Input() transportActions: TransportActions
+  @Input() ready=true
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
   @Input() uploadStatus: string;

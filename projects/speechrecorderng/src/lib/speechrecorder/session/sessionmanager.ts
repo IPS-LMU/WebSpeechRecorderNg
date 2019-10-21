@@ -76,6 +76,7 @@ export class Item {
        
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
+   
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
                               [playStopAction]="controlAudioPlayer?.stopAction"
@@ -88,7 +89,7 @@ export class Item {
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
+                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()"></app-sprcontrolpanel>
 
   `,
   styles: [`:host {
@@ -116,6 +117,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private _selectedDeviceId:string|null=null;
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+
+  @Input() dataSaved=true
 
 
   startStopSignalState: StartStopSignalState;

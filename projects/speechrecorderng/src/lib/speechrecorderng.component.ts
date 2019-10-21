@@ -24,7 +24,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession [projectName]="project?.name"></app-sprrecordingsession>
+    <app-sprrecordingsession [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
   styles: [`:host{
     flex: 2;
@@ -192,6 +192,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
         }
 
+
+        ready():boolean{
+		    return this.dataSaved && !this.sm.isActive()
+        }
+
 		init():boolean {
 
 			var n = <any>navigator;
@@ -229,7 +234,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             window.addEventListener('beforeunload', (e) => {
                 console.log("Before page unload event");
 
-                if (this.dataSaved && !this.sm.isActive()) {
+                if (this.ready()) {
                     return;
                 } else {
                     // all this attempts to customize the message do not work anymore (for security reasons)!!
