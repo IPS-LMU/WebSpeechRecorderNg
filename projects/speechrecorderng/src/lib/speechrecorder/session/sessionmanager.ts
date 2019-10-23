@@ -89,7 +89,7 @@ export class Item {
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()"></app-sprcontrolpanel>
+                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
 
   `,
   styles: [`:host {
@@ -171,7 +171,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   statusMsg: string;
   statusAlertType: string;
 
-  private processingRecording=false
+  processingRecording=false
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'

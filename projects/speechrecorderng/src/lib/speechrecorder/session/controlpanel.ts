@@ -40,7 +40,7 @@ export class StatusDisplay {
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{_value}}%
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{displayValue}}
   `,
   styles: [`:host {
     flex: 1;
@@ -50,19 +50,32 @@ export class StatusDisplay {
   }`]
 })
 export class UploadStatus {
+  private _awaitNewUpload=false
   spinnerMode = 'determinate'
-  spinnerColor = 'default'
   _value = 100
-  @Input()
-  set value(value: number) {
-    if (value === 0) {
+  displayValue=null
+
+  private _updateSpinner(){
+
+    if (this._awaitNewUpload || this._value === 0) {
       this.spinnerMode = 'indeterminate'
+      this.displayValue='____'
     } else {
       this.spinnerMode = 'determinate'
+      this.displayValue=this._value+'%'
     }
+  }
 
+  @Input()
+  set value(value: number) {
     this._value = value;
+    this._updateSpinner()
   };
+
+  @Input() set awaitNewUpload(awaitNewUpload:boolean){
+    this._awaitNewUpload=awaitNewUpload
+    this._updateSpinner()
+  }
 
   @Input() status: string;
 }
@@ -238,8 +251,8 @@ export class TransportPanel {
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
     <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus"></app-uploadstatus>
-    <mat-icon [style.visibility]="ready?'hidden':'visible'">hourglass_empty</mat-icon>
+                      [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+    <mat-icon fxHide.xs [style.visibility]="ready?'hidden':'visible'" matTooltip="Please wait until audio processing and upload has finished.">hourglass_empty</mat-icon>
   `,
   styles: [`:host {
     flex: 0; /* only required vertical space */
@@ -265,6 +278,7 @@ export class ControlPanel {
 
   @Input() readonly:boolean
   @Input() transportActions: TransportActions
+  @Input() processing=false
   @Input() ready=true
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
