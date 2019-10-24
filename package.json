@@ -11,6 +11,7 @@
     "apply_module_version": "node bin/apply_version.js",
     "build_module": "npm run apply_module_version && ng build speechrecorderng",
     "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
+    "pack_pi_module": "cd dist && cd speechrecorderng && npm pack && cd ../../ && node bin/mv_tgz_pkgs.js",
     "build_and_pack_module": "npm run build_module && npm run pack_module",
     "publish_module": "cd dist && cd speechrecorderng && rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",
