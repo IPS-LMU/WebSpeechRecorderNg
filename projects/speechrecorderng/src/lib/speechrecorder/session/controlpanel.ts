@@ -40,13 +40,15 @@ export class StatusDisplay {
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{displayValue}}
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value" [matTooltip]="toolTipText"></mat-progress-spinner>{{displayValue}}
   `,
   styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
-    display: inline;
+    /*display: inline; */
     text-align: left;
+  }`,`mat-progress-spinner{
+      display: inline-block;
   }`]
 })
 export class UploadStatus {
@@ -54,15 +56,18 @@ export class UploadStatus {
   spinnerMode = 'determinate'
   _value = 100
   displayValue=null
+  toolTipText:string=''
 
   private _updateSpinner(){
 
     if (this._awaitNewUpload || this._value === 0) {
       this.spinnerMode = 'indeterminate'
       this.displayValue='____'
+      this.toolTipText='Upload is prepared.'
     } else {
       this.spinnerMode = 'determinate'
       this.displayValue=this._value+'%'
+      this.toolTipText='Upload progress: '+this.displayValue
     }
   }
 
@@ -89,7 +94,8 @@ export class UploadStatus {
   styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
-    display: inline;
+    /*display: inline; */
+      width: 100%;
     text-align: left;
   }`]
 })
@@ -252,7 +258,7 @@ export class TransportPanel {
 
     <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-    <mat-icon fxHide.xs [style.visibility]="ready?'hidden':'visible'" matTooltip="Please wait until audio processing and upload has finished.">hourglass_empty</mat-icon>
+    <mat-icon fxHide.xs [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
   styles: [`:host {
     flex: 0; /* only required vertical space */
@@ -279,7 +285,6 @@ export class ControlPanel {
   @Input() readonly:boolean
   @Input() transportActions: TransportActions
   @Input() processing=false
-  @Input() ready=true
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
   @Input() uploadStatus: string;
@@ -287,9 +292,24 @@ export class ControlPanel {
   @Input() currentRecording: AudioBuffer;
   @Input() enableUploadRecordings: boolean;
 
+  _ready=true
+  hourGlassIconName='hourglass_empty'
+  readyStateToolTip:string=''
+
   constructor(public dialog: MatDialog) {
 
   }
+
+  @Input() set ready(ready:boolean){
+    this._ready=ready
+    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
+    this.readyStateToolTip=this._ready?'Audio is processed and upload completed. You can leave the page.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
+  }
+
+  get ready():boolean{
+    return this._ready
+  }
+
 }
 
 
