@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.21.9",
+  "version": "0.22.6",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -11,6 +11,7 @@
     "apply_module_version": "node bin/apply_version.js",
     "build_module": "npm run apply_module_version && ng build speechrecorderng",
     "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
+    "build_and_pack_module": "npm run build_module && npm run pack_module",
     "publish_module": "cd dist && cd speechrecorderng && rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",
     "start_prod": "ng serve --prod",
