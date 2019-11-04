@@ -19,26 +19,16 @@ import {MatSelectChange} from "@angular/material/select";
   template: `
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-  
-    <div #controlPanel style="display:flex;flex-direction: row;" >
-           <fieldset>
 
-               <legend>Play</legend>
-
-    <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled" [style.color]="playStartAction?.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled" [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
-           <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay selection</mat-checkbox>
-           </fieldset>
-        <fieldset>
-
-            <legend>Zoom</legend>
-        <button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-        <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
-        </fieldset>
-        <fieldset>
-            <legend>Selection</legend>
-            {{_audioClip?.selection?.leftFrame}} <span *ngIf="_audioClip?.selection">to</span> {{_audioClip?.selection?.rightFrame}} <button (click)="clearSelection()" [disabled]="_audioClip?.selection==null" [style.color]="_audioClip?.selection!=null ? 'red' : 'grey'"><mat-icon>clear</mat-icon></button> <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
-        </fieldset>
-    </div>
+    <app-audiodisplaycontrol [audioClip]="_audioClip" 
+                             [playStartAction]="playStartAction"
+                             [playSelectionAction]="playSelectionAction"
+                            [playStopAction]="playStopAction"
+    [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
+    [zoomInAction]="zoomInAction"
+    [zoomOutAction]="zoomOutAction"
+    [zoomSelectedAction]="zoomSelectedAction"
+    [zoomFitToPanelAction]="zoomFitToPanelAction"></app-audiodisplaycontrol>
   `,
   styles: [
       `:host {
@@ -81,6 +71,8 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   zoomSelectedAction:Action<void>
   zoomInAction:Action<void>;
   zoomOutAction:Action<void>;
+
+  clearSelectionAction:Action<void>
 
   status: string;
 
@@ -140,16 +132,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   }
 
 
-  init() {
-
-
-  }
-
-    clearSelection(){
-      if(this._audioClip!=null){
-          this._audioClip.selection=null
-      }
-    }
+  init() {}
 
   layout(){
     this.audioDisplayScrollPane.layout();
