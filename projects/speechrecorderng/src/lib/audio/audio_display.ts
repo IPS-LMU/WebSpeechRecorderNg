@@ -81,9 +81,6 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   @ViewChild(AudioDisplayScrollPane)
   audioDisplayScrollPane: AudioDisplayScrollPane;
 
-  @ViewChild(MatCheckbox)
-  private autoplaySelectedCheckbox:MatCheckbox
-
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
@@ -91,13 +88,12 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
     this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
-
   }
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
-      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
     this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
 
@@ -163,12 +159,6 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
     this._audioClip=audioClip
     this.audioDisplayScrollPane.audioClip = audioClip;
     //this.playStartAction.disabled = (audioData!==null)
-  }
-
-  autoPlaySelectionChange(ch:MatCheckboxChange){
-      if(this.autoPlayOnSelectToggleAction) {
-          this.autoPlayOnSelectToggleAction.perform(ch.checked)
-      }
   }
 
   set playFramePosition(playFramePosition:number){

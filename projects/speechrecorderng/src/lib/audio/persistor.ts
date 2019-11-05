@@ -23,9 +23,14 @@ import {Observer} from "../utils/observer";
 
       set selection(value: Selection) {
         this._selection = value;
-        this.selectionObservers.forEach((obs)=> {
-          obs(this)
-        });
+        // let obsCnt=this.selectionObservers.length
+        // this.selectionObservers.forEach((obs)=> {
+        //   console.log("Calling observer")
+        //   obs(this)
+        // });
+        for(let selObs of this.selectionObservers){
+          selObs(this)
+        }
       }
 
       addSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void,init=false){

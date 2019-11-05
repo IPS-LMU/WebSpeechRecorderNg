@@ -21,14 +21,16 @@ import {MatCheckbox} from "@angular/material/checkbox";
   template: `
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-  
-    <div #controlPanel>
-    <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled" [style.color]="playStartAction.disabled ? 'grey' : 'green'" ><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled" [style.color]="playStopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
-        <mat-checkbox #autoplaySelectionCheckbox >Autoplay selection</mat-checkbox>
-    Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button><button (click)="zoomSelectedAction?.perform()" [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
-        {{_audioClip?.selection}} <button *ngIf="_audioClip?.selection" (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled" [style.color]="playSelectionAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button>
-    </div><p>{{status}}
+
+    <app-audiodisplaycontrol [audioClip]="_audioClip"
+                             [playStartAction]="playStartAction"
+                             [playSelectionAction]="playSelectionAction"
+                             [playStopAction]="playStopAction"
+                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                             [zoomInAction]="zoomInAction"
+                             [zoomOutAction]="zoomOutAction"
+                             [zoomSelectedAction]="zoomSelectedAction"
+                             [zoomFitToPanelAction]="zoomFitToPanelAction"></app-audiodisplaycontrol><p>{{status}}
   `,
   styles: [
       `:host {
@@ -57,6 +59,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   playStopAction: Action<void>;
   @Input()
   playSelectionAction:Action<void>
+  @Input()
+  autoPlayOnSelectToggleAction:Action<boolean>
 
   zoomFitToPanelAction:Action<void>;
   zoomSelectedAction:Action<void>
@@ -78,8 +82,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   @ViewChild(AudioDisplayScrollPane)
   private audioDisplayScrollPane: AudioDisplayScrollPane;
 
-  @ViewChild(MatCheckbox)
-  private autoplaySelectedCheckbox:MatCheckbox
+  //@ViewChild(MatCheckbox)
+  //private autoplaySelectedCheckbox:MatCheckbox
 
   constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
@@ -242,9 +246,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this._audioClip.addSelectionObserver((ac)=>{
 
           this.playSelectionAction.disabled = (!this.ap || !ac.selection)
-          if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
-            this.ap.startSelected()
-          }
+          // if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
+          //   this.ap.startSelected()
+          // }
 
       })
     }
