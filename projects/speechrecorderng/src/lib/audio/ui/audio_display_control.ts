@@ -15,14 +15,18 @@ import {AudioClip} from "../persistor";
                 <legend>Play</legend>
 
                 <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled"
-                        [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
+                        [style.color]="playStartAction?.disabled ? 'grey' : 'green'" matTooltip="Play all">
                     <mat-icon>play_arrow</mat-icon>
+                </button>
+                <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled"
+                        [style.color]="playSelectionAction.disabled ? 'grey' : 'green'" matTooltip="Play selection">
+                    <mat-icon>play_circle_outline</mat-icon>
                 </button>
                 <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled"
                         [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
                     <mat-icon>stop</mat-icon>
-                </button>
-                <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay selection
+                </button>&nbsp;
+                <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay on select
                 </mat-checkbox>
             </fieldset>
             <fieldset>
@@ -42,13 +46,10 @@ import {AudioClip} from "../persistor";
                 {{audioClip?.selection?.leftFrame}} <span
                     *ngIf="audioClip?.selection">to</span> {{audioClip?.selection?.rightFrame}}
                 <button (click)="clearSelection()" [disabled]="audioClip?.selection==null"
-                        [style.color]="audioClip?.selection!=null ? 'red' : 'grey'">
+                        [style.color]="audioClip?.selection!=null ? 'red' : 'grey'" matTooltip="Clear selection">
                     <mat-icon>clear</mat-icon>
                 </button>
-                <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled"
-                        [style.color]="playSelectionAction.disabled ? 'grey' : 'green'">
-                    <mat-icon>play_arrow</mat-icon>
-                </button>
+               
             </fieldset>
         </div>`,
     styles: [
