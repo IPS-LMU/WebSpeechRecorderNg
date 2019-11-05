@@ -6,7 +6,7 @@ import {AudioClip} from "../persistor";
 
 @Component({
 
-    selector: 'app-audiodisplaycontrol',
+    selector: 'audio-display-control',
 
     template: `
         <div #controlPanel style="display:flex;flex-direction: row;">

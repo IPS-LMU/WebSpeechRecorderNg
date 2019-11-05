@@ -20,7 +20,7 @@ import {MatSelectChange} from "@angular/material/select";
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
-    <app-audiodisplaycontrol [audioClip]="_audioClip" 
+    <audio-display-control [audioClip]="_audioClip" 
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                             [playStopAction]="playStopAction"
@@ -28,7 +28,7 @@ import {MatSelectChange} from "@angular/material/select";
     [zoomInAction]="zoomInAction"
     [zoomOutAction]="zoomOutAction"
     [zoomSelectedAction]="zoomSelectedAction"
-    [zoomFitToPanelAction]="zoomFitToPanelAction"></app-audiodisplaycontrol>
+    [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
   `,
   styles: [
       `:host {

@@ -22,7 +22,7 @@ import {MatCheckbox} from "@angular/material/checkbox";
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
-    <app-audiodisplaycontrol [audioClip]="_audioClip"
+    <audio-display-control [audioClip]="_audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
@@ -30,7 +30,7 @@ import {MatCheckbox} from "@angular/material/checkbox";
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
-                             [zoomFitToPanelAction]="zoomFitToPanelAction"></app-audiodisplaycontrol><p>{{status}}
+                             [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control><p>{{status}}
   `,
   styles: [
       `:host {

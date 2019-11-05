@@ -3,6 +3,8 @@
  */
 
 
+import {AudioDisplayControl} from "./lib/audio/ui/audio_display_control";
+
 export {SpeechrecorderngModule} from './lib/speechrecorderng.module'
 export {VERSION} from './lib/spr.module.version'
 export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
@@ -16,6 +18,7 @@ export {AudioDisplayPlayer} from './lib/audio/audio_player'
 export {AudioClipUIContainer} from './lib/audio/ui/container'
 export {AudioDisplayScrollPane} from "./lib/audio/ui/audio_display_scroll_pane";
 export {AudioContextProvider} from "./lib/audio/context";
+export {AudioDisplayControl} from "./lib/audio/ui/audio_display_control"
 
 export {ProjectService} from './lib/speechrecorder/project/project.service'
 export {Session} from './lib/speechrecorder/session/session'
