@@ -97,8 +97,8 @@ import {Observer} from "../../utils/observer";
                 }
                 this.audioBuffer = audioClip.buffer;
                 audioClip.addSelectionObserver((ac)=> {
-                    this._startSelectionAction.disabled = (ac.selection == null || this.context == null)
-                    if (this.context != null && ac.selection && this._autoPlayOnSelectToggleAction.value) {
+                    this._startSelectionAction.disabled = this.startSelectionDisabled()
+                    if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
                       this.startSelected()
                     }
                   }
@@ -157,7 +157,7 @@ import {Observer} from "../../utils/observer";
         }
 
         startSelectionDisabled(){
-          return !(this._audioClip && this._audioClip.selection && this.context)
+          return !(this._audioClip && this.context && !this.startAction.disabled && this._audioClip.selection )
         }
 
       startSelected() {

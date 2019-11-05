@@ -232,7 +232,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   }
 
   startSelectionDisabled(){
-    return !(this._audioClip && this._audioClip.selection && this.ap!=null)
+    return !(this._audioClip && this.ap!=null && !this.playStartAction.disabled && this._audioClip.selection )
   }
 
   @Input()
@@ -245,7 +245,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       sel=audioClip.selection;
       this._audioClip.addSelectionObserver((ac)=>{
 
-          this.playSelectionAction.disabled = (!this.ap || !ac.selection)
+          this.playSelectionAction.disabled = this.startSelectionDisabled()
           // if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
           //   this.ap.startSelected()
           // }
