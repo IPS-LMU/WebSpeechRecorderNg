@@ -20,7 +20,7 @@ import {MatSelectChange} from "@angular/material/select";
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
-    <audio-display-control [audioClip]="_audioClip" 
+    <audio-display-control [audioClip]="audioClip" 
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                             [playStopAction]="playStopAction"
@@ -56,7 +56,7 @@ import {MatSelectChange} from "@angular/material/select";
 export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
 
   parentE: HTMLElement;
-  _audioClip:AudioClip
+  private _audioClip:AudioClip
 
   @Input()
   playStartAction: Action<void>;
@@ -159,6 +159,10 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
     this._audioClip=audioClip
     this.audioDisplayScrollPane.audioClip = audioClip;
     //this.playStartAction.disabled = (audioData!==null)
+  }
+
+  get audioClip():AudioClip|null{
+    return this._audioClip
   }
 
   set playFramePosition(playFramePosition:number){

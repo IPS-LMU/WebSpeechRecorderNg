@@ -12,6 +12,8 @@ export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
 export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
 
+export {MessageDialog} from "./lib/ui/message_dialog"
+
 export {AudioClip,Selection} from './lib/audio/persistor'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
 export {AudioDisplayPlayer} from './lib/audio/audio_player'

@@ -22,7 +22,7 @@ import {MatCheckbox} from "@angular/material/checkbox";
    
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
-    <audio-display-control [audioClip]="_audioClip"
+    <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
@@ -69,7 +69,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
 
   aCtx: AudioContext;
-  _audioClip:AudioClip=null;
+  private _audioClip:AudioClip=null;
   ap: AudioPlayer;
   status: string;
 
@@ -264,6 +264,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     this.ap.audioClip=audioClip
   }
 
+  get audioClip():AudioClip|null{
+    return this._audioClip
+  }
 
   updatePlayPosition() {
 
