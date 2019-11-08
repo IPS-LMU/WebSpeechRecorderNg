@@ -91,7 +91,7 @@ export class Item {
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
+                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
 
   `,
   styles: [`:host {
@@ -119,6 +119,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private _selectedDeviceId:string|null=null;
   @ViewChild(Prompting) prompting: Prompting;
   @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+
+  @Input() dataSaved=true
 
 
   startStopSignalState: StartStopSignalState;
@@ -172,7 +174,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   statusMsg: string;
   statusAlertType: string;
 
-  private processingRecording=false
+  processingRecording=false
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
