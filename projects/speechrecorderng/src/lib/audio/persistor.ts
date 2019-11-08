@@ -77,6 +77,14 @@ import {Observer} from "../utils/observer";
         return (this._startFrame <= this._endFrame) ? this._endFrame : this._startFrame
       }
 
+      equals(otherSelection:Selection):boolean{
+        if(otherSelection==null){
+          return false
+        }else{
+          return (this._startFrame===otherSelection._startFrame && this._endFrame===otherSelection._endFrame)
+        }
+      }
+
       toString(){
           return "Selection: from: "+this.leftFrame+" to: "+this.rightFrame+" frame"
       }
