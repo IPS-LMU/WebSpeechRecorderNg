@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "0.18.1"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "0.22.6"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
