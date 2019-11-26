@@ -65,7 +65,7 @@ export class Item {
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [projectName]="projectName" 
+      <app-sprprompting [projectName]="projectName"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
@@ -73,10 +73,10 @@ export class Item {
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
                         [playStartAction]="controlAudioPlayer?.startAction"
                         [playStopAction]="controlAudioPlayer?.stopAction">
-       
+
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
-   
+
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
                               [playStopAction]="controlAudioPlayer?.stopAction"
@@ -100,7 +100,7 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
-      
+
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }` ]
@@ -999,8 +999,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.promptItem.postrecording) {
       postDelay = this.promptItem.postrecording;
     }
-    console.log("Postrecording delay: "+postDelay)
-
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_STOP;
