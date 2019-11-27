@@ -193,13 +193,13 @@
 
         let pul: Upload | null = null;
 
-        //console.log("Upload process, status: "+this.status)
-        // only serial uploads for now
         console.debug("Uploader status: "+this.status)
-        if (UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
-          //console.log("Check IDLE uploads...")
-          let s = this.que.length;
-          console.debug(s+" uploads are in the queue.")
+
+        let s = this.que.length;
+        console.debug(s+" uploads are in the queue.")
+
+        if (s>0 && UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
+
           for (let i = 0; i < s; i++) {
             let ul = this.que[i];
             //console.log("Upload "+ul+" status:"+ul.status)
@@ -227,7 +227,7 @@
             }
           }
         }
-        if(!pul){
+        if(s==0){
           console.debug("Upload done.")
           this.status=UploaderStatus.DONE
         }
@@ -235,8 +235,6 @@
         if (this.listener) {
           this.listener(ue);
         }
-
-
       }
 
         queueUpload(ul: Upload) {
