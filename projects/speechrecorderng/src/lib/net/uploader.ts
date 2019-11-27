@@ -119,7 +119,7 @@
         private startUpload(ul:Upload) {
 
             ul.status = UploadStatus.UPLOADING;
-            if (UploaderStatus.ERR == this.status) {
+            if (UploaderStatus.ERR === this.status) {
                 this.status = UploaderStatus.TRY_UPLOADING;
             } else {
                 this.status = UploaderStatus.UPLOADING;
@@ -129,31 +129,41 @@
             let timeoutForDataSize=dSize*this.POST_TIMEOUT_PER_KB/1000;
             let timeoVal:number=Math.round(this.POST_MIN_TIMEOUT+timeoutForDataSize)
             // pipe(timeout()) is not the same as xhr.timeout
+
+          let uploadedUpload:Upload=null;
+            console.debug("Post upload: "+ul)
             this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
               data => {
-
-                if (this.DEBUG_DELAY) {
-                window.setTimeout(() => {
-                  this.uploadDone(ul);
-                }, this.DEBUG_DELAY);
-              } else {
-                this.uploadDone(ul);
-
-              }},
-              (err: HttpErrorResponse) => {
+              uploadedUpload = ul;
+              //console.debug('Next method called for upload: '+uploadedUpload)
+            },(err: HttpErrorResponse) => {
                 if (err.error instanceof Error) {
                   // A client-side or network error occurred. Handle it accordingly.
-                  console.log('Upload error occurred:', err.error.message);
+                console.error('Upload error occurred:', err.error.message);
                 } else {
                   // The backend returned an unsuccessful response code.
                   // The response body may contain clues as to what went wrong,
-                  console.log(`Upload error: Server returned code ${err.status}`);
+                console.error(`Upload error: Server returned code ${err.status}`);
                 }
                 this.processError(ul)
+            },()=>{
+              console.debug('Upload complete method called')
+              if(uploadedUpload) {
+                if (this.DEBUG_DELAY>0) {
+                  window.setTimeout(() => {
+                    this.uploadDone(ul);
+                  }, this.DEBUG_DELAY);
+                } else {
+                  this.uploadDone(uploadedUpload)
+                }
+              }else{
+                console.error('Upload post complete, but upload not set in next method!')
+              }
               });
         }
 
         private processError(ul:Upload) {
+            console.debug("Process upload error...")
             ul.status=UploadStatus.ERR
             this.status = UploaderStatus.ERR;
 
@@ -167,9 +177,11 @@
             // set retry timer
             this.retryTimerId=window.setTimeout(() => {
                 this.retryTimerRunning=false;
+              console.debug("Upload retry timer exprired. Continue processing...")
                 this.process();
             }, this.RETRY_DELAY);
             this.retryTimerRunning=true;
+          console.debug("Started upload retry timer "+this.RETRY_DELAY+"ms ...")
         }
 
       private process() {
@@ -177,15 +189,18 @@
         if(this.retryTimerRunning){
           window.clearTimeout(this.retryTimerId)
           this.retryTimerRunning=false
+          console.debug("Cleared retry timer.")
         }
 
         let pul: Upload | null = null;
 
         //console.log("Upload process, status: "+this.status)
         // only serial uploads for now
+        console.debug("Uploader status: "+this.status)
         if (UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
           //console.log("Check IDLE uploads...")
           let s = this.que.length;
+          console.debug(s+" uploads are in the queue.")
           for (let i = 0; i < s; i++) {
             let ul = this.que[i];
             //console.log("Upload "+ul+" status:"+ul.status)
@@ -199,11 +214,13 @@
           if (!pul) {
             //console.log("Check ERR uploads...")
             // now failed uploads
+            console.debug("No regular upload found. Looking for error state uploads.")
             for (let i = 0; i < s; i++) {
               let ul = this.que[i];
               //console.log("Upload "+ul+" status:"+ul.status)
               if (ul.status === UploadStatus.ERR) {
                 //console.log("Upload (ERR) "+ul+" startUpload")
+                console.debug("Start error state upload "+ul)
                 this.startUpload(ul);
                 pul = ul;
                 break;
@@ -212,6 +229,7 @@
           }
         }
         if(!pul){
+          console.debug("Upload done.")
           this.status=UploaderStatus.DONE
         }
         let ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);
