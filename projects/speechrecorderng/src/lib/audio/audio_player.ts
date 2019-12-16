@@ -12,7 +12,6 @@ import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
-import {MatCheckbox} from "@angular/material/checkbox";
 
 @Component({
 
@@ -81,9 +80,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   @ViewChild(AudioDisplayScrollPane)
   private audioDisplayScrollPane: AudioDisplayScrollPane;
-
-  //@ViewChild(MatCheckbox)
-  //private autoplaySelectedCheckbox:MatCheckbox
 
   constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
@@ -207,8 +203,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     console.log("Received data ", data.byteLength);
 
     var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      console.log("Samplerate: ", audioBuffer.sampleRate);
-      //this.audioData=audioBuffer;
+      console.log("Samplerate: ", audioBuffer.sampleRate)
       this.audioClip=new AudioClip(audioBuffer)
     });
   }

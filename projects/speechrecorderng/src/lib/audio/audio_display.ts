@@ -9,8 +9,6 @@ import {AudioClip, Selection} from './persistor'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
-import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
-import {MatSelectChange} from "@angular/material/select";
 
 @Component({
 

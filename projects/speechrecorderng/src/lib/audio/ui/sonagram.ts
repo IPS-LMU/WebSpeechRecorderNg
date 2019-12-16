@@ -5,7 +5,7 @@ import {Marker, Point} from './common';
 import {Component, ElementRef, ViewChild} from "@angular/core";
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
-import {AudioCanvasLayerComponent, BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 
 
 declare function postMessage(message: any, transfer: Array<any>): void;

@@ -1002,8 +1002,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.promptItem.postrecording) {
       postDelay = this.promptItem.postrecording;
     }
-    console.log("Postrecording delay: "+postDelay)
-
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_STOP;
