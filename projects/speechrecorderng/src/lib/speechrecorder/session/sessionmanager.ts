@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
+import {Script, Section, Group,PromptItem} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -66,7 +66,7 @@ export class Item {
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [projectName]="projectName" 
+      <app-sprprompting [projectName]="projectName"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
@@ -76,7 +76,7 @@ export class Item {
                         [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
                         [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
                         [playStopAction]="controlAudioPlayer?.stopAction">
-       
+
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
     <spr-recordingitemdisplay #levelbardisplay
@@ -86,7 +86,7 @@ export class Item {
                               [displayLevelInfos]="displayLevelInfos"
                               [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                              (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
+                              (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
@@ -102,7 +102,7 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
-      
+
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }` ]
@@ -1181,11 +1181,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   stop() {
     this.ac.close();
-  }
-
-
-  startControlPlayback() {
-    this.playStartAction.perform();
   }
 
   private updateControlPlaybackPosition() {
