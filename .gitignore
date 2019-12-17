@@ -43,3 +43,6 @@ Thumbs.db
 
 # NPM
 package-lock.json
+
+# project configuration environment file
+src/environments/environment.prod.ts
