@@ -14,6 +14,10 @@ export class ViewSelection{
     return this._endX;
   }
 
+  width():number{
+    return this._endX-this._startX
+  }
+
   constructor(private _startX:number, private _endX:number){}
 }
 
@@ -128,6 +132,9 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
     protected selectStartX:number=null;
 
+    @ViewChild('bg') bgCanvasRef: ElementRef;
+    bgCanvas: HTMLCanvasElement;
+
     @ViewChild('cursor') cursorCanvasRef: ElementRef;
     cursorCanvas: HTMLCanvasElement;
 
@@ -151,6 +158,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     _selecting: Selection =null
     @Input() set selecting(selecting:Selection| null){
         this._selecting=selecting
+        this.drawBg()
         this.drawCursorLayer()
     }
 
@@ -162,6 +170,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     @Input() set selection(selection:Selection){
         this._selection=selection
         this.selecting=null
+        this.drawBg()
         this.drawCursorLayer()
     }
 
@@ -182,8 +191,6 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
           this.select(vs);
         }
     }
-
-
 
     abstract startDraw(clear:boolean):void;
 
@@ -247,6 +254,42 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         this.selectedEventEmitter.emit(ns)
     }
 
+    viewSelection():ViewSelection{
+      let vs:ViewSelection=null;
+      let s:Selection=null;
+      if(this._selecting){
+        s=this._selecting
+      }else if(this._selection){
+        s=this._selection
+      }
+      if(s){
+        let sf=s.startFrame
+        let ef=s.endFrame
+        let xs=this.frameToViewPortXPixelPosition(sf)
+        let xe=this.frameToViewPortXPixelPosition(ef)
+        vs=new ViewSelection(xs,xe)
+      }
+      return vs;
+    }
+
+
+  drawBg(){
+      if(this.bgCanvas) {
+        let g1 = this.bgCanvas.getContext("2d");
+        if (g1) {
+          let w = this.bgCanvas.width;
+          let h = this.bgCanvas.height;
+          g1.clearRect(0, 0, w, h);
+          g1.fillStyle = "white";
+          g1.fillRect(0, 0, w, h);
+          let vs = this.viewSelection()
+          if (vs) {
+            g1.fillStyle = 'rgba(0%,0%,100%,25%)';
+            g1.fillRect(vs.startX, 0, vs.width(), h);
+          }
+        }
+      }
+  }
     drawCursorLayer(){
         if (this.cursorCanvas) {
             let w = this.cursorCanvas.width;
@@ -254,21 +297,21 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
             let g = this.cursorCanvas.getContext("2d");
             if(g) {
                 g.clearRect(0, 0, w, h);
-                let s:Selection=null;
-                if(this._selecting){
-                    s=this._selecting
-                }else if(this._selection){
-                    s=this._selection
-                }
-                if(s){
-                    let sf=s.startFrame
-                    let ef=s.endFrame
-                    let xs=this.frameToViewPortXPixelPosition(sf)
-                    let xe=this.frameToViewPortXPixelPosition(ef)
-                    let sw=xe-xs
-                    g.fillStyle = 'rgba(0%,0%,100%,25%)';
-                    g.fillRect(xs,0,sw,h);
-                }
+                // let s:Selection=null;
+                // if(this._selecting){
+                //     s=this._selecting
+                // }else if(this._selection){
+                //     s=this._selection
+                // }
+                // if(s){
+                //     let sf=s.startFrame
+                //     let ef=s.endFrame
+                //     let xs=this.frameToViewPortXPixelPosition(sf)
+                //     let xe=this.frameToViewPortXPixelPosition(ef)
+                //     let sw=xe-xs
+                //     g.fillStyle = 'rgba(0%,0%,100%,25%)';
+                //     g.fillRect(xs,0,sw,h);
+                // }
 
                 if(this._pointerPosition){
 

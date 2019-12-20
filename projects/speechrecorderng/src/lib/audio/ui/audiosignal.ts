@@ -12,6 +12,7 @@ declare function postMessage(message: any, transfer: Array<any>): void;
 
   selector: 'audio-signal',
   template: `
+    <canvas #bg></canvas>
     <canvas #audioSignal></canvas>
     <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
             (mouseleave)="updateCursorCanvas($event, false)"></canvas>
@@ -30,9 +31,11 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
   n: any;
   ce: HTMLDivElement;
+
   @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
   //@ViewChild('cursor') cursorCanvasRef: ElementRef;
   @ViewChild('marker') playPosCanvasRef: ElementRef;
+
 
   signalCanvas: HTMLCanvasElement;
 
@@ -57,17 +60,19 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   ngAfterViewInit() {
 
     this.ce = this.ref.nativeElement;
+    this.bgCanvas = this.bgCanvasRef.nativeElement;
+    this.bgCanvas.style.zIndex = '1';
     this.signalCanvas = this.audioSignalCanvasRef.nativeElement;
-    this.signalCanvas.style.zIndex = '1';
+    this.signalCanvas.style.zIndex = '2';
     this.markerCanvas = this.playPosCanvasRef.nativeElement;
-    this.markerCanvas.style.zIndex = '2';
+    this.markerCanvas.style.zIndex = '3';
     this.cursorCanvas = this.cursorCanvasRef.nativeElement;
-    this.cursorCanvas.style.zIndex = '3';
+    this.cursorCanvas.style.zIndex = '4';
 
-
-    this.canvasLayers[0]=this.signalCanvas;
-    this.canvasLayers[1]=this.cursorCanvas;
-    this.canvasLayers[2]=this.markerCanvas;
+    this.canvasLayers[0]=this.bgCanvas;
+    this.canvasLayers[1]=this.signalCanvas;
+    this.canvasLayers[2]=this.cursorCanvas;
+    this.canvasLayers[3]=this.markerCanvas;
 
   }
 
@@ -243,16 +248,17 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
 
-  drawRendered(me: MessageEvent) {
 
+  drawRendered(me: MessageEvent) {
+    this.drawBg();
     this.signalCanvas.style.left=me.data.l.toString()+'px';
     this.signalCanvas.width = me.data.w;
     this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");
     if (g) {
       g.clearRect(0, 0, me.data.w, me.data.h);
-      g.fillStyle = "black";
-      g.fillRect(0, 0, me.data.w, me.data.h);
+      //g.fillStyle = "black";
+      //g.fillRect(0, 0, me.data.w, me.data.h);
       let pointsLen = me.data.w * me.data.chs;
       // one for min one for max
       let arrLen = pointsLen * 2;
@@ -304,14 +310,14 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
   redraw() {
-
+    this.drawBg()
     let g = this.signalCanvas.getContext("2d");
     if (g) {
       let w = this.signalCanvas.width;
       let h = this.signalCanvas.height;
       g.clearRect(0, 0, w, h);
-      g.fillStyle = "black";
-      g.fillRect(0, 0, w, h);
+      //g.fillStyle = "black";
+      //g.fillRect(0, 0, w, h);
       if (this._audioData) {
         let std = Date.now();
         let chs = this._audioData.numberOfChannels;
