@@ -41,8 +41,8 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# NPM
-package-lock.json
+# NPM package lock file
+/package-lock.json
 
 # project configuration environment file
 src/environments/environment.prod.ts
