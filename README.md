@@ -172,62 +172,69 @@ Properties (supported properties only):
 Example script:
 ```
 {
-    "type": "script",
-    "scriptId": "1245",
-    "sections": [
-      {
-        "mode": "MANUAL",
-        "name": "Introduction",
-        "groups": [
-          {
-            "promptItems": [
-              {
-                "itemcode": "I0",
-                "mediaitems": [
-                  {
-                    "text": "Willkommen bei der IPS-Sprachaufnahme!"
-                  }
-                ],
-              },
-              {
-                "itemcode": "I1",
-                "mediaitems": [
-                  {
-                    "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
-                  }
-                ],
-              }
-           ],
-        ],
-        "training": false
-      },{
-         "mode": "AUTOPROGRESS",
-         "name": "Recording Session",
-         "groups": [
-           {
-            "promptItems": [
-               {
-               "itemcode": "N0",
-               "recduration": 10000,
-               "mediaitems": [
-                 {
-                  "text": "What's your name?"
-                 }
-                ],
-               },
-               {
-                "itemcode": "S0",
-                "mediaitems": [
-                  {
-                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-                  }
-                 ],
-               }
-             ]
+  "type": "script",
+  "scriptId": "1245",
+  "sections": [
+    {
+      "mode": "MANUAL",
+      "name": "Introduction",
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "I0",
+              "mediaitems": [
+                {
+                  "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                }
+              ],
+              
+            },
+            {
+              "itemcode": "I1",
+              "mediaitems": [
+                {
+                  "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                }
+              ],
+              
+            }
           ]
-       }
-    ]
- }
+        }
+      ],
+      "training": false
+    },
+    {
+      "mode": "AUTOPROGRESS",
+      "name": "Recording Session",
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "N0",
+              "recduration": 10000,
+              "mediaitems": [
+                {
+                  "text": "What's your name?"
+                }
+              ],
+              
+            },
+            {
+              "itemcode": "S0",
+              "mediaitems": [
+                {
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                }
+              ],
+              
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
            
 ```  
 
