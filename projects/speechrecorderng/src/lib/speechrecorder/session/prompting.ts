@@ -15,7 +15,7 @@ import {
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
-import {Mediaitem, PromptItem} from "../script/script";
+import {Block, Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
@@ -89,8 +89,10 @@ export class Prompter {
   @Input() prompterHeight: number
   private _text: string = null;
   private _src: string = null;
+  private _blocks: Array<Block>=null;
   mimetype: string;
   private currPromptChild: HTMLElement = null;
+  private rendering:boolean=false;
 
   @HostBinding('class.fill') public prompterStyleFill = false;
 
@@ -134,6 +136,9 @@ export class Prompter {
     }
 
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
+    if(this.rendering){
+      return
+    }
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
       this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
@@ -150,6 +155,35 @@ export class Prompter {
         this.currPromptChild = this.renderer.createText(this._text)
         this.prompterStyleFill = false
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+      } else if (this.mimetype === 'text/x-prompt') {
+        this.rendering=true
+        this._text=null;
+        this._src=null;
+        this._blocks=mi.blocks;
+        this.currPromptChild = this.renderer.createElement('div')
+
+        for(let bi=0;bi<this._blocks.length;bi++){
+          let bl=this._blocks[bi]
+          if('p' === bl.type){
+            let pBlEl = this.renderer.createElement('p')
+            this.renderer.appendChild(this.currPromptChild,pBlEl)
+            for(let ti=0;ti<bl.texts.length;ti++){
+              let txt=bl.texts[ti]
+              if(txt) {
+                if ('text' === txt.type) {
+                  let t: string = <string>txt.text
+                  let txtNd = this.renderer.createText(t)
+                  this.renderer.appendChild(pBlEl, txtNd)
+                } else if ('font' === txt.type) {
+                  // TODO
+                }
+              }
+            }
+
+          }
+        }
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        this.rendering=false
       } else if (this.mimetype.startsWith('image')) {
         this._text = null;
         this._src = mi.src

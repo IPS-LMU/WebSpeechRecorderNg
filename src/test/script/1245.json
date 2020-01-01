@@ -100,6 +100,44 @@
                 ]
               }
             ]
+          }, {
+            "promptItems" : [ {
+              "type" : "recording",
+              "mediaitems" : [ {
+                "annotationTemplate" : false,
+                "blocks" : [ {
+                  "type" : "p",
+                  "texts" : [  {
+                    "type" : "font",
+                    "size" : "71.00%",
+                    "text" : {
+                      "text" : "Welcome to the "
+                    }
+                  }, {
+                    "type" : "text",
+                    "text" : "and "
+                  }, {
+                    "type" : "text",
+                    "color" : "red",
+                    "decoration" : "underline",
+                    "text" : "here"
+                  }, {
+                    "type" : "text",
+                    "text" : " is the prompt: a text to read, a question to answer, a picture to describe, or something completely different."
+                  } ]
+                } ],
+                "languageISO639code" : "en",
+                "mimetype" : "text/x-prompt"
+              } ],
+              "itemcode" : "VL4",
+              "prerecdelay" : 2000,
+              "postrecdelay" : 500,
+              "recduration" : 20000,
+              "recinstructions" : {
+                "mimetype" : "text/plain",
+                "recinstructions" : " \t\t\t\tHere you'll find the instructions... \t\t\t"
+              }
+            } ]
           }
         ]
       },
