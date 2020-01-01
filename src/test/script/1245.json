@@ -110,6 +110,7 @@
                   "texts" : [  {
                     "type" : "font",
                     "size" : "71.00%",
+                    "style" : "italic",
                     "text" : {
                       "text" : "Welcome to the "
                     }
@@ -123,7 +124,13 @@
                     "text" : "here"
                   }, {
                     "type" : "text",
-                    "text" : " is the prompt: a text to read, a question to answer, a picture to describe, or something completely different."
+                    "text" : " is the prompt:"
+                  } ]
+                },{
+                  "type" : "p",
+                  "texts" : [  {
+                    "type" : "text",
+                    "text": " a text to read, a question to answer, a picture to describe, or something completely different."
                   } ]
                 } ],
                 "languageISO639code" : "en",

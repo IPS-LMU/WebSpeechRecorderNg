@@ -15,7 +15,7 @@ import {
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
-import {Block, Mediaitem, PromptItem} from "../script/script";
+import {Block, Text, Mediaitem, PromptItem} from "../script/script";
 import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
@@ -135,6 +135,26 @@ export class Prompter {
         }
     }
 
+    private appendTextElement(parentEl:HTMLElement,txt:Text){
+      let t: string = <string>txt.text
+      let txtNd = this.renderer.createText(t)
+      if(txt.decoration || txt.color){
+        let spEl = this.renderer.createElement('span')
+        let styleStr=''
+        if(txt.decoration) {
+          styleStr = styleStr +'text-decoration: ' + txt.decoration+';'
+        }
+        if(txt.color){
+          styleStr = styleStr +'color: ' + txt.color+';'
+        }
+        spEl.style=styleStr
+        this.renderer.appendChild(parentEl, spEl)
+        this.renderer.appendChild(spEl, txtNd)
+      }else {
+        this.renderer.appendChild(parentEl, txtNd)
+      }
+    }
+
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
     // if(this.rendering){
     //   return
@@ -160,6 +180,7 @@ export class Prompter {
         this._text=null;
         this._src=null;
         this._blocks=mi.blocks;
+        this.prompterStyleFill = false
         this.currPromptChild = this.renderer.createElement('div')
 
         for(let bi=0;bi<this._blocks.length;bi++){
@@ -171,11 +192,19 @@ export class Prompter {
               let txt=bl.texts[ti]
               if(txt) {
                 if ('text' === txt.type) {
-                  let t: string = <string>txt.text
-                  let txtNd = this.renderer.createText(t)
-                  this.renderer.appendChild(pBlEl, txtNd)
+                  this.appendTextElement(pBlEl,txt)
                 } else if ('font' === txt.type) {
-                  // TODO
+                  let spEl = this.renderer.createElement('span')
+                  let styleStr=''
+                  if(txt.style){
+                      styleStr=styleStr+'font-style: '+txt.style+';'
+                  }
+                  if(txt.size){
+                    styleStr=styleStr+'font-size: '+txt.size+';'
+                  }
+                  spEl.style=styleStr
+                  this.renderer.appendChild(pBlEl, spEl)
+                  this.appendTextElement(spEl,<Text>txt.text)
                 }
               }
             }
@@ -306,7 +335,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       }
     }
     this.prompter.promptMediaItems=this._mediaitems
-    this.autoFontSize=(mimetype === 'text/plain');
+    this.autoFontSize=(mimetype!=null && mimetype.startsWith('text/'));
     if(this.autoFontSize){
         this.fontSizeChange = true;
         this.contentChecked = false
