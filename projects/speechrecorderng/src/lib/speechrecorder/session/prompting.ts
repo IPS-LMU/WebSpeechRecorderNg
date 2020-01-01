@@ -92,7 +92,7 @@ export class Prompter {
   private _blocks: Array<Block>=null;
   mimetype: string;
   private currPromptChild: HTMLElement = null;
-  private rendering:boolean=false;
+  //private rendering:boolean=false;
 
   @HostBinding('class.fill') public prompterStyleFill = false;
 
@@ -136,9 +136,9 @@ export class Prompter {
     }
 
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
-    if(this.rendering){
-      return
-    }
+    // if(this.rendering){
+    //   return
+    // }
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
       this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
@@ -156,7 +156,7 @@ export class Prompter {
         this.prompterStyleFill = false
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
       } else if (this.mimetype === 'text/x-prompt') {
-        this.rendering=true
+        //this.rendering=true
         this._text=null;
         this._src=null;
         this._blocks=mi.blocks;
@@ -183,7 +183,7 @@ export class Prompter {
           }
         }
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
-        this.rendering=false
+        //this.rendering=false
       } else if (this.mimetype.startsWith('image')) {
         this._text = null;
         this._src = mi.src
