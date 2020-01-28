@@ -179,7 +179,15 @@ export class Prompter {
         //this.rendering=true
         this._text=null;
         this._src=null;
-        this._blocks=mi.blocks;
+        this._blocks=new Array<Block>()
+        let pd=mi.promptDoc
+        if(pd){
+          let pdBody=pd.body
+          if(pdBody){
+            this._blocks=pdBody.blocks;
+          }
+        }
+
         this.prompterStyleFill = false
         this.currPromptChild = this.renderer.createElement('div')
 
@@ -202,9 +210,15 @@ export class Prompter {
                   if(txt.size){
                     styleStr=styleStr+'font-size: '+txt.size+';'
                   }
+                  if(txt.weight){
+                    styleStr=styleStr+'font-weight: '+txt.weight+';'
+                  }
                   spEl.style=styleStr
                   this.renderer.appendChild(pBlEl, spEl)
                   this.appendTextElement(spEl,<Text>txt.text)
+                }else if ('linebreak' === txt.type) {
+                  let brEl = this.renderer.createElement('br')
+                  this.renderer.appendChild(pBlEl, brEl)
                 }
               }
             }

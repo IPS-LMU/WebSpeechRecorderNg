@@ -1,364 +1,388 @@
 {
-    "name": "Test1",
-    "type": "script",
-    "scriptId": 1245,
-    "sections": [
-      {
-        "name": "Empty section test",
-        "speakerDisplay": false,
-        "training": false,
-        "groups": []
-      },
-      {
-        "mode": "MANUAL",
-        "name": "Introduction",
-        "order": "SEQUENTIAL",
-
-        "speakerDisplay": true,
-        "training": true,
-        "groups": [
-          {
-            "promptItems": [
-              {
-                "itemcode": "I0",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "text": "Willkommen bei der IPS-Sprachaufnahme!"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "I1",
-                "recduration":8000,
-                "postrecording": 2000,
-                "recinstructions": {
-                  "recinstructions": "Hier finden Sie kurze Anleitungen"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
-                  }
-                ]
-              }
-            ]
-          },{
-            "promptItems" : [ {
-              "type" : "recording",
-              "mediaitems" : [ {
-                "annotationTemplate" : false,
-                "mimetype": "image/jpg",
-                "src": "resources/images/IMG_2447.JPG"
-              } ],
-              "itemcode" : "demo_001"
-            } ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "I2",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Jetzt geht's los!"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL2",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "„Wind und Sonne machten Wette,\nWer die meisten Kräfte hätte,\nEinen armen Wandersmann\nSeiner Kleider zu berauben.\n\nWind begann;\nDoch sein Schnauben\nTat ihm nichts; der Wandersmann\nZog den Mantel dichter an.\nWind verzweifelt nun und ruht;\nUnd ein lieber Sonnenschein\nFüllt mit holder, sanfter Gluth\nWanderers Gebein.\n\nHüllt er nun sich tiefer ein?\nNein!\nAb wirft er nun sein Gewand,\nUnd die Sonne überwand.\n\nÜbermacht, Vernunftgewalt\nMacht und läßt uns kalt;\nWarme Christusliebe –\nWer, der kalt ihr bliebe?“\n\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL3",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "„Wind und Sonne machten Wette,\nWer die meisten Kräfte hätte,\nEinen armen Wandersmann\nSeiner Kleider zu berauben.\n\nWind begann;\nDoch sein Schnauben\nTat ihm nichts; der Wandersmann\nZog den Mantel dichter an.\nWind verzweifelt nun und ruht;\nUnd ein lieber Sonnenschein\nFüllt mit holder, sanfter Gluth\nWanderers Gebein.\n\nHüllt er nun sich tiefer ein?\nNein!\nAb wirft er nun sein Gewand,\nUnd die Sonne überwand.\n\nÜbermacht, Vernunftgewalt\nMacht und läßt uns kalt;\nWarme Christusliebe –\nWer, der kalt ihr bliebe?“\n\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel. Wind und Sonne machten Wette,\\nWer die meisten Kräfte hätte,\\nEinen armen Wandersmann\\nSeiner Kleider zu berauben.\\n\\nWind begann;\\nDoch sein Schnauben\\nTat ihm nichts; der Wandersmann\\nZog den Mantel dichter an.\\nWind verzweifelt nun und ruht;\\nUnd ein lieber Sonnenschein\\nFüllt mit holder, sanfter Gluth\\nWanderers Gebein.\\n\\nHüllt er nun sich tiefer ein?\\nNein!\\nAb wirft er nun sein Gewand,\\nUnd die Sonne überwand.\\n\\nÜbermacht, Vernunftgewalt\\nMacht und läßt uns kalt;\\nWarme Christusliebe –\\nWer, der kalt ihr bliebe?“\\n\\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel.\n"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "promptItems" : [ {
-              "type" : "recording",
-              "mediaitems" : [ {
-                "annotationTemplate" : false,
-                "blocks" : [ {
-                  "type" : "p",
-                  "texts" : [  {
-                    "type" : "font",
-                    "size" : "71.00%",
-                    "style" : "italic",
-                    "text" : {
-                      "text" : "Welcome to the "
+  "name": "Test1",
+  "type": "script",
+  "scriptId": 1245,
+  "sections": [
+    {
+      "name": "Empty section test",
+      "speakerDisplay": false,
+      "training": false,
+      "groups": []
+    },
+    {
+      "mode": "MANUAL",
+      "name": "Introduction",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+      "training": true,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "I0",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "I1",
+              "recduration": 8000,
+              "postrecording": 2000,
+              "recinstructions": {
+                "recinstructions": "Hier finden Sie kurze Anleitungen"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "type": "recording",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "image/jpg",
+                  "src": "resources/images/IMG_2447.JPG"
+                }
+              ],
+              "itemcode": "demo_001"
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "I2",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Jetzt geht's los!"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "VL2",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "„Wind und Sonne machten Wette,\nWer die meisten Kräfte hätte,\nEinen armen Wandersmann\nSeiner Kleider zu berauben.\n\nWind begann;\nDoch sein Schnauben\nTat ihm nichts; der Wandersmann\nZog den Mantel dichter an.\nWind verzweifelt nun und ruht;\nUnd ein lieber Sonnenschein\nFüllt mit holder, sanfter Gluth\nWanderers Gebein.\n\nHüllt er nun sich tiefer ein?\nNein!\nAb wirft er nun sein Gewand,\nUnd die Sonne überwand.\n\nÜbermacht, Vernunftgewalt\nMacht und läßt uns kalt;\nWarme Christusliebe –\nWer, der kalt ihr bliebe?“\n\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "VL3",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "„Wind und Sonne machten Wette,\nWer die meisten Kräfte hätte,\nEinen armen Wandersmann\nSeiner Kleider zu berauben.\n\nWind begann;\nDoch sein Schnauben\nTat ihm nichts; der Wandersmann\nZog den Mantel dichter an.\nWind verzweifelt nun und ruht;\nUnd ein lieber Sonnenschein\nFüllt mit holder, sanfter Gluth\nWanderers Gebein.\n\nHüllt er nun sich tiefer ein?\nNein!\nAb wirft er nun sein Gewand,\nUnd die Sonne überwand.\n\nÜbermacht, Vernunftgewalt\nMacht und läßt uns kalt;\nWarme Christusliebe –\nWer, der kalt ihr bliebe?“\n\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel. Wind und Sonne machten Wette,\\nWer die meisten Kräfte hätte,\\nEinen armen Wandersmann\\nSeiner Kleider zu berauben.\\n\\nWind begann;\\nDoch sein Schnauben\\nTat ihm nichts; der Wandersmann\\nZog den Mantel dichter an.\\nWind verzweifelt nun und ruht;\\nUnd ein lieber Sonnenschein\\nFüllt mit holder, sanfter Gluth\\nWanderers Gebein.\\n\\nHüllt er nun sich tiefer ein?\\nNein!\\nAb wirft er nun sein Gewand,\\nUnd die Sonne überwand.\\n\\nÜbermacht, Vernunftgewalt\\nMacht und läßt uns kalt;\\nWarme Christusliebe –\\nWer, der kalt ihr bliebe?“\\n\\n– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel.\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "type": "recording",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "promptDoc": {
+                    "body": {
+                      "blocks": [
+                        {
+                          "type": "p",
+                          "texts": [
+                            {
+                              "type": "font",
+                              "size": "71.00%",
+                              "style": "italic",
+                              "weight": "normal",
+                              "text": {
+                                "text": "Welcome to the "
+                              }
+                            },
+                            {
+                              "type": "linebreak"
+                            },
+                            {
+                              "type": "text",
+                              "text": "and "
+                            },
+                            {
+                              "type": "text",
+                              "color": "red",
+                              "decoration": "underline",
+                              "text": "here"
+                            },
+                            {
+                              "type": "text",
+                              "text": " is the prompt:"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "p",
+                          "texts": [
+                            {
+                              "type": "text",
+                              "text": " a text to read, a question to answer, a picture to describe, or something completely different."
+                            }
+                          ]
+                        }
+                      ]
                     }
-                  }, {
-                    "type" : "text",
-                    "text" : "and "
-                  }, {
-                    "type" : "text",
-                    "color" : "red",
-                    "decoration" : "underline",
-                    "text" : "here"
-                  }, {
-                    "type" : "text",
-                    "text" : " is the prompt:"
-                  } ]
-                },{
-                  "type" : "p",
-                  "texts" : [  {
-                    "type" : "text",
-                    "text": " a text to read, a question to answer, a picture to describe, or something completely different."
-                  } ]
-                } ],
-                "languageISO639code" : "en",
-                "mimetype" : "text/x-prompt"
-              } ],
-              "itemcode" : "VL4",
-              "prerecdelay" : 2000,
-              "postrecdelay" : 500,
-              "recduration" : 20000,
-              "recinstructions" : {
-                "mimetype" : "text/plain",
-                "recinstructions" : " \t\t\t\tHere you'll find the instructions... \t\t\t"
+                  },
+                  "languageISO639code": "en",
+                  "mimetype": "text/x-prompt"
+                }
+              ],
+              "itemcode": "VL4",
+              "prerecdelay": 2000,
+              "postrecdelay": 500,
+              "recduration": 20000,
+              "recinstructions": {
+                "mimetype": "text/plain",
+                "recinstructions": " \t\t\t\tHere you'll find the instructions... \t\t\t"
               }
-            } ]
-          }
-        ]
-      },
-      {
-        "mode": "AUTORECORDING",
-        "name": "Recording Session",
-        "order": "SEQUENTIAL",
-        "promptphase": "PRERECORDING",
-        "speakerDisplay": true,
-        "training": false,
-        "groups": [
-          {
-            "promptItems": [
-              {
-                "itemcode": "N0",
-                "recduration": 10000,
-
-                "recinstructions": {
-                  "recinstructions": "Please answer:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "autoplay": false,
-                    "mimetype": "text/plain",
-                    "text": "What's your name?"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "S0",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "S1",
-                "recinstructions": {
-                  "recinstructions": "Bitte lesen:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Heute ist schönes Frühlingswetter."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-
-      },
-      {
-        "mode": "AUTORECORDING",
-        "name": "Recording Session",
-        "order": "SEQUENTIAL",
-        "promptphase": "PRERECORDING",
-        "speakerDisplay": true,
-        "training": false,
-        "groups": [
-          {
-            "promptItems": [
-              {
-                "itemcode": "AN0",
-                "recinstructions": {
-                  "recinstructions": "Please answer:"
-                },
-                "recduration": 10000,
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "scope": "APPLICATION",
-                    "text": "What's your name?"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "AS0",
-                "recinstructions": {
-                  "recinstructions": "Please read the digits:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "2 7 4 1 6 8 3 9 5 0"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "AS1",
-                "recinstructions": {
-                  "recinstructions": "Please answer:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "How did you get here today?"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "mode": "AUTORECORDING",
-        "name": "Recording Session",
-        "order": "SEQUENTIAL",
-        "promptphase": "RECORDING",
-        "speakerDisplay": true,
-        "training": false,
-        "groups": [
-          {
-            "promptItems": [
-              {
-                "itemcode": "ARN0",
-                "prerecording": 500,
-                "recinstructions": {
-                  "recinstructions": "Please answer:"
-                },
-                "recduration": 10000,
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mediaitemId": 1258,
-                    "mimetype": "text/plain",
-                    "text": "What's your name?"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "ARS0",
-                "prerecording": 500,
-                "recinstructions": {
-                  "recinstructions": "Please read the digits:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "2 7 4 1 6 8 3 9 5 0"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "ARS1",
-                "prerecording": 500,
-                "recinstructions": {
-                  "recinstructions": "Please answer:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mediaitemId": 1300,
-                    "mimetype": "text/plain",
-                    "text": "How did you get here today?"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "IMG1",
-                "prerecording": 500,
-                "recinstructions": {
-                  "recinstructions": "Describe the image:"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "image/jpg",
-                    "src": "resources/images/IMG_2447.JPG"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-
-      }
-    ]
-  }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "name": "Recording Session",
+      "order": "SEQUENTIAL",
+      "promptphase": "PRERECORDING",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "N0",
+              "recduration": 10000,
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "autoplay": false,
+                  "mimetype": "text/plain",
+                  "text": "What's your name?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "S0",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "S1",
+              "recinstructions": {
+                "recinstructions": "Bitte lesen:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Heute ist schönes Frühlingswetter."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "name": "Recording Session",
+      "order": "SEQUENTIAL",
+      "promptphase": "PRERECORDING",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "AN0",
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "recduration": 10000,
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "scope": "APPLICATION",
+                  "text": "What's your name?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "AS0",
+              "recinstructions": {
+                "recinstructions": "Please read the digits:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "2 7 4 1 6 8 3 9 5 0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "AS1",
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "How did you get here today?"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "name": "Recording Session",
+      "order": "SEQUENTIAL",
+      "promptphase": "RECORDING",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "ARN0",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "recduration": 10000,
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mediaitemId": 1258,
+                  "mimetype": "text/plain",
+                  "text": "What's your name?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "ARS0",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Please read the digits:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "2 7 4 1 6 8 3 9 5 0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "ARS1",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Please answer:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mediaitemId": 1300,
+                  "mimetype": "text/plain",
+                  "text": "How did you get here today?"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "IMG1",
+              "prerecording": 500,
+              "recinstructions": {
+                "recinstructions": "Describe the image:"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "image/jpg",
+                  "src": "resources/images/IMG_2447.JPG"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 

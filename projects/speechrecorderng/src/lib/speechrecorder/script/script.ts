@@ -1,10 +1,11 @@
-import {Recinstructions} from "../session/prompting";
+//import {Recinstructions} from "../session/prompting";
 
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
 export type PromptPhase = "IDLE" | "PRERECORDING" | "RECORDING";
 
 export type Decoration ='underline'
 export type Style ='italic' | 'normal'
+export type FontWeight='normal' | 'bold'
 export type BlockType='p';
 export type TextType='text' | 'font';
 
@@ -17,6 +18,7 @@ export interface Text {
   color? : string,
   decoration? : Decoration,
   size?: string,
+  weight?: FontWeight,
   style?: Style,
   text : string | Text;
 }
@@ -25,11 +27,18 @@ export interface Block {
   type: BlockType,
   texts: Array<Text>
 }
+export interface Body{
+  blocks?: Array<Block>,
+}
+
+export interface PromptDoc{
+  body?: Body
+}
 
 export interface Mediaitem {
   text?: string,
   src?: string,
-  blocks?: Array<Block>,
+  promptDoc?: PromptDoc,
   mimetype?:string
 }
 
