@@ -38,23 +38,25 @@ export class Sonagram extends AudioCanvasLayerComponent {
     sonagramCanvas: HTMLCanvasElement;
     cursorCanvas: HTMLCanvasElement;
     markerCanvas: HTMLCanvasElement;
-    @ViewChild('sonagram') sonagramCanvasRef: ElementRef;
-    @ViewChild('cursor') cursorCanvasRef: ElementRef;
-    @ViewChild('marker') markerCanvasRef: ElementRef;
+    @ViewChild('sonagram', { static: true }) sonagramCanvasRef: ElementRef;
+    @ViewChild('cursor', { static: true }) cursorCanvasRef: ElementRef;
+    @ViewChild('marker', { static: true }) markerCanvasRef: ElementRef;
     markers: Array<Marker>;
     private _playFramePosition: number;
 
-    private wo: Worker | null;
+    private worker: Worker | null;
     private workerURL: string;
     private dftSize = DEFAULT_DFT_SIZE;
 
     constructor(private ref: ElementRef) {
         super();
-        this.wo = null;
+        this.worker = null;
         this.audioData = null;
         this.markers = new Array<Marker>();
         this.dft = new DFTFloat32(this.dftSize);
-        let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
+
+        let woFctStr=this.function.toString()
+        let wb = new Blob([ '('+woFctStr+ ')();'], {type: 'text/javascript'});
         this.workerURL = window.URL.createObjectURL(wb);
     }
 
@@ -198,7 +200,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
     // }
 
 
-    workerFunction() {
+    /*
+     *  Method used as worker code.
+     */
+    function() {
 
         // Redefine some DSP classes for worker function
         // See e.g. audio.math.Complex
@@ -295,9 +300,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 // lookup tables
                 this.cosLookup = new Float32Array(n / 2);
                 this.sinLookup = new Float32Array(n / 2);
-
-                for (let i = 0; i < n / 2; i++) {
-                    const arc = (-2 * Math.PI * i) / n;
+                for (var i = 0; i < n / 2; i++) {
+                    var arc = (-2 * Math.PI * i) / n;
                     this.cosLookup[i] = Math.cos(arc);
                     this.sinLookup[i] = Math.sin(arc);
                 }
@@ -584,9 +588,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
     private startRender() {
 
-        if (this.wo) {
-            this.wo.terminate();
-            this.wo = null;
+        if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
 
         }
         if (this.bounds) {
@@ -596,8 +600,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
             if (this.audioData && w>0 && h>0) {
 
-                this.wo = new Worker(this.workerURL);
-
+                this.worker = new Worker(this.workerURL);
+                //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
                 let chs = this.audioData.numberOfChannels;
 
                 let frameLength = this.audioData.getChannelData(0).length;
@@ -607,13 +611,13 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     ada[ch] = this.audioData.getChannelData(ch).buffer.slice(0);
                 }
                 let start = Date.now();
-                if (this.wo) {
-                    this.wo.onmessage = (me) => {
+                if (this.worker) {
+                    this.worker.onmessage = (me) => {
                         this.drawRendered(me);
-                        if (this.wo) {
-                            this.wo.terminate();
+                        if (this.worker) {
+                            this.worker.terminate();
                         }
-                        this.wo = null;
+                        this.worker = null;
                     }
                 }
                 if (this.markerCanvas) {
@@ -623,7 +627,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     }
 
                 }
-                this.wo.postMessage({
+                this.worker.postMessage({
                     audioData: ada,
                     l: Math.round(this.bounds.position.left),
                     w: w,

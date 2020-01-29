@@ -3,7 +3,8 @@ import {
   Component, ViewChild, Input, EventEmitter, Output
 } from "@angular/core";
 
-import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
+import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
+import { MatIcon } from "@angular/material/icon";
 
 
 @Component({
@@ -163,7 +164,7 @@ export class TransportActions {
     <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" mat-raised-button>
       <mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
       Stop
-    </button> 
+    </button>
     <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" mat-raised-button>
       <mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
       <mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
@@ -300,8 +301,8 @@ export class TransportPanel {
   `]
 })
 export class ControlPanel {
-  @ViewChild(StatusDisplay) statusDisplay: StatusDisplay;
-  @ViewChild(TransportPanel) transportPanel: TransportPanel;
+  @ViewChild(StatusDisplay, { static: true }) statusDisplay: StatusDisplay;
+  @ViewChild(TransportPanel, { static: true }) transportPanel: TransportPanel;
 
 
   @Input() readonly:boolean

@@ -123,7 +123,7 @@ export class LevelMeasure {
   bufferLevelInfos: Array<LevelInfo>;
   peakLevelInfo: LevelInfo;
 
-  private workerFunctionURL: string;
+  private workerURL: string;
   private worker: Worker;
 
   private bufferIndex: number = 0;
@@ -132,10 +132,9 @@ export class LevelMeasure {
   levelListener: LevelListener;
 
   constructor() {
-
-    let workerFunctionBlob = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-    this.workerFunctionURL = window.URL.createObjectURL(workerFunctionBlob);
-
+    let woFctStr = this.function.toString()
+    let wb = new Blob(['(' + woFctStr + ')();'], {type: 'text/javascript'});
+    this.workerURL = window.URL.createObjectURL(wb);
   }
 
   calcBufferLevelInfos(audioBuffer: AudioBuffer, bufferTimeLength: number): Promise<LevelInfos> {
@@ -150,7 +149,7 @@ export class LevelMeasure {
         buffers[ch] = adChCopy.buffer;
       }
 
-      this.worker = new Worker(this.workerFunctionURL);
+      this.worker = new Worker(this.workerURL);
       this.worker.onmessage = (me) => {
 
         let linLevelArrs=new Array<Float32Array>(chs);
@@ -191,7 +190,10 @@ export class LevelMeasure {
 
   }
 
-  workerFunction() {
+  /*
+   *  Method used as worker code.
+   */
+  function() {
     self.onmessage = function (msg) {
 
       let chs = msg.data.chs;
@@ -244,7 +246,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   currentLevelInfos: LevelInfo;
   peakLevelInfo: LevelInfo;
 
-  private workerFunctionURL: string;
+  private workerURL: string;
   private worker: Worker;
   private channelCount: number;
   private bufferIndex: number = 0;
@@ -253,17 +255,16 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   levelListener: LevelListener;
 
   constructor() {
-
-    let workerFunctionBlob = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-    this.workerFunctionURL = window.URL.createObjectURL(workerFunctionBlob);
-
+    let woFctStr = this.function.toString()
+    let wb = new Blob(['(' + woFctStr + ')();'], {type: 'text/javascript'});
+    this.workerURL = window.URL.createObjectURL(wb);
   }
 
   setFormat(channels: number, sampleRate: number) {
     this.channelCount = channels;
     this.currentLevelInfos = new LevelInfo(this.channelCount);
     this.peakLevelInfo = new LevelInfo(this.channelCount);
-    this.worker = new Worker(this.workerFunctionURL);
+    this.worker = new Worker(this.workerURL);
     this.worker.onmessage = (me) => {
       let streamFinished = me.data.streamFinished;
       if (streamFinished) {
@@ -328,8 +329,10 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
 
   }
 
-
-  workerFunction() {
+  /*
+   *  Method used as worker code.
+   */
+  function() {
     self.onmessage = function (msg) {
       let streamFinished = msg.data.streamFinished;
       if (streamFinished) {

@@ -11,14 +11,16 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      private bw:BinaryByteWriter;
      private format:PCMAudioFormat;
      private dataLength:number;
-
-     private woStr:string;
+     private workerURL: string;
 
      constructor() {
        this.bw = new BinaryByteWriter();
      }
 
-     workerFunction() {
+     /*
+      *  Method used as worker code.
+      */
+     function() {
        self.onmessage = function (msg) {
 
          let bufLen=msg.data.frameLength * msg.data.chs;
@@ -80,12 +82,12 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      writeAsync(audioBuffer:AudioBuffer,callback: (wavFileData:Uint8Array)=> any){
 
        let dataChkByteLen=this.writeHeader(audioBuffer);
-        if(!this.woStr) {
-
-          let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-          this.woStr = window.URL.createObjectURL(wb);
+       if (!this.workerURL) {
+         let woFctStr = this.function.toString()
+         let wb = new Blob(['(' + woFctStr + ')();'], {type: 'text/javascript'});
+         this.workerURL = window.URL.createObjectURL(wb);
         }
-         let wo = new Worker(this.woStr);
+       let wo = new Worker(this.workerURL);
 
        let chs = audioBuffer.numberOfChannels;
 

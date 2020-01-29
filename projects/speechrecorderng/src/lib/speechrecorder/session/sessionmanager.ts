@@ -12,7 +12,8 @@ import {
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Status as SessionStatus} from "./session";
-import {MatDialog,MatProgressBar} from "@angular/material";
+import { MatDialog } from "@angular/material/dialog";
+import { MatProgressBar } from "@angular/material/progress-bar";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -115,8 +116,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|null=null;
-  @ViewChild(Prompting) prompting: Prompting;
-  @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+  @ViewChild(Prompting, { static: true }) prompting: Prompting;
+  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay: LevelBarDisplay;
 
   @Input() dataSaved=true
 

@@ -46,11 +46,11 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
 })
 export class LevelBar implements LevelListener {
 
-  @ViewChild('virtualCanvas') virtualCanvasRef: ElementRef;
+  @ViewChild('virtualCanvas', { static: true }) virtualCanvasRef: ElementRef;
   virtualCanvas: HTMLDivElement;
-  @ViewChild('levelbar') liveLevelCanvasRef: ElementRef;
+  @ViewChild('levelbar', { static: true }) liveLevelCanvasRef: ElementRef;
   liveLevelCanvas: HTMLCanvasElement;
-  @ViewChild('markerCanvas') markerCanvasRef: ElementRef;
+  @ViewChild('markerCanvas', { static: true }) markerCanvasRef: ElementRef;
   markerCanvas: HTMLCanvasElement;
   ce: HTMLDivElement;
   dbValues: Array<Array<number>>;
