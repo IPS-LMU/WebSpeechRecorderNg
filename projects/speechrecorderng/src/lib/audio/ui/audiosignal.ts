@@ -3,6 +3,7 @@ import {Component, ViewChild, ElementRef} from '@angular/core';
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {WorkerHelper} from "../../utils/utils";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -44,9 +45,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   constructor(private ref: ElementRef) {
     super();
     this.worker = null;
-    let woFctStr=this.function.toString()
-    let wb = new Blob([ '('+woFctStr+ ')();'], {type: 'text/javascript'});
-    this.workerURL = window.URL.createObjectURL(wb);
+    this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
     this.audioData = null;
     this.markers = new Array<Marker>();
   }
@@ -142,7 +141,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   /*
    *  Method used as worker code.
    */
-  function() {
+  workerFunction() {
     addEventListener('message', ({ data }) => {
 
       let audioData = data.audioData;

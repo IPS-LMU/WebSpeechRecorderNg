@@ -1,6 +1,6 @@
 import {DSPUtils} from "../../dsp/utils";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
-import {Arrays} from "../../utils/utils";
+import {Arrays, WorkerHelper} from "../../utils/utils";
 
 
 export class LevelInfo {
@@ -132,9 +132,7 @@ export class LevelMeasure {
   levelListener: LevelListener;
 
   constructor() {
-    let woFctStr = this.function.toString()
-    let wb = new Blob(['(' + woFctStr + ')();'], {type: 'text/javascript'});
-    this.workerURL = window.URL.createObjectURL(wb);
+    this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
   }
 
   calcBufferLevelInfos(audioBuffer: AudioBuffer, bufferTimeLength: number): Promise<LevelInfos> {
@@ -193,7 +191,7 @@ export class LevelMeasure {
   /*
    *  Method used as worker code.
    */
-  function() {
+  workerFunction() {
     self.onmessage = function (msg) {
 
       let chs = msg.data.chs;
@@ -255,9 +253,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   levelListener: LevelListener;
 
   constructor() {
-    let woFctStr = this.function.toString()
-    let wb = new Blob(['(' + woFctStr + ')();'], {type: 'text/javascript'});
-    this.workerURL = window.URL.createObjectURL(wb);
+    this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
   }
 
   setFormat(channels: number, sampleRate: number) {
@@ -332,7 +328,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   /*
    *  Method used as worker code.
    */
-  function() {
+  workerFunction() {
     self.onmessage = function (msg) {
       let streamFinished = msg.data.streamFinished;
       if (streamFinished) {

@@ -1,6 +1,7 @@
 import { WavFileFormat } from './wavformat'
 import { PCMAudioFormat } from '../format'
 import { BinaryByteWriter } from '../../io/BinaryWriter'
+import {WorkerHelper} from "../../utils/utils";
 declare function postMessage (message:any, transfer:Array<any>):void;
 
 
@@ -20,7 +21,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      /*
       *  Method used as worker code.
       */
-     function() {
+     workerFunction() {
        self.onmessage = function (msg) {
 
          let bufLen=msg.data.frameLength * msg.data.chs;
@@ -83,9 +84,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
 
        let dataChkByteLen=this.writeHeader(audioBuffer);
        if (!this.workerURL) {
-         let woFctStr = this.function.toString()
-         let wb = new Blob(['(' + woFctStr + ')();'], {type: 'text/javascript'});
-         this.workerURL = window.URL.createObjectURL(wb);
+         this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
         }
        let wo = new Worker(this.workerURL);
 

@@ -566,28 +566,33 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if(ab) {
         this.displayAudioBuffer = ab;
         this.controlAudioPlayer.audioBuffer = ab;
-      }else{
+      }else {
         // clear for now ...
         this.displayAudioBuffer = null;
         this.controlAudioPlayer.audioBuffer = null;
-        //... and try to fetch from server
-        this.audioFetchSubscription=this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
-          let fab=null;
-          if(rf) {
-            fab=this._displayRecFile.audioBuffer;
-          }else{
-            this.statusMsg='Recording file could not be loaded.'
-            this.statusAlertType='error'
-          }
+        if (this._controlAudioPlayer) {
+          //... and try to fetch from server
+          this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+            let fab = null;
+            if (rf) {
+              fab = this._displayRecFile.audioBuffer;
+            } else {
+              this.statusMsg = 'Recording file could not be loaded.'
+              this.statusAlertType = 'error'
+            }
             this.displayAudioBuffer = fab;
             this.controlAudioPlayer.audioBuffer = fab;
-          this.showRecording();
+            this.showRecording();
 
-        },err=>{
-          console.error("Could not load recording file from server: "+err)
-          this.statusMsg='Recording file could not be loaded: '+err
-          this.statusAlertType='error'
-        })
+          }, err => {
+            console.error("Could not load recording file from server: " + err)
+            this.statusMsg = 'Recording file could not be loaded: ' + err
+            this.statusAlertType = 'error'
+          })
+        }else{
+          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
+          this.statusAlertType = 'error'
+        }
       }
 
     } else {

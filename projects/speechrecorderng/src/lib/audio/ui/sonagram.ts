@@ -6,6 +6,7 @@ import {Component, ElementRef, ViewChild} from "@angular/core";
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {WorkerHelper} from "../../utils/utils";
 
 
 declare function postMessage(message: any, transfer: Array<any>): void;
@@ -55,9 +56,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
         this.markers = new Array<Marker>();
         this.dft = new DFTFloat32(this.dftSize);
 
-        let woFctStr=this.function.toString()
-        let wb = new Blob([ '('+woFctStr+ ')();'], {type: 'text/javascript'});
-        this.workerURL = window.URL.createObjectURL(wb);
+        this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
     }
 
     ngAfterViewInit() {
@@ -203,7 +202,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
     /*
      *  Method used as worker code.
      */
-    function() {
+    workerFunction() {
 
         // Redefine some DSP classes for worker function
         // See e.g. audio.math.Complex
