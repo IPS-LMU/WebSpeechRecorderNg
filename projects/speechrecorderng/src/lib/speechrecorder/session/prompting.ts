@@ -347,6 +347,11 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       if (mi.mimetype) {
         mimetype = mi.mimetype.trim();
       }
+      if(mi.defaultVirtualViewBox){
+        this.prompterHeight=mi.defaultVirtualViewBox.height
+      }
+    }else{
+      this.prompterHeight=VIRTUAL_HEIGHT
     }
     this.prompter.promptMediaItems=this._mediaitems
     this.autoFontSize=(mimetype!=null && mimetype.startsWith('text/'));
@@ -378,7 +383,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       this.prDisplay = 'hidden'
       let elH = this.elRef.nativeElement.offsetHeight;
       // prompt text font size should scale according to prompt container height
-      let scaledSize = Math.round((elH / VIRTUAL_HEIGHT) * DEFAULT_PROMPT_FONTSIZE);
+      let scaledSize = Math.round((elH / this.prompterHeight) * DEFAULT_PROMPT_FONTSIZE);
 
       // min prompt font size is default user agent size
       let newSize = Math.max(scaledSize, this.defaultFontSizePx);

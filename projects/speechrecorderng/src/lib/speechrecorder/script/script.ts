@@ -1,5 +1,3 @@
-//import {Recinstructions} from "../session/prompting";
-
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
 export type PromptPhase = "IDLE" | "PRERECORDING" | "RECORDING";
 
@@ -39,7 +37,8 @@ export interface Mediaitem {
   text?: string,
   src?: string,
   promptDoc?: PromptDoc,
-  mimetype?:string
+  mimetype?:string,
+  defaultVirtualViewBox?:VirtualViewBox
 }
 
 export interface PromptItem {
@@ -63,7 +62,16 @@ export interface Section {
   groups: Array<Group>;
 }
 
+export interface VirtualViewBox{
+  height:number;
+}
+
+export interface PromptView{
+  virtualViewBox?:VirtualViewBox;
+}
+
 export interface Script {
+  promptView?:PromptView;
   sections: Array<Section>;
 }
 

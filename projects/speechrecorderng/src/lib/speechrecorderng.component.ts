@@ -126,10 +126,35 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
       }
     }
 
+    applyScriptDefaults(script:Script){
+        if(script.promptView && script.sections){
+
+            for(let si=0;si<script.sections.length;si++){
+                let se=script.sections[si]
+                if(se.groups) {
+                    for (let gi = 0; gi <se.groups.length;gi++){
+                        let g=se.groups[gi]
+                        if(g.promptItems){
+                            for (let pii = 0; pii <g.promptItems.length;pii++){
+                                let pi=g.promptItems[pii]
+                                if(pi.mediaitems){
+                                    for(let mii=0;mii<pi.mediaitems.length;mii++){
+                                        let mi=pi.mediaitems[mii]
+                                        mi.defaultVirtualViewBox=script.promptView.virtualViewBox
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     fetchScript(sess:Session){
       if(sess.script){
         this.scriptService.scriptObservable(sess.script).subscribe(script=>{
+            this.applyScriptDefaults(script)
           this.setScript(script)
           this.sm.session=sess;
           this.fetchRecordings(sess,this.script)

@@ -2,6 +2,11 @@
   "name": "Test1",
   "type": "script",
   "scriptId": 1245,
+  "promptView" : {
+    "virtualViewBox" : {
+      "height" : 500
+    }
+  },
   "sections": [
     {
       "name": "Empty section test",
