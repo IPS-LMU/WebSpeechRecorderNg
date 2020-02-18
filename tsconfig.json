@@ -8,7 +8,6 @@
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
-    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es2015",
     "typeRoots": [
@@ -20,19 +19,15 @@
     ],
     "paths": {
       "speechrecorderng": [
-        "dist/speechrecorderng",
+        "dist/speechrecorderng/speechrecorderng",
         "dist/speechrecorderng"
-      ],
-      "speechrecorderng/*": [
-        "dist/speechrecorderng/*",
-        "dist/speechrecorderng/*"
-      ],
-      "speechrecorder": [
-        "dist/speechrecorder"
-      ],
-      "speechrecorder/*": [
-        "dist/speechrecorder/*"
       ]
     }
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true,
+    "strictInjectionParameters": true,
+    "enableIvy": false
   }
+
 }

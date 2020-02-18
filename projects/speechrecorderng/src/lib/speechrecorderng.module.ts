@@ -1,5 +1,4 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
-import 'hammerjs';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {AudioModule} from "./audio/audio.module";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
@@ -54,7 +53,7 @@ export const SPR_ROUTES: Routes = [
 })
 export class SpeechrecorderngModule{
 
-  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders {
+  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders<SpeechrecorderngModule> {
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
