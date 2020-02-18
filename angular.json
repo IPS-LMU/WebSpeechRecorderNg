@@ -11,6 +11,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "aot": true,
             "outputPath": "dist",
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -28,6 +29,12 @@
           },
           "configurations": {
             "production": {
+              "budgets": [
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
+                }
+              ],
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
@@ -121,12 +128,17 @@
       "sourceRoot": "projects/speechrecorderng/src",
       "projectType": "library",
       "prefix": "lib",
-      "targets": {
+      "architect": {
         "build": {
           "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
             "tsConfig": "projects/speechrecorderng/tsconfig.lib.json",
             "project": "projects/speechrecorderng/ng-package.json"
+          }
+        ,          "configurations": {
+            "production": {
+              "tsConfig": "projects/speechrecorderng/tsconfig.lib.prod.json"
+            }
           }
         },
         "test": {

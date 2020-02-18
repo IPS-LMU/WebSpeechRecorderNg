@@ -17,9 +17,9 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
   selector: 'audio-display-scroll-pane',
 
   template: `
-   
+
     <app-audio #audioSignalContainer></app-audio>
-    
+
   `,
   styles: [
     `:host {
@@ -34,7 +34,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
     }`,
     `app-audio {
 
-    margin: 0; 
+    margin: 0;
     padding: 0;
     top: 0;
     left: 0;
@@ -56,7 +56,7 @@ export class AudioDisplayScrollPane {
   zoomFixFitToPanelAction:Action=new Action("Fix fit to panel");
 
 
-  @ViewChild(AudioClipUIContainer)
+  @ViewChild(AudioClipUIContainer, { static: true })
   private ac: AudioClipUIContainer;
 
 

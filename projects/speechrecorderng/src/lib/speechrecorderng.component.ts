@@ -15,7 +15,7 @@ import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
+import {RecordingFileDescriptor} from "./speechrecorder/recording";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -30,7 +30,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
     flex: 2;
     display: flex;
     flex-direction: column;
-    min-height:0;      
+    min-height:0;
 
   }`]
 
@@ -47,7 +47,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
   script:Script;
     dataSaved: boolean = true;
-  @ViewChild(SessionManager) sm:SessionManager;
+  @ViewChild(SessionManager, { static: true }) sm:SessionManager;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,
@@ -127,7 +127,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
     applyScriptDefaults(script:Script){
-        if(script.promptView && script.sections){
+        if(script.sections){
 
             for(let si=0;si<script.sections.length;si++){
                 let se=script.sections[si]
@@ -140,7 +140,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
                                 if(pi.mediaitems){
                                     for(let mii=0;mii<pi.mediaitems.length;mii++){
                                         let mi=pi.mediaitems[mii]
-                                        mi.defaultVirtualViewBox=script.promptView.virtualViewBox
+                                        mi.defaultVirtualViewBox=script.virtualViewBox
                                     }
                                 }
                             }

@@ -66,12 +66,8 @@ export interface VirtualViewBox{
   height:number;
 }
 
-export interface PromptView{
-  virtualViewBox?:VirtualViewBox;
-}
-
 export interface Script {
-  promptView?:PromptView;
+  virtualViewBox?:VirtualViewBox;
   sections: Array<Section>;
 }
 

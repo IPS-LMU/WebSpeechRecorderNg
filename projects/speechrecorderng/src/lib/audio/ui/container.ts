@@ -21,7 +21,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
   `,
   styles: [`div {
 
-    margin: 0; 
+    margin: 0;
     padding: 0;
     top: 0;
     left: 0;
@@ -56,14 +56,14 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   parentE: HTMLElement;
 
-  @ViewChild('container') canvasRef: ElementRef;
+  @ViewChild('container', { static: true }) canvasRef: ElementRef;
   dc: HTMLCanvasElement;
 
-  @ViewChild('virtualCanvas') ceRef: ElementRef;
+  @ViewChild('virtualCanvas', { static: true }) ceRef: ElementRef;
   ce: HTMLDivElement;
 
-  @ViewChild(AudioSignal) as: AudioSignal;
-  @ViewChild(Sonagram) so: Sonagram;
+  @ViewChild(AudioSignal, { static: true }) as: AudioSignal;
+  @ViewChild(Sonagram, { static: true }) so: Sonagram;
 
 
   private _clipBounds: Rectangle | null = null;

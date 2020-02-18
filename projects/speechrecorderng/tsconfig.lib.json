@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "../../out-tsc/lib",
     "target": "es2015",
-    "module": "es2015",
+    "module": "esnext",
     "moduleResolution": "node",
     "declaration": true,
     "sourceMap": true,
@@ -14,11 +14,10 @@
     "types": [],
     "lib": [
       "dom",
-      "es2015"
+      "es2018"
     ]
   },
   "angularCompilerOptions": {
-    "annotateForClosureCompiler": true,
     "skipTemplateCodegen": true,
     "strictMetadataEmit": true,
     "fullTemplateTypeCheck": true,

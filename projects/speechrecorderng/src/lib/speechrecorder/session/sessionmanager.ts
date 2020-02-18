@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
+import {Script, Section, Group,PromptItem} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -11,8 +11,7 @@ import {
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {Status as SessionStatus} from "./session";
-import {MatDialog,MatProgressBar} from "@angular/material";
+import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -24,9 +23,8 @@ import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {RecordingService} from "../recordings/recordings.service";
-import {Observable, Subscription} from "rxjs";
+import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 
 
@@ -84,7 +82,7 @@ export class Item {
                               [displayLevelInfos]="displayLevelInfos"
                               [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                              (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
+                              (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
@@ -115,8 +113,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|null=null;
-  @ViewChild(Prompting) prompting: Prompting;
-  @ViewChild(LevelBarDisplay) liveLevelDisplay: LevelBarDisplay;
+  @ViewChild(Prompting, { static: true }) prompting: Prompting;
+  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay: LevelBarDisplay;
 
   @Input() dataSaved=true
 
@@ -569,6 +567,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         // clear for now ...
         this.displayAudioBuffer = null;
         this.controlAudioPlayer.audioBuffer = null;
+        if (this._controlAudioPlayer) {
         //... and try to fetch from server
         this.audioFetchSubscription=this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
           let fab=null;
@@ -587,6 +586,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           this.statusMsg='Recording file could not be loaded: '+err
           this.statusAlertType='error'
         })
+        }else{
+          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
+          this.statusAlertType = 'error'
+        }
       }
 
     } else {
