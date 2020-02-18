@@ -15,7 +15,7 @@ import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
+import {RecordingFileDescriptor} from "./speechrecorder/recording";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 

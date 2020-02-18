@@ -14,7 +14,7 @@ import {ScrollIntoViewDirective} from "./utils/scrollIntoViewToBottom";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
-import { MatProgressBar, MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {HttpClientModule} from "@angular/common/http";

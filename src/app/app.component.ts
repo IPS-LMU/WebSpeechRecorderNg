@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component} from '@angular/core';
 import { VERSION } from '../../projects/speechrecorderng/src/lib/spr.module.version'
 
 

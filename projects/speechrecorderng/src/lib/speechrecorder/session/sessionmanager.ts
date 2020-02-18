@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
+import {Script, Section, Group,PromptItem} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -11,9 +11,7 @@ import {
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {Status as SessionStatus} from "./session";
 import { MatDialog } from "@angular/material/dialog";
-import { MatProgressBar } from "@angular/material/progress-bar";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -25,9 +23,8 @@ import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {RecordingService} from "../recordings/recordings.service";
-import {Observable, Subscription} from "rxjs";
+import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 
 

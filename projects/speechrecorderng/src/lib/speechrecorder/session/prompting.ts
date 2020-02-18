@@ -7,16 +7,15 @@ import {
   HostListener,
   ElementRef,
   OnInit,
-  AfterViewChecked,
   Renderer2,
-  ChangeDetectorRef, HostBinding, AfterContentChecked
+  HostBinding,
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
