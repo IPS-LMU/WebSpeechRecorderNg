@@ -23,6 +23,8 @@ export class ViewSelection{
 
 export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponent {
   protected _audioData: AudioBuffer=null;
+  protected _bgColor:string='white';
+  protected _selectColor='rgba(0%,0%,100%,25%)';
 
   /**
    * Returns pixel position depending on current zoom setting.
@@ -275,16 +277,19 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
   drawBg(){
       if(this.bgCanvas) {
+          this.bgCanvas.style.left = Math.round(this.bounds.position.left).toString() + 'px';
+          this.bgCanvas.width = Math.round(this.bounds.dimension.width);
+          this.bgCanvas.height = Math.round(this.bounds.dimension.height);
         let g1 = this.bgCanvas.getContext("2d");
         if (g1) {
           let w = this.bgCanvas.width;
           let h = this.bgCanvas.height;
           g1.clearRect(0, 0, w, h);
-          g1.fillStyle = "white";
+          g1.fillStyle = this._bgColor;
           g1.fillRect(0, 0, w, h);
           let vs = this.viewSelection()
           if (vs) {
-            g1.fillStyle = 'rgba(0%,0%,100%,25%)';
+            g1.fillStyle = this._selectColor;
             g1.fillRect(vs.startX, 0, vs.width(), h);
           }
         }
