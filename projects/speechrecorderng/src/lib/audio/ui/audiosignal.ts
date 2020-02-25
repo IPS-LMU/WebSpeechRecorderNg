@@ -53,6 +53,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
     this.workerURL = window.URL.createObjectURL(wb);
     this._audioData = null;
+    this._bgColor='black';
+    this._selectColor='yellow'
     //this.markers = new Array<Marker>();
   }
 
