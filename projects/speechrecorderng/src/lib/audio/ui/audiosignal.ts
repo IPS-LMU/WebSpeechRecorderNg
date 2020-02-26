@@ -54,7 +54,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     this.workerURL = window.URL.createObjectURL(wb);
     this._audioData = null;
     this._bgColor='black';
-    this._selectColor='yellow'
+    this._selectColor='rgba(255,255,0,0.8)'
     //this.markers = new Array<Marker>();
   }
 
