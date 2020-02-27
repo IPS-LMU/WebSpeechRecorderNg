@@ -16,7 +16,9 @@ const DEFAULT_DFT_SIZE = 1024;
 
     selector: 'audio-sonagram',
     template: `
+
         <canvas #sonagram></canvas>
+        <canvas #bg></canvas>
         <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
                 (mouseleave)="updateCursorCanvas($event, false)"></canvas>
         <canvas #marker></canvas>`,
@@ -56,21 +58,27 @@ export class Sonagram extends AudioCanvasLayerComponent {
         this.dft = new DFTFloat32(this.dftSize);
         let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
         this.workerURL = window.URL.createObjectURL(wb);
+       this._bgColor=null
+       this._selectColor='rgba(255,255,0,0.1)'
     }
 
     ngAfterViewInit() {
 
         this.ce = this.ref.nativeElement;
+
         this.sonagramCanvas = this.sonagramCanvasRef.nativeElement;
         this.sonagramCanvas.style.zIndex = '1';
+      this.bgCanvas = this.bgCanvasRef.nativeElement;
+      this.bgCanvas.style.zIndex = '2';
         this.cursorCanvas = this.cursorCanvasRef.nativeElement;
-        this.cursorCanvas.style.zIndex = '3';
+        this.cursorCanvas.style.zIndex = '4';
         this.markerCanvas = this.markerCanvasRef.nativeElement;
-        this.markerCanvas.style.zIndex = '2';
+        this.markerCanvas.style.zIndex = '3';
 
         this.canvasLayers[0] = this.sonagramCanvas;
-        this.canvasLayers[1] = this.cursorCanvas;
-        this.canvasLayers[2] = this.markerCanvas;
+      this.canvasLayers[1] = this.bgCanvas;
+      this.canvasLayers[2] = this.cursorCanvas;
+        this.canvasLayers[3] = this.markerCanvas;
 
     }
 
@@ -662,7 +670,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 }
             }
         }
-
+        this.drawBg()
         this.drawPlayPosition();
     }
 

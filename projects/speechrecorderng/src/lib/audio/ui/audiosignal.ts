@@ -32,7 +32,6 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   ce: HTMLDivElement;
 
   @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
-  //@ViewChild('cursor') cursorCanvasRef: ElementRef;
   @ViewChild('marker') playPosCanvasRef: ElementRef;
 
 
@@ -40,7 +39,6 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
   markerCanvas: HTMLCanvasElement;
 
-  //markers: Array<Marker>;
   private _playFramePosition: number;
   private wo: Worker | null;
   private workerURL: string;
@@ -55,7 +53,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     this._audioData = null;
     this._bgColor='black';
     this._selectColor='rgba(255,255,0,0.8)'
-    //this.markers = new Array<Marker>();
+
   }
 
   ngAfterViewInit() {

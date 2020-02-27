@@ -285,8 +285,10 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
           let w = this.bgCanvas.width;
           let h = this.bgCanvas.height;
           g1.clearRect(0, 0, w, h);
-          g1.fillStyle = this._bgColor;
-          g1.fillRect(0, 0, w, h);
+          if(this._bgColor) {
+            g1.fillStyle = this._bgColor;
+            g1.fillRect(0, 0, w, h);
+          }
           let vs = this.viewSelection()
           if (vs) {
             g1.fillStyle = this._selectColor;
