@@ -6,7 +6,7 @@ import {
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
-import {ActivatedRoute, Params} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 
