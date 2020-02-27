@@ -40,7 +40,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
       padding: 20px;
       z-index: 5;
       box-sizing: border-box;
-      background-color: rgba(230, 230, 230, 0.75)
+      background-color: rgba(230, 230, 230, 1.0)
     }`,`
           legend{
               margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
