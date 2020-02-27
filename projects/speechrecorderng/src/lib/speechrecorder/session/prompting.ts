@@ -205,7 +205,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
     display: flex;
     flex-direction: column;
     min-height: 0px;
-    /* width: 100%; */
+    width: 100%;
   }
   `]
 })
