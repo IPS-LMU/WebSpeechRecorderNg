@@ -1,5 +1,4 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
-import 'hammerjs';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
@@ -11,10 +10,12 @@ import {
 import {SessionManager} from "./speechrecorder/session/sessionmanager";
 import {WarningBar} from "./speechrecorder/session/warning_bar";
 import {ScrollIntoViewDirective} from "./utils/scrollIntoViewToBottom";
-import {
-    MatButtonModule, MatDialogModule, MatIconModule, MatProgressBar, MatProgressBarModule, MatProgressSpinnerModule,
-    MatTooltipModule
-} from "@angular/material";
+import { MatButtonModule } from "@angular/material/button";
+import { MatDialogModule } from "@angular/material/dialog";
+import { MatIconModule } from "@angular/material/icon";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatTooltipModule } from "@angular/material/tooltip";
 import {HttpClientModule} from "@angular/common/http";
 import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";

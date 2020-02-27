@@ -6,6 +6,7 @@ import {Component, ElementRef, ViewChild} from "@angular/core";
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {WorkerHelper} from "../../utils/utils";
 
 
 declare function postMessage(message: any, transfer: Array<any>): void;
@@ -46,18 +47,17 @@ export class Sonagram extends AudioCanvasLayerComponent {
     markers: Array<Marker>;
     private _playFramePosition: number;
 
-    private wo: Worker | null;
+    private worker: Worker | null;
     private workerURL: string;
     private dftSize = DEFAULT_DFT_SIZE;
 
     constructor(private ref: ElementRef) {
         super();
-        this.wo = null;
+        this.worker = null;
         this._audioData = null;
         this.markers = new Array<Marker>();
         this.dft = new DFTFloat32(this.dftSize);
-        let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-        this.workerURL = window.URL.createObjectURL(wb);
+        this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
        this._bgColor=null
        this._selectColor='rgba(255,255,0,0.1)'
     }
@@ -210,6 +210,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
     // }
 
 
+    /*
+     *  Method used as worker code.
+     */
     workerFunction() {
 
         // Redefine some DSP classes for worker function
@@ -597,9 +600,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
     private startRender() {
 
-        if (this.wo) {
-            this.wo.terminate();
-            this.wo = null;
+        if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
 
         }
         if (this.bounds) {
@@ -609,7 +612,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
             if (this._audioData && w>0 && h>0) {
 
-                this.wo = new Worker(this.workerURL);
+                this.worker = new Worker(this.workerURL);
+                //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
 
                 let chs = this._audioData.numberOfChannels;
 
@@ -620,13 +624,13 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     ada[ch] = this._audioData.getChannelData(ch).buffer.slice(0);
                 }
                 let start = Date.now();
-                if (this.wo) {
-                    this.wo.onmessage = (me) => {
+                if (this.worker) {
+                    this.worker.onmessage = (me) => {
                         this.drawRendered(me);
-                        if (this.wo) {
-                            this.wo.terminate();
+                        if (this.worker) {
+                            this.worker.terminate();
                         }
-                        this.wo = null;
+                        this.worker = null;
                     }
                 }
                 if (this.markerCanvas) {
@@ -636,7 +640,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     }
 
                 }
-                this.wo.postMessage({
+                this.worker.postMessage({
                     audioData: ada,
                     l: Math.round(this.bounds.position.left),
                     w: w,

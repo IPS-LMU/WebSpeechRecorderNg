@@ -12,7 +12,8 @@ import {
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Status as SessionStatus} from "./session";
-import {MatDialog,MatProgressBar} from "@angular/material";
+import { MatDialog } from "@angular/material/dialog";
+import { MatProgressBar } from "@angular/material/progress-bar";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
