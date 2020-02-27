@@ -300,8 +300,8 @@ export class TransportPanel {
   `]
 })
 export class ControlPanel {
-  @ViewChild(StatusDisplay) statusDisplay: StatusDisplay;
-  @ViewChild(TransportPanel) transportPanel: TransportPanel;
+  @ViewChild(StatusDisplay, { static: true }) statusDisplay: StatusDisplay;
+  @ViewChild(TransportPanel, { static: true }) transportPanel: TransportPanel;
 
   @Input() readonly:boolean
   @Input() transportActions: TransportActions

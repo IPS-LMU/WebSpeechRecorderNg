@@ -61,7 +61,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 export class LevelBarDisplay implements LevelListener, OnDestroy {
 
     ce: HTMLDivElement;
-    @ViewChild(LevelBar) liveLevel: LevelBar;
+    @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
     @Input() streamingMode: boolean;
     @Input() audioSignalCollapsed: boolean;
     private _displayAudioBuffer: AudioBuffer | null;

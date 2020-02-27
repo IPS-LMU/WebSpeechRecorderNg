@@ -63,7 +63,7 @@ export class AudioDisplayControl implements AfterContentInit {
 
     @Input() audioClip: AudioClip
 
-    @ViewChild(MatCheckbox)
+    @ViewChild(MatCheckbox, { static: true })
     private autoplaySelectedCheckbox: MatCheckbox
     @Input() playStartAction: Action<void>;
     @Input() playSelectionAction: Action<void>

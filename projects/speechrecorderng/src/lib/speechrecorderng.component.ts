@@ -47,7 +47,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
   script:Script;
     dataSaved: boolean = true;
-  @ViewChild(SessionManager) sm:SessionManager;
+  @ViewChild(SessionManager, { static: true }) sm:SessionManager;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,

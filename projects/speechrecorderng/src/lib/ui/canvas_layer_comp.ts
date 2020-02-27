@@ -1,5 +1,7 @@
 import {Position,Dimension, Rectangle} from "../math/2d/geometry";
+import { Directive } from "@angular/core";
 
+@Directive()
 export abstract class CanvasLayerComponent{
 
   protected bounds:Rectangle=null;

@@ -31,8 +31,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   n: any;
   ce: HTMLDivElement;
 
-  @ViewChild('audioSignal') audioSignalCanvasRef: ElementRef;
-  @ViewChild('marker') playPosCanvasRef: ElementRef;
+  @ViewChild('audioSignal', { static: true }) audioSignalCanvasRef: ElementRef;
+  @ViewChild('marker', { static: true }) playPosCanvasRef: ElementRef;
 
 
   signalCanvas: HTMLCanvasElement;

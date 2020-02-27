@@ -78,7 +78,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   updateTimerId: any;
 
 
-  @ViewChild(AudioDisplayScrollPane)
+  @ViewChild(AudioDisplayScrollPane, { static: true })
   private audioDisplayScrollPane: AudioDisplayScrollPane;
 
   constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {

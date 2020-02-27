@@ -40,9 +40,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
     sonagramCanvas: HTMLCanvasElement;
     //cursorCanvas: HTMLCanvasElement;
     markerCanvas: HTMLCanvasElement;
-    @ViewChild('sonagram') sonagramCanvasRef: ElementRef;
+    @ViewChild('sonagram', { static: true }) sonagramCanvasRef: ElementRef;
 
-    @ViewChild('marker') markerCanvasRef: ElementRef;
+    @ViewChild('marker', { static: true }) markerCanvasRef: ElementRef;
     markers: Array<Marker>;
     private _playFramePosition: number;
 

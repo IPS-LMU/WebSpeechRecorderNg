@@ -222,7 +222,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   defaultFontSizePx: number;
 
   autoFontSize=false;
-  @ViewChild(Prompter) prompter: Prompter;
+  @ViewChild(Prompter, { static: true }) prompter: Prompter;
 
   constructor(private elRef:ElementRef){}
 
@@ -605,8 +605,8 @@ export class PromptingContainer {
 })
 
 export class Prompting {
-  @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
+  @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
+  @ViewChild(AudioDisplay, { static: true }) audioDisplay: AudioDisplay;
   @Input() projectName: string | null;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
