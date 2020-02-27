@@ -26,13 +26,19 @@ import { AudioClip } from '../persistor'
     }
 
     export class AudioPlayer {
+        get autoPlayOnSelectToggleAction(): Action<boolean> {
+            return this._autoPlayOnSelectToggleAction;
+        }
         public static DEFAULT_BUFSIZE:number = 8192;
         private running=false;
-        private _startAction:Action;
-        private _stopAction:Action;
+        private _startAction:Action<void>;
+      private _startSelectionAction:Action<void>;
+        private _autoPlayOnSelectToggleAction:Action<boolean>
+        private _stopAction:Action<void>;
         bufSize:number;
         context:AudioContext;
         listener:AudioPlayerListener;
+        _audioClip:AudioClip=null;
         _audioBuffer:AudioBuffer | null;
         sourceBufferNode:AudioBufferSourceNode;
         buffPos:number;
@@ -54,6 +60,10 @@ import { AudioClip } from '../persistor'
             this._startAction = new Action('Start');
             this._startAction.disabled = true;
             this._startAction.onAction = ()=>this.start();
+            this._startSelectionAction=new Action('Start selected')
+            this._startSelectionAction.disabled=true
+             this._startSelectionAction.onAction = ()=>this.startSelected();
+            this._autoPlayOnSelectToggleAction=new Action("Autoplay on select",false)
             this._stopAction = new Action('Stop');
             this._stopAction.disabled = true;
             this._stopAction.onAction = ()=>this.stop();
@@ -61,6 +71,10 @@ import { AudioClip } from '../persistor'
 
         get startAction() {
             return this._startAction;
+        }
+
+        get startSelectionAction(){
+          return this._startSelectionAction
         }
 
         get stopAction() {
@@ -80,10 +94,17 @@ import { AudioClip } from '../persistor'
                     }
                 }
                 this.audioBuffer = audioClip.buffer;
+                audioClip.addSelectionObserver((ac)=> {
+                    this._startSelectionAction.disabled = this.startSelectionDisabled()
+                    if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
+                      this.startSelected()
+                    }
+                  }
+                )
             }else{
                 this.audioBuffer=null;
             }
-
+          this._audioClip=audioClip
 
         }
 
@@ -92,11 +113,13 @@ import { AudioClip } from '../persistor'
             this._audioBuffer = audioBuffer;
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
+                this._startSelectionAction.disabled=this.startSelectionDisabled()
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
             }else{
                 this._startAction.disabled = true;
+                this._startSelectionAction.disabled=true
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
                 }
@@ -120,6 +143,47 @@ import { AudioClip } from '../persistor'
 
                 this.playStartTime = this.context.currentTime;
                 this._startAction.disabled = true;
+                this._startSelectionAction.disabled=true
+                this._stopAction.disabled = false;
+                //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
+                if (this.listener) {
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                }
+            }
+        }
+
+        startSelectionDisabled(){
+          return !(this._audioClip && this.context && !this.startAction.disabled && this._audioClip.selection )
+        }
+
+      startSelected() {
+        if(!this._startAction.disabled && !this.running) {
+          this.context.resume();
+          this.sourceBufferNode = this.context.createBufferSource();
+
+          this.sourceBufferNode.buffer = this._audioBuffer;
+          this.sourceBufferNode.connect(this.context.destination);
+          this.sourceBufferNode.onended = () => this.onended();
+
+          this.playStartTime = this.context.currentTime;
+          this.running=true;
+          // unfortunately Web Audio API uses time values not frames
+          let ac=this._audioClip
+          let offset=0
+          if(ac && ac.selection){
+            let s=ac.selection
+            let sr=ac.buffer.sampleRate
+            offset=s.leftFrame/sr
+            let stopPosInsecs=s.rightFrame/sr
+          let dur=stopPosInsecs-offset
+            // TODO check valid values
+            this.sourceBufferNode.start(0,offset,dur)
+          }else {
+            this.sourceBufferNode.start();
+          }
+          this.playStartTime = this.context.currentTime-offset;
+          this._startAction.disabled = true;
+          this._startSelectionAction.disabled=true
                 this._stopAction.disabled = false;
                 //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
                 if (this.listener) {
@@ -146,6 +210,7 @@ import { AudioClip } from '../persistor'
             window.clearInterval(this.timerVar);
 
             this._startAction.disabled = !(this.audioBuffer);
+          this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
             if (this.listener) {

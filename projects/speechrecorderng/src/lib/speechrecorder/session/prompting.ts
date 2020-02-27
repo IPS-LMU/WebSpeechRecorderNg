@@ -20,7 +20,7 @@ import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
-
+import {AudioClip} from "../../audio/persistor";
 
 @Component({
 
@@ -523,8 +523,10 @@ export class PromptingContainer {
     <div #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                        [audioData]="displayAudioBuffer"
+                        [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
+                        [playSelectionAction]="playSelectionAction"
+                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                         [playStopAction]="playStopAction"></app-audiodisplay>
 
 
@@ -613,9 +615,11 @@ export class Prompting {
   @Input() enableDownload: boolean;
 
   @Input() audioSignalCollapsed: boolean;
-  @Input() displayAudioBuffer: AudioBuffer | null;
-  @Input() playStartAction: Action;
-  @Input() playStopAction: Action;
+  @Input() displayAudioClip: AudioClip | null;
+  @Input() playStartAction: Action<void>;
+  @Input() playSelectionAction: Action<void>;
+  @Input() autoPlayOnSelectToggleAction:Action<boolean>
+  @Input() playStopAction: Action<void>;
   @Output() onItemSelect = new EventEmitter<number>();
   @Output() onNextItem = new EventEmitter();
   @Output() onPrevItem = new EventEmitter();

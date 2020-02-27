@@ -129,12 +129,12 @@ export class ProgressDisplay {
 
 
 export class TransportActions {
-  startAction: Action;
-  stopAction: Action;
-  nextAction: Action;
-  pauseAction: Action;
-  fwdAction: Action;
-  bwdAction: Action;
+  startAction: Action<void>;
+  stopAction: Action<void>;
+  nextAction: Action<void>;
+  pauseAction: Action<void>;
+  fwdAction: Action<void>;
+  bwdAction: Action<void>;
 
   constructor() {
     this.startAction = new Action('Start');

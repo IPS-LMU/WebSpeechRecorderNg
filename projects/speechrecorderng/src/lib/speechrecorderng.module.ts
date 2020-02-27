@@ -1,6 +1,5 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
-import {AudioModule} from "./audio/audio.module";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
 import {CommonModule} from "@angular/common";
@@ -30,6 +29,20 @@ import {SessionFinishedDialog} from "./speechrecorder/session/session_finished_d
 import {MessageDialog} from "./ui/message_dialog";
 import {LevelBarDisplay} from "./ui/livelevel_display";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
+import {ScrollPaneHorizontal} from "./audio/ui/scroll_pane_horizontal";
+import {AudioClipUIContainer} from "./audio/ui/container";
+import {AudioSignal} from "./audio/ui/audiosignal";
+import {Sonagram} from "./audio/ui/sonagram";
+import {AudioDisplayPlayer} from "./audio/audio_player";
+import {AudioDisplay} from "./audio/audio_display";
+import {AudioDisplayControl} from "./audio/ui/audio_display_control";
+import {LevelBar} from "./audio/ui/livelevel";
+import {AudioDisplayScrollPane} from "./audio/ui/audio_display_scroll_pane";
+import {UUID} from "./utils/utils";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatCard, MatCardModule} from "@angular/material/card";
+import {MatDividerModule} from "@angular/material/divider";
+import {MatGridListModule} from "@angular/material/grid-list";
 
 
 
@@ -40,14 +53,13 @@ export const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [ControlPanel,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
+    declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
       ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
-    exports: [SpeechrecorderngComponent],
-  imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,
-    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressBarModule,MatProgressSpinnerModule,MatTooltipModule,HttpClientModule],
+    exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
+  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule,MatGridListModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,SpeechRecorderUploader]
 
 })

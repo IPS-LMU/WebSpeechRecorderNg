@@ -1,16 +1,14 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit, HostListener, ElementRef, Output, OnInit,
+  Component,
+  ViewChild,
+  HostListener, ElementRef, Output, Input,
 } from '@angular/core'
 
 
-
 import {AudioClipUIContainer} from '../ui/container'
-import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../../action/action";
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioClip, Selection} from "../persistor";
 
 @Component({
 
@@ -18,7 +16,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 
   template: `
 
-    <app-audio #audioSignalContainer></app-audio>
+    <app-audio #audioSignalContainer (selectionEventEmitter)="selectionChanged($event)"></app-audio>
 
   `,
   styles: [
@@ -50,10 +48,11 @@ export class AudioDisplayScrollPane {
 
   private spEl:HTMLElement;
 
-  @Output() zoomInAction:Action=new Action('+');
-  @Output() zoomOutAction:Action=new Action('-');
-  @Output() zoomFitToPanelAction:Action=new Action("Fit to panel");
-  zoomFixFitToPanelAction:Action=new Action("Fix fit to panel");
+  @Output() zoomInAction:Action<void>=new Action('+');
+  @Output() zoomOutAction:Action<void>=new Action('-');
+  @Output() zoomSelectedAction:Action<void>=new Action("Selected");
+  @Output() zoomFitToPanelAction:Action<void>=new Action("Fit to panel");
+  zoomFixFitToPanelAction:Action<void>=new Action("Fix fit to panel");
 
 
   @ViewChild(AudioClipUIContainer, { static: true })
@@ -101,13 +100,30 @@ export class AudioDisplayScrollPane {
           this.ac.ce.style.width=this.spEl.offsetWidth+'px';
 
           this.ac.fixFitToPanel=true;
+      }
 
-          //this.ac.clipBounds(null);
-          // reset xzom which trigegrs relayout and repaint
-          //this.ac.xZoom = null;
-          // // reset temporary fix fit to panel
-          // this.ac.fixFitToPanel=false;
+    this.zoomSelectedAction.onAction=(e)=> {
+      //alert("not implemented yet")
+      let s = this.ac.selection
+      if (s) {
+        // reset auto fit to panel mode
+        this.ac.fixFitToPanel=false
 
+        // calculate selection length in seconds
+        let selFrLen=s.endFrame-s.startFrame
+        let selLenInSecs=selFrLen/this.ac.audioData.sampleRate
+        // calculate corresponding xZoom value
+        let newXZoom=this.spEl.clientWidth/selLenInSecs
+        // apply xZoom
+        this.ac.xZoom=newXZoom
+
+        // Move viewport to show selection
+        let x1=this.ac.frameToXPixelPosition(s.startFrame)
+        this.spEl.scrollLeft=x1;
+
+        this.updateClipBounds()
+        this.zoomFitToPanelAction.disabled = false
+      }
       }
 
   }
@@ -132,13 +148,35 @@ export class AudioDisplayScrollPane {
           this.ac.layout();
     }
 
+    selectionChanged(s:Selection| null){
+      this.zoomSelectedAction.disabled=(s==null)
+    }
+
   set audioData(audioData: AudioBuffer | null) {
     this.ac.audioData=audioData;
-    if(audioData){
-      this.zoomOutAction.disabled=false
-      this.zoomInAction.disabled=false
+      this.zoomOutAction.disabled=(!audioData)
+      this.zoomInAction.disabled=(!audioData)
     }
+
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+
+    let audioData:AudioBuffer=null;
+    let sel:Selection=null;
+    if(audioClip){
+      audioData=audioClip.buffer;
+      sel=audioClip.selection;
+      audioClip.addSelectionObserver((clip)=>{
+        this.zoomSelectedAction.disabled=(clip.selection==null)
+      })
+    }
+
+    this.selectionChanged(sel)
+    this.ac.audioClip=audioClip
+    this.zoomOutAction.disabled=(!audioData)
+    this.zoomInAction.disabled=(!audioData)
   }
+
 
   set playFramePosition(framePos:number){
     this.ac.playFramePosition=framePos;
