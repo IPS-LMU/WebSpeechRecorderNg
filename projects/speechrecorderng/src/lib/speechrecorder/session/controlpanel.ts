@@ -1,10 +1,9 @@
 import {Action} from '../../action/action'
 import {
-  Component, ViewChild, Input, EventEmitter, Output, HostListener
+  Component, ViewChild, Input, HostListener
 } from "@angular/core";
 
-import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
-import { MatIcon } from "@angular/material/icon";
+import { MatDialog} from "@angular/material/dialog";
 
 
 @Component({
@@ -24,6 +23,10 @@ import { MatIcon } from "@angular/material/icon";
     text-align: left;
     font-size: smaller;
   }`, `
+    p {
+      white-space:nowrap;
+    }
+  `, `
     span {
       color: red;
     }
@@ -99,12 +102,12 @@ export class ProgressDisplay {
 
 
 export class TransportActions {
-  startAction: Action;
-  stopAction: Action;
-  nextAction: Action;
-  pauseAction: Action;
-  fwdAction: Action;
-  bwdAction: Action;
+  startAction: Action<void>;
+  stopAction: Action<void>;
+  nextAction: Action<void>;
+  pauseAction: Action<void>;
+  fwdAction: Action<void>;
+  bwdAction: Action<void>;
 
   constructor() {
     this.startAction = new Action('Start');
@@ -130,15 +133,6 @@ export class TransportActions {
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       {{startStopNextName()}}
     </button>
-    <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" mat-raised-button>
-      <mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
-      Stop
-    </button> 
-    <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" mat-raised-button>
-      <mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
-      <mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      Next
-    </button>-->
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
       Pause

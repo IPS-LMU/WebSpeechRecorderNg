@@ -7,12 +7,13 @@ import {
     Script,
     Section
 } from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
-import {MatTreeNestedDataSource} from "@angular/material";
+
 import {BehaviorSubject, Observable} from "rxjs";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {CollectionViewer} from "@angular/cdk/collections";
 import {merge} from "rxjs/index";
 import {map} from "rxjs/operators";
+import {MatTreeNestedDataSource} from "@angular/material/tree";
 
 interface ScriptTreeNode {
     name: string;

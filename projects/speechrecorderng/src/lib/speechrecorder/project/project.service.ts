@@ -9,7 +9,7 @@ import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 import {GenericSprService} from "../generic_sync_service";
 import {SprDb} from "../../db/inddb";
-
+import {PlatformLocation} from "@angular/common";
 
 
 @Injectable()
@@ -21,9 +21,9 @@ export class ProjectService extends GenericSprService<Project>{
 
   selectedProject:Project=null;
 
-  constructor(protected sprDb:SprDb,protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+  constructor(protected sprDb:SprDb,protected http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
     super(ProjectService.PROJECT_API_CTX,sprDb,http,config)
-
+    console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
     this.projectCtxUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX;
     this.httpParams=new HttpParams();
     this.httpParams.set('cache','false');

@@ -5,7 +5,7 @@ import {AppComponent} from './app.component';
 import {StartComponent} from "./start/start";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MatButtonModule } from "@angular/material/button";
-import { MatCardContent, MatCardModule } from "@angular/material/card";
+import { MatCardModule } from "@angular/material/card";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
@@ -17,7 +17,6 @@ import { MatTableModule } from "@angular/material/table";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
-import {AudioModule} from "../../projects/speechrecorderng/src/lib/audio/audio.module";
 import {SPR_CFG} from "../environments/environment";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
@@ -26,14 +25,14 @@ import {ServiceWorkerModule} from '@angular/service-worker';
 import {environment} from '../environments/environment';
 import {ProjectsComponent} from './project/projects/projects.component';
 import {SprDb} from "../../projects/speechrecorderng/src/lib/db/inddb";
-import {ApiType, SpeechrecorderngComponent} from "../../projects/speechrecorderng/src/public_api";
+import {SpeechrecorderngComponent} from "../../projects/speechrecorderng/src/public_api";
 import {ScriptsComponent} from "./script/scripts";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {UniqueProjectNameValidator} from "./project/projects/project.name.validator";
 import {CommonModule} from "@angular/common";
 import { ProjectComponent } from './project/project/project.component';
 import { ScriptComponent } from './script/script.component';
-import {MatNativeDateModule, MatTreeModule} from "@angular/material";
+import {MatTreeModule} from "@angular/material/tree";
+import {MatNativeDateModule} from "@angular/material/core";
 
 
 const appRoutes: Routes = [
@@ -75,7 +74,7 @@ const appRoutes: Routes = [
   imports: [
       RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatCardModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatInputModule,MatDialogModule,MatProgressSpinnerModule,MatTableModule,MatTooltipModule,MatSortModule,MatTreeModule, MatNativeDateModule,
 
-    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),CommonModule,AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
+    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),CommonModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [
 

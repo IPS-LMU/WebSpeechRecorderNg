@@ -286,6 +286,10 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
 
         }
 
+  ready():boolean{
+    return this.dataSaved && !this.sm.isActive()
+  }
+
 		init():boolean {
 
 			var n = <any>navigator;
@@ -323,7 +327,7 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
             window.addEventListener('beforeunload', (e) => {
                 console.debug("Before page unload event");
 
-                if (this.dataSaved && !this.sm.isActive()) {
+                if (this.ready()) {
                     return;
                 } else {
                     // all this attempts to customize the message do not work anymore (for security reasons)!!

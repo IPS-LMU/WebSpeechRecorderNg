@@ -1,20 +1,28 @@
 
-    export class ActionEvent {
-        constructor() {
+    export class ActionEvent<T> {
+        get value(): T {
+            return this._value;
+        }
+        constructor(private _value:T=null) {
 
         }
     }
 
-    export class Action {
+    export class Action<T> {
+        get value(): T {
+            return this._value;
+        }
 
         private _name:string;
+        private _value:T
         _disabled=true;
         private _onAction:EventListener;
         listeners:Array<EventListener>;
         private controls:HTMLInputElement[];
 
-        constructor(name:string) {
+        constructor(name:string,value:T=null) {
             this._name = name;
+            this._value=value
             this.listeners = new Array<EventListener>();
             this.controls = [];
         }
@@ -32,12 +40,13 @@
             this._onAction = value;
         }
 
-        protected  createActionEvent():ActionEvent {
+        protected  createActionEvent(value: T=null):ActionEvent<T> {
             // default:
-            return new ActionEvent();
+            return new ActionEvent(value);
         }
 
-        perform():void {
+        perform(value: T=null):void {
+            this._value=value
             if (!this.disabled && this._onAction) {
                 this._onAction.call(this.createActionEvent());
             }

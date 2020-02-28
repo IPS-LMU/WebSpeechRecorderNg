@@ -7,21 +7,20 @@ import {
     HostListener,
     ElementRef,
     OnInit,
-  AfterViewChecked,
   Renderer2,
-  ChangeDetectorRef, HostBinding, AfterContentChecked
+  HostBinding,
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
-
+import {AudioClip} from "../../audio/persistor";
 
 @Component({
 
@@ -70,8 +69,8 @@ export class Recinstructions {
     /* Use only natural size of the prompt */
     /* The prompter compnent then ets aligned vertically centered */
     flex: 0 1;
-      
-     
+
+
   }`, `:host(.fill) {
     /* Use all space to scale images */
     flex: 3;
@@ -185,7 +184,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
 
   selector: 'app-sprpromptcontainer',
 
-  template: `      
+  template: `
     <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
   `
   ,
@@ -203,7 +202,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
     display: flex;
     flex-direction: column;
     min-height: 0px;
-    /* width: 100%; */
+    width: 100%;
   }
   `]
 })
@@ -516,13 +515,15 @@ export class PromptingContainer {
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
-       
+
             <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                       [audioData]="displayAudioBuffer"
+                        [audioClip]="displayAudioClip"
                               [playStartAction]="playStartAction"
+                        [playSelectionAction]="playSelectionAction"
+                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                               [playStopAction]="playStopAction"></app-audiodisplay>
-      
-        
+
+
     </div>
 
 
@@ -560,7 +561,7 @@ export class PromptingContainer {
     div {
         display: none;
         position:absolute;
-      
+
 
        /* height: 50%; */
         /* width: 100%; */
@@ -578,18 +579,18 @@ export class PromptingContainer {
         bottom: 0px;
         /*left: 0px; */
 
-      height: 80%;
+      height: 90%;
         width: 100%;
 
         overflow: hidden;
-        
-        padding: 0px; 
+
+        padding: 0px;
         /* margin: 20px; */
         /* border: 20px; */
         z-index: 5;
         box-sizing: border-box;
        background-color: rgba(0,0,0,0)
-        
+
     }`
   ]
 
@@ -608,9 +609,11 @@ export class Prompting {
   @Input() enableDownload: boolean;
 
   @Input() audioSignalCollapsed:boolean;
-  @Input() displayAudioBuffer:AudioBuffer | null;
-    @Input() playStartAction: Action;
-    @Input() playStopAction: Action;
+  @Input() displayAudioClip: AudioClip | null;
+  @Input() playStartAction: Action<void>;
+  @Input() playSelectionAction: Action<void>;
+  @Input() autoPlayOnSelectToggleAction:Action<boolean>
+  @Input() playStopAction: Action<void>;
   @Output() onItemSelect = new EventEmitter<number>();
     @Output() onNextItem = new EventEmitter();
     @Output() onPrevItem = new EventEmitter();

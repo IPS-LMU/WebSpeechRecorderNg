@@ -1,8 +1,6 @@
-import {Marker, Point} from './common'
 import {Component, ViewChild, ElementRef} from '@angular/core';
-import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
-import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {WorkerHelper} from "../../utils/utils";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -11,9 +9,10 @@ declare function postMessage(message: any, transfer: Array<any>): void;
 
   selector: 'audio-signal',
   template: `
+    <canvas #bg></canvas>
     <canvas #audioSignal></canvas>
-    <canvas #cursor (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
-            (mouseleave)="drawCursorPosition($event, false)"></canvas>
+    <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
+            (mouseleave)="updateCursorCanvas($event, false)"></canvas>
     <canvas #marker></canvas>`,
 
   styles: [`canvas {
@@ -30,39 +29,41 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   n: any;
   ce: HTMLDivElement;
   @ViewChild('audioSignal', { static: true }) audioSignalCanvasRef: ElementRef;
-  @ViewChild('cursor', { static: true }) cursorCanvasRef: ElementRef;
   @ViewChild('marker', { static: true }) playPosCanvasRef: ElementRef;
   signalCanvas: HTMLCanvasElement;
-  cursorCanvas: HTMLCanvasElement;
+
   markerCanvas: HTMLCanvasElement;
 
-  markers: Array<Marker>;
   private _playFramePosition: number;
-  private wo: Worker | null;
+  private worker: Worker | null;
   private workerURL: string;
 
   constructor(private ref: ElementRef) {
     super();
-    this.wo = null;
-    let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-    this.workerURL = window.URL.createObjectURL(wb);
-    this.audioData = null;
-    this.markers = new Array<Marker>();
+    this.worker = null;
+    this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
+    this._audioData = null;
+    this._bgColor='black';
+    this._selectColor='rgba(255,255,0,0.8)'
+
   }
 
   ngAfterViewInit() {
 
     this.ce = this.ref.nativeElement;
+    this.bgCanvas = this.bgCanvasRef.nativeElement;
+    this.bgCanvas.style.zIndex = '1';
     this.signalCanvas = this.audioSignalCanvasRef.nativeElement;
-    this.signalCanvas.style.zIndex = '1';
-    this.cursorCanvas = this.cursorCanvasRef.nativeElement;
-    this.cursorCanvas.style.zIndex = '3';
+    this.signalCanvas.style.zIndex = '2';
     this.markerCanvas = this.playPosCanvasRef.nativeElement;
-    this.markerCanvas.style.zIndex = '2';
+    this.markerCanvas.style.zIndex = '3';
+    this.cursorCanvas = this.cursorCanvasRef.nativeElement;
+    this.cursorCanvas.style.zIndex = '4';
 
-    this.canvasLayers[0]=this.signalCanvas;
-    this.canvasLayers[1]=this.cursorCanvas;
-    this.canvasLayers[2]=this.markerCanvas;
+    this.canvasLayers[0]=this.bgCanvas;
+    this.canvasLayers[1]=this.signalCanvas;
+    this.canvasLayers[2]=this.cursorCanvas;
+    this.canvasLayers[3]=this.markerCanvas;
 
   }
 
@@ -75,51 +76,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     this.drawPlayPosition();
   }
 
-  private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
-    let cr = c.getBoundingClientRect();
-    let p = new Point();
-    p.x = e.x - cr.left;
-    p.y = e.y - cr.top;
-    return p;
-  }
 
-  drawCursorPosition(e: MouseEvent, show: boolean) {
-
-    if (this.cursorCanvas) {
-      let w = this.cursorCanvas.width;
-      let h = this.cursorCanvas.height;
-      let g = this.cursorCanvas.getContext("2d");
-      if (g) {
-        g.clearRect(0, 0, w, h);
-        if (show) {
-
-          let pp = this.canvasMousePos(this.cursorCanvas, e);
-          let offX = e.offsetX;
-          let offY = e.offsetY;
-          let pixelPos = offX;
-          g.fillStyle = 'yellow';
-          g.strokeStyle = 'yellow';
-          g.beginPath();
-          g.moveTo(pixelPos, 0);
-          g.lineTo(pixelPos, h);
-          g.closePath();
-
-          g.stroke();
-          if (this.audioData) {
-            let ch0 = this.audioData.getChannelData(0);
-            let frameLength = ch0.length;
-            let framesPerPixel = frameLength / w;
-            let framePos = framesPerPixel * pixelPos;
-            let framePosRound = Math.round(framePos);
-            g.font = '14px sans-serif';
-            g.fillStyle = 'yellow';
-            g.fillText(framePosRound.toString(), pixelPos + 2, 50);
-          }
-        }
-      }
-
-    }
-  }
 
   drawPlayPosition() {
     if (this.markerCanvas) {
@@ -142,18 +99,19 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     }
   }
 
-
-
+  /*
+   *  Method used as worker code.
+   */
   workerFunction() {
-    self.onmessage = function (msg) {
+    addEventListener('message', ({ data }) => {
 
-      let audioData = msg.data.audioData;
-      let l=msg.data.l;
-      let w = msg.data.w;
-      let h = msg.data.h;
-      let vw=msg.data.vw;
-      let chs = msg.data.chs;
-      let frameLength = msg.data.frameLength;
+      let audioData = data.audioData;
+      let l= data.l;
+      let w = data.w;
+      let h = data.h;
+      let vw = data.vw;
+      let chs = data.chs;
+      let frameLength = data.frameLength;
       let psMinMax= new Float32Array(0);
 
       if(audioData && w>=0 && vw>0) {
@@ -203,8 +161,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       }
 
 
-      postMessage({psMinMax: psMinMax, l:msg.data.l,t:msg.data.t,w: msg.data.w, h: msg.data.h, chs: msg.data.chs}, [psMinMax.buffer]);
-    }
+      postMessage({psMinMax: psMinMax, l:data.l,t:data.t,w: data.w, h: data.h, chs: data.chs}, [psMinMax.buffer]);
+    })
   }
 
   startDraw(clear = true) {
@@ -222,45 +180,49 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       }
     }
     this.startRender();
+    this.drawCursorLayer()
   }
 
 
   private startRender() {
 
-    if (this.wo) {
-      this.wo.terminate();
-      this.wo = null;
+    if (this.worker) {
+      this.worker.terminate();
+      this.worker = null;
     }
     if (this.bounds && this.bounds.dimension) {
 
       let w = Math.round(this.bounds.dimension.width);
       let h = Math.round(this.bounds.dimension.height);
 
-      if (this.audioData && w>0 && h>0) {
-        this.wo = new Worker(this.workerURL);
+      if (this._audioData && w>0 && h>0) {
+        //this.wo = new Worker('./audiosignal.worker.js',{type: 'module'});
+        this.worker = new Worker(this.workerURL);
+        //this.wo = new Worker('worker/audiosignal.worker.ts');
 
-        let chs = this.audioData.numberOfChannels;
+        //let Worker = require('worker!../../../workers/uploader/main');
+        let chs = this._audioData.numberOfChannels;
 
-        let frameLength = this.audioData.getChannelData(0).length;
+        let frameLength = this._audioData.getChannelData(0).length;
         // if(frameLength != this.audioData.getChannelData(1).length){
         //   alert("Ungleiche Länge");
         // }
         let ad = new Float32Array(chs * frameLength);
         for (let ch = 0; ch < chs; ch++) {
-          ad.set(this.audioData.getChannelData(ch), ch * frameLength);
+          ad.set(this._audioData.getChannelData(ch), ch * frameLength);
         }
         //let start = Date.now();
-        if (this.wo) {
-          this.wo.onmessage = (me) => {
+        if (this.worker) {
+          this.worker.onmessage = (me) => {
             //console.log("As rendertime: ", Date.now() - start);
             this.drawRendered(me);
-            if (this.wo) {
-              this.wo.terminate();
+            if (this.worker) {
+              this.worker.terminate();
             }
-            this.wo = null;
+            this.worker = null;
           }
         }
-        this.wo.postMessage({
+        this.worker.postMessage({
           l: Math.round(this.bounds.position.left),
           t: Math.round(this.bounds.position.top),
           w: w,
@@ -281,19 +243,19 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
 
   drawRendered(me: MessageEvent) {
-
+    this.drawBg();
     this.signalCanvas.style.left=me.data.l.toString()+'px';
     this.signalCanvas.width = me.data.w;
     this.signalCanvas.height = me.data.h;
     let g = this.signalCanvas.getContext("2d");
     if (g) {
       g.clearRect(0, 0, me.data.w, me.data.h);
-      g.fillStyle = "black";
-      g.fillRect(0, 0, me.data.w, me.data.h);
+      //g.fillStyle = "black";
+      //g.fillRect(0, 0, me.data.w, me.data.h);
       let pointsLen = me.data.w * me.data.chs;
       // one for min one for max
       let arrLen = pointsLen * 2;
-      if (this.audioData) {
+      if (this._audioData) {
         let std = Date.now();
 
         let chH = me.data.h / me.data.chs;
@@ -341,20 +303,20 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
   redraw() {
-
+    this.drawBg()
     let g = this.signalCanvas.getContext("2d");
     if (g) {
       let w = this.signalCanvas.width;
       let h = this.signalCanvas.height;
       g.clearRect(0, 0, w, h);
-      g.fillStyle = "black";
-      g.fillRect(0, 0, w, h);
-      if (this.audioData) {
+      //g.fillStyle = "black";
+      //g.fillRect(0, 0, w, h);
+      if (this._audioData) {
         let std = Date.now();
-        let chs = this.audioData.numberOfChannels;
+        let chs = this._audioData.numberOfChannels;
         let chH = h / chs;
 
-        let frameLength = this.audioData.getChannelData(0).length;
+        let frameLength = this._audioData.getChannelData(0).length;
 
         let framesPerPixel = frameLength / w;
         let y = 0;
@@ -370,7 +332,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
             // calculate pixel min/max amplitude
             for (let ai = 0; ai < framesPerPixel; ai++) {
               //let framePos=(pii*framesPerPixel)+ai;
-              let a = this.audioData.getChannelData(ch)[framePos++];
+              let a = this._audioData.getChannelData(ch)[framePos++];
 
               if (a < pMin) {
                 pMin = a;
@@ -417,7 +379,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
   setData(audioData: AudioBuffer | null) {
-    this.audioData = audioData;
+    this._audioData = audioData;
     this.playFramePosition = 0;
   }
 }

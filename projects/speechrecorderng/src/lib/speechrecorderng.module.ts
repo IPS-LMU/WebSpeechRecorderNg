@@ -1,7 +1,5 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
-import 'hammerjs';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
-import {AudioModule} from "./audio/audio.module";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
 import {CommonModule} from "@angular/common";
@@ -12,11 +10,10 @@ import {
 import {SessionManager} from "./speechrecorder/session/sessionmanager";
 import {WarningBar} from "./speechrecorder/session/warning_bar";
 import {ScrollIntoViewDirective} from "./utils/scrollIntoViewToBottom";
-import { MatBadgeModule } from "@angular/material/badge";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
-import { MatProgressBar, MatProgressBarModule } from "@angular/material/progress-bar";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {HttpClientModule} from "@angular/common/http";
@@ -32,6 +29,22 @@ import {SessionFinishedDialog} from "./speechrecorder/session/session_finished_d
 import {MessageDialog} from "./ui/message_dialog";
 import {LevelBarDisplay} from "./ui/livelevel_display";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
+import {ScrollPaneHorizontal} from "./audio/ui/scroll_pane_horizontal";
+import {AudioClipUIContainer} from "./audio/ui/container";
+import {AudioSignal} from "./audio/ui/audiosignal";
+import {Sonagram} from "./audio/ui/sonagram";
+import {AudioDisplayPlayer} from "./audio/audio_player";
+import {AudioDisplay} from "./audio/audio_display";
+import {AudioDisplayControl} from "./audio/ui/audio_display_control";
+import {LevelBar} from "./audio/ui/livelevel";
+import {AudioDisplayScrollPane} from "./audio/ui/audio_display_scroll_pane";
+import {UUID} from "./utils/utils";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatCard, MatCardModule} from "@angular/material/card";
+import {MatDividerModule} from "@angular/material/divider";
+import {MatGridListModule} from "@angular/material/grid-list";
+import {MatBadgeModule} from "@angular/material/badge";
+
 
 
 
@@ -41,20 +54,19 @@ export const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [ControlPanel,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
+    declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
       ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
-    exports: [SpeechrecorderngComponent],
-  imports: [RouterModule.forChild(SPR_ROUTES),FlexLayoutModule,CommonModule,
-    AudioModule,MatIconModule,MatButtonModule,MatDialogModule,MatProgressBarModule,MatProgressSpinnerModule,MatTooltipModule,MatBadgeModule,HttpClientModule],
+    exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
+  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule,MatGridListModule,MatBadgeModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,SpeechRecorderUploader]
 
 })
 export class SpeechrecorderngModule{
 
-  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders {
+  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders<SpeechrecorderngModule> {
     return {
       ngModule: SpeechrecorderngModule,
       providers: [

@@ -24,3 +24,50 @@
       return cloneArr;
     }
   }
+
+  export class WorkerHelper {
+
+    static DEBUG=false;
+    static buildWorkerBlobURL(workerFct: Function): string {
+
+      let woFctNm = workerFct.name
+      if(WorkerHelper.DEBUG){
+        console.info("Worker method name: "+woFctNm)
+      }
+
+      let woFctStr = workerFct.toString()
+      if(WorkerHelper.DEBUG){
+          console.info("Worker method string:")
+          console.info(woFctStr)
+      }
+
+      // Make sure code starts with "function()"
+
+      // Chrome, Firefox: "[wofctNm](){...}", Safari: "function [wofctNm](){...}"
+      // we need an anonymous function: "function() {...}"
+      let piWoFctStr = woFctStr.replace(/^function +/, '');
+
+      if(WorkerHelper.DEBUG){
+        console.info("Worker platform independent function string:")
+        console.info(piWoFctStr)
+      }
+
+      // Convert to anonymous function
+      let anonWoFctStr = piWoFctStr.replace(woFctNm + '()', 'function()')
+      if(WorkerHelper.DEBUG){
+        console.info("Worker anonymous function string:")
+        console.info(piWoFctStr)
+      }
+      // Self executing
+      let ws = '(' + anonWoFctStr + ')();'
+      if(WorkerHelper.DEBUG){
+        console.info("Worker self executing anonymous function string:")
+        console.info(anonWoFctStr)
+      }
+      // Build the worker blob
+      let wb = new Blob([ws], {type: 'text/javascript'});
+
+      let workerBlobUrl=window.URL.createObjectURL(wb);
+      return workerBlobUrl;
+    }
+  }
