@@ -24,8 +24,7 @@ import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
-import {Renderer3} from "@angular/core/src/render3/interfaces/renderer";
+import {RecordingFileDescriptor} from "./speechrecorder/recording";
 import {SprDb} from "./db/inddb";
 import {DOCUMENT} from "@angular/common";
 
