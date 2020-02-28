@@ -1,6 +1,7 @@
 import { WavFileFormat } from './wavformat'
 import { PCMAudioFormat } from '../format'
 import { BinaryByteWriter } from '../../io/BinaryWriter'
+import {WorkerHelper} from "../../utils/utils";
 declare function postMessage (message:any, transfer:Array<any>):void;
 
 
@@ -11,13 +12,15 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      private bw:BinaryByteWriter;
      private format:PCMAudioFormat;
      private dataLength:number;
-
-     private woStr:string;
+     private workerURL: string;
 
      constructor() {
        this.bw = new BinaryByteWriter();
      }
 
+     /*
+      *  Method used as worker code.
+      */
      workerFunction() {
        self.onmessage = function (msg) {
 
@@ -80,12 +83,10 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      writeAsync(audioBuffer:AudioBuffer,callback: (wavFileData:Uint8Array)=> any){
 
        let dataChkByteLen=this.writeHeader(audioBuffer);
-        if(!this.woStr) {
-
-          let wb = new Blob(['(' + this.workerFunction.toString() + ')();'], {type: 'text/javascript'});
-          this.woStr = window.URL.createObjectURL(wb);
+       if (!this.workerURL) {
+         this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
         }
-         let wo = new Worker(this.woStr);
+       let wo = new Worker(this.workerURL);
 
        let chs = audioBuffer.numberOfChannels;
 
