@@ -134,7 +134,7 @@ export class PromptContainer implements  OnInit,AfterContentChecked,AfterViewChe
   measureContext: CanvasRenderingContext2D;
 
     //@ViewChild('measureCanvas') measureCanvasRef: ElementRef;
-    @ViewChild(Prompter) prompter: Prompter;
+    @ViewChild(Prompter, { static: true }) prompter: Prompter;
   constructor(private elRef:ElementRef){}
 
   ngOnInit(){
@@ -500,8 +500,8 @@ export class PromptingContainer {
 })
 
 export class Prompting {
-  @ViewChild(SimpleTrafficLight) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(AudioDisplay) audioDisplay: AudioDisplay;
+  @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
+  @ViewChild(AudioDisplay, { static: true }) audioDisplay: AudioDisplay;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
   @Input() showPrompt: boolean;

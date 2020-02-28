@@ -61,7 +61,7 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   audio: any;
   updateTimerId: any;
 
-  @ViewChild(AudioDisplayScrollPane)
+  @ViewChild(AudioDisplayScrollPane, { static: true })
   private audioDisplayScrollPane: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {

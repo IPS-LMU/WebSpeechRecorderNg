@@ -28,7 +28,7 @@ export class ScriptsComponent implements  OnInit {
   //scriptForm:FormGroup;
   //newScript:Script;
   importFileList:FileList=null;
-  @ViewChild('scriptFileInput') scriptFileInput:HTMLInputElement;
+  @ViewChild('scriptFileInput', { static: true }) scriptFileInput:HTMLInputElement;
   uploading=false;
 
   displayedColumns: string[] = ['scriptId','id'];
