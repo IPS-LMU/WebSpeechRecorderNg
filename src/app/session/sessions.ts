@@ -7,19 +7,18 @@ import {ProjectService} from "../../../projects/speechrecorderng/src/lib/speechr
 import {ScriptService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service";
 import {Script} from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
 import * as JSZip from "jszip";
-import {Renderer3} from "@angular/core/src/render3/interfaces/renderer";
 import {DOCUMENT} from "@angular/common";
 import {RecordingService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/recordings/recordings.service";
 import {AudioContextProvider} from "../../../projects/speechrecorderng/src/lib/audio/context";
 import {RecordingFile} from "../../../projects/speechrecorderng/src/lib/speechrecorder/recording";
 import {WavWriter} from "../../../projects/speechrecorderng/src/lib/audio/impl/wavwriter";
-import {forEach} from "@angular/router/src/utils/collection";
 import {Observable} from "rxjs";
 import { zip as ObsZip,of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import {last} from "rxjs/operators";
-import {MatSort, MatTableDataSource} from "@angular/material";
+import { MatSort } from "@angular/material/sort";
+import { MatTableDataSource } from "@angular/material/table";
 
 
 

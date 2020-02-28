@@ -1,19 +1,18 @@
-import {StreamLevelMeasure} from "../dsp/level_measure";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 
-interface AudioWorker extends Worker {
-  terminate (): void;
-
-  postMessage (message: any, transfer: Array<any>): void;
-
-// readonly        attribute AudioWorkerParamDescriptor[] parameters;
-  onmessage: (ev: MessageEvent) => any;
-//     attribute EventHandler                 onloaded;
-  //      AudioWorkerNode createNode (int numberOfInputs, int numberOfOutputs);
-//     AudioParam      addParameter (DOMString name, float defaultValue);
-//     void            removeParameter (DOMString name);
-}
-;
+// interface AudioWorker extends Worker {
+//   terminate (): void;
+//
+//   postMessage (message: any, transfer: Array<any>): void;
+//
+// // readonly        attribute AudioWorkerParamDescriptor[] parameters;
+//   onmessage: (ev: MessageEvent) => any;
+// //     attribute EventHandler                 onloaded;
+//   //      AudioWorkerNode createNode (int numberOfInputs, int numberOfOutputs);
+// //     AudioParam      addParameter (DOMString name, float defaultValue);
+// //     void            removeParameter (DOMString name);
+// }
+// ;
 
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
@@ -99,7 +98,6 @@ export class AudioCapture {
           };
           navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
             // and stop it immediately
-            s.stop();
 
           });
           // retry (only once)

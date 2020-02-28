@@ -20,17 +20,12 @@
       "speechrecorderng": [
         "dist/speechrecorderng",
         "dist/speechrecorderng"
-      ],
-      "speechrecorderng/*": [
-        "dist/speechrecorderng/*",
-        "dist/speechrecorderng/*"
-      ],
-      "speechrecorder": [
-        "dist/speechrecorder"
-      ],
-      "speechrecorder/*": [
-        "dist/speechrecorder/*"
       ]
     }
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true,
+    "strictInjectionParameters": true,
+    "enableIvy": false
   }
 }

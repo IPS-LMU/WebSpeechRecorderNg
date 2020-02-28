@@ -1,6 +1,5 @@
 
     import {HttpClient, HttpErrorResponse} from "@angular/common/http";
-    import {ResponseContentType} from "@angular/http";
 
     // state of an upload
     export enum UploadStatus {IDLE = 1, UPLOADING = 2,  ABORT = 3, DONE = 0, ERR = -1}
