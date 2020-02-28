@@ -21,7 +21,7 @@ export class GenericSprService<T> {
           GenericSprService.online=false;
         }
 
-        console.log("Standalone: "+GenericSprService.standalone)
+        console.debug("Standalone: "+GenericSprService.standalone)
 
         if (config && config.apiEndPoint) {
             this.apiEndPoint = config.apiEndPoint;
@@ -109,14 +109,14 @@ export class GenericSprService<T> {
                 obs.subscribe(db => {
                     let tr = db.transaction(this.keyname)
                     let sto = tr.objectStore(this.keyname);
-                    console.log("Get entity ID: "+entityId+" from store: "+this.keyname)
+                    console.debug("Get entity ID: "+entityId+" from store: "+this.keyname)
                     let r=sto.get(entityId)
                     r.onsuccess=(ev)=>{
-                        console.log("Got entity ID: "+entityId+" : "+r.result)
+                        console.debug("Got entity ID: "+entityId+" : "+r.result)
                         subscriber.next(r.result)
                     }
                     tr.oncomplete = () => {
-                        console.log("Transaction complete: got entity ID: "+entityId+" : "+r.result)
+                        console.debug("Transaction complete: got entity ID: "+entityId+" : "+r.result)
                         subscriber.complete()
                     }
                     tr.onerror = () => {
@@ -170,7 +170,7 @@ export class GenericSprService<T> {
         obs.subscribe(db => {
           let tr = db.transaction(this.keyname)
           let sto = tr.objectStore(this.keyname);
-          console.log("Get entity ID: "+entityId+" from store: "+this.keyname+ ": "+entity)
+          console.debug("Get entity ID: "+entityId+" from store: "+this.keyname+ ": "+entity)
           let r=sto.get(entityId)
           r.onsuccess=(ev)=>{
             let exists:boolean=(r.result);

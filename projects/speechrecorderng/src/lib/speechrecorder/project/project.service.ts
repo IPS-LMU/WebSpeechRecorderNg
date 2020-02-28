@@ -42,7 +42,25 @@ export class ProjectService extends GenericSprService<Project>{
     let httpParams = new HttpParams();
     httpParams.set('cache', 'false');
     return this.getAndCacheEntities(projectUrl, httpParams)
+  }
 
+  private appendRequestUUIDForDevelopmentServer(url:string):string{
+    let resUrl=url;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      resUrl = resUrl + '.json?requestUUID='+UUID.generate();
+
+    }
+    return resUrl
+  }
+
+  projectUrl(id:string):string{
+    return this.appendRequestUUIDForDevelopmentServer(this.projectCtxUrl + '/' + id)
+  }
+
+  projectResourceUrl(projectId: string,relResourcePath:string):string{
+    return this.projectCtxUrl + '/' + projectId +'/'+relResourcePath
   }
 
   projectObservable(id:string):Observable<Project>{

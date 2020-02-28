@@ -6,11 +6,12 @@ import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor, RecordingFileDTO} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
-    Component, ViewChild, ChangeDetectorRef, Inject,
-    AfterViewInit, HostListener, OnDestroy
+  Component, ViewChild, ChangeDetectorRef, Inject,
+  AfterViewInit, HostListener, OnDestroy, Input
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
+import {Status as SessionStatus} from "./session";
 import { MatDialog } from "@angular/material/dialog";
 import { MatProgressBar } from "@angular/material/progress-bar";
 import {SpeechRecorderUploader} from "../spruploader";
@@ -62,14 +63,16 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
-      <app-sprprompting [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
+    <app-warningbar [show]="isTestSession()" warningText="Test-recording only!"></app-warningbar>
+      <app-sprprompting [projectName]="projectName"
+                        [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
                         [playStartAction]="controlAudioPlayer?.startAction"
                         [playStopAction]="controlAudioPlayer?.stopAction">
-       
+
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
     <spr-recordingitemdisplay #levelbardisplay
@@ -81,7 +84,7 @@ export class Item {
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [currentRecording]="displayAudioBuffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
@@ -95,13 +98,14 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
-      
+
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }` ]
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
+  @Input() projectName:string|null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;
@@ -157,6 +161,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   promptItemCount: number;
 
+  readonly=false
+
   statusMsg: string;
   statusAlertType: string;
 
@@ -174,6 +180,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               public dialog: MatDialog,
+              private sessionService:SessionService,
               private recFileService:RecordingService,
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
@@ -312,6 +319,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
+  isTestSession():boolean {
+    return (this._session && (this._session.type === 'TEST' || this._session.type === 'SINUS_TEST'))
+  }
+
+
   set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
     if (this._controlAudioPlayer) {
       //this._controlAudioPlayer.listener=null;
@@ -406,6 +418,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   startItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
+    if(this.readonly){
+      return
+    }
     this.transportActions.fwdAction.disabled = true
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
@@ -417,7 +432,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
 
     if(!this.ac.opened) {
-      console.log("Open session with default audio device for " + this._channelCount + " channels");
+      console.info("Open session with default audio device for " + this._channelCount + " channels");
       this.ac.open(this._channelCount);
     }else {
       this.ac.start();
@@ -540,7 +555,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
           if(rf) {
             fab=this._displayRecFile.audioBuffer;
-            console.log("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
+            console.debug("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
           }else{
             this.statusMsg='Recording file could not be loaded.'
             this.statusAlertType='error'
@@ -612,7 +627,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //this.selectedItemIdx = this.promptIndex;
 
     if(this.audioFetchSubscription){
-      console.log("Unsubscribed audio fetch observer.")
+      console.debug("Unsubscribed audio fetch observer.")
       this.audioFetchSubscription.unsubscribe()
     }
 
@@ -647,7 +662,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (!temporary) {
         this.showRecording();
       }
+      if(!this.readonly) {
       this.startStopSignalState = StartStopSignalState.IDLE;
+    }
     }
     this.updateStartActionDisableState()
 
@@ -656,7 +673,32 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   start() {
 
-    if (this.ac) {
+    if (this._session.sealed) {
+      this.readonly = true
+      this.statusMsg = 'Session sealed!';
+      //let dialogRef = this.dialog.open(SessionSealedDialog, {});
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Error',
+          msg: "This session is sealed. Recordings cannot be added anymore.",
+          advise: 'Please ask your experimenter what to do (e.g start a new session).',
+        }
+      });
+    } else {
+    if(this._session.status==="CREATED") {
+      this._session.status = "LOADED";
+      if(!this._session.loadedDate) {
+        this._session.loadedDate = new Date();
+      }
+      } else {
+        this._session.restartedDate = new Date();
+      }
+      this.sessionService.putSessionObserver(this._session).subscribe()
+    }
+    //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
+
+    if (!this.readonly && this.ac) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
@@ -703,7 +745,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             // sessionmanager.ts:712 Open session with default audio device for 1 channels
             // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
             // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
-            console.log("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
+            console.info("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
             this.ac.open(this._channelCount, fdi.deviceId);
           } else {
             // device not found
@@ -734,6 +776,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if(this.promptItemCount>0) {
       this.promptIndex = 0;
     }
+    this.enableNavigation()
   }
 
   isRecording(): boolean {
@@ -769,6 +812,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusMsg = 'Ready.';
     //this.updateStartActionDisableState()
     this.transportActions.startAction.disabled=!(this.ac && this.isRecordingItem());
+
+  }
+
+  enableNavigation(){
     this.transportActions.fwdAction.disabled = false
     this.transportActions.bwdAction.disabled = false
   }
@@ -786,7 +833,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
+    if(this._session.status==="LOADED") {
 
+      if (this.section.training) {
+        this._session.status = "STARTED_TRAINING"
+        if(!this._session.startedTrainingDate) {
+          this._session.startedTrainingDate = new Date();
+        }
+      } else {
+        this._session.status = "STARTED"
+        if(!this._session.startedDate) {
+          this._session.startedDate = new Date();
+        }
+      }
+      this.sessionService.putSessionObserver(this._session).subscribe()
+    }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
     }
@@ -834,7 +895,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.promptItem.postrecording) {
       postDelay = this.promptItem.postrecording;
     }
-    console.log("Postrecording delay: "+postDelay)
+    //console.debug("Postrecording delay: "+postDelay)
 
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
@@ -895,10 +956,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 
@@ -928,46 +989,29 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
 
-      // if (this.enableUploadRecordings) {
-      //   // TODO use SpeechRecorderconfig resp. RecfileService
-      //   //new REST API URL
-      //
-      //   let apiEndPoint = '';
-      //
-      //   if (this.config && this.config.apiEndPoint) {
-      //     apiEndPoint = this.config.apiEndPoint;
-      //   }
-      //   if (apiEndPoint !== '') {
-      //     apiEndPoint = apiEndPoint + '/'
-      //   }
-      //
-      //   let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-      //   let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-      //
-      //
-      //
-      //     // convert asynchronously to 16-bit integer PCM
-      //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-      //     // TODO duplicate conversion for manual download
-      //     //console.log("Build wav writer...");
-      //     let ww = new WavWriter();
-      //     ww.writeAsync(ad, (wavFile) => {
-      //       this.postRecording(wavFile, recUrl);
-      //     });
-      // }
+      let recUrl: string=null;
+      if (this.enableUploadRecordings) {
+        // TODO use SpeechRecorderconfig resp. RecfileService
+        //new REST API URL
 
-      let apiEndPoint = '';
+        let apiEndPoint = '';
 
-      if (this.config && this.config.apiEndPoint) {
-        apiEndPoint = this.config.apiEndPoint;
-      }
-      if (apiEndPoint !== '') {
-        apiEndPoint = apiEndPoint + '/'
-      }
+        if (this.config && this.config.apiEndPoint) {
+          apiEndPoint = this.config.apiEndPoint;
+        }
+        if (apiEndPoint !== '') {
+          apiEndPoint = apiEndPoint + '/'
+        }
 
       let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
       let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
+      }
+
+          // convert asynchronously to 16-bit integer PCM
+          // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+          // TODO duplicate conversion for manual download
+          //console.log("Build wav writer...");
       let ww = new WavWriter();
       ww.writeAsync(ad, (wavFile) => {
         let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
@@ -975,13 +1019,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.recFileService.addRecordingFileObserver(rfDto, recUrl, this.enableUploadRecordings).subscribe((value) => {
 
         }, (err) => {
-          console.log("Recording file store error: " + err)
+          console.error("Recording file store error: " + err)
         }, () => {
-          console.log("Recording file stored to indexed db")
+          console.info("Recording file stored to indexed db")
         })
       });
-
-
 
     }
 
@@ -1001,6 +1043,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.status = Status.IDLE;
     let startNext=false;
     if (complete) {
+      if(!this._session.sealed && this._session.status!=="COMPLETED") {
+          this._session.status = "COMPLETED"
+          if(!this._session.completedDate) {
+            this._session.completedDate = new Date()
+          }
+         this.sessionService.putSessionObserver(this._session).subscribe()
+      }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
     } else {

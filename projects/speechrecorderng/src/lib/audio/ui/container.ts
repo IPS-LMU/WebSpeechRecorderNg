@@ -225,7 +225,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   layoutScaled() {
 
-    console.log("Layout scaled.")
+    console.debug("Layout scaled.")
     // // TODO test
     // this.ce.style.width='1000px';
     // this.ce.style.height='400px';

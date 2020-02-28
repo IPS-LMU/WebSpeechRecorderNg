@@ -79,46 +79,106 @@ export class AudioCapture {
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => this.printDevices(l));
   }
 
-  deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true) {
+
+  private dummySession():Promise<MediaStream>{
+    // workaround to request permissions:
+    // Start a dummy session
+    let mediaStrCnstrs = <MediaStreamConstraints>{audio:
+        {echoCancelation: false}
+    };
+    return navigator.mediaDevices.getUserMedia(mediaStrCnstrs);
+
+  }
+
+
+  private stopAllSessionTracks(mediaStream:MediaStream){
+      let ats = mediaStream.getTracks();
+      for (let atIdx = 0; atIdx < ats.length; atIdx++) {
+        console.debug("Stop dummy session track: #" + atIdx)
+        ats[atIdx].stop();
+      }
+  }
+
+  deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true,dummyStream?:MediaStream) {
 
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
-      let labelsAvailable = false;
+      let labelAvail = false;
       for (let i = 0; i < l.length; i++) {
         let di = l[i];
         if (di.label) {
-          labelsAvailable = true;
+          labelAvail = true;
         }
       }
-      if (!labelsAvailable) {
+      if (!labelAvail) {
+        console.debug("Media device enumeration: No labels.")
         if (retry) {
-          // workaround to request permissions:
-          // Start a dummy session
-          let mediaStrCnstrs = <MediaStreamConstraints>{audio:
-              {echoCancelation: false}
-          };
-          navigator.mediaDevices.getUserMedia(mediaStrCnstrs).then((s: MediaStream) => {
+          console.debug("Starting dummy session to request audio permissions...")
+
+          this.dummySession().then((s: MediaStream) => {
             // and stop it immediately
 
+
+            if (s) {
+              console.debug("Got dummy session stream: " + s + " .")
+            } else {
+              console.debug("No dummy stream")
+            }
+            // retry (only once)
+            this.deviceInfos(cb, false, s);
+          }, reason => {
+            console.debug("Dummy session rejected.")
+            // TODO error callback
+            cb(null);
           });
-          // retry (only once)
-          this.deviceInfos(cb, false);
         } else {
           cb(null);
         }
       } else {
+        // success
         cb(l);
       }
+      if (dummyStream) {
+        this.stopAllSessionTracks(dummyStream);
+      }
+    }, (reason) => {
+      //rejected
+      console.debug("Media device enumeration rejected.")
+      if (retry) {
+        console.debug("Starting dummy session to request audio permissions...")
+        this.dummySession().then((s: MediaStream) => {
+          // and stop it immediately
+          console.debug("Dummy session.")
+          if (s) {
+            console.debug("Got dummy session stream: " + s + " .")
+          } else {
+            console.debug("No dummy stream")
+          }
+          // retry (only once)
+          this.deviceInfos(cb, false, s);
+        }, reason => {
+          console.debug("Dummy session rejected.")
+          // TODO error callback
+          cb(null);
+        });
+      } else {
+        cb(null);
+      }
+      if (dummyStream) {
+        this.stopAllSessionTracks(dummyStream);
+      }
     });
-
   }
 
+  printDevice(di:MediaDeviceInfo){
+    console.info("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind );
+  }
 
   printDevices(l: MediaDeviceInfo[]): void {
     let selDeviceId = '___dummy___';
     for (let i = 0; i < l.length; i++) {
       let di = l[i];
+        this.printDevice(di)
 
-      console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
   }
 
@@ -147,12 +207,12 @@ export class AudioCapture {
     // TODO test if input is unprocessed
 
     let msc:any;
-    console.log('User agent: '+navigator.userAgent);
+    console.info('User agent: '+navigator.userAgent);
     if (navigator.userAgent.match(".*Edge.*")) {
 
       // Microsoft Edge sends unmodified audio
       // The constraint can follow the specification
-      console.log("Setting media track constraints for Microsoft Edge.");
+      console.info("Setting media track constraints for Microsoft Edge.");
       msc = {
         audio: {
           deviceId: selDeviceId,
@@ -163,7 +223,7 @@ export class AudioCapture {
       };
     } else if (navigator.userAgent.match(".*Chrome.*")) {
       // Google Chrome: we need to switch of each of the preprocessing units including the
-      console.log("Setting media track constraints for Google Chrome.");
+      console.info("Setting media track constraints for Google Chrome.");
 
       // Chrome 60 -> 61 changed
       // it works now without mandatory/optional sub-objects
@@ -188,7 +248,7 @@ export class AudioCapture {
       }
 
     } else if (navigator.userAgent.match(".*Firefox.*")) {
-      console.log("Setting media track constraints for Mozilla Firefox.");
+      console.info("Setting media track constraints for Mozilla Firefox.");
       // Firefox
       msc = {
         audio: {
@@ -205,8 +265,8 @@ export class AudioCapture {
       }
 
     } else if (navigator.userAgent.match(".*Safari.*")) {
-      console.log("Setting media track constraints for Safari browser.")
-      console.log("Apply workaround for Safari: Avoid disconnect of streams.");
+      console.info("Setting media track constraints for Safari browser.")
+      console.info("Apply workaround for Safari: Avoid disconnect of streams.");
       this.disconnectStreams = false;
       msc = {
         audio: {
@@ -231,13 +291,13 @@ export class AudioCapture {
         for (let i = 0; i < aTracks.length; i++) {
           let aTrack = aTracks[i];
 
-          console.log("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
+          console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
         }
 
         let vTracks = s.getVideoTracks();
         for (let i = 0; i < vTracks.length; i++) {
           let vTrack = vTracks[i];
-          console.log("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
+          console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
         }
         this.mediaStream = this.context.createMediaStreamSource(s);
         // stream channel count ( is always 2 !)
@@ -246,7 +306,7 @@ export class AudioCapture {
         // is not set!!
         //this.currentSampleRate = this.mediaStream.sampleRate;
         this.currentSampleRate = this.context.sampleRate;
-        console.log("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
+        console.info("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
         if (this.audioOutStream) {
           this.audioOutStream.setFormat(this.channelCount, this.currentSampleRate);
         }
@@ -256,24 +316,24 @@ export class AudioCapture {
         // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
         if (this.context.createAudioWorker) {
-          console.log("Audio worker implemented!!")
+          console.debug("Audio worker implemented!!")
         } else {
-          console.log("Audio worker NOT implemented.")
+          console.debug("Audio worker NOT implemented.")
         }
 
         if (this.context.registerProcessor) {
-          console.log("Audio worklet processor implemented!!");
+          console.debug("Audio worklet processor implemented!!");
         } else {
-          console.log("Audio worklet processor NOT implemented.")
+          console.debug("Audio worklet processor NOT implemented.")
         }
 
         if (!this.context.createScriptProcessor) {
-          console.log("Audio script processor NOT implemented.")
+          console.debug("Audio script processor NOT implemented.")
 
         } else {
           //TODO
           // The ScriptProcessorNode Interface - DEPRECATED
-          console.log("Audio script processor implemented!!");
+          console.debug("Audio script processor implemented!!");
 
 
           // TODO should we use streamChannelCount or channelCount here ?
@@ -307,7 +367,7 @@ export class AudioCapture {
           this.listener.opened();
         }
       }, (e) => {
-        console.log(e);
+        console.error(e);
 
         if (this.listener) {
 

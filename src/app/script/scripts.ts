@@ -11,6 +11,7 @@ import {
   Section
 } from "../../../projects/speechrecorderng/src/lib/speechrecorder/script/script";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
 
 interface HTMLInputEvent extends Event {
   target: HTMLInputElement & EventTarget;
@@ -31,7 +32,7 @@ export class ScriptsComponent implements  OnInit {
   @ViewChild('scriptFileInput', { static: true }) scriptFileInput:HTMLInputElement;
   uploading=false;
 
-  displayedColumns: string[] = ['scriptId','id'];
+  displayedColumns: string[] = ['scriptId','id','action'];
   constructor(private route: ActivatedRoute, private chDetRef:ChangeDetectorRef,private scriptService:ScriptService) {
   }
 
@@ -74,19 +75,22 @@ export class ScriptsComponent implements  OnInit {
 
   uploadScriptFiles(){
     this.uploading=true;
-    console.log("Uploading ...")
+    //console.log("Uploading ...")
     //this.scriptFileInput.click()
   }
 
-  importFileChanged(event: HTMLInputEvent){
+  importFileChanged(event: Event){
     let et=event.target;
 
-    let files=et.files;
-    this.uploading=false
-    for(let i=0;i<files.length;i++) {
-      console.log(files[i].name+": "+files[i].type);
+    if(et instanceof HTMLInputElement)
+    {
+      let files = et.files;
+      this.uploading = false
+      // for(let i=0;i<files.length;i++) {
+      //   console.debug(files[i].name+": "+files[i].type);
+      // }
+      this.importFileList = files;
     }
-    this.importFileList=files;
   }
 
   isImportable(){
@@ -109,7 +113,7 @@ export class ScriptsComponent implements  OnInit {
     let pi:PromptItem={mediaitems:new Array<Mediaitem>()};
     if(piEl.tagName==='recording'){
       pi.itemcode=piEl.getAttribute('itemcode');
-      console.log(pi.itemcode)
+      //console.log(pi.itemcode)
     }else if(piEl.tagName==='nonrecording'){
         //TODO
     }
@@ -124,8 +128,27 @@ export class ScriptsComponent implements  OnInit {
     return pi;
   }
 
+  addNewScript(){
+
+        let ns: Script = {scriptId: UUID.generate(), project: this.projectName,sections:new Array<Section>()}
+        this.scriptService.addProjectScript(ns.project, ns).subscribe((s) => {
+              //console.log("Scripts: NEXT (push) "+s.sessionId)
+              //mat-table does not update here !!
+              this.scripts.push(s);
+            }, (err) => {
+              // TODO err
+              console.error("Scripts: ERROR")
+            },
+            () => {
+              //console.debug("Scripts: COMPLETE")
+              // refresh table
+              this.fetchScripts()
+            })
+  }
+
+
   importScript(){
-    console.log("Import script!");
+    console.debug("Import script!");
     let xmlParser=new DOMParser();
     let fileReader=new FileReader()
     if(this.importFileList) {
@@ -133,7 +156,7 @@ export class ScriptsComponent implements  OnInit {
         let importFile = this.importFileList[i]
         fileReader.readAsText(importFile);
         fileReader.onload = (pe) => {
-          console.log(fileReader.result)
+          //console.debug(fileReader.result)
           let xmlSrc = <string>fileReader.result;
           let doc = xmlParser.parseFromString(xmlSrc, <SupportedType>importFile.type);
           let s: Script = {scriptId: UUID.generate(), sections: new Array<Section>()};
@@ -146,7 +169,7 @@ export class ScriptsComponent implements  OnInit {
           let sctEls = scrEl.getElementsByTagName('section')
           for (let si = 0; si < sctEls.length; si++) {
             let sct = sctEls[si];
-            console.log("parse section " + si)
+            //console.log("parse section " + si)
 
 
             let section: Section = {mode: "MANUAL", promptphase: "IDLE", training: false, groups: new Array<Group>()};

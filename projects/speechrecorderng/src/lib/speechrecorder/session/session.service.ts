@@ -176,6 +176,14 @@ export class SessionService extends GenericSprService<Session>{
   return obs;
   }
 
+  putSessionObserver(session:Session): Observable<Session> {
+
+    let sesssUrl = this.apiEndPoint+ProjectService.PROJECT_API_CTX +'/'+session.project+'/'+SessionService.SESSION_API_CTX +'/'+session.sessionId
+
+    //console.log("PUT session ID: "+session.sessionId+ " status: "+session.status)
+    return this.http.put<Session>(sesssUrl, session,{withCredentials: this.withCredentials});
+
+  }
 
 }
 

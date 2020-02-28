@@ -24,8 +24,8 @@ import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFileDescriptor} from "./speechrecorder/recording";
-
+import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
+import {Renderer3} from "@angular/core/src/render3/interfaces/renderer";
 import {SprDb} from "./db/inddb";
 import {DOCUMENT} from "@angular/common";
 
@@ -36,7 +36,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession></app-sprrecordingsession>
+    <app-sprrecordingsession [projectName]="project?.name"></app-sprrecordingsession>
   `,
     styleUrls: ['speechrecorder.component.css']
 
@@ -157,7 +157,7 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
       }catch(err){
         this.sm.statusMsg=err.message;
         this.sm.statusAlertType='error';
-        console.log(err.message)
+        console.error(err.message)
       }
     }
 
@@ -198,25 +198,25 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
 
 
           if (sess.project) {
-            console.log("Session associated project: "+sess.project)
+            console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);
             },reason =>{
               this.sm.statusMsg=reason;
               this.sm.statusAlertType='error';
-              console.log("Error fetching project config: "+reason)
+              console.error("Error fetching project config: "+reason)
             });
 
           } else {
-            console.log("Session has no associated project. Using default configuration.")
+            console.info("Session has no associated project. Using default configuration.")
             this.fetchScript(sess);
           }
         },
         (reason) => {
             this.sm.statusMsg = reason;
             this.sm.statusAlertType = 'error';
-            console.log("Error fetching session " + reason)
+            console.error("Error fetching session " + reason)
           });
       }
     }
@@ -229,10 +229,18 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
           this.sm.session=sess;
           this.fetchRecordings(sess,this.script)
         },reason =>{
-            this.sm.statusMsg=reason;
+          let errMsg="Error fetching recording script: "+reason
+           console.error(errMsg)
+            this.sm.statusMsg=errMsg;
             this.sm.statusAlertType='error';
-            console.log("Error fetching script: "+reason)
+
           });
+      }else{
+        let errMsg="No recording script is defined for this session with ID "+sess.sessionId;
+        console.error(this.sm.statusMsg)
+        this.sm.statusMsg=errMsg;
+        this.sm.statusAlertType='error';
+
       }
     }
 
@@ -244,31 +252,37 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
             if(rfs instanceof Array) {
               rfs.forEach((rf) => {
                 // TODO test output for now
-                console.log("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
                 this.sm.addRecordingFileByDescriptor(rf);
               })
             }else{
               console.error('Expected type array for list of already recorded files ')
             }
           }else{
-            console.log("Recording file list: " + rfs);
+            console.debug("Recording file list: " + rfs);
           }
         },()=>{
           // we start the session anyway
-          this.sm.start();
+          this.startSession()
         },()=>{
-          this.sm.start();
+          this.startSession()
         })
+    }
+
+
+    private startSession(){
+
+          this.sm.start();
     }
 
 
         setSession(session:any){
 		    if(session) {
-                console.log("Session ID: " + session.sessionId);
+                console.debug("Session ID: " + session.sessionId);
 
 
             }else{
-                console.log("Session Undefined");
+                console.debug("Session Undefined");
             }
 
         }
@@ -308,7 +322,7 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
             }
 
             window.addEventListener('beforeunload', (e) => {
-                console.log("Before page unload event");
+                console.debug("Before page unload event");
 
                 if (this.dataSaved && !this.sm.isActive()) {
                     return;
@@ -383,11 +397,11 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
     let chCnt = 2;
 
     if (project) {
-      console.log("Project name: "+project.name)
+      console.info("Project name: "+project.name)
       this.sm.audioDevices = project.audioDevices;
       if(project.audioFormat) {
         chCnt =project.audioFormat.channels;
-        console.log("Project requested recording channel count: "+chCnt)
+        console.info("Project requested recording channel count: "+chCnt)
       }
     }else{
       console.error("Empty project configuration!")
@@ -428,7 +442,7 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
           callback();
         }
         pLoader.onerror = (e) => {
-          console.log("Error downloading project data ...");
+          console.error("Error downloading project data ...");
         }
         pLoader.send();
       }

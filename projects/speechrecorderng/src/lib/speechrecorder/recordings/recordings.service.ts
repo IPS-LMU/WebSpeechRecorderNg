@@ -70,7 +70,7 @@ export class RecordingService {
             let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
             //let sessIdx=rfSto.index('sessIdItemcodeIdx')
             let sessIdx=rfSto.index('sessIdIdx')
-            console.log("Get all recording from sessionId: "+sessId)
+            console.debug("Get all recording from sessionId: "+sessId)
             let allS=sessIdx.getAll(IDBKeyRange.only([sessId]));
 
             allS.onsuccess = (ev) => {
@@ -169,7 +169,7 @@ export class RecordingService {
               let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
               let sessIdx=rfSto.index('sessIdItemcodeIdx')
 
-              console.log("Get all recordings for sessionId and itemcode: " + recordingFile.sessionId+ " "+recordingFile.itemCode)
+              console.debug("Get all recordings for sessionId and itemcode: " + recordingFile.sessionId+ " "+recordingFile.itemCode)
               let allS = sessIdx.getAll(IDBKeyRange.only([recordingFile.sessionId,recordingFile.itemCode]));
 
               allS.onsuccess = (ev) => {

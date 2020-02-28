@@ -9,6 +9,7 @@ import {
   PromptContainer, Prompter, Prompting, PromptingContainer, Recinstructions,
 } from "./speechrecorder/session/prompting";
 import {SessionManager} from "./speechrecorder/session/sessionmanager";
+import {WarningBar} from "./speechrecorder/session/warning_bar";
 import {ScrollIntoViewDirective} from "./utils/scrollIntoViewToBottom";
 import { MatBadgeModule } from "@angular/material/badge";
 import { MatButtonModule } from "@angular/material/button";
@@ -40,7 +41,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [ControlPanel,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],

@@ -1,0 +1,19 @@
+{
+
+    "description": "Demo project 1",
+    "name": "Demo1",
+    "audioFormat" : {
+      "channels": 1
+    },
+    "audioDevices": [
+      {
+        "name": ".*Sennheiser.*SC60.*",
+        "playback": false,
+        "regex": true
+      }
+
+    ],
+    "speakerWindowShowStopRecordAction": true
+
+}
+

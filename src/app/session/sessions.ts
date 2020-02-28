@@ -35,6 +35,7 @@ export class SessionsComponent implements  OnInit {
     dataSource:MatTableDataSource<Session>;
     @ViewChild(MatSort, { static: true }) sort: MatSort;
     private d:Document;
+    newSessionDisabled=true;
   constructor(private route: ActivatedRoute,
               private chDetRef:ChangeDetectorRef,
               private renderer:Renderer2,
@@ -49,14 +50,29 @@ export class SessionsComponent implements  OnInit {
 
 
   ngOnInit() {
-
       this.dataSource.sort=this.sort
-
 
     this.route.params.subscribe((params: Params) => {
       this.projectName = params['projectName'];
       this.fetchSessions()
+        this.updateNewSessionDisabled()
     })
+  }
+
+  updateNewSessionDisabled(){
+      let sessionScript:Script=null;
+      this.scriptService.randomProjectScriptObserver(this.projectName).subscribe((script)=> {
+          sessionScript=script;
+      },(err)=> {
+          this.newSessionDisabled=true
+          console.error("Scripts: ERROR")
+      },()=>{
+          if(sessionScript) {
+              this.newSessionDisabled=false
+          }else{
+              this.newSessionDisabled=true
+          }
+      })
 
   }
 
@@ -66,7 +82,7 @@ export class SessionsComponent implements  OnInit {
         console.info("List " + sesss.length + " sessions")
         this.sessions=sesss;
         this.dataSource.data=this.sessions
-        console.log(this.sessions)
+        //console.log(this.sessions)
         //this.chDetRef.detectChanges()
       })
     }
@@ -74,24 +90,24 @@ export class SessionsComponent implements  OnInit {
 
   addNewSession(){
     let sessionScript:Script=null;
-    this.scriptService.rnadomProjectScriptObserver(this.projectName).subscribe((script)=> {
+    this.scriptService.randomProjectScriptObserver(this.projectName).subscribe((script)=> {
       sessionScript=script;
     },(err)=> {
       // TODO err
-      console.log("Scripts: ERROR")
+      console.error("Scripts: ERROR")
     },()=>{
         if(sessionScript) {
-          let ns: Session = {sessionId: UUID.generate(), project: this.projectName, script: sessionScript.scriptId,date:new Date()}
+          let ns: Session = {sessionId: UUID.generate(), status: "CREATED", type: 'NORM', project: this.projectName, script: sessionScript.scriptId,date:new Date()}
           this.sessionService.projectAddSessionObserver(ns.project, ns).subscribe((s) => {
-                console.log("Scripts: NEXT (push) "+s.sessionId)
+                //console.log("Scripts: NEXT (push) "+s.sessionId)
                 //mat-table does not update here !!
                 this.sessions.push(s);
               }, (err) => {
                 // TODO err
-                console.log("Scripts: ERROR")
+                console.error("Scripts: ERROR")
               },
               () => {
-                console.log("Scripts: COMPLETE")
+                //console.debug("Scripts: COMPLETE")
                 // refresh table
                 this.fetchSessions()
               })
