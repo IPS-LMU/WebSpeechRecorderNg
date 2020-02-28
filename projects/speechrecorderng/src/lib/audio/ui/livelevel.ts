@@ -182,11 +182,9 @@ export class LevelBar implements LevelListener {
   private checkWidth() {
     let requiredWidth = this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH);
     if (this.virtualCanvas.offsetWidth - requiredWidth < this.ce.offsetWidth * OVERFLOW_THRESHOLD) {
-      let newWidth = Math.round(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
+      let newWidth = Math.floor(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
       this.virtualCanvas.style.width = newWidth + 'px';
       this.ce.scrollLeft = newWidth - this.ce.offsetWidth;
-
-      //console.log("checkWidth: without layout()")
 
        // do not call layout here it is triggered by the scroll event
       //this.layout();
@@ -201,10 +199,18 @@ export class LevelBar implements LevelListener {
     this.drawPlayPosition();
   }
 
+  private drawLevelBackground(g: CanvasRenderingContext2D, x: number, h: number){
+    g.strokeStyle = 'black';
+    g.fillStyle = 'black';
+    g.fillRect(x,0,LINE_WIDTH+LINE_DISTANCE,h)
+  }
+
   private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
 
+    this.drawLevelBackground(g,xc,h);
+    g.lineWidth = LINE_WIDTH;
     if (dbVal >= this.warnDBLevel) {
       g.strokeStyle = 'red';
       g.fillStyle = 'red';
@@ -226,7 +232,10 @@ export class LevelBar implements LevelListener {
   private drawLevelLines(g: CanvasRenderingContext2D, x: number, h: number, dbVals: Array<number>) {
     //translate to viewport
     let xc = x - this.ce.scrollLeft;
+    this.drawLevelBackground(g,xc,h);
+
     let chH = Math.floor(h / dbVals.length);
+    g.lineWidth = LINE_WIDTH;
     for (let ch = 0; ch < dbVals.length; ch++) {
       let dbVal = dbVals[ch];
       let y = Math.floor(ch * chH);
@@ -266,10 +275,8 @@ export class LevelBar implements LevelListener {
       let h = this.liveLevelCanvas.height;
       let g = this.liveLevelCanvas.getContext("2d");
       if (g) {
-        g.fillStyle = 'black';
-        if (!this._streamingMode && !this._staticLevelInfos) {
-          g.fillStyle = 'grey'
-        }
+        // clear canvas
+        g.fillStyle = 'grey';
         g.fillRect(0, 0, w, h);
 
         g.lineWidth = LINE_WIDTH;

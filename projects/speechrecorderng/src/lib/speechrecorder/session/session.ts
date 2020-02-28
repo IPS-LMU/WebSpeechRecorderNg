@@ -1,7 +1,7 @@
 
 export type Status= "CREATED" | "LOADED" | "STARTED_TRAINING" | "STARTED" | "COMPLETED";
 
-export type Type= 'NORM' | 'TEST' | 'SINUS_TEST';
+export type Type= 'NORM' | 'TEST' | 'TEST_DEF_A' | 'SINUS_TEST';
 
 export interface Session{
   sessionId: string | number,

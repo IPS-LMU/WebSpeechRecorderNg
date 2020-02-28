@@ -7,21 +7,20 @@ import {
     HostListener,
     ElementRef,
     OnInit,
-  AfterViewChecked,
   Renderer2,
-  ChangeDetectorRef, HostBinding, AfterContentChecked
+  HostBinding,
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
-
+import {AudioClip} from "../../audio/persistor";
 
 @Component({
 
@@ -203,7 +202,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE=14;
     display: flex;
     flex-direction: column;
     min-height: 0px;
-    /* width: 100%; */
+    width: 100%;
   }
   `]
 })
@@ -518,8 +517,10 @@ export class PromptingContainer {
     <div #asCt [class.active]="!audioSignalCollapsed">
 
             <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                       [audioData]="displayAudioBuffer"
+                        [audioClip]="displayAudioClip"
                               [playStartAction]="playStartAction"
+                        [playSelectionAction]="playSelectionAction"
+                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                               [playStopAction]="playStopAction"></app-audiodisplay>
 
 
@@ -578,7 +579,7 @@ export class PromptingContainer {
         bottom: 0px;
         /*left: 0px; */
 
-      height: 80%;
+      height: 90%;
         width: 100%;
 
         overflow: hidden;
@@ -608,9 +609,11 @@ export class Prompting {
   @Input() enableDownload: boolean;
 
   @Input() audioSignalCollapsed:boolean;
-  @Input() displayAudioBuffer:AudioBuffer | null;
-    @Input() playStartAction: Action;
-    @Input() playStopAction: Action;
+  @Input() displayAudioClip: AudioClip | null;
+  @Input() playStartAction: Action<void>;
+  @Input() playSelectionAction: Action<void>;
+  @Input() autoPlayOnSelectToggleAction:Action<boolean>
+  @Input() playStopAction: Action<void>;
   @Output() onItemSelect = new EventEmitter<number>();
     @Output() onNextItem = new EventEmitter();
     @Output() onPrevItem = new EventEmitter();

@@ -17,7 +17,6 @@ import { MatTableModule } from "@angular/material/table";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
-import {AudioModule} from "../../projects/speechrecorderng/src/lib/audio/audio.module";
 import {SPR_CFG} from "../environments/environment";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
@@ -75,7 +74,7 @@ const appRoutes: Routes = [
   imports: [
       RouterModule.forRoot(appRoutes),FormsModule,ReactiveFormsModule,FlexLayoutModule,BrowserAnimationsModule,MatCardModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatInputModule,MatDialogModule,MatProgressSpinnerModule,MatTableModule,MatTooltipModule,MatSortModule,MatTreeModule, MatNativeDateModule,
 
-    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),CommonModule,AudioModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
+    BrowserModule,SpeechrecorderngModule.forRoot(SPR_CFG),CommonModule, ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [
 

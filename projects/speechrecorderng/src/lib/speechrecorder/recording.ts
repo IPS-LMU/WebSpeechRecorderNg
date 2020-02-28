@@ -1,7 +1,5 @@
 import { UUID } from '../utils/utils'
-import {ItemCodeProvider, PromptItem} from "./script/script";
-
-
+import {ItemCodeProvider} from "./script/script";
 
 
 export class RecordingFileDescriptor {

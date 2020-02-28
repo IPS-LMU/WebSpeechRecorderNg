@@ -75,8 +75,8 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
     @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
 
     //@Input() controlAudioPlayer: AudioPlayer;
-    @Input() playStartAction:Action;
-    @Input() playStopAction:Action;
+    @Input() playStartAction:Action<void>;
+    @Input() playStopAction:Action<void>;
     playStartEnabled = false;
     playStopEnabled = false;
     private updateTimerId: number;

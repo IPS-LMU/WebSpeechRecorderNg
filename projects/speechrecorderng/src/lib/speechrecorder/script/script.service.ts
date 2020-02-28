@@ -7,9 +7,8 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.co
 import {Script} from "./script";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
-import {Session} from "../session/session";
 import {ProjectService} from "../project/project.service";
-import {SprDb, Sync} from "../../db/inddb";
+import {SprDb} from "../../db/inddb";
 import {GenericSprService} from "../generic_sync_service";
 
 interface ScriptServiceRESTParams{

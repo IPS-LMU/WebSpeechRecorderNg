@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group,PromptItem, Mediaitem} from '../script/script';
+import {Script, Section, Group,PromptItem} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor, RecordingFileDTO} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -11,9 +11,7 @@ import {
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {Status as SessionStatus} from "./session";
 import { MatDialog } from "@angular/material/dialog";
-import { MatProgressBar } from "@angular/material/progress-bar";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -25,10 +23,11 @@ import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {RecordingService} from "../recordings/recordings.service";
-import {Observable, Subscription} from "rxjs";
+import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
+import {AudioClip} from "../../audio/persistor";
+
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -63,14 +62,17 @@ export class Item {
   selector: 'app-sprrecordingsession',
   providers: [SessionService],
   template: `
-    <app-warningbar [show]="isTestSession()" warningText="Test-recording only!"></app-warningbar>
+    <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
+    <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
       <app-sprprompting [projectName]="projectName"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
+                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
                         [playStartAction]="controlAudioPlayer?.startAction"
+                        [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+                        [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
                         [playStopAction]="controlAudioPlayer?.stopAction">
 
     </app-sprprompting>
@@ -80,11 +82,11 @@ export class Item {
                               [playStopAction]="controlAudioPlayer?.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
-                              [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
+                              [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                              (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
+                              (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
@@ -112,8 +114,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   ac: AudioCapture;
   private _channelCount = 2; //TODO define constant for default format
+  private _selectedDeviceId:string|null=null;
   @ViewChild(Prompting, { static: true }) prompting: Prompting;
   @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay: LevelBarDisplay;
+
+  @Input() dataSaved=true
 
 
   startStopSignalState: StartStopSignalState;
@@ -131,7 +136,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   transportActions: TransportActions;
   dnlLnk: HTMLAnchorElement;
-  playStartAction: Action;
+  playStartAction: Action<void>;
   audio: any;
 
   _session: Session;
@@ -156,7 +161,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
-  displayAudioBuffer: AudioBuffer | null;
+  displayAudioClip: AudioClip | null;
+
   displayLevelInfos: LevelInfos | null;
 
   promptItemCount: number;
@@ -165,6 +171,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   statusMsg: string;
   statusAlertType: string;
+
+  processingRecording=false
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
@@ -263,7 +271,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
         this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
-        this.ac.listDevices();
+        // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
+        //this.ac.listDevices();
       } else {
         this.transportActions.startAction.disabled = true;
         let errMsg = 'Browser does not support Media/Audio API!';
@@ -320,7 +329,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   isTestSession():boolean {
-    return (this._session && (this._session.type === 'TEST' || this._session.type === 'SINUS_TEST'))
+    return (this._session && (this._session.type === 'TEST' || this._session.type==='TEST_DEF_A' || this._session.type === 'SINUS_TEST'))
+  }
+
+  isDefaultAudioTestSession():boolean {
+    return (this._session && (this._session.type==='TEST_DEF_A'))
+  }
+
+  isDefaultAudioTestSessionOverwriteingProjectRequirements():boolean {
+    return (this._session && (this._session.type==='TEST_DEF_A') && this.audioDevices && this._audioDevices.length>0)
   }
 
 
@@ -425,15 +442,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
-    this.displayAudioBuffer = null;
+    this.displayAudioClip = null;
     this.showRecording();
     if (this.section.mode === 'AUTORECORDING') {
       this.autorecording = true;
     }
 
     if(!this.ac.opened) {
-      console.info("Open session with default audio device for " + this._channelCount + " channels");
-      this.ac.open(this._channelCount);
+      if(this._selectedDeviceId){
+        console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for "+this._channelCount+" channels");
+      }else{
+        console.log("Open session with default audio device for " + this._channelCount + " channels");
+      }
+      this.ac.open(this._channelCount,this._selectedDeviceId);
     }else {
       this.ac.start();
     }
@@ -543,16 +564,16 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this._displayRecFile) {
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
       if(ab) {
-        this.displayAudioBuffer = ab;
-        this.controlAudioPlayer.audioBuffer = ab;
+        this.displayAudioClip = new AudioClip(ab);
+        this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else{
         // clear for now ...
-        this.displayAudioBuffer = null;
-        this.controlAudioPlayer.audioBuffer = null;
+        this.displayAudioClip = null;
+        this.controlAudioPlayer.audioClip = null;
+        if (this._controlAudioPlayer) {
         //... and try to fetch from server
-        this.audioFetchSubscription=this.recFileService.getCachedOrFetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
-          let fab:AudioBuffer|null=null;
-
+          this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+            let fab = null;
           if(rf) {
             fab=this._displayRecFile.audioBuffer;
             console.debug("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
@@ -560,8 +581,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             this.statusMsg='Recording file could not be loaded.'
             this.statusAlertType='error'
           }
-          this.displayAudioBuffer = fab;
-          this.controlAudioPlayer.audioBuffer = fab;
+            this.displayAudioClip = new AudioClip(fab)
+            this.controlAudioPlayer.audioClip =this.displayAudioClip
           this.showRecording();
 
         },err=>{
@@ -569,11 +590,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           this.statusMsg='Recording file could not be loaded: '+err
           this.statusAlertType='error'
         })
+        }else{
+          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
+          this.statusAlertType = 'error'
+        }
       }
 
     } else {
-      this.displayAudioBuffer = null;
-      this.controlAudioPlayer.audioBuffer = null;
+      this.displayAudioClip = null;
+      this.controlAudioPlayer.audioClip = null;
     }
   }
 
@@ -584,9 +609,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   showRecording() {
     this.controlAudioPlayer.stop();
 
-    if (this.displayAudioBuffer) {
+    if (this.displayAudioClip) {
 
-      this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
+      this.levelMeasure.calcBufferLevelInfos(this.displayAudioClip.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
         this.displayLevelInfos = levelInfos;
         this.changeDetectorRef.detectChanges();
       });
@@ -697,16 +722,31 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.sessionService.putSessionObserver(this._session).subscribe()
     }
     //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
+    this._selectedDeviceId=null;
 
     if (!this.readonly && this.ac) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
-      if (this._audioDevices && this._audioDevices.length>0) {
-        let fdi: MediaDeviceInfo | null = null;
+      this.ac.deviceInfos((mdis) => {
+        let audioCaptureDeviceAvail: boolean = false;
+        let audioPlayDeviceAvail: boolean = false;
+        if (mdis) {
+          this.ac.printDevices(mdis)
+          if (mdis.length > 0) {
+            for (let mdii = 0; mdii < mdis.length; mdii++) {
+              let mdi = mdis[mdii];
+              let kind=mdi.kind;
+              if(kind === "audioinput"){
+                audioCaptureDeviceAvail=true;
+              }else if(kind=== "audiooutput"){
+                audioPlayDeviceAvail=true;
+              }
+            }
+          }
 
-        this.ac.deviceInfos((mdis) => {
-          if (mdis && this._audioDevices) {
+          if (this._session.type !== 'TEST_DEF_A' && this._audioDevices && this._audioDevices.length > 0) {
+        let fdi: MediaDeviceInfo | null = null;
             for (let adI = 0; adI < this._audioDevices.length; adI++) {
               let ad = this._audioDevices[adI];
               if (ad.playback) {
@@ -716,6 +756,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               }
               for (let mdii = 0; mdii < mdis.length; mdii++) {
                 let mdi = mdis[mdii];
+                let kind=mdi.kind;
+                if(kind === "audioinput"){
+                  audioCaptureDeviceAvail=true;
+                }else if(kind=== "audiooutput"){
+                  audioPlayDeviceAvail=true;
+                }
                 if (ad.regex) {
                   //console.log("Match?: \'"+mdi.label+"\' \'"+ad.name+"\'");
                   if (mdi.label.match(ad.name)) {
@@ -735,43 +781,109 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                 break;
               }
             }
-          }
 
           if (fdi) {
             // matching device found
 
-            // Not able to open devive here since Chrome 71
+              // Not able to open device here since Chrome 71
             // Chrome 71 requires a user gesture before the AudioContext can be resumed
             // sessionmanager.ts:712 Open session with default audio device for 1 channels
             // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
             // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
-            console.info("Open session with audio device \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\' for "+this._channelCount+" channels");
-            this.ac.open(this._channelCount, fdi.deviceId);
+
+              //this.ac.open(this._channelCount, fdi.deviceId);
+              console.info("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+              this._selectedDeviceId = fdi.deviceId;
+
+              this.enableStartUserGesture()
           } else {
             // device not found
             this.statusMsg = 'ERROR: Required audio device not available!';
             this.statusAlertType = 'error';
+              this.readonly = true;
 
             this.dialog.open(MessageDialog, {
               data: {
                 type: 'error',
                 title: 'Required audio device',
                 msg: "Required audio device not found",
-                advice: "Please connect a suitable audio device for this project and retry."
-              },
+                  advice: "Please connect a suitable audio device for this project and retry (press the browser reload button)."
+                }
             })
           }
-        });
       } else {
-        // Not able to open devive here since Chrome 71
+            if(!audioCaptureDeviceAvail && !audioPlayDeviceAvail){
+              // no device found
+              this.statusMsg = 'ERROR: No audio device available!';
+              this.statusAlertType = 'warn';
+              //this.readonly = true;
+
+              this.dialog.open(MessageDialog, {
+                data: {
+                  type: 'warn',
+                  title: 'No audio device',
+                  msg: "No audio device found",
+                  advice: "Please connect an audio device and retry (press the browser reload button) or try to continue anyway."
+                }
+              })
+            }else {
+              if (!this.readonly && !audioCaptureDeviceAvail) {
+                // no device found
+                this.statusMsg = 'WARNING: No audio capture device available!';
+                this.statusAlertType = 'warning';
+                //this.readonly = true;
+
+                this.dialog.open(MessageDialog, {
+                  data: {
+                    type: 'warning',
+                    title: 'No audio capture device',
+                    msg: "No audio capture device found",
+                    advice: "Please connect an audio capture device and retry (press the browser reload button) or try to continue anyway."
+                  }
+                })
+              }
+              if (!audioPlayDeviceAvail) {
+                  // Firefox does not enumerate audiooutput devices
+                  // Do not show this warning, because it would always appear on Firefox
+                  // When https://bugzilla.mozilla.org/show_bug.cgi?id=1498512 is fixed the warning can be enabled for Firefox as well
+
+                  // It is already implemneted but kept behind a preference setting https://bugzilla.mozilla.org/show_bug.cgi?id=1152401
+
+
+                  // Output devices are listed if about:config media.setsinkid.enabled=true
+                  // but default setting is false
+                  if (!navigator.userAgent.match(".*Firefox.*")) {
+                      // no device found
+                      this.statusMsg = 'WARNING: No audio playback device available!';
+                      this.statusAlertType = 'warn';
+                      //this.readonly = true;
+
+                      this.dialog.open(MessageDialog, {
+                          data: {
+                              type: 'warn',
+                              title: 'No audio playback device',
+                              msg: "No audio playback device found",
+                              advice: "Please connect an audio playback device and retry (press the browser reload button) or try to continue anyway."
+                          }
+                      })
+                  }
+              }
+            }
+
+              // Not able to open device here since Chrome 71
         // Chrome 71 requires a user gesture before the AudioContext can be resumed
         // sessionmanager.ts:712 Open session with default audio device for 1 channels
         // capture.ts:128 The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://goo.gl/7K7WLu
         // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
         //console.log("Open session with default audio device for "+this._channelCount+" channels");
         //this.ac.open(this._channelCount);
+
+              // enable start gesture anyway
         this.enableStartUserGesture()
       }
+    }
+
+      });
     }
     if(this.promptItemCount>0) {
       this.promptIndex = 0;
@@ -784,7 +896,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   isActive(): boolean{
-    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR))
+    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording )
   }
 
     prevItem() {
@@ -895,8 +1007,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.promptItem.postrecording) {
       postDelay = this.promptItem.postrecording;
     }
-    //console.debug("Postrecording delay: "+postDelay)
-
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_STOP;
@@ -989,7 +1099,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
 
-      let recUrl: string=null;
       if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
@@ -1006,25 +1115,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
       let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
-      }
+
 
           // convert asynchronously to 16-bit integer PCM
           // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
           // TODO duplicate conversion for manual download
           //console.log("Build wav writer...");
+          this.processingRecording=true
       let ww = new WavWriter();
       ww.writeAsync(ad, (wavFile) => {
-        let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-        let rfDto = new RecordingFileDTO(rf, wavBlob)
-        this.recFileService.addRecordingFileObserver(rfDto, recUrl, this.enableUploadRecordings).subscribe((value) => {
-
-        }, (err) => {
-          console.error("Recording file store error: " + err)
-        }, () => {
-          console.info("Recording file stored to indexed db")
-        })
+            this.postRecording(wavFile, recUrl);
+            this.processingRecording=false
       });
-
+      }
     }
 
     // check complete session
@@ -1081,11 +1184,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   stop() {
     this.ac.close();
-  }
-
-
-  startControlPlayback() {
-    this.playStartAction.perform();
   }
 
   private updateControlPlaybackPosition() {
