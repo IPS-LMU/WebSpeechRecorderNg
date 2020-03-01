@@ -19,16 +19,16 @@ import { BinaryByteReader } from '../../io/BinaryReader'
 
             var rh = this.br.readAscii(4);
             if (rh !== WavFileFormat.RIFF_KEY) {
-                console.log("Error ! Expected RIFF header not: ", rh);
+                console.error("Error ! Expected RIFF header not: ", rh);
             }
             var cl = this.br.readUint32LE();
             if (this.br.pos + cl !== this.br.length()) {
-                console.log("Wrong chunksize in RIFF header: ", cl, " (expected: ", this.br.length() - this.br.pos, " )");
+                console.error("Wrong chunksize in RIFF header: ", cl, " (expected: ", this.br.length() - this.br.pos, " )");
             }
             this.dataLength = cl;
             var rt = this.br.readAscii(4);
             if (rt !== WavFileFormat.WAV_KEY) {
-                console.log(rt)
+                console.debug(rt)
             }
             var s = this.navigateToChunk('fmt ');
             if (!s) {
@@ -36,7 +36,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             }
             this.format = this.parseFmtChunk();
             var chsArr = this.readData();
-            console.log("Content length: ", cl);
+            console.debug("Content length: ", cl);
 
             //var ac=new ips.audio.AudioClip(this.format,chsArr);
             //TODO use AudioContext.AudioBuffer
@@ -53,7 +53,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
                 chkStr = this.br.readAscii(4);
                 chkLen = this.br.readUint32LE();
                 if (chunkString === chkStr) {
-                    console.log("Chunk ", chkStr, " (", chkLen, " bytes)");
+                    console.debug("Chunk ", chkStr, " (", chkLen, " bytes)");
                     return chkLen;
                 }
                 this.br.pos += chkLen;

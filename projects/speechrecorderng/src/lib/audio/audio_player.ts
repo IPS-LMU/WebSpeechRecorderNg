@@ -161,7 +161,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
 
   started() {
-    console.log("Play started");
+    console.debug("Play started");
     this.status = 'Playing...';
   }
 
@@ -179,13 +179,13 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       if (this.currentLoader) {
 
         var data = this.currentLoader.response; // not responseText
-        console.log("Received data ", data.byteLength);
+        console.debug("Received data ", data.byteLength);
         this.currentLoader = null;
         this.loaded(data);
       }
     }
     this.currentLoader.onerror = (e) => {
-      console.log("Error downloading ...");
+      console.error("Error downloading ...");
       //this.statusMsg.innerHTML = 'Error loading audio file!';
       this.currentLoader = null;
     }
@@ -197,12 +197,12 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   private loaded(data: ArrayBuffer) {
 
-    console.log("Loaded");
+    console.debug("Loaded");
     this.status = 'Audio file loaded.';
-    console.log("Received data ", data.byteLength);
+    console.debug("Received data ", data.byteLength);
 
     var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      console.log("Samplerate: ", audioBuffer.sampleRate)
+      console.info("Samplerate: ", audioBuffer.sampleRate)
       this.audioClip=new AudioClip(audioBuffer)
     });
   }

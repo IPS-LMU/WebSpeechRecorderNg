@@ -791,7 +791,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
 
               //this.ac.open(this._channelCount, fdi.deviceId);
-              console.log("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+              console.info("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
               this._selectedDeviceId = fdi.deviceId;
 
               this.enableStartUserGesture()
@@ -1065,10 +1065,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 

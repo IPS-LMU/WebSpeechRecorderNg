@@ -93,7 +93,6 @@ export class Prompter {
 
   @HostBinding('class.fill') public prompterStyleFill = false;
 
-  //@ViewChild('promptImage') promptImage:HTMLImageElement;
 
   constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService) {
 
