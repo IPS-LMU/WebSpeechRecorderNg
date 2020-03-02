@@ -710,15 +710,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
       });
     } else {
+      let body:any={};
       if (this._session.status === "CREATED") {
         this._session.status = "LOADED";
+        body.status=this._session.status;
         if (!this._session.loadedDate) {
           this._session.loadedDate = new Date();
+          body.loadedDate=this._session.loadedDate;
         }
       } else {
         this._session.restartedDate = new Date();
+        body.restartedDate=this._session.restartedDate;
       }
-      this.sessionService.putSessionObserver(this._session).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
     //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
     this._selectedDeviceId=null;
@@ -945,19 +949,23 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session.status==="LOADED") {
-
+      let body:any={};
       if (this.section.training) {
         this._session.status = "STARTED_TRAINING"
+        body.status=this._session.status;
         if(!this._session.startedTrainingDate) {
           this._session.startedTrainingDate = new Date();
+          body.startedTrainingDate=this._session.startedTrainingDate;
         }
       } else {
         this._session.status = "STARTED"
+        body.status=this._session.status;
         if(!this._session.startedDate) {
           this._session.startedDate = new Date();
+          body.startedDate=this._session.startedDate;
         }
       }
-      this.sessionService.putSessionObserver(this._session).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
@@ -1146,11 +1154,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let startNext=false;
     if (complete) {
       if(!this._session.sealed && this._session.status!=="COMPLETED") {
-          this._session.status = "COMPLETED"
+          let body:any={}
+          this._session.status = "COMPLETED";
+          body.status=this._session.status;
           if(!this._session.completedDate) {
-            this._session.completedDate = new Date()
+            this._session.completedDate = new Date();
+            body.completedDate=this._session.completedDate;
           }
-         this.sessionService.putSessionObserver(this._session).subscribe()
+         this.sessionService.patchSessionObserver(this._session,body).subscribe()
       }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
