@@ -40,3 +40,9 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+
+# NPM package lock file
+/package-lock.json
+
+# project configuration environment file
+src/environments/environment.prod.ts
