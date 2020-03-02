@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 
 export const DEFAULT_WARN_DB_LEVEL = -2;
@@ -47,7 +47,7 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
   }`]
 
 })
-export class LevelBar implements LevelListener {
+export class LevelBar implements LevelListener,AfterViewInit {
 
   @ViewChild('virtualCanvas', { static: true }) virtualCanvasRef: ElementRef;
   virtualCanvas: HTMLDivElement;
