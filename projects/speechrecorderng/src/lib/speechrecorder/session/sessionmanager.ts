@@ -572,8 +572,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.controlAudioPlayer.audioClip = null;
         if (this._controlAudioPlayer) {
         //... and try to fetch from server
-          this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
-            let fab = null;
+        this.audioFetchSubscription=this.recFileService.getCachedOrFetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
+          let fab:AudioBuffer|null=null;
+
           if(rf) {
             fab=this._displayRecFile.audioBuffer;
             console.debug("Session manager received: "+rf.itemCode+ " audio length: "+fab.length)
@@ -1099,6 +1100,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
 
+      let recUrl: string=null;
       if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
@@ -1115,7 +1117,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
       let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
-
+      }
 
           // convert asynchronously to 16-bit integer PCM
           // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
@@ -1124,10 +1126,17 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           this.processingRecording=true
       let ww = new WavWriter();
       ww.writeAsync(ad, (wavFile) => {
-            this.postRecording(wavFile, recUrl);
-            this.processingRecording=false
+        let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+        let rfDto = new RecordingFileDTO(rf, wavBlob)
+        this.recFileService.addRecordingFileObserver(rfDto, recUrl, this.enableUploadRecordings).subscribe((value) => {
+
+        }, (err) => {
+          console.error("Recording file store error: " + err)
+        }, () => {
+          console.info("Recording file stored to indexed db")
+        })
       });
-      }
+
     }
 
     // check complete session

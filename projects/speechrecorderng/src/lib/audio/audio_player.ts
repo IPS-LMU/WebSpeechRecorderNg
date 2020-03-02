@@ -202,8 +202,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     console.debug("Received data ", data.byteLength);
 
     var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      console.info("Samplerate: ", audioBuffer.sampleRate);
-      this.audioData=audioBuffer;
+      console.info("Samplerate: ", audioBuffer.sampleRate)
+      this.audioClip=new AudioClip(audioBuffer)
     });
   }
 
