@@ -1,12 +1,14 @@
 import {
-    ElementRef, AfterViewInit, HostListener, Input, OnInit
+  ElementRef, AfterViewInit, HostListener, Input, OnInit, Output, EventEmitter
 } from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
-import {Point} from './common'
+import {Marker, Point} from './common'
 
 import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioClip,Selection} from "../persistor";
+import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 
 @Component({
 
@@ -15,8 +17,8 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
     <div #virtualCanvas>
     <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)"></canvas>
-    <audio-signal></audio-signal>
-    <audio-sonagram></audio-sonagram>
+    <audio-signal [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-signal>
+    <audio-sonagram [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-sonagram>
     </div>
   `,
   styles: [`div {
@@ -50,7 +52,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
   }`]
 
 })
-export class AudioClipUIContainer implements OnInit,AfterViewInit {
+export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent implements OnInit,AfterViewInit {
 
   private static DIVIDER_PIXEL_SIZE = 10;
 
@@ -66,10 +68,12 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   @ViewChild(Sonagram, { static: true }) so: Sonagram;
 
 
-  private _clipBounds: Rectangle | null = null;
-
-
-  private _audioData: AudioBuffer | null;
+  //private _clipBounds: Rectangle | null = null;
+  private _audioClip:AudioClip | null=null;
+  pointer: Marker=null;
+  selecting: Selection=null;
+  selection: Selection=null;
+  @Output() selectionEventEmitter = new EventEmitter<Selection>();
   private _playFramePosition: number;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
@@ -91,15 +95,17 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this._fixFitToPanel = value;
     if (value) {
       // we don't need  clip bounds
-      this._clipBounds=null;
+      this.bounds=null;
       this._xZoom = null;
     } else {
       // hold current zoom value
+      //this._xZoom=this.ce.offsetWidth/this._audioData.duration;
     }
     this.layout()
   }
 
   constructor(private ref: ElementRef) {
+    super()
     this.parentE = this.ref.nativeElement;
   }
 
@@ -157,6 +163,21 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     }
   }
 
+  pointerPositionChanged(pp:Marker){
+    this.pointer=pp
+  }
+
+  selectingChanged(s:Selection| null){
+    this.selecting=s
+  }
+
+  selectionChanged(s:Selection){
+    this.selection=s
+    if(this._audioClip){
+      this._audioClip.selection=s
+    }
+    this.selectionEventEmitter.emit(this.selection)
+  }
 
   private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
     const cr = c.getBoundingClientRect();
@@ -237,21 +258,21 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
     this.dc.style.left = '0px';
     this.dc.style.width = wStr;
 
-    //this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    //this.dc.width = offW;
-    //this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-
     this.dc.style.width = wStr;
     this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
     this.drawDivider();
 
     let cLeft = 0;
     let cWidth = this.ce.clientWidth;
-    if ( !this._fixFitToPanel && this._clipBounds) {
-      cLeft = this._clipBounds.position.left;
-      cWidth = this._clipBounds.dimension.width;
+    if ( !this._fixFitToPanel && this.bounds) {
+      cLeft = this.bounds.position.left;
+      cWidth = this.bounds.dimension.width;
     }
     let virtualDim = new Dimension(offW, 0)
+
+    let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
+    this.layoutBounds(r, virtualDim, false);
+
     let asR = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, asH));
 
     this.as.layoutBounds(asR, virtualDim, false);
@@ -262,8 +283,7 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
   }
 
   clipBounds(clipBounds: Rectangle) {
-
-    this._clipBounds = clipBounds;
+    this.bounds = clipBounds;
 
     this.layout();
   }
@@ -335,9 +355,9 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let left=0;
       let intW=offW;
-      if( !this._fixFitToPanel && this._clipBounds) {
-        intW = Math.round(this._clipBounds.dimension.width);
-        left=Math.round(this._clipBounds.position.left);
+      if( !this._fixFitToPanel && this.bounds) {
+        intW = Math.round(this.bounds.dimension.width);
+        left=Math.round(this.bounds.position.left);
       }
       const dTop = asH;
       const dTopStr = dTop + 'px';
@@ -356,12 +376,15 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
       let cLeft=0;
       let cWidth=this.ce.clientWidth;
-      if(!this._fixFitToPanel &&  this._clipBounds){
-        cLeft=this._clipBounds.position.left;
-        cWidth=this._clipBounds.dimension.width;
+      if(!this._fixFitToPanel &&  this.bounds){
+        cLeft=this.bounds.position.left;
+        cWidth=this.bounds.dimension.width;
       }
 
       let virtualDim=new Dimension(offW,0)
+
+      let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
+      this.layoutBounds(r, virtualDim, false);
 
       let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
 
@@ -375,9 +398,34 @@ export class AudioClipUIContainer implements OnInit,AfterViewInit {
 
   @Input()
   set audioData(audioData: AudioBuffer | null) {
+    this._audioClip=null
     this._audioData=audioData;
     this.as.setData(audioData);
     this.so.setData(audioData);
+    this.layout();
+  }
+
+  get audioData():AudioBuffer|null{
+    return this._audioData
+  }
+
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+    this._audioClip=audioClip
+      let audioData:AudioBuffer=null;
+    let sel:Selection=null;
+      if(audioClip){
+        audioData=audioClip.buffer;
+        this._audioClip.addSelectionObserver((clip)=>{
+          this.selection=clip.selection
+        })
+        sel=audioClip.selection;
+      }
+      this._audioData = audioData;
+      this.as.setData(this._audioData);
+      this.so.setData(this._audioData);
+      this.selecting=null
+      this.selection=sel
     this.layout();
   }
 

@@ -3,8 +3,6 @@ import {DSPUtils} from '../../dsp/utils'
 import {CSSUtils} from '../../utils/css_utils'
 import {Marker, Point} from './common';
 import {Component, ElementRef, ViewChild} from "@angular/core";
-import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
-import {Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 
@@ -18,8 +16,9 @@ const DEFAULT_DFT_SIZE = 1024;
     selector: 'audio-sonagram',
     template: `
         <canvas #sonagram></canvas>
-        <canvas #cursor (mouseover)="drawCursorPosition($event, true)" (mousemove)="drawCursorPosition($event, true)"
-                (mouseleave)="drawCursorPosition($event, false)"></canvas>
+        <canvas #bg></canvas>
+        <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
+                (mouseleave)="updateCursorCanvas($event, false)"></canvas>
         <canvas #marker></canvas>`,
 
     styles: [`canvas {
@@ -37,10 +36,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
     n: any;
     ce: HTMLDivElement;
     sonagramCanvas: HTMLCanvasElement;
-    cursorCanvas: HTMLCanvasElement;
+    //cursorCanvas: HTMLCanvasElement;
     markerCanvas: HTMLCanvasElement;
     @ViewChild('sonagram', { static: true }) sonagramCanvasRef: ElementRef;
-    @ViewChild('cursor', { static: true }) cursorCanvasRef: ElementRef;
+
     @ViewChild('marker', { static: true }) markerCanvasRef: ElementRef;
     markers: Array<Marker>;
     private _playFramePosition: number;
@@ -52,11 +51,13 @@ export class Sonagram extends AudioCanvasLayerComponent {
     constructor(private ref: ElementRef) {
         super();
         this.worker = null;
-        this.audioData = null;
+        this._audioData = null;
         this.markers = new Array<Marker>();
         this.dft = new DFTFloat32(this.dftSize);
 
         this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
+       this._bgColor=null
+       this._selectColor='rgba(255,255,0,0.1)'
     }
 
     ngAfterViewInit() {
@@ -64,14 +65,17 @@ export class Sonagram extends AudioCanvasLayerComponent {
         this.ce = this.ref.nativeElement;
         this.sonagramCanvas = this.sonagramCanvasRef.nativeElement;
         this.sonagramCanvas.style.zIndex = '1';
+      this.bgCanvas = this.bgCanvasRef.nativeElement;
+      this.bgCanvas.style.zIndex = '2';
         this.cursorCanvas = this.cursorCanvasRef.nativeElement;
-        this.cursorCanvas.style.zIndex = '3';
+        this.cursorCanvas.style.zIndex = '4';
         this.markerCanvas = this.markerCanvasRef.nativeElement;
-        this.markerCanvas.style.zIndex = '2';
+        this.markerCanvas.style.zIndex = '3';
 
         this.canvasLayers[0] = this.sonagramCanvas;
-        this.canvasLayers[1] = this.cursorCanvas;
-        this.canvasLayers[2] = this.markerCanvas;
+      this.canvasLayers[1] = this.bgCanvas;
+      this.canvasLayers[2] = this.cursorCanvas;
+        this.canvasLayers[3] = this.markerCanvas;
 
     }
 
@@ -113,7 +117,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
               g.closePath();
 
               g.stroke();
-              if (this.audioData) {
+
+                    if (this._audioData) {
 
                 let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
                 g.font = '14px sans-serif';
@@ -584,6 +589,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
         }
         this.startRender();
+        this.drawCursorLayer()
     }
 
     private startRender() {
@@ -598,17 +604,18 @@ export class Sonagram extends AudioCanvasLayerComponent {
             let h = Math.round(this.bounds.dimension.height);
 
 
-            if (this.audioData && w>0 && h>0) {
+            if (this._audioData && w>0 && h>0) {
 
                 this.worker = new Worker(this.workerURL);
                 //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
-                let chs = this.audioData.numberOfChannels;
 
-                let frameLength = this.audioData.getChannelData(0).length;
+                let chs = this._audioData.numberOfChannels;
+
+                let frameLength = this._audioData.getChannelData(0).length;
                 let ada = new Array<ArrayBuffer>(chs);
                 for (let ch = 0; ch < chs; ch++) {
                     // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
-                    ada[ch] = this.audioData.getChannelData(ch).buffer.slice(0);
+                    ada[ch] = this._audioData.getChannelData(ch).buffer.slice(0);
                 }
                 let start = Date.now();
                 if (this.worker) {
@@ -661,7 +668,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 }
             }
         }
-
+        this.drawBg()
         this.drawPlayPosition();
     }
 
@@ -676,12 +683,12 @@ export class Sonagram extends AudioCanvasLayerComponent {
             g.clearRect(0, 0, w, h);
             g.fillStyle = "white";
             g.fillRect(0, 0, w, h);
-            if (this.audioData) {
+            if (this._audioData) {
                 let spectSize = Math.floor(this.dftSize / 2)
-                let chs = this.audioData.numberOfChannels;
+                let chs = this._audioData.numberOfChannels;
                 let chH = h / chs;
 
-                let frameLength = this.audioData.getChannelData(0).length;
+                let frameLength = this._audioData.getChannelData(0).length;
 
                 let framesPerPixel = frameLength / w;
                 let y = 0;
@@ -695,7 +702,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     let x = 0;
                     sona[ch] = new Array<Float32Array>(w);
 
-                    let chData = this.audioData.getChannelData(ch);
+                    let chData = this._audioData.getChannelData(ch);
                     // TODO center buffer
 
                     let framePos = 0;
@@ -769,7 +776,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
 
     setData(audioData: AudioBuffer | null) {
-        this.audioData = audioData;
+        this._audioData = audioData;
         this.playFramePosition = 0;
         //this.redraw();
         //this.startRender();

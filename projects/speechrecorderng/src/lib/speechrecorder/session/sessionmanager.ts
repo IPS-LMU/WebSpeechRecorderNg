@@ -26,6 +26,7 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
+import {AudioClip} from "../../audio/persistor";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -68,8 +69,10 @@ export class Item {
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioBuffer]="displayAudioBuffer"
+                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
                         [playStartAction]="controlAudioPlayer?.startAction"
+                        [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+                        [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
                         [playStopAction]="controlAudioPlayer?.stopAction">
 
     </app-sprprompting>
@@ -80,11 +83,11 @@ export class Item {
                               [playStopAction]="controlAudioPlayer?.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
-                              [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
+                              [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioBuffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
@@ -134,7 +137,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   transportActions: TransportActions;
   dnlLnk: HTMLAnchorElement;
-  playStartAction: Action;
+  playStartAction: Action<void>;
   audio: any;
 
   _session: Session;
@@ -159,7 +162,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
-  displayAudioBuffer: AudioBuffer | null;
+  displayAudioClip: AudioClip | null;
+
   displayLevelInfos: LevelInfos | null;
 
   promptItemCount: number;
@@ -439,7 +443,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
-    this.displayAudioBuffer = null;
+    this.displayAudioClip = null;
     this.showRecording();
     if (this.section.mode === 'AUTORECORDING') {
       this.autorecording = true;
@@ -561,12 +565,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this._displayRecFile) {
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
       if(ab) {
-        this.displayAudioBuffer = ab;
-        this.controlAudioPlayer.audioBuffer = ab;
+        this.displayAudioClip = new AudioClip(ab);
+        this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else{
         // clear for now ...
-        this.displayAudioBuffer = null;
-        this.controlAudioPlayer.audioBuffer = null;
+        this.displayAudioClip = null;
+        this.controlAudioPlayer.audioClip = null;
         if (this._controlAudioPlayer) {
         //... and try to fetch from server
         this.audioFetchSubscription=this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
@@ -577,8 +581,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             this.statusMsg='Recording file could not be loaded.'
             this.statusAlertType='error'
           }
-            this.displayAudioBuffer = fab;
-            this.controlAudioPlayer.audioBuffer = fab;
+            this.displayAudioClip = new AudioClip(fab)
+            this.controlAudioPlayer.audioClip =this.displayAudioClip
           this.showRecording();
 
         },err=>{
@@ -593,8 +597,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
 
     } else {
-      this.displayAudioBuffer = null;
-      this.controlAudioPlayer.audioBuffer = null;
+      this.displayAudioClip = null;
+      this.controlAudioPlayer.audioClip = null;
     }
   }
 
@@ -605,9 +609,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   showRecording() {
     this.controlAudioPlayer.stop();
 
-    if (this.displayAudioBuffer) {
+    if (this.displayAudioClip) {
 
-      this.levelMeasure.calcBufferLevelInfos(this.displayAudioBuffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
+      this.levelMeasure.calcBufferLevelInfos(this.displayAudioClip.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
         this.displayLevelInfos = levelInfos;
         this.changeDetectorRef.detectChanges();
       });
@@ -706,15 +710,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
       });
     } else {
+      let body:any={};
       if (this._session.status === "CREATED") {
         this._session.status = "LOADED";
+        body.status=this._session.status;
         if (!this._session.loadedDate) {
           this._session.loadedDate = new Date();
+          body.loadedDate=this._session.loadedDate;
         }
       } else {
         this._session.restartedDate = new Date();
+        body.restartedDate=this._session.restartedDate;
       }
-      this.sessionService.putSessionObserver(this._session).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
     //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
     this._selectedDeviceId=null;
@@ -787,7 +795,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
 
               //this.ac.open(this._channelCount, fdi.deviceId);
-              console.log("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+              console.info("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
               this._selectedDeviceId = fdi.deviceId;
 
               this.enableStartUserGesture()
@@ -941,19 +949,23 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session.status==="LOADED") {
-
+      let body:any={};
       if (this.section.training) {
         this._session.status = "STARTED_TRAINING"
+        body.status=this._session.status;
         if(!this._session.startedTrainingDate) {
           this._session.startedTrainingDate = new Date();
+          body.startedTrainingDate=this._session.startedTrainingDate;
         }
       } else {
         this._session.status = "STARTED"
+        body.status=this._session.status;
         if(!this._session.startedDate) {
           this._session.startedDate = new Date();
+          body.startedDate=this._session.startedDate;
         }
       }
-      this.sessionService.putSessionObserver(this._session).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
@@ -1061,10 +1073,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 
@@ -1142,11 +1154,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let startNext=false;
     if (complete) {
       if(!this._session.sealed && this._session.status!=="COMPLETED") {
-          this._session.status = "COMPLETED"
+          let body:any={}
+          this._session.status = "COMPLETED";
+          body.status=this._session.status;
           if(!this._session.completedDate) {
-            this._session.completedDate = new Date()
+            this._session.completedDate = new Date();
+            body.completedDate=this._session.completedDate;
           }
-         this.sessionService.putSessionObserver(this._session).subscribe()
+         this.sessionService.patchSessionObserver(this._session,body).subscribe()
       }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
@@ -1179,11 +1194,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   stop() {
     this.ac.close();
-  }
-
-
-  startControlPlayback() {
-    this.playStartAction.perform();
   }
 
   private updateControlPlaybackPosition() {
