@@ -1,14 +1,12 @@
 import {
   Component,
   ViewChild,
-  ChangeDetectorRef,
-  AfterViewInit, HostListener, ElementRef, Output, OnInit, Input,
+  HostListener, ElementRef, Output, Input,
 } from '@angular/core'
 
 
 
 import {AudioClipUIContainer} from '../ui/container'
-import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../../action/action";
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip, Selection} from "../persistor";

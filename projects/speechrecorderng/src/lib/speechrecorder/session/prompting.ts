@@ -7,16 +7,15 @@ import {
   HostListener,
   ElementRef,
   OnInit,
-  AfterViewChecked,
   Renderer2,
-  ChangeDetectorRef, HostBinding, AfterContentChecked
+  HostBinding,
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
 import {Mediaitem, PromptItem} from "../script/script";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
@@ -95,7 +94,6 @@ export class Prompter {
 
   @HostBinding('class.fill') public prompterStyleFill = false;
 
-  //@ViewChild('promptImage') promptImage:HTMLImageElement;
 
   constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService) {
 

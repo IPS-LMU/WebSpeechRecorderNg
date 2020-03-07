@@ -1,10 +1,9 @@
 import {Action} from '../../action/action'
 import {
-  Component, ViewChild, Input, EventEmitter, Output
+  Component, ViewChild, Input
 } from "@angular/core";
 
-import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
-import { MatIcon } from "@angular/material/icon";
+import { MatDialog} from "@angular/material/dialog";
 
 
 @Component({
@@ -161,15 +160,6 @@ export class TransportActions {
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       {{startStopNextName()}}
     </button>
-    <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" mat-raised-button>
-      <mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
-      Stop
-    </button> 
-    <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" mat-raised-button>
-      <mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
-      <mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      Next
-    </button>-->
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
       Pause

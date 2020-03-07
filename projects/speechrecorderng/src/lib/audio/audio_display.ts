@@ -2,11 +2,11 @@ import {
     Component,
     ViewChild,
     ChangeDetectorRef,
-    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
+    AfterViewInit, Input, OnInit, ElementRef,
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
-import {ActivatedRoute, Params} from "@angular/router";
+import {ActivatedRoute} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 
@@ -40,7 +40,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
       padding: 20px;
       z-index: 5;
       box-sizing: border-box;
-      background-color: rgba(230, 230, 230, 0.75)
+      background-color: rgba(230, 230, 230, 1.0)
     }`,`          
           legend{
               margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
@@ -51,7 +51,7 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
       `]
 
 })
-export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+export class AudioDisplay implements OnInit,AfterViewInit {
 
   parentE: HTMLElement;
   private _audioClip:AudioClip
@@ -89,21 +89,10 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   }
 
   ngOnInit(){
-    //console.log("OnInit: "+this.ac);
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
-    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
-    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
-    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
-
-
-  }
-
-  ngAfterContentInit(){
-    //console.log("AfterContentInit: "+this.ac);
-  }
-
-  ngAfterContentChecked(){
-    //console.log("AfterContentChecked: "+this.ac);
+    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction
+    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction
+    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction
   }
 
   ngAfterViewInit() {
@@ -120,13 +109,6 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
 
   }
 
-
-  ngAfterViewChecked(){
-    //console.log("AfterViewChecked: "+this.ac);
-  }
-
-
-  init() {}
 
   layout(){
     this.audioDisplayScrollPane.layout();

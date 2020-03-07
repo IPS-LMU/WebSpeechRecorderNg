@@ -17,6 +17,8 @@ import {SPR_CFG} from "./app.config";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 
 
@@ -36,7 +38,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,StartComponent,SessionsComponent,
+    AppComponent,StartComponent,SessionsComponent
   ],
 
   imports: [

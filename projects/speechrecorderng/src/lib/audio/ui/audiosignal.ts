@@ -1,7 +1,4 @@
-import {Marker, Point} from './common'
-import {Component, ViewChild, ElementRef, Output, EventEmitter, Input, HostListener} from '@angular/core';
-import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
-import {Dimension, Rectangle} from "../../math/2d/geometry";
+import {Component, ViewChild, ElementRef} from '@angular/core';
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 

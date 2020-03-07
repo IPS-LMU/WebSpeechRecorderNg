@@ -1,10 +1,13 @@
-import {ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 
 export const DEFAULT_WARN_DB_LEVEL = -2;
 export const MIN_DB_LEVEL = -60.0;
+export const CONSIDERED_SILENCE_DB_LEVEL = MIN_DB_LEVEL*2;
 export const LINE_WIDTH = 2;
 export const LINE_DISTANCE = 2;
+export const LEVEL_INDICATOR_HEIGHT=3;
+
 export const OVERFLOW_THRESHOLD = 0.25;
 export const OVERFLOW_INCR_FACTOR = 0.5;
 
@@ -44,7 +47,7 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
   }`]
 
 })
-export class LevelBar implements LevelListener {
+export class LevelBar implements LevelListener,AfterViewInit {
 
   @ViewChild('virtualCanvas', { static: true }) virtualCanvasRef: ElementRef;
   virtualCanvas: HTMLDivElement;
@@ -79,7 +82,7 @@ export class LevelBar implements LevelListener {
   @HostListener('scroll', ['$event'])
   onScroll(se: Event) {
     setTimeout(()=>{
-          this.updateViewportPosition()
+          this.updateViewportPosition();
           this.drawAll();
           this.drawPlayPosition();
       });
@@ -205,29 +208,29 @@ export class LevelBar implements LevelListener {
     g.fillRect(x,0,LINE_WIDTH+LINE_DISTANCE,h)
   }
 
-  private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
-    //translate to viewport
-    let xc = x - this.ce.scrollLeft;
-
-    this.drawLevelBackground(g,xc,h);
-    g.lineWidth = LINE_WIDTH;
-    if (dbVal >= this.warnDBLevel) {
-      g.strokeStyle = 'red';
-      g.fillStyle = 'red';
-
-    } else {
-      g.strokeStyle = '#00c853';
-      g.fillStyle = '#00c853';
-    }
-    g.beginPath();
-    g.moveTo(xc, h);
-    let pVal = ((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL) * h;
-
-    g.lineTo(xc, h - pVal);
-    g.closePath();
-    g.stroke();
-
-  }
+  // private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
+  //   //translate to viewport
+  //   let xc = x - this.ce.scrollLeft;
+  //
+  //   this.drawLevelBackground(g,xc,h);
+  //   g.lineWidth = LINE_WIDTH;
+  //   if (dbVal >= this.warnDBLevel) {
+  //     g.strokeStyle = 'red';
+  //     g.fillStyle = 'red';
+  //
+  //   } else {
+  //     g.strokeStyle = '#00c853';
+  //     g.fillStyle = '#00c853';
+  //   }
+  //   g.beginPath();
+  //   g.moveTo(xc, h);
+  //   let pVal = ((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL) * h;
+  //
+  //   g.lineTo(xc, h - pVal);
+  //   g.closePath();
+  //   g.stroke();
+  //
+  // }
 
   private drawLevelLines(g: CanvasRenderingContext2D, x: number, h: number, dbVals: Array<number>) {
     //translate to viewport
@@ -242,15 +245,27 @@ export class LevelBar implements LevelListener {
       if (dbVal >= this.warnDBLevel) {
         g.strokeStyle = 'red';
         g.fillStyle = 'red';
+      } else if(dbVal < CONSIDERED_SILENCE_DB_LEVEL) {
+        g.strokeStyle='grey';
+        g.fillStyle='grey'
       } else {
         g.strokeStyle = '#00c853';
-        g.fillStyle = '#00c853';
+          g.fillStyle = '#00c853'
       }
       g.beginPath();
       g.moveTo(xc, y + chH);
-      let pVal = ((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL) * chH;
-
-      g.lineTo(xc, y + chH - pVal);
+      g.lineTo(xc, y + chH - LEVEL_INDICATOR_HEIGHT);
+      let pnVal=((dbVal - MIN_DB_LEVEL) / -MIN_DB_LEVEL);
+      let lvlIndicatorSpace=LEVEL_INDICATOR_HEIGHT+LINE_DISTANCE;
+      let levelH=chH-lvlIndicatorSpace;
+      let pVal = pnVal * levelH;
+      if(pVal>levelH-1){
+        pVal=levelH-1
+      }else if(pVal<0){
+        pVal=0
+      }
+      g.moveTo(xc, y + chH - lvlIndicatorSpace );
+      g.lineTo(xc, y + chH - lvlIndicatorSpace - pVal);
       g.closePath();
       g.stroke();
     }
@@ -259,7 +274,6 @@ export class LevelBar implements LevelListener {
   private drawPushValue(x: number, dbVals: Array<number>) {
 
     if (this.liveLevelCanvas) {
-      let w = this.liveLevelCanvas.width;
       let h = this.liveLevelCanvas.height;
       let g = this.liveLevelCanvas.getContext("2d");
       if (g) {
@@ -324,8 +338,7 @@ export class LevelBar implements LevelListener {
       let framesPerBuffer = this._staticLevelInfos.framesPerBuffer();
       let pixelsPerBuffer = LINE_DISTANCE + LINE_WIDTH;
 
-      let framesPerPixel=framesPerBuffer / pixelsPerBuffer;
-      return framesPerPixel;
+      return framesPerBuffer / pixelsPerBuffer;
     }
     return null;
   }

@@ -1,6 +1,5 @@
 import { Action } from '../../action/action'
 import { AudioClip } from '../persistor'
-import {Observer} from "../../utils/observer";
 
     export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED}
 

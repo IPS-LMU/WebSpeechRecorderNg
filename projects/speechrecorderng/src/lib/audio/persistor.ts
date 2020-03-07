@@ -1,7 +1,3 @@
-import { PCMAudioFormat} from './format'
-import {Observable} from "rxjs";
-import {Observer} from "../utils/observer";
-
     export class AudioClip {
 
         private _buffer: AudioBuffer;

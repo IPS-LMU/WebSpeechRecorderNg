@@ -11,9 +11,7 @@ import {
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {Status as SessionStatus} from "./session";
 import { MatDialog } from "@angular/material/dialog";
-import { MatProgressBar } from "@angular/material/progress-bar";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -25,9 +23,8 @@ import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
-import {AudioClipUIContainer} from "../../audio/ui/container";
 import {RecordingService} from "../recordings/recordings.service";
-import {Observable, Subscription} from "rxjs";
+import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 
@@ -573,6 +570,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         // clear for now ...
         this.displayAudioClip = null;
         this.controlAudioPlayer.audioClip = null;
+        if (this._controlAudioPlayer) {
         //... and try to fetch from server
         this.audioFetchSubscription=this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context,this._session.project,this._displayRecFile).subscribe((rf)=>{
           let fab=null;
@@ -591,6 +589,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           this.statusMsg='Recording file could not be loaded: '+err
           this.statusAlertType='error'
         })
+        }else{
+          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
+          this.statusAlertType = 'error'
+        }
       }
 
     } else {
@@ -707,15 +709,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
       });
     } else {
+      let body:any={};
       if (this._session.status === "CREATED") {
         this._session.status = "LOADED";
+        body.status=this._session.status;
         if (!this._session.loadedDate) {
           this._session.loadedDate = new Date();
+          body.loadedDate=this._session.loadedDate;
         }
       } else {
         this._session.restartedDate = new Date();
+        body.restartedDate=this._session.restartedDate;
       }
-      this.sessionService.putSessionObserver(this._session).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
     //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
     this._selectedDeviceId=null;
@@ -788,7 +794,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               // push../projects/speechrecorderng/src/lib/audio/capture/capture.ts.AudioCapture.open @ capture.ts:128
 
               //this.ac.open(this._channelCount, fdi.deviceId);
-              console.log("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
+              console.info("Set selected audio device: \'" + fdi.label + "\' Id: \'" + fdi.deviceId + "\'");
               this._selectedDeviceId = fdi.deviceId;
 
               this.enableStartUserGesture()
@@ -942,19 +948,23 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session.status==="LOADED") {
-
+      let body:any={};
       if (this.section.training) {
         this._session.status = "STARTED_TRAINING"
+        body.status=this._session.status;
         if(!this._session.startedTrainingDate) {
           this._session.startedTrainingDate = new Date();
+          body.startedTrainingDate=this._session.startedTrainingDate;
         }
       } else {
         this._session.status = "STARTED"
+        body.status=this._session.status;
         if(!this._session.startedDate) {
           this._session.startedDate = new Date();
+          body.startedDate=this._session.startedDate;
         }
       }
-      this.sessionService.putSessionObserver(this._session).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
@@ -1062,10 +1072,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.log("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 
@@ -1143,11 +1153,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let startNext=false;
     if (complete) {
       if(!this._session.sealed && this._session.status!=="COMPLETED") {
-          this._session.status = "COMPLETED"
+          let body:any={}
+          this._session.status = "COMPLETED";
+          body.status=this._session.status;
           if(!this._session.completedDate) {
-            this._session.completedDate = new Date()
+            this._session.completedDate = new Date();
+            body.completedDate=this._session.completedDate;
           }
-         this.sessionService.putSessionObserver(this._session).subscribe()
+         this.sessionService.patchSessionObserver(this._session,body).subscribe()
       }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});

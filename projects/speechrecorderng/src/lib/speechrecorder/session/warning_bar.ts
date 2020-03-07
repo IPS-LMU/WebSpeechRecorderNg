@@ -1,6 +1,5 @@
-import {AfterViewInit, Component, Input, OnDestroy} from "@angular/core";
+import {Component, Input} from "@angular/core";
 import {SessionService} from "./session.service";
-import {AudioCaptureListener} from "../../audio/capture/capture";
 
 @Component({
 

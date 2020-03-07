@@ -15,7 +15,7 @@ import {Project} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
+import {RecordingFileDescriptor} from "./speechrecorder/recording";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -24,7 +24,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession [projectName]="project?.name"></app-sprrecordingsession>
+    <app-sprrecordingsession [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
   styles: [`:host{
     flex: 2;
@@ -69,7 +69,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
       }catch(err){
         this.sm.statusMsg=err.message;
         this.sm.statusAlertType='error';
-        console.log(err.message)
+        console.error(err.message)
       }
     }
        ngAfterViewInit(){
@@ -102,26 +102,25 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
           if (sess.project) {
-            console.log("Session associated project: "+sess.project)
-
+            console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);
             },reason =>{
               this.sm.statusMsg=reason;
               this.sm.statusAlertType='error';
-              console.log("Error fetching project config: "+reason)
+              console.error("Error fetching project config: "+reason)
             });
 
           } else {
-            console.log("Session has no associated project. Using default configuration.")
+            console.info("Session has no associated project. Using default configuration.")
             this.fetchScript(sess);
           }
         },
         (reason) => {
             this.sm.statusMsg = reason;
             this.sm.statusAlertType = 'error';
-            console.log("Error fetching session " + reason)
+            console.error("Error fetching session " + reason)
           });
       }
     }
@@ -135,14 +134,14 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
           this.fetchRecordings(sess,this.script)
         },reason =>{
           let errMsg="Error fetching recording script: "+reason
-           console.log(errMsg)
+           console.error(errMsg)
             this.sm.statusMsg=errMsg;
             this.sm.statusAlertType='error';
 
           });
       }else{
         let errMsg="No recording script is defined for this session with ID "+sess.sessionId;
-        console.log(this.sm.statusMsg)
+        console.error(this.sm.statusMsg)
         this.sm.statusMsg=errMsg;
         this.sm.statusAlertType='error';
 
@@ -157,14 +156,14 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             if(rfs instanceof Array) {
               rfs.forEach((rf) => {
                 // TODO test output for now
-                console.log("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
                 this.sm.addRecordingFileByDescriptor(rf);
               })
             }else{
               console.error('Expected type array for list of already recorded files ')
             }
           }else{
-            console.log("Recording file list: " + rfs);
+            console.debug("Recording file list: " + rfs);
           }
         },()=>{
           // we start the session anyway
@@ -183,13 +182,18 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
         setSession(session:any){
 		    if(session) {
-                console.log("Session ID: " + session.sessionId);
+                console.debug("Session ID: " + session.sessionId);
 
 
             }else{
-                console.log("Session Undefined");
+                console.debug("Session Undefined");
             }
 
+            }
+
+
+        ready():boolean{
+		    return this.dataSaved && !this.sm.isActive()
         }
 
 		init():boolean {
@@ -227,9 +231,9 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             }
 
             window.addEventListener('beforeunload', (e) => {
-                console.log("Before page unload event");
+                console.debug("Before page unload event");
 
-                if (this.dataSaved && !this.sm.isActive()) {
+                if (this.ready()) {
                     return;
                 } else {
                     // all this attempts to customize the message do not work anymore (for security reasons)!!
@@ -302,11 +306,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     let chCnt = 2;
 
     if (project) {
-      console.log("Project name: "+project.name)
+      console.info("Project name: "+project.name)
       this.sm.audioDevices = project.audioDevices;
       if(project.audioFormat) {
         chCnt =project.audioFormat.channels;
-        console.log("Project requested recording channel count: "+chCnt)
+        console.info("Project requested recording channel count: "+chCnt)
       }
     }else{
       console.error("Empty project configuration!")
@@ -347,7 +351,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
           callback();
         }
         pLoader.onerror = (e) => {
-          console.log("Error downloading project data ...");
+          console.error("Error downloading project data ...");
         }
         pLoader.send();
       }
