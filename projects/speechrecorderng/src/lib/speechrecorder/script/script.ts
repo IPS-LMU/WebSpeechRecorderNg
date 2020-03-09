@@ -72,6 +72,63 @@ export interface Script {
   sections: Array<Section>;
 }
 
+export class PromptDocUtil{
+  static toPlainTextString(promptDoc:PromptDoc):string{
+    let pt="";
+    let b=promptDoc.body;
+    if(b!=null) {
+      let blks=b.blocks
+      if(blks) {
+        for(let bli=0;bli<blks.length;bli++){
+          let blk=blks[bli];
+          let txts=blk.texts;
+          for(let ti=0;ti<txts.length;ti++){
+              let txtEl=txts[ti];
+              let txt=txtEl.text;
+              if( txtEl.type === 'font' && txt instanceof Text){
+                let tfo:Text=<Text>txt;
+                if(typeof tfo.text ==='string') {
+                  pt = pt.concat(<string>tfo.text);
+                }
+              }else if(typeof txt === 'string'){
+                pt = pt.concat(<string>txt);
+              }
+          }
+        }
+      }
+    }
+    return pt;
+  }
+}
 
+export class MediaitemUtil {
+  static toPlainTextString(mediaitem:Mediaitem):string{
+
+    let txt=mediaitem.text;
+    let pd=mediaitem.promptDoc;
+    if (txt==null){
+      let pt="";
+      if(pd!=null) {
+        let pdPStr=PromptDocUtil.toPlainTextString(pd);
+        pt=pt.concat(pdPStr);
+      }
+      return pt;
+    }else{
+      return txt;
+    }
+  }
+}
+
+export class PromptitemUtil {
+   static toPlainTextString(promptItem:PromptItem):string {
+     let pt = "";
+
+     if (promptItem.mediaitems && promptItem.mediaitems.length > 0) {
+       let mi = promptItem.mediaitems[0];
+       pt = MediaitemUtil.toPlainTextString(mi);
+     }
+     return pt;
+   }
+}
 
 

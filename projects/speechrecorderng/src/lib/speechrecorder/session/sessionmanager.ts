@@ -2,7 +2,7 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group,PromptItem} from '../script/script';
+import {Script, Section, Group, PromptItem, PromptitemUtil} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
@@ -480,10 +480,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           this.promptItemCount += pisLen;
           for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
             let pi = pis[piSectIdx];
-            let promptAsStr = '';
-            if (pi.mediaitems && pi.mediaitems.length > 0) {
-              promptAsStr = pi.mediaitems[0].text;
-            }
+            let promptAsStr = PromptitemUtil.toPlainTextString(pi);
 
             let it = new Item(promptAsStr, section.training);
             this.items.push(it);
