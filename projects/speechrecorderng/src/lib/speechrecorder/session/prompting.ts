@@ -15,7 +15,7 @@ import {
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./sessionmanager";
-import {Mediaitem, PromptItem} from "../script/script";
+import {Block, Text, Mediaitem, PromptItem} from "../script/script";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
@@ -88,6 +88,7 @@ export class Prompter {
   @Input() prompterHeight: number
   private _text: string = null;
   private _src: string = null;
+  private _blocks: Array<Block>=null;
   mimetype: string;
   private currPromptChild: HTMLElement = null;
 
@@ -131,6 +132,26 @@ export class Prompter {
         }
     }
 
+    private appendTextElement(parentEl:HTMLElement,txt:Text){
+      let t: string = <string>txt.text
+      let txtNd = this.renderer.createText(t)
+      if(txt.decoration || txt.color){
+        let spEl = this.renderer.createElement('span')
+        let styleStr=''
+        if(txt.decoration) {
+          styleStr = styleStr +'text-decoration: ' + txt.decoration+';'
+        }
+        if(txt.color){
+          styleStr = styleStr +'color: ' + txt.color+';'
+        }
+        spEl.style=styleStr
+        this.renderer.appendChild(parentEl, spEl)
+        this.renderer.appendChild(spEl, txtNd)
+      }else {
+        this.renderer.appendChild(parentEl, txtNd)
+      }
+    }
+
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
@@ -148,6 +169,58 @@ export class Prompter {
         this.currPromptChild = this.renderer.createText(this._text)
         this.prompterStyleFill = false
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+      } else if (this.mimetype === 'text/x-prompt') {
+        //this.rendering=true
+        this._text=null;
+        this._src=null;
+        this._blocks=new Array<Block>()
+        let pd=mi.promptDoc
+        if(pd){
+          let pdBody=pd.body
+          if(pdBody){
+            this._blocks=pdBody.blocks;
+          }
+        }
+
+        this.prompterStyleFill = false
+        this.currPromptChild = this.renderer.createElement('div')
+
+        for(let bi=0;bi<this._blocks.length;bi++){
+          let bl=this._blocks[bi]
+          if('p' === bl.type){
+            let pBlEl = this.renderer.createElement('p')
+            this.renderer.appendChild(this.currPromptChild,pBlEl)
+            for(let ti=0;ti<bl.texts.length;ti++){
+              let txt=bl.texts[ti]
+              if(txt) {
+                if ('text' === txt.type) {
+                  this.appendTextElement(pBlEl,txt)
+                } else if ('font' === txt.type) {
+                  let spEl = this.renderer.createElement('span')
+                  let styleStr=''
+                  if(txt.style){
+                      styleStr=styleStr+'font-style: '+txt.style+';'
+                  }
+                  if(txt.size){
+                    styleStr=styleStr+'font-size: '+txt.size+';'
+                  }
+                  if(txt.weight){
+                    styleStr=styleStr+'font-weight: '+txt.weight+';'
+                  }
+                  spEl.style=styleStr
+                  this.renderer.appendChild(pBlEl, spEl)
+                  this.appendTextElement(spEl,<Text>txt.text)
+                }else if ('linebreak' === txt.type) {
+                  let brEl = this.renderer.createElement('br')
+                  this.renderer.appendChild(pBlEl, brEl)
+                }
+              }
+            }
+
+          }
+        }
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        //this.rendering=false
       } else if (this.mimetype.startsWith('image')) {
         this._text = null;
         this._src = mi.src
@@ -268,9 +341,14 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       if (mi.mimetype) {
         mimetype = mi.mimetype.trim();
       }
+      if(mi.defaultVirtualViewBox){
+        this.prompterHeight=mi.defaultVirtualViewBox.height
+      }
+    }else{
+      this.prompterHeight=VIRTUAL_HEIGHT
     }
     this.prompter.promptMediaItems=this._mediaitems
-    this.autoFontSize=(mimetype === 'text/plain');
+    this.autoFontSize=(mimetype!=null && mimetype.startsWith('text/'));
     if(this.autoFontSize){
         this.fontSizeChange = true;
         this.contentChecked = false
@@ -299,7 +377,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       this.prDisplay = 'hidden'
       let elH = this.elRef.nativeElement.offsetHeight;
       // prompt text font size should scale according to prompt container height
-      let scaledSize = Math.round((elH / VIRTUAL_HEIGHT) * DEFAULT_PROMPT_FONTSIZE);
+      let scaledSize = Math.round((elH / this.prompterHeight) * DEFAULT_PROMPT_FONTSIZE);
 
       // min prompt font size is default user agent size
       let newSize = Math.max(scaledSize, this.defaultFontSizePx);
