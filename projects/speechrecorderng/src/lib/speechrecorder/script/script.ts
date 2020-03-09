@@ -39,7 +39,8 @@ export interface Mediaitem {
   src?: string,
   promptDoc?: PromptDoc,
   mimetype?:string,
-  defaultVirtualViewBox?:VirtualViewBox
+  defaultVirtualViewBox?:VirtualViewBox,
+  alt?:string
 }
 
 export interface PromptItem {
@@ -102,32 +103,82 @@ export class PromptDocUtil{
 }
 
 export class MediaitemUtil {
-  static toPlainTextString(mediaitem:Mediaitem):string{
+  static toPlainTextString(mediaitem: Mediaitem): string {
 
-    let txt=mediaitem.text;
-    let pd=mediaitem.promptDoc;
-    if (txt==null){
-      let pt="";
-      if(pd!=null) {
-        let pdPStr=PromptDocUtil.toPlainTextString(pd);
-        pt=pt.concat(pdPStr);
+    let txt = mediaitem.text;
+    let pd = mediaitem.promptDoc;
+    if (txt == null) {
+      let pt = null;
+      if (pd != null) {
+        pt = PromptDocUtil.toPlainTextString(pd);
       }
       return pt;
-    }else{
+    } else {
       return txt;
     }
+  }
+
+  static description(mi: Mediaitem): string {
+    let description = "";
+
+    if (mi.alt != null) {
+      description = description.concat(mi.alt)
+    } else {
+      let src = mi.src;
+      let mimeType = mi.mimetype;
+      if (!mimeType) {
+        mimeType = 'text/plain';
+      }
+      if (mimeType.startsWith("image")) {
+        description = description.concat("IMAGE: ");
+      } else if (mimeType.startsWith("audio")) {
+        description = description.concat("AUDIO: ");
+      } else if (mimeType.startsWith("video")) {
+        description = description.concat("VIDEO: ");
+      }
+      let promptText = MediaitemUtil.toPlainTextString(mi);
+      if (promptText != null) {
+        description = description.concat(promptText);
+      } else if (src != null) {
+        let srcPn;
+        try {
+          let srcUrl = new URL(mi.src);
+          srcPn=srcUrl.pathname;
+        }catch{
+          srcPn=src;
+        }
+
+        // Get filename without extension
+        let srcFnM=srcPn.match(/([^\/]*)$/);
+        if(srcFnM.length==2){
+          let srcFn=srcFnM[1];
+          let srcFnNm=srcFn.replace(/[\.][^\.]*/,'');
+          description = description.concat(srcFnNm);
+        }
+      }
+    }
+    return description;
   }
 }
 
 export class PromptitemUtil {
    static toPlainTextString(promptItem:PromptItem):string {
-     let pt = "";
 
-     if (promptItem.mediaitems && promptItem.mediaitems.length > 0) {
-       let mi = promptItem.mediaitems[0];
-       pt = MediaitemUtil.toPlainTextString(mi);
+    let mis=promptItem.mediaitems;
+      let description="";
+     if (mis) {
+
+      let misSize=mis.length;
+     for(let i=0;i<misSize;i++) {
+       let mi = mis[i];
+       description=description.concat(MediaitemUtil.description(mi));
+       if (i + 1 < misSize) {
+         // not last item
+         description = description.concat(", ");
+       }
      }
-     return pt;
+     }
+     return description;
    }
 }
 
