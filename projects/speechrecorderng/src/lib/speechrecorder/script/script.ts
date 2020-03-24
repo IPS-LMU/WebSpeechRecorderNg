@@ -2,6 +2,8 @@
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
 export type PromptPhase = "IDLE" | "PRERECORDING" | "RECORDING";
 
+export type Order = 'SEQUENTIAL' | 'RANDOM' | 'RANDOMIZED';
+
 export type Decoration ='underline'
 export type Style ='italic' | 'normal'
 export type FontWeight='normal' | 'bold'
@@ -54,14 +56,18 @@ export interface PromptItem {
 }
 
 export interface Group {
+  order?:Order;
   promptItems: Array<PromptItem>;
+  _shuffledPromptItems: Array<PromptItem>;
 }
 
 export interface Section {
   mode: Mode;
   promptphase: PromptPhase;
+  order?: Order;
   training: boolean;
   groups: Array<Group>;
+  _shuffledGroups: Array<Group>;
 }
 
 export interface VirtualViewBox{

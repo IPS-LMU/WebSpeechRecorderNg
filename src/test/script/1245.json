@@ -707,7 +707,7 @@
       {
         "mode": "AUTORECORDING",
         "name": "Recording Session",
-        "order": "SEQUENTIAL",
+        "order": "RANDOM",
         "promptphase": "RECORDING",
         "speakerDisplay": true,
         "training": false,

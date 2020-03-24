@@ -400,9 +400,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let found=false;
     for (let si = 0; si < sections.length && !found; si++) {
       let section = sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for (let gi = 0; gi < gs.length; gi++) {
-        let pis=gs[gi].promptItems;
+        let pis=gs[gi]._shuffledPromptItems;
 
         let pisSize = pis.length;
         if (promptIndex < i + pisSize) {
@@ -471,10 +471,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //TODO randomize not supported
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for(let gi=0;gi<gs.length;gi++) {
 
-          let pis = gs[gi].promptItems;
+          let pis = gs[gi]._shuffledPromptItems;
 
           let pisLen = pis.length;
           this.promptItemCount += pisLen;
@@ -495,9 +495,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for(let gi=0;gi<gs.length;gi++) {
-        let pis=gs[gi].promptItems;
+        let pis=gs[gi]._shuffledPromptItems;
         let pisLen = pis.length;
         for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
           let pi = pis[piSectIdx];
@@ -643,8 +643,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   applyItem(temporary=false) {
 
     this.section = this._script.sections[this.sectIdx]
-    this.group = this.section.groups[this.groupIdxInSection];
-    this.promptItem = this.group.promptItems[this.promptItemIdxInGroup];
+    this.group = this.section._shuffledGroups[this.groupIdxInSection];
+    this.promptItem = this.group._shuffledPromptItems[this.promptItemIdxInGroup];
 
     //this.selectedItemIdx = this.promptIndex;
 
