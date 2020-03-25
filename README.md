@@ -9,7 +9,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "1.0.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "2.1.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -134,6 +134,27 @@ Example:
   "script": "1245"
 }
 ```  
+
+During the session the application will try to update the session object on the server by HTTP PATCH requests.
+The session properties status,loadedDate,startedTrainingDate,startedDate,completedDate and restartedDate 
+will be patched accordingly to the session events.
+
+REST Path: PATCH {apiEndPoint}session/{sessionId}
+
+Content-type: application/json
+
+Properties (only changed properties are set): 
+ * status: enum: "CREATED" | "LOADED" | "STARTED_TRAINING" | "STARTED" | "COMPLETED"  status of the session 
+ * loadedDate: string: date/time when session was loaded
+ * startedTrainingDate: string: date/time when a training section was started
+ * startedDate: string: date/time of recording start
+ * completedDate: string: date/time of session completed
+ * restartedDate: string: date/time of a session restart (continue) 
+
+For example when the session and script is loaded successfully, this PATCH request might be sent:
+```
+ {"status":"LOADED","loadedDate":"2020-03-25T12:52:12.616Z"}
+```
 
 ### Entity Script
 
