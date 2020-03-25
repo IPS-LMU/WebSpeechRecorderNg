@@ -33,6 +33,8 @@ export const RECFILE_API_CTX = 'recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+const DEFAULT_PRE_REC_DELAY=1000;
+const DEFAULT_POST_REC_DELAY=500;
 
 const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export const enum Mode {SERVER_BOUND, STAND_ALONE}
@@ -400,9 +402,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let found=false;
     for (let si = 0; si < sections.length && !found; si++) {
       let section = sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for (let gi = 0; gi < gs.length; gi++) {
-        let pis=gs[gi].promptItems;
+        let pis=gs[gi]._shuffledPromptItems;
 
         let pisSize = pis.length;
         if (promptIndex < i + pisSize) {
@@ -471,10 +473,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //TODO randomize not supported
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for(let gi=0;gi<gs.length;gi++) {
 
-          let pis = gs[gi].promptItems;
+          let pis = gs[gi]._shuffledPromptItems;
 
           let pisLen = pis.length;
           this.promptItemCount += pisLen;
@@ -498,9 +500,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for(let gi=0;gi<gs.length;gi++) {
-        let pis=gs[gi].promptItems;
+        let pis=gs[gi]._shuffledPromptItems;
         let pisLen = pis.length;
         for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
           let pi = pis[piSectIdx];
@@ -646,8 +648,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   applyItem(temporary=false) {
 
     this.section = this._script.sections[this.sectIdx]
-    this.group = this.section.groups[this.groupIdxInSection];
-    this.promptItem = this.group.promptItems[this.promptItemIdxInGroup];
+    this.group = this.section._shuffledGroups[this.groupIdxInSection];
+    this.promptItem = this.group._shuffledPromptItems[this.promptItemIdxInGroup];
 
     //this.selectedItemIdx = this.promptIndex;
 
@@ -973,19 +975,26 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
+    let preDelay = DEFAULT_PRE_REC_DELAY;
+    if (this.promptItem.prerecording) {
+      preDelay = this.promptItem.prerecording;
+    }
+
+    let postDelay=DEFAULT_POST_REC_DELAY;
+    if(this.promptItem.postrecording){
+      postDelay=this.promptItem.postrecording;
+    }
+
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     if (this.promptItem.recduration) {
-      maxRecordingTimeMs = this.promptItem.recduration;
+      maxRecordingTimeMs = preDelay+this.promptItem.recduration+postDelay;
     }
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
-    let preDelay = 1000;
-    if (this.promptItem.prerecording) {
-      preDelay = this.promptItem.prerecording;
-    }
+
 
     this.preRecTimerId = window.setTimeout(() => {
 
