@@ -33,6 +33,8 @@ export const RECFILE_API_CTX = 'recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+const DEFAULT_PRE_REC_DELAY=1000;
+const DEFAULT_POST_REC_DELAY=500;
 
 const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export const enum Mode {SERVER_BOUND, STAND_ALONE}
@@ -970,19 +972,26 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
+    let preDelay = DEFAULT_PRE_REC_DELAY;
+    if (this.promptItem.prerecording) {
+      preDelay = this.promptItem.prerecording;
+    }
+
+    let postDelay=DEFAULT_POST_REC_DELAY;
+    if(this.promptItem.postrecording){
+      postDelay=this.promptItem.postrecording;
+    }
+
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     if (this.promptItem.recduration) {
-      maxRecordingTimeMs = this.promptItem.recduration;
+      maxRecordingTimeMs = preDelay+this.promptItem.recduration+postDelay;
     }
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
-    let preDelay = 1000;
-    if (this.promptItem.prerecording) {
-      preDelay = this.promptItem.prerecording;
-    }
+
 
     this.preRecTimerId = window.setTimeout(() => {
 
