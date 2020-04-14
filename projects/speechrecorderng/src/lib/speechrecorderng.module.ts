@@ -43,18 +43,20 @@ import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatCard, MatCardModule} from "@angular/material/card";
 import {MatDividerModule} from "@angular/material/divider";
 import {MatGridListModule} from "@angular/material/grid-list";
+import {RecordingFileUI} from "./speechrecorder/session/recordingfile/recording-file-u-i.component";
 
 
 
 
 export const SPR_ROUTES: Routes = [
   { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
+  { path: 'spr/session/recordingfile/:recordingFileId',      component: RecordingFileUI },
   { path: 'spr',      component: SpeechrecorderngComponent }
 ];
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,ScrollIntoViewDirective],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileUI,ScrollIntoViewDirective],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
