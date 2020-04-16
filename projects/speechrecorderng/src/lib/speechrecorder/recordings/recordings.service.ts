@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse, HttpParams, HttpResponse} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse} from "@angular/common/http";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
@@ -69,8 +69,10 @@ export class RecordingService {
       recUrl = recUrl + '.wav?requestUUID=' + UUID.generate();
     }
 
-
+    let headers = new HttpHeaders();
+    headers = headers.set('Accept', 'audio/wav');
     return this.http.get(recUrl, {
+      headers: headers,
       observe: 'response',
       responseType: 'arraybuffer',
       params: this.httpParams,
