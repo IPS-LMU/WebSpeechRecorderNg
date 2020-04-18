@@ -1,4 +1,15 @@
 {
-    "recordingFileId": "1234"
+    "recordingFileId": "1234",
+    "recording" : {
+        "mediaitems" : [ {
+            "annotationTemplate" : true,
+            "text" : "Heute ist schönes Frühlingswetter!"
+        } ],
+        "itemcode" : "demo_99",
+        "recduration" : 4000,
+        "recinstructions" : {
+            "recinstructions" : "Please read:"
+        }
+    }
 }
 

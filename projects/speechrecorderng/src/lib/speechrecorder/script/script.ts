@@ -168,24 +168,24 @@ export class MediaitemUtil {
 }
 
 export class PromptitemUtil {
-   static toPlainTextString(promptItem:PromptItem):string {
+  static toPlainTextString(promptItem: PromptItem): string {
 
-    let mis=promptItem.mediaitems;
-      let description="";
-     if (mis) {
+    let mis = promptItem.mediaitems;
+    let description = "";
+    if (mis) {
 
-      let misSize=mis.length;
-     for(let i=0;i<misSize;i++) {
-       let mi = mis[i];
-       description=description.concat(MediaitemUtil.description(mi));
-       if (i + 1 < misSize) {
-         // not last item
-         description = description.concat(", ");
-       }
-     }
-     }
-     return description;
-   }
+      let misSize = mis.length;
+      for (let i = 0; i < misSize; i++) {
+        let mi = mis[i];
+        description = description.concat(MediaitemUtil.description(mi));
+        if (i + 1 < misSize) {
+          // not last item
+          description = description.concat(", ");
+        }
+      }
+    }
+    return description;
+  }
 }
 
 

@@ -18,6 +18,8 @@ import {AudioContextProvider} from "../../../audio/context";
 import {AudioClip} from "../../../audio/persistor";
 import {Selection} from "../../../audio/persistor";
 import {MessageDialog} from "../../../ui/message_dialog";
+import {RecordingFile} from "./recording-file";
+import {PromptitemUtil} from "../../script/script";
 
 @Component({
 
@@ -28,7 +30,16 @@ import {MessageDialog} from "../../../ui/message_dialog";
       <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
       
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-
+      <div class="ctrlview">
+        <mat-card>
+          <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
+          <mat-card-content>
+            <table>
+              <tr><td>Itemcode:</td><td>{{recordingFile?.recording.itemcode}}</td></tr>
+              <tr><td>Prompt:</td><td>{{recordingAsPlainText()}}</td></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -37,8 +48,9 @@ import {MessageDialog} from "../../../ui/message_dialog";
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
-                           [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>&nbsp;<button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
-      
+                           [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
+      </div>
+      <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
   `,
   styles: [
     `:host {
@@ -51,7 +63,17 @@ import {MessageDialog} from "../../../ui/message_dialog";
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`]
+    }`,`        
+        .ctrlview{
+          display: flex;
+          flex-direction: row;
+        }
+    `,`
+      audio-display-control{
+        
+        flex: 3;
+      }
+    `]
 
 })
 export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit {
@@ -68,7 +90,7 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
 
   audio: any;
   updateTimerId: any;
-
+  recordingFile: RecordingFile;
   savedEditSelection:Selection;
   editSaved:boolean=true
 
@@ -124,14 +146,25 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
     // just as fallback
     return "Apply selection";
   }
+
+  recordingAsPlainText() {
+    if (this.recordingFile) {
+      let r = this.recordingFile.recording;
+      if (r) {
+        return PromptitemUtil.toPlainTextString(r);
+      }
+    }
+    return "n/a";
+  }
+
   private loadRecFile() {
     let audioContext = AudioContextProvider.audioContextInstance()
     this.recordingFileService.fetchRecordingFile(audioContext,this._recordingFileId).subscribe(value => {
       console.log("Loaded");
       this.status = 'Audio file loaded.';
       console.log("Audio length from JSON descr: "+value.frames)
-      //this.audioData=value.audioBuffer;
 
+      this.recordingFile=value;
       let clip=new AudioClip(value.audioBuffer)
       let sel:Selection=null;
       if(value.editStartFrame!=null){

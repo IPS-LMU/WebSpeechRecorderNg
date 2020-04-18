@@ -1,4 +1,7 @@
-export class RecordingFile{
+import {PromptItem} from "../../script/script";
+
+
+export class RecordingFile {
   get recordingFileId(): string | number {
     return this._recordingFileId;
   }
@@ -6,6 +9,8 @@ export class RecordingFile{
   frames:number=null
   editStartFrame:number=null
   editEndFrame:number=null
+
+  recording:PromptItem;
 
   get audioBuffer(): AudioBuffer {
     return this._audioBuffer;
@@ -21,4 +26,6 @@ export class RecordingFile{
     this._recordingFileId=recordingFileId;
     this._audioBuffer=audioBuffer;
   }
+
+
 }
