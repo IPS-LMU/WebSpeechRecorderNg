@@ -30,6 +30,7 @@ export {Script,Section,Group,PromptItem,Mediaitem,PromptPhase,Mode} from './lib/
 export {RecordingService} from './lib/speechrecorder/recordings/recordings.service'
 export {RecordingFile} from './lib/speechrecorder/session/recordingfile/recording-file'
 export {RecordingFileService} from './lib/speechrecorder/session/recordingfile/recordingfile-service'
+export {RecordingFileViewComponent} from './lib/speechrecorder/session/recordingfile/recording-file-view.component'
 export {RecordingFileUI} from './lib/speechrecorder/session/recordingfile/recording-file-u-i.component'
 export {SpeechRecorderConfig,ApiType} from './lib/spr.config'
 export {SpeechrecorderngComponent} from './lib/speechrecorderng.component'

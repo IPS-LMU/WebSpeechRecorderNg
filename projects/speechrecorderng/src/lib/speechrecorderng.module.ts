@@ -45,6 +45,8 @@ import {MatDividerModule} from "@angular/material/divider";
 import {MatGridListModule} from "@angular/material/grid-list";
 import {RecordingFileUI} from "./speechrecorder/session/recordingfile/recording-file-u-i.component";
 import {RecordingFileService} from "./speechrecorder/session/recordingfile/recordingfile-service";
+import {RecordingFileViewComponent} from "./speechrecorder/session/recordingfile/recording-file-view.component";
+import {MatTableModule} from "@angular/material/table";
 
 
 
@@ -52,17 +54,18 @@ import {RecordingFileService} from "./speechrecorder/session/recordingfile/recor
 export const SPR_ROUTES: Routes = [
   { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
   { path: 'spr/session/recordingfile/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/session/recordingfile/view/:recordingFileId',      component: RecordingFileViewComponent },
   { path: 'spr',      component: SpeechrecorderngComponent }
 ];
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileUI,ScrollIntoViewDirective],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
     exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
-  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule,MatGridListModule],
+  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,RecordingFileService,SpeechRecorderUploader]
 
 })
