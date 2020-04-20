@@ -12,6 +12,8 @@ export class RecordingFile {
 
   recording:PromptItem;
 
+  session:number|string;
+
   get audioBuffer(): AudioBuffer {
     return this._audioBuffer;
   }

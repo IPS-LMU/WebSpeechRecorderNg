@@ -1,5 +1,6 @@
 {
     "recordingFileId": "1234",
+    "session": 2,
     "recording" : {
         "mediaitems" : [ {
             "annotationTemplate" : true,

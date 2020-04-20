@@ -37,6 +37,7 @@ import {PromptitemUtil} from "../../script/script";
             <table>
               <tr><td>Itemcode:</td><td>{{recordingFile?.recording.itemcode}}</td></tr>
               <tr><td>Prompt:</td><td>{{recordingAsPlainText()}}</td></tr>
+              <tr *ngIf="recordingFile?.session"><td>Session:</td><td>{{recordingFile?.session}}</td></tr>
             </table>
           </mat-card-content>
         </mat-card>
