@@ -1171,6 +1171,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
+
+      // enable navigation
+      this.transportActions.fwdAction.disabled = false
+      this.transportActions.bwdAction.disabled = false
     } else {
 
       if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
