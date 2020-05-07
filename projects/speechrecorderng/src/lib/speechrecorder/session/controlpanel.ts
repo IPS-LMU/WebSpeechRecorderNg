@@ -132,6 +132,7 @@ export class TransportActions {
   startAction: Action<void>;
   stopAction: Action<void>;
   nextAction: Action<void>;
+  fwdNextAction: Action<void>;
   pauseAction: Action<void>;
   fwdAction: Action<void>;
   bwdAction: Action<void>;
@@ -141,6 +142,7 @@ export class TransportActions {
     this.stopAction = new Action('Stop');
     this.nextAction = new Action('Next');
     this.pauseAction = new Action('Pause');
+    this.fwdNextAction = new Action('Next recording');
     this.fwdAction = new Action('Forward');
     this.bwdAction = new Action('Backward');
 
@@ -163,6 +165,9 @@ export class TransportActions {
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
       Pause
+    </button>
+    <button id="fwdNextBtn" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+      <mat-icon>chevron_right</mat-icon> #
     </button>
     <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
       <mat-icon>chevron_right</mat-icon>
@@ -210,6 +215,10 @@ export class TransportPanel {
 
   fwdDisabled() {
     return !this.actions || this.actions.fwdAction.disabled
+  }
+
+  fwdNextDisabled() {
+    return !this.actions || this.actions.fwdNextAction.disabled
   }
 
   bwdDisabled() {
