@@ -53,12 +53,12 @@ import {MatTableModule} from "@angular/material/table";
 
 export const SPR_ROUTES: Routes = [
   { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/:recordingFileId',      component: RecordingFileUI },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
-  { path: 'spr/db/recordingfile/:recordingFileId',      component: RecordingFileUI },
-  { path: 'spr/db/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/:recordingFileId',      component: RecordingFileUI },
   { path: 'spr/db/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
+  { path: 'spr/db/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/recordingfile/:recordingFileId',      component: RecordingFileUI },
   { path: 'spr',      component: SpeechrecorderngComponent }
 ];
 
