@@ -166,10 +166,10 @@ export class TransportActions {
       <mat-icon>pause</mat-icon>
       Pause
     </button>
-    <button id="fwdNextBtn" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
-      <mat-icon>chevron_right</mat-icon> #
+    <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+      <mat-icon>redo</mat-icon>
     </button>
-    <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
+    <button id="fwdBtn"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
       <mat-icon>chevron_right</mat-icon>
     </button>
 
