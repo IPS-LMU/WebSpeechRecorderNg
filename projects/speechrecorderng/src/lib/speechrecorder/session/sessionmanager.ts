@@ -189,6 +189,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private destroyed=false;
 
+  private navigationDisabled=true;
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               public dialog: MatDialog,
               private sessionService:SessionService,
@@ -295,6 +297,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.transportActions.nextAction.onAction = () => this.stopItem();
       this.transportActions.pauseAction.onAction = () => this.pauseItem();
       this.transportActions.fwdAction.onAction = () => this.nextItem();
+      this.transportActions.fwdNextAction.onAction = () => this.nextUnrecordedItem();
       this.transportActions.bwdAction.onAction = () => this.prevItem();
       this.playStartAction.onAction = () => this.controlAudioPlayer.start();
 
@@ -442,6 +445,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       return
     }
     this.transportActions.fwdAction.disabled = true
+    this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
@@ -908,6 +912,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
          newPrIdx=this.promptItemCount-1;
        }
        this.promptIndex=newPrIdx;
+      this.updateNavigationActions()
     }
 
 
@@ -918,6 +923,28 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       newPrIdx=0;
     }
     this.promptIndex=newPrIdx;
+    this.updateNavigationActions();
+  }
+
+  private updateNavigationActions(){
+    this.transportActions.fwdNextAction.disabled = this.navigationDisabled || ! (this.items[this._promptIndex].recs && this.items[this._promptIndex].recs.length>0);
+    this.transportActions.fwdAction.disabled = this.navigationDisabled;
+    this.transportActions.bwdAction.disabled = this.navigationDisabled;
+  }
+
+  nextUnrecordedItem() {
+    let newPrIdx = this._promptIndex;
+    newPrIdx++;
+    if (newPrIdx >= this.promptItemCount) {
+      newPrIdx = 0;
+    }
+    while (this.items[newPrIdx].recs && this.items[newPrIdx].recs.length > 0 && newPrIdx < this.promptItemCount) {
+      newPrIdx++;
+    }
+    if (!this.items[newPrIdx].recs || this.items[newPrIdx].recs.length == 0) {
+      this.promptIndex = newPrIdx;
+    }
+   this.updateNavigationActions()
   }
 
 
@@ -930,8 +957,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   enableNavigation(){
-    this.transportActions.fwdAction.disabled = false
-    this.transportActions.bwdAction.disabled = false
+    this.navigationDisabled=false;
+    this.updateNavigationActions();
   }
 
   opened() {
@@ -1184,8 +1211,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (this.section.mode === 'AUTORECORDING' && this.autorecording && autoStart) {
         startNext=true;
       } else {
-        this.transportActions.fwdAction.disabled = false
-        this.transportActions.bwdAction.disabled = false
+        this.navigationDisabled = false;
+        this.updateNavigationActions();
       }
     }
     // apply recorded item
