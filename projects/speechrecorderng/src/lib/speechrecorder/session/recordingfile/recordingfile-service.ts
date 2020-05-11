@@ -103,8 +103,8 @@ export class RecordingFileService {
 
 
       obs.subscribe(resp => {
-          let dec=aCtx.decodeAudioData(resp.body);
-          dec.then(ab=>{
+            // Do not use Promise version, which does not work with Safari 13
+          aCtx.decodeAudioData(resp.body,ab=>{
             recordingFile.audioBuffer=ab;
             if(this.debugDelay>0) {
               window.setTimeout(() => {
@@ -146,8 +146,8 @@ export class RecordingFileService {
       }, () => {
         let rfAudioObs = this.fetchAudiofile(recordingFileId);
         rfAudioObs.subscribe(resp => {
-            let dec = aCtx.decodeAudioData(resp.body);
-            dec.then(ab => {
+              // Do not use Promise version, which does not work with Safari 13
+            aCtx.decodeAudioData(resp.body,ab => {
               rf.audioBuffer = ab
               if (this.debugDelay > 0) {
                 window.setTimeout(() => {

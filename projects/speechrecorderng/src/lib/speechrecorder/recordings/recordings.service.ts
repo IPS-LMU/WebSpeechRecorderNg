@@ -89,7 +89,7 @@ export class RecordingService {
       obs.subscribe(resp => {
           //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
-          // Do not use Promise version, which dies not work with Safari 13 (13.0.5)
+          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           aCtx.decodeAudioData(resp.body,ab=>{
             recordingFile.audioBuffer=ab;
             if(this.debugDelay>0) {
@@ -131,8 +131,8 @@ export class RecordingService {
 
 
       obs.subscribe(resp => {
-          let dec=aCtx.decodeAudioData(resp.body);
-          dec.then(ab=>{
+            // Do not use Promise version, which does not work with Safari 13
+          aCtx.decodeAudioData(resp.body,ab=>{
               let rf=new RecordingFile(sessId,itemcode,version,ab);
               if(this.debugDelay>0) {
                 window.setTimeout(() => {
