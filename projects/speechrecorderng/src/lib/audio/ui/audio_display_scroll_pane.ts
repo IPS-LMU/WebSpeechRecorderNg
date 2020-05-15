@@ -102,28 +102,32 @@ export class AudioDisplayScrollPane {
           this.ac.fixFitToPanel=true;
       }
 
-    this.zoomSelectedAction.onAction=(e)=> {
-      //alert("not implemented yet")
-      let s = this.ac.selection
-      if (s) {
-        // reset auto fit to panel mode
-        this.ac.fixFitToPanel=false
+      this.zoomSelectedAction.onAction = (e) => {
+          //alert("not implemented yet")
 
-        // calculate selection length in seconds
-        let selFrLen=s.endFrame-s.startFrame
-        let selLenInSecs=selFrLen/this.ac.audioData.sampleRate
-        // calculate corresponding xZoom value
-        let newXZoom=this.spEl.clientWidth/selLenInSecs
-        // apply xZoom
-        this.ac.xZoom=newXZoom
+          let s = this.ac.selection
+          if (s) {
+             // this.ac.userAction = true;
+              // reset auto fit to panel mode
+              this.ac.fixFitToPanel = false
 
-        // Move viewport to show selection
-        let x1=this.ac.frameToXPixelPosition(s.startFrame)
-        this.spEl.scrollLeft=x1;
+              // calculate selection length in seconds
+              let selFrLen = s.endFrame - s.startFrame
+              let selLenInSecs = selFrLen / this.ac.audioData.sampleRate
+              // calculate corresponding xZoom value
+              let newXZoom = this.spEl.clientWidth / selLenInSecs
+              // apply xZoom
+              this.ac.xZoom = newXZoom
 
-        this.updateClipBounds()
-        this.zoomFitToPanelAction.disabled = false
-      }
+              // Move viewport to show selection
+              let x1 = this.ac.frameToXPixelPosition(s.startFrame)
+              console.debug("Set scroll left")
+              this.spEl.scrollLeft = x1;
+              console.debug("Scroll left set.")
+              this.updateClipBounds()
+              this.zoomFitToPanelAction.disabled = false
+             // this.ac.userAction = false;
+          }
       }
 
   }
