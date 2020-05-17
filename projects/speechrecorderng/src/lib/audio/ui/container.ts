@@ -31,6 +31,7 @@ import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
     height: 100%;
     position: relative; /* TODO container div position must not be 'static' (default) to act as reference for the canvases */
     box-sizing: border-box;
+    transform: none;
   }`, `canvas{
     top: 0;
     left: 0;
@@ -39,16 +40,19 @@ import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
     cursor: ns-resize;
     position: absolute;
     zIndex: 1;
+    transform: none;
   }`, `audio-signal {
     top: 0;
     left: 0;
     position: absolute;
     zIndex: 1;
+    transform: none;
   }`, `audio-sonagram {
     top: 0;
     left: 0;
     position: absolute;
     zIndex: 1;
+    transform: none;
   }`]
 
 })
@@ -123,7 +127,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     let heightListener = new MutationObserver((mrs: Array<MutationRecord>, mo: MutationObserver) => {
       mrs.forEach((mr: MutationRecord) => {
         if (!this.userAction && 'attributes' === mr.type && ('class' === mr.attributeName || 'style' === mr.attributeName)) {
-          console.debug("MO Layout "+mr.attributeName)
+          //console.debug("MO Layout "+mr.attributeName+ " "+ mr.target+ " "+mr.oldValue+ " ");
           this.layout(false);
         }
       })
@@ -131,7 +135,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
     heightListener.observe(this.ce, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.dc, {attributes: true, childList: true, characterData: true});
-    heightListener.observe(this.parentE.parentElement,{attributes: true, childList: true, characterData: true});
+    //heightListener.observe(this.parentE.parentElement,{attributes: true, childList: true, characterData: true});
     heightListener.observe(this.parentE, {attributes: true, childList: true, characterData: true});
 
   }
@@ -254,7 +258,9 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   layoutScaled() {
 
+    let ceBcr=this.ce.getBoundingClientRect();
     const offW = this.ce.offsetWidth;
+    const ceBcrIntW =Math.floor(ceBcr.width);
     const offH = this.ce.offsetHeight-2;
 
     const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
@@ -263,25 +269,25 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     const asH = Math.round(psH * this.dividerPosition);
     const soH = Math.round(psH * (1 - this.dividerPosition));
     const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    const wStr = offW.toString() + 'px';
+    //const wStr = offW.toString() + 'px';
+    const wStr=ceBcrIntW+'px';
 
     const dTop = asH;
     const dTopStr = dTop.toString() + 'px';
     this.dc.style.top = dTopStr;
     this.dc.style.left = '0px';
     this.dc.style.width = wStr;
-
-    this.dc.style.width = wStr;
     this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
     this.drawDivider();
 
     let cLeft = 0;
-    let cWidth = this.ce.clientWidth;
+    //let cWidth = this.ce.clientWidth;
+    let cWidth=ceBcrIntW;
     if ( !this._fixFitToPanel && this.bounds) {
       cLeft = this.bounds.position.left;
       cWidth = this.bounds.dimension.width;
     }
-    let virtualDim = new Dimension(offW, 0)
+    let virtualDim = new Dimension(ceBcrIntW, 0)
 
     let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
     this.layoutBounds(r, virtualDim, false);
@@ -327,7 +333,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       const scrollW=this.ce.scrollWidth;
 
       //console.log("Cw: "+clientW+" ow: "+offsetW+" sw: "+scrollW+ " cb: "+this._clipBounds)
-  console.debug("CE h: "+this.ce.offsetHeight)
+      //console.debug("CE h: "+this.ce.offsetHeight)
       if(this._audioData){
         if(this._fixFitToPanel) {
           // Set the virtual canvas width to the visible width only
@@ -349,8 +355,9 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
           ow=1;
         }
       }
-
+      let ceBcr=this.ce.getBoundingClientRect();
       const offW = this.ce.offsetWidth;
+      const ceBcrIntW =Math.floor(ceBcr.width);
       const offH = this.ce.offsetHeight-2;
 
       let psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
@@ -370,7 +377,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       const wStr = offW + 'px';
 
       let left=0;
-      let intW=offW;
+      let intW=ceBcrIntW;
       if( !this._fixFitToPanel && this.bounds) {
         intW = Math.round(this.bounds.dimension.width);
         left=Math.round(this.bounds.position.left);
@@ -391,13 +398,14 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       this.drawDivider();
 
       let cLeft=0;
-      let cWidth=this.ce.clientWidth;
+      //let cWidth=this.ce.clientWidth;
+      let cWidth=ceBcrIntW;
       if(!this._fixFitToPanel &&  this.bounds){
         cLeft=this.bounds.position.left;
         cWidth=this.bounds.dimension.width;
       }
 
-      let virtualDim=new Dimension(offW,0)
+      let virtualDim=new Dimension(ceBcrIntW,0)
 
       let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
       this.layoutBounds(r, virtualDim, false);
