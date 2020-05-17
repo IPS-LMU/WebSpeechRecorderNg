@@ -9,6 +9,7 @@ import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip,Selection} from "../persistor";
 import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
+import {Element} from "@angular/compiler";
 
 @Component({
 
@@ -125,18 +126,36 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   ngAfterViewInit() {
     this.layout();
     let heightListener = new MutationObserver((mrs: Array<MutationRecord>, mo: MutationObserver) => {
+      //console.debug("MO callback");
+      let layout=false;
       mrs.forEach((mr: MutationRecord) => {
         if (!this.userAction && 'attributes' === mr.type && ('class' === mr.attributeName || 'style' === mr.attributeName)) {
-          //console.debug("MO Layout "+mr.attributeName+ " "+ mr.target+ " "+mr.oldValue+ " ");
-          this.layout(false);
+          // let trg=mr.target;
+          // let nName=trg.nodeName
+          // if(trg instanceof HTMLElement){
+          //   let trgE=<HTMLElement>trg;
+          //   //console.debug("MO trg is HTMLElement");
+          //
+          //   let ats=trgE.attributes;
+          //
+          //   for(let ia=0;ia<ats.length;ia++){
+          //     let at=ats.item(ia);
+          //     //console.debug("MO Attr "+at.name+"="+at.value);
+          //   }
+          // }
+          //console.debug("MO Layout "+mr.attributeName+ " "+ mr.target+ " "+nName+" "+mr.oldValue+ " ");
+          layout=true;
         }
-      })
+      });
+      if(layout){
+        this.layout(false);
+      }
     });
 
     heightListener.observe(this.ce, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.dc, {attributes: true, childList: true, characterData: true});
     //heightListener.observe(this.parentE.parentElement,{attributes: true, childList: true, characterData: true});
-    heightListener.observe(this.parentE, {attributes: true, childList: true, characterData: true});
+    //heightListener.observe(this.parentE, {attributes: true, childList: true, characterData: true});
 
   }
 

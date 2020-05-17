@@ -121,9 +121,9 @@ export class AudioDisplayScrollPane {
 
               // Move viewport to show selection
               let x1 = this.ac.frameToXPixelPosition(s.startFrame)
-              console.debug("Set scroll left")
+              //console.debug("Set scroll left")
               this.spEl.scrollLeft = x1;
-              console.debug("Scroll left set.")
+              //console.debug("Scroll left set.")
               this.updateClipBounds()
               this.zoomFitToPanelAction.disabled = false
              // this.ac.userAction = false;
