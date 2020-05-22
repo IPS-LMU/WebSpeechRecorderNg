@@ -269,58 +269,12 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     }
   }
 
-  layoutScaled() {
-
-    let ceBcr=this.ce.getBoundingClientRect();
-    const ceBcrIntW =Math.floor(ceBcr.width);
-    const offH =  Math.floor(ceBcr.height);
-
-    const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    const asTop = 0;
-
-    const asH = Math.round(psH * this.dividerPosition);
-    const soH = Math.round(psH * (1 - this.dividerPosition));
-    const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    //const wStr = offW.toString() + 'px';
-    const wStr=ceBcrIntW+'px';
-
-    // Divider canvas
-    const dTop = asH;
-    const dTopStr = dTop.toString() + 'px';
-    this.dc.style.top = dTopStr;
-    this.dc.style.left = '0px';
-    this.dc.style.width = wStr;
-    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
-    this.drawDivider();
-
-    let cLeft = 0;
-    //let cWidth = this.ce.clientWidth;
-    let cWidth=ceBcrIntW;
-    if ( !this._fixFitToPanel && this.bounds) {
-      cLeft = this.bounds.position.left;
-      cWidth = this.bounds.dimension.width;
-    }
-    let virtualDim = new Dimension(ceBcrIntW, 0)
-
-    let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
-    this.layoutBounds(r, virtualDim, false);
-
-    let asR = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, asH));
-
-    this.as.layoutBounds(asR, virtualDim, false);
-
-    let soR = new Rectangle(new Position(cLeft, soTop), new Dimension(cWidth, soH));
-
-    this.so.layoutBounds(soR, virtualDim, false);
-  }
-
   clipBounds(clipBounds: Rectangle) {
 
     this.bounds = clipBounds;
     this.layout();
 
   }
-
 
   currentXZoom(): number | null {
     let xz = this._xZoom;
@@ -335,12 +289,86 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     return xz;
   }
 
+  private _layout(clear: boolean, redraw: boolean) {
+    let ceBcr = this.ce.getBoundingClientRect();
+
+    const ceBcrIntW = Math.floor(ceBcr.width);
+    const ceBcrIntH = Math.floor(ceBcr.height);
+
+    // height available for plugins (audiosignal and sonagram)
+    let psH = ceBcrIntH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    if (psH < 0) {
+      psH = 0;
+    }
+    // audio signal height
+    const asH = Math.round(psH * this.dividerPosition);
+
+    // sonagram height (rest: available height minus divider height minus audiosignal height)
+    let soH = ceBcrIntH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE - asH;
+    if (soH < 0) {
+      soH = 0;
+    }
+
+  // sonagram top position
+    const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+
+    // Visible bounds
+    // left position
+    let vbLeft = 0;
+    // width
+    let vbWidth = ceBcrIntW;
+    if (!this._fixFitToPanel && this.bounds) {
+      vbLeft = Math.round(this.bounds.position.left);
+      vbWidth = Math.round(this.bounds.dimension.width);
+    }
+
+    // Divider
+    // left position
+    this.dc.style.left = vbLeft + 'px';
+    // top position
+    const dTop = asH;
+    const dTopStr = dTop + 'px';
+    this.dc.style.top = dTopStr;
+    // width
+    this.dc.style.width = vbWidth + 'px';
+    this.dc.width = vbWidth;
+    // height
+    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+
+    this.drawDivider();
+
+
+    // Virtual dimension, only width is used
+    let virtualDim = new Dimension(ceBcrIntW, 0)
+
+    // Visible bounds of container
+    let br = new Rectangle(new Position(vbLeft, 0), new Dimension(vbWidth, ceBcrIntH));
+
+    // Set container bounds
+    this.layoutBounds(br, virtualDim, false);
+
+    // Visible bounds of audiosignal
+    let asR = new Rectangle(new Position(vbLeft, 0), new Dimension(vbWidth, asH));
+
+    // Set audiosignal bounds
+    this.as.layoutBounds(asR, virtualDim, redraw, clear);
+
+    // Visible bounds of sonagram
+    let soR = new Rectangle(new Position(vbLeft, soTop), new Dimension(vbWidth, soH));
+
+    // Set sonagram bounds
+    this.so.layoutBounds(soR, virtualDim, redraw, clear);
+  }
+
+  layoutScaled() {
+    this._layout(false, false);
+  }
+
   layout(clear=true) {
 
     if(this.ce && this.dc) {
-
       const clientW=this.ce.clientWidth;
-
       if(this._audioData){
         if(this._fixFitToPanel) {
           // Set the virtual canvas width to the visible width
@@ -355,77 +383,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
             this.ce.style.width = clientW + 'px';
           }
         }
-
-        let ow=this.ce.offsetWidth;
-        if(ow<1){
-          // at least one pixel width to avoid x-zoom zero values
-          ow=1;
-        }
       }
-      let ceBcr=this.ce.getBoundingClientRect();
-
-      const ceBcrIntW =Math.floor(ceBcr.width);
-      const offH = Math.floor(ceBcr.height);
-
-      // height available for plugins (audiosignal and sonagram)
-      let psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-      if(psH<0){
-        psH=0;
-      }
-      // audio signal height
-      const asH = Math.round(psH * this.dividerPosition);
-
-      // sonagram height (rest: available height minus divider height minus audiosignal height)
-      let soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH;
-      if(soH<0){
-        soH=0;
-      }
-
-      // sonagram top position
-      const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-
-      // left position
-      let left=0;
-
-      let intW=ceBcrIntW;
-      if( !this._fixFitToPanel && this.bounds) {
-        intW = Math.round(this.bounds.dimension.width);
-        left=Math.round(this.bounds.position.left);
-      }
-      const dTop = asH;
-      const dTopStr = dTop + 'px';
-
-      this.dc.style.top = dTopStr;
-      this.dc.style.left = left+'px';
-
-      this.dc.style.width = intW+'px';
-
-      this.dc.width = intW;
-      this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-
-      this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
-      this.drawDivider();
-
-      let cLeft=0;
-
-      let cWidth=ceBcrIntW;
-      if(!this._fixFitToPanel &&  this.bounds){
-        cLeft=this.bounds.position.left;
-        cWidth=this.bounds.dimension.width;
-      }
-
-      let virtualDim=new Dimension(ceBcrIntW,0)
-
-      let r = new Rectangle(new Position(cLeft, 0), new Dimension(cWidth, offH));
-      this.layoutBounds(r, virtualDim, false);
-
-      let asR=new Rectangle(new Position(cLeft,0),new Dimension(cWidth,asH));
-
-      this.as.layoutBounds(asR, virtualDim,true,clear);
-
-      let soR=new Rectangle(new Position(cLeft,soTop),new Dimension(cWidth,soH));
-
-      this.so.layoutBounds(soR, virtualDim, true,clear);
+      this._layout(clear,true);
     }
   }
 
