@@ -272,9 +272,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   layoutScaled() {
 
     let ceBcr=this.ce.getBoundingClientRect();
-    const offW = this.ce.offsetWidth;
     const ceBcrIntW =Math.floor(ceBcr.width);
-    const offH = this.ce.offsetHeight-2;
+    const offH =  Math.floor(ceBcr.height);
 
     const psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
     const asTop = 0;
@@ -366,7 +365,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       let ceBcr=this.ce.getBoundingClientRect();
 
       const ceBcrIntW =Math.floor(ceBcr.width);
-      const offH = this.ce.offsetHeight;
+      const offH = Math.floor(ceBcr.height);
 
       // height available for plugins (audiosignal and sonagram)
       let psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
