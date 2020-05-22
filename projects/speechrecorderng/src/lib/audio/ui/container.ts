@@ -11,12 +11,20 @@ import {AudioClip,Selection} from "../persistor";
 import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {Element} from "@angular/compiler";
 
+/*
+ * Container component for audio display.
+ * The display elements are children of a virtual canvas. The virtual canvas makes it possible to have high zoom factors with very wide virtual audio displays.
+ * Only the visible part of the virtual canvas is implemented as a browser canvas and therefore consuming memory.
+ * The visible part has the same width as the viewport of the scroll pane parent.
+ * The virtual canvas itself is implemented as a HTML div element.
+ * The layout of the component is updated on resize of the parent or changes of the zoom factor.
+ */
 @Component({
 
   selector: 'app-audio',
   template: `
     <div #virtualCanvas>
-    <canvas #container (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
+    <canvas #divider (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)" height="10"></canvas>
     <audio-signal [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-signal>
     <audio-sonagram [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-sonagram>
@@ -63,17 +71,17 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   parentE: HTMLElement;
 
-  @ViewChild('container', { static: true }) canvasRef: ElementRef;
+  // Divider canvas
+  @ViewChild('divider', { static: true }) canvasRef: ElementRef;
   dc: HTMLCanvasElement;
 
+  // Virtual container
   @ViewChild('virtualCanvas', { static: true }) ceRef: ElementRef;
   ce: HTMLDivElement;
 
   @ViewChild(AudioSignal, { static: true }) as: AudioSignal;
   @ViewChild(Sonagram, { static: true }) so: Sonagram;
 
-
-  //private _clipBounds: Rectangle | null = null;
   private _audioClip:AudioClip | null=null;
   pointer: Marker=null;
   selecting: Selection=null;
@@ -84,7 +92,10 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   private dragStartY: number | null = null;
   private dividerPosition = 0.5;
 
+  userAction=false;
+
   private _xZoom: number | null = null; // pixels per second
+
   get xZoom(): number | null {
     return this._xZoom;
   }
@@ -96,9 +107,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     this.userAction=false;
   }
 
+  // if true the complete audio file is shown, the display fits to the visible panel, the x-zoom factor is variable, this is the default
   private _fixFitToPanel = true;
-
-   userAction=false;
 
   set fixFitToPanel(value: boolean) {
     this._fixFitToPanel = value;
@@ -126,37 +136,21 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   ngAfterViewInit() {
     this.layout();
     let heightListener = new MutationObserver((mrs: Array<MutationRecord>, mo: MutationObserver) => {
-      //console.debug("MO callback");
+
       let layout=false;
       mrs.forEach((mr: MutationRecord) => {
         if (!this.userAction && 'attributes' === mr.type && ('class' === mr.attributeName || 'style' === mr.attributeName)) {
-          // let trg=mr.target;
-          // let nName=trg.nodeName
-          // if(trg instanceof HTMLElement){
-          //   let trgE=<HTMLElement>trg;
-          //   //console.debug("MO trg is HTMLElement");
-          //
-          //   let ats=trgE.attributes;
-          //
-          //   for(let ia=0;ia<ats.length;ia++){
-          //     let at=ats.item(ia);
-          //     //console.debug("MO Attr "+at.name+"="+at.value);
-          //   }
-          // }
-          //console.debug("MO Layout "+mr.attributeName+ " "+ mr.target+ " "+nName+" "+mr.oldValue+ " ");
           layout=true;
         }
       });
       if(layout){
+        // re-layout required
         this.layout(false);
       }
     });
 
     heightListener.observe(this.ce, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.dc, {attributes: true, childList: true, characterData: true});
-    //heightListener.observe(this.parentE.parentElement,{attributes: true, childList: true, characterData: true});
-    //heightListener.observe(this.parentE, {attributes: true, childList: true, characterData: true});
-
   }
 
   @HostListener('window:resize', ['$event'])
@@ -291,6 +285,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     //const wStr = offW.toString() + 'px';
     const wStr=ceBcrIntW+'px';
 
+    // Divider canvas
     const dTop = asH;
     const dTopStr = dTop.toString() + 'px';
     this.dc.style.top = dTopStr;
@@ -342,20 +337,14 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   }
 
   layout(clear=true) {
-    // let userActionBefore=this.userAction;
-    // this.userAction=true;
 
     if(this.ce && this.dc) {
 
       const clientW=this.ce.clientWidth;
-      const offsetW=this.ce.offsetWidth;
-      const scrollW=this.ce.scrollWidth;
 
-      //console.log("Cw: "+clientW+" ow: "+offsetW+" sw: "+scrollW+ " cb: "+this._clipBounds)
-      //console.debug("CE h: "+this.ce.offsetHeight)
       if(this._audioData){
         if(this._fixFitToPanel) {
-          // Set the virtual canvas width to the visible width only
+          // Set the virtual canvas width to the visible width
           this.ce.style.width = '100%';
         }else{
           if (this._xZoom) {
@@ -375,27 +364,30 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
         }
       }
       let ceBcr=this.ce.getBoundingClientRect();
-      const offW = this.ce.offsetWidth;
-      const ceBcrIntW =Math.floor(ceBcr.width);
-      const offH = this.ce.offsetHeight-2;
 
+      const ceBcrIntW =Math.floor(ceBcr.width);
+      const offH = this.ce.offsetHeight;
+
+      // height available for plugins (audiosignal and sonagram)
       let psH = offH - AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
       if(psH<0){
         psH=0;
       }
-      const asTop = 0;
-
+      // audio signal height
       const asH = Math.round(psH * this.dividerPosition);
 
+      // sonagram height (rest: available height minus divider height minus audiosignal height)
       let soH=offH-AudioClipUIContainer.DIVIDER_PIXEL_SIZE-asH;
       if(soH<0){
         soH=0;
       }
 
+      // sonagram top position
       const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-      const wStr = offW + 'px';
 
+      // left position
       let left=0;
+
       let intW=ceBcrIntW;
       if( !this._fixFitToPanel && this.bounds) {
         intW = Math.round(this.bounds.dimension.width);
@@ -409,7 +401,6 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
       this.dc.style.width = intW+'px';
 
-      this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
       this.dc.width = intW;
       this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
 
@@ -417,7 +408,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       this.drawDivider();
 
       let cLeft=0;
-      //let cWidth=this.ce.clientWidth;
+
       let cWidth=ceBcrIntW;
       if(!this._fixFitToPanel &&  this.bounds){
         cLeft=this.bounds.position.left;
@@ -437,10 +428,6 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
       this.so.layoutBounds(soR, virtualDim, true,clear);
     }
-    // if(!userActionBefore){
-    //   this.userAction=false;
-    // }
-
   }
 
   @Input()
