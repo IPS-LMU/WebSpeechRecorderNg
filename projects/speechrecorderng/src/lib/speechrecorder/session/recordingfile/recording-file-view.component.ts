@@ -98,14 +98,12 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
 
   constructor(protected recordingFileService:RecordingFileService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
     super(route,ref,eRef)
-    console.log("constructor ");
     this.parentE=this.eRef.nativeElement;
   }
 
 
 
   ngAfterViewInit() {
-    console.log("ngAfterViewInit")
     super.ngAfterViewInit()
 
     this.route.queryParams.subscribe((params: Params) => {
@@ -159,9 +157,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   private loadRecFile() {
     let audioContext = AudioContextProvider.audioContextInstance()
     this.recordingFileService.fetchRecordingFile(audioContext,this._recordingFileId).subscribe(value => {
-      console.log("Loaded");
+
       this.status = 'Audio file loaded.';
-      console.log("Audio length from JSON descr: "+value.frames)
 
       this.recordingFile=value;
 

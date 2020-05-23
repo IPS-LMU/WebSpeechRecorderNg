@@ -100,14 +100,12 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
 
   constructor(protected recordingFileService:RecordingFileService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
     super(route,ref,eRef)
-    console.log("constructor ");
     this.parentE=this.eRef.nativeElement;
   }
 
 
 
   ngAfterViewInit() {
-    console.log("ngAfterViewInit")
     super.ngAfterViewInit()
 
     this.route.queryParams.subscribe((params: Params) => {
@@ -163,7 +161,6 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
     this.recordingFileService.fetchRecordingFile(audioContext,this._recordingFileId).subscribe(value => {
       console.log("Loaded");
       this.status = 'Audio file loaded.';
-      console.log("Audio length from JSON descr: "+value.frames)
 
       this.recordingFile=value;
       let clip=new AudioClip(value.audioBuffer)
