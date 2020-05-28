@@ -26,7 +26,7 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
   selector: 'app-audiodisplayplayer',
 
   template: `
-    
+
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
     <mat-card>
@@ -49,6 +49,7 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
       </div>
+
   `,
   styles: [
     `:host {
@@ -58,17 +59,20 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
           min-height:0;
           overflow: hidden;
       padding: 20px;
+      height: 100%;
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`        
+    }`,`
         .ctrlview{
+          flex: 1;
+          flex-shrink: 0;
           display: flex;
           flex-direction: row;
         }
     `,`
       audio-display-control{
-        
+
         flex: 3;
       }
     `]

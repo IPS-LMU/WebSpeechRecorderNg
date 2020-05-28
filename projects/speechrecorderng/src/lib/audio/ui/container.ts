@@ -30,14 +30,24 @@ import {Element} from "@angular/compiler";
     <audio-sonagram [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-sonagram>
     </div>
   `,
-  styles: [`div {
-
+  styles: [`:host {
     margin: 0;
     padding: 0;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    min-height: 0px;
+    box-sizing: border-box;
+    transform: none;
+  }`,`div {
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0px;
     position: relative; /* TODO container div position must not be 'static' (default) to act as reference for the canvases */
     box-sizing: border-box;
     transform: none;
@@ -46,6 +56,7 @@ import {Element} from "@angular/compiler";
     left: 0;
     width: 0;
     height: 0;
+    min-height: 0px;
     cursor: ns-resize;
     position: absolute;
     zIndex: 1;
@@ -53,12 +64,14 @@ import {Element} from "@angular/compiler";
   }`, `audio-signal {
     top: 0;
     left: 0;
+    min-height: 0px;
     position: absolute;
     zIndex: 1;
     transform: none;
   }`, `audio-sonagram {
     top: 0;
     left: 0;
+    min-height: 0px;
     position: absolute;
     zIndex: 1;
     transform: none;
@@ -148,7 +161,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
         this.layout(false);
       }
     });
-
+    //heightListener.observe(this.parentE, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.ce, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.dc, {attributes: true, childList: true, characterData: true});
   }
@@ -291,7 +304,6 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   private _layout(clear: boolean, redraw: boolean) {
     let ceBcr = this.ce.getBoundingClientRect();
-
     const ceBcrIntW = Math.floor(ceBcr.width);
     const ceBcrIntH = Math.floor(ceBcr.height);
 
