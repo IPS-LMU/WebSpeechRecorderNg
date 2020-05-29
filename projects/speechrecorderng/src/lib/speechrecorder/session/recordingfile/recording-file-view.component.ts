@@ -53,7 +53,7 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
   `,
   styles: [
     `:host {
-          flex: 2;
+          flex: 4;
           display: flex;
           flex-direction: column;
           min-height:0;
@@ -65,15 +65,25 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
       background-color: white;
     }`,`
         .ctrlview{
-          flex: 1;
-          flex-shrink: 0;
+          flex: 0 0 content;
+
           display: flex;
           flex-direction: row;
         }
     `,`
+      mat-card{
+        flex: 0;
+        flex-shrink: 0;
+        height: fit-content;
+      }
+    `,`
+      mat-card-title{
+       white-space: nowrap;
+      }
+    `,`
       audio-display-control{
+        flex: 1 3 auto;
 
-        flex: 3;
       }
     `]
 
