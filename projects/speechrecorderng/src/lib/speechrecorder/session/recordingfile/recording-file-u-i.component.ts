@@ -25,11 +25,12 @@ import {PromptitemUtil} from "../../script/script";
 
   selector: 'app-audiodisplayplayer',
 
-  template: `      
+  template: `
       <h1>Recording file editing</h1>
       <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
-      
-    <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
+
+        <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
+
       <div class="ctrlview">
         <mat-card>
           <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
@@ -51,30 +52,57 @@ import {PromptitemUtil} from "../../script/script";
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
       </div>
-      <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
+
+        <button #editSave mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
+
   `,
   styles: [
-    `:host {
-          flex: 2;
-          display: flex;
-          flex-direction: column;
-          min-height:0;
-          overflow: hidden;
+      `:host {
+      flex: 4;
+      display: flex;
+      flex-direction: column;
+      min-height:0;
+      overflow: hidden;
       padding: 20px;
+      height: 100%;
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`        
-        .ctrlview{
-          display: flex;
-          flex-direction: row;
-        }
+    }`,`
+      div {
+        width: 100%;
+      }
+    `,`
+      .ctrlview{
+        flex: 0 0 content;
+        /* -webkit-flex-basis: content; */
+
+        display: flex;
+        flex-direction: row;
+      }
+    `,`
+      mat-card{
+        flex: 0;
+        flex-shrink: 0;
+        height: fit-content;
+      }
+    `,`
+      mat-card-title{
+       white-space: nowrap;
+      }
     `,`
       audio-display-control{
-        
-        flex: 3;
+        /* flex: 1 0 auto; */
+
       }
-    `]
+    `,`.audioDisplayScrollPane{
+      flex: 2 100;
+
+    }`,`.editSave{
+      width: 100%;
+     diaplay:block;
+
+    }`]
 
 })
 export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit {

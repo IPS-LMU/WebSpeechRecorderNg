@@ -66,7 +66,7 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
     }`,`
         .ctrlview{
           flex: 0 0 content;
-
+          -webkit-flex-basis: content;
           display: flex;
           flex-direction: row;
         }
@@ -83,7 +83,6 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
     `,`
       audio-display-control{
         flex: 1 3 auto;
-
       }
     `]
 

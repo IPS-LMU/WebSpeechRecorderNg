@@ -22,10 +22,12 @@ import {AudioClip, Selection} from "../persistor";
   styles: [
     `:host {
       flex: 2;
-      flex-shrink: 10;
+      /*flex-shrink: 1000;*/
+
       width: 100%;
       background: darkgray;
       box-sizing: border-box;
+      min-height: 0px;
       /* height: 100%; */
 /*
       position: relative;
@@ -34,12 +36,13 @@ import {AudioClip, Selection} from "../persistor";
       */
     }`,
       `div {
-      /* flex: 2; */
+     /* flex: 2;
+      flex-shrink: 100; */
       width: 100%;
       background: darkgray;
       box-sizing: border-box;
       height: 100%;
-
+        min-height: 0px;
       position: relative;
       overflow-x: scroll;
       overflow-y: auto;
@@ -53,7 +56,7 @@ import {AudioClip, Selection} from "../persistor";
     left: 0;
     width: 100%;
     height: 100%;
-
+      min-height: 0px;
     /*position: absolute;*/
     box-sizing: border-box;
   }`]

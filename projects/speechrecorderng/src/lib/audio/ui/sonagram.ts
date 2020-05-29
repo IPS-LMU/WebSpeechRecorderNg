@@ -20,11 +20,14 @@ const DEFAULT_DFT_SIZE = 1024;
                 (mouseleave)="updateCursorCanvas($event, false)"></canvas>
         <canvas #marker height="10"></canvas>`,
 
-    styles: [`canvas {
+    styles: [`:host{
+      min-height: 0px;
+    }`,`canvas {
         top: 0;
         left: 0;
         width: 0;
         height: 0;
+      min-height: 0px;
         position: absolute;
     }`]
 
