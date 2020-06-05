@@ -22,6 +22,8 @@ import {RecordingFile} from "./recording-file";
 import {PromptItem, PromptitemUtil} from "../../script/script";
 import {Action} from "../../../action/action";
 import {SessionService} from "../session.service";
+import {RecordingService} from "../../recordings/recordings.service";
+import {RecordingFileDescriptor} from "../../recording";
 
 @Component({
 
@@ -72,7 +74,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
 
   protected _recordingFileId: string | number=null;
   sessionId: string | number=null;
-
+  availRecFileDescrs:Array<RecordingFileDescriptor>;
   recordingFile: RecordingFile;
 
   @ViewChild(AudioDisplayScrollPane)
@@ -81,7 +83,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   prevAction: Action<void>;
   nextAction: Action<void>;
 
-  constructor(protected recordingFileService:RecordingFileService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
+  constructor(protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
     super(route,ref,eRef)
     this.parentE=this.eRef.nativeElement;
     this.prevAction=new Action<void>('Previous');
@@ -98,6 +100,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
       let sIdP=params['sessionId'];
       if(sIdP){
         this.sessionId=sIdP;
+        this.loadSession();
       }
       if(rfIdP) {
         this._recordingFileId=rfIdP
@@ -112,6 +115,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
       let sIdP=params['sessionId'];
       if(sIdP){
         this.sessionId=sIdP;
+        this.loadSession();
       }
       if(rfIdP) {
         this._recordingFileId=rfIdP
@@ -127,7 +131,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   }
 
   nextFileAvail(){
-    return true;
+    if(this.availRecFileDescrs && this.recordingFile){
+      let cic=this.recordingFile.recording.itemcode;
+      //let ich=
+      for(let rfdi=0;rfdi<this.availRecFileDescrs.length;rfdi++){
+          let ar=this.availRecFileDescrs[rfdi].recording;
+          //ar.itemcode
+      }
+    }
   }
 
   protected loadRecFile() {
@@ -167,5 +178,12 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   }
 
 
+  private loadSession() {
+    this.sessionService.sessionObserver(<string>this.sessionId).subscribe((s)=>{
+        this.recordingService.recordingFileDescrList(s.project,s.sessionId).subscribe((rfds)=>{
+            this.availRecFileDescrs=rfds;
+        });
+    })
+  }
 }
 

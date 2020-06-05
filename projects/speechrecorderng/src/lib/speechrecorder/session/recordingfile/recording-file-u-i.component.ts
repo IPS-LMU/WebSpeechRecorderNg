@@ -22,6 +22,8 @@ import {RecordingFile} from "./recording-file";
 import {PromptitemUtil} from "../../script/script";
 import {Action} from "../../../action/action";
 import {RecordingFileViewComponent} from "./recording-file-view.component";
+import {SessionService} from "../session.service";
+import {RecordingService} from "../../recordings/recordings.service";
 
 @Component({
 
@@ -76,8 +78,8 @@ export class RecordingFileUI extends RecordingFileViewComponent implements After
   savedEditSelection:Selection;
   editSaved:boolean=true
 
-  constructor(protected recordingFileService:RecordingFileService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
-    super(recordingFileService,route,ref,eRef,dialog)
+  constructor(protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
+    super(recordingFileService,recordingService,sessionService,route,ref,eRef,dialog)
     this.parentE=this.eRef.nativeElement;
     this.prevAction=new Action<void>('Previous');
     this.nextAction=new Action<void>('Next');
