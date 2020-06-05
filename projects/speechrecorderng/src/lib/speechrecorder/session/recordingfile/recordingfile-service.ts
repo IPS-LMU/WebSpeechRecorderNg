@@ -1,5 +1,5 @@
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse} from "@angular/common/http";
 
 
 import {Observable} from "rxjs";
@@ -15,7 +15,7 @@ export class RecordingFileService {
   public static readonly RECOFILE_API_CTX = 'recordingfile'
   private apiEndPoint: string;
   private withCredentials: boolean = false;
-  private httpParams: HttpParams;
+
   //private debugDelay:number=10000;
   private debugDelay:number=0;
 
@@ -37,8 +37,7 @@ export class RecordingFileService {
   //this.withCredentials=true
 
     //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-    //this.httpParams = new HttpParams();
-    //this.httpParams.set('cache', 'false');
+
 
   }
 
@@ -59,7 +58,6 @@ export class RecordingFileService {
       observe: 'response',
       headers: headers,
       responseType: 'arraybuffer',
-      params: this.httpParams,
       withCredentials: this.withCredentials
     });
   }
@@ -87,7 +85,6 @@ export class RecordingFileService {
     return this.http.get(recUrl, {
       observe: 'response',
       responseType: 'arraybuffer',
-      params: this.httpParams,
       withCredentials: this.withCredentials
     });
   }

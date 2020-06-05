@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse} from "@angular/common/http";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
@@ -22,7 +22,7 @@ export class RecordingService {
   public static readonly REC_API_CTX = 'recfile'
   private apiEndPoint: string;
   private withCredentials: boolean = false;
-  private httpParams: HttpParams;
+
   //private debugDelay:number=10000;
   private debugDelay:number=0;
 
@@ -41,8 +41,6 @@ export class RecordingService {
     }
 
     //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-    this.httpParams = new HttpParams();
-    this.httpParams.set('cache', 'false');
 
   }
 
@@ -55,7 +53,7 @@ export class RecordingService {
       // append UUID to make request URL unique to avoid localhost server caching
       recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
     }
-    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{params:this.httpParams,withCredentials:this.withCredentials});
+    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
@@ -75,7 +73,6 @@ export class RecordingService {
       headers: headers,
       observe: 'response',
       responseType: 'arraybuffer',
-      params: this.httpParams,
       withCredentials: this.withCredentials
     });
 
