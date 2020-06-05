@@ -20,6 +20,7 @@ import {Selection} from "../../../audio/persistor";
 import {MessageDialog} from "../../../ui/message_dialog";
 import {RecordingFile} from "./recording-file";
 import {PromptitemUtil} from "../../script/script";
+import {Action} from "../../../action/action";
 
 @Component({
 
@@ -41,6 +42,23 @@ import {PromptitemUtil} from "../../script/script";
             </table>
           </mat-card-content>
         </mat-card>
+        <div style="felx:0">
+        <div #navi style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
+          <fieldset>
+            <legend>Navigate</legend>
+            <div  style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
+            <button (click)="prevAction?.perform()" [disabled]="prevAction?.disabled"
+                    [style.color]="nextAction?.disabled ? 'grey' : 'green'" matTooltip="Previous recording file">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button (click)="nextAction.perform()" [disabled]="nextAction.disabled"
+                    [style.color]="nextAction.disabled ? 'grey' : 'green'" matTooltip="Next recording file">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+            </div>
+          </fieldset>
+        </div>
+        </div>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -95,12 +113,17 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
   savedEditSelection:Selection;
   editSaved:boolean=true
 
+  prevAction: Action<void>;
+  nextAction: Action<void>;
+
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
 
   constructor(protected recordingFileService:RecordingFileService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
     super(route,ref,eRef)
     this.parentE=this.eRef.nativeElement;
+    this.prevAction=new Action<void>('Previous');
+    this.nextAction=new Action<void>('Next');
   }
 
 
@@ -190,6 +213,15 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
       this.status = 'Error loading audio file!';
     });
 
+  }
+
+
+  nextFile(){
+
+  }
+
+  nextFileAvail(){
+    return true;
   }
 
   applySelection(){
