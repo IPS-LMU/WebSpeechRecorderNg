@@ -1,7 +1,7 @@
 import {
   Component,
   ViewChild,
-  HostListener, ElementRef, Output, Input, OnInit,
+  HostListener, ElementRef, Output, Input,
 } from '@angular/core'
 
 
@@ -15,36 +15,21 @@ import {AudioClip, Selection} from "../persistor";
   selector: 'audio-display-scroll-pane',
 
   template: `
-    <div #scrollpane>
+
     <app-audio #audioSignalContainer (selectionEventEmitter)="selectionChanged($event)"></app-audio>
-    </div>
+
   `,
   styles: [
     `:host {
       flex: 2;
-      flex-shrink: 10;
-      width: 100%;
-      background: darkgray;
-      box-sizing: border-box;
-      /* height: 100%; */
-/*
-      position: relative;
-      overflow-x: scroll;
-      overflow-y: auto;
-      */
-    }`,
-      `div {
-      /* flex: 2; */
       width: 100%;
       background: darkgray;
       box-sizing: border-box;
       height: 100%;
-
       position: relative;
       overflow-x: scroll;
       overflow-y: auto;
-    }`
-    ,
+    }`,
     `app-audio {
 
     margin: 0;
@@ -59,13 +44,8 @@ import {AudioClip, Selection} from "../persistor";
   }`]
 
 })
-export class AudioDisplayScrollPane implements  OnInit{
+export class AudioDisplayScrollPane {
 
-  // Scroll pane
-  // This additional div element is only required to get WebKit (Safari) to work
-  // without vertical scrollbar
-  // Custom elements seem to be differently handled by WebKit then div elements
-  @ViewChild('scrollpane', { static: true }) spRef: ElementRef;
   private spEl:HTMLElement;
 
   @Output() zoomInAction:Action<void>=new Action('+');
@@ -74,18 +54,15 @@ export class AudioDisplayScrollPane implements  OnInit{
   @Output() zoomFitToPanelAction:Action<void>=new Action("Fit to panel");
   zoomFixFitToPanelAction:Action<void>=new Action("Fix fit to panel");
 
+
   @ViewChild(AudioClipUIContainer, { static: true })
   private ac: AudioClipUIContainer;
 
 
 
-  constructor( private ref: ElementRef) {}
+  constructor( private ref: ElementRef) {
+      this.spEl = this.ref.nativeElement;
 
-  ngOnInit(){
-    this.spEl = this.spRef.nativeElement;
-    this.spEl.addEventListener('scroll',(e)=>{
-      this.updateClipBounds();
-    });
       this.zoomInAction.onAction = (e) => {
           this.ac.fixFitToPanel = false
           let oldXZoom = this.ac.currentXZoom()
@@ -159,6 +136,11 @@ export class AudioDisplayScrollPane implements  OnInit{
   updateClipBounds(){
     let cbr=new Rectangle(new Position(this.spEl.scrollLeft,this.spEl.scrollTop), new Dimension(this.spEl.clientWidth,this.spEl.clientHeight));
     this.ac.clipBounds(cbr);
+  }
+
+  @HostListener('scroll', ['$event'])
+  onScroll(se: Event) {
+     this.updateClipBounds()
   }
 
   @HostListener('window:resize', ['$event'])
