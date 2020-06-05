@@ -35,7 +35,7 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
         <table>
           <tr><td>Itemcode:</td><td>{{recordingFile?.recording.itemcode}}</td></tr>
           <tr><td>Prompt:</td><td>{{recordingAsPlainText()}}</td></tr>
-          <tr *ngIf="recordingFile?.session"><td>Session:</td><td>{{recordingFile?.session}}</td></tr>
+          <tr *ngIf="sessionId"><td>Session:</td><td>{{sessionId}}</td></tr>
         </table>
       </mat-card-content>
     </mat-card>
@@ -81,6 +81,7 @@ import {PromptItem, PromptitemUtil} from "../../script/script";
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements AfterViewInit {
 
   private _recordingFileId: string | number=null;
+  sessionId: string | number=null;
 
   parentE: HTMLElement;
 
@@ -113,11 +114,13 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     this.route.queryParams.subscribe((params: Params) => {
 
       let rfIdP=params['recordingFileId'];
-
+      let sIdP=params['sessionId'];
+      if(sIdP){
+        this.sessionId=sIdP;
+      }
       if(rfIdP) {
         this._recordingFileId=rfIdP
         console.log("Loading recording file ID (by query param): "+this._recordingFileId+ " referrer: "+document.referrer)
-
         this.ap.stop();
         this.loadRecFile()
       }
@@ -125,7 +128,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     this.route.params.subscribe((params: Params) => {
 
       let rfIdP=params['recordingFileId'];
-
+      let sIdP=params['sessionId'];
+      if(sIdP){
+        this.sessionId=sIdP;
+      }
       if(rfIdP) {
         this._recordingFileId=rfIdP
         console.log("Loading recording file ID (by route param): "+this._recordingFileId)
