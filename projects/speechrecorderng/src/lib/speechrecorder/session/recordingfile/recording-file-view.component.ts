@@ -21,6 +21,7 @@ import {MessageDialog} from "../../../ui/message_dialog";
 import {RecordingFile} from "./recording-file";
 import {PromptItem, PromptitemUtil} from "../../script/script";
 import {Action} from "../../../action/action";
+import {SessionService} from "../session.service";
 
 @Component({
 
@@ -69,23 +70,10 @@ import {Action} from "../../../action/action";
 })
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements AfterViewInit {
 
-  private _recordingFileId: string | number=null;
+  protected _recordingFileId: string | number=null;
   sessionId: string | number=null;
 
-  parentE: HTMLElement;
-
-  aCtx: AudioContext;
-  ap: AudioPlayer;
-  status: string;
-
-  currentLoader: XMLHttpRequest | null;
-
-  audio: any;
-  updateTimerId: any;
-
   recordingFile: RecordingFile;
-  savedEditSelection:Selection;
-  editSaved:boolean=true
 
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
@@ -134,30 +122,15 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     });
   }
 
-  applyButtonText():string {
-    if(this.audioClip) {
-      let s = this.audioClip.selection
-      if (s) {
-        return "Apply current selection as editing selection";
-      }else{
-        return "Cancel out editing selection";
-      }
-    }
-    // just as fallback
-    return "Apply selection";
+  nextFile(){
+
   }
 
-  recordingAsPlainText() {
-    if (this.recordingFile) {
-      let r = this.recordingFile.recording;
-      if (r) {
-        return PromptitemUtil.toPlainTextString(r);
-      }
-    }
-    return "n/a";
+  nextFileAvail(){
+    return true;
   }
 
-  private loadRecFile() {
+  protected loadRecFile() {
     let audioContext = AudioContextProvider.audioContextInstance()
     this.recordingFileService.fetchRecordingFile(audioContext,this._recordingFileId).subscribe(value => {
 
@@ -181,16 +154,15 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
 
       clip.selection=sel
       this.audioClip=clip
-      this.audioClip.addSelectionObserver((clip)=>{
-          let s=clip.selection
+      this.loadedRecfile();
 
-          this.editSaved=((this.savedEditSelection==null && s==null) || this.savedEditSelection!=null && this.savedEditSelection.equals(s))
-      })
-      this.savedEditSelection=sel
-      this.editSaved=true
     },error1 => {
       this.status = 'Error loading audio file!';
     });
+
+  }
+
+  protected loadedRecfile(){
 
   }
 

@@ -21,6 +21,7 @@ import {MessageDialog} from "../../../ui/message_dialog";
 import {RecordingFile} from "./recording-file";
 import {PromptitemUtil} from "../../script/script";
 import {Action} from "../../../action/action";
+import {RecordingFileViewComponent} from "./recording-file-view.component";
 
 @Component({
 
@@ -70,65 +71,20 @@ import {Action} from "../../../action/action";
     `]
 
 })
-export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit {
+export class RecordingFileUI extends RecordingFileViewComponent implements AfterViewInit {
 
-  private _recordingFileId: string | number=null;
-
-  parentE: HTMLElement;
-
-  aCtx: AudioContext;
-  ap: AudioPlayer;
-  status: string;
-
-  currentLoader: XMLHttpRequest | null;
-
-  audio: any;
-  updateTimerId: any;
-  recordingFile: RecordingFile;
   savedEditSelection:Selection;
   editSaved:boolean=true
 
-  prevAction: Action<void>;
-  nextAction: Action<void>;
-
-  @ViewChild(AudioDisplayScrollPane)
-  private ac: AudioDisplayScrollPane;
-
   constructor(protected recordingFileService:RecordingFileService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
-    super(route,ref,eRef)
+    super(recordingFileService,route,ref,eRef,dialog)
     this.parentE=this.eRef.nativeElement;
     this.prevAction=new Action<void>('Previous');
     this.nextAction=new Action<void>('Next');
   }
 
-
-
   ngAfterViewInit() {
     super.ngAfterViewInit()
-
-    this.route.queryParams.subscribe((params: Params) => {
-
-      let rfIdP=params['recordingFileId'];
-
-      if(rfIdP) {
-        this._recordingFileId=rfIdP
-        console.log("Loading recording file ID (by query param): "+this._recordingFileId+ " referrer: "+document.referrer)
-
-        this.ap.stop();
-        this.loadRecFile()
-      }
-    });
-    this.route.params.subscribe((params: Params) => {
-
-      let rfIdP=params['recordingFileId'];
-
-      if(rfIdP) {
-        this._recordingFileId=rfIdP
-        console.log("Loading recording file ID (by route param): "+this._recordingFileId)
-        this.ap.stop();
-        this.loadRecFile()
-      }
-    });
   }
 
   applyButtonText():string {
@@ -144,60 +100,16 @@ export class RecordingFileUI extends AudioDisplayPlayer implements AfterViewInit
     return "Apply selection";
   }
 
-  recordingAsPlainText() {
-    if (this.recordingFile) {
-      let r = this.recordingFile.recording;
-      if (r) {
-        return PromptitemUtil.toPlainTextString(r);
-      }
-    }
-    return "n/a";
-  }
+protected loadedRecfile() {
+  super.loadedRecfile();
 
-  private loadRecFile() {
-    let audioContext = AudioContextProvider.audioContextInstance()
-    this.recordingFileService.fetchRecordingFile(audioContext,this._recordingFileId).subscribe(value => {
-      console.log("Loaded");
-      this.status = 'Audio file loaded.';
-
-      this.recordingFile=value;
-      let clip=new AudioClip(value.audioBuffer)
-      let sel:Selection=null;
-      if(value.editStartFrame!=null){
-          if(value.editEndFrame!=null){
-            sel=new Selection(value.editStartFrame,value.editEndFrame)
-          }else{
-            let ch0 = value.audioBuffer.getChannelData(0)
-            let frameLength = ch0.length;
-            sel=new Selection(value.editStartFrame,frameLength)
-          }
-      }else if(value.editEndFrame!=null){
-        sel=new Selection(0,value.editEndFrame)
-      }
-
-      clip.selection=sel
-      this.audioClip=clip
-      this.audioClip.addSelectionObserver((clip)=>{
-          let s=clip.selection
-
-          this.editSaved=((this.savedEditSelection==null && s==null) || this.savedEditSelection!=null && this.savedEditSelection.equals(s))
-      })
-      this.savedEditSelection=sel
-      this.editSaved=true
-    },error1 => {
-      this.status = 'Error loading audio file!';
-    });
-
-  }
-
-
-  nextFile(){
-
-  }
-
-  nextFileAvail(){
-    return true;
-  }
+  this.audioClip.addSelectionObserver((clip) => {
+    let s = clip.selection
+    this.editSaved = ((this.savedEditSelection == null && s == null) || this.savedEditSelection != null && this.savedEditSelection.equals(s))
+  })
+  this.savedEditSelection = this.audioClip.selection;
+  this.editSaved = true
+}
 
   applySelection(){
 
