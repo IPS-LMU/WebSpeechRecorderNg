@@ -1,4 +1,4 @@
-import {PromptItem} from "../../script/script";
+import {PromptItem, PromptitemUtil} from "../../script/script";
 
 
 export class RecordingFile {
@@ -30,4 +30,16 @@ export class RecordingFile {
   }
 
 
+}
+
+export class RecordingFileUtil {
+  public static recordingAsPlainText(recordingFile:RecordingFile) {
+    if (recordingFile) {
+      let r = recordingFile.recording;
+      if (r) {
+        return PromptitemUtil.toPlainTextString(r);
+      }
+    }
+    return "n/a";
+  }
 }

@@ -32,33 +32,8 @@ import {Action} from "../../../action/action";
       
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
-        <mat-card>
-          <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
-          <mat-card-content>
-            <table>
-              <tr><td>Itemcode:</td><td>{{recordingFile?.recording.itemcode}}</td></tr>
-              <tr><td>Prompt:</td><td>{{recordingAsPlainText()}}</td></tr>
-              <tr *ngIf="recordingFile?.session"><td>Session:</td><td>{{recordingFile?.session}}</td></tr>
-            </table>
-          </mat-card-content>
-        </mat-card>
-        <div style="felx:0">
-        <div #navi style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
-          <fieldset>
-            <legend>Navigate</legend>
-            <div  style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
-            <button (click)="prevAction?.perform()" [disabled]="prevAction?.disabled"
-                    [style.color]="nextAction?.disabled ? 'grey' : 'green'" matTooltip="Previous recording file">
-              <mat-icon>chevron_left</mat-icon>
-            </button>
-            <button (click)="nextAction.perform()" [disabled]="nextAction.disabled"
-                    [style.color]="nextAction.disabled ? 'grey' : 'green'" matTooltip="Next recording file">
-              <mat-icon>chevron_right</mat-icon>
-            </button>
-            </div>
-          </fieldset>
-        </div>
-        </div>
+        <app-recording-file-meta [recordingFile]="recordingFile"></app-recording-file-meta>
+        <app-recording-file-navi [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
