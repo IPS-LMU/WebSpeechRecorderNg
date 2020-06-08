@@ -95,7 +95,7 @@ export class RecordingService {
 
     let wobs = new Observable<RecordingFile>(observer=>{
 
-      let obs = this.fetchAudiofile(projectName, recordingFile.sessionId, recordingFile.itemCode,recordingFile.version);
+      let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.itemCode,recordingFile.version);
       obs.subscribe(resp => {
           //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 

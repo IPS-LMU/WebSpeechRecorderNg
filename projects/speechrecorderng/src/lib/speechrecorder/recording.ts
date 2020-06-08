@@ -4,7 +4,7 @@ import {PromptItem} from "./script/script";
 
 export class RecordingFileDescriptor {
 
-  //sessionId:string|number;
+  //session:string|number;
   recording:PromptItem;
   version:number;
   constructor() {}
@@ -15,7 +15,7 @@ export class RecordingFileDescriptor {
       recordingFileId: string | number = null;
       uuid:string;
       audioBuffer:AudioBuffer;
-      sessionId:string|number;
+      session:string|number;
       itemCode:string;
 
       frames:number=null
@@ -25,7 +25,7 @@ export class RecordingFileDescriptor {
 
       constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer) {
           super()
-          this.sessionId=sessionId;
+          this.session=sessionId;
           this.itemCode=itemcode;
           this.version=version;
           this.audioBuffer=audioBuffer;
@@ -35,8 +35,8 @@ export class RecordingFileDescriptor {
 
       filenameString():string{
         let fns:string='';
-        if(this.sessionId){
-            fns+=this.sessionId;
+        if(this.session){
+            fns+=this.session;
             fns+='_';
         }
         if(this.itemCode){

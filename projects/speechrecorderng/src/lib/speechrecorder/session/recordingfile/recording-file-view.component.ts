@@ -37,7 +37,7 @@ export class ItemcodeIndex{
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
       <app-recording-file-meta [recordingFile]="recordingFile"></app-recording-file-meta>
-      <app-recording-file-navi [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
+      
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -47,6 +47,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
+      <app-recording-file-navi [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -64,6 +65,7 @@ export class ItemcodeIndex{
         .ctrlview{
           display: flex;
           flex-direction: row;
+          
         }
     `,`
       audio-display-control{
@@ -104,7 +106,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     this.route.queryParams.subscribe((params: Params) => {
 
       let rfIdP = params['recordingFileId'];
-      let sIdP = params['sessionId'];
+      let sIdP = params['session'];
       if (sIdP) {
         this.sessionId = sIdP;
         this.loadSession();
@@ -119,7 +121,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     this.route.params.subscribe((params: Params) => {
 
       let rfIdP = params['recordingFileId'];
-      let sIdP = params['sessionId'];
+      let sIdP = params['session'];
       if (sIdP) {
         this.sessionId = sIdP;
         this.loadSession();

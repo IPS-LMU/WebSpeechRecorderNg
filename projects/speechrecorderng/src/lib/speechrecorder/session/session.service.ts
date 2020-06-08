@@ -67,7 +67,7 @@ export class SessionService {
 
   // putSessionObserver(session: Session): Observable<Session> {
   //
-  //   let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.sessionId
+  //   let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.session
   //
   //   let wrapObs = new Observable<Session>(subscriber => {
   //     this._uploadCount++;

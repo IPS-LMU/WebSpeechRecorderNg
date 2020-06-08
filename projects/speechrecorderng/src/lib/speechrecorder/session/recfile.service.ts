@@ -28,9 +28,9 @@
 //
 //   }
 //
-//   postRecFile(sessionId: string,itemcode: string,recFile:any): Promise<any> {
+//   postRecFile(session: string,itemcode: string,recFile:any): Promise<any> {
 //
-//     let rfUrl = SESSION_API_CTX + '/' + sessionId+'/'+RECFILE_API_CTX+'/'+itemcode;
+//     let rfUrl = SESSION_API_CTX + '/' + session+'/'+RECFILE_API_CTX+'/'+itemcode;
 //
 //     let rfProms = this.http.post(rfUrl,recFile,{ withCredentials: true }).toPromise()
 //       .then(response => {

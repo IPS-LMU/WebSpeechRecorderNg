@@ -727,7 +727,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
-    //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
+    //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=null;
 
     if (!this.readonly && this.ac) {
@@ -1153,7 +1153,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
 
         let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-        let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
 
 
