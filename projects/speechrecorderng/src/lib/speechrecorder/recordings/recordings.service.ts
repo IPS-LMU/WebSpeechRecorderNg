@@ -57,6 +57,19 @@ export class RecordingService {
     return wobs;
   }
 
+  recordingFileList(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
+
+    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
+        SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
+    }
+    let wobs = this.http.get<Array<RecordingFile>>(recFilesUrl,{withCredentials:this.withCredentials});
+    return wobs;
+  }
+
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
 
     let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +

@@ -11,21 +11,26 @@ export class RecordingFileDescriptor {
 
 }
 
-    export class RecordingFile {
-
+    export class RecordingFile extends RecordingFileDescriptor{
+      recordingFileId: string | number = null;
+      uuid:string;
       audioBuffer:AudioBuffer;
       sessionId:string|number;
       itemCode:string;
-      version:number;
-      uuid:string;
+
+      frames:number=null
+      editStartFrame:number=null
+      editEndFrame:number=null
+
+
       constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer) {
+          super()
           this.sessionId=sessionId;
           this.itemCode=itemcode;
           this.version=version;
           this.audioBuffer=audioBuffer;
           this.uuid=UUID.generate();
       }
-
 
 
       filenameString():string{

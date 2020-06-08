@@ -4,9 +4,10 @@ import {HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse} from "@angular
 
 import {Observable} from "rxjs";
 
-import {RecordingFile} from "./recording-file";
+
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
+import {RecordingFile} from "../../recording";
 
 
 @Injectable()

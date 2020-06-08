@@ -1,4 +1,4 @@
-[ {
+{
   "bigendian" : false,
   "bytes" : 1458224,
   "channels" : 1,
@@ -39,41 +39,4 @@
   "samplerate" : 48000.0,
   "signalFile" : "file:/vdata/CM_test/101236542/101236542X1_00.wav",
   "version" : 0
-},
-  {
-    "recordingFileId": "1234",
-    "session": 2,
-    "recording" : {
-      "mediaitems" : [ {
-        "annotationTemplate" : true,
-        "text" : "Heute ist schönes Frühlingswetter!"
-      } ],
-      "itemcode" : "demo_99",
-      "recduration" : 4000,
-      "recinstructions" : {
-        "recinstructions" : "Please read:"
-      }
-    }
-  },
-  {
-    "recordingFileId": "5678",
-    "session": 2,
-    "recording": {
-      "itemcode": "N0",
-      "recduration": 10000,
-
-      "recinstructions": {
-        "recinstructions": "Please answer:"
-      },
-      "mediaitems": [
-        {
-          "annotationTemplate": false,
-          "autoplay": false,
-          "mimetype": "text/plain",
-          "text": "What's your name?"
-        }
-      ]
-    }
-  }
-
-]
+}
