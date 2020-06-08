@@ -47,7 +47,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
+      <app-recording-file-navi [versions]="versions" [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -80,6 +80,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   protected _recordingFileId: string | number = null;
   sessionId: string | number = null;
   availRecFileDescrs: Array<Array<RecordingFile>>;
+  versions: Array<number>=null;
 
   recordingFile: RecordingFile;
   posInList: number=null;
@@ -164,8 +165,18 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     return null;
   }
 
-  prevFileAvail():boolean {
+  private updatePos(){
     this.posInList=this.positionInList();
+    let arfs=this.availRecFileDescrs[this.posInList];
+    if(arfs) {
+      this.versions = arfs.map<number>((rf) => {
+        return  rf.version?rf.version:0;
+      })
+    }
+  }
+
+  prevFileAvail():boolean {
+   this.updatePos();
     if(this.posInList!=null) {
       if (this.posInList > 0) {
         return true;
@@ -175,7 +186,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   }
 
   nextFileAvail():boolean {
-      this.posInList=this.positionInList();
+     this.updatePos();
       if(this.posInList!=null) {
         let itemCnt = this.availRecFileDescrs.length;
         if (this.posInList < itemCnt - 1) {

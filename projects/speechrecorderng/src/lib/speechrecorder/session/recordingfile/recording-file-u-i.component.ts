@@ -1,29 +1,21 @@
 import {
   Component,
-  ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, ElementRef,
+  AfterViewInit,
+  ElementRef
 } from '@angular/core'
 
 
-import {ActivatedRoute, Params} from "@angular/router";
-
-
+import {ActivatedRoute, Router} from "@angular/router";
 import {RecordingFileService} from "./recordingfile-service";
 import {MatDialog} from "@angular/material/dialog";
-import {AudioDisplayPlayer} from "../../../audio/audio_player";
-import {AudioPlayer} from "../../../audio/playback/player";
-import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
-import {AudioContextProvider} from "../../../audio/context";
-import {AudioClip} from "../../../audio/persistor";
 import {Selection} from "../../../audio/persistor";
 import {MessageDialog} from "../../../ui/message_dialog";
-import {RecordingFile} from "./recording-file";
-import {PromptitemUtil} from "../../script/script";
 import {Action} from "../../../action/action";
 import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
 
@@ -36,7 +28,6 @@ import {RecordingService} from "../../recordings/recordings.service";
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
         <app-recording-file-meta [recordingFile]="recordingFile"></app-recording-file-meta>
-        <app-recording-file-navi [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -46,7 +37,9 @@ import {RecordingService} from "../../recordings/recordings.service";
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
+        <app-recording-file-navi [versions]="versions" [prevAction]="prevAction" [nextAction]="nextAction"></app-recording-file-navi>
       </div>
+      
       <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
   `,
   styles: [
@@ -78,11 +71,10 @@ export class RecordingFileUI extends RecordingFileViewComponent implements After
   savedEditSelection:Selection;
   editSaved:boolean=true
 
-  constructor(protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog) {
-    super(recordingFileService,recordingService,sessionService,route,ref,eRef,dialog)
+  constructor(protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog,private snackBar: MatSnackBar) {
+    super(recordingFileService,recordingService,sessionService,router,route,ref,eRef,dialog)
     this.parentE=this.eRef.nativeElement;
-    this.prevAction=new Action<void>('Previous');
-    this.nextAction=new Action<void>('Next');
+
   }
 
   ngAfterViewInit() {
@@ -144,6 +136,7 @@ protected loadedRecfile() {
         // Or use returned selection value from server?
           this.savedEditSelection = s
           this.editSaved = true
+          this.snackBar.open('Selection edit saved successfully.')
         })
     }
   }
