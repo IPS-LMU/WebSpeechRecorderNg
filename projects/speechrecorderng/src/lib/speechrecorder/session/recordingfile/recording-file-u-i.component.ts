@@ -27,7 +27,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
       
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
-        <app-recording-file-meta [recordingFile]="recordingFile"></app-recording-file-meta>
+        <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile"></app-recording-file-meta>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -107,8 +107,6 @@ protected loadedRecfile() {
 
   applySelection(){
 
-    console.log("apply selection to "+this._recordingFileId)
-
     let sf:number=null;
     let ef:number=null;
     if(this.audioClip) {
@@ -118,7 +116,7 @@ protected loadedRecfile() {
         ef = s.endFrame
       }
 
-      this.recordingFileService.saveEditSelection(this._recordingFileId, sf, ef).subscribe((value) => {
+      this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sf, ef).subscribe((value) => {
 
         },
         () => {

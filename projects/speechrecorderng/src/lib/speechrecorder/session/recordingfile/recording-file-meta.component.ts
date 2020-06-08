@@ -17,9 +17,9 @@ import {RecordingFile} from "../../recording";
             <td>Prompt:</td>
             <td>{{recordingAsPlainText()}}</td>
           </tr>
-          <tr *ngIf="recordingFile?.session">
+          <tr *ngIf="sessionId">
             <td>Session:</td>
-            <td>{{recordingFile?.session}}</td>
+            <td>{{sessionId}}</td>
           </tr>
         </table>
       </mat-card-content>
@@ -29,6 +29,7 @@ import {RecordingFile} from "../../recording";
 })
 export class RecordingFileMetaComponent{
 
+  @Input() sessionId:string | number | null;
   @Input() recordingFile:RecordingFile;
 
   recordingAsPlainText(){

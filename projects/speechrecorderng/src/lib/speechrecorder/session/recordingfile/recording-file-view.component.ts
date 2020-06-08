@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, ElementRef,
+  AfterViewInit, Input, ElementRef, OnInit,
 } from '@angular/core'
 
 
@@ -36,7 +36,7 @@ export class ItemcodeIndex{
     
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
-      <app-recording-file-meta [recordingFile]="recordingFile"></app-recording-file-meta>
+      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"></app-recording-file-meta>
       
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
@@ -75,11 +75,12 @@ export class ItemcodeIndex{
     `]
 
 })
-export class RecordingFileViewComponent extends AudioDisplayPlayer implements AfterViewInit {
+export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
 
-  protected _recordingFileId: string | number = null;
+  //protected _recordingFileId: string | number = null;
+
   sessionId: string | number = null;
-  availRecFileDescrs: Array<Array<RecordingFile>>;
+  availRecFiles: Array<Array<RecordingFile>>;
   versions: Array<number>=null;
 
   recordingFile: RecordingFile;
@@ -100,44 +101,40 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     this.nextAction.onAction= ()=>this.nextFile();
   }
 
+  ngOnInit() {
+    super.ngOnInit();
+
+  }
 
   ngAfterViewInit() {
     super.ngAfterViewInit()
-
     this.route.queryParams.subscribe((params: Params) => {
-
       let rfIdP = params['recordingFileId'];
       let sIdP = params['session'];
       if (sIdP) {
-        this.sessionId = sIdP;
-        this.loadSession();
+        this.loadSession(sIdP);
       }
       if (rfIdP) {
-        this._recordingFileId = rfIdP
-        console.log("Loading recording file ID (by query param): " + this._recordingFileId + " referrer: " + document.referrer)
-        this.ap.stop();
-        this.loadRecFile()
+        this.loadRecFile(rfIdP);
       }
     });
     this.route.params.subscribe((params: Params) => {
-
       let rfIdP = params['recordingFileId'];
       let sIdP = params['session'];
       if (sIdP) {
-        this.sessionId = sIdP;
-        this.loadSession();
+        this.loadSession(sIdP);
       }
       if (rfIdP) {
-        this._recordingFileId = rfIdP
-        console.log("Loading recording file ID (by route param): " + this._recordingFileId)
-        this.ap.stop();
-        this.loadRecFile()
+        this.loadRecFile(rfIdP);
       }
     });
+    if(this.sessionId){
+        this.loadSession(this.sessionId);
+    }
   }
 
   private navigateToRecordingFile(){
-    let latestNextRf = this.availRecFileDescrs[this.posInList][0];
+    let latestNextRf = this.availRecFiles[this.posInList][0];
     let lnRfId=latestNextRf.recordingFileId;
     this.router.navigate(['../'+lnRfId], {relativeTo:this.route});
   }
@@ -152,11 +149,11 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   }
 
   private positionInList():number | null{
-    if (this.availRecFileDescrs && this.recordingFile) {
+    if (this.availRecFiles && this.recordingFile) {
       let cic = this.recordingFile.recording.itemcode;
-      let itemCnt = this.availRecFileDescrs.length
+      let itemCnt = this.availRecFiles.length
       for (let rfdi = 0; rfdi < itemCnt; rfdi++) {
-        let ar = this.availRecFileDescrs[rfdi][0].recording;
+        let ar = this.availRecFiles[rfdi][0].recording;
         if (cic === ar.itemcode) {
           return rfdi;
         }
@@ -167,11 +164,13 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
 
   private updatePos(){
     this.posInList=this.positionInList();
-    let arfs=this.availRecFileDescrs[this.posInList];
-    if(arfs) {
-      this.versions = arfs.map<number>((rf) => {
-        return  rf.version?rf.version:0;
-      })
+    if(this.availRecFiles && this.posInList) {
+      let arfs = this.availRecFiles[this.posInList];
+      if (arfs) {
+        this.versions = arfs.map<number>((rf) => {
+          return rf.version ? rf.version : 0;
+        })
+      }
     }
   }
 
@@ -188,7 +187,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
   nextFileAvail():boolean {
      this.updatePos();
       if(this.posInList!=null) {
-        let itemCnt = this.availRecFileDescrs.length;
+        let itemCnt = this.availRecFiles.length;
         if (this.posInList < itemCnt - 1) {
           return true;
         }
@@ -196,9 +195,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     return false;
   }
 
-  protected loadRecFile() {
+  protected loadRecFile(rfId:number | string) {
+    this.ap.stop();
     let audioContext = AudioContextProvider.audioContextInstance()
-    this.recordingFileService.fetchRecordingFile(audioContext, this._recordingFileId).subscribe(value => {
+    this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
 
       this.status = 'Audio file loaded.';
 
@@ -220,15 +220,20 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
 
       clip.selection = sel
       this.audioClip = clip
+
       this.loadedRecfile();
 
     }, error1 => {
       this.status = 'Error loading audio file!';
     });
-
   }
 
   protected loadedRecfile() {
+    if(this.recordingFile && !this.sessionId) {
+      if (this.recordingFile.session) {
+        this.loadSession(this.recordingFile.session);
+      }
+    }
     this.updateActions();
   }
 
@@ -237,11 +242,12 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
     this.nextAction.disabled=!this.nextFileAvail();
   }
 
+  private loadSession(sessionId: string| number) {
 
-  private loadSession() {
-    this.sessionService.sessionObserver(<string>this.sessionId).subscribe((s) => {
+    this.sessionService.sessionObserver(<string>sessionId).subscribe((s) => {
+      this.sessionId=s.sessionId;
       this.recordingService.recordingFileList(s.project, s.sessionId).subscribe((rfds) => {
-        this.availRecFileDescrs=new Array<Array<RecordingFile>>();
+        this.availRecFiles=new Array<Array<RecordingFile>>();
         let icIdx=new ItemcodeIndex();
         for(let rfdi=0;rfdi<rfds.length;rfdi++){
           let rfd=rfds[rfdi];
@@ -254,7 +260,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements Af
             let arfd=new Array<RecordingFile>();
             arfd.push(rfd);
             icIdx[ic]=arfd;
-            this.availRecFileDescrs.push(arfd);
+            this.availRecFiles.push(arfd);
           }else {
               exRfsForIc.push(rfd);
               // sort latest version (highest version number) to lowest index
