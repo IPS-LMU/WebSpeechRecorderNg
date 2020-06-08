@@ -79,8 +79,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
         let initSuccess = this.init();
         if (initSuccess) {
           this.route.queryParams.subscribe((params: Params) => {
-            if (params['session']) {
-              this.fetchSession(params['session']);
+            if (params['sessionId']) {
+              this.fetchSession(params['sessionId']);
             }
           });
 
@@ -353,8 +353,8 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
           projUrl = 'test/Demo1.json?' + new Date().getTime();
         }
       } else {
-        // load RESTful by session
-        projUrl = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/rest/projects/?session=' + this.sessionId;
+        // load RESTful by sessionId
+        projUrl = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/wikispeech/rest/projects/?sessionId=' + this.sessionId;
 
       }
       if(projUrl) {
@@ -385,7 +385,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
   //   let pr:string =window.location.protocol;
   //   let po:string =window.location.port;
   //
-  //   let session:string=this.session.session;
+  //   let sessionId:string=this.session.sessionId;
   //
   //     let scrUrl:string | null = null;
   //
@@ -396,7 +396,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
   //
   //     } else {
   //         let scrPath:string = '/wikispeech/session/scripts/servlet';
-  //         let scrQu:string = 'session=' + session;
+  //         let scrQu:string = 'sessionId=' + sessionId;
   //         scrUrl = pr + '//' + hn + ':' + po + scrPath;
   //         if (scrQu) {
   //             scrUrl = scrUrl + '?' + scrQu;

@@ -110,7 +110,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     super.ngAfterViewInit()
     this.route.queryParams.subscribe((params: Params) => {
       let rfIdP = params['recordingFileId'];
-      let sIdP = params['session'];
+      let sIdP = params['sessionId'];
       if (sIdP) {
         this.loadSession(sIdP);
       }
@@ -120,7 +120,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     });
     this.route.params.subscribe((params: Params) => {
       let rfIdP = params['recordingFileId'];
-      let sIdP = params['session'];
+      let sIdP = params['sessionId'];
       if (sIdP) {
         this.loadSession(sIdP);
       }
