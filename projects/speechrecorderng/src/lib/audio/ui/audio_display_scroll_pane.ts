@@ -179,6 +179,9 @@ export class AudioDisplayScrollPane {
     this.ac.audioClip=audioClip
     this.zoomOutAction.disabled=(!audioData)
     this.zoomInAction.disabled=(!audioData)
+      window.setTimeout(()=>{
+          this.layout();
+      })
   }
 
 
