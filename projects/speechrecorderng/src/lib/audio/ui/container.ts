@@ -12,6 +12,43 @@ import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {Element} from "@angular/compiler";
 
 /*
+  ResizeObserver not yet available in official Typescript declaration
+  Crreated declaration from IDL until its available.
+  See specs:
+  https://www.w3.org/TR/resize-observer
+
+ */
+
+interface ResizeObserverSize {
+  readonly inlineSize:number;
+  readonly blockSize:number;
+};
+
+declare interface ResizeObserverEntry{
+  readonly target: Element;
+  readonly contentRect: DOMRectReadOnly ;
+  readonly borderBoxSize: Array<ResizeObserverSize> ;
+  readonly contentBoxSize: Array<ResizeObserverSize> ;
+  readonly devicePixelContentBoxSize: Array<ResizeObserverSize> ;
+}
+
+declare interface ResizeObserverCallback {
+  (entries: Array<ResizeObserverEntry>, observer: ResizeObserver):void;
+}
+
+declare enum ResizeObserverBoxOptions {
+  "border-box", "content-box", "device-pixel-content-box"
+};
+
+// Declare Resizeobserver
+declare class ResizeObserver{
+  constructor(callback: ResizeObserverCallback);
+  observe: (Element,ResizeObserverBoxOptions?)=>void;
+  unobserve: (Element)=>void;
+  disconnect: ()=>void;
+}
+
+/*
  * Container component for audio display.
  * The display elements are children of a virtual canvas. The virtual canvas makes it possible to have high zoom factors with very wide virtual audio displays.
  * Only the visible part of the virtual canvas is implemented as a browser canvas and therefore consuming memory.
@@ -151,6 +188,17 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
     heightListener.observe(this.ce, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.dc, {attributes: true, childList: true, characterData: true});
+
+    let resizeObserver = new ResizeObserver((entries,obs) => {
+      //console.log("Resize observed:");
+      entries.forEach((e)=>{
+        //console.log(e.contentRect.width+"x"+e.contentRect.height);
+        this.layout();
+      })
+    });
+
+    resizeObserver.observe(this.ce);
+
   }
 
   @HostListener('window:resize', ['$event'])
