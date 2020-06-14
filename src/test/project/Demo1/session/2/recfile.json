@@ -43,6 +43,7 @@
   {
     "recordingFileId": "1234",
     "session": 2,
+    "date" : "2020-05-01T20:03:00.456+01:00",
     "recording" : {
       "mediaitems" : [ {
         "annotationTemplate" : true,
@@ -58,6 +59,7 @@
   {
     "recordingFileId": "5678",
     "session": 2,
+    "date" : "2020-06-10T20:04:44.123+01:00",
     "recording": {
       "itemcode": "N0",
       "recduration": 10000,

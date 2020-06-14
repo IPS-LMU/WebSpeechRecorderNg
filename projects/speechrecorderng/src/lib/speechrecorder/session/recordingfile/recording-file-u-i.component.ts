@@ -134,7 +134,7 @@ protected loadedRecfile() {
         // Or use returned selection value from server?
           this.savedEditSelection = s
           this.editSaved = true
-          this.snackBar.open('Selection edit saved successfully.')
+          this.snackBar.open('Selection edit saved successfully.','OK',{duration: 1500})
         })
     }
   }

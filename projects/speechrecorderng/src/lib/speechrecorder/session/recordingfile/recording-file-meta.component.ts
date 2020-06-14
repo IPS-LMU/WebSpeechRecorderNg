@@ -13,10 +13,15 @@ import {RecordingFile} from "../../recording";
             <td>Itemcode:</td>
             <td>{{recordingFile?.recording.itemcode}}</td>
           </tr>
+          <tr *ngIf="recordingFile?.date">
+            <td>Date:</td>
+            <td>{{recordingFile?.date}}</td>
+          </tr>
           <tr>
             <td>Prompt:</td>
             <td>{{recordingAsPlainText()}}</td>
           </tr>
+         
           <tr *ngIf="sessionId">
             <td>Session:</td>
             <td>{{sessionId}}</td>
