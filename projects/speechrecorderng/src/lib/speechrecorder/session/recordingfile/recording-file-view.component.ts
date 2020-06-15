@@ -47,7 +47,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [versions]="versions" [prevAction]="prevAction" [nextAction]="nextAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+      <app-recording-file-navi [version]="recordingFile?.version" [versions]="versions" [prevAction]="prevAction" [nextAction]="nextAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -88,6 +88,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   recordingFile: RecordingFile;
   private routedByQueryParam=false;
   posInList: number=null;
+
 
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
@@ -143,9 +144,9 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     // }
   }
 
-  ngAfter
 
   private navigateToId(rfId:number| string){
+
     if(this.routedByQueryParam){
       this.router.navigate([], {relativeTo: this.route, queryParams:{'recordingFileId':rfId}})
     }else {
@@ -159,21 +160,24 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.navigateToId(lnRfId);
   }
 
-  private toVersion(e:Event){
+  toVersion(ae:ActionEvent<number>){
+    console.debug("Change event: "+ae);
     let toRfId=null;
-    if(e instanceof ActionEvent){
-      let ae=<ActionEvent<number>>e;
+
       let version=ae.value;
+      console.debug("Action event: version: "+version);
       let cRfs=this.availRecFiles[this.posInList];
       let availVersionCnt=cRfs.length;
       for(let cRf of cRfs){
+        console.debug("Match?: "+cRf.version+ " "+version);
           if(cRf.version===version){
               toRfId=cRf.recordingFileId;
               break;
           }
       }
-    }
-    if(toRfId){
+
+    if(toRfId!=null){
+      console.debug("Version change navi to RF ID: "+toRfId);
       this.navigateToId(toRfId);
     }
   }
@@ -203,16 +207,25 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   private updatePos(){
     this.posInList=this.positionInList();
-    if(this.availRecFiles && this.posInList) {
-      let arfs = this.availRecFiles[this.posInList];
-      if (arfs) {
-        // this.versions = arfs.map<number>((rf) => {
-        //   return rf.version ? rf.version : 0;
-        // })
-        this.versions=new Array<number>();
-        for(let arf of arfs){
-          //console.log("Version: "+arf.version)
-          this.versions.push(arf.version)
+    console.debug("updatePos: posInList: "+this.posInList+" availRecs: "+this.availRecFiles)
+    this.toVersionAction.disabled=true;
+    if(this.availRecFiles){
+      let avRfsLen=this.availRecFiles.length;
+      console.debug("updatePos: availRecs len: "+avRfsLen)
+      if(this.posInList !=null && avRfsLen>this.posInList) {
+        let arfs = this.availRecFiles[this.posInList];
+        console.debug("updatePos: arfs: " + arfs);
+        if (arfs) {
+          // this.versions = arfs.map<number>((rf) => {
+          //   return rf.version ? rf.version : 0;
+          // })
+          this.versions = new Array<number>();
+          for (let arf of arfs) {
+
+            this.versions.push(arf.version)
+          }
+          this.toVersionAction.disabled=(this.versions.length<2);
+          console.debug("Versions set: " + this.versions.length)
         }
       }
     }
@@ -273,16 +286,19 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   protected loadedRecfile() {
+    console.debug("LoadedRecFile")
     if(this.recordingFile && !this.sessionId) {
       let sId=this.recordingFile.session
       if(!sId){
         sId=this.sessionIdFromRoute;
       }
       if (sId) {
-        this.loadSession(this.recordingFile.session);
+        this.loadSession(sId);
       }
     }
+    this.updatePos();
     this.updateActions();
+    console.debug("Detect changes")
     this.ref.detectChanges();
   }
 
@@ -293,12 +309,12 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   private loadSession(sessionId: string| number) {
     if (<string>sessionId != <string>this.sessionId) {
-      //console.log("Session ID: "+<string>sessionId +"!="+ <string>this.sessionId)
+      console.debug("Loading session ID: "+<string>sessionId +"!="+ <string>this.sessionId)
       this.naviInfoLoading=true;
       this.sessionService.sessionObserver(<string>sessionId).subscribe((s) => {
         //window.setTimeout(()=>{
         this.sessionId = s.sessionId;
-
+        console.debug("Got session, load rec files list...")
         this.recordingService.recordingFileList(s.project, s.sessionId).subscribe((rfds) => {
           this.availRecFiles = new Array<Array<RecordingFile>>();
           let icIdx = new ItemcodeIndex();
@@ -345,8 +361,13 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               }
             }
           });
+          console.debug("Loaded rec files list: "+this.availRecFiles.length)
           this.updateActions();
+          console.debug("Updated actions.")
+          this.updatePos()
+          console.debug("Updated pos")
           this.naviInfoLoading=false;
+          console.debug("Detect changes")
           this.ref.detectChanges();
           // setting of session ID changes layout, which cannot be detected by audio display, trigger re-layout manually
           //window.setTimeout(()=>{this.layout();});

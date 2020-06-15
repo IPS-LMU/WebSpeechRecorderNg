@@ -8,9 +8,8 @@ import {Action} from "../../../action/action";
           <div #navi style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
             <fieldset>
               <legend>Versions</legend>
-                <select *ngIf="versions!=null && versions.length>0" #versionSelector [disabled]="versions==null || versions.length==1" (change)="selectVersionChange()">
-                  <legend>Versions</legend>
-                  <option *ngFor="let version of versions; let i = index" value="{{version}}">{{version}}<span *ngIf="i==0"> (latest)</span></option>
+                <select #versionSelector [disabled]="versions==null || versions.length==1" (change)="selectVersionChange($event)">
+                  <option *ngFor="let v of versions; let i = index" [selected]="v===version" value="{{v}}">{{v}}<span *ngIf="i==0"> (latest)</span></option>
                 </select>
             </fieldset>
             <fieldset>
@@ -40,19 +39,18 @@ export class RecordingFileNaviComponent implements OnInit {
   @Input() nextAction: Action<void>;
   @Input() selectVersion: Action<number>;
   @Input() versions: Array<number>;
+  @Input() version: number=null;
 
   @Input() naviInfoLoading=false;
-
-  @ViewChild('versionSelector')
-  versionselector:HTMLSelectElement;
 
   constructor() { }
 
   ngOnInit(): void {
   }
 
-  selectVersionChange(){
-    let versionNr=parseInt(this.versionselector.value);
+  selectVersionChange(ev){
+    let versionNr=parseInt(ev.target.value);
+    console.debug("Change event: "+ev.target.value+ ", as Nr: "+versionNr);
       this.selectVersion.perform(versionNr)
   }
 
