@@ -24,7 +24,7 @@ import {Action} from "../../../action/action";
                   <mat-icon>chevron_right</mat-icon>
                 </button>
               </div>
-              <p>(Ordered by date)</p>
+              <p>(List ordered by date)</p>
             </fieldset>
           </div>
         </div>
