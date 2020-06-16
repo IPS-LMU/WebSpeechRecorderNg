@@ -8,13 +8,14 @@ import {Action} from "../../../action/action";
           <div #navi style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
             <fieldset>
               <legend>Versions</legend>
-                <select #versionSelector [disabled]="versions==null || versions.length==1" (change)="selectVersionChange($event)">
+              <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="15"></mat-progress-spinner>
+                <select *ngIf="!naviInfoLoading" [disabled]="versions==null || versions.length==1" (change)="selectVersionChange($event)">
                   <option *ngFor="let v of versions; let i = index" [selected]="v===version" value="{{v}}">{{v}}<span *ngIf="i==0"> (latest)</span></option>
                 </select>
             </fieldset>
             <fieldset>
               <legend>Navigate</legend>
-              <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="20"></mat-progress-spinner>
+              <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="15"></mat-progress-spinner>
               <div *ngIf="!naviInfoLoading"  style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
                 <button (click)="prevAction?.perform()" [disabled]="prevAction?.disabled" matTooltip="Previous recording file">
                   <mat-icon>chevron_left</mat-icon>
@@ -23,6 +24,7 @@ import {Action} from "../../../action/action";
                   <mat-icon>chevron_right</mat-icon>
                 </button>
               </div>
+              <p>(Ordered by date)</p>
             </fieldset>
           </div>
         </div>

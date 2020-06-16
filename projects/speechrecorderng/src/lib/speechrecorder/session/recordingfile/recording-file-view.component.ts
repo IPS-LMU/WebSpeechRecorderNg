@@ -160,24 +160,18 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.navigateToId(lnRfId);
   }
 
-  toVersion(ae:ActionEvent<number>){
-    console.debug("Change event: "+ae);
-    let toRfId=null;
-
-      let version=ae.value;
-      console.debug("Action event: version: "+version);
-      let cRfs=this.availRecFiles[this.posInList];
-      let availVersionCnt=cRfs.length;
-      for(let cRf of cRfs){
-        console.debug("Match?: "+cRf.version+ " "+version);
-          if(cRf.version===version){
-              toRfId=cRf.recordingFileId;
-              break;
-          }
+  toVersion(ae: ActionEvent<number>) {
+    let toRfId = null;
+    let version = ae.value;
+    let cRfs = this.availRecFiles[this.posInList];
+    let availVersionCnt = cRfs.length;
+    for (let cRf of cRfs) {
+      if (cRf.version === version) {
+        toRfId = cRf.recordingFileId;
+        break;
       }
-
-    if(toRfId!=null){
-      console.debug("Version change navi to RF ID: "+toRfId);
+    }
+    if (toRfId != null) {
       this.navigateToId(toRfId);
     }
   }
@@ -207,32 +201,25 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   private updatePos(){
     this.posInList=this.positionInList();
-    console.debug("updatePos: posInList: "+this.posInList+" availRecs: "+this.availRecFiles)
     this.toVersionAction.disabled=true;
     if(this.availRecFiles){
       let avRfsLen=this.availRecFiles.length;
-      console.debug("updatePos: availRecs len: "+avRfsLen)
       if(this.posInList !=null && avRfsLen>this.posInList) {
         let arfs = this.availRecFiles[this.posInList];
-        console.debug("updatePos: arfs: " + arfs);
         if (arfs) {
-          // this.versions = arfs.map<number>((rf) => {
-          //   return rf.version ? rf.version : 0;
-          // })
           this.versions = new Array<number>();
           for (let arf of arfs) {
-
             this.versions.push(arf.version)
           }
           this.toVersionAction.disabled=(this.versions.length<2);
-          console.debug("Versions set: " + this.versions.length)
         }
       }
     }
+    this.updateActions()
   }
 
   prevFileAvail():boolean {
-   this.updatePos();
+   //this.updatePos();
     if(this.posInList!=null) {
       if (this.posInList > 0) {
         return true;
@@ -242,7 +229,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   nextFileAvail():boolean {
-     this.updatePos();
+     //this.updatePos();
       if(this.posInList!=null) {
         let itemCnt = this.availRecFiles.length;
         if (this.posInList < itemCnt - 1) {
@@ -286,7 +273,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   protected loadedRecfile() {
-    console.debug("LoadedRecFile")
     if(this.recordingFile && !this.sessionId) {
       let sId=this.recordingFile.session
       if(!sId){
@@ -297,8 +283,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
       }
     }
     this.updatePos();
-    this.updateActions();
-    console.debug("Detect changes")
     this.ref.detectChanges();
   }
 
@@ -308,19 +292,22 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private loadSession(sessionId: string| number) {
+    // load session and recording file meta data only when on init and when session changes
     if (<string>sessionId != <string>this.sessionId) {
-      console.debug("Loading session ID: "+<string>sessionId +"!="+ <string>this.sessionId)
+      // tell UI that we are working...
       this.naviInfoLoading=true;
       this.sessionService.sessionObserver(<string>sessionId).subscribe((s) => {
-        //window.setTimeout(()=>{
+        // received session data
         this.sessionId = s.sessionId;
-        console.debug("Got session, load rec files list...")
+        // fetch recording file meta data list
         this.recordingService.recordingFileList(s.project, s.sessionId).subscribe((rfds) => {
           this.availRecFiles = new Array<Array<RecordingFile>>();
+          // build structure indexed by itemcode
           let icIdx = new ItemcodeIndex();
           for (let rfdi = 0; rfdi < rfds.length; rfdi++) {
             let rfd = rfds[rfdi];
             if (rfd.date) {
+              // convert date string for faster sorting later
               let rfdd = new Date(rfd.date);
               rfd._dateAsDateObj = rfdd;
             }
@@ -334,13 +321,16 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               icIdx[ic] = arfd;
               this.availRecFiles.push(arfd);
             } else {
+              // rec file with itemcode already exists, add (push) this version ...
               exRfsForIc.push(rfd);
-              // sort latest version (highest version number) to lowest index
+              // .. and sort latest version (highest version number) to lowest index
               exRfsForIc.sort((rfd1, rfd2) => {
                 return rfd2.version - rfd1.version;
               })
             }
           }
+          // have unsorted ietmcode indexed recording files here
+          // sort them ordered by date of latest version ascending
           this.availRecFiles.sort((rfs1, rfs2) => {
             let d1 = rfs2[0]._dateAsDateObj;
             let d2 = rfs1[0]._dateAsDateObj;
@@ -348,12 +338,12 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               if (d2 == null) {
                 return 0;
               } else {
-                // Sort entries whose dates are bot set to the end
+                // Sort entries whose dates are not set to the end
                 return -1;
               }
             } else {
               if (d2 == null) {
-                // Sort entries whose dates are bot set to the end
+                // Sort entries whose dates are not set to the end
                 return 1;
               } else {
                 // Compare date by time in milliseconds value
@@ -361,18 +351,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               }
             }
           });
-          console.debug("Loaded rec files list: "+this.availRecFiles.length)
-          this.updateActions();
-          console.debug("Updated actions.")
           this.updatePos()
-          console.debug("Updated pos")
           this.naviInfoLoading=false;
-          console.debug("Detect changes")
           this.ref.detectChanges();
-          // setting of session ID changes layout, which cannot be detected by audio display, trigger re-layout manually
-          //window.setTimeout(()=>{this.layout();});
         });
-        // },2000);
       });
     }
   }
