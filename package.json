@@ -9,6 +9,8 @@
   "scripts": {
     "ng": "ng",
     "apply_module_version": "node bin/apply_version.js",
+    "new_prerelease": "npm version --no-git-tag-version prerelease && cd projects && cd speechrecorderng && npm version --no-git-tag-version prerelease && cd .. && cd ..",
+    "new_prerelease_build_and_pack_module": "npm run new_prerelease && npm run build_and_pack_module",
     "build_module": "npm run apply_module_version && ng build speechrecorderng --prod",
     "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
     "pack_pi_module": "cd dist && cd speechrecorderng && npm pack && cd ../../ && node bin/mv_tgz_pkgs.js",
