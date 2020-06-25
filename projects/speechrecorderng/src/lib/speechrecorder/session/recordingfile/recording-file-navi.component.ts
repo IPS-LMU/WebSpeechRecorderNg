@@ -30,7 +30,7 @@ import {Action} from "../../../action/action";
                   <mat-icon>last_page</mat-icon>
                 </button>
               </div>
-              <p *ngIf="items!=null && itemPos!=null">{{itemPos}} of {{items}}</p>
+              <p *ngIf="items!=null && itemPos!=null">Item {{itemPos+1}} of {{items}}</p>
               <p>(List ordered by date)</p>
             </fieldset>
           </div>
