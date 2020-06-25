@@ -33,11 +33,11 @@ export class ItemcodeIndex{
   selector: 'app-audiodisplayplayer',
 
   template: `
-    
+
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
       <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"></app-recording-file-meta>
-      
+
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -47,7 +47,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [version]="recordingFile?.version" [versions]="versions" [prevAction]="prevAction" [nextAction]="nextAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?.version" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -61,15 +61,15 @@ export class ItemcodeIndex{
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`        
+    }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;
-          
+
         }
     `,`
       audio-display-control{
-        
+
         flex: 3;
       }
     `]
@@ -93,8 +93,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
 
+  firstAction: Action<void>;
   prevAction: Action<void>;
   nextAction: Action<void>;
+  lastAction: Action<void>;
   toVersionAction: Action<number>;
 
   naviInfoLoading=false;
@@ -102,10 +104,23 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   constructor(protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
     super(route, ref, eRef)
     this.parentE = this.eRef.nativeElement;
+    this.firstAction = new Action<void>('First');
+    this.firstAction.onAction= ()=>{
+      this.posInList=0;
+      this.navigateToRecordingFile();
+    }
     this.prevAction = new Action<void>('Previous');
     this.prevAction.onAction= ()=>this.prevFile();
     this.nextAction = new Action<void>('Next');
     this.nextAction.onAction= ()=>this.nextFile();
+    this.lastAction = new Action<void>('Last');
+    this.lastAction.onAction= ()=>{
+      if(this.availRecFiles) {
+        this.posInList = this.availRecFiles.length - 1;
+        this.navigateToRecordingFile();
+      }
+    }
+
     this.toVersionAction=new Action<number>('To version');
     this.toVersionAction.onAction= (ae)=>this.toVersion(ae);
   }
@@ -176,6 +191,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     }
   }
 
+
   prevFile() {
     this.posInList--;
     this.navigateToRecordingFile()
@@ -216,27 +232,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
       }
     }
     this.updateActions()
-  }
-
-  prevFileAvail():boolean {
-   //this.updatePos();
-    if(this.posInList!=null) {
-      if (this.posInList > 0) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  nextFileAvail():boolean {
-     //this.updatePos();
-      if(this.posInList!=null) {
-        let itemCnt = this.availRecFiles.length;
-        if (this.posInList < itemCnt - 1) {
-          return true;
-        }
-      }
-    return false;
   }
 
   protected loadRecFile(rfId:number | string) {
@@ -287,8 +282,12 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private updateActions(){
-    this.prevAction.disabled=!this.prevFileAvail();
-    this.nextAction.disabled=!this.nextFileAvail();
+
+    let itemCnt = this.availRecFiles.length;
+    this.firstAction.disabled=(this.posInList==null || this.posInList == 0);
+    this.prevAction.disabled=(this.posInList==null || this.posInList == 0);
+    this.nextAction.disabled=(this.posInList==null || this.posInList >= itemCnt - 1);
+    this.lastAction.disabled=(this.posInList==null || this.posInList >= itemCnt - 1);
   }
 
   private loadSession(sessionId: string| number) {

@@ -17,13 +17,20 @@ import {Action} from "../../../action/action";
               <legend>Navigate</legend>
               <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="15"></mat-progress-spinner>
               <div *ngIf="!naviInfoLoading"  style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
-                <button (click)="prevAction?.perform()" [disabled]="prevAction?.disabled" matTooltip="Previous recording file">
+                <button (click)="firstAction?.perform()" [disabled]="!firstAction || firstAction?.disabled" matTooltip="First recording file">
+                  <mat-icon>first_page</mat-icon>
+                </button>
+                <button (click)="prevAction?.perform()" [disabled]="!prevAction || prevAction?.disabled" matTooltip="Previous recording file">
                   <mat-icon>chevron_left</mat-icon>
                 </button>
-                <button (click)="nextAction?.perform()" [disabled]="nextAction.disabled" matTooltip="Next recording file">
+                <button (click)="nextAction?.perform()" [disabled]="!nextAction || nextAction?.disabled" matTooltip="Next recording file">
                   <mat-icon>chevron_right</mat-icon>
                 </button>
+                <button (click)="lastAction?.perform()" [disabled]="!lastAction || lastAction?.disabled" matTooltip="Last recording file">
+                  <mat-icon>last_page</mat-icon>
+                </button>
               </div>
+              <p *ngIf="items!=null && itemPos!=null">{{itemPos}} of {{items}}</p>
               <p>(List ordered by date)</p>
             </fieldset>
           </div>
@@ -36,9 +43,12 @@ import {Action} from "../../../action/action";
       }`]
 })
 export class RecordingFileNaviComponent implements OnInit {
-
+  @Input() firstAction: Action<void>;
   @Input() prevAction: Action<void>;
   @Input() nextAction: Action<void>;
+  @Input() lastAction: Action<void>;
+  @Input() items:number | null;
+  @Input() itemPos:number | null;
   @Input() selectVersion: Action<number>;
   @Input() versions: Array<number>;
   @Input() version: number=null;
