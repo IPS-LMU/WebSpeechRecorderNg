@@ -282,12 +282,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private updateActions(){
-
-    let itemCnt = this.availRecFiles.length;
+    let itemCnt:number=null;
+    if(this.availRecFiles) {
+      itemCnt = this.availRecFiles.length;
+    }
     this.firstAction.disabled=(this.posInList==null || this.posInList == 0);
     this.prevAction.disabled=(this.posInList==null || this.posInList == 0);
-    this.nextAction.disabled=(this.posInList==null || this.posInList >= itemCnt - 1);
-    this.lastAction.disabled=(this.posInList==null || this.posInList >= itemCnt - 1);
+    this.nextAction.disabled=(this.posInList==null || itemCnt==null || this.posInList >= itemCnt - 1);
+    this.lastAction.disabled=(this.posInList==null || itemCnt==null || this.posInList >= itemCnt - 1);
   }
 
   private loadSession(sessionId: string| number) {
