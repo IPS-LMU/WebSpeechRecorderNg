@@ -287,7 +287,7 @@ A GET request to the URL should return the latest upload.
 The default routing path to start a recording session is `/spr/session/{sessionId}`. If you call this router link from your Angular application
 WebSpeechRecorderNg should start and will try to load the session data from the REST API first.
  
-### GUI components to view and edit your recording database
+## GUI components to view and edit your recording database
 
 ### Edit or view recording files
 To edit a selection of a recording file call the router link: 
