@@ -1,0 +1,22 @@
+# Example Apache WWW .htaccess file
+#
+# WebSpeechRecorderNg is based on Angular https://angular.io
+# Therefore it is a single page appliaction (SPA) and requires a special server configuration,
+# which redirects (virtual) routing paths to the index.html page of the application.
+# See https://angular.io/guide/deployment#server-configuration for details.
+#
+# In this example the deploy path /wsr/ng/ was chosen.
+# The build command for the app is accordingly:
+# ng build --base-href=/wsr/ng/dist/index.html --prod
+# The dist directory can then be deployed (copied) to a directory /wsr/ng/ on your Web-Server
+# and this file should be copied to /wsr/ng/dist/.htaccess
+
+<IfModule mod_rewrite.c>
+    RewriteEngine on
+    RewriteCond %{REQUEST_FILENAME} -s [OR]
+    RewriteCond %{REQUEST_FILENAME} -l [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^.*$ - [NC,L]
+    RewriteRule ^(.*) /wsr/ng/dist/index.html [NC,L]
+</IfModule>
+
