@@ -420,6 +420,30 @@ A server response might look like this:
 ]
 ```
 
+5. Save edit selection:
+
+Path: PATCH {apiEndPoint}recordingfile/{recordingFileId}
+
+Accept: application/json
+
+Sends `editStartFrame` and `editEndFrame` sample position properties of the selection, for example:
+
+```
+{
+"editStartFrame":182360,
+"editEndFrame":303934
+}
+```
+
+or null values to remove the edit selection:
+
+```
+{
+"editStartFrame":null,
+"editEndFrame":null
+}
+```
+
 
 ### Development server
 
