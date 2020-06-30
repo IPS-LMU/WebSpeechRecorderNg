@@ -161,7 +161,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
 
   started() {
-    console.debug("Play started");
+    //console.debug("Play started");
     this.status = 'Playing...';
   }
 
@@ -179,7 +179,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       if (this.currentLoader) {
 
         var data = this.currentLoader.response; // not responseText
-        console.debug("Received data ", data.byteLength);
+        //console.debug("Received data ", data.byteLength);
         this.currentLoader = null;
         this.loaded(data);
       }
@@ -197,13 +197,13 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   private loaded(data: ArrayBuffer) {
 
-    console.debug("Loaded");
+    //console.debug("Loaded");
     this.status = 'Audio file loaded.';
-    console.debug("Received data ", data.byteLength);
+    //console.debug("Received data ", data.byteLength);
 
     // Do not use Promise version, which does not work with Safari 13
     this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      console.info("Samplerate: ", audioBuffer.sampleRate)
+      //console.debug("Samplerate: ", audioBuffer.sampleRate)
       this.audioClip=new AudioClip(audioBuffer)
     });
   }

@@ -1106,10 +1106,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 

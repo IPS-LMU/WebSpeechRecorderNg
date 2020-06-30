@@ -62,8 +62,8 @@ export class RecordingFileNaviComponent implements OnInit {
 
   selectVersionChange(ev){
     let versionNr=parseInt(ev.target.value);
-    console.debug("Change event: "+ev.target.value+ ", as Nr: "+versionNr);
-      this.selectVersion.perform(versionNr)
+    //console.debug("Change event: "+ev.target.value+ ", as Nr: "+versionNr);
+    this.selectVersion.perform(versionNr)
   }
 
 }

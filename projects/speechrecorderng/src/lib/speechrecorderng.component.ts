@@ -103,7 +103,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
           if (sess.project) {
-            console.debug("Session associated project: "+sess.project)
+            //console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);
@@ -156,15 +156,14 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
           if(rfs) {
             if(rfs instanceof Array) {
               rfs.forEach((rf) => {
-                // TODO test output for now
-                console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
                 this.sm.addRecordingFileByDescriptor(rf);
               })
             }else{
               console.error('Expected type array for list of already recorded files ')
             }
           }else{
-            console.debug("Recording file list: " + rfs);
+            //console.debug("Recording file list: " + rfs);
           }
         },()=>{
           // we start the session anyway
@@ -183,15 +182,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
         setSession(session:any){
 		    if(session) {
-                console.debug("Session ID: " + session.sessionId);
-
-
+               // console.debug("Session ID: " + session.sessionId);
             }else{
-                console.debug("Session Undefined");
+                //console.debug("Session Undefined");
             }
-
         }
-
 
         ready():boolean{
 		    return this.dataSaved && !this.sm.isActive()
