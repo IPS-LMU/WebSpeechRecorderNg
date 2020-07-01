@@ -85,7 +85,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   availRecFiles: Array<Array<RecordingFile>>;
   versions: Array<number>=null;
 
-  recordingFile: RecordingFile;
+  recordingFile: RecordingFile=null;
   private routedByQueryParam=false;
   posInList: number=null;
 
