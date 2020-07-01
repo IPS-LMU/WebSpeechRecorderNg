@@ -46,3 +46,5 @@ Thumbs.db
 
 # project configuration environment file
 src/environments/environment.prod.ts
+/projects/speechrecorderng/node_modules/tslib/
+/projects/speechrecorderng/package-lock.json
