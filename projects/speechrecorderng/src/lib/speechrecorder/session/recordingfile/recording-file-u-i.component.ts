@@ -94,6 +94,11 @@ export class RecordingFileUI extends RecordingFileViewComponent implements After
     return "Apply selection";
   }
 
+  protected loadRecFile(rfId:number | string) {
+    this.editSaved = true;
+    super.loadRecFile(rfId);
+  }
+
 protected loadedRecfile() {
   super.loadedRecfile();
 

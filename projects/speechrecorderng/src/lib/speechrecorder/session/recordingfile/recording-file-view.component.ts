@@ -236,6 +236,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   protected loadRecFile(rfId:number | string) {
     this.ap.stop();
+    this.audioClip =null;
+    this.recordingFile=null;
+    this.posInList=null;
+    this.updateActions();
     let audioContext = AudioContextProvider.audioContextInstance()
     this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
 
