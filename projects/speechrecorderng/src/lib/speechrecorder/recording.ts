@@ -19,11 +19,10 @@ export class RecordingFileDescriptor {
       audioBuffer:AudioBuffer=null;
       session:string|number=null;
       itemCode:string;
-
       frames:number=null
+        editSampleRate:number=null;
       editStartFrame:number=null
       editEndFrame:number=null
-
 
       constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer) {
           super()
@@ -33,7 +32,6 @@ export class RecordingFileDescriptor {
           this.audioBuffer=audioBuffer;
           this.uuid=UUID.generate();
       }
-
 
       filenameString():string{
         let fns:string='';

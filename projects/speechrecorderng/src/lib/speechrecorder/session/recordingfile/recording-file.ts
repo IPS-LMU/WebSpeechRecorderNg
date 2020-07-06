@@ -44,4 +44,31 @@ export class RecordingFileUtil {
     }
     return "n/a";
   }
+
+  public static framePosForSampleRate(framePosSampleRate:number|null,framePos:number|null,sampleRate:number):number|null{
+    let fpFSr=null;
+
+    // TODO transitional until editSampleRates are set in the database
+    if(framePosSampleRate==null){
+      framePosSampleRate=sampleRate;
+    }
+    if(framePosSampleRate!=null && framePos!=null) {
+      if (framePosSampleRate === sampleRate) {
+        fpFSr=framePos;
+      } else {
+        fpFSr=Math.round((framePos * sampleRate) / framePosSampleRate);
+      }
+    }
+    return fpFSr;
+  }
+
+  public static editStartFrameForSampleRate(recordingFile:RecordingFile,sampleRate:number):number | null{
+    let esffSr=RecordingFileUtil.framePosForSampleRate(recordingFile.editSampleRate,recordingFile.editStartFrame,sampleRate);
+    return esffSr;
+  }
+
+  public static editEndFrameForSampleRate(recordingFile:RecordingFile,sampleRate:number):number | null{
+    let eeffSr=RecordingFileUtil.framePosForSampleRate(recordingFile.editSampleRate,recordingFile.editEndFrame,sampleRate);
+    return eeffSr;
+  }
 }

@@ -112,15 +112,16 @@ export class AudioDisplayScrollPane {
               this.ac.fixFitToPanel = false
 
               // calculate selection length in seconds
-              let selFrLen = s.endFrame - s.startFrame
-              let selLenInSecs = selFrLen / this.ac.audioData.sampleRate
+              let sr=this.ac.audioData.sampleRate;
+              let selFrLen = s.endFrame - s.startFrame;
+              let selLenInSecs = selFrLen / sr;
               // calculate corresponding xZoom value
               let newXZoom = this.spEl.clientWidth / selLenInSecs
               // apply xZoom
               this.ac.xZoom = newXZoom
 
               // Move viewport to show selection
-              let x1 = this.ac.frameToXPixelPosition(s.startFrame)
+              let x1 = this.ac.frameToXPixelPosition(s.startFrame);
               //console.debug("Set scroll left")
               this.spEl.scrollLeft = x1;
               //console.debug("Scroll left set.")

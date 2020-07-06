@@ -176,7 +176,7 @@ export class RecordingFileService {
     return wobs;
   }
 
-  saveEditSelection(recordingFileId: string | number,editStartFrame:number,editEndFrame:number): Observable<RecordingFile | null> {
+  saveEditSelection(recordingFileId: string | number,editSampleRate:number,editStartFrame:number,editEndFrame:number): Observable<RecordingFile | null> {
     let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
@@ -184,7 +184,7 @@ export class RecordingFileService {
       recUrl = recUrl + '.json?requestUUID='+UUID.generate();
     }
     console.log("Path request URL: "+recUrl)
-    return this.http.patch<RecordingFile>(recUrl,{editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
+    return this.http.patch<RecordingFile>(recUrl,{editSampleRate:editSampleRate,editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
   }
 
 }

@@ -22,6 +22,7 @@ import {Action, ActionEvent} from "../../../action/action";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {RecordingFile} from "../../recording";
+import {RecordingFileUtil} from "./recording-file";
 
 
 export class ItemcodeIndex{
@@ -247,18 +248,34 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
       this.recordingFile = value;
 
-      let clip = new AudioClip(value.audioBuffer)
+      let ab=this.recordingFile.audioBuffer;
+
+      let clip = new AudioClip(ab);
+
+      let esffsr=null;
+      let eeffsr=null;
+      let esr=null;
+
+      if(clip.buffer!=null){
+        esr=ab.sampleRate;
+      }
+
+      if (esr!=null) {
+        esffsr=RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile,esr);
+        eeffsr=RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile,esr);
+      }
+
       let sel: Selection = null;
-      if (value.editStartFrame != null) {
-        if (value.editEndFrame != null) {
-          sel = new Selection(value.editStartFrame, value.editEndFrame)
+      if (esffsr != null) {
+        if (eeffsr != null) {
+          sel = new Selection(ab.sampleRate,esffsr, eeffsr);
         } else {
-          let ch0 = value.audioBuffer.getChannelData(0)
+          let ch0 = ab.getChannelData(0);
           let frameLength = ch0.length;
-          sel = new Selection(value.editStartFrame, frameLength)
+          sel = new Selection(esr,esffsr, frameLength);
         }
-      } else if (value.editEndFrame != null) {
-        sel = new Selection(0, value.editEndFrame)
+      } else if (eeffsr != null) {
+        sel = new Selection(esr,0, eeffsr);
       }
 
       clip.selection = sel

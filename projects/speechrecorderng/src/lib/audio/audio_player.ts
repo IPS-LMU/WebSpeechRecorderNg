@@ -203,13 +203,14 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
     // Do not use Promise version, which does not work with Safari 13
     this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      //console.debug("Samplerate: ", audioBuffer.sampleRate)
+      //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
       this.audioClip=new AudioClip(audioBuffer)
     });
   }
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
+    console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
       this.audioDisplayScrollPane.audioData = audioBuffer;
       if(audioBuffer) {
           let clip = new AudioClip(audioBuffer);
@@ -248,6 +249,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       })
     }
     if(audioData) {
+      console.debug("Audio Buffer Samplerate: ", audioData.sampleRate)
       this.playStartAction.disabled =(!this.ap)
       this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{
