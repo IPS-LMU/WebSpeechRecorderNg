@@ -426,10 +426,11 @@ Path: PATCH {apiEndPoint}recordingfile/{recordingFileId}
 
 Accept: application/json
 
-Sends `editStartFrame` and `editEndFrame` sample position properties of the selection, for example:
+Sends `editSampleRate`,`editStartFrame` and `editEndFrame` sample position properties of the selection, for example:
 
 ```
 {
+"editSampleRate": 48000,
 "editStartFrame":182360,
 "editEndFrame":303934
 }
@@ -439,6 +440,7 @@ or null values to remove the edit selection:
 
 ```
 {
+"editSampleRate": null,
 "editStartFrame":null,
 "editEndFrame":null
 }
