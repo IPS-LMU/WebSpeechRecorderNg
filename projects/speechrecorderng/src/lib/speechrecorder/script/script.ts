@@ -80,6 +80,7 @@ export interface Script {
 }
 
 export class PromptDocUtil{
+
   static toPlainTextString(promptDoc:PromptDoc):string{
     let pt="";
     let b=promptDoc.body;
@@ -91,15 +92,20 @@ export class PromptDocUtil{
           let txts=blk.texts;
           for(let ti=0;ti<txts.length;ti++){
               let txtEl=txts[ti];
-              let txt=txtEl.text;
-              if( txtEl.type === 'font' && txt instanceof Text){
-                let tfo:Text=<Text>txt;
-                if(typeof tfo.text ==='string') {
-                  pt = pt.concat(<string>tfo.text);
-                }
-              }else if(typeof txt === 'string'){
+              let txt =txtEl.text;
+            if( txtEl.type === 'font'){
+              if(typeof txt === 'string'){
                 pt = pt.concat(<string>txt);
+              }else{
+                let subTxtEl=<Text>txt;
+                let subTxt=subTxtEl.text;
+                if(typeof subTxt === 'string') {
+                  pt=pt.concat(subTxt);
+                }
               }
+            }else if(typeof txt === 'string'){
+              pt = pt.concat(<string>txt);
+            }
           }
         }
       }
