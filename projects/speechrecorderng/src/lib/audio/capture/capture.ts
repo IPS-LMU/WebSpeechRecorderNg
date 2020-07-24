@@ -33,7 +33,7 @@ export interface AudioCaptureListener {
 
   closed(): void;
 
-  error(): void;
+  error(msg?:string,advice?:string): void;
 }
 
 export class AudioCapture {
@@ -365,11 +365,19 @@ export class AudioCapture {
           this.listener.opened();
         }
       }, (e) => {
-        console.error(e);
+        console.error(e + " Error name: " +e.name);
 
         if (this.listener) {
-
-          this.listener.error();
+          if('NotAllowedError' === e.name){
+            this.listener.error('Not allowed to use your microphone.','Please make sure that microphone access is allowed for this web page and reload the page.');
+          }else if('NotReadableError' === e.name){
+            this.listener.error('Could not read from your audio device.','Please make sure your audio device is working.');
+          }else if('OverconstrainedError' === e.name){
+            let eMsg=e.msg?e.msg:'Overconstrained media device request error.';
+            this.listener.error(eMsg);
+          } else {
+            this.listener.error();
+          }
         }
       }
     )

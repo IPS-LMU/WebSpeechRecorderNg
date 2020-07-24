@@ -1265,15 +1265,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
 
-  error() {
+  error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
     this.dialog.open(MessageDialog, {
       data: {
         type: 'error',
         title: 'Recording error',
-        msg: 'An unknown error occured during recording.',
-        advice: 'Please retry.'
+        msg: msg,
+        advice: advice
       }
     });
   }
