@@ -12,7 +12,7 @@ import { MatDialog} from "@angular/material/dialog";
 
   template: `
     <p matTooltip="Status">
-      <mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
+      <mat-progress-spinner *ngIf="statusWaiting" color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
       {{statusMsg}}
     </p>
   `,
@@ -25,6 +25,12 @@ import { MatDialog} from "@angular/material/dialog";
   }`, `
     p {
       white-space:nowrap;
+      display: inline-block;
+    }
+  `, `
+    mat-progress-spinner {
+      color: black;
+      display: inline-block;
     }
   `, `
     span {
@@ -37,7 +43,7 @@ import { MatDialog} from "@angular/material/dialog";
 export class StatusDisplay {
   @Input() statusAlertType = 'info';
   @Input() statusMsg = 'Initialize...';
-
+  @Input() statusWaiting =false;
 }
 
 
@@ -273,7 +279,7 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
 
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
@@ -309,6 +315,7 @@ export class ControlPanel {
   @Input() processing=false
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
+  @Input() statusWaiting: boolean;
   @Input() uploadStatus: string;
   @Input() uploadProgress: number;
   @Input() currentRecording: AudioBuffer;
