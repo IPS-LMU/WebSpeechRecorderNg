@@ -95,12 +95,15 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
     fetchSession(sessionId:string){
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg = 'Fetching session info...';
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
         sessObs.subscribe(sess => {
           this.setSession(sess);
-
+            this.sm.statusAlertType='info';
+            this.sm.statusMsg = 'Received session info.';
 
           if (sess.project) {
             //console.debug("Session associated project: "+sess.project)
@@ -129,7 +132,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     fetchScript(sess:Session){
       if(sess.script){
+        this.sm.statusAlertType='info';
+        this.sm.statusMsg = 'Fetching recording script...';
         this.scriptService.scriptObservable(sess.script).subscribe(script=>{
+          this.sm.statusAlertType='info';
+          this.sm.statusMsg = 'Received recording script.';
           this.setScript(script)
           this.sm.session=sess;
           this.fetchRecordings(sess,this.script)
@@ -151,8 +158,12 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
     fetchRecordings(sess:Session,script:Script){
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg = 'Fetching infos of recordings...';
         let rfsObs=this.recFilesService.recordingFileDescrList(this.project.name,sess.sessionId);
         rfsObs.subscribe((rfs:Array<RecordingFileDescriptor>)=>{
+          this.sm.statusAlertType='info';
+          this.sm.statusMsg = 'Received infos of recordings.';
           if(rfs) {
             if(rfs instanceof Array) {
               rfs.forEach((rf) => {

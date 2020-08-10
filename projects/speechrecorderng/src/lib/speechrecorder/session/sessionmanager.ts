@@ -699,7 +699,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
 
   start() {
-
+    this.statusAlertType = 'info';
+    this.statusMsg = 'Starting session...';
     if (this._session.sealed) {
       this.readonly = true
       this.statusMsg = 'Session sealed!';
