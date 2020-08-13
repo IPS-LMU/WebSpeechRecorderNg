@@ -41,7 +41,7 @@ export class AudioCapture {
     return this._opened;
   }
 
-  static BUFFER_SIZE: number = 4096;
+  static BUFFER_SIZE: number = 8192;
   context: any;
   stream: MediaStream;
   //mediaStream:MediaStreamAudioSourceNode;
@@ -207,80 +207,89 @@ export class AudioCapture {
 
     let msc:any;
     console.info('User agent: '+navigator.userAgent);
-    msc={audio:true,video:false};
-    // if (navigator.userAgent.match(".*Edge.*")) {
-    //
-    //   // Microsoft Edge sends unmodified audio
-    //   // The constraint can follow the specification
-    //   console.info("Setting media track constraints for Microsoft Edge.");
-    //   msc = {
-    //     audio: {
-    //       deviceId: selDeviceId,
-    //       echoCancellation: false,
-    //       channelCount: channelCount
-    //     },
-    //     video: false
-    //   };
-    // } else if (navigator.userAgent.match(".*Chrome.*")) {
-    //   // Google Chrome: we need to switch of each of the preprocessing units including the
-    //   console.info("Setting media track constraints for Google Chrome.");
-    //
-    //   // Chrome 60 -> 61 changed
-    //   // it works now without mandatory/optional sub-objects
-    //
-    //
-    //   // Requires at least Chrome 61
-    //   msc = {
-    //     audio: {
-    //       //"deviceId": selDeviceId,
-    //       "channelCount": channelCount,
-    //       "echoCancellation": false
-    //       // "autoGainControl": false,
-    //       // "googEchoCancellation": false,
-    //       // "googExperimentalEchoCancellation": false,
-    //       // "googAutoGainControl": false,
-    //       // "googTypingNoiseDetection": false,
-    //       // "googNoiseSuppression": false,
-    //       // "googHighpassFilter": false,
-    //       // "googBeamforming": false
-    //     },
-    //     video: false,
-    //   }
-    //
-    // } else if (navigator.userAgent.match(".*Firefox.*")) {
-    //   console.info("Setting media track constraints for Mozilla Firefox.");
-    //   // Firefox
-    //   msc = {
-    //     audio: {
-    //         "deviceId": selDeviceId,
-    //         "channelCount": channelCount,
-    //       "echoCancellation": false,
-    //         "mozEchoCancellation": false,
-    //         "autoGainControl": false,
-    //       "mozAutoGainControl": false,
-    //       "noiseSuppression": false,
-    //       "mozNoiseSuppression": false
-    //     },
-    //     video: false,
-    //   }
-    //
-    // } else if (navigator.userAgent.match(".*Safari.*")) {
-    //   console.info("Setting media track constraints for Safari browser.")
-    //   console.info("Apply workaround for Safari: Avoid disconnect of streams.");
-    //   this.disconnectStreams = false;
-    //   msc = {
-    //     audio: {
-    //       "deviceId": selDeviceId,
-    //       "channelCount": channelCount,
-    //       "echoCancellation": false
-    //     },
-    //     video: false,
-    //   }
-    //
-    // } else {
-    //
-    //   // TODO default constraints or error Browser not supported
-    // }
+    let androidWorkaround=navigator.userAgent.match(".*[(].*Android.*[)].*");
+
+    if(androidWorkaround){
+      msc = {
+        audio: {
+          "deviceId": selDeviceId,
+          "channelCount": channelCount
+        },
+        video: false,
+      }
+    }else if (navigator.userAgent.match(".*Edge.*")) {
+
+      // Microsoft Edge sends unmodified audio
+      // The constraint can follow the specification
+      console.info("Setting media track constraints for Microsoft Edge.");
+      msc = {
+        audio: {
+          deviceId: selDeviceId,
+          echoCancellation: false,
+          channelCount: channelCount
+        },
+        video: false
+      };
+    } else if (navigator.userAgent.match(".*Chrome.*")) {
+      // Google Chrome: we need to switch of each of the preprocessing units including the
+      console.info("Setting media track constraints for Google Chrome.");
+
+      // Chrome 60 -> 61 changed
+      // it works now without mandatory/optional sub-objects
+
+      // Requires at least Chrome 61
+        msc = {
+          audio: {
+            "deviceId": selDeviceId,
+            "channelCount": channelCount,
+            "echoCancellation": false,
+            "autoGainControl": false,
+            "googEchoCancellation": false,
+            "googExperimentalEchoCancellation": false,
+            "googAutoGainControl": false,
+            "googTypingNoiseDetection": false,
+            "googNoiseSuppression": false,
+            "googHighpassFilter": false,
+            "googBeamforming": false
+          },
+          video: false,
+        }
+
+
+    } else if (navigator.userAgent.match(".*Firefox.*")) {
+      console.info("Setting media track constraints for Mozilla Firefox.");
+      // Firefox
+      msc = {
+        audio: {
+            "deviceId": selDeviceId,
+            "channelCount": channelCount,
+          "echoCancellation": false,
+            "mozEchoCancellation": false,
+            "autoGainControl": false,
+          "mozAutoGainControl": false,
+          "noiseSuppression": false,
+          "mozNoiseSuppression": false
+        },
+        video: false,
+      }
+
+    } else if (navigator.userAgent.match(".*Safari.*")) {
+      console.info("Setting media track constraints for Safari browser.")
+      console.info("Apply workaround for Safari: Avoid disconnect of streams.");
+      this.disconnectStreams = false;
+      msc = {
+        audio: {
+          "deviceId": selDeviceId,
+          "channelCount": channelCount,
+          "echoCancellation": false
+        },
+        video: false,
+      }
+
+    } else {
+
+      // TODO default constraints or error Browser not supported
+    }
 
     let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
     ump.then((s) => {
