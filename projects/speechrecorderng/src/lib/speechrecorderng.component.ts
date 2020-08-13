@@ -95,9 +95,14 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
     fetchSession(sessionId:string){
-      this.sm.statusAlertType='info';
-      this.sm.statusMsg = 'Fetching session info...';
-        this.sm.statusWaiting=true;
+
+
+		  //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
+      // params.subscribe seems not to be asynchronous
+
+      // this.sm.statusAlertType='info';
+      // this.sm.statusMsg = 'Fetching session info...';
+      // this.sm.statusWaiting=true;
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
