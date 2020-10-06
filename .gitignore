@@ -48,3 +48,4 @@ Thumbs.db
 src/environments/environment.prod.ts
 /projects/speechrecorderng/node_modules/tslib/
 /projects/speechrecorderng/package-lock.json
+/src/environments/environment.demo.ts
