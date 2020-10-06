@@ -695,7 +695,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
     }
     this.updateStartActionDisableState()
-
+    this.updateNavigationActions()
   }
 
 
@@ -915,7 +915,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
          newPrIdx=this.promptItemCount-1;
        }
        this.promptIndex=newPrIdx;
-      this.updateNavigationActions()
+      //this.updateNavigationActions()
     }
 
 
@@ -926,7 +926,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       newPrIdx=0;
     }
     this.promptIndex=newPrIdx;
-    this.updateNavigationActions();
+    //this.updateNavigationActions();
   }
 
   private updateNavigationActions(){
@@ -947,7 +947,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (!this.items[newPrIdx].recs || this.items[newPrIdx].recs.length == 0) {
       this.promptIndex = newPrIdx;
     }
-   this.updateNavigationActions()
   }
 
 
