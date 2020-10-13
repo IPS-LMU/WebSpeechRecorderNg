@@ -16,7 +16,9 @@ export class RecordingFileDescriptor {
       uuid:string=null;
       date: string=null;
       _dateAsDateObj:Date=null;
-      audioBuffer:AudioBuffer=null;
+      private _audioBuffer:AudioBuffer=null;
+      private _audioSizeInBytes:number=0;
+      private static _allAudioSizeInBytes=0;
       session:string|number=null;
       itemCode:string;
       frames:number=null
@@ -29,8 +31,32 @@ export class RecordingFileDescriptor {
           this.session=sessionId;
           this.itemCode=itemcode;
           this.version=version;
-          this.audioBuffer=audioBuffer;
+          //this._audioBuffer=audioBuffer;
           this.uuid=UUID.generate();
+          this.audioBuffer=audioBuffer;
+      }
+
+      private updateAudioSizeInBytes(){
+        this._audioSizeInBytes=0;
+          if(this._audioBuffer!=null){
+            for(let ch=0;ch<this._audioBuffer.numberOfChannels;ch++){
+              let chData=this._audioBuffer.getChannelData(ch);
+              let chSize=chData.byteLength;
+              this._audioSizeInBytes+=chSize;
+            }
+          }
+      }
+
+      set audioBuffer(audioBuffer:AudioBuffer){
+        RecordingFile._allAudioSizeInBytes-=this._audioSizeInBytes;
+        this._audioBuffer=audioBuffer;
+        this.updateAudioSizeInBytes();
+        RecordingFile._allAudioSizeInBytes+=this._audioSizeInBytes;
+        console.log("Audio bytes in use: "+RecordingFile._allAudioSizeInBytes);
+      }
+
+      get audioBuffer(){
+        return this._audioBuffer;
       }
 
       filenameString():string{
