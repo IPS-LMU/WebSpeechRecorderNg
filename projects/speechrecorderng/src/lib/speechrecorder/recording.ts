@@ -59,6 +59,10 @@ export class RecordingFileDescriptor {
         return this._audioBuffer;
       }
 
+      get audioSizeInBytes(){
+          return this._audioSizeInBytes;
+      }
+
       filenameString():string{
         let fns:string='';
         if(this.session){
