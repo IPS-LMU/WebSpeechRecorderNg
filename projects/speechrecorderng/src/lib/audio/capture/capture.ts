@@ -24,7 +24,7 @@ class AudioStreamConstr implements MediaStreamConstraints {
   }
 }
 
-export interface AudioCaptureListener {
+export interface MediaCaptureListener {
   opened(): void;
 
   started(): void;
@@ -33,6 +33,7 @@ export interface AudioCaptureListener {
 
   closed(): void;
 
+  dataAvailable(blob:Blob):void;
   error(msg?:string,advice?:string): void;
 }
 
@@ -47,11 +48,12 @@ export class AudioCapture {
   //mediaStream:MediaStreamAudioSourceNode;
   // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
   // TODO use AudioRecorder
-
+  mediaRecorder:MediaRecorder=null;
+  mimeTypes: Array<string>=null;
   channelCount: number;
   mediaStream: any;
   bufferingNode: any;
-  listener: AudioCaptureListener;
+  listener: MediaCaptureListener;
   data: Array<Array<Float32Array>>;
   currentSampleRate: number;
   n: Navigator;
@@ -68,9 +70,11 @@ export class AudioCapture {
   }
 
   private initData() {
-    this.data = new Array<Array<Float32Array>>();
-    for (let i = 0; i < this.channelCount; i++) {
-      this.data.push(new Array<Float32Array>());
+    if(!this.mediaRecorder) {
+      this.data = new Array<Array<Float32Array>>();
+      for (let i = 0; i < this.channelCount; i++) {
+        this.data.push(new Array<Float32Array>());
+      }
     }
     this.framesRecorded = 0;
   }
@@ -183,11 +187,18 @@ export class AudioCapture {
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString){
       this.context.resume().then(()=>{
-        this._open(channelCount,selDeviceId);
+        this._open(null,false,channelCount,selDeviceId);
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString,) {
+  openMediaCapture(mimeTypes:Array<string>,video:boolean,channelCount:number){
+    this.context.resume().then(()=>{
+      this._open(mimeTypes,video,channelCount,null);
+    })
+  }
+
+  _open(mimeTypes:Array<string>,video:boolean,channelCount: number, selDeviceId?: ConstrainDOMString,) {
+    this.mimeTypes=mimeTypes;
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
@@ -218,7 +229,7 @@ export class AudioCapture {
           echoCancellation: false,
           channelCount: channelCount
         },
-        video: false
+        video: video
       };
     } else if (navigator.userAgent.match(".*Chrome.*")) {
       // Google Chrome: we need to switch of each of the preprocessing units including the
@@ -243,8 +254,8 @@ export class AudioCapture {
           "googHighpassFilter": false,
           "googBeamforming": false
         },
-        video: false,
-      }
+        video: video
+      };
 
     } else if (navigator.userAgent.match(".*Firefox.*")) {
       console.info("Setting media track constraints for Mozilla Firefox.");
@@ -260,8 +271,8 @@ export class AudioCapture {
           "noiseSuppression": false,
           "mozNoiseSuppression": false
         },
-        video: false,
-      }
+        video: video
+      };
 
     } else if (navigator.userAgent.match(".*Safari.*")) {
       console.info("Setting media track constraints for Safari browser.")
@@ -273,8 +284,8 @@ export class AudioCapture {
           "channelCount": channelCount,
           "echoCancellation": false
         },
-        video: false,
-      }
+        video: video
+      };
 
     } else {
 
@@ -298,63 +309,85 @@ export class AudioCapture {
           let vTrack = vTracks[i];
           console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
         }
-        this.mediaStream = this.context.createMediaStreamSource(s);
-        // stream channel count ( is always 2 !)
-        let streamChannelCount: number = this.mediaStream.channelCount;
 
-        // is not set!!
-        //this.currentSampleRate = this.mediaStream.sampleRate;
-        this.currentSampleRate = this.context.sampleRate;
-        console.info("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
-        if (this.audioOutStream) {
-          this.audioOutStream.setFormat(this.channelCount, this.currentSampleRate);
-        }
-        // W3C  -> new name is createScriptProcessor
-        //
-        // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
-        // AudioWorker is now AudioWorkletProcessor ... (May 2017)
+        if(this.mimeTypes){
+           // Use MediaRecorder API
+          this.mediaRecorder=new MediaRecorder(this.stream);
 
-        if (this.context.createAudioWorker) {
-          //console.debug("Audio worker implemented!!")
-        } else {
-          //console.debug("Audio worker NOT implemented.")
-        }
+          if (this.listener) {
+            this.mediaRecorder.onstart=(ev)=>{
+              this.listener.started();
+            }
+            this.mediaRecorder.onstop=(ev)=>{
+              this.listener.stopped();
+            }
+          }
+          this.mediaRecorder.ondataavailable=(blobEvent:BlobEvent)=>{
+            console.log("Recorded Blob: "+blobEvent.data);
+            if(this.listener){
+              this.listener.dataAvailable(blobEvent.data);
+            }
+          };
+        }else {
+          // Use Audio API
+          this.mediaStream = this.context.createMediaStreamSource(s);
+          // stream channel count ( is always 2 !)
+          let streamChannelCount: number = this.mediaStream.channelCount;
 
-        if (this.context.registerProcessor) {
-          //console.debug("Audio worklet processor implemented!!");
-        } else {
-          //console.debug("Audio worklet processor NOT implemented.")
-        }
+          // is not set!!
+          //this.currentSampleRate = this.mediaStream.sampleRate;
+          this.currentSampleRate = this.context.sampleRate;
+          console.info("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
+          if (this.audioOutStream) {
+            this.audioOutStream.setFormat(this.channelCount, this.currentSampleRate);
+          }
+          // W3C  -> new name is createScriptProcessor
+          //
+          // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
+          // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
-        if (!this.context.createScriptProcessor) {
-          //console.debug("Audio script processor NOT implemented.")
+          if (this.context.createAudioWorker) {
+            //console.debug("Audio worker implemented!!")
+          } else {
+            //console.debug("Audio worker NOT implemented.")
+          }
 
-        } else {
-          //TODO
-          // The ScriptProcessorNode Interface - DEPRECATED
-          //console.debug("Audio script processor implemented!!");
+          if (this.context.registerProcessor) {
+            //console.debug("Audio worklet processor implemented!!");
+          } else {
+            //console.debug("Audio worklet processor NOT implemented.")
+          }
 
-          // TODO should we use streamChannelCount or channelCount here ?
-          this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
-          let c = 0;
-          this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
+          if (!this.context.createScriptProcessor) {
+            //console.debug("Audio script processor NOT implemented.")
 
-            if (this.capturing) {
-              // TODO use chCnt
-              let inBuffer = e.inputBuffer;
-              let duration = inBuffer.duration;
-              // only process requested count of channels
-              let currentBuffers = new Array<Float32Array>(channelCount);
-              for (let ch: number = 0; ch < channelCount; ch++) {
-                let chSamples = inBuffer.getChannelData(ch);
-                let chSamplesCopy = chSamples.slice(0);
-                currentBuffers[ch] = chSamplesCopy.slice(0);
-                this.data[ch].push(chSamplesCopy);
-                this.framesRecorded += chSamplesCopy.length;
-              }
-              c++;
-              if (this.audioOutStream) {
-                this.audioOutStream.write(currentBuffers);
+          } else {
+            //TODO
+            // The ScriptProcessorNode Interface - DEPRECATED
+            //console.debug("Audio script processor implemented!!");
+
+            // TODO should we use streamChannelCount or channelCount here ?
+            this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
+            let c = 0;
+            this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
+
+              if (this.capturing) {
+                // TODO use chCnt
+                let inBuffer = e.inputBuffer;
+                let duration = inBuffer.duration;
+                // only process requested count of channels
+                let currentBuffers = new Array<Float32Array>(channelCount);
+                for (let ch: number = 0; ch < channelCount; ch++) {
+                  let chSamples = inBuffer.getChannelData(ch);
+                  let chSamplesCopy = chSamples.slice(0);
+                  currentBuffers[ch] = chSamplesCopy.slice(0);
+                  this.data[ch].push(chSamplesCopy);
+                  this.framesRecorded += chSamplesCopy.length;
+                }
+                c++;
+                if (this.audioOutStream) {
+                  this.audioOutStream.write(currentBuffers);
+                }
               }
             }
           }
@@ -386,50 +419,68 @@ export class AudioCapture {
   start() {
 
     this.initData();
-    if (this.audioOutStream) {
-      this.audioOutStream.nextStream()
-    }
-    this.capturing = true;
-    this.mediaStream.connect(this.bufferingNode);
-    this.bufferingNode.connect(this.context.destination);
-    if (this.listener) {
-      this.listener.started();
+    if(this.mediaRecorder){
+
+      this.capturing = true;
+      this.mediaRecorder.start();
+    }else {
+      if (this.audioOutStream) {
+        this.audioOutStream.nextStream()
+      }
+      this.capturing = true;
+      this.mediaStream.connect(this.bufferingNode);
+      this.bufferingNode.connect(this.context.destination);
+
+      if (this.listener) {
+        this.listener.started();
+      }
     }
 
   }
 
   stop() {
+    if(this.mediaRecorder){
+      this.mediaRecorder.stop();
+      this.capturing = false;
+    }else {
+      if (this.disconnectStreams) {
+        this.mediaStream.disconnect(this.bufferingNode);
+        this.bufferingNode.disconnect(this.context.destination);
+      }
 
-    if (this.disconnectStreams) {
-      this.mediaStream.disconnect(this.bufferingNode);
-      this.bufferingNode.disconnect(this.context.destination);
-    }
-
-    if (this.audioOutStream) {
-      this.audioOutStream.flush();
-    }
-    this.capturing = false;
-    if (this.listener) {
-      this.listener.stopped();
+      if (this.audioOutStream) {
+        this.audioOutStream.flush();
+      }
+      this.capturing = false;
+      if (this.listener) {
+        this.listener.stopped();
+      }
     }
   }
 
 
   close() {
-    this.mediaStream.disconnect();
-    if (this.stream) {
-      //this.stream.stop();
-      //'MediaStream.stop()' is deprecated and will be removed in M47, around November 2015. Please use 'MediaStream.active' instead.
-      //this.stream.active=false;
-      var mts = this.stream.getTracks();
-      for (var i = 0; i < mts.length; i++) {
-        mts[i].stop();
+    if(this.mediaRecorder){
+
+    }else {
+      this.mediaStream.disconnect();
+      if (this.stream) {
+        //this.stream.stop();
+        //'MediaStream.stop()' is deprecated and will be removed in M47, around November 2015. Please use 'MediaStream.active' instead.
+        //this.stream.active=false;
+        var mts = this.stream.getTracks();
+        for (var i = 0; i < mts.length; i++) {
+          mts[i].stop();
+        }
       }
     }
     this._opened=false;
   }
 
   audioBuffer(): AudioBuffer {
+    if(this.mediaRecorder){
+      return null;
+    }
     var frameLen: number = 0;
     var ch0Data = this.data[0];
 

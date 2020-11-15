@@ -2,6 +2,7 @@
 
     "description": "Demo project 1",
     "name": "Demo1",
+    "mimeTypes": ["video/webm"],
     "audioFormat" : {
       "channels": 1
     },

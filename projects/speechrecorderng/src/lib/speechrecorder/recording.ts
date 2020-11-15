@@ -17,6 +17,7 @@ export class RecordingFileDescriptor {
       date: string=null;
       _dateAsDateObj:Date=null;
       audioBuffer:AudioBuffer=null;
+      blob:Blob;
       session:string|number=null;
       itemCode:string;
       frames:number=null
@@ -24,12 +25,13 @@ export class RecordingFileDescriptor {
       editStartFrame:number=null
       editEndFrame:number=null
 
-      constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer) {
+      constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer,blob?:Blob) {
           super()
           this.session=sessionId;
           this.itemCode=itemcode;
           this.version=version;
           this.audioBuffer=audioBuffer;
+          this.blob=blob;
           this.uuid=UUID.generate();
       }
 

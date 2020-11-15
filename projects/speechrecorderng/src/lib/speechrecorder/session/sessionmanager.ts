@@ -1,5 +1,5 @@
 import {Action} from '../../action/action'
-import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
+import {AudioCapture, MediaCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Script, Section, Group, PromptItem, PromptitemUtil} from '../script/script';
@@ -85,6 +85,7 @@ export class Item {
                               [playStopAction]="controlAudioPlayer?.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
+                              [displayMediaBlob]="displayMediaBlob"
                               [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()"
@@ -108,7 +109,7 @@ export class Item {
       overflow: hidden;
   }` ]
 })
-export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
+export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureListener {
 
   @Input() projectName:string|null;
   enableUploadRecordings: boolean = true;
@@ -116,6 +117,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   status: Status = Status.BLOCKED;
 
   ac: AudioCapture;
+  private _mimeTypes:Array<string>=null;
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|null=null;
   @ViewChild(Prompting, { static: true }) prompting: Prompting;
@@ -165,6 +167,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
   displayAudioClip: AudioClip | null;
+  displayMediaBlob: Blob | null;
 
   displayLevelInfos: LevelInfos | null;
 
@@ -371,6 +374,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.loadScript();
   }
 
+  set mimeTypes(mimeTypes:Array<string>| null){
+      this._mimeTypes=mimeTypes;
+  }
+
   set channelCount(channelCount: number) {
     this._channelCount = channelCount;
   }
@@ -462,7 +469,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }else{
         console.log("Open session with default audio device for " + this._channelCount + " channels");
       }
-      this.ac.open(this._channelCount,this._selectedDeviceId);
+      if(this._mimeTypes){
+        this.ac.openMediaCapture(this._mimeTypes,true,this._channelCount);
+      }else {
+        this.ac.open(this._channelCount, this._selectedDeviceId);
+      }
     }else {
       this.ac.start();
     }
@@ -534,44 +545,64 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.changeDetectorRef.detectChanges()
   }
 
+  buildRecordingBlobDownload(blob:Blob){
+    let ext='wav';
+    if(blob.type.startsWith('video')){
+        ext='webm';
+    }
+    let rfUrl = URL.createObjectURL(blob);
+    // TODO Angular compatible ??
+    let dataDnlLnk = document.createElement("a");
+
+    dataDnlLnk.name = 'Recording';
+    dataDnlLnk.href = rfUrl;
+
+    document.body.appendChild(dataDnlLnk);
+
+    // download property not yet in TS def
+    if (this.displayRecFile) {
+      let fn = this.displayRecFile.filenameString();
+      fn += '_' + this.displayRecFileVersion;
+      fn += '.'+ext;
+      dataDnlLnk.setAttribute('download', fn);
+      dataDnlLnk.click();
+    }
+    document.body.removeChild(dataDnlLnk);
+    //window.open(rfUrl);
+
+  }
+
+
   downloadRecording() {
     if (this.displayRecFile) {
-      let ab: AudioBuffer = this.displayRecFile.audioBuffer;
-      let ww = new WavWriter();
-      let wavFile = ww.writeAsync(ab, (wavFile) => {
-        let blob = new Blob([wavFile], {type: 'audio/wav'});
-        let rfUrl = URL.createObjectURL(blob);
-
-        // TODO Angular compatible ??
-        let dataDnlLnk = document.createElement("a");
-
-        dataDnlLnk.name = 'Recording';
-        dataDnlLnk.href = rfUrl;
-
-        document.body.appendChild(dataDnlLnk);
-
-        // download property not yet in TS def
-        if (this.displayRecFile) {
-          let fn = this.displayRecFile.filenameString();
-          fn += '_' + this.displayRecFileVersion;
-          fn += '.wav';
-          dataDnlLnk.setAttribute('download', fn);
-          dataDnlLnk.click();
-        }
-        document.body.removeChild(dataDnlLnk);
-        //window.open(rfUrl);
-      });
+      let blob: Blob = this.displayRecFile.blob;
+      if (blob) {
+        this.buildRecordingBlobDownload(blob);
+      }else{
+        let ab: AudioBuffer = this.displayRecFile.audioBuffer;
+        let ww = new WavWriter();
+        let wavFile = ww.writeAsync(ab, (wavFile) => {
+          blob = new Blob([wavFile], {type: 'audio/wav'});
+          this.buildRecordingBlobDownload(blob);
+        });
+      }
     }
   }
 
   set displayRecFile(displayRecFile: RecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
+      let mb:Blob=this._displayRecFile.blob;
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
-      if(ab) {
+      if(mb){
+        this.displayAudioClip = null;
+        this.controlAudioPlayer.audioClip = null;
+        this.displayMediaBlob=mb;
+      }else if(ab) {
         this.displayAudioClip = new AudioClip(ab);
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else {
+        // TODO not yet able to process media Blobs
         // clear for now ...
         this.displayAudioClip = null;
         this.controlAudioPlayer.audioClip = null;
@@ -1138,37 +1169,38 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (!it.recs) {
         it.recs = new Array<RecordingFile>();
       }
-      let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
-      it.recs.push(rf);
+      if(!this._mimeTypes) {
+        let rf = new RecordingFile(sessId, ic, it.recs.length, ad);
+        it.recs.push(rf);
 
-      if (this.enableUploadRecordings) {
-        // TODO use SpeechRecorderconfig resp. RecfileService
-        //new REST API URL
+        if (this.enableUploadRecordings) {
+          // TODO use SpeechRecorderconfig resp. RecfileService
+          //new REST API URL
 
-        let apiEndPoint = '';
+          let apiEndPoint = '';
 
-        if (this.config && this.config.apiEndPoint) {
-          apiEndPoint = this.config.apiEndPoint;
-        }
-        if (apiEndPoint !== '') {
-          apiEndPoint = apiEndPoint + '/'
-        }
+          if (this.config && this.config.apiEndPoint) {
+            apiEndPoint = this.config.apiEndPoint;
+          }
+          if (apiEndPoint !== '') {
+            apiEndPoint = apiEndPoint + '/'
+          }
 
-        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-
+          let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+          let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
 
           // convert asynchronously to 16-bit integer PCM
           // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
           // TODO duplicate conversion for manual download
           //console.log("Build wav writer...");
-          this.processingRecording=true
+          this.processingRecording = true
           let ww = new WavWriter();
           ww.writeAsync(ad, (wavFile) => {
             this.postRecording(wavFile, recUrl);
-            this.processingRecording=false
+            this.processingRecording = false
           });
+        }
       }
     }
 
@@ -1225,9 +1257,47 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.changeDetectorRef.detectChanges();
   }
 
+  dataAvailable(blob: Blob) {
+    let ic = this.promptItem.itemcode;
+    if (this._session && ic) {
+      let sessId: string | number = this._session.sessionId;
+      let cpIdx = this.promptIndex;
+      let it = this.items[cpIdx];
+      if (!it.recs) {
+        it.recs = new Array<RecordingFile>();
+      }
+      let rf = new RecordingFile(sessId, ic, it.recs.length, null, blob);
+      it.recs.push(rf);
+
+      if (this.enableUploadRecordings) {
+        // TODO use SpeechRecorderconfig resp. RecfileService
+        //new REST API URL
+
+        let apiEndPoint = '';
+
+        if (this.config && this.config.apiEndPoint) {
+          apiEndPoint = this.config.apiEndPoint;
+        }
+        if (apiEndPoint !== '') {
+          apiEndPoint = apiEndPoint + '/'
+        }
+
+        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+        this.postBlobRecording(blob, recUrl);
+
+      }
+    }
+  }
+
   postRecording(wavFile: Uint8Array, recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
     let ul = new Upload(wavBlob, recUrl);
+    this.uploader.queueUpload(ul);
+  }
+
+  postBlobRecording(blob:Blob,recUrl: string) {
+    let ul = new Upload(blob, recUrl);
     this.uploader.queueUpload(ul);
   }
 

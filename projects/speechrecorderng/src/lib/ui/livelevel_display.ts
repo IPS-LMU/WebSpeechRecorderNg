@@ -7,12 +7,14 @@ import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 
 
+
 export const MIN_DB_LEVEL = -40.0;
 export const DEFAULT_WARN_DB_LEVEL = -2;
 
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
+        <video #videoEl></video>   
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
@@ -28,7 +30,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
-        <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null"
+        <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null && displayMediaBlob==null"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
@@ -46,8 +48,12 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         display: flex; /* flex container: left level bar, right decimal peak level value */
         flex-direction: row;
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
-    }`, `audio-levelbar {
+    }`, `video {
         flex: 1;
+        min-width: 200px;
+        box-sizing: border-box;
+    }`,`audio-levelbar {
+        flex: 4;
         box-sizing: border-box;
     }`, `span {
         flex: 0;
@@ -61,10 +67,12 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 export class LevelBarDisplay implements LevelListener, OnDestroy {
 
     ce: HTMLDivElement;
+    @ViewChild('videoEl') videoElRef: ElementRef;
     @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
     @Input() streamingMode: boolean;
     @Input() audioSignalCollapsed: boolean;
-    private _displayAudioBuffer: AudioBuffer | null;
+    private _displayAudioBuffer: AudioBuffer=null;
+    private _displayMediaBlob: Blob=null;
     @Input() enableDownload: boolean;
     peakDbLevelStr = "-___ dB";
     peakDbLvl = MIN_DB_LEVEL;
@@ -101,6 +109,20 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
 
     get displayAudioBuffer() {
         return this._displayAudioBuffer;
+    }
+
+    @Input()
+    set displayMediaBlob(displayMediaBlob: Blob | null) {
+        this._displayMediaBlob=displayMediaBlob;
+        if(this.displayMediaBlob){
+            //this.videoElRef.nativeElement.srcObject =this.displayMediaBlob;
+            let mbUrl=URL.createObjectURL(this._displayMediaBlob);
+            this.videoElRef.nativeElement.src =mbUrl;
+        }
+    }
+
+    get displayMediaBlob(){
+        return this._displayMediaBlob;
     }
 
     showRecordingDetails() {
