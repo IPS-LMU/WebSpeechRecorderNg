@@ -27,6 +27,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
+import {MIMEType} from "../../net/mimetype";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -117,7 +118,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   status: Status = Status.BLOCKED;
 
   ac: AudioCapture;
-  private _mimeTypes:Array<string>=null;
+  private _recMIMEType=MIMEType.AUDIO_WAVE;
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|null=null;
   @ViewChild(Prompting, { static: true }) prompting: Prompting;
@@ -374,10 +375,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.loadScript();
   }
 
-  set mimeTypes(mimeTypes:Array<string>| null){
-      this._mimeTypes=mimeTypes;
-  }
-
   set channelCount(channelCount: number) {
     this._channelCount = channelCount;
   }
@@ -463,17 +460,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.autorecording = true;
     }
 
+
     if(!this.ac.opened) {
       if(this._selectedDeviceId){
         console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for "+this._channelCount+" channels");
       }else{
         console.log("Open session with default audio device for " + this._channelCount + " channels");
       }
-      if(this._mimeTypes){
-        this.ac.openMediaCapture(this._mimeTypes,true,this._channelCount);
-      }else {
-        this.ac.open(this._channelCount, this._selectedDeviceId);
-      }
+      this.ac.open(this._recMIMEType,this._channelCount);
     }else {
       this.ac.start();
     }
@@ -691,6 +685,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
 
     this.clearPrompt();
+    this._recMIMEType=MIMEType.AUDIO_WAVE;
+    if(this.promptItem.rectype){
+      this._recMIMEType=MIMEType.parse(this.promptItem.rectype);
+    }
 
     let isNonrecording=(this.promptItem.type==='nonrecording')
 
@@ -1169,7 +1167,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       if (!it.recs) {
         it.recs = new Array<RecordingFile>();
       }
-      if(!this._mimeTypes) {
+      if(this._recMIMEType.isAudioPCM()) {
+        // for Audio API the data is now available
+        // build recording file object
         let rf = new RecordingFile(sessId, ic, it.recs.length, ad);
         it.recs.push(rf);
 

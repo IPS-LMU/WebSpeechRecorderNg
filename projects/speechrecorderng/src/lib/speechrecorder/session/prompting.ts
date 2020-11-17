@@ -158,6 +158,7 @@ export class Prompter {
       this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
     }
     if (this._promptMediaItems && this._promptMediaItems.length == 1) {
+      // TODO use MIMEType
       let mi = this._promptMediaItems[0]
       this.mimetype = 'text/plain'
       if (mi.mimetype) {

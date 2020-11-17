@@ -11,7 +11,6 @@ export interface AudioDevice {
 
 export interface Project {
   name: string,
-  mimeTypes?: Array<string>,
   audioFormat?: AudioFormat,
   audioDevices?: Array<AudioDevice>
 }

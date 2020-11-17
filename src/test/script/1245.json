@@ -82,6 +82,7 @@
             "promptItems": [
               {
                 "itemcode": "VL1",
+                "rectype": "video/mp4",
                 "mediaitems": [
                   {
                     "annotationTemplate": false,

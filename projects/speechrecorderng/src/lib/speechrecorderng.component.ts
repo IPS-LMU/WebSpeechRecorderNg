@@ -344,10 +344,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     if (project) {
       console.info("Project name: "+project.name)
       this.sm.audioDevices = project.audioDevices;
-      if(project.mimeTypes && project.mimeTypes.length>0){
-          console.info("Project mime types: "+project.mimeTypes)
-          this.sm.mimeTypes=project.mimeTypes;
-      }
+
       if(project.audioFormat) {
         chCnt =project.audioFormat.channels;
         console.info("Project requested recording channel count: "+chCnt)
