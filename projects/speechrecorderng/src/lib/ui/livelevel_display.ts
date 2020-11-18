@@ -1,20 +1,38 @@
 import {
+    AfterViewInit,
     ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
     ViewChild
 } from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
 import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
+import {MediaPlaybackControls} from "../media/mediaplayback";
 
 
 
 export const MIN_DB_LEVEL = -40.0;
 export const DEFAULT_WARN_DB_LEVEL = -2;
 
+export class HTMLVideoElementPlaybackControls implements MediaPlaybackControls{
+
+    constructor(private _videoElement:HTMLVideoElement){}
+
+    public start(){
+        this._videoElement.play();
+    }
+    public pause(){
+        this._videoElement.pause();
+    }
+    public stop(){
+        this._videoElement.pause();
+        this._videoElement.currentTime=0;
+    }
+}
+
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-        <video #videoEl></video>   
+        <video #videoEl [hidden]="displayMediaBlob==null"></video>   
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
@@ -64,10 +82,15 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     }`]
 
 })
-export class LevelBarDisplay implements LevelListener, OnDestroy {
+export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
+    get videoPlayStartAction(): Action<void> {
+        return this._videoPlayStartAction;
+    }
 
     ce: HTMLDivElement;
     @ViewChild('videoEl') videoElRef: ElementRef;
+    private videoEl:HTMLVideoElement;
+    private mediaPlayerControls:HTMLVideoElementPlaybackControls;
     @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
     @Input() streamingMode: boolean;
     @Input() audioSignalCollapsed: boolean;
@@ -85,6 +108,8 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
     //@Input() controlAudioPlayer: AudioPlayer;
     @Input() playStartAction:Action<void>;
     @Input() playStopAction:Action<void>;
+    private _videoPlayStartAction:Action<void>=new Action('Play');
+
     playStartEnabled = false;
     playStopEnabled = false;
     private updateTimerId: number;
@@ -95,16 +120,29 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
 
     constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
 
+
+    }
+
+    ngAfterViewInit() {
+        this.ce = this.ref.nativeElement;
+        this.videoEl=this.videoElRef.nativeElement;
+        this.mediaPlayerControls=new HTMLVideoElementPlaybackControls(this.videoEl);
+
+        this._videoPlayStartAction.disabled=true;
+        this._videoPlayStartAction.onAction=()=>{
+            this.videoEl.play();
+        }
     }
 
     ngOnDestroy() {
         this.destroyed = true;
     }
 
-
     @Input()
     set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null) {
         this._displayAudioBuffer = displayAudioBuffer;
+        this._displayMediaBlob=null;
+        this._videoPlayStartAction.disabled=true;
     }
 
     get displayAudioBuffer() {
@@ -113,11 +151,16 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
 
     @Input()
     set displayMediaBlob(displayMediaBlob: Blob | null) {
+        this._displayAudioBuffer =null;
         this._displayMediaBlob=displayMediaBlob;
         if(this.displayMediaBlob){
+
             //this.videoElRef.nativeElement.srcObject =this.displayMediaBlob;
             let mbUrl=URL.createObjectURL(this._displayMediaBlob);
             this.videoElRef.nativeElement.src =mbUrl;
+            this._videoPlayStartAction.disabled=false;
+        }else{
+            this._videoPlayStartAction.disabled=true;
         }
     }
 
@@ -131,11 +174,6 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
 
     downloadRecording() {
         this.onDownloadRecording.emit();
-    }
-
-    ngAfterViewInit() {
-        this.ce = this.ref.nativeElement;
-        //this.controlAudioPlayer.listener=this;
     }
 
     @Input()
