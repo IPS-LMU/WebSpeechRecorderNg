@@ -72,7 +72,7 @@ export class AudioCapture {
     }
 
     private initData() {
-        if (!this.mediaRecorder) {
+        if (this.mimeType.isAudioPCM()) {
             this.data = new Array<Array<Float32Array>>();
             for (let i = 0; i < this.channelCount; i++) {
                 this.data.push(new Array<Float32Array>());
@@ -419,11 +419,7 @@ export class AudioCapture {
     start() {
 
         this.initData();
-        if (this.mediaRecorder) {
-
-            this.capturing = true;
-            this.mediaRecorder.start();
-        } else {
+        if(this.mimeType.isAudioPCM()){
             if (this.audioOutStream) {
                 this.audioOutStream.nextStream()
             }
@@ -434,15 +430,17 @@ export class AudioCapture {
             if (this.listener) {
                 this.listener.started();
             }
+        }else{
+            if(this.mediaRecorder) {
+                this.capturing = true;
+                this.mediaRecorder.start();
+            }
         }
 
     }
 
     stop() {
-        if (this.mediaRecorder) {
-            this.mediaRecorder.stop();
-            this.capturing = false;
-        } else {
+        if(this.mimeType.isAudioPCM()){
             if (this.disconnectStreams) {
                 this.mediaStream.disconnect(this.bufferingNode);
                 this.bufferingNode.disconnect(this.context.destination);
@@ -455,30 +453,32 @@ export class AudioCapture {
             if (this.listener) {
                 this.listener.stopped();
             }
+        }else if (this.mediaRecorder) {
+            this.mediaRecorder.stop();
+            this.capturing = false;
         }
     }
 
 
     close() {
-        if (this.mediaRecorder) {
-
-        } else {
+        if(this.mimeType.isAudioPCM()){
             this.mediaStream.disconnect();
-            if (this.stream) {
-                //this.stream.stop();
-                //'MediaStream.stop()' is deprecated and will be removed in M47, around November 2015. Please use 'MediaStream.active' instead.
-                //this.stream.active=false;
-                var mts = this.stream.getTracks();
-                for (var i = 0; i < mts.length; i++) {
-                    mts[i].stop();
-                }
+        }
+        if (this.stream) {
+            //this.stream.stop();
+            //'MediaStream.stop()' is deprecated and will be removed in M47, around November 2015. Please use 'MediaStream.active' instead.
+            //this.stream.active=false;
+            var mts = this.stream.getTracks();
+            for (var i = 0; i < mts.length; i++) {
+                mts[i].stop();
             }
         }
+
         this._opened = false;
     }
 
     audioBuffer(): AudioBuffer {
-        if (this.mediaRecorder) {
+        if (!this.mimeType.isAudioPCM()) {
             return null;
         }
         var frameLen: number = 0;

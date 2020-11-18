@@ -28,6 +28,7 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {MIMEType} from "../../net/mimetype";
+import {MediaPlaybackControls} from "../../media/mediaplayback";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -189,6 +190,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer: AudioPlayer;
+  private mediaPlaybackControls:MediaPlaybackControls;
 
   private audioFetchSubscription:Subscription|null;
 
@@ -685,10 +687,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
 
     this.clearPrompt();
-    this._recMIMEType=MIMEType.AUDIO_WAVE;
+
+    let newMIMEType=MIMEType.AUDIO_WAVE;
     if(this.promptItem.rectype){
-      this._recMIMEType=MIMEType.parse(this.promptItem.rectype);
+      newMIMEType=MIMEType.parse(this.promptItem.rectype);
     }
+
+    if(!this._recMIMEType.equals(newMIMEType)){
+      // Close Capture engine on recording MIME type change (e.g. audio -> video)
+        if(this.ac.opened){
+          this.ac.close();
+        }
+    }
+    this._recMIMEType=newMIMEType;
 
     let isNonrecording=(this.promptItem.type==='nonrecording')
 

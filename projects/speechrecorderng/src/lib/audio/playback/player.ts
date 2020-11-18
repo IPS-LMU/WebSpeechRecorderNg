@@ -1,5 +1,6 @@
 import { Action } from '../../action/action'
 import { AudioClip } from '../persistor'
+import {MediaPlaybackControls} from "../../media/mediaplayback";
 
     export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED}
 
@@ -25,7 +26,7 @@ import { AudioClip } from '../persistor'
         audioPlayerUpdate(e:AudioPlayerEvent):void;
     }
 
-    export class AudioPlayer {
+    export class AudioPlayer implements MediaPlaybackControls{
         get autoPlayOnSelectToggleAction(): Action<boolean> {
             return this._autoPlayOnSelectToggleAction;
         }
