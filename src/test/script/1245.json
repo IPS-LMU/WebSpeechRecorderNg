@@ -82,7 +82,7 @@
             "promptItems": [
               {
                 "itemcode": "VL1",
-                "rectype": "video/mp4",
+                "rectype": "video/webm",
                 "mediaitems": [
                   {
                     "annotationTemplate": false,

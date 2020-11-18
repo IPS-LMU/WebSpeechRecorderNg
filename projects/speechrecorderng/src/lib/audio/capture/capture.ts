@@ -1,5 +1,6 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {MIMEType} from "../../net/mimetype";
+import {migrateExpression} from "@angular/core/schematics/migrations/renderer-to-renderer2/migration";
 
 // interface AudioWorker extends Worker {
 //   terminate (): void;
@@ -196,6 +197,8 @@ export class AudioCapture {
 
     _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,) {
         this.mimeType = mimeType;
+        let mimeTypeStr=mimeType.tostring();
+
         this.channelCount = channelCount;
         this.framesRecorded = 0;
 
@@ -256,6 +259,14 @@ export class AudioCapture {
                 },
                 video: video
             };
+
+            // TODO MediaRecorder of Chrome always creates Matroska files with video/webm
+            // Seems to be a bug
+            // Workaround use: 'video/webm;codecs=vp9'
+            // https://stackoverflow.com/questions/64233494/mediarecorder-does-not-produce-a-valid-webm-file
+            if(mimeTypeStr === 'video/webm'){
+                mimeTypeStr='video/webm;codecs=vp9';
+            }
 
         } else if (navigator.userAgent.match(".*Firefox.*")) {
             console.info("Setting media track constraints for Mozilla Firefox.");
@@ -375,7 +386,18 @@ export class AudioCapture {
                     }
                 } else {
                     // Use MediaRecorder API
-                    this.mediaRecorder = new MediaRecorder(this.stream);
+
+                    let opts:MediaRecorderOptions={};
+
+                    if(MediaRecorder.isTypeSupported(mimeTypeStr)){
+                        opts={
+                            mimeType:mimeTypeStr
+                        }
+                        console.log("Video MIME "+mimeTypeStr+" supported.");
+                    }else{
+                        console.log("Video MIME "+mimeTypeStr+" not supported. Falling back to default.");
+                    }
+                    this.mediaRecorder = new MediaRecorder(this.stream,opts);
 
                     if (this.listener) {
                         this.mediaRecorder.onstart = (ev) => {
