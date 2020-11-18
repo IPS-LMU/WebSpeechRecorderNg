@@ -1,9 +1,11 @@
 export class MIMEType {
-    public static readonly TEXT_PLAIN = new MIMEType("text", "plain", "txt");
-    public static readonly AUDIO_WAVE = new MIMEType("audio", "wav", "wav");
-    public static readonly VIDEO_MP4 = new MIMEType("video", "mp4", "mp4");
+    public static readonly TEXT_PLAIN = new MIMEType('text', 'plain', 'txt');
+    public static readonly AUDIO_WAVE = new MIMEType('audio', 'wav', 'wav');
+    public static readonly VIDEO_MP4 = new MIMEType('video', 'mp4', 'mp4');
+    public static readonly VIDEO_WEBM = new MIMEType('video', 'webm', 'webm');
+    public static readonly VIDEO_MATROSKA = new MIMEType('video', 'x-matroska','mkv');
 
-    public static readonly KNOWN_TYPES = [MIMEType.TEXT_PLAIN, MIMEType.AUDIO_WAVE, MIMEType.VIDEO_MP4];
+    public static readonly KNOWN_TYPES = [MIMEType.TEXT_PLAIN, MIMEType.AUDIO_WAVE, MIMEType.VIDEO_MP4,MIMEType.VIDEO_WEBM,MIMEType.VIDEO_MATROSKA];
 
     constructor(private _type: string, private _subType: string, private _extension?: string) {
     }
@@ -14,6 +16,10 @@ export class MIMEType {
 
     get subType(): string {
         return this._subType;
+    }
+
+    get extension():string{
+        return this._extension;
     }
 
     isVideo(): boolean {
@@ -74,5 +80,9 @@ export class MIMEType {
             return (this._subType === otherSubType);
         }
         return false;
+    }
+
+    public tostring():string{
+        return this._type+'/'+this._subType;
     }
 }

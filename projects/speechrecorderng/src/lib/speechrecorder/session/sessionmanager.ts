@@ -7,7 +7,7 @@ import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -29,6 +29,7 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {MIMEType} from "../../net/mimetype";
 import {MediaPlaybackControls} from "../../media/mediaplayback";
+import {ContentType} from "../../net/contenttype";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -201,6 +202,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   private navigationDisabled=true;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private renderer: Renderer2,
               public dialog: MatDialog,
               private sessionService:SessionService,
               private recFileService:RecordingService,
@@ -547,30 +549,37 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   buildRecordingBlobDownload(blob:Blob){
+    let type=blob.type;
     let ext='wav';
-    if(blob.type.startsWith('video')){
-        ext='webm';
+    let cto=ContentType.parse(blob.type);
+    if(cto){
+      let mto=cto.mimeType;
+      if(mto){
+        type=mto.tostring();
+        if(mto.extension) {
+          ext = mto.extension;
+        }
+      }
     }
     let rfUrl = URL.createObjectURL(blob);
     // TODO Angular compatible ??
-    let dataDnlLnk = document.createElement("a");
 
-    dataDnlLnk.name = 'Recording';
+    //let dataDnlLnk = document.createElement("a");
+    let dataDnlLnk = this.renderer.createElement('a');
+    //dataDnlLnk.name = 'Recording';
     dataDnlLnk.href = rfUrl;
+    dataDnlLnk.type=type;
 
-    document.body.appendChild(dataDnlLnk);
-
-    // download property not yet in TS def
-    if (this.displayRecFile) {
+    //document.body.appendChild(dataDnlLnk);
+    this.renderer.appendChild(document.body,dataDnlLnk);
       let fn = this.displayRecFile.filenameString();
       fn += '_' + this.displayRecFileVersion;
       fn += '.'+ext;
-      dataDnlLnk.setAttribute('download', fn);
+      dataDnlLnk.download=fn;
       dataDnlLnk.click();
-    }
-    document.body.removeChild(dataDnlLnk);
-    //window.open(rfUrl);
 
+    //document.body.removeChild(dataDnlLnk);
+    this.renderer.removeChild(document.body,dataDnlLnk);
   }
 
 
@@ -1071,7 +1080,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
-
 
 
     this.preRecTimerId = window.setTimeout(() => {
