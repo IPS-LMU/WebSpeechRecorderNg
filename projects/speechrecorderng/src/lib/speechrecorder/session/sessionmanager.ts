@@ -83,8 +83,8 @@ export class Item {
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
 
     <spr-recordingitemdisplay #levelbardisplay
-                              [playStartAction]="controlAudioPlayer?.startAction"
-                              [playStopAction]="controlAudioPlayer?.stopAction"
+                              [playStartAction]="playStartAction"
+                              [playStopAction]="playStopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
                               [displayMediaBlob]="displayMediaBlob"
@@ -144,6 +144,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   transportActions: TransportActions;
   dnlLnk: HTMLAnchorElement;
   playStartAction: Action<void>;
+  playStopAction: Action<void>;
   mediaPlayStartAction: Action<void>;
   audio: any;
 
@@ -208,7 +209,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
     //let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
-    this.playStartAction = new Action('Play');
+    //this.playStartAction = new Action('Play');
     //this.playStartAction.addControl(playStartBtn, 'click');
     this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
     this.audio = document.getElementById('audio');
@@ -243,7 +244,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-    this.playStartAction.disabled = true;
+   // this.playStartAction.disabled = true;
     let context=null;
     try {
       context = AudioContextProvider.audioContextInstance()
@@ -333,7 +334,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.transportActions.pauseAction.perform();
     }
     if (ke.key == 'MediaPlayPause') {
-      this.playStartAction.perform();
+      if(this.playStartAction) {
+        this.playStartAction.perform();
+      }
     }
     if (ke.key === 'ArrowRight') {
       this.transportActions.fwdAction.perform();
@@ -389,14 +392,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   update(e: AudioPlayerEvent) {
     if (e.type == EventType.STARTED) {
-      this.playStartAction.disabled = true;
+      //this.playStartAction.disabled = true;
       this.updateTimerId = window.setInterval(e => {
         //this.audioSignal.playFramePosition = this.ap.playPositionFrames;
       }, 50);
     } else if (e.type == EventType.STOPPED || e.type == EventType.ENDED) {
       window.clearInterval(this.updateTimerId);
       // this.audioSignal.playFramePosition = this.ap.playPositionFrames;
-      this.playStartAction.disabled = (!(this.displayRecFile));
+      //this.playStartAction.disabled = (!(this.displayRecFile));
 
     }
   }
@@ -596,8 +599,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
         this.displayAudioClip = null;
         this.controlAudioPlayer.audioClip = null;
         this.displayMediaBlob = mb;
+        this.playStartAction=this.liveLevelDisplay.videoPlayStartAction;
+        this.playStopAction=this.liveLevelDisplay.videoPlayStopAction;
       } else {
         this.displayMediaBlob = null;
+        this.playStartAction=this._controlAudioPlayer.startAction;
+        this.playStopAction=this._controlAudioPlayer.stopAction;
         if (ab) {
           this.displayAudioClip = new AudioClip(ab);
           this.controlAudioPlayer.audioClip = this.displayAudioClip;
@@ -651,7 +658,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
         this.displayLevelInfos = levelInfos;
         this.changeDetectorRef.detectChanges();
       });
-      this.playStartAction.disabled = false;
+      //this.playStartAction.disabled = false;
 
     } else {
 
@@ -660,7 +667,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       // The level bar display does not clear, it shows the last captured stream
       this.displayLevelInfos = null;
 
-      this.playStartAction.disabled = true;
+      //this.playStartAction.disabled = true;
 
       // Collapse audio signal display if open
       if (!this.audioSignalCollapsed) {

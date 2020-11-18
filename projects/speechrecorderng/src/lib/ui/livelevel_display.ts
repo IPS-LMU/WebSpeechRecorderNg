@@ -83,6 +83,12 @@ export class HTMLVideoElementPlaybackControls implements MediaPlaybackControls{
 
 })
 export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
+    get videoPlayPauseAction(): Action<void> {
+        return this._videoPlayPauseAction;
+    }
+    get videoPlayStopAction(): Action<void> {
+        return this._videoPlayStopAction;
+    }
     get videoPlayStartAction(): Action<void> {
         return this._videoPlayStartAction;
     }
@@ -109,6 +115,8 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
     @Input() playStartAction:Action<void>;
     @Input() playStopAction:Action<void>;
     private _videoPlayStartAction:Action<void>=new Action('Play');
+    private _videoPlayPauseAction:Action<void>=new Action('Pause');
+    private _videoPlayStopAction:Action<void>=new Action('Stop');
 
     playStartEnabled = false;
     playStopEnabled = false;
@@ -132,6 +140,36 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
         this._videoPlayStartAction.onAction=()=>{
             this.videoEl.play();
         }
+        this.videoEl.oncanplay=()=>{
+            this._videoPlayStartAction.disabled=false;
+            this._videoPlayPauseAction.disabled=true;
+            this._videoPlayStopAction.disabled=true;
+        }
+        this.videoEl.onplaying=()=>{
+            this._videoPlayStartAction.disabled=true;
+            this._videoPlayPauseAction.disabled=false;
+            this._videoPlayStopAction.disabled=false;
+        }
+        this.videoEl.onpause=()=>{
+            this._videoPlayStartAction.disabled=false;
+            this._videoPlayPauseAction.disabled=true;
+            this._videoPlayStopAction.disabled=false;
+        }
+        this.videoEl.onended=()=>{
+            this._videoPlayStartAction.disabled=false;
+            this._videoPlayPauseAction.disabled=true;
+            this._videoPlayStopAction.disabled=true;
+        }
+        this.videoEl.onerror=()=>{
+            this._videoPlayStartAction.disabled=true;
+            this._videoPlayPauseAction.disabled=true;
+            this._videoPlayStopAction.disabled=true;
+        }
+        this._videoPlayStopAction.disabled=true;
+        this._videoPlayStopAction.onAction=()=>{
+            this.videoEl.pause();
+            this.videoEl.currentTime=0;
+        }
     }
 
     ngOnDestroy() {
@@ -143,6 +181,8 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
         this._displayAudioBuffer = displayAudioBuffer;
         this._displayMediaBlob=null;
         this._videoPlayStartAction.disabled=true;
+        this._videoPlayStopAction.disabled=true;
+        this._videoPlayPauseAction.disabled=true;
     }
 
     get displayAudioBuffer() {
@@ -158,9 +198,13 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
             //this.videoElRef.nativeElement.srcObject =this.displayMediaBlob;
             let mbUrl=URL.createObjectURL(this._displayMediaBlob);
             this.videoElRef.nativeElement.src =mbUrl;
-            this._videoPlayStartAction.disabled=false;
+            //this._videoPlayStartAction.disabled=false;
+            //this._videoPlayStopAction.disabled=false;
+            //this._videoPlayPauseAction.disabled=false;
         }else{
-            this._videoPlayStartAction.disabled=true;
+            //this._videoPlayStartAction.disabled=true;
+            //this._videoPlayStopAction.disabled=true;
+            //this._videoPlayPauseAction.disabled=true;
         }
     }
 
