@@ -52,6 +52,7 @@ export class AudioCapture {
     // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
     // TODO use AudioRecorder
     mediaRecorder: MediaRecorder = null;
+    mediaRecorderOptions: MediaRecorderOptions = {};
     mimeType: MIMEType = null;
     channelCount: number;
     mediaStream: any;
@@ -197,12 +198,12 @@ export class AudioCapture {
 
     _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,) {
         this.mimeType = mimeType;
-        let mimeTypeStr=mimeType.tostring();
+        let mimeTypeStr = mimeType.tostring();
 
         this.channelCount = channelCount;
         this.framesRecorded = 0;
 
-        let video=mimeType.isVideo();
+        let video = mimeType.isVideo();
 
         //var msc = new AudioStreamConstr();
         // var msc={};
@@ -264,8 +265,8 @@ export class AudioCapture {
             // Seems to be a bug
             // Workaround use: 'video/webm;codecs=vp9'
             // https://stackoverflow.com/questions/64233494/mediarecorder-does-not-produce-a-valid-webm-file
-            if(mimeTypeStr === 'video/webm'){
-                mimeTypeStr='video/webm;codecs=vp9';
+            if (mimeTypeStr === 'video/webm') {
+                mimeTypeStr = 'video/webm;codecs=vp9';
             }
 
         } else if (navigator.userAgent.match(".*Firefox.*")) {
@@ -385,34 +386,47 @@ export class AudioCapture {
                         }
                     }
                 } else {
+
+                    if (MediaRecorder.isTypeSupported(mimeTypeStr)) {
+                        this.mediaRecorderOptions = {
+                            mimeType: mimeTypeStr
+                        }
+                        console.log("Video MIME " + mimeTypeStr + " supported.");
+                    } else {
+                        console.log("Video MIME " + mimeTypeStr + " not supported. Falling back to default.");
+                    }
                     // Use MediaRecorder API
-
-                    let opts:MediaRecorderOptions={};
-
-                    if(MediaRecorder.isTypeSupported(mimeTypeStr)){
-                        opts={
-                            mimeType:mimeTypeStr
-                        }
-                        console.log("Video MIME "+mimeTypeStr+" supported.");
-                    }else{
-                        console.log("Video MIME "+mimeTypeStr+" not supported. Falling back to default.");
-                    }
-                    this.mediaRecorder = new MediaRecorder(this.stream,opts);
-
-                    if (this.listener) {
-                        this.mediaRecorder.onstart = (ev) => {
-                            this.listener.started();
-                        }
-                        this.mediaRecorder.onstop = (ev) => {
-                            this.listener.stopped();
-                        }
-                    }
-                    this.mediaRecorder.ondataavailable = (blobEvent: BlobEvent) => {
-                        console.log("Recorded Blob: " + blobEvent.data);
+                    if (!this.mediaRecorder || this.mediaRecorder.mimeType !== mimeTypeStr) {
+                        // Create media recorder on demand
+                        this.mediaRecorder = new MediaRecorder(this.stream, this.mediaRecorderOptions);
                         if (this.listener) {
-                            this.listener.dataAvailable(blobEvent.data);
+                            this.mediaRecorder.onstart = (ev) => {
+                                console.log("Media recorder started.");
+                                this.listener.started();
+                            }
+                            this.mediaRecorder.onstop = (ev) => {
+                                console.log("Media recorder stopped.");
+                                this.listener.stopped();
+                            }
+                            this.mediaRecorder.onpause = (ev) => {
+                                console.log("Media recorder paused.");
+                            }
+                            this.mediaRecorder.onresume = (ev) => {
+                                console.log("Media recorder resumed.");
+                            }
+                            this.mediaRecorder.onerror = (ev) => {
+                                console.error("Media recorder error!");
+                                this.listener.error(ev.error.message);
+                            }
                         }
-                    };
+                        this.mediaRecorder.ondataavailable = (blobEvent: BlobEvent) => {
+                            console.log("Recorded Blob: " + blobEvent.data);
+                            if (this.listener) {
+                                this.listener.dataAvailable(blobEvent.data);
+                            }
+                        };
+                    }
+
                 }
                 this._opened = true;
                 if (this.listener) {
@@ -441,7 +455,7 @@ export class AudioCapture {
     start() {
 
         this.initData();
-        if(this.mimeType.isAudioPCM()){
+        if (this.mimeType.isAudioPCM()) {
             if (this.audioOutStream) {
                 this.audioOutStream.nextStream()
             }
@@ -452,8 +466,9 @@ export class AudioCapture {
             if (this.listener) {
                 this.listener.started();
             }
-        }else{
-            if(this.mediaRecorder) {
+        } else {
+
+            if (this.mediaRecorder) {
                 this.capturing = true;
                 this.mediaRecorder.start();
             }
@@ -462,7 +477,7 @@ export class AudioCapture {
     }
 
     stop() {
-        if(this.mimeType.isAudioPCM()){
+        if (this.mimeType.isAudioPCM()) {
             if (this.disconnectStreams) {
                 this.mediaStream.disconnect(this.bufferingNode);
                 this.bufferingNode.disconnect(this.context.destination);
@@ -475,7 +490,7 @@ export class AudioCapture {
             if (this.listener) {
                 this.listener.stopped();
             }
-        }else if (this.mediaRecorder) {
+        } else if (this.mediaRecorder) {
             this.mediaRecorder.stop();
             this.capturing = false;
         }
@@ -483,7 +498,7 @@ export class AudioCapture {
 
 
     close() {
-        if(this.mimeType.isAudioPCM()){
+        if (this.mimeType.isAudioPCM()) {
             this.mediaStream.disconnect();
         }
         if (this.stream) {
