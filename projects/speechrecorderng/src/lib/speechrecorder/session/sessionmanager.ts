@@ -1054,7 +1054,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
           body.startedDate=this._session.startedDate;
         }
       }
-      this.sessionService.patchSessionObserver(this._session,body).subscribe()
+      this.sessionService.patchSessionObserver(this._session,body).subscribe();
     }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
@@ -1096,8 +1096,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       if (this.section.promptphase === 'RECORDING') {
         this.applyPrompt();
       }
+      this.changeDetectorRef.detectChanges();
     }, preDelay);
     this.preRecTimerRunning = true;
+    this.changeDetectorRef.detectChanges();
   }
 
   stopItem() {
@@ -1319,6 +1321,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
       }
     }
+    this.changeDetectorRef.detectChanges();
   }
 
   postRecording(wavFile: Uint8Array, recUrl: string) {
@@ -1379,6 +1382,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
         advice: advice
       }
     });
+    this.changeDetectorRef.detectChanges();
   }
 }
 
