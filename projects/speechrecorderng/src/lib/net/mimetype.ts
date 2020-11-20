@@ -1,4 +1,5 @@
 export class MIMEType {
+
     public static readonly TEXT_PLAIN = new MIMEType('text', 'plain', 'txt');
     public static readonly AUDIO_WAVE = new MIMEType('audio', 'wav', 'wav');
     public static readonly VIDEO_MP4 = new MIMEType('video', 'mp4', 'mp4');
@@ -7,7 +8,10 @@ export class MIMEType {
 
     public static readonly KNOWN_TYPES = [MIMEType.TEXT_PLAIN, MIMEType.AUDIO_WAVE, MIMEType.VIDEO_MP4,MIMEType.VIDEO_WEBM,MIMEType.VIDEO_MATROSKA];
 
-    constructor(private _type: string, private _subType: string, private _extension?: string) {
+    constructor(private _type: string, private _subType: string,private _extension?: string, private _parameters?:string[]) {
+        if(!this._parameters){
+            this._parameters=[];
+        }
     }
 
     get type(): string {
@@ -16,6 +20,10 @@ export class MIMEType {
 
     get subType(): string {
         return this._subType;
+    }
+
+    get parameters(): Array<string> {
+        return this._parameters;
     }
 
     get extension():string{
@@ -43,8 +51,11 @@ export class MIMEType {
 
     public static parse(mimeTypeString: string): MIMEType {
         let trimmedStr = mimeTypeString.trim();
-
-        let splitStr = trimmedStr.split('/');
+        let mimeParamsSplit=trimmedStr.split(';');
+        if(mimeParamsSplit.length<1) {
+            throw new Error("Could not parse MIME type: "+mimeTypeString);
+        }
+        let splitStr = mimeParamsSplit[0].split('/');
 
         if (splitStr == null) {
             throw new Error("Could not parse MIME type: " + mimeTypeString);
@@ -60,9 +71,23 @@ export class MIMEType {
             if (splitStrCmps > 1) {
                 subType = splitStr[1];
             }
-
+            let mimeType:MIMEType=null;
+            let prms=new Array<string>();
+            for(let pi=1;pi<mimeParamsSplit.length;pi++) {
+                prms.push(mimeParamsSplit[pi]);
+            }
             let knownType = this.knownType(type, subType);
-            return (knownType != null) ? knownType : new MIMEType(type, subType, null);
+            if(knownType !=null && prms.length==0) {
+                mimeType=knownType;
+            }else {
+                let ext:string=null;
+                if(knownType!=null) {
+                    ext=knownType.extension;
+                }
+                mimeType=new MIMEType(type,subType,ext,prms);
+            }
+            return mimeType;
+
         }
     }
 
@@ -74,12 +99,34 @@ export class MIMEType {
         }
         let otherSubType = otherMimeType.subType;
         // Note: * and */* are treated as NOT equal !
+        let subTypeEq:boolean;
         if (this._subType == null) {
-            return (otherSubType == null);
+            subTypeEq=(otherSubType == null);
         } else {
-            return (this._subType === otherSubType);
+            subTypeEq=(this._subType === otherSubType);
         }
-        return false;
+        if(!subTypeEq) {
+            return false;
+        }
+
+        let paramsEq=true;
+        let otherPrms=otherMimeType.parameters;
+        let prmsSize=this._parameters.length;
+        if(prmsSize!=otherPrms.length) {
+            return false;
+        }
+        for(let pi=0;pi<prmsSize;pi++) {
+            let p=this._parameters[pi];
+            let op=otherPrms[pi];
+            if(p!==op) {
+                paramsEq=false;
+                break;
+            }
+        }
+        if(!paramsEq) {
+            return false;
+        }
+        return true;
     }
 
     public tostring():string{
