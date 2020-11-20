@@ -28,7 +28,6 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {MIMEType} from "../../net/mimetype";
-import {MediaPlaybackControls} from "../../media/mediaplayback";
 import {ContentType} from "../../net/contenttype";
 
 
@@ -193,7 +192,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer: AudioPlayer;
-  private mediaPlaybackControls:MediaPlaybackControls;
 
   private audioFetchSubscription:Subscription|null;
 
@@ -1317,6 +1315,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
         let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
         let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+
         this.postBlobRecording(blob, recUrl);
 
       }
@@ -1331,8 +1330,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   postBlobRecording(blob:Blob,recUrl: string) {
-    let ul = new Upload(blob, recUrl);
-    this.uploader.queueUpload(ul);
+    // correct unparsable MIME types
+    let orgMt=blob.type;
+    let orgMtOb=MIMEType.parse(orgMt);
+    let prsMt:string=orgMtOb.type+'/'+orgMtOb.subType;
+
+    let bp=blob.arrayBuffer();
+    bp.then((b)=>{
+      console.log("Upload media blob with MIME: "+prsMt);
+      let pBlob=new Blob([b],{type:prsMt});
+      let ul = new Upload(pBlob, recUrl);
+      this.uploader.queueUpload(ul);
+    })
+
   }
 
   stop() {
