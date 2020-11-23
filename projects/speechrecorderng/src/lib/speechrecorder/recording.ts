@@ -14,6 +14,7 @@ export class RecordingFileDescriptor {
     export class RecordingFile extends RecordingFileDescriptor{
       recordingFileId: string | number = null;
       uuid:string=null;
+      rectype:string=null;
       date: string=null;
       _dateAsDateObj:Date=null;
       audioBuffer:AudioBuffer=null;

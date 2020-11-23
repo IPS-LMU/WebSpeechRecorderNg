@@ -8,6 +8,7 @@ import {Observable} from "rxjs";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
 import {RecordingFile} from "../../recording";
+import {MIMEType} from "../../../net/mimetype";
 
 
 @Injectable()
@@ -43,16 +44,23 @@ export class RecordingFileService {
   }
 
 
-  private fetchAudiofile(recordingFileId: string | number): Observable<HttpResponse<ArrayBuffer>> {
+  private fetchMediafile(recordingFileId: string | number,rectype?:string): Observable<HttpResponse<ArrayBuffer>> {
 
     let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      recUrl = recUrl + '.wav';
+      let ext = 'wav';
+      if (rectype) {
+        let mt = MIMEType.parse(rectype);
+        if(mt){
+          ext=mt.extension;
+        }
+      }
+      recUrl = recUrl + '.'+ext;
     }
     let headers = new HttpHeaders({
-      'Accept': 'audio/wav'
+      'Accept': 'audio/wav,video/*'
     });
 
     return this.http.get(recUrl, {
@@ -97,7 +105,7 @@ export class RecordingFileService {
 
     let wobs = new Observable<RecordingFile>(observer=>{
 
-      let obs = this.fetchAudiofile(recordingFile.recordingFileId);
+      let obs = this.fetchMediafile(recordingFile.recordingFileId);
 
 
       obs.subscribe(resp => {
@@ -136,15 +144,23 @@ export class RecordingFileService {
 
     let wobs = new Observable<RecordingFile | null>(observer => {
       let rf: RecordingFile = null;
+      let mt=null;
       let rfDescrObs = this.recordingFileDescrObserver(recordingFileId);
       rfDescrObs.subscribe(value => {
         rf = value;
+        if(rf.rectype){
+          mt=MIMEType.parse(rf.rectype);
+        }
       }, (error) => {
         observer.error(error);
       }, () => {
-        let rfAudioObs = this.fetchAudiofile(recordingFileId);
+        let rfAudioObs = this.fetchMediafile(recordingFileId,rf.rectype);
         rfAudioObs.subscribe(resp => {
               // Do not use Promise version, which does not work with Safari 13
+            if(mt && mt.isVideo()){
+              // we need the original file
+              rf.blob=new Blob([resp.body],{type: mt.toHeaderString()})
+            }
             aCtx.decodeAudioData(resp.body,ab => {
               rf.audioBuffer = ab
               if (this.debugDelay > 0) {

@@ -23,6 +23,7 @@ import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {RecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
+import {MIMEType} from "../../../net/mimetype";
 
 
 export class ItemcodeIndex{
@@ -34,8 +35,10 @@ export class ItemcodeIndex{
   selector: 'app-audiodisplayplayer',
 
   template: `
-
+      <div class="mediaview">
+    <video #videoEl [hidden]="!video"></video>
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
+      </div>
     <div class="ctrlview">
       <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"></app-recording-file-meta>
 
@@ -62,17 +65,23 @@ export class ItemcodeIndex{
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`
-        .ctrlview{
+    }`,`.mediaview{
+          display: flex;
+          flex-direction: row;
+            flex: 3;
+        }
+    `,`.ctrlview{
           display: flex;
           flex-direction: row;
 
         }
     `,`
       audio-display-control{
-
-        flex: 3;
+        
       }
+    `,`#video{
+         height: 100%
+        }
     `]
 
 })
@@ -90,7 +99,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   private routedByQueryParam=false;
   posInList: number=null;
 
-
+  @ViewChild('videoEl') videoElRef: ElementRef;
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
 
@@ -133,6 +142,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   ngAfterViewInit() {
     super.ngAfterViewInit()
+    this.videoEl=this.videoElRef.nativeElement;
     this.route.queryParams.subscribe((params: Params) => {
       let rfIdP = params['recordingFileId'];
       let sIdP = params['sessionId'];
@@ -244,10 +254,20 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     let audioContext = AudioContextProvider.audioContextInstance()
     this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
 
-      this.status = 'Audio file loaded.';
+      this.status = 'Media file loaded.';
 
       this.recordingFile = value;
 
+      if (this.recordingFile.rectype) {
+        let mt = MIMEType.parse(this.recordingFile.rectype);
+        if(mt){
+          this.video=mt.isVideo();
+        }
+      }
+      if(this.video && this.recordingFile.blob){
+        let mbUrl=URL.createObjectURL(this.recordingFile.blob);
+        this.videoEl.src =mbUrl;
+      }
       let ab=this.recordingFile.audioBuffer;
 
       let clip = new AudioClip(ab);

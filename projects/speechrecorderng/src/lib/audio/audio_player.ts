@@ -51,6 +51,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   parentE: HTMLElement;
 
+  protected videoEl:HTMLVideoElement;
+
   @Input()
   playStartAction: Action<void>;
   @Input()
@@ -74,6 +76,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   currentLoader: XMLHttpRequest | null;
 
   audio: any;
+  video: boolean=false;
   updateTimerId: any;
 
 
