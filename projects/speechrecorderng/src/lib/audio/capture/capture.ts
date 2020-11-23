@@ -198,7 +198,7 @@ export class AudioCapture {
 
     _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,) {
         this.mimeType = mimeType;
-        let mimeTypeStr = mimeType.tostring();
+        let mimeTypeStr = mimeType.toHeaderString();
 
         this.channelCount = channelCount;
         this.framesRecorded = 0;
@@ -266,7 +266,7 @@ export class AudioCapture {
             // Workaround use: 'video/webm;codecs=vp9'
             // https://stackoverflow.com/questions/64233494/mediarecorder-does-not-produce-a-valid-webm-file
             if (mimeTypeStr === 'video/webm') {
-                mimeTypeStr = 'video/webm;codecs=vp9';
+                mimeTypeStr = 'video/webm;codecs="vp9,opus"';
             }
 
         } else if (navigator.userAgent.match(".*Firefox.*")) {

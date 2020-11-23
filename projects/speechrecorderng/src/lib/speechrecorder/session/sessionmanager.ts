@@ -28,7 +28,6 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {MIMEType} from "../../net/mimetype";
-import {ContentType} from "../../net/contenttype";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -549,15 +548,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   buildRecordingBlobDownload(blob:Blob){
     let type=blob.type;
     let ext='wav';
-    let cto=ContentType.parse(blob.type);
-    if(cto){
-      let mto=cto.mimeType;
-      if(mto){
-        type=mto.tostring();
+    let mto=MIMEType.parse(blob.type);
+    if(mto){
+        type=mto.toString();
         if(mto.extension) {
           ext = mto.extension;
         }
-      }
     }
     let rfUrl = URL.createObjectURL(blob);
     // TODO Angular compatible ??
@@ -1300,6 +1296,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       let rf = new RecordingFile(sessId, ic, it.recs.length, null, blob);
       it.recs.push(rf);
 
+      console.log("Data avail MIME: "+blob.type)
+      let orgMtOb=MIMEType.parse(blob.type);
+      let prsMt=orgMtOb.toHeaderString();
+      console.log("Parsed MIME for header: "+prsMt);
+
       if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
@@ -1330,19 +1331,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   postBlobRecording(blob:Blob,recUrl: string) {
-    // correct unparsable MIME types
-    let orgMt=blob.type;
-    let orgMtOb=MIMEType.parse(orgMt);
-    let prsMt:string=orgMtOb.type+'/'+orgMtOb.subType;
-
-    let bp=blob.arrayBuffer();
-    bp.then((b)=>{
-      console.log("Upload media blob with MIME: "+prsMt);
-      let pBlob=new Blob([b],{type:prsMt});
-      let ul = new Upload(pBlob, recUrl);
-      this.uploader.queueUpload(ul);
-    })
-
+    let ul = new Upload(blob, recUrl);
+    this.uploader.queueUpload(ul);
   }
 
   stop() {

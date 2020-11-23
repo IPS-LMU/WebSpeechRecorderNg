@@ -1,6 +1,7 @@
 
     import {HttpClient, HttpErrorResponse} from "@angular/common/http";
     import { timeout } from 'rxjs/operators'
+    import {MIMEType} from "./mimetype";
 
     // state of an upload
     export enum UploadStatus {IDLE = 1, UPLOADING = 2,  ABORT = 3, DONE = 0, ERR = -1}
@@ -132,7 +133,17 @@
 
           let uploadedUpload:Upload=null;
             //console.debug("Post upload: "+ul)
-          this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
+            //correct unparsable MIME types
+            let orgMt=ul.data.type;
+            let orgMtOb=MIMEType.parse(orgMt);
+            let prsMt=orgMtOb.toHeaderString();
+            let httpPostProm=null;
+            if(prsMt !== ul.data.type){
+                httpPostProm=this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials,headers:{'Content-Type':prsMt}});
+            }else {
+                httpPostProm = this.http.post(ul.url, ul.data, {withCredentials: this.withCredentials});
+            }
+          httpPostProm.pipe(timeout(timeoVal)).subscribe(
             data => {
               uploadedUpload = ul;
               //console.debug('Next method called for upload: '+uploadedUpload)

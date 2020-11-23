@@ -129,7 +129,26 @@ export class MIMEType {
         return true;
     }
 
-    public tostring():string{
-        return this._type+'/'+this._subType;
+    public toHeaderString():string{
+        let str=this._type+'/'+this._subType;
+        for(let pi=0;pi<this._parameters.length;pi++){
+            str=str.concat(';');
+            let p=this._parameters[pi];
+            let eqSignPos=p.indexOf("=");
+            if(eqSignPos>0){
+                let pk=p.substring(0,eqSignPos+1).trim();
+                str=str.concat(pk);
+                let pVal=p.substring(eqSignPos+1).trim();
+                let pValStr=pVal;
+                let pValCommaPos=pVal.indexOf(",");
+                if(pValCommaPos!==-1){
+                    pValStr='"'+pVal+'"';
+                }
+                str=str.concat(pValStr);
+            }else{
+                str=str.concat(p);
+            }
+        }
+        return str;
     }
 }
