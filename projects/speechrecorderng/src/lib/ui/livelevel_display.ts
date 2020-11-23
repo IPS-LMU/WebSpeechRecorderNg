@@ -194,17 +194,11 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
         this._displayAudioBuffer =null;
         this._displayMediaBlob=displayMediaBlob;
         if(this.displayMediaBlob){
-
-            //this.videoElRef.nativeElement.srcObject =this.displayMediaBlob;
             let mbUrl=URL.createObjectURL(this._displayMediaBlob);
-            this.videoElRef.nativeElement.src =mbUrl;
-            //this._videoPlayStartAction.disabled=false;
-            //this._videoPlayStopAction.disabled=false;
-            //this._videoPlayPauseAction.disabled=false;
+            this.videoEl.src =mbUrl;
         }else{
-            //this._videoPlayStartAction.disabled=true;
-            //this._videoPlayStopAction.disabled=true;
-            //this._videoPlayPauseAction.disabled=true;
+            this.videoEl.pause();
+            this.videoEl.srcObject =null;
         }
     }
 
