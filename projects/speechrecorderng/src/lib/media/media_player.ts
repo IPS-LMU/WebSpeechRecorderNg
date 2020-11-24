@@ -67,6 +67,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
     @ViewChild('videoEl') videoElRef: ElementRef;
     protected videoEl: HTMLVideoElement;
     video: boolean = false;
+    private mediaSelectionListener:(audioClip:AudioClip)=>void=null;
     private videoEndTime: number = null;
 
 
@@ -158,6 +159,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         this._videoPlayStartAction.disabled = true;
         this._videoPlayStartAction.onAction = () => {
             this.videoEl.currentTime = 0;
+            this.videoEndTime=null;
             this.videoEl.play();
         }
         this._videoPlaySelectionAction.onAction = () => {
@@ -189,7 +191,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         this.videoEl.onpause = () => {
             this._videoPlayStartAction.disabled = false;
             this._videoPlayPauseAction.disabled = true;
-            this._videoPlayStopAction.disabled = false;
+            this._videoPlayStopAction.disabled = true;
             window.clearInterval(this.updateTimerId);
         }
         this.videoEl.onended = () => {
@@ -308,9 +310,12 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
             //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
             this.audioClip = new AudioClip(audioBuffer)
             if (this.video) {
-                this._audioClip.addSelectionObserver((ac) => {
+                this.mediaSelectionListener=(ac) => {
                     this.playSelectionAction.disabled = false;
-                });
+                };
+                this._audioClip.addSelectionObserver(this.mediaSelectionListener);
+            }else if(this.mediaSelectionListener){
+                this._audioClip.removeSelectionObserver(this.mediaSelectionListener);
             }
         });
     }
