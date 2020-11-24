@@ -19,14 +19,14 @@ import {MIMEType} from "../net/mimetype";
 
     template: `
         <div class="mediaview">
-            <video #videoEl class="videoView" [hidden]="!video"></video>
+            <video #videoEl class="videoView" [hidden]="!hasVideo()"></video>
             <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
         </div>
         <audio-display-control [audioClip]="audioClip"
                                [playStartAction]="playStartAction"
                                [playSelectionAction]="playSelectionAction"
                                [playStopAction]="playStopAction"
-                               [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                               [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                                [zoomInAction]="zoomInAction"
                                [zoomOutAction]="zoomOutAction"
                                [zoomSelectedAction]="zoomSelectedAction"
@@ -66,10 +66,11 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
 
     @ViewChild('videoEl') videoElRef: ElementRef;
     protected videoEl: HTMLVideoElement;
-    video: boolean = false;
+
     private mediaSelectionListener:(audioClip:AudioClip)=>void=null;
     private videoEndTime: number = null;
 
+   protected mimeType:MIMEType=null;
 
     @Input()
     playStartAction: Action<void>;
@@ -89,6 +90,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
     protected _videoPlaySelectionAction: Action<void> = new Action('Play selection');
     protected _videoPlayPauseAction: Action<void> = new Action('Pause');
     protected _videoPlayStopAction: Action<void> = new Action('Stop');
+    protected _videoAutoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
 
 
     aCtx: AudioContext;
@@ -163,47 +165,40 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
             this.videoEl.play();
         }
         this._videoPlaySelectionAction.onAction = () => {
-            let ac = this.audioClip;
-            if (ac) {
-                if (this.audioClip.buffer) {
-                    let sr = this.audioClip.buffer.sampleRate;
-                    let sel = this.audioClip.selection;
-                    if (sel) {
-                        let startTime = sel.leftFrame / sr;
-                        this.videoEndTime = sel.rightFrame / sr;
-                        this.videoEl.currentTime = startTime;
-                        this.videoEl.play();
-                    }
-                }
-            }
+           this.startSelected();
         }
         this.videoEl.oncanplay = () => {
             this._videoPlayStartAction.disabled = false;
             this._videoPlayPauseAction.disabled = true;
             this._videoPlayStopAction.disabled = true;
+            this._videoPlaySelectionAction.disabled=this.startSelectionDisabled();
         }
         this.videoEl.onplaying = () => {
             this._videoPlayStartAction.disabled = true;
             this._videoPlayPauseAction.disabled = false;
             this._videoPlayStopAction.disabled = false;
+            this._videoPlaySelectionAction.disabled=true;
             this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
         }
         this.videoEl.onpause = () => {
             this._videoPlayStartAction.disabled = false;
             this._videoPlayPauseAction.disabled = true;
             this._videoPlayStopAction.disabled = true;
+            this._videoPlaySelectionAction.disabled=this.startSelectionDisabled();
             window.clearInterval(this.updateTimerId);
         }
         this.videoEl.onended = () => {
             this._videoPlayStartAction.disabled = false;
             this._videoPlayPauseAction.disabled = true;
             this._videoPlayStopAction.disabled = true;
+            this._videoPlaySelectionAction.disabled=this.startSelectionDisabled();
             window.clearInterval(this.updateTimerId);
         }
         this.videoEl.onerror = () => {
             this._videoPlayStartAction.disabled = true;
             this._videoPlayPauseAction.disabled = true;
             this._videoPlayStopAction.disabled = true;
+            this._videoPlaySelectionAction.disabled=true;
             window.clearInterval(this.updateTimerId);
         }
         this._videoPlayStopAction.disabled = true;
@@ -232,6 +227,21 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         this.load();
     }
 
+    startSelected() {
+        let ac = this.audioClip;
+        if (ac) {
+            if (this.audioClip.buffer) {
+                let sr = this.audioClip.buffer.sampleRate;
+                let sel = this.audioClip.selection;
+                if (sel) {
+                    let startTime = sel.leftFrame / sr;
+                    this.videoEndTime = sel.rightFrame / sr;
+                    this.videoEl.currentTime = startTime;
+                    this.videoEl.play();
+                }
+            }
+        }
+    }
     started() {
         this.status = 'Playing...';
     }
@@ -266,8 +276,10 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
                 } else {
                     mt = MIMEType.parse(ct);
                 }
+                this.mimeType=mt;
+                this.configure();
                 this.currentLoader = null;
-                this.loaded(data, mt);
+                this.loaded(data);
             }
         }
         this.currentLoader.onerror = (e) => {
@@ -281,27 +293,30 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
 
     }
 
-    private loaded(data: ArrayBuffer, mimeType?: MIMEType) {
-        //console.debug("Loaded");
-        this.status = 'Audio file loaded.';
-        //console.debug("Received data ", data.byteLength);
-        this.video = false;
-        if (mimeType) {
-            this.video = mimeType.isVideo();
-        }
+    protected hasVideo():boolean {
+        return(this.mimeType && this.mimeType.isVideo());
+    }
 
-        if (this.video) {
+    protected configure() {
+        if (this.mimeType && this.mimeType.isVideo()) {
             this.playStartAction = this._videoPlayStartAction;
             this.playSelectionAction = this._videoPlaySelectionAction;
             this.playStopAction = this._videoPlayStopAction;
+            this.autoPlayOnSelectToggleAction=this._videoAutoPlayOnSelectToggleAction;
         } else {
             this.playStartAction = this.ap.startAction;
             this.playSelectionAction = this.ap.startSelectionAction;
             this.playStopAction = this.ap.stopAction;
+            this.autoPlayOnSelectToggleAction=this.ap.autoPlayOnSelectToggleAction;
         }
+    }
 
-        if (this.video) {
-            let mBlob = new Blob([data], {type: mimeType.toHeaderString()});
+    private loaded(data: ArrayBuffer) {
+        //console.debug("Loaded");
+        this.status = 'Audio file loaded.';
+        //console.debug("Received data ", data.byteLength);
+        if (this.hasVideo()) {
+            let mBlob = new Blob([data], {type: this.mimeType.toHeaderString()});
             let mbUrl = URL.createObjectURL(mBlob);
             this.videoEl.src = mbUrl;
         }
@@ -309,14 +324,6 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         this.aCtx.decodeAudioData(data, (audioBuffer) => {
             //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
             this.audioClip = new AudioClip(audioBuffer)
-            if (this.video) {
-                this.mediaSelectionListener=(ac) => {
-                    this.playSelectionAction.disabled = false;
-                };
-                this._audioClip.addSelectionObserver(this.mediaSelectionListener);
-            }else if(this.mediaSelectionListener){
-                this._audioClip.removeSelectionObserver(this.mediaSelectionListener);
-            }
         });
     }
 
@@ -337,7 +344,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
     }
 
     startSelectionDisabled() {
-        return !(this._audioClip && this.ap != null && !this.playStartAction.disabled && this._audioClip.selection)
+        return !(this._audioClip && !this.playStartAction.disabled && this._audioClip.selection)
     }
 
     @Input()
@@ -355,6 +362,17 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         }
         this.audioDisplayScrollPane.audioClip = audioClip
         this.ap.audioClip = audioClip
+        if (this.hasVideo()) {
+            this.mediaSelectionListener=(ac) => {
+                this.playSelectionAction.disabled = this.startSelectionDisabled();
+                if (!this.startSelectionDisabled() && this._videoAutoPlayOnSelectToggleAction.value) {
+                    this.startSelected()
+                }
+            };
+            this._audioClip.addSelectionObserver(this.mediaSelectionListener);
+        }else if(this.mediaSelectionListener){
+            this._audioClip.removeSelectionObserver(this.mediaSelectionListener);
+        }
     }
 
     get audioClip(): AudioClip | null {
@@ -362,7 +380,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
     }
 
     updatePlayPosition() {
-        if (this.video) {
+        if (this.hasVideo()) {
             let mediaTime = this.videoEl.currentTime;
             if (this.videoEndTime) {
                 if (this.videoEndTime <= mediaTime) {

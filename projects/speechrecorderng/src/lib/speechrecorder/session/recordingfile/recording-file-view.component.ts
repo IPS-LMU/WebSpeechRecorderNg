@@ -36,7 +36,7 @@ export class ItemcodeIndex{
 
   template: `
       <div class="mediaview">
-    <video #videoEl [hidden]="!video"></video>
+    <video #videoEl class="videoView" [hidden]="!hasVideo()"></video>
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       </div>
     <div class="ctrlview">
@@ -46,7 +46,7 @@ export class ItemcodeIndex{
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
-                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                             [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
@@ -65,24 +65,23 @@ export class ItemcodeIndex{
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`.mediaview{
-          display: flex;
-          flex-direction: row;
-            flex: 3;
-        }
-    `,`.ctrlview{
+    }`,`.ctrlview{
           display: flex;
           flex-direction: row;
 
         }
-    `,`
-      audio-display-control{
-        
-      }
-    `,`#video{
-         height: 100%
+    `, `.mediaview {
+      display: flex;
+      flex-direction: row;
+      flex: 3;
+    }`,`audio-display-scroll-pane{
+      flex: 3;
+    }`,`.videoView{
+            flex: 0;
+            min-width: 30%;
+            object-fit: contain;
         }
-    `]
+        `]
 
 })
 export class RecordingFileViewComponent extends MediaDisplayPlayer implements OnInit,AfterViewInit {
@@ -259,12 +258,12 @@ export class RecordingFileViewComponent extends MediaDisplayPlayer implements On
       this.recordingFile = value;
 
       if (this.recordingFile.rectype) {
-        let mt = MIMEType.parse(this.recordingFile.rectype);
-        if(mt){
-          this.video=mt.isVideo();
-        }
+        this.mimeType = MIMEType.parse(this.recordingFile.rectype);
+      }else{
+        this.mimeType=null;
       }
-      if(this.video && this.recordingFile.blob){
+      this.configure();
+      if(this.hasVideo && this.recordingFile.blob){
         let mbUrl=URL.createObjectURL(this.recordingFile.blob);
         this.videoEl.src =mbUrl;
       }
