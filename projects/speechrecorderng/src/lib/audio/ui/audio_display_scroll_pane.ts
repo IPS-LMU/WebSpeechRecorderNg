@@ -185,6 +185,10 @@ export class AudioDisplayScrollPane {
       })
   }
 
+    set playTimePosition(time:number){
+        let sr=this.ac.audioData.sampleRate;
+        this.playFramePosition=time*sr;
+    }
 
   set playFramePosition(framePos:number){
     this.ac.playFramePosition=framePos;
