@@ -11,7 +11,6 @@ import {ActivatedRoute, Params, Route, Router} from "@angular/router";
 
 import {RecordingFileService} from "./recordingfile-service";
 import {MatDialog} from "@angular/material/dialog";
-import {AudioDisplayPlayer} from "../../../audio/audio_player";
 
 import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "../../../audio/context";
@@ -24,6 +23,7 @@ import {RecordingService} from "../../recordings/recordings.service";
 import {RecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 import {MIMEType} from "../../../net/mimetype";
+import {MediaDisplayPlayer} from "../../../media/media_player";
 
 
 export class ItemcodeIndex{
@@ -85,7 +85,7 @@ export class ItemcodeIndex{
     `]
 
 })
-export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
+export class RecordingFileViewComponent extends MediaDisplayPlayer implements OnInit,AfterViewInit {
 
   //protected _recordingFileId: string | number = null;
 

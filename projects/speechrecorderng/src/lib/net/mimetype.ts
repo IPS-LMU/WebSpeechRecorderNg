@@ -91,6 +91,19 @@ export class MIMEType {
         }
     }
 
+
+    public static byExtension(extension:string):MIMEType{
+        let mt:MIMEType=null;
+        for (let nti = 0; nti < MIMEType.KNOWN_TYPES.length; nti++) {
+            let knownType = MIMEType.KNOWN_TYPES[nti];
+            if (knownType.extension.toLowerCase() === extension.toLowerCase()) {
+                mt=knownType;
+                break;
+            }
+        }
+        return mt;
+    }
+
     public equals(otherMimeType: MIMEType) {
 
         let typeEq = this.type === otherMimeType.type;

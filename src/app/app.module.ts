@@ -19,6 +19,7 @@ import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
+import {MediaDisplayPlayer} from "../../projects/speechrecorderng/src/lib/media/media_player";
 
 
 
@@ -31,8 +32,8 @@ const appRoutes: Routes = [
         redirectTo: 'session/',
         pathMatch: 'full'
     },
-    { path: 'audio_display', component: AudioDisplayPlayer
-    },
+    { path: 'audio_display', component: AudioDisplayPlayer},
+  { path: 'media_display', component: MediaDisplayPlayer},
   { path: '**', component: StartComponent  }
 ];
 

@@ -5,21 +5,23 @@ import {
     AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
-import {AudioClip, Selection} from './persistor'
-import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
+import {AudioClip, Selection} from '../audio/persistor'
+import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from '../audio/playback/player'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
-import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
-import {AudioContextProvider} from "./context";
+import {AudioDisplayScrollPane} from "../audio/ui/audio_display_scroll_pane";
+import {AudioContextProvider} from "../audio/context";
+import {MIMEType} from "../net/mimetype";
 
 @Component({
 
-  selector: 'app-audiodisplayplayer',
+  selector: 'mediadisplayplayer',
 
   template: `
-
-    <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-
+    <div class="mediaview">
+      <video #videoEl [hidden]="!video"></video>
+      <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
+    </div>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -43,15 +45,22 @@ import {AudioContextProvider} from "./context";
       z-index: 5;
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0.75)
-    }`]
+    }`,`.mediaview{
+          display: flex;
+          flex-direction: row;
+            flex: 3;
+        }
+    `]
 
 })
-export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
-  private _audioUrl: string;
+export class MediaDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+  private _mediaUrl: string;
 
   parentE: HTMLElement;
 
+  @ViewChild('videoEl') videoElRef: ElementRef;
   protected videoEl:HTMLVideoElement;
+  video: boolean=false;
 
   @Input()
   playStartAction: Action<void>;
@@ -66,6 +75,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   zoomSelectedAction:Action<void>
   zoomInAction:Action<void>;
   zoomOutAction:Action<void>;
+
+  protected _videoPlayStartAction:Action<void>=new Action('Play');
+  protected _videoPlayPauseAction:Action<void>=new Action('Pause');
+  protected _videoPlayStopAction:Action<void>=new Action('Stop');
 
 
   aCtx: AudioContext;
@@ -83,17 +96,12 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   private audioDisplayScrollPane: AudioDisplayScrollPane;
 
   constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
-    //console.log("constructor: "+this.ac);
-      this.parentE=this.eRef.nativeElement;
-    this.playStartAction = new Action("Start");
-    this.playSelectionAction=new Action("Play selected");
-    this.playStopAction = new Action("Stop");
+    this.parentE=this.eRef.nativeElement;
     this.status="Player created.";
-
   }
 
   ngOnInit(){
-    //console.log("OnInit: "+this.ac);
+
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
       this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
@@ -101,6 +109,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
      try {
        this.aCtx = AudioContextProvider.audioContextInstance();
        this.ap = new AudioPlayer(this.aCtx, this);
+       this.playStartAction=this.ap.startAction;
+       this.playStopAction=this.ap.stopAction;
+       this.playSelectionAction=this.ap.startSelectionAction;
+
      }catch(err){
           this.status = err.message;
       }
@@ -115,10 +127,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   }
 
   ngAfterViewInit() {
+    this.videoEl=this.videoElRef.nativeElement;
       if (this.aCtx && this.ap) {
-          this.playStartAction.onAction = () => this.ap.start();
-        this.playSelectionAction.onAction = () => this.ap.startSelected();
-          this.playStopAction.onAction = () => this.ap.stop();
+
       }
       this.layout();
       let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
@@ -131,9 +142,44 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       heightListener.observe(this.parentE,{attributes: true,childList: true, characterData: true});
     this.route.queryParams.subscribe((params: Params) => {
       if (params['url']) {
-        this.audioUrl = params['url'];
+        this.mediaUrl = params['url'];
       }
     });
+
+    this._videoPlayStartAction.disabled=true;
+    this._videoPlayStartAction.onAction=()=>{
+      this.videoEl.play();
+    }
+    this.videoEl.oncanplay=()=>{
+      this._videoPlayStartAction.disabled=false;
+      this._videoPlayPauseAction.disabled=true;
+      this._videoPlayStopAction.disabled=true;
+    }
+    this.videoEl.onplaying=()=>{
+      this._videoPlayStartAction.disabled=true;
+      this._videoPlayPauseAction.disabled=false;
+      this._videoPlayStopAction.disabled=false;
+    }
+    this.videoEl.onpause=()=>{
+      this._videoPlayStartAction.disabled=false;
+      this._videoPlayPauseAction.disabled=true;
+      this._videoPlayStopAction.disabled=false;
+    }
+    this.videoEl.onended=()=>{
+      this._videoPlayStartAction.disabled=false;
+      this._videoPlayPauseAction.disabled=true;
+      this._videoPlayStopAction.disabled=true;
+    }
+    this.videoEl.onerror=()=>{
+      this._videoPlayStartAction.disabled=true;
+      this._videoPlayPauseAction.disabled=true;
+      this._videoPlayStopAction.disabled=true;
+    }
+    this._videoPlayStopAction.disabled=true;
+    this._videoPlayStopAction.onAction=()=>{
+      this.videoEl.pause();
+      this.videoEl.currentTime=0;
+    }
   }
 
 
@@ -151,13 +197,13 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     this.audioDisplayScrollPane.layout();
   }
 
-  get audioUrl(): string {
-    return this._audioUrl;
+  get mediaUrl(): string {
+    return this._mediaUrl;
   }
 
-  set audioUrl(value: string) {
+  set mediaUrl(value: string) {
     this.ap.stop();
-    this._audioUrl = value;
+    this._mediaUrl = value;
     this.load();
   }
 
@@ -175,15 +221,30 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     }
     //this.statusMsg.innerHTML = 'Connecting...';
     this.currentLoader = new XMLHttpRequest();
-    this.currentLoader.open("GET", this._audioUrl, true);
+    this.currentLoader.open("GET", this._mediaUrl, true);
     this.currentLoader.responseType = "arraybuffer";
     this.currentLoader.onload = (e) => {
       if (this.currentLoader) {
 
         var data = this.currentLoader.response; // not responseText
         //console.debug("Received data ", data.byteLength);
+
+        // try to get MIME type
+        let mt:MIMEType=null;
+        let url=this.currentLoader.responseURL;
+        let ct=this.currentLoader.getResponseHeader('Content-type');
+        if(ct===null){
+          // guess by extension
+          let dotIdx=url.lastIndexOf('.');
+          if(dotIdx>=0){
+            let extStr=url.substring(dotIdx);
+            mt=MIMEType.byExtension(extStr);
+          }
+        }else{
+          mt=MIMEType.parse(ct);
+        }
         this.currentLoader = null;
-        this.loaded(data);
+        this.loaded(data,mt);
       }
     }
     this.currentLoader.onerror = (e) => {
@@ -197,12 +258,29 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   }
 
-  private loaded(data: ArrayBuffer) {
+  private loaded(data: ArrayBuffer,mimeType?:MIMEType) {
 
     //console.debug("Loaded");
     this.status = 'Audio file loaded.';
     //console.debug("Received data ", data.byteLength);
+    this.video = false;
+    if (mimeType) {
+      this.video=mimeType.isVideo();
+    }
 
+    if(this.video){
+      this.playStartAction=this._videoPlayStartAction;
+      this.playStopAction=this._videoPlayStopAction;
+    }else{
+      this.playStartAction=this.ap.startAction;
+      this.playStopAction=this.ap.stopAction;
+    }
+
+    if(this.video){
+      let mBlob=new Blob([data],{type:mimeType.toHeaderString()});
+      let mbUrl=URL.createObjectURL(mBlob);
+      this.videoEl.src =mbUrl;
+    }
     // Do not use Promise version, which does not work with Safari 13
     this.aCtx.decodeAudioData(data, (audioBuffer) => {
       //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
@@ -218,15 +296,15 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
           let clip = new AudioClip(audioBuffer);
           if (this.ap){
               this.ap.audioClip = clip;
-                this.playStartAction.disabled = false
+                //this.playStartAction.disabled = false
             }
       }else{
-          this.playStartAction.disabled = true
+          //this.playStartAction.disabled = true
           if (this.ap){
               this.ap.audioClip = null;
           }
       }
-    this.playSelectionAction.disabled=true
+    //this.playSelectionAction.disabled=true
   }
 
   startSelectionDisabled(){
@@ -243,7 +321,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       sel=audioClip.selection;
       this._audioClip.addSelectionObserver((ac)=>{
 
-          this.playSelectionAction.disabled = this.startSelectionDisabled()
+          //this.playSelectionAction.disabled = this.startSelectionDisabled()
           // if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
           //   this.ap.startSelected()
           // }
@@ -253,10 +331,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     if(audioData) {
       console.debug("Audio Buffer Samplerate: ", audioData.sampleRate)
       this.playStartAction.disabled =(!this.ap)
-      this.playSelectionAction.disabled=this.startSelectionDisabled()
+      //this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{
-      this.playStartAction.disabled = true
-      this.playSelectionAction.disabled=true
+      //this.playStartAction.disabled = true
+      //this.playSelectionAction.disabled=true
   }
 
     this.audioDisplayScrollPane.audioClip=audioClip
@@ -278,15 +356,15 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     if (EventType.STARTED === e.type) {
       this.status = 'Playback...';
       this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
-      this.playStartAction.disabled = true;
-      this.playSelectionAction.disabled=true
-      this.playStopAction.disabled = false;
+      //this.playStartAction.disabled = true;
+      //this.playSelectionAction.disabled=true
+      //this.playStopAction.disabled = false;
     } else if (EventType.ENDED === e.type) {
       this.status = 'Ready.';
       window.clearInterval(this.updateTimerId);
-      this.playStartAction.disabled = false;
-      this.playSelectionAction.disabled=this.startSelectionDisabled()
-      this.playStopAction.disabled = true;
+      //this.playStartAction.disabled = false;
+      //this.playSelectionAction.disabled=this.startSelectionDisabled()
+      //this.playStopAction.disabled = true;
     }
 
     this.ref.detectChanges();
