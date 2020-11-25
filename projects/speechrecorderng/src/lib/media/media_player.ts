@@ -293,7 +293,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
 
     }
 
-    protected hasVideo():boolean {
+    hasVideo():boolean {
         return(this.mimeType && this.mimeType.isVideo());
     }
 
