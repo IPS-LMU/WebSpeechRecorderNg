@@ -24,6 +24,7 @@ import {RecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 import {MIMEType} from "../../../net/mimetype";
 import {MediaDisplayPlayer} from "../../../media/media_player";
+import {VideoPlayer} from "../../../media/video_player";
 
 
 export class ItemcodeIndex{
@@ -36,7 +37,7 @@ export class ItemcodeIndex{
 
   template: `
       <div class="mediaview">
-    <video #videoEl class="videoView" [hidden]="!hasVideo()"></video>
+        <videoplayer [hidden]="!hasVideo()" [selection]="_audioClip?.selection"></videoplayer>
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       </div>
     <div class="ctrlview">
@@ -86,8 +87,6 @@ export class ItemcodeIndex{
 })
 export class RecordingFileViewComponent extends MediaDisplayPlayer implements OnInit,AfterViewInit {
 
-  //protected _recordingFileId: string | number = null;
-
   sessionId: string | number = null;
   sessionIdFromRoute:string=null;
 
@@ -98,7 +97,7 @@ export class RecordingFileViewComponent extends MediaDisplayPlayer implements On
   private routedByQueryParam=false;
   posInList: number=null;
 
-  @ViewChild('videoEl') videoElRef: ElementRef;
+  @ViewChild(VideoPlayer) videoPlayer:VideoPlayer;
   @ViewChild(AudioDisplayScrollPane)
   private ac: AudioDisplayScrollPane;
 
@@ -141,7 +140,7 @@ export class RecordingFileViewComponent extends MediaDisplayPlayer implements On
 
   ngAfterViewInit() {
     super.ngAfterViewInit()
-    this.videoEl=this.videoElRef.nativeElement;
+
     this.route.queryParams.subscribe((params: Params) => {
       let rfIdP = params['recordingFileId'];
       let sIdP = params['sessionId'];
@@ -264,8 +263,8 @@ export class RecordingFileViewComponent extends MediaDisplayPlayer implements On
       }
       this.configure();
       if(this.hasVideo && this.recordingFile.blob){
-        let mbUrl=URL.createObjectURL(this.recordingFile.blob);
-        this.videoEl.src =mbUrl;
+        //let mbUrl=URL.createObjectURL(this.recordingFile.blob);
+        this.videoPlayer.mediaBlob=this.recordingFile.blob
       }
       let ab=this.recordingFile.audioBuffer;
 

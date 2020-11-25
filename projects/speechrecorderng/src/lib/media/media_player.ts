@@ -12,6 +12,7 @@ import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "../audio/ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "../audio/context";
 import {MIMEType} from "../net/mimetype";
+import {VideoPlayer} from "./video_player";
 
 @Component({
 
@@ -19,7 +20,7 @@ import {MIMEType} from "../net/mimetype";
 
     template: `
         <div class="mediaview">
-            <video #videoEl class="videoView" [hidden]="!hasVideo()"></video>
+            <videoplayer [hidden]="!hasVideo()" [selection]="_audioClip?.selection"></videoplayer>
             <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
         </div>
         <audio-display-control [audioClip]="audioClip"
@@ -51,7 +52,7 @@ import {MIMEType} from "../net/mimetype";
             flex: 3;
         }`,`audio-display-scroll-pane{
             flex: 3;
-        }`,`.videoView{
+        }`,`videoplayer{
             flex: 0;
             min-width: 30%;
             object-fit: contain;
@@ -59,18 +60,14 @@ import {MIMEType} from "../net/mimetype";
         `]
 
 })
-export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterContentInit, AfterContentChecked, AfterViewInit, AfterViewChecked {
+export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterViewInit {
     private _mediaUrl: string;
 
     parentE: HTMLElement;
 
-    @ViewChild('videoEl') videoElRef: ElementRef;
-    protected videoEl: HTMLVideoElement;
+    @ViewChild(VideoPlayer) videoPlayer: VideoPlayer;
 
-    private mediaSelectionListener:(audioClip:AudioClip)=>void=null;
-    private videoEndTime: number = null;
-
-   protected mimeType:MIMEType=null;
+    protected mimeType:MIMEType=null;
 
     @Input()
     playStartAction: Action<void>;
@@ -85,12 +82,6 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
     zoomSelectedAction: Action<void>
     zoomInAction: Action<void>;
     zoomOutAction: Action<void>;
-
-    protected _videoPlayStartAction: Action<void> = new Action('Play');
-    protected _videoPlaySelectionAction: Action<void> = new Action('Play selection');
-    protected _videoPlayPauseAction: Action<void> = new Action('Pause');
-    protected _videoPlayStopAction: Action<void> = new Action('Stop');
-    protected _videoAutoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
 
 
     aCtx: AudioContext;
@@ -130,16 +121,8 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         }
     }
 
-    ngAfterContentInit() {
-        //console.log("AfterContentInit: "+this.ac);
-    }
-
-    ngAfterContentChecked() {
-        //console.log("AfterContentChecked: "+this.ac);
-    }
-
     ngAfterViewInit() {
-        this.videoEl = this.videoElRef.nativeElement;
+
         if (this.aCtx && this.ap) {
 
         }
@@ -157,60 +140,6 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
                 this.mediaUrl = params['url'];
             }
         });
-
-        this._videoPlayStartAction.disabled = true;
-        this._videoPlayStartAction.onAction = () => {
-            this.videoEl.currentTime = 0;
-            this.videoEndTime=null;
-            this.videoEl.play();
-        }
-        this._videoPlaySelectionAction.onAction = () => {
-           this.startSelected();
-        }
-        this.videoEl.oncanplay = () => {
-            this._videoPlayStartAction.disabled = false;
-            this._videoPlayPauseAction.disabled = true;
-            this._videoPlayStopAction.disabled = true;
-            this._videoPlaySelectionAction.disabled=this.startSelectionDisabled();
-        }
-        this.videoEl.onplaying = () => {
-            this._videoPlayStartAction.disabled = true;
-            this._videoPlayPauseAction.disabled = false;
-            this._videoPlayStopAction.disabled = false;
-            this._videoPlaySelectionAction.disabled=true;
-            this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
-        }
-        this.videoEl.onpause = () => {
-            this._videoPlayStartAction.disabled = false;
-            this._videoPlayPauseAction.disabled = true;
-            this._videoPlayStopAction.disabled = true;
-            this._videoPlaySelectionAction.disabled=this.startSelectionDisabled();
-            window.clearInterval(this.updateTimerId);
-        }
-        this.videoEl.onended = () => {
-            this._videoPlayStartAction.disabled = false;
-            this._videoPlayPauseAction.disabled = true;
-            this._videoPlayStopAction.disabled = true;
-            this._videoPlaySelectionAction.disabled=this.startSelectionDisabled();
-            window.clearInterval(this.updateTimerId);
-        }
-        this.videoEl.onerror = () => {
-            this._videoPlayStartAction.disabled = true;
-            this._videoPlayPauseAction.disabled = true;
-            this._videoPlayStopAction.disabled = true;
-            this._videoPlaySelectionAction.disabled=true;
-            window.clearInterval(this.updateTimerId);
-        }
-        this._videoPlayStopAction.disabled = true;
-        this._videoPlayStopAction.onAction = () => {
-            this.videoEl.pause();
-            this.videoEl.currentTime = 0;
-        }
-    }
-
-
-    ngAfterViewChecked() {
-        //console.log("AfterViewChecked: "+this.ac);
     }
 
     layout() {
@@ -227,21 +156,6 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         this.load();
     }
 
-    startSelected() {
-        let ac = this.audioClip;
-        if (ac) {
-            if (this.audioClip.buffer) {
-                let sr = this.audioClip.buffer.sampleRate;
-                let sel = this.audioClip.selection;
-                if (sel) {
-                    let startTime = sel.leftFrame / sr;
-                    this.videoEndTime = sel.rightFrame / sr;
-                    this.videoEl.currentTime = startTime;
-                    this.videoEl.play();
-                }
-            }
-        }
-    }
     started() {
         this.status = 'Playing...';
     }
@@ -299,10 +213,22 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
 
     protected configure() {
         if (this.mimeType && this.mimeType.isVideo()) {
-            this.playStartAction = this._videoPlayStartAction;
-            this.playSelectionAction = this._videoPlaySelectionAction;
-            this.playStopAction = this._videoPlayStopAction;
-            this.autoPlayOnSelectToggleAction=this._videoAutoPlayOnSelectToggleAction;
+            this.playStartAction = this.videoPlayer.videoPlayStartAction;
+            this.playSelectionAction = this.videoPlayer.videoPlaySelectionAction;
+            this.playStopAction = this.videoPlayer.videoPlayStopAction;
+            this.autoPlayOnSelectToggleAction=this.videoPlayer.videoAutoPlayOnSelectToggleAction;
+            this.videoPlayer.onplaying=(ev:Event)=>{
+                this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
+            }
+            this.videoPlayer.onpause=(ev:Event)=>{
+                window.clearInterval(this.updateTimerId);
+            }
+            this.videoPlayer.onended=(ev:Event)=>{
+                window.clearInterval(this.updateTimerId);
+            }
+            this.videoPlayer.onerror=(ev:Event)=>{
+                window.clearInterval(this.updateTimerId);
+            }
         } else {
             this.playStartAction = this.ap.startAction;
             this.playSelectionAction = this.ap.startSelectionAction;
@@ -317,8 +243,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         //console.debug("Received data ", data.byteLength);
         if (this.hasVideo()) {
             let mBlob = new Blob([data], {type: this.mimeType.toHeaderString()});
-            let mbUrl = URL.createObjectURL(mBlob);
-            this.videoEl.src = mbUrl;
+            this.videoPlayer.mediaBlob=mBlob;
         }
         // Do not use Promise version, which does not work with Safari 13
         this.aCtx.decodeAudioData(data, (audioBuffer) => {
@@ -362,17 +287,6 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
         }
         this.audioDisplayScrollPane.audioClip = audioClip
         this.ap.audioClip = audioClip
-        if (this.hasVideo()) {
-            this.mediaSelectionListener=(ac) => {
-                this.playSelectionAction.disabled = this.startSelectionDisabled();
-                if (!this.startSelectionDisabled() && this._videoAutoPlayOnSelectToggleAction.value) {
-                    this.startSelected()
-                }
-            };
-            this._audioClip.addSelectionObserver(this.mediaSelectionListener);
-        }else if(this.mediaSelectionListener){
-            this._audioClip.removeSelectionObserver(this.mediaSelectionListener);
-        }
     }
 
     get audioClip(): AudioClip | null {
@@ -381,10 +295,10 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterCon
 
     updatePlayPosition() {
         if (this.hasVideo()) {
-            let mediaTime = this.videoEl.currentTime;
-            if (this.videoEndTime) {
-                if (this.videoEndTime <= mediaTime) {
-                    this.videoEl.pause();
+            let mediaTime = this.videoPlayer.currentTime;
+            if (this.videoPlayer.videoEndTime) {
+                if (this.videoPlayer.videoEndTime <= mediaTime) {
+                    this.videoPlayer.pause();
                 }
             }
             this.audioDisplayScrollPane.playTimePosition = mediaTime;
