@@ -53,6 +53,8 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatInputModule} from "@angular/material/input";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {MediaDisplayPlayer} from "./media/media_player";
+import {MediaDisplay} from "./media/media_display";
+import {VideoPlayer} from "./media/video_player";
 
 
 
@@ -75,12 +77,12 @@ export const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,MediaDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
+    declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,MediaDisplay,AudioDisplayPlayer,MediaDisplayPlayer,VideoPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
       ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
-    exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,MediaDisplayPlayer,AudioDisplayControl,LevelBar],
+    exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,MediaDisplay,AudioDisplayPlayer,VideoPlayer,MediaDisplayPlayer,AudioDisplayControl,LevelBar],
     imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule,MatInputModule, MatSelectModule,MatSnackBarModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,RecordingFileService,SpeechRecorderUploader]
 

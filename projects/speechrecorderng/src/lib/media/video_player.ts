@@ -15,8 +15,15 @@ import {Action} from "../action/action";
     template: `
         <video #videoEl class="videoView" [hidden]="false"></video>
     `,
-    styles: [`.videoView{
+    styles: [`:host {
+        min-width: 50px;
+        min-height: 50px;
+    }
+    `,`.videoView{
             width: 95%;
+        height:95%;
+        max-height:95%;
+            min-height: 0px;
             object-fit: contain;
         }
         `]
@@ -166,8 +173,12 @@ export class VideoPlayer implements AfterViewInit {
 
     @Input()
     set mediaBlob(mediaBlob: Blob) {
-        let mbUrl = URL.createObjectURL(mediaBlob);
-        this.videoEl.src = mbUrl;
+        if (mediaBlob == null) {
+            this.videoEl.srcObject = null;
+        } else {
+            let mbUrl = URL.createObjectURL(mediaBlob);
+            this.videoEl.src = mbUrl;
+        }
     }
 
     startSelectionDisabled() {

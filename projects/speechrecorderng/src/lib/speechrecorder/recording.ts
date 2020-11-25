@@ -4,7 +4,7 @@ import {PromptItem} from "./script/script";
 
 export class RecordingFileDescriptor {
 
-  //session:string|number;
+  rectype?:string;
   recording:PromptItem;
   version:number;
   constructor() {}

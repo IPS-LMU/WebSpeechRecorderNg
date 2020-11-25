@@ -37,7 +37,7 @@ export class ItemcodeIndex{
 
   template: `
       <div class="mediaview">
-        <videoplayer [hidden]="!hasVideo()" [selection]="_audioClip?.selection"></videoplayer>
+        <videoplayer [hidden]="!hasVideo()" [selection]="audioClip?.selection"></videoplayer>
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       </div>
     <div class="ctrlview">

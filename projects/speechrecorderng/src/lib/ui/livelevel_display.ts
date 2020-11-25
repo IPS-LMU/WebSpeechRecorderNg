@@ -7,13 +7,14 @@ import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
 import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 import {MediaPlaybackControls} from "../media/mediaplayback";
+import {VideoPlayer} from "../media/video_player";
 
 
 
 export const MIN_DB_LEVEL = -40.0;
 export const DEFAULT_WARN_DB_LEVEL = -2;
 
-export class HTMLVideoElementPlaybackControls implements MediaPlaybackControls{
+export class HTMLVideoElementPlaybackControls {
 
     constructor(private _videoElement:HTMLVideoElement){}
 
@@ -32,7 +33,7 @@ export class HTMLVideoElementPlaybackControls implements MediaPlaybackControls{
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-        <video #videoEl [hidden]="displayMediaBlob==null"></video>   
+        <videoplayer [hidden]="displayMediaBlob==null" [mediaBlob]="displayMediaBlob"></videoplayer>   
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
@@ -44,7 +45,7 @@ export class HTMLVideoElementPlaybackControls implements MediaPlaybackControls{
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null"
+        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null && displayMediaBlob==null"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
@@ -66,8 +67,11 @@ export class HTMLVideoElementPlaybackControls implements MediaPlaybackControls{
         display: flex; /* flex container: left level bar, right decimal peak level value */
         flex-direction: row;
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
-    }`, `video {
-        flex: 1;
+    }`, `videoplayer {
+        flex:0;
+        height:100px;
+        max-height:100px;
+        width: 200px;
         min-width: 200px;
         box-sizing: border-box;
     }`,`audio-levelbar {
@@ -94,8 +98,8 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
     }
 
     ce: HTMLDivElement;
-    @ViewChild('videoEl') videoElRef: ElementRef;
-    private videoEl:HTMLVideoElement;
+    @ViewChild(VideoPlayer) videoPlayer: VideoPlayer;
+
     private mediaPlayerControls:HTMLVideoElementPlaybackControls;
     @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
     @Input() streamingMode: boolean;
@@ -128,48 +132,11 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
 
     constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
 
-
     }
 
     ngAfterViewInit() {
         this.ce = this.ref.nativeElement;
-        this.videoEl=this.videoElRef.nativeElement;
-        this.mediaPlayerControls=new HTMLVideoElementPlaybackControls(this.videoEl);
 
-        this._videoPlayStartAction.disabled=true;
-        this._videoPlayStartAction.onAction=()=>{
-            this.videoEl.play();
-        }
-        this.videoEl.oncanplay=()=>{
-            this._videoPlayStartAction.disabled=false;
-            this._videoPlayPauseAction.disabled=true;
-            this._videoPlayStopAction.disabled=true;
-        }
-        this.videoEl.onplaying=()=>{
-            this._videoPlayStartAction.disabled=true;
-            this._videoPlayPauseAction.disabled=false;
-            this._videoPlayStopAction.disabled=false;
-        }
-        this.videoEl.onpause=()=>{
-            this._videoPlayStartAction.disabled=false;
-            this._videoPlayPauseAction.disabled=true;
-            this._videoPlayStopAction.disabled=false;
-        }
-        this.videoEl.onended=()=>{
-            this._videoPlayStartAction.disabled=false;
-            this._videoPlayPauseAction.disabled=true;
-            this._videoPlayStopAction.disabled=true;
-        }
-        this.videoEl.onerror=()=>{
-            this._videoPlayStartAction.disabled=true;
-            this._videoPlayPauseAction.disabled=true;
-            this._videoPlayStopAction.disabled=true;
-        }
-        this._videoPlayStopAction.disabled=true;
-        this._videoPlayStopAction.onAction=()=>{
-            this.videoEl.pause();
-            this.videoEl.currentTime=0;
-        }
     }
 
     ngOnDestroy() {
@@ -179,10 +146,6 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
     @Input()
     set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null) {
         this._displayAudioBuffer = displayAudioBuffer;
-        this._displayMediaBlob=null;
-        this._videoPlayStartAction.disabled=true;
-        this._videoPlayStopAction.disabled=true;
-        this._videoPlayPauseAction.disabled=true;
     }
 
     get displayAudioBuffer() {
@@ -191,15 +154,7 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
 
     @Input()
     set displayMediaBlob(displayMediaBlob: Blob | null) {
-        this._displayAudioBuffer =null;
         this._displayMediaBlob=displayMediaBlob;
-        if(this.displayMediaBlob){
-            let mbUrl=URL.createObjectURL(this._displayMediaBlob);
-            this.videoEl.src =mbUrl;
-        }else{
-            this.videoEl.pause();
-            this.videoEl.srcObject =null;
-        }
     }
 
     get displayMediaBlob(){

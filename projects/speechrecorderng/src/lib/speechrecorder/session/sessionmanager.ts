@@ -72,7 +72,9 @@ export class Item {
                         [items]="items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
+                        [audioSignalCollapsed]="audioSignalCollapsed"
+                        [displayMediaBlob]="displayMediaBlob"
+                        [displayAudioClip]="displayAudioClip"
                         [playStartAction]="controlAudioPlayer?.startAction"
                         [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
                         [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
@@ -192,7 +194,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer: AudioPlayer;
 
-  private audioFetchSubscription:Subscription|null;
+  private mediaFetchSubscription:Subscription|null;
 
   private destroyed=false;
 
@@ -593,58 +595,77 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
   }
 
+  private applyDisplayMediaBlob(mb:Blob){
+    //this.displayAudioClip = null;
+    //this.controlAudioPlayer.audioClip = null;
+    this.displayMediaBlob = mb;
+    this.playStartAction=this.liveLevelDisplay.videoPlayStartAction;
+    this.playStopAction=this.liveLevelDisplay.videoPlayStopAction;
+  }
+
+  private applyDisplayAudioBuffer(ab:AudioBuffer){
+    this.displayAudioClip = new AudioClip(ab);
+    this.controlAudioPlayer.audioClip = this.displayAudioClip;
+  }
+
   set displayRecFile(displayRecFile: RecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
       let mb: Blob = this._displayRecFile.blob;
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
       if (mb) {
-        this.displayAudioClip = null;
-        this.controlAudioPlayer.audioClip = null;
-        this.displayMediaBlob = mb;
-        this.playStartAction=this.liveLevelDisplay.videoPlayStartAction;
-        this.playStopAction=this.liveLevelDisplay.videoPlayStopAction;
+        this.applyDisplayMediaBlob(mb);
       } else {
         this.displayMediaBlob = null;
-        this.playStartAction=this._controlAudioPlayer.startAction;
-        this.playStopAction=this._controlAudioPlayer.stopAction;
-        if (ab) {
-          this.displayAudioClip = new AudioClip(ab);
-          this.controlAudioPlayer.audioClip = this.displayAudioClip;
-        } else {
-          // TODO not yet able to process media Blobs
-          // clear for now ...
-          this.displayAudioClip = null;
-          this.controlAudioPlayer.audioClip = null;
-          if (this._controlAudioPlayer) {
-            //... and try to fetch from server
-            this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
-              let fab = null;
-              if (rf) {
-                fab = this._displayRecFile.audioBuffer;
-              } else {
-                this.statusMsg = 'Recording file could not be loaded.'
-                this.statusAlertType = 'error'
-              }
-              this.displayAudioClip = new AudioClip(fab)
-              this.controlAudioPlayer.audioClip = this.displayAudioClip
-              this.showRecording();
-
-            }, err => {
-              console.error("Could not load recording file from server: " + err)
-              this.statusMsg = 'Recording file could not be loaded: ' + err
+        this.playStartAction = this._controlAudioPlayer.startAction;
+        this.playStopAction = this._controlAudioPlayer.stopAction;
+      }
+      if (ab) {
+        this.applyDisplayAudioBuffer(ab)
+      } else {
+        // TODO not yet able to process media Blobs
+        // clear for now ...
+        this.displayAudioClip = null;
+        this.controlAudioPlayer.audioClip = null;
+        if (this._controlAudioPlayer) {
+          //... and try to fetch from server
+          this.mediaFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+            let fab = null;
+            let fmb = null;
+            if (rf) {
+              fmb = this._displayRecFile.blob;
+              fab = this._displayRecFile.audioBuffer;
+            } else {
+              this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
-            })
-          } else {
-            this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
+            }
+            if (fmb) {
+              this.applyDisplayMediaBlob(fmb);
+            } else {
+              this.displayMediaBlob = null;
+              this.playStartAction = this._controlAudioPlayer.startAction;
+              this.playStopAction = this._controlAudioPlayer.stopAction;
+            }
+            if(fab){
+              this.applyDisplayAudioBuffer(fab);
+            }
+            this.showRecording();
+
+          }, err => {
+            console.error("Could not load recording file from server: " + err)
+            this.statusMsg = 'Recording file could not be loaded: ' + err
             this.statusAlertType = 'error'
-          }
+          })
+        } else {
+          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
+          this.statusAlertType = 'error'
         }
+
       }
     } else {
       this.displayAudioClip = null;
       this.controlAudioPlayer.audioClip = null;
-      this.displayMediaBlob=null;
+      this.displayMediaBlob = null;
     }
   }
 
@@ -697,8 +718,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
     //this.selectedItemIdx = this.promptIndex;
 
-    if(this.audioFetchSubscription){
-      this.audioFetchSubscription.unsubscribe()
+    if(this.mediaFetchSubscription){
+      this.mediaFetchSubscription.unsubscribe()
     }
 
     this.clearPrompt();
@@ -1161,6 +1182,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
           it.recs = new Array<RecordingFile>();
         }
         let rf = new RecordingFile(this._session.sessionId, rfd.recording.itemcode,rfd.version, null);
+        rf.rectype=rfd.rectype;
         it.recs[rfd.version]=rf;
 
       } else {

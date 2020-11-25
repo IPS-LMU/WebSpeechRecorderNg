@@ -1,6 +1,8 @@
-export interface MediaPlaybackControls{
+import {Action} from "../action/action";
 
-    start():void;
-    stop():void;
+export interface MediaPlaybackControls{
+    startAction:Action<void>;
+    stopAction:Action<void>;
+
 
 }

@@ -21,6 +21,7 @@ import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
+import {MediaDisplay} from "../../media/media_display";
 
 @Component({
 
@@ -600,12 +601,13 @@ export class PromptingContainer {
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
 
-      <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
+      <mediadisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
+                        [mediaBlob]="displayMediaBlob"
                         [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
                         [playSelectionAction]="playSelectionAction"
                         [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
-                        [playStopAction]="playStopAction"></app-audiodisplay>
+                        [playStopAction]="playStopAction"></mediadisplay>
 
 
     </div>
@@ -682,7 +684,7 @@ export class PromptingContainer {
 
 export class Prompting {
   @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(AudioDisplay, { static: true }) audioDisplay: AudioDisplay;
+  @ViewChild(MediaDisplay, { static: true }) audioDisplay: MediaDisplay;
   @Input() projectName: string | null;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;
@@ -694,6 +696,7 @@ export class Prompting {
 
   @Input() audioSignalCollapsed: boolean;
   @Input() displayAudioClip: AudioClip | null;
+  @Input() displayMediaBlob: Blob | null;
   @Input() playStartAction: Action<void>;
   @Input() playSelectionAction: Action<void>;
   @Input() autoPlayOnSelectToggleAction:Action<boolean>
