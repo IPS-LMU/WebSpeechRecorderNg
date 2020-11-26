@@ -196,6 +196,10 @@ export class MediaDisplay implements OnInit,AfterViewInit {
       this.audioDisplayScrollPane.playFramePosition = playFramePosition
   }
 
+    set playTimePosition(time:number){
+     this.audioDisplayScrollPane.playTimePosition=time;
+    }
+
   error() {
     this.status = 'ERROR';
   }

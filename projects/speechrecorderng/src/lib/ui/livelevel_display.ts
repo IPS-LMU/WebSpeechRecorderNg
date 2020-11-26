@@ -45,7 +45,7 @@ export class HTMLVideoElementPlaybackControls {
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null && displayMediaBlob==null"
+        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null || displayMediaBlob!=null"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
@@ -88,13 +88,13 @@ export class HTMLVideoElementPlaybackControls {
 })
 export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
     get videoPlayPauseAction(): Action<void> {
-        return this._videoPlayPauseAction;
+        return this.videoPlayer.videoPlayPauseAction;
     }
     get videoPlayStopAction(): Action<void> {
-        return this._videoPlayStopAction;
+        return this.videoPlayer.videoPlayStopAction;
     }
     get videoPlayStartAction(): Action<void> {
-        return this._videoPlayStartAction;
+        return this.videoPlayer.videoPlayStartAction;
     }
 
     ce: HTMLDivElement;
@@ -118,9 +118,6 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
     //@Input() controlAudioPlayer: AudioPlayer;
     @Input() playStartAction:Action<void>;
     @Input() playStopAction:Action<void>;
-    private _videoPlayStartAction:Action<void>=new Action('Play');
-    private _videoPlayPauseAction:Action<void>=new Action('Pause');
-    private _videoPlayStopAction:Action<void>=new Action('Stop');
 
     playStartEnabled = false;
     playStopEnabled = false;
@@ -182,6 +179,12 @@ export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
   set playFramePosition(playFramePosition: number) {
     this.liveLevel.playFramePosition=playFramePosition;
   }
+    set playTimePosition(time:number){
+        if(this.displayAudioBuffer) {
+            let sr = this.displayAudioBuffer.sampleRate
+            this.playFramePosition = time * sr;
+        }
+    }
 
     update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo) {
         let peakDBVal = levelInfo.powerLevelDB();

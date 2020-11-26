@@ -75,10 +75,10 @@ export class Item {
                         [audioSignalCollapsed]="audioSignalCollapsed"
                         [displayMediaBlob]="displayMediaBlob"
                         [displayAudioClip]="displayAudioClip"
-                        [playStartAction]="controlAudioPlayer?.startAction"
+                        [playStartAction]="playStartAction"
                         [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
                         [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
-                        [playStopAction]="controlAudioPlayer?.stopAction">
+                        [playStopAction]="playStopAction">
 
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
@@ -601,6 +601,18 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.displayMediaBlob = mb;
     this.playStartAction=this.liveLevelDisplay.videoPlayStartAction;
     this.playStopAction=this.liveLevelDisplay.videoPlayStopAction;
+    this.liveLevelDisplay.videoPlayer.onplaying=(ev:Event)=>{
+      this.updateTimerId = window.setInterval(e => this.updateMediaPlaybackPosition(), 50);
+    }
+    this.liveLevelDisplay.videoPlayer.onpause=(ev:Event)=>{
+      window.clearInterval(this.updateTimerId);
+    }
+    this.liveLevelDisplay.videoPlayer.onended=(ev:Event)=>{
+      window.clearInterval(this.updateTimerId);
+    }
+    this.liveLevelDisplay.videoPlayer.onerror=(ev:Event)=>{
+      window.clearInterval(this.updateTimerId);
+    }
   }
 
   private applyDisplayAudioBuffer(ab:AudioBuffer){
@@ -1368,15 +1380,30 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
   }
 
+  private updateMediaPlaybackPosition() {
+    if (this.liveLevelDisplay.videoPlayer) {
+      let mediaTime = this.liveLevelDisplay.videoPlayer.currentTime;
+      if (this.liveLevelDisplay.videoPlayer.videoEndTime) {
+        if (this.liveLevelDisplay.videoPlayer.videoEndTime <= mediaTime) {
+          this.liveLevelDisplay.videoPlayer.pause();
+        }
+      }
+      this.prompting.audioDisplay.playTimePosition = mediaTime;
+      this.liveLevelDisplay.playTimePosition = mediaTime;
+    }
+  }
+
   audioPlayerUpdate(e: AudioPlayerEvent) {
     if (EventType.READY === e.type) {
 
     } else if (EventType.STARTED === e.type) {
       //this.status = 'Playback...';
+      console.log("Control player playing...");
       this.updateTimerId = window.setInterval(e => this.updateControlPlaybackPosition(), 50);
 
     } else if (EventType.ENDED === e.type) {
       //.status='Ready.';
+      console.log("Control player ended.");
       window.clearInterval(this.updateTimerId);
 
     }

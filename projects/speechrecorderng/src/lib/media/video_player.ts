@@ -173,11 +173,13 @@ export class VideoPlayer implements AfterViewInit {
 
     @Input()
     set mediaBlob(mediaBlob: Blob) {
-        if (mediaBlob == null) {
-            this.videoEl.srcObject = null;
-        } else {
-            let mbUrl = URL.createObjectURL(mediaBlob);
-            this.videoEl.src = mbUrl;
+        if(this.videoEl) {
+            if (mediaBlob == null) {
+                this.videoEl.srcObject = null;
+            } else {
+                let mbUrl = URL.createObjectURL(mediaBlob);
+                this.videoEl.src = mbUrl;
+            }
         }
     }
 
