@@ -626,7 +626,20 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       let mb: Blob = this._displayRecFile.blob;
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
       if (mb) {
-        this.applyDisplayMediaBlob(mb);
+        if(ab) {
+          this.applyDisplayMediaBlob(mb);
+        }else{
+          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+          let mbBufProm=mb.arrayBuffer();
+           mbBufProm.then((buf)=> {
+            this._controlAudioPlayer.context.decodeAudioData(buf, ab => {
+              this._displayRecFile.audioBuffer = ab;
+              this.applyDisplayMediaBlob(mb);
+            }, error => {
+
+            })
+          });
+        }
       } else {
         this.displayMediaBlob = null;
         this.playStartAction = this._controlAudioPlayer.startAction;

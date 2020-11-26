@@ -97,6 +97,7 @@
             "promptItems": [
               {
                 "itemcode": "VL2",
+                "rectype": "video/webm",
                 "mediaitems": [
                   {
                     "annotationTemplate": false,
