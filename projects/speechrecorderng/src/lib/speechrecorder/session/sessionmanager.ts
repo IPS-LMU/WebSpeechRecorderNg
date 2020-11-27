@@ -616,8 +616,25 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   private applyDisplayAudioBuffer(ab:AudioBuffer){
+    this.displayMediaBlob = null;
+    this.playStartAction = this._controlAudioPlayer.startAction;
+    this.playStopAction = this._controlAudioPlayer.stopAction;
     this.displayAudioClip = new AudioClip(ab);
     this.controlAudioPlayer.audioClip = this.displayAudioClip;
+  }
+
+  private decodeAudioOfMediaRecordingFile(rf:RecordingFile){
+    // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+    let mbBufProm=rf.blob.arrayBuffer();
+    mbBufProm.then((buf)=> {
+      this._controlAudioPlayer.context.decodeAudioData(buf, ab => {
+        rf.audioBuffer = ab;
+        this.displayAudioClip = new AudioClip(ab);
+        this.showRecording();
+      }, error => {
+
+      })
+    });
   }
 
   set displayRecFile(displayRecFile: RecordingFile | null) {
@@ -626,56 +643,46 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       let mb: Blob = this._displayRecFile.blob;
       let ab: AudioBuffer = this._displayRecFile.audioBuffer;
       if (mb) {
+        this.applyDisplayMediaBlob(mb);
         if(ab) {
-          this.applyDisplayMediaBlob(mb);
+          this.displayAudioClip = new AudioClip(ab);
+          this.showRecording();
         }else{
-          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-          let mbBufProm=mb.arrayBuffer();
-           mbBufProm.then((buf)=> {
-            this._controlAudioPlayer.context.decodeAudioData(buf, ab => {
-              this._displayRecFile.audioBuffer = ab;
-              this.applyDisplayMediaBlob(mb);
-            }, error => {
-
-            })
-          });
+          this.decodeAudioOfMediaRecordingFile(this._displayRecFile);
         }
-      } else {
-        this.displayMediaBlob = null;
-        this.playStartAction = this._controlAudioPlayer.startAction;
-        this.playStopAction = this._controlAudioPlayer.stopAction;
-      }
-      if (ab) {
+      } else if(ab){
         this.applyDisplayAudioBuffer(ab)
       } else {
-        // TODO not yet able to process media Blobs
-        // clear for now ...
+        this.displayMediaBlob=null;
         this.displayAudioClip = null;
+
         this.controlAudioPlayer.audioClip = null;
         if (this._controlAudioPlayer) {
           //... and try to fetch from server
-          this.mediaFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+          let rfToFetch=this._displayRecFile;
+          this.mediaFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, rfToFetch).subscribe((fetchedRf) => {
             let fab = null;
             let fmb = null;
-            if (rf) {
+            if (fetchedRf) {
               fmb = this._displayRecFile.blob;
               fab = this._displayRecFile.audioBuffer;
             } else {
               this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
             }
-            if (fmb) {
-              this.applyDisplayMediaBlob(fmb);
-            } else {
-              this.displayMediaBlob = null;
-              this.playStartAction = this._controlAudioPlayer.startAction;
-              this.playStopAction = this._controlAudioPlayer.stopAction;
+            if(fetchedRf == this._displayRecFile) {
+              if (fmb) {
+                this.displayAudioClip = new AudioClip(fab);
+                this.applyDisplayMediaBlob(fmb);
+                this.showRecording();
+                //this.decodeAudioOfMediaRecordingFile(this._displayRecFile);
+              } else {
+                if (fab) {
+                  this.applyDisplayAudioBuffer(fab);
+                  this.showRecording();
+                }
+              }
             }
-            if(fab){
-              this.applyDisplayAudioBuffer(fab);
-            }
-            this.showRecording();
-
           }, err => {
             console.error("Could not load recording file from server: " + err)
             this.statusMsg = 'Recording file could not be loaded: ' + err
