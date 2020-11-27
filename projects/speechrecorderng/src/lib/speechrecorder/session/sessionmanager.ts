@@ -210,7 +210,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
     //let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
-    //this.playStartAction = new Action('Play');
+    this.playStartAction = new Action('Play');
+    this.playStopAction = new Action('Stop');
     //this.playStartAction.addControl(playStartBtn, 'click');
     this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
     this.audio = document.getElementById('audio');
@@ -698,6 +699,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.displayAudioClip = null;
       this.controlAudioPlayer.audioClip = null;
       this.displayMediaBlob = null;
+      this.playStartAction.disabled=true;
+      this.playStopAction.disabled=true;
     }
   }
 
@@ -1417,15 +1420,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     if (EventType.READY === e.type) {
 
     } else if (EventType.STARTED === e.type) {
-      //this.status = 'Playback...';
-      console.log("Control player playing...");
       this.updateTimerId = window.setInterval(e => this.updateControlPlaybackPosition(), 50);
-
     } else if (EventType.ENDED === e.type) {
-      //.status='Ready.';
-      console.log("Control player ended.");
       window.clearInterval(this.updateTimerId);
-
     }
 
     if(!this.destroyed) {
