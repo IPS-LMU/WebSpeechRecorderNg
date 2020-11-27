@@ -71,18 +71,29 @@ export class RecordingService {
     return wobs;
   }
 
-  private fetchMediafile(projectName: string, sessId: string | number, itemcode: string,version:number,ext:string='wav'): Observable<HttpResponse<ArrayBuffer>> {
+  private fetchMediafile(projectName: string, sessId: string | number, itemcode: string,version:number,mimeType:MIMEType=null): Observable<HttpResponse<ArrayBuffer>> {
 
     let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
       SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode+'/'+version;
     if (this.config && this.config.apiType === ApiType.FILES) {
+      let ext:string='wav'
+      if(mimeType){
+        let mtExt=mimeType.extension;
+        if(mtExt){
+          ext=mtExt;
+        }
+      }
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
       recUrl = recUrl + '.'+ext+'?requestUUID=' + UUID.generate();
     }
 
     let headers = new HttpHeaders();
-    headers = headers.set('Accept', 'audio/wav');
+    let acceptHeaderVal='audio/wav';
+    if(mimeType){
+      acceptHeaderVal=mimeType.toHeaderString();
+    }
+    headers = headers.set('Accept', acceptHeaderVal);
     return this.http.get(recUrl, {
       headers: headers,
       observe: 'response',
@@ -105,7 +116,7 @@ export class RecordingService {
           ext=mt.extension;
         }
       }
-      let obs = this.fetchMediafile(projectName, recordingFile.session, recordingFile.itemCode,recordingFile.version,ext);
+      let obs = this.fetchMediafile(projectName, recordingFile.session, recordingFile.itemCode,recordingFile.version,mt);
       obs.subscribe(resp => {
           //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
           if(isVideo){
