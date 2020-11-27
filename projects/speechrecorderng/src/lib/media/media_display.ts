@@ -161,6 +161,8 @@ export class MediaDisplay implements OnInit,AfterViewInit {
     set mediaBlob(value: Blob) {
       if(value) {
           this.mimeType = MIMEType.parse(value.type);
+      }else{
+          this.mimeType=null;
       }
       if(this.videoPlayer) {
           this.videoPlayer.mediaBlob = value;
