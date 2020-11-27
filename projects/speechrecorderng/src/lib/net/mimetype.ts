@@ -153,9 +153,14 @@ export class MIMEType {
                 str=str.concat(pk);
                 let pVal=p.substring(eqSignPos+1).trim();
                 let pValStr=pVal;
+                // If mime type contains a comma...
                 let pValCommaPos=pVal.indexOf(",");
                 if(pValCommaPos!==-1){
-                    pValStr='"'+pVal+'"';
+                    // ...check if already quoted...
+                    if(! (pVal.startsWith('"') && pVal.endsWith('"'))){
+                        // ... and if not, quote the parameter value string
+                        pValStr = '"' + pVal + '"';
+                    }
                 }
                 str=str.concat(pValStr);
             }else{
