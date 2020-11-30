@@ -626,7 +626,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   private applyVideoPlayer() {
     if (this.audioSignalCollapsed) {
       this.videoPlayer = this.liveLevelDisplay.videoPlayer;
+      this.liveLevelDisplay.hideVideo=false;
+      this.prompting.audioDisplay.hideVideo=true;
     } else {
+      this.liveLevelDisplay.hideVideo=true;
+      this.prompting.audioDisplay.hideVideo=false;
       this.videoPlayer = this.prompting.audioDisplay.videoPlayer;
     }
     this.videoPlayer.onplaying=(ev:Event)=>{

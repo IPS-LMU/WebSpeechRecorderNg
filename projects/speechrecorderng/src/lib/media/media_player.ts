@@ -20,7 +20,7 @@ import {VideoPlayer} from "./video_player";
 
     template: `
         <div class="mediaview">
-            <videoplayer [hidden]="!hasVideo()" [selection]="audioClip?.selection"></videoplayer>
+            <videoplayer [hidden]="!hasVideo() || hideVideo" [selection]="audioClip?.selection"></videoplayer>
             <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
         </div>
         <audio-display-control [audioClip]="audioClip"
@@ -78,11 +78,13 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
     @Input()
     autoPlayOnSelectToggleAction: Action<boolean>
 
+    @Input()
+    hideVideo:boolean=false;
+
     zoomFitToPanelAction: Action<void>;
     zoomSelectedAction: Action<void>
     zoomInAction: Action<void>;
     zoomOutAction: Action<void>;
-
 
     aCtx: AudioContext;
     private _audioClip: AudioClip = null;
