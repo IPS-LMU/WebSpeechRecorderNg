@@ -640,22 +640,25 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.videoPlayer.onpause=(ev:Event)=>{
       this.playbackRunning=false;
       window.clearInterval(this.updateTimerId);
+      this.applyVideoPlayer();
     }
     this.videoPlayer.onended=(ev:Event)=>{
       this.playbackRunning=false;
       window.clearInterval(this.updateTimerId);
+      this.applyVideoPlayer();
     }
     this.videoPlayer.onerror=(ev:Event)=>{
       this.playbackRunning=false;
       window.clearInterval(this.updateTimerId);
+      this.applyVideoPlayer();
     }
+    this.applyPlaybackActions()
   }
   private applyDisplayMediaBlob(mb:Blob){
     //this.displayAudioClip = null;
     //this.controlAudioPlayer.audioClip = null;
     this.displayMediaBlob = mb;
     this.applyVideoPlayer();
-    this.applyPlaybackActions();
   }
 
   private applyDisplayAudioBuffer(ab:AudioBuffer){
