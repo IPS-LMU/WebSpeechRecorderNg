@@ -28,6 +28,7 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {MIMEType} from "../../net/mimetype";
+import {MediaPlaybackControls} from "../../media/mediaplayback";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -90,7 +91,7 @@ export class Item {
                               [displayLevelInfos]="displayLevelInfos"
                               [displayMediaBlob]="displayMediaBlob"
                               [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
-                              (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
+                              (onShowRecordingDetails)="toggleShowRecordingDetails()"
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
@@ -146,7 +147,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   dnlLnk: HTMLAnchorElement;
   playStartAction: Action<void>;
   playStopAction: Action<void>;
-  mediaPlayStartAction: Action<void>;
+  //mediaPlayStartAction: Action<void>;
   audio: any;
 
   _session: Session;
@@ -230,7 +231,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   ngAfterViewInit() {
 
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
-    this.mediaPlayStartAction=this.liveLevelDisplay.videoPlayStartAction;
+    //this.mediaPlayStartAction=this.liveLevelDisplay.videoPlayStartAction;
   }
     ngOnDestroy() {
        this.destroyed=true;
@@ -318,6 +319,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.startStopSignalState = StartStopSignalState.OFF;
 
 }
+
+  toggleShowRecordingDetails(){
+    this.audioSignalCollapsed=!this.audioSignalCollapsed;
+
+    this.applyPlaybackActions();
+  }
 
   @HostListener('window:keypress', ['$event'])
   onKeyPress(ke: KeyboardEvent) {
@@ -596,12 +603,26 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
   }
 
+  private applyPlaybackActions(){
+    let mpcs:MediaPlaybackControls=null;
+    if(this.displayMediaBlob) {
+      if (this.audioSignalCollapsed) {
+        mpcs = this.liveLevelDisplay;
+      } else {
+        mpcs = this.prompting;
+      }
+    }else{
+      mpcs=this._controlAudioPlayer;
+    }
+    this.playStartAction=mpcs.startAction;
+    this.playStopAction=mpcs.stopAction;
+  }
+
   private applyDisplayMediaBlob(mb:Blob){
     //this.displayAudioClip = null;
     //this.controlAudioPlayer.audioClip = null;
     this.displayMediaBlob = mb;
-    this.playStartAction=this.liveLevelDisplay.videoPlayStartAction;
-    this.playStopAction=this.liveLevelDisplay.videoPlayStopAction;
+    this.applyPlaybackActions();
     this.liveLevelDisplay.videoPlayer.onplaying=(ev:Event)=>{
       this.updateTimerId = window.setInterval(e => this.updateMediaPlaybackPosition(), 50);
     }
@@ -618,8 +639,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   private applyDisplayAudioBuffer(ab:AudioBuffer){
     this.displayMediaBlob = null;
-    this.playStartAction = this._controlAudioPlayer.startAction;
-    this.playStopAction = this._controlAudioPlayer.stopAction;
+    this.applyPlaybackActions();
     this.displayAudioClip = new AudioClip(ab);
     this.controlAudioPlayer.audioClip = this.displayAudioClip;
   }

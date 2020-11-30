@@ -22,6 +22,7 @@ import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
 import {MediaDisplay} from "../../media/media_display";
+import {MediaPlaybackControls} from "../../media/mediaplayback";
 
 @Component({
 
@@ -682,9 +683,31 @@ export class PromptingContainer {
 
 })
 
-export class Prompting {
+export class Prompting implements MediaPlaybackControls{
   @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
   @ViewChild(MediaDisplay, { static: true }) audioDisplay: MediaDisplay;
+  get startAction(){
+    return this.audioDisplay.startAction;
+  }
+  get stopAction(){
+    return this.audioDisplay.stopAction;
+  }
+
+  isPlaying(): boolean {
+    if(this.audioDisplay){
+      return this.audioDisplay.isPlaying();
+    }
+    return false;
+  }
+
+  get currentTime(){
+    return this.audioDisplay.currentTime;
+  }
+
+  set currentTime(currentTime:number){
+    this.audioDisplay.currentTime=currentTime;
+  }
+
   @Input() projectName: string | null;
   @Input() startStopSignalState: StartStopSignalState;
   @Input() promptItem: PromptItem | null;

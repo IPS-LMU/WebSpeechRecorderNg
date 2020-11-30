@@ -7,6 +7,7 @@ import {
 
 import {Selection} from '../audio/persistor'
 import {Action} from "../action/action";
+import {MediaPlaybackControls} from "./mediaplayback";
 
 @Component({
 
@@ -29,11 +30,11 @@ import {Action} from "../action/action";
         `]
 
 })
-export class VideoPlayer implements AfterViewInit {
+export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     get videoEndTime(): number {
         return this._videoEndTime;
     }
-    get videoPlayStartAction(): Action<void> {
+    get startAction(): Action<void> {
         return this._videoPlayStartAction;
     }
 
@@ -45,7 +46,7 @@ export class VideoPlayer implements AfterViewInit {
         return this._videoPlayPauseAction;
     }
 
-    get videoPlayStopAction(): Action<void> {
+    get stopAction(): Action<void> {
         return this._videoPlayStopAction;
     }
 
@@ -159,6 +160,10 @@ export class VideoPlayer implements AfterViewInit {
     }
     get currentTime():number {
         return this.videoEl.currentTime;
+    }
+
+    isPlaying(): boolean {
+        return ! this.videoEl.paused;
     }
 
     startSelected() {

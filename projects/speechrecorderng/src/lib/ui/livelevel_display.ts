@@ -45,7 +45,7 @@ export class HTMLVideoElementPlaybackControls {
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null || displayMediaBlob!=null"
+        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null && displayMediaBlob==null"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
@@ -86,15 +86,30 @@ export class HTMLVideoElementPlaybackControls {
     }`]
 
 })
-export class LevelBarDisplay implements LevelListener, AfterViewInit,OnDestroy {
+export class LevelBarDisplay implements MediaPlaybackControls,LevelListener, AfterViewInit,OnDestroy {
     get videoPlayPauseAction(): Action<void> {
         return this.videoPlayer.videoPlayPauseAction;
     }
-    get videoPlayStopAction(): Action<void> {
-        return this.videoPlayer.videoPlayStopAction;
+    get stopAction(): Action<void> {
+        return this.videoPlayer.stopAction;
     }
-    get videoPlayStartAction(): Action<void> {
-        return this.videoPlayer.videoPlayStartAction;
+    get startAction(): Action<void> {
+        return this.videoPlayer.startAction;
+    }
+
+    isPlaying(): boolean {
+        if(this.videoPlayer){
+            return this.videoPlayer.isPlaying();
+        }
+        return false;
+    }
+
+    get currentTime(){
+        return this.videoPlayer.currentTime;
+    }
+
+    set currentTime(currentTime:number){
+        this.videoPlayer.currentTime=currentTime;
     }
 
     ce: HTMLDivElement;

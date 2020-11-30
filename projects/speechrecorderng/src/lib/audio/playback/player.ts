@@ -219,6 +219,12 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
             }
         }
 
+        get currentTime():number{
+            return this.playPositionTime;
+        }
+
+
+
         get playPositionTime() {
 
             return this.context.currentTime - this.playStartTime;

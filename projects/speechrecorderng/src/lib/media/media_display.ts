@@ -11,6 +11,7 @@ import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "../audio/ui/audio_display_scroll_pane";
 import {MIMEType} from "../net/mimetype";
 import {VideoPlayer} from "./video_player";
+import {MediaPlaybackControls} from "./mediaplayback";
 
 @Component({
 
@@ -65,7 +66,7 @@ import {VideoPlayer} from "./video_player";
         `]
 
 })
-export class MediaDisplay implements OnInit,AfterViewInit {
+export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControls{
 
 
   parentE: HTMLElement;
@@ -73,6 +74,28 @@ export class MediaDisplay implements OnInit,AfterViewInit {
     //@ViewChild('videoEl') videoElRef: ElementRef;
     //protected videoEl: HTMLVideoElement;
     @ViewChild(VideoPlayer) videoPlayer: VideoPlayer;
+
+    get startAction():Action<void>{
+        return this.videoPlayer.startAction
+    }
+    get stopAction():Action<void>{
+        return this.videoPlayer.stopAction
+    }
+
+    isPlaying(): boolean {
+        if(this.videoPlayer){
+            return this.videoPlayer.isPlaying();
+        }
+        return false;
+    }
+
+    get currentTime(){
+        return this.videoPlayer.currentTime;
+    }
+
+    set currentTime(currentTime:number){
+        this.videoPlayer.currentTime=currentTime;
+    }
 
     //private mediaSelectionListener:(audioClip:AudioClip)=>void=null;
     //private videoEndTime: number = null;
