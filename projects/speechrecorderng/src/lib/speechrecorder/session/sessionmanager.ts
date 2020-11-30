@@ -29,6 +29,7 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {MIMEType} from "../../net/mimetype";
 import {MediaPlaybackControls} from "../../media/mediaplayback";
+import {VideoPlayer} from "../../media/video_player";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -147,6 +148,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   dnlLnk: HTMLAnchorElement;
   playStartAction: Action<void>;
   playStopAction: Action<void>;
+  videoPlayer:VideoPlayer=null;
+  playbackRunning:boolean=false
   //mediaPlayStartAction: Action<void>;
   audio: any;
 
@@ -229,7 +232,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   ngAfterViewInit() {
-
+    this.videoPlayer=this.liveLevelDisplay.videoPlayer;
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
     //this.mediaPlayStartAction=this.liveLevelDisplay.videoPlayStartAction;
   }
@@ -322,8 +325,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   toggleShowRecordingDetails(){
     this.audioSignalCollapsed=!this.audioSignalCollapsed;
-
-    this.applyPlaybackActions();
+    if(!this.playbackRunning) {
+     this.applyVideoPlayer();
+     this.applyPlaybackActions();
+    }
   }
 
   @HostListener('window:keypress', ['$event'])
@@ -618,23 +623,35 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.playStopAction=mpcs.stopAction;
   }
 
+  private applyVideoPlayer() {
+    if (this.audioSignalCollapsed) {
+      this.videoPlayer = this.liveLevelDisplay.videoPlayer;
+    } else {
+      this.videoPlayer = this.prompting.audioDisplay.videoPlayer;
+    }
+    this.videoPlayer.onplaying=(ev:Event)=>{
+      this.playbackRunning=true;
+      this.updateTimerId = window.setInterval(e => this.updateMediaPlaybackPosition(), 50);
+    }
+    this.videoPlayer.onpause=(ev:Event)=>{
+      this.playbackRunning=false;
+      window.clearInterval(this.updateTimerId);
+    }
+    this.videoPlayer.onended=(ev:Event)=>{
+      this.playbackRunning=false;
+      window.clearInterval(this.updateTimerId);
+    }
+    this.videoPlayer.onerror=(ev:Event)=>{
+      this.playbackRunning=false;
+      window.clearInterval(this.updateTimerId);
+    }
+  }
   private applyDisplayMediaBlob(mb:Blob){
     //this.displayAudioClip = null;
     //this.controlAudioPlayer.audioClip = null;
     this.displayMediaBlob = mb;
+    this.applyVideoPlayer();
     this.applyPlaybackActions();
-    this.liveLevelDisplay.videoPlayer.onplaying=(ev:Event)=>{
-      this.updateTimerId = window.setInterval(e => this.updateMediaPlaybackPosition(), 50);
-    }
-    this.liveLevelDisplay.videoPlayer.onpause=(ev:Event)=>{
-      window.clearInterval(this.updateTimerId);
-    }
-    this.liveLevelDisplay.videoPlayer.onended=(ev:Event)=>{
-      window.clearInterval(this.updateTimerId);
-    }
-    this.liveLevelDisplay.videoPlayer.onerror=(ev:Event)=>{
-      window.clearInterval(this.updateTimerId);
-    }
   }
 
   private applyDisplayAudioBuffer(ab:AudioBuffer){
@@ -1424,11 +1441,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   private updateMediaPlaybackPosition() {
-    if (this.liveLevelDisplay.videoPlayer) {
-      let mediaTime = this.liveLevelDisplay.videoPlayer.currentTime;
-      if (this.liveLevelDisplay.videoPlayer.videoEndTime) {
-        if (this.liveLevelDisplay.videoPlayer.videoEndTime <= mediaTime) {
-          this.liveLevelDisplay.videoPlayer.pause();
+    if (this.videoPlayer) {
+      let mediaTime = this.videoPlayer.currentTime;
+      if (this.videoPlayer.videoEndTime) {
+        if (this.videoPlayer.videoEndTime <= mediaTime) {
+          this.videoPlayer.pause();
         }
       }
       this.prompting.audioDisplay.playTimePosition = mediaTime;
@@ -1440,9 +1457,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     if (EventType.READY === e.type) {
 
     } else if (EventType.STARTED === e.type) {
+      this.playbackRunning=true;
       this.updateTimerId = window.setInterval(e => this.updateControlPlaybackPosition(), 50);
     } else if (EventType.ENDED === e.type) {
       window.clearInterval(this.updateTimerId);
+      this.playbackRunning=false;
     }
 
     if(!this.destroyed) {

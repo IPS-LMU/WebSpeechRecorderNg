@@ -213,9 +213,9 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
 
     protected configure() {
         if (this.mimeType && this.mimeType.isVideo()) {
-            this.playStartAction = this.videoPlayer.videoPlayStartAction;
+            this.playStartAction = this.videoPlayer.startAction;
             this.playSelectionAction = this.videoPlayer.videoPlaySelectionAction;
-            this.playStopAction = this.videoPlayer.videoPlayStopAction;
+            this.playStopAction = this.videoPlayer.stopAction;
             this.autoPlayOnSelectToggleAction=this.videoPlayer.videoAutoPlayOnSelectToggleAction;
             this.videoPlayer.onplaying=(ev:Event)=>{
                 this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
