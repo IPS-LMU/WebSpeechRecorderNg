@@ -68,7 +68,6 @@ import {MediaPlaybackControls} from "./mediaplayback";
 })
 export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControls{
 
-
   parentE: HTMLElement;
 
     //@ViewChild('videoEl') videoElRef: ElementRef;
@@ -77,6 +76,9 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
 
     get startAction():Action<void>{
         return this.videoPlayer.startAction
+    }
+    get startSelectionAction():Action<void>{
+        return this.videoPlayer.startSelectionAction;
     }
     get stopAction():Action<void>{
         return this.videoPlayer.stopAction
@@ -112,8 +114,19 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
   playStopAction: Action<void>;
   @Input()
   playSelectionAction:Action<void>
-  @Input()
-  autoPlayOnSelectToggleAction:Action<boolean>
+
+  private _autoPlayOnSelectToggleAction:Action<boolean>;
+    get autoPlayOnSelectToggleAction(): Action<boolean> {
+        return this._autoPlayOnSelectToggleAction;
+    }
+    @Input()
+    set autoPlayOnSelectToggleAction(value: Action<boolean>) {
+        this._autoPlayOnSelectToggleAction = value;
+        if(this.videoPlayer) {
+            this.videoPlayer.autoPlayOnSelectToggleAction = this._autoPlayOnSelectToggleAction;
+        }
+    }
+
 
     @Input()
     hideVideo:boolean=false;
@@ -151,7 +164,7 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
   }
 
   ngAfterViewInit() {
-
+      this.autoPlayOnSelectToggleAction=this.videoPlayer.autoPlayOnSelectToggleAction;
       this.layout();
       let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
           mrs.forEach((mr:MutationRecord)=>{
@@ -205,12 +218,19 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
   set audioClip(audioClip: AudioClip | null) {
 
     let audioData:AudioBuffer=null;
-    let sel:Selection=null;
+
     if(audioClip){
       audioData=audioClip.buffer;
-      sel=audioClip.selection;
       }
     this._audioClip=audioClip
+      if(this._audioClip){
+          this._audioClip.addSelectionObserver((ac)=>{
+              this.startSelectionAction.disabled = this.startAction.disabled || ! this._audioClip.selection;
+              if (this.mediaBlob && !this.startSelectionAction.disabled && this.autoPlayOnSelectToggleAction.value) {
+                  this.videoPlayer.startSelected();
+              }
+          });
+      }
     this.audioDisplayScrollPane.audioClip = audioClip;
     //this.playStartAction.disabled = (audioData!==null)
   }
@@ -219,7 +239,8 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
     return this._audioClip
   }
 
-  set playFramePosition(playFramePosition:number){
+
+    set playFramePosition(playFramePosition:number){
       this.audioDisplayScrollPane.playFramePosition = playFramePosition
   }
 

@@ -87,14 +87,25 @@ export class HTMLVideoElementPlaybackControls {
 
 })
 export class LevelBarDisplay implements MediaPlaybackControls,LevelListener, AfterViewInit,OnDestroy {
-    get videoPlayPauseAction(): Action<void> {
-        return this.videoPlayer.videoPlayPauseAction;
+
+    get startAction(): Action<void> {
+        return this.videoPlayer.startAction;
     }
+
+    get startSelectionAction():Action<void>{
+        return this.videoPlayer.startSelectionAction;
+    }
+
     get stopAction(): Action<void> {
         return this.videoPlayer.stopAction;
     }
-    get startAction(): Action<void> {
-        return this.videoPlayer.startAction;
+
+    get autoPlayOnSelectToggleAction(){
+        return this.videoPlayer.autoPlayOnSelectToggleAction;
+    }
+
+    get videoPlayPauseAction(): Action<void> {
+        return this.videoPlayer.videoPlayPauseAction;
     }
 
     isPlaying(): boolean {

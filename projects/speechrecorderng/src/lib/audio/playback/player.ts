@@ -27,13 +27,16 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
     }
 
     export class AudioPlayer implements MediaPlaybackControls{
+        set autoPlayOnSelectToggleAction(value: Action<boolean>) {
+            this._autoPlayOnSelectToggleAction = value;
+        }
         get autoPlayOnSelectToggleAction(): Action<boolean> {
             return this._autoPlayOnSelectToggleAction;
         }
         public static DEFAULT_BUFSIZE:number = 8192;
         private running=false;
         private _startAction:Action<void>;
-      private _startSelectionAction:Action<void>;
+        private _startSelectionAction:Action<void>;
         private _autoPlayOnSelectToggleAction:Action<boolean>
         private _stopAction:Action<void>;
         bufSize:number;

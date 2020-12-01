@@ -689,6 +689,9 @@ export class Prompting implements MediaPlaybackControls{
   get startAction(){
     return this.audioDisplay.startAction;
   }
+  get startSelectionAction(){
+    return this.audioDisplay.startSelectionAction;
+  }
   get stopAction(){
     return this.audioDisplay.stopAction;
   }

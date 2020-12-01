@@ -38,7 +38,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
         return this._videoPlayStartAction;
     }
 
-    get videoPlaySelectionAction(): Action<void> {
+    get startSelectionAction(): Action<void> {
         return this._videoPlaySelectionAction;
     }
 
@@ -50,9 +50,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
         return this._videoPlayStopAction;
     }
 
-    get videoAutoPlayOnSelectToggleAction(): Action<boolean> {
-        return this._videoAutoPlayOnSelectToggleAction;
-    }
+    autoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
 
     @ViewChild('videoEl') videoElRef: ElementRef;
     protected videoEl: HTMLVideoElement;
@@ -68,15 +66,16 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     private _videoPlaySelectionAction: Action<void> = new Action('Play selection');
     private _videoPlayPauseAction: Action<void> = new Action('Pause');
     private _videoPlayStopAction: Action<void> = new Action('Stop');
-    private _videoAutoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
+    //private _autoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
 
 
     private _selection:Selection;
     @Input()
     set selection(selection:Selection){
+
         this._selection=selection;
-        this._videoPlaySelectionAction.disabled = this.startSelectionDisabled();
-        if (!this.startSelectionDisabled() && this.videoAutoPlayOnSelectToggleAction.value) {
+        this.startSelectionAction.disabled = this.startSelectionDisabled();
+        if (!this.startSelectionDisabled() && this.autoPlayOnSelectToggleAction.value) {
             this.startSelected()
         }
     }
@@ -190,7 +189,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     }
 
     startSelectionDisabled() {
-        return !(!this._videoPlayStartAction.disabled && this._selection)
+        return !(!this.startAction.disabled && this._selection)
     }
 
     //

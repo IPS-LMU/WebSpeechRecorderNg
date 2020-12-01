@@ -76,7 +76,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
     @Input()
     playSelectionAction: Action<void>
     @Input()
-    autoPlayOnSelectToggleAction: Action<boolean>
+    autoPlayOnSelectToggleAction: Action<boolean>=new Action<boolean>('Autoplay on select');
 
     @Input()
     hideVideo:boolean=false;
@@ -216,9 +216,9 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
     protected configure() {
         if (this.mimeType && this.mimeType.isVideo()) {
             this.playStartAction = this.videoPlayer.startAction;
-            this.playSelectionAction = this.videoPlayer.videoPlaySelectionAction;
+            this.playSelectionAction = this.videoPlayer.startSelectionAction;
             this.playStopAction = this.videoPlayer.stopAction;
-            this.autoPlayOnSelectToggleAction=this.videoPlayer.videoAutoPlayOnSelectToggleAction;
+            this.autoPlayOnSelectToggleAction=this.videoPlayer.autoPlayOnSelectToggleAction;
             this.videoPlayer.onplaying=(ev:Event)=>{
                 this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
             }

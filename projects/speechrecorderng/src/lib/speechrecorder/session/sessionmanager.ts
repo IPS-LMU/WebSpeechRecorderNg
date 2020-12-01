@@ -78,8 +78,8 @@ export class Item {
                         [displayMediaBlob]="displayMediaBlob"
                         [displayAudioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
-                        [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
-                        [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
+                        [playSelectionAction]="playStartSelectionAction"
+                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
                         [playStopAction]="playStopAction">
 
     </app-sprprompting>
@@ -147,10 +147,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   transportActions: TransportActions;
   dnlLnk: HTMLAnchorElement;
   playStartAction: Action<void>;
+  playStartSelectionAction: Action<void>;
   playStopAction: Action<void>;
   videoPlayer:VideoPlayer=null;
   playbackRunning:boolean=false
-  //mediaPlayStartAction: Action<void>;
+  autoPlayOnSelectToggleAction:Action<boolean>;
   audio: any;
 
   _session: Session;
@@ -215,6 +216,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.transportActions = new TransportActions();
     //let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
     this.playStartAction = new Action('Play');
+    this.playStartSelectionAction=new Action('Play selection');
     this.playStopAction = new Action('Stop');
     //this.playStartAction.addControl(playStartBtn, 'click');
     this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
@@ -232,6 +234,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   ngAfterViewInit() {
+   this.autoPlayOnSelectToggleAction =new Action<boolean>('Autoplay on select');
+   if(this._controlAudioPlayer){
+     this._controlAudioPlayer.autoPlayOnSelectToggleAction=this.autoPlayOnSelectToggleAction;
+   }
     this.videoPlayer=this.liveLevelDisplay.videoPlayer;
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
     //this.mediaPlayStartAction=this.liveLevelDisplay.videoPlayStartAction;
@@ -380,6 +386,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this._controlAudioPlayer = controlAudioPlayer;
     if (this._controlAudioPlayer) {
       this._controlAudioPlayer.listener = this;
+      this._controlAudioPlayer.autoPlayOnSelectToggleAction=this.autoPlayOnSelectToggleAction;
     }
   }
 
@@ -620,6 +627,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       mpcs=this._controlAudioPlayer;
     }
     this.playStartAction=mpcs.startAction;
+    this.playStartSelectionAction=mpcs.startSelectionAction;
     this.playStopAction=mpcs.stopAction;
   }
 
@@ -744,6 +752,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.controlAudioPlayer.audioClip = null;
       this.displayMediaBlob = null;
       this.playStartAction.disabled=true;
+      this.playStartSelectionAction.disabled=true;
       this.playStopAction.disabled=true;
     }
   }
