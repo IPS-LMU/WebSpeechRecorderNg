@@ -447,7 +447,7 @@ export class AudioCapture {
                     } else if ('NotFoundError' === e.name) {
                       let adv:string;
                       if(video){
-                        adv='Please connect or enable a camera';
+                        adv='This item requires a camera. Please connect or enable a camera';
                       }else{
                         adv='Please connect or enable an audio device';
                       }
