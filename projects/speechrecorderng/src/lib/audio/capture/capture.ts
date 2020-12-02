@@ -442,10 +442,19 @@ export class AudioCapture {
                     } else if ('NotReadableError' === e.name) {
                         this.listener.error('Could not read from your audio device.', 'Please make sure your audio device is working.');
                     } else if ('OverconstrainedError' === e.name) {
-                        let eMsg = e.msg ? e.msg : 'Overconstrained media device request error.';
+                        let eMsg = e.message ? e.message : 'Overconstrained media device request error.';
                         this.listener.error(eMsg);
-                    } else {
-                        this.listener.error();
+                    } else if ('NotFoundError' === e.name) {
+                      let adv:string;
+                      if(video){
+                        adv='Please connect or enable a camera';
+                      }else{
+                        adv='Please connect or enable an audio device';
+                      }
+                      adv=adv+' and reload this page.';
+                      this.listener.error(e.message,adv);
+                     }else {
+                        this.listener.error(e.message);
                     }
                 }
             }
