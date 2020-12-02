@@ -89,7 +89,7 @@ export class Item {
                               [playStartAction]="playStartAction"
                               [playStopAction]="playStopAction"
                               [streamingMode]="isRecording()"
-                              [mediaStream]="ac.stream"
+                              [mediaStream]="mediaLiveStream"
                               [displayLevelInfos]="displayLevelInfos"
                               [displayMediaBlob]="displayMediaBlob"
                               [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
@@ -151,6 +151,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   playStartSelectionAction: Action<void>;
   playStopAction: Action<void>;
   videoPlayer:VideoPlayer=null;
+  mediaLiveStream:MediaStream = null;
   playbackRunning:boolean=false
   autoPlayOnSelectToggleAction:Action<boolean>;
   audio: any;
@@ -1138,6 +1139,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     // this.transportActions.fwdAction.disabled = false
     // this.transportActions.bwdAction.disabled = false
     this.ac.start();
+    if(this._recMIMEType.isVideo()) {
+      this.mediaLiveStream = this.ac.stream;
+    }
   }
 
   started() {
@@ -1291,6 +1295,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
 
   stopped() {
+    this.mediaLiveStream=null;
     this.updateStartActionDisableState()
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;

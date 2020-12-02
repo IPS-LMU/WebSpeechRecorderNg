@@ -177,10 +177,13 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
 
     @Input()
     set mediaStream(mediaStream:MediaStream){
-      //if(!this.mediaBlob){
+      if(this.videoEl){
+          this.videoEl.muted=true;
         this.videoEl.srcObject=mediaStream;
-        this.videoEl.play();
-      //}
+        if(mediaStream) {
+            this.videoEl.play();
+        }
+      }
     }
 
     @Input()
@@ -192,6 +195,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
             } else {
                 let mbUrl = URL.createObjectURL(mediaBlob);
                 this.videoEl.src = mbUrl;
+                this.videoEl.muted=false;
             }
         }
     }
