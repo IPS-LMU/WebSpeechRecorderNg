@@ -176,6 +176,14 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     }
 
     @Input()
+    set mediaStream(mediaStream:MediaStream){
+      //if(!this.mediaBlob){
+        this.videoEl.srcObject=mediaStream;
+        this.videoEl.play();
+      //}
+    }
+
+    @Input()
     set mediaBlob(mediaBlob: Blob) {
         if(this.videoEl) {
             if (mediaBlob == null) {

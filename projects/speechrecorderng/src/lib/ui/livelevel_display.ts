@@ -33,7 +33,7 @@ export class HTMLVideoElementPlaybackControls {
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-        <videoplayer [hidden]="displayMediaBlob==null || hideVideo" [mediaBlob]="displayMediaBlob"></videoplayer>   
+        <videoplayer [hidden]="(displayMediaBlob==null && mediaStream==null) || hideVideo" [mediaStream]="mediaStream" [mediaBlob]="displayMediaBlob"></videoplayer>
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
@@ -129,6 +129,7 @@ export class LevelBarDisplay implements MediaPlaybackControls,LevelListener, Aft
     private mediaPlayerControls:HTMLVideoElementPlaybackControls;
     @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
     @Input() streamingMode: boolean;
+    @Input() mediaStream:MediaStream;
     @Input() hideVideo: boolean=false;
     @Input() audioSignalCollapsed: boolean;
     private _displayAudioBuffer: AudioBuffer=null;

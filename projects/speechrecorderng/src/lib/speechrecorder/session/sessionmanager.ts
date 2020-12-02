@@ -89,6 +89,7 @@ export class Item {
                               [playStartAction]="playStartAction"
                               [playStopAction]="playStopAction"
                               [streamingMode]="isRecording()"
+                              [mediaStream]="ac.stream"
                               [displayLevelInfos]="displayLevelInfos"
                               [displayMediaBlob]="displayMediaBlob"
                               [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
@@ -496,6 +497,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
         console.log("Open session with default audio device for " + this._channelCount + " channels");
       }
       this.ac.open(this._recMIMEType,this._channelCount);
+      if(this._recMIMEType.isVideo()){
+
+      }
     }else {
       this.ac.start();
     }

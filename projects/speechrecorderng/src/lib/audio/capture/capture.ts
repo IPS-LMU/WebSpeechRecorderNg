@@ -64,6 +64,8 @@ export class AudioCapture {
     audioOutStream: SequenceAudioFloat32OutStream | null;
     private disconnectStreams = true;
     private _opened = false;
+    private _audioStreaming=false;
+   private _videoStreaming=false;
     private capturing = false;
 
     framesRecorded: number;
@@ -196,7 +198,7 @@ export class AudioCapture {
     }
 
 
-    _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,) {
+    _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=true,captureVideoStream=true) {
         this.mimeType = mimeType;
         let mimeTypeStr = mimeType.toHeaderString();
 
@@ -204,6 +206,8 @@ export class AudioCapture {
         this.framesRecorded = 0;
 
         let video = mimeType.isVideo();
+        let audioOnly=this.mimeType.isAudioPCM();
+        this._audioStreaming=captureAudioStream || audioOnly;
 
         //var msc = new AudioStreamConstr();
         // var msc={};
@@ -322,7 +326,7 @@ export class AudioCapture {
                     console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
                 }
 
-                if (this.mimeType.isAudioPCM()) {
+                if (this._audioStreaming) {
                     // Use Audio API
                     this.mediaStream = this.context.createMediaStreamSource(s);
                     // stream channel count ( is always 2 !)
@@ -375,7 +379,9 @@ export class AudioCapture {
                                     let chSamples = inBuffer.getChannelData(ch);
                                     let chSamplesCopy = chSamples.slice(0);
                                     currentBuffers[ch] = chSamplesCopy.slice(0);
-                                    this.data[ch].push(chSamplesCopy);
+                                    if(audioOnly) {
+                                      this.data[ch].push(chSamplesCopy);
+                                    }
                                     this.framesRecorded += chSamplesCopy.length;
                                 }
                                 c++;
@@ -385,7 +391,9 @@ export class AudioCapture {
                             }
                         }
                     }
-                } else {
+                }
+
+                if(video){
 
                     if (MediaRecorder.isTypeSupported(mimeTypeStr)) {
                         this.mediaRecorderOptions = {
@@ -430,7 +438,6 @@ export class AudioCapture {
                 }
                 this._opened = true;
                 if (this.listener) {
-
                     this.listener.opened();
                 }
             }, (e) => {
@@ -464,7 +471,7 @@ export class AudioCapture {
     start() {
 
         this.initData();
-        if (this.mimeType.isAudioPCM()) {
+        if (this._audioStreaming) {
             if (this.audioOutStream) {
                 this.audioOutStream.nextStream()
             }
@@ -472,21 +479,20 @@ export class AudioCapture {
             this.mediaStream.connect(this.bufferingNode);
             this.bufferingNode.connect(this.context.destination);
 
-            if (this.listener) {
-                this.listener.started();
-            }
-        } else {
 
-            if (this.mediaRecorder) {
+              if (this.listener && this.mimeType.isAudioPCM()) {
+                this.listener.started();
+              }
+
+        }
+        if(this.mimeType.isVideo() && this.mediaRecorder) {
                 this.capturing = true;
                 this.mediaRecorder.start();
-            }
         }
-
     }
 
     stop() {
-        if (this.mimeType.isAudioPCM()) {
+        if (this._audioStreaming) {
             if (this.disconnectStreams) {
                 this.mediaStream.disconnect(this.bufferingNode);
                 this.bufferingNode.disconnect(this.context.destination);
@@ -496,10 +502,11 @@ export class AudioCapture {
                 this.audioOutStream.flush();
             }
             this.capturing = false;
-            if (this.listener) {
+          if (this.listener && this.mimeType.isAudioPCM()) {
                 this.listener.stopped();
             }
-        } else if (this.mediaRecorder) {
+        }
+        if(this.mimeType.isVideo() && this.mediaRecorder) {
             this.mediaRecorder.stop();
             this.capturing = false;
         }
@@ -507,7 +514,7 @@ export class AudioCapture {
 
 
     close() {
-        if (this.mimeType.isAudioPCM()) {
+        if (this._audioStreaming) {
             this.mediaStream.disconnect();
         }
         if (this.stream) {
