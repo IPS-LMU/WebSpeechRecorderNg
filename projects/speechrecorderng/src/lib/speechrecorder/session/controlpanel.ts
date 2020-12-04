@@ -3,7 +3,8 @@ import {
   Component, ViewChild, Input, EventEmitter, Output
 } from "@angular/core";
 
-import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
+import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
+import { MatIcon } from "@angular/material/icon";
 
 
 @Component({

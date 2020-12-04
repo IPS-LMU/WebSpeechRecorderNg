@@ -1,5 +1,6 @@
 import {Component, Inject} from "@angular/core";
-import {MAT_DIALOG_DATA, MatDialogRef,MatIcon} from "@angular/material";
+import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
+import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: 'spr-dialog',
