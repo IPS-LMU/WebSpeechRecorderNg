@@ -1,4 +1,4 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { SpeechrecorderngComponent} from './speechrecorderng.component';
 
@@ -6,7 +6,7 @@ describe('SpeechrecorderngComponent', () => {
   let component: SpeechrecorderngComponent;
   let fixture: ComponentFixture<SpeechrecorderngComponent>;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [ SpeechrecorderngComponent ]
     })
