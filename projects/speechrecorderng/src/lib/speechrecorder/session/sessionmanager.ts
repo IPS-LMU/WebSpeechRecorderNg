@@ -87,7 +87,7 @@ export class Item {
                                 [displayLevelInfos]="displayLevelInfos"
                                 [displayAudioBuffer]="displayAudioBuffer" [audioSignalCollapsed]="audioSignalCollapsed"
                                 (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                                (onDownloadRecording)="downloadRecording()" (onStartPlayback)="startControlPlayback()"
+                                (onDownloadRecording)="downloadRecording()"
                                 [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
       <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [captureDeviceInfos]="captureDeviceInfos" [captureDeviceSelectDisabled]="captureDeviceSelectDisabled || captureDeviceSelectDenied"
                            [selectedCaptureDeviceId]="selectedCaptureDeviceId"  (selectedCaptureDeviceEventEmitter)="selectedCaptureDeviceChanged($event)" [readonly]="readonly"
@@ -105,7 +105,7 @@ export class Item {
     margin: 0;
     padding: 0;
     min-height: 0px;
-      
+
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }` ]

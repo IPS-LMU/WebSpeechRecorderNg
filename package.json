@@ -69,7 +69,7 @@
     "tsickle": "^0.39.1",
     "tslib": "^1.9.3",
     "tslint": "~6.1.3",
-    "typescript": "^4.0.5",
+    "typescript": "4.0.5",
     "uglify-js": "^3.4.9"
   }
 }

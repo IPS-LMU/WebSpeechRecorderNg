@@ -1,4 +1,3 @@
-import {Recinstructions} from "../session/prompting";
 
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
 export type PromptPhase = "IDLE" | "PRERECORDING" | "RECORDING";
