@@ -7,7 +7,7 @@ import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -193,6 +193,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private navigationDisabled=true;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private renderer: Renderer2,
               public dialog: MatDialog,
               private sessionService:SessionService,
               private recFileService:RecordingService,
@@ -200,10 +201,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
-    let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
     this.playStartAction = new Action('Play');
-    this.playStartAction.addControl(playStartBtn, 'click');
-    this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
     this.audio = document.getElementById('audio');
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
@@ -542,24 +540,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         let blob = new Blob([wavFile], {type: 'audio/wav'});
         let rfUrl = URL.createObjectURL(blob);
 
-        // TODO Angular compatible ??
-        let dataDnlLnk = document.createElement("a");
-
-        dataDnlLnk.name = 'Recording';
+        let dataDnlLnk = this.renderer.createElement('a');
+        //dataDnlLnk.name = 'Recording';
         dataDnlLnk.href = rfUrl;
 
-        document.body.appendChild(dataDnlLnk);
+        this.renderer.appendChild(document.body,dataDnlLnk);
 
         // download property not yet in TS def
         if (this.displayRecFile) {
           let fn = this.displayRecFile.filenameString();
           fn += '_' + this.displayRecFileVersion;
           fn += '.wav';
-          dataDnlLnk.setAttribute('download', fn);
+          dataDnlLnk.download=fn;
           dataDnlLnk.click();
         }
-        document.body.removeChild(dataDnlLnk);
-        //window.open(rfUrl);
+        this.renderer.removeChild(document.body,dataDnlLnk);
       });
     }
   }
