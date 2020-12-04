@@ -1,4 +1,13 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
+import {
+  NAME_CHROME,
+  NAME_EDGE,
+  NAME_FIREFOX,
+  NAME_SAFARI,
+  OS_ANDROID,
+  UserAgent,
+  UserAgentParser
+} from "../../utils/ua-parser";
 
 // interface AudioWorker extends Worker {
 //   terminate (): void;
@@ -207,9 +216,22 @@ export class AudioCapture {
 
     let msc:any;
     console.info('User agent: '+navigator.userAgent);
-    let androidWorkaround=navigator.userAgent.match(".*[(].*Android.*[)].*");
+
+    // @ts-ignore
+    if(window.NavigatorUAData){
+      // maybe we can use this in  the future
+    }
+
+    let ua=UserAgentParser.parse(navigator.userAgent);
+
+    ua.components.forEach((c)=>{
+      console.log("UA_Comp: "+c.toString());
+    })
+
+    let androidWorkaround=ua.runsOnOS(OS_ANDROID);
 
     if(androidWorkaround){
+      console.warn("Disabling switch off of audio pre-processing for Android!!")
       msc = {
         audio: {
           "deviceId": selDeviceId,
@@ -217,7 +239,7 @@ export class AudioCapture {
         },
         video: false,
       }
-    }else if (navigator.userAgent.match(".*Edge.*")) {
+    }else if (ua.isBrowser(NAME_EDGE)) {
 
       // Microsoft Edge sends unmodified audio
       // The constraint can follow the specification
@@ -230,7 +252,7 @@ export class AudioCapture {
         },
         video: false
       };
-    } else if (navigator.userAgent.match(".*Chrome.*")) {
+    } else if (ua.isBrowser(NAME_CHROME)) {
       // Google Chrome: we need to switch of each of the preprocessing units including the
       console.info("Setting media track constraints for Google Chrome.");
 
@@ -256,7 +278,7 @@ export class AudioCapture {
         }
 
 
-    } else if (navigator.userAgent.match(".*Firefox.*")) {
+    } else if (ua.isBrowser(NAME_FIREFOX)) {
       console.info("Setting media track constraints for Mozilla Firefox.");
       // Firefox
       msc = {
@@ -273,7 +295,7 @@ export class AudioCapture {
         video: false,
       }
 
-    } else if (navigator.userAgent.match(".*Safari.*")) {
+    } else if (ua.isBrowser(NAME_SAFARI)) {
       console.info("Setting media track constraints for Safari browser.")
       console.info("Apply workaround for Safari: Avoid disconnect of streams.");
       this.disconnectStreams = false;
@@ -287,8 +309,18 @@ export class AudioCapture {
       }
 
     } else {
-
-      // TODO default constraints or error Browser not supported
+      // fallback default (following the specs this should work on every browser (or at least throw an OverConstrainedError)!)
+      msc = {
+        audio: {
+          "deviceId": selDeviceId,
+          "channelCount": channelCount,
+          "echoCancellation": false,
+          "autoGainControl": false,
+          "noiseSuppression": false
+        },
+        video: false,
+      }
+      console.info("Setting default media track constraints.")
     }
 
     let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
