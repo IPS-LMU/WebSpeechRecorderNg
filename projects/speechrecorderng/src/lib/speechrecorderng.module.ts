@@ -52,7 +52,7 @@ export const SPR_ROUTES: Routes = [
 })
 export class SpeechrecorderngModule{
 
-  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders {
+  static forRoot(config: SpeechRecorderConfig): ModuleWithProviders<SpeechrecorderngModule> {
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
