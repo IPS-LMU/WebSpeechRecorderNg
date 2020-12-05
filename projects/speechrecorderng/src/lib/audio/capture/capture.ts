@@ -198,7 +198,7 @@ export class AudioCapture {
     }
 
 
-    _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=true,captureVideoStream=true) {
+    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=true,captureVideoStream=true) {
         this.mimeType = mimeType;
         let mimeTypeStr = mimeType.toHeaderString();
 
@@ -206,6 +206,15 @@ export class AudioCapture {
         this.framesRecorded = 0;
 
         let video = mimeType.isVideo();
+        if(video && !MediaRecorder){
+            let msg='Browser does not support media/video recording!';
+            if(this.listener){
+                this.listener.error(msg,'Please use a supported browser.');
+                return;
+            }else{
+                throw new Error(msg);
+            }
+        }
         let audioOnly=this.mimeType.isAudioPCM();
         this._audioStreaming=captureAudioStream || audioOnly;
 
