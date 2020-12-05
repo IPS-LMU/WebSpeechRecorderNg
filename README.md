@@ -1,6 +1,6 @@
 # SpeechRecorderNg
 
-A Speech Recording Tool implemented as an Angular 9 module.
+A Speech Recording Tool implemented as an Angular 10 module.
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli).
@@ -9,10 +9,9 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "2.1.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "2.13.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
-
 
 #### Example `app.module.ts`
 ```
@@ -85,6 +84,18 @@ export class AppModule { }
  </md-toolbar>
  <router-outlet></router-outlet>
  ```
+   
+### Deployment on the server
+See [Angular Deployment/Server Configuration](https://angular.io/guide/deployment#server-configuration) for details.
+
+To distinguish between the REST API base paths and the path for the web application the application should not be deployed to the top level directory of your Web-server.
+Choose an arbitrary base path for the app e.g. `/wsr/ng/dist/` and build the app accordingly:
+```
+ng build --base-href=/wsr/ng/dist/ --prod
+```
+Copy the dist folder to ```/wsr/ng/``` on your Web-Server and setup the fallback configuration for this path in your Web-Server.
+
+
    
 ### Server REST API
 
@@ -268,13 +279,182 @@ Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
 Content-Type: audio/wav
 
 There might be multiple uploads for one recording item, when the subject repeats a recording. The server is responsible to handle this uploads.
+The server should apply an unique identifier for each uploaded recording file. Subsequent recording uploads for the same itemcode should get different IDs and should be stored with a version number starting with zero.    
 A GET request to the URL should return the latest upload.  
 
+### Start a recording session
+
+The default routing path to start a recording session is `/spr/session/{sessionId}`. If you call this router link from your Angular application
+WebSpeechRecorderNg should start and will try to load the session data from the REST API first.
+ 
+## GUI components to view and edit your recording database
+
+### Edit or view recording files
+To edit a selection of a recording file call the router link: 
+`/spr/db/recordingfile/{recordingFileId}`
+
+To only view a recording file: 
+`/spr/db/recordingfile/_view/{recordingFileId}`
+
+
+The application will send in both modes the following requests to the REST API:
+
+1. Recording file meta data
+
+Path: POST {apiEndPoint}recordingfile/{recordingFileId}
+
+Accept: application/json
+
+```
+{
+    "recordingFileId": "5678",
+    "session": 2,
+    "version": 0,
+    "recording": {
+        "itemcode": "N0",
+        "recduration": 10000,
+
+        "recinstructions": {
+            "recinstructions": "Please answer:"
+        },
+        "mediaitems": [
+            {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mimetype": "text/plain",
+                "text": "What's your name?"
+            }
+        ]
+    }
+}
+``` 
+
+2. The recording file itself:
+
+(Same URL however it requests an audio MIME type )
+
+Path: POST {apiEndPoint}recordingfile/{recordingFileId}
+
+Accept: audio/wav
+
+
+and optional to navigate through recording files of the same session:
+
+3. Session data of this recording file 
+
+REST Path: GET {apiEndPoint}session/{sessionId}
+
+Content-type: application/json
+
+
+4. The recording file list of the session if the session ID could be retrieved:
+
+REST Path: GET {apiEndPoint}project/{projectId}/session/{sessionId}/recfile
+
+Content-type: application/json
+
+
+A server response might look like this:
+
+```
+[ {
+    "recordingFileId": "1234",
+    "session": 2,
+    "date" : "2020-05-01T20:03:00.456+01:00",
+    "recording" : {
+      "mediaitems" : [ {
+        "annotationTemplate" : true,
+        "text" : "Heute ist schönes Frühlingswetter!"
+      } ],
+      "itemcode" : "demo_99",
+      "recduration" : 4000,
+      "recinstructions" : {
+        "recinstructions" : "Please read:"
+      }
+    }
+  },
+  {
+    "recordingFileId": "5678",
+    "session": 2,
+    "date" : "2020-06-10T20:04:44.123+01:00",
+    "version": 0,
+    "recording": {
+      "itemcode": "N0",
+      "recduration": 10000,
+
+      "recinstructions": {
+        "recinstructions": "Please answer:"
+      },
+      "mediaitems": [
+        {
+          "annotationTemplate": false,
+          "autoplay": false,
+          "mimetype": "text/plain",
+          "text": "What's your name?"
+        }
+      ]
+    }
+  },
+  {
+    "recordingFileId": "9999",
+    "session": 2,
+    "date" : "2020-06-15T 18:05:19.000+01:00",
+    "version": 1,
+    "recording": {
+      "itemcode": "N0",
+      "recduration": 10000,
+
+      "recinstructions": {
+        "recinstructions": "Please answer:"
+      },
+      "mediaitems": [
+        {
+          "annotationTemplate": false,
+          "autoplay": false,
+          "mimetype": "text/plain",
+          "text": "What's your name?"
+        }
+      ]
+    }
+  }
+]
+```
+
+5. Save edit selection:
+
+Path: PATCH {apiEndPoint}recordingfile/{recordingFileId}
+
+Accept: application/json
+
+Sends `editSampleRate`,`editStartFrame` and `editEndFrame` sample position properties of the selection, for example:
+
+```
+{
+"editSampleRate": 48000,
+"editStartFrame":182360,
+"editEndFrame":303934
+}
+```
+
+or null values to remove the edit selection:
+
+```
+{
+"editSampleRate": null,
+"editStartFrame":null,
+"editEndFrame":null
+}
+```
 
 
 ### Development server
 
-Run `ng serve` for a development server. Navigate to `http://localhost:4200/spr/session/2`. The app will automatically reload if you change any of the source files.
+Run `ng serve` for a development server.
+Navigate to `http://localhost:4200/spr/session/2` start a demo recording session. 
+Or edit/view a test recording file ID 1234 from the demo database:
+`http://localhost:4200/spr/db/recordingfile/1234`
+
+The app will automatically reload if you change any of the source files.
 
 ### Build
 

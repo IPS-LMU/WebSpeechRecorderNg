@@ -47,7 +47,11 @@ import {RecordingFileUI} from "./speechrecorder/session/recordingfile/recording-
 import {RecordingFileService} from "./speechrecorder/session/recordingfile/recordingfile-service";
 import {RecordingFileViewComponent} from "./speechrecorder/session/recordingfile/recording-file-view.component";
 import {MatTableModule} from "@angular/material/table";
-
+import { RecordingFileNaviComponent } from './speechrecorder/session/recordingfile/recording-file-navi.component';
+import {RecordingFileMetaComponent} from "./speechrecorder/session/recordingfile/recording-file-meta.component";
+import {MatSelectModule} from "@angular/material/select";
+import {MatInputModule} from "@angular/material/input";
+import {MatSnackBarModule} from "@angular/material/snack-bar";
 
 
 
@@ -55,21 +59,28 @@ export const SPR_ROUTES: Routes = [
   { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view',      component: RecordingFileViewComponent },
+  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit',      component: RecordingFileUI },
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/project/:project/session/:sessionId/recordingfile',      component: RecordingFileUI },
   { path: 'spr/db/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
   { path: 'spr/db/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/recordingfile/_view/',      component: RecordingFileViewComponent },
+  { path: 'spr/db/recordingfile/_view',      component: RecordingFileViewComponent },
+  { path: 'spr/db/recordingfile/_edit',      component: RecordingFileUI },
   { path: 'spr/db/recordingfile/:recordingFileId',      component: RecordingFileUI },
+  { path: 'spr/db/recordingfile',      component: RecordingFileUI },
   { path: 'spr',      component: SpeechrecorderngComponent }
 ];
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
     exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
-  imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule],
+    imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule,MatInputModule, MatSelectModule,MatSnackBarModule],
   providers: [SessionService,ProjectService,ScriptService,RecordingService,RecordingFileService,SpeechRecorderUploader]
 
 })

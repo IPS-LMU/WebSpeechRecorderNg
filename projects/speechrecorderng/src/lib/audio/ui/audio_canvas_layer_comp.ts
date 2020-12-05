@@ -1,6 +1,6 @@
 import {CanvasLayerComponent} from "../../ui/canvas_layer_comp";
 import {Selection} from '../persistor'
-import { ElementRef, EventEmitter, HostListener, Input, Output, ViewChild} from "@angular/core";
+import { ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, Directive } from "@angular/core";
 import {Marker} from "./common";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
 
@@ -21,6 +21,7 @@ export class ViewSelection{
   constructor(private _startX:number, private _endX:number){}
 }
 
+@Directive()
 export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponent {
   protected _audioData: AudioBuffer=null;
   protected _bgColor:string='white';
@@ -129,6 +130,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
     }
 }
 
+@Directive()
 export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerComponent {
     _pointerPosition:Marker=null;
 
@@ -241,7 +243,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         if(viewSel) {
             let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
             let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            ns = new Selection(frameStart, frameEnd)
+            ns = new Selection(this._audioData.sampleRate,frameStart, frameEnd)
         }
         this.selectingEventEmitter.emit(ns)
     }
@@ -251,7 +253,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         if(viewSel) {
           let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
           let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-          ns=new Selection(frameStart,frameEnd)
+          ns=new Selection(this._audioData.sampleRate,frameStart,frameEnd)
         }
         this.selectedEventEmitter.emit(ns)
     }
@@ -265,8 +267,9 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         s=this._selection
       }
       if(s){
-        let sf=s.startFrame
-        let ef=s.endFrame
+          //let sr=this._audioData.sampleRate;
+        let sf=s.startFrame;
+        let ef=s.endFrame;
         let xs=this.frameToViewPortXPixelPosition(sf)
         let xe=this.frameToViewPortXPixelPosition(ef)
         vs=new ViewSelection(xs,xe)

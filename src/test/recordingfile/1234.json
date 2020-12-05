@@ -3,8 +3,35 @@
     "session": 2,
     "recording" : {
         "mediaitems" : [ {
-            "annotationTemplate" : true,
-            "text" : "Heute ist schönes Frühlingswetter!"
+          "annotationTemplate": false,
+          "mimetype": "text/x-prompt",
+          "promptDoc": {
+            "body": {
+              "blocks": [
+                {
+                  "type": "p",
+                  "texts": [
+                    {
+                      "type": "text",
+                      "text": "Heute ist "
+                    },
+                    {
+                      "type": "font",
+                      "style": "italic",
+                      "text": {
+                        "type": "text",
+                        "text": "schönes"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " Frühlingswetter!"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
         } ],
         "itemcode" : "demo_99",
         "recduration" : 4000,

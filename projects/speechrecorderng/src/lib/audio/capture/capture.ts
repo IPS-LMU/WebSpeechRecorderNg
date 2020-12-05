@@ -33,7 +33,7 @@ export interface AudioCaptureListener {
 
   closed(): void;
 
-  error(): void;
+  error(msg?:string,advice?:string): void;
 }
 
 export class AudioCapture {
@@ -94,7 +94,7 @@ export class AudioCapture {
   private stopAllSessionTracks(mediaStream:MediaStream){
       let ats = mediaStream.getTracks();
       for (let atIdx = 0; atIdx < ats.length; atIdx++) {
-        console.debug("Stop dummy session track: #" + atIdx)
+        //console.debug("Stop dummy session track: #" + atIdx)
         ats[atIdx].stop();
       }
   }
@@ -110,23 +110,22 @@ export class AudioCapture {
         }
       }
       if (!labelsAvailable) {
-        console.debug("Media device enumeration: No labels.")
+        //console.debug("Media device enumeration: No labels.")
         if (retry) {
-          console.debug("Starting dummy session to request audio permissions...")
+          //console.debug("Starting dummy session to request audio permissions...")
 
             this.dummySession().then((s: MediaStream) => {
             // and stop it immediately
 
-
             if(s) {
-              console.debug("Got dummy session stream: " + s + " .")
+              //console.debug("Got dummy session stream: " + s + " .")
             }else{
-              console.debug("No dummy stream")
+              //console.debug("No dummy stream")
             }
             // retry (only once)
             this.deviceInfos(cb, false,s);
           },reason => {
-            console.debug("Dummy session rejected.")
+            //console.debug("Dummy session rejected.")
             // TODO error callback
             cb(null);
           });
@@ -142,21 +141,21 @@ export class AudioCapture {
       }
     },(reason)=> {
       //rejected
-      console.debug("Media device enumeration rejected.")
+      //console.debug("Media device enumeration rejected.")
       if (retry) {
-        console.debug("Starting dummy session to request audio permissions...")
+        //console.debug("Starting dummy session to request audio permissions...")
         this.dummySession().then((s: MediaStream) => {
           // and stop it immediately
-          console.debug("Dummy session.")
+          //console.debug("Dummy session.")
           if(s) {
-            console.debug("Got dummy session stream: " + s + " .")
+            //console.debug("Got dummy session stream: " + s + " .")
           }else{
-            console.debug("No dummy stream")
+            //console.debug("No dummy stream")
           }
           // retry (only once)
           this.deviceInfos(cb, false,s);
         }, reason => {
-          console.debug("Dummy session rejected.")
+          //console.debug("Dummy session rejected.")
           // TODO error callback
           cb(null);
         });
@@ -316,25 +315,24 @@ export class AudioCapture {
         // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
         if (this.context.createAudioWorker) {
-          console.debug("Audio worker implemented!!")
+          //console.debug("Audio worker implemented!!")
         } else {
-          console.debug("Audio worker NOT implemented.")
+          //console.debug("Audio worker NOT implemented.")
         }
 
         if (this.context.registerProcessor) {
-          console.debug("Audio worklet processor implemented!!");
+          //console.debug("Audio worklet processor implemented!!");
         } else {
-          console.debug("Audio worklet processor NOT implemented.")
+          //console.debug("Audio worklet processor NOT implemented.")
         }
 
         if (!this.context.createScriptProcessor) {
-          console.debug("Audio script processor NOT implemented.")
+          //console.debug("Audio script processor NOT implemented.")
 
         } else {
           //TODO
           // The ScriptProcessorNode Interface - DEPRECATED
-          console.debug("Audio script processor implemented!!");
-
+          //console.debug("Audio script processor implemented!!");
 
           // TODO should we use streamChannelCount or channelCount here ?
           this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
@@ -367,11 +365,19 @@ export class AudioCapture {
           this.listener.opened();
         }
       }, (e) => {
-        console.error(e);
+        console.error(e + " Error name: " +e.name);
 
         if (this.listener) {
-
-          this.listener.error();
+          if('NotAllowedError' === e.name){
+            this.listener.error('Not allowed to use your microphone.','Please make sure that microphone access is allowed for this web page and reload the page.');
+          }else if('NotReadableError' === e.name){
+            this.listener.error('Could not read from your audio device.','Please make sure your audio device is working.');
+          }else if('OverconstrainedError' === e.name){
+            let eMsg=e.msg?e.msg:'Overconstrained media device request error.';
+            this.listener.error(eMsg);
+          } else {
+            this.listener.error();
+          }
         }
       }
     )

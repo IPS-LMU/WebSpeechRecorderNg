@@ -1,0 +1,22 @@
+{
+    "recordingFileId": "9999",
+    "session": 2,
+    "version": 1,
+    "recording": {
+        "itemcode": "N0",
+        "recduration": 10000,
+
+        "recinstructions": {
+            "recinstructions": "Please answer:"
+        },
+        "mediaitems": [
+            {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mimetype": "text/plain",
+                "text": "What's your name?"
+            }
+        ]
+    }
+}
+

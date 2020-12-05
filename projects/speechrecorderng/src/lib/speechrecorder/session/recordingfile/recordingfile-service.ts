@@ -1,12 +1,13 @@
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient, HttpErrorResponse, HttpHeaders, HttpParams, HttpResponse} from "@angular/common/http";
+import {HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse} from "@angular/common/http";
 
 
 import {Observable} from "rxjs";
 
-import {RecordingFile} from "./recording-file";
+
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
+import {RecordingFile} from "../../recording";
 
 
 @Injectable()
@@ -15,7 +16,7 @@ export class RecordingFileService {
   public static readonly RECOFILE_API_CTX = 'recordingfile'
   private apiEndPoint: string;
   private withCredentials: boolean = false;
-  private httpParams: HttpParams;
+
   //private debugDelay:number=10000;
   private debugDelay:number=0;
 
@@ -37,8 +38,7 @@ export class RecordingFileService {
   //this.withCredentials=true
 
     //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-    //this.httpParams = new HttpParams();
-    //this.httpParams.set('cache', 'false');
+
 
   }
 
@@ -59,7 +59,6 @@ export class RecordingFileService {
       observe: 'response',
       headers: headers,
       responseType: 'arraybuffer',
-      params: this.httpParams,
       withCredentials: this.withCredentials
     });
   }
@@ -87,7 +86,6 @@ export class RecordingFileService {
     return this.http.get(recUrl, {
       observe: 'response',
       responseType: 'arraybuffer',
-      params: this.httpParams,
       withCredentials: this.withCredentials
     });
   }
@@ -178,7 +176,7 @@ export class RecordingFileService {
     return wobs;
   }
 
-  saveEditSelection(recordingFileId: string | number,editStartFrame:number,editEndFrame:number): Observable<RecordingFile | null> {
+  saveEditSelection(recordingFileId: string | number,editSampleRate:number,editStartFrame:number,editEndFrame:number): Observable<RecordingFile | null> {
     let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
@@ -186,7 +184,7 @@ export class RecordingFileService {
       recUrl = recUrl + '.json?requestUUID='+UUID.generate();
     }
     console.log("Path request URL: "+recUrl)
-    return this.http.patch<RecordingFile>(recUrl,{editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
+    return this.http.patch<RecordingFile>(recUrl,{editSampleRate:editSampleRate,editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
   }
 
 }

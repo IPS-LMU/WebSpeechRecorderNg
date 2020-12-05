@@ -7,7 +7,7 @@ import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -90,7 +90,7 @@ export class Item {
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
-                         [transportActions]="transportActions" [statusMsg]="statusMsg"
+                         [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
 
@@ -174,6 +174,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   statusMsg: string;
   statusAlertType: string;
+  statusWaiting: boolean;
 
   processingRecording=false
 
@@ -192,6 +193,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private navigationDisabled=true;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private renderer: Renderer2,
               public dialog: MatDialog,
               private sessionService:SessionService,
               private recFileService:RecordingService,
@@ -199,10 +201,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
-    let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
     this.playStartAction = new Action('Play');
-    this.playStartAction.addControl(playStartBtn, 'click');
-    this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
     this.audio = document.getElementById('audio');
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
@@ -541,24 +540,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         let blob = new Blob([wavFile], {type: 'audio/wav'});
         let rfUrl = URL.createObjectURL(blob);
 
-        // TODO Angular compatible ??
-        let dataDnlLnk = document.createElement("a");
-
-        dataDnlLnk.name = 'Recording';
+        let dataDnlLnk = this.renderer.createElement('a');
+        //dataDnlLnk.name = 'Recording';
         dataDnlLnk.href = rfUrl;
 
-        document.body.appendChild(dataDnlLnk);
+        this.renderer.appendChild(document.body,dataDnlLnk);
 
         // download property not yet in TS def
         if (this.displayRecFile) {
           let fn = this.displayRecFile.filenameString();
           fn += '_' + this.displayRecFileVersion;
           fn += '.wav';
-          dataDnlLnk.setAttribute('download', fn);
+          dataDnlLnk.download=fn;
           dataDnlLnk.click();
         }
-        document.body.removeChild(dataDnlLnk);
-        //window.open(rfUrl);
+        this.renderer.removeChild(document.body,dataDnlLnk);
       });
     }
   }
@@ -694,12 +690,14 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
     }
     this.updateStartActionDisableState()
-
+    this.updateNavigationActions()
   }
 
 
   start() {
-
+    this.statusAlertType = 'info';
+    this.statusMsg = 'Starting session...';
+    this.statusWaiting=false;
     if (this._session.sealed) {
       this.readonly = true
       this.statusMsg = 'Session sealed!';
@@ -727,7 +725,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       this.sessionService.patchSessionObserver(this._session,body).subscribe()
     }
-    //console.log("Session ID: "+this._session.sessionId+ " status: "+this._session.status)
+    //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=null;
 
     if (!this.readonly && this.ac) {
@@ -912,7 +910,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
          newPrIdx=this.promptItemCount-1;
        }
        this.promptIndex=newPrIdx;
-      this.updateNavigationActions()
+      //this.updateNavigationActions()
     }
 
 
@@ -923,7 +921,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       newPrIdx=0;
     }
     this.promptIndex=newPrIdx;
-    this.updateNavigationActions();
+    //this.updateNavigationActions();
   }
 
   private updateNavigationActions(){
@@ -944,7 +942,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (!this.items[newPrIdx].recs || this.items[newPrIdx].recs.length == 0) {
       this.promptIndex = newPrIdx;
     }
-   this.updateNavigationActions()
   }
 
 
@@ -1106,10 +1103,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 
@@ -1153,7 +1150,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }
 
         let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-        let recUrl: string = sessionsUrl + '/' + rf.sessionId + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
 
 
 
@@ -1265,15 +1262,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
 
-  error() {
+  error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
     this.dialog.open(MessageDialog, {
       data: {
         type: 'error',
         title: 'Recording error',
-        msg: 'An unknown error occured during recording.',
-        advice: 'Please retry.'
+        msg: msg,
+        advice: advice
       }
     });
   }

@@ -46,16 +46,22 @@
     static DEBUG=false;
     static buildWorkerBlobURL(workerFct: Function): string {
 
-      let woFctNm = workerFct.name
-      if(WorkerHelper.DEBUG){
-        console.info("Worker method name: "+woFctNm)
+      if(! (workerFct instanceof Function)) {
+        throw new Error(
+            'Parameter workerFct is not a function! (XSS attack?).'
+        )
+      }
+      let  woFctNm = workerFct.name
+      if (WorkerHelper.DEBUG) {
+        console.info("Worker method name: " + woFctNm)
       }
 
       let woFctStr = workerFct.toString()
-      if(WorkerHelper.DEBUG){
-          console.info("Worker method string:")
-          console.info(woFctStr)
+      if (WorkerHelper.DEBUG) {
+        console.info("Worker method string:")
+        console.info(woFctStr)
       }
+
 
       // Make sure code starts with "function()"
 

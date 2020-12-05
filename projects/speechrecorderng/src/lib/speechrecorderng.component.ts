@@ -95,21 +95,31 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
     fetchSession(sessionId:string){
+
+
+		  //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
+      // params.subscribe seems not to be asynchronous
+
+      // this.sm.statusAlertType='info';
+      // this.sm.statusMsg = 'Fetching session info...';
+      // this.sm.statusWaiting=true;
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
         sessObs.subscribe(sess => {
           this.setSession(sess);
-
-
+            this.sm.statusAlertType='info';
+            this.sm.statusMsg = 'Received session info.';
+            this.sm.statusWaiting=false;
           if (sess.project) {
-            console.debug("Session associated project: "+sess.project)
+            //console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);
             },reason =>{
               this.sm.statusMsg=reason;
               this.sm.statusAlertType='error';
+                this.sm.statusWaiting=false;
               console.error("Error fetching project config: "+reason)
             });
 
@@ -121,6 +131,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
         (reason) => {
             this.sm.statusMsg = reason;
             this.sm.statusAlertType = 'error';
+            this.sm.statusWaiting=false;
             console.error("Error fetching session " + reason)
           });
       }
@@ -129,7 +140,13 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     fetchScript(sess:Session){
       if(sess.script){
+        this.sm.statusAlertType='info';
+        this.sm.statusMsg = 'Fetching recording script...';
+          this.sm.statusWaiting=true;
         this.scriptService.scriptObservable(sess.script).subscribe(script=>{
+          this.sm.statusAlertType='info';
+          this.sm.statusMsg = 'Received recording script.';
+          this.sm.statusWaiting=false;
           this.setScript(script)
           this.sm.session=sess;
           this.fetchRecordings(sess,this.script)
@@ -138,7 +155,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
            console.error(errMsg)
             this.sm.statusMsg=errMsg;
             this.sm.statusAlertType='error';
-
+            this.sm.statusWaiting=false;
           });
       }else{
         let errMsg="No recording script is defined for this session with ID "+sess.sessionId;
@@ -151,20 +168,25 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
     fetchRecordings(sess:Session,script:Script){
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg = 'Fetching infos of recordings...';
+        this.sm.statusWaiting=true;
         let rfsObs=this.recFilesService.recordingFileDescrList(this.project.name,sess.sessionId);
         rfsObs.subscribe((rfs:Array<RecordingFileDescriptor>)=>{
+          this.sm.statusAlertType='info';
+          this.sm.statusMsg = 'Received infos of recordings.';
+            this.sm.statusWaiting=false;
           if(rfs) {
             if(rfs instanceof Array) {
               rfs.forEach((rf) => {
-                // TODO test output for now
-                console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
                 this.sm.addRecordingFileByDescriptor(rf);
               })
             }else{
               console.error('Expected type array for list of already recorded files ')
             }
           }else{
-            console.debug("Recording file list: " + rfs);
+            //console.debug("Recording file list: " + rfs);
           }
         },()=>{
           // we start the session anyway
@@ -176,22 +198,18 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
     private startSession(){
-
+        this.sm.statusWaiting=false;
 		  this.sm.start();
     }
 
 
         setSession(session:any){
 		    if(session) {
-                console.debug("Session ID: " + session.sessionId);
-
-
+               // console.debug("Session ID: " + session.sessionId);
             }else{
-                console.debug("Session Undefined");
+                //console.debug("Session Undefined");
             }
-
         }
-
 
         ready():boolean{
 		    return this.dataSaved && !this.sm.isActive()
