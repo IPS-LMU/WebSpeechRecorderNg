@@ -9,11 +9,11 @@ declare function postMessage(message: any, transfer: Array<any>): void;
 
   selector: 'audio-signal',
   template: `
-    <canvas #bg></canvas>
-    <canvas #audioSignal></canvas>
-    <canvas #cursor (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
+    <canvas #bg height="10"></canvas>
+    <canvas #audioSignal height="10"></canvas>
+    <canvas #cursor height="10" (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
             (mouseleave)="updateCursorCanvas($event, false)"></canvas>
-    <canvas #marker></canvas>`,
+    <canvas #marker height="10"></canvas>`,
 
   styles: [`canvas {
     top: 0;

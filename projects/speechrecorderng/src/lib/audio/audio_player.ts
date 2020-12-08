@@ -201,8 +201,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     this.status = 'Audio file loaded.';
     //console.debug("Received data ", data.byteLength);
 
-    var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      console.info("Samplerate: ", audioBuffer.sampleRate)
+    // Do not use Promise version, which does not work with Safari 13
+    this.aCtx.decodeAudioData(data, (audioBuffer) => {
+      //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
       this.audioClip=new AudioClip(audioBuffer)
     });
   }

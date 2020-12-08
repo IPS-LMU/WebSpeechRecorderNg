@@ -102,14 +102,14 @@ export class AudioCapture {
   deviceInfos(cb: (deviceInfos: MediaDeviceInfo[] | null) => any, retry = true,dummyStream?:MediaStream) {
 
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
-      let labelAvail = false;
+      let labelsAvailable = false;
       for (let i = 0; i < l.length; i++) {
         let di = l[i];
         if (di.label) {
-          labelAvail = true;
+          labelsAvailable = true;
         }
       }
-      if (!labelAvail) {
+      if (!labelsAvailable) {
         //console.debug("Media device enumeration: No labels.")
         if (retry) {
           //console.debug("Starting dummy session to request audio permissions...")
