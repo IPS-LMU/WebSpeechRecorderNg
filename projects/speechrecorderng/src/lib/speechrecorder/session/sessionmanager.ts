@@ -89,7 +89,7 @@ export class Item {
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
-                         [transportActions]="transportActions" [statusMsg]="statusMsg"
+                         [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus"></app-sprcontrolpanel>
 
@@ -173,6 +173,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   statusMsg: string;
   statusAlertType: string;
+  statusWaiting: boolean;
 
   processingRecording=false
 
@@ -696,7 +697,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
 
   start() {
-
+    this.statusAlertType = 'info';
+    this.statusMsg = 'Starting session...';
+    this.statusWaiting=false;
     if (this._session.sealed) {
       this.readonly = true
       this.statusMsg = 'Session sealed!';
@@ -895,7 +898,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   isActive(): boolean{
-    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording )
+    return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording)
   }
 
     prevItem() {

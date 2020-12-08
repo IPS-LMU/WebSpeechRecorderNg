@@ -12,7 +12,7 @@ import { MatDialog} from "@angular/material/dialog";
 
   template: `
     <p matTooltip="Status">
-      <mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
+      <mat-progress-spinner *ngIf="statusWaiting" color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
       {{statusMsg}}
     </p>
   `,
@@ -25,6 +25,12 @@ import { MatDialog} from "@angular/material/dialog";
   }`, `
     p {
       white-space:nowrap;
+      display: inline-block;
+    }
+  `, `
+    mat-progress-spinner {
+      color: black;
+      display: inline-block;
     }
   `, `
     span {
@@ -37,27 +43,56 @@ import { MatDialog} from "@angular/material/dialog";
 export class StatusDisplay {
   @Input() statusAlertType = 'info';
   @Input() statusMsg = 'Initialize...';
-
+  @Input() statusWaiting =false;
 }
 
 
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{_value}}% <p *ngIf="online">Online</p><p *ngIf="!online">Offline</p>
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value" [matTooltip]="toolTipText"></mat-progress-spinner>Upload: {{_value}}% <p *ngIf="online">Online</p><p *ngIf="!online">Offline</p>
   `,
   styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
-    display: inline;
+    /*display: inline; */
     text-align: left;
+  }`,`mat-progress-spinner{
+      display: inline-block;
   }`]
 })
 export class UploadStatus {
+  private _awaitNewUpload=false
   online:boolean=true;
   spinnerMode = 'determinate'
   spinnerColor = 'default'
+  _status:string
   _value = 100
+  displayValue=null
+  toolTipText:string=''
+
+  private _updateSpinner(){
+
+    let uplMsg;
+    if (this._awaitNewUpload || this._value === 0) {
+      this.spinnerMode = 'indeterminate'
+      this.displayValue='&nbsp;&nbsp;&nbsp;&nbsp;'
+      uplMsg='Preparing upload.'
+    } else {
+      this.spinnerMode = 'determinate'
+      this.displayValue=this._value+'%'
+      if(this._value===100){
+        uplMsg = 'Upload complete'
+      }else {
+        uplMsg = 'Upload progress: ' + this.displayValue
+      }
+    }
+    if(this.status==='warn'){
+      uplMsg='Upload error occurred. Please check your network connection. '+uplMsg
+    }
+    this.toolTipText=uplMsg
+  }
+
   @Input()
   set value(value: number) {
     if (value === 0) {
@@ -69,11 +104,18 @@ export class UploadStatus {
     this._value = value;
   };
 
-  @Input() status: string;
+  @Input() set awaitNewUpload(awaitNewUpload:boolean){
+    this._awaitNewUpload=awaitNewUpload
+    this._updateSpinner()
+  }
 
-  @HostListener('window:online', ['$event'])
-  onLine(event: Event): void {
-    this.online=true;
+  @Input() set status(status:string){
+    this._status=status
+    this._updateSpinner()
+  }
+
+  get status():string{
+    return this._status
   }
   @HostListener('window:offline', ['$event'])
   offLine(event: Event): void {
@@ -90,7 +132,8 @@ export class UploadStatus {
   styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
-    display: inline;
+    /*display: inline; */
+      width: 100%;
     text-align: left;
   }`]
 })
@@ -246,13 +289,14 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
 
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
-    <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus"></app-uploadstatus>
+    <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                      [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+    <mat-icon fxHide.xs [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
   styles: [`:host {
     flex: 0; /* only required vertical space */
@@ -277,16 +321,33 @@ export class ControlPanel {
 
   @Input() readonly:boolean
   @Input() transportActions: TransportActions
+  @Input() processing=false
   @Input() statusMsg: string;
   @Input() statusAlertType: string;
+  @Input() statusWaiting: boolean;
   @Input() uploadStatus: string;
   @Input() uploadProgress: number;
   @Input() currentRecording: AudioBuffer;
   @Input() enableUploadRecordings: boolean;
 
+  _ready=true
+  hourGlassIconName='hourglass_empty'
+  readyStateToolTip:string=''
+
   constructor(public dialog: MatDialog) {
 
   }
+
+  @Input() set ready(ready:boolean){
+    this._ready=ready
+    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
+    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
+  }
+
+  get ready():boolean{
+    return this._ready
+  }
+
 }
 
 
