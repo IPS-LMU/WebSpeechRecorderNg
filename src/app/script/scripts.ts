@@ -158,7 +158,9 @@ export class ScriptsComponent implements  OnInit {
         fileReader.onload = (pe) => {
           //console.debug(fileReader.result)
           let xmlSrc = <string>fileReader.result;
-          let doc = xmlParser.parseFromString(xmlSrc, <SupportedType>importFile.type);
+          let domPst:DOMParserSupportedType=<DOMParserSupportedType>importFile.type;
+
+          let doc = xmlParser.parseFromString(xmlSrc, domPst);
           let s: Script = {scriptId: UUID.generate(), sections: new Array<Section>()};
 
           let scrEl = doc.documentElement;
