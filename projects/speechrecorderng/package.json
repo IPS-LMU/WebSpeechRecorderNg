@@ -1,6 +1,9 @@
 {
   "name": "speechrecorderng",
   "version": "0.90.0",
+  "dependencies": {
+    "tslib": "^2.0.0"
+  },
   "peerDependencies": {
 
     "@angular/animations": "^9.0.0",
