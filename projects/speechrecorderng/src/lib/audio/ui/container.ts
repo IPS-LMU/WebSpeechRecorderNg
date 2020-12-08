@@ -318,10 +318,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   }
 
   clipBounds(clipBounds: Rectangle) {
-
     this.bounds = clipBounds;
     this.layout();
-
   }
 
   currentXZoom(): number | null {
