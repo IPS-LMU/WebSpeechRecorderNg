@@ -23,6 +23,22 @@
       }
       return cloneArr;
     }
+
+    static swap<T>(items:Array<T>, i:number, j:number) {
+      let tmp = items[i];
+      items[i] = items[j];
+      items[j] = tmp;
+    }
+
+    static shuffleArray<T>(orgArray:Array<T>):Array<T>{
+        let shuffledArray = [...orgArray];
+        for (let i = shuffledArray.length; i > 1; i--) {
+          let rnd=Math.random();
+          let rndArrIdx=Math.floor(rnd*i);
+          Arrays.swap(shuffledArray, i - 1, rndArrIdx);
+        }
+        return shuffledArray;
+      }
   }
 
   export class WorkerHelper {
@@ -30,6 +46,11 @@
     static DEBUG=false;
     static buildWorkerBlobURL(workerFct: Function): string {
 
+      if(! (workerFct instanceof Function)) {
+        throw new Error(
+            'Parameter workerFct is not a function! (XSS attack?).'
+        )
+      }
       let woFctNm = workerFct.name
       if(WorkerHelper.DEBUG){
         console.info("Worker method name: "+woFctNm)

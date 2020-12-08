@@ -2,12 +2,12 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group,PromptItem} from '../script/script';
+import {Script, Section, Group,PromptItem, PromptitemUtil} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor, RecordingFileDTO} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
@@ -33,6 +33,8 @@ export const RECFILE_API_CTX = 'recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+const DEFAULT_PRE_REC_DELAY=1000;
+const DEFAULT_POST_REC_DELAY=500;
 
 const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export const enum Mode {SERVER_BOUND, STAND_ALONE}
@@ -187,6 +189,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private destroyed=false;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private renderer: Renderer2,
               public dialog: MatDialog,
               private sessionService:SessionService,
               private recFileService:RecordingService,
@@ -194,10 +197,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
-    let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
     this.playStartAction = new Action('Play');
-    this.playStartAction.addControl(playStartBtn, 'click');
-    this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
     this.audio = document.getElementById('audio');
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
@@ -399,9 +399,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     let found=false;
     for (let si = 0; si < sections.length && !found; si++) {
       let section = sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for (let gi = 0; gi < gs.length; gi++) {
-        let pis=gs[gi].promptItems;
+        let pis=gs[gi]._shuffledPromptItems;
 
         let pisSize = pis.length;
         if (promptIndex < i + pisSize) {
@@ -470,19 +470,16 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //TODO randomize not supported
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for(let gi=0;gi<gs.length;gi++) {
 
-          let pis = gs[gi].promptItems;
+          let pis = gs[gi]._shuffledPromptItems;
 
           let pisLen = pis.length;
           this.promptItemCount += pisLen;
           for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
             let pi = pis[piSectIdx];
-            let promptAsStr = '';
-            if (pi.mediaitems && pi.mediaitems.length > 0) {
-              promptAsStr = pi.mediaitems[0].text;
-            }
+            let promptAsStr = PromptitemUtil.toPlainTextString(pi);
 
             let it = new Item(promptAsStr, section.training);
             this.items.push(it);
@@ -497,9 +494,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
     for (let si = 0; si < this._script.sections.length; si++) {
       let section = this._script.sections[si];
-      let gs = section.groups;
+      let gs = section._shuffledGroups;
       for(let gi=0;gi<gs.length;gi++) {
-        let pis=gs[gi].promptItems;
+        let pis=gs[gi]._shuffledPromptItems;
         let pisLen = pis.length;
         for (let piSectIdx = 0; piSectIdx < pisLen; piSectIdx++) {
           let pi = pis[piSectIdx];
@@ -537,24 +534,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         let blob = new Blob([wavFile], {type: 'audio/wav'});
         let rfUrl = URL.createObjectURL(blob);
 
-        // TODO Angular compatible ??
-        let dataDnlLnk = document.createElement("a");
-
-        dataDnlLnk.name = 'Recording';
+        let dataDnlLnk = this.renderer.createElement('a');
+        //dataDnlLnk.name = 'Recording';
         dataDnlLnk.href = rfUrl;
 
-        document.body.appendChild(dataDnlLnk);
+        this.renderer.appendChild(document.body,dataDnlLnk);
 
         // download property not yet in TS def
         if (this.displayRecFile) {
           let fn = this.displayRecFile.filenameString();
           fn += '_' + this.displayRecFileVersion;
           fn += '.wav';
-          dataDnlLnk.setAttribute('download', fn);
+          dataDnlLnk.download=fn;
           dataDnlLnk.click();
         }
-        document.body.removeChild(dataDnlLnk);
-        //window.open(rfUrl);
+        this.renderer.removeChild(document.body,dataDnlLnk);
       });
     }
   }
@@ -647,8 +641,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   applyItem(temporary=false) {
 
     this.section = this._script.sections[this.sectIdx]
-    this.group = this.section.groups[this.groupIdxInSection];
-    this.promptItem = this.group.promptItems[this.promptItemIdxInGroup];
+    this.group = this.section._shuffledGroups[this.groupIdxInSection];
+    this.promptItem = this.group._shuffledPromptItems[this.promptItemIdxInGroup];
 
     //this.selectedItemIdx = this.promptIndex;
 
@@ -919,6 +913,19 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.promptIndex=newPrIdx;
   }
 
+  nextUnrecordedItem() {
+    let newPrIdx = this._promptIndex;
+    newPrIdx++;
+    if (newPrIdx >= this.promptItemCount) {
+      newPrIdx = 0;
+    }
+    while (this.items[newPrIdx].recs && this.items[newPrIdx].recs.length > 0 && newPrIdx < this.promptItemCount) {
+      newPrIdx++;
+    }
+    if (!this.items[newPrIdx].recs || this.items[newPrIdx].recs.length == 0) {
+      this.promptIndex = newPrIdx;
+    }
+  }
 
   enableStartUserGesture() {
     this.statusAlertType = 'info';
@@ -967,19 +974,26 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
+    let preDelay = DEFAULT_PRE_REC_DELAY;
+    if (this.promptItem.prerecording) {
+      preDelay = this.promptItem.prerecording;
+    }
+
+    let postDelay=DEFAULT_POST_REC_DELAY;
+    if(this.promptItem.postrecording){
+      postDelay=this.promptItem.postrecording;
+    }
+
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     if (this.promptItem.recduration) {
-      maxRecordingTimeMs = this.promptItem.recduration;
+      maxRecordingTimeMs = preDelay+this.promptItem.recduration+postDelay;
     }
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
-    let preDelay = 1000;
-    if (this.promptItem.prerecording) {
-      preDelay = this.promptItem.prerecording;
-    }
+
 
     this.preRecTimerId = window.setTimeout(() => {
 

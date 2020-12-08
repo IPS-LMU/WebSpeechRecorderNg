@@ -174,7 +174,7 @@ export class ScriptsComponent implements  OnInit {
             //console.log("parse section " + si)
 
 
-            let section: Section = {mode: "MANUAL", promptphase: "IDLE", training: false, groups: new Array<Group>()};
+            let section: Section = {mode: "MANUAL", promptphase: "IDLE", training: false, groups: new Array<Group>(),_shuffledGroups:new Array<Group>()};
             // TODO apply attributes
 
             // get groups or prompt item elements
@@ -189,7 +189,8 @@ export class ScriptsComponent implements  OnInit {
                   let pi = this.parsePromptItem(grOrPiEl);
                   let grPis = new Array<PromptItem>()
                   grPis.push(pi);
-                  let gr: Group = {promptItems: grPis};
+                  // TODO Randomize!!!
+                  let gr: Group = {promptItems: grPis,_shuffledPromptItems: grPis};
                   section.groups.push(gr);
                 }
               }

@@ -12,7 +12,7 @@ import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
 } from './audio/playback/player';
-import { Script } from './speechrecorder/script/script'
+import {Group, Order, PromptItem, Script} from './speechrecorder/script/script'
 import { SessionManager,Status as SessionManagerStatus} from './speechrecorder/session/sessionmanager';
 import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
@@ -25,6 +25,7 @@ import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptor} from "./speechrecorder/recording";
+import {Arrays} from "./utils/utils";
 import {SprDb} from "./db/inddb";
 import {DOCUMENT} from "@angular/common";
 
@@ -384,8 +385,26 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
     }
 
 
+    private randomize(script:Script){
+		    script.sections.forEach((s)=>{
+		        if('RANDOM'===s.order) {
+                    s._shuffledGroups = Arrays.shuffleArray<Group>(s.groups);
+                }else{
+		            s._shuffledGroups=s.groups;
+                }
+		        s._shuffledGroups.forEach((g)=>{
+		            if('RANDOM'===g.order){
+		               g._shuffledPromptItems=Arrays.shuffleArray<PromptItem>(g.promptItems);
+                    }else{
+		                g._shuffledPromptItems=g.promptItems;
+                    }
+                });
+            });
+    }
+
     setScript(script:Script){
         this.script=script;
+        this.randomize(this.script);
         this.sm.script = this.script;
 
     }
