@@ -212,7 +212,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
-    console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
       this.audioDisplayScrollPane.audioData = audioBuffer;
       if(audioBuffer) {
           let clip = new AudioClip(audioBuffer);
@@ -251,7 +250,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       })
     }
     if(audioData) {
-      console.debug("Audio Buffer Samplerate: ", audioData.sampleRate)
       this.playStartAction.disabled =(!this.ap)
       this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{

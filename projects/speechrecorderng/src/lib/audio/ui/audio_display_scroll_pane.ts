@@ -107,7 +107,6 @@ export class AudioDisplayScrollPane {
 
           let s = this.ac.selection
           if (s) {
-             // this.ac.userAction = true;
               // reset auto fit to panel mode
               this.ac.fixFitToPanel = false
 
@@ -121,13 +120,11 @@ export class AudioDisplayScrollPane {
               this.ac.xZoom = newXZoom
 
               // Move viewport to show selection
-              let x1 = this.ac.frameToXPixelPosition(s.startFrame);
-              //console.debug("Set scroll left")
+        let x1=this.ac.frameToXPixelPosition(s.startFrame)
               this.spEl.scrollLeft = x1;
-              //console.debug("Scroll left set.")
+
               this.updateClipBounds()
               this.zoomFitToPanelAction.disabled = false
-             // this.ac.userAction = false;
           }
       }
 

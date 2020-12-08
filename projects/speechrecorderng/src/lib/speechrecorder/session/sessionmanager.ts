@@ -216,12 +216,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
-    //let playStartBtn = <HTMLInputElement>(document.getElementById('playStartBtn'));
     this.playStartAction = new Action('Play');
     this.playStartSelectionAction=new Action('Play selection');
     this.playStopAction = new Action('Stop');
-    //this.playStartAction.addControl(playStartBtn, 'click');
-    this.dnlLnk = <HTMLAnchorElement>document.getElementById('rfDownloadLnk');
     this.audio = document.getElementById('audio');
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
@@ -242,7 +239,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
    }
     this.videoPlayer=this.liveLevelDisplay.videoPlayer;
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
-    //this.mediaPlayStartAction=this.liveLevelDisplay.videoPlayStartAction;
   }
     ngOnDestroy() {
        this.destroyed=true;
@@ -490,7 +486,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.autorecording = true;
     }
 
-
     if(!this.ac.opened) {
       if(this._selectedDeviceId){
         console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for "+this._channelCount+" channels");
@@ -577,10 +572,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     let ext='wav';
     let mto=MIMEType.parse(blob.type);
     if(mto){
-        type=mto.toString();
-        if(mto.extension) {
-          ext = mto.extension;
-        }
+      type=mto.toString();
+      if(mto.extension) {
+        ext = mto.extension;
+      }
     }
     let rfUrl = URL.createObjectURL(blob);
     // TODO Angular compatible ??
@@ -593,11 +588,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
     //document.body.appendChild(dataDnlLnk);
     this.renderer.appendChild(document.body,dataDnlLnk);
-      let fn = this.displayRecFile.filenameString();
-      fn += '_' + this.displayRecFileVersion;
-      fn += '.'+ext;
-      dataDnlLnk.download=fn;
-      dataDnlLnk.click();
+    let fn = this.displayRecFile.filenameString();
+    fn += '_' + this.displayRecFileVersion;
+    fn += '.'+ext;
+    dataDnlLnk.download=fn;
+    dataDnlLnk.click();
 
     //document.body.removeChild(dataDnlLnk);
     this.renderer.removeChild(document.body,dataDnlLnk);
@@ -694,6 +689,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       })
     });
   }
+
 
   set displayRecFile(displayRecFile: RecordingFile | null) {
     this._displayRecFile = displayRecFile;

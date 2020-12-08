@@ -2,20 +2,6 @@ import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {MIMEType} from "../../net/mimetype";
 import {migrateExpression} from "@angular/core/schematics/migrations/renderer-to-renderer2/migration";
 
-// interface AudioWorker extends Worker {
-//   terminate (): void;
-//
-//   postMessage (message: any, transfer: Array<any>): void;
-//
-// // readonly        attribute AudioWorkerParamDescriptor[] parameters;
-//   onmessage: (ev: MessageEvent) => any;
-// //     attribute EventHandler                 onloaded;
-//   //      AudioWorkerNode createNode (int numberOfInputs, int numberOfOutputs);
-// //     AudioParam      addParameter (DOMString name, float defaultValue);
-// //     void            removeParameter (DOMString name);
-// }
-// ;
-
 class AudioStreamConstr implements MediaStreamConstraints {
     audio: boolean;
     video: boolean;
