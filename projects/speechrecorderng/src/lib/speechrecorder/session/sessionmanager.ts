@@ -188,6 +188,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private destroyed=false;
 
+  private navigationDisabled=true;
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               public dialog: MatDialog,
@@ -292,6 +294,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.transportActions.nextAction.onAction = () => this.stopItem();
       this.transportActions.pauseAction.onAction = () => this.pauseItem();
       this.transportActions.fwdAction.onAction = () => this.nextItem();
+      this.transportActions.fwdNextAction.onAction = () => this.nextUnrecordedItem();
       this.transportActions.bwdAction.onAction = () => this.prevItem();
       this.playStartAction.onAction = () => this.controlAudioPlayer.start();
 
@@ -439,6 +442,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       return
     }
     this.transportActions.fwdAction.disabled = true
+    this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
@@ -687,7 +691,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
     }
     this.updateStartActionDisableState()
-
+    this.updateNavigationActions()
   }
 
 
@@ -911,6 +915,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       newPrIdx=0;
     }
     this.promptIndex=newPrIdx;
+    //this.updateNavigationActions();
+  }
+
+  private updateNavigationActions(){
+    this.transportActions.fwdNextAction.disabled = this.navigationDisabled || ! (this.items[this._promptIndex].recs && this.items[this._promptIndex].recs.length>0);
+    this.transportActions.fwdAction.disabled = this.navigationDisabled;
+    this.transportActions.bwdAction.disabled = this.navigationDisabled;
   }
 
   nextUnrecordedItem() {
@@ -936,8 +947,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   enableNavigation(){
-    this.transportActions.fwdAction.disabled = false
-    this.transportActions.bwdAction.disabled = false
+    this.navigationDisabled=false;
+    this.updateNavigationActions();
   }
 
   opened() {
@@ -1178,6 +1189,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
+
+      // enable navigation
+      this.transportActions.fwdAction.disabled = false
+      this.transportActions.bwdAction.disabled = false
     } else {
 
       if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -1187,8 +1202,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (this.section.mode === 'AUTORECORDING' && this.autorecording && autoStart) {
         startNext=true;
       } else {
-        this.transportActions.fwdAction.disabled = false
-        this.transportActions.bwdAction.disabled = false
+        this.navigationDisabled = false;
+        this.updateNavigationActions();
       }
     }
     // apply recorded item
