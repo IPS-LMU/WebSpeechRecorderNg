@@ -67,8 +67,6 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   @ViewChild(AudioSignal, { static: true }) as: AudioSignal;
   @ViewChild(Sonagram, { static: true }) so: Sonagram;
 
-
-  //private _clipBounds: Rectangle | null = null;
   private _audioClip:AudioClip | null=null;
   pointer: Marker=null;
   selecting: Selection=null;

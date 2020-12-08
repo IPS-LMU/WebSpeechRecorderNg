@@ -8,6 +8,10 @@
         }
     }
 
+    export interface ActionEventListener<T>{
+        (ae:ActionEvent<T>):void;
+    }
+
     export class Action<T> {
         get value(): T {
             return this._value;
@@ -16,14 +20,14 @@
         private _name:string;
         private _value:T
         _disabled=true;
-        private _onAction:EventListener;
-        listeners:Array<EventListener>;
+        private _onAction:ActionEventListener<T>;
+        listeners:Array<ActionEventListener<T>>;
         private controls:HTMLInputElement[];
 
         constructor(name:string,value:T=null) {
             this._name = name;
             this._value=value
-            this.listeners = new Array<EventListener>();
+            this.listeners = new Array<ActionEventListener<T>>();
             this.controls = [];
         }
 
@@ -32,11 +36,11 @@
         }
 
 
-        get onAction():EventListener {
+        get onAction():ActionEventListener<T> {
             return this._onAction;
         }
 
-        set onAction(value:EventListener) {
+        set onAction(value:ActionEventListener<T>) {
             this._onAction = value;
         }
 
@@ -48,7 +52,8 @@
         perform(value: T=null):void {
             this._value=value
             if (!this.disabled && this._onAction) {
-                this._onAction.call(this.createActionEvent());
+                let ae=this.createActionEvent(value)
+                this._onAction(ae);
             }
         }
 

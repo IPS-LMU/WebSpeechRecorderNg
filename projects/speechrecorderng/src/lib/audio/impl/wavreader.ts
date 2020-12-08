@@ -28,7 +28,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             this.dataLength = cl;
             var rt = this.br.readAscii(4);
             if (rt !== WavFileFormat.WAV_KEY) {
-                console.debug(rt)
+                //console.debug(rt)
             }
             var s = this.navigateToChunk('fmt ');
             if (!s) {
@@ -36,7 +36,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             }
             this.format = this.parseFmtChunk();
             var chsArr = this.readData();
-            console.debug("Content length: ", cl);
+            //console.debug("Content length: ", cl);
 
             //var ac=new ips.audio.AudioClip(this.format,chsArr);
             //TODO use AudioContext.AudioBuffer
@@ -53,7 +53,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
                 chkStr = this.br.readAscii(4);
                 chkLen = this.br.readUint32LE();
                 if (chunkString === chkStr) {
-                    console.debug("Chunk ", chkStr, " (", chkLen, " bytes)");
+                    //console.debug("Chunk ", chkStr, " (", chkLen, " bytes)");
                     return chkLen;
                 }
                 this.br.pos += chkLen;

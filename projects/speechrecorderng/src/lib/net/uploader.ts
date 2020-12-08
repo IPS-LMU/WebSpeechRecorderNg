@@ -131,7 +131,7 @@
             // pipe(timeout()) is not the same as xhr.timeout
 
           let uploadedUpload:Upload=null;
-            console.debug("Post upload: "+ul)
+            //console.debug("Post upload: "+ul)
           this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
               data => {
               uploadedUpload = ul;
@@ -147,7 +147,7 @@
                 }
                 this.processError(ul)
             },()=>{
-              console.debug('Upload complete method called')
+              //console.debug('Upload complete method called')
               if(uploadedUpload) {
                 if (this.DEBUG_DELAY>0) {
                   window.setTimeout(() => {
@@ -163,7 +163,7 @@
         }
 
         private processError(ul:Upload) {
-            console.debug("Process upload error...")
+            //console.debug("Process upload error...")
             ul.status=UploadStatus.ERR
             this.status = UploaderStatus.ERR;
 
@@ -177,11 +177,11 @@
             // set retry timer
             this.retryTimerId=window.setTimeout(() => {
                 this.retryTimerRunning=false;
-              console.debug("Upload retry timer exprired. Continue processing...")
+                //console.debug("Upload retry timer exprired. Continue processing...")
                 this.process();
             }, this.RETRY_DELAY);
             this.retryTimerRunning=true;
-          console.debug("Started upload retry timer "+this.RETRY_DELAY+"ms ...")
+            //console.debug("Started upload retry timer "+this.RETRY_DELAY+"ms ...")
         }
 
       private process() {
@@ -189,15 +189,15 @@
         if(this.retryTimerRunning){
           window.clearTimeout(this.retryTimerId)
           this.retryTimerRunning=false
-          console.debug("Cleared retry timer.")
+          //console.debug("Cleared retry timer.")
         }
 
         let pul: Upload | null = null;
 
-        console.debug("Uploader status: "+this.status)
+        //console.debug("Uploader status: "+this.status)
 
           let s = this.que.length;
-        console.debug(s+" uploads are in the queue.")
+        //console.debug(s+" uploads are in the queue.")
 
         if (s>0 && UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
 
@@ -214,13 +214,13 @@
           if (!pul) {
             //console.log("Check ERR uploads...")
             // now failed uploads
-            console.debug("No regular upload found. Looking for error state uploads.")
+            //console.debug("No regular upload found. Looking for error state uploads.")
             for (let i = 0; i < s; i++) {
               let ul = this.que[i];
               //console.log("Upload "+ul+" status:"+ul.status)
               if (ul.status === UploadStatus.ERR) {
                 //console.log("Upload (ERR) "+ul+" startUpload")
-                console.debug("Start error state upload "+ul)
+                //console.debug("Start error state upload "+ul)
                 this.startUpload(ul);
                 pul = ul;
                 break;
@@ -229,7 +229,7 @@
           }
         }
         if(s==0){
-          console.debug("Upload done.")
+          //console.debug("Upload done.")
           this.status=UploaderStatus.DONE
         }
         let ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);

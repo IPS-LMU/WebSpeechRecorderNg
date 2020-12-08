@@ -1067,10 +1067,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         it.recs[rfd.version]=rf;
 
       } else {
-        console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+        //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
     }else{
-      console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+      //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
   }
 
@@ -1227,15 +1227,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
 
-  error() {
+  error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
     this.dialog.open(MessageDialog, {
       data: {
         type: 'error',
         title: 'Recording error',
-        msg: 'An unknown error occured during recording.',
-        advice: 'Please retry.'
+        msg: msg,
+        advice: advice
       }
     });
   }
