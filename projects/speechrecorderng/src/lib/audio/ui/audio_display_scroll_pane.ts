@@ -111,8 +111,9 @@ export class AudioDisplayScrollPane {
         this.ac.fixFitToPanel=false
 
         // calculate selection length in seconds
-        let selFrLen=s.endFrame-s.startFrame
-        let selLenInSecs=selFrLen/this.ac.audioData.sampleRate
+          let sr=this.ac.audioData.sampleRate;
+              let selFrLen = s.endFrame - s.startFrame;
+              let selLenInSecs = selFrLen / sr;
         // calculate corresponding xZoom value
         let newXZoom=this.spEl.clientWidth/selLenInSecs
         // apply xZoom
@@ -176,6 +177,9 @@ export class AudioDisplayScrollPane {
     this.ac.audioClip=audioClip
     this.zoomOutAction.disabled=(!audioData)
     this.zoomInAction.disabled=(!audioData)
+      window.setTimeout(()=>{
+          this.layout();
+      })
   }
 
 

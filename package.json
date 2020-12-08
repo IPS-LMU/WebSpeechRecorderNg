@@ -9,7 +9,7 @@
   "scripts": {
     "ng": "ng",
     "apply_module_version": "node bin/apply_version.js",
-    "build_module": "npm run apply_module_version && ng build speechrecorderng",
+    "build_module": "npm run apply_module_version && ng build speechrecorderng --prod",
     "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
     "publish_module": "cd dist && cd speechrecorderng && rm speechrecorderng-*.tgz;npm publish",
     "start": "ng serve",

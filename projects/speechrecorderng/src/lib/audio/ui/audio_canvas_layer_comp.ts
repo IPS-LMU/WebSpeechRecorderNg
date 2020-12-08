@@ -241,7 +241,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         if(viewSel) {
             let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
             let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            ns = new Selection(frameStart, frameEnd)
+            ns = new Selection(this._audioData.sampleRate,frameStart, frameEnd)
         }
         this.selectingEventEmitter.emit(ns)
 }
@@ -251,7 +251,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         if(viewSel) {
           let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
           let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-          ns=new Selection(frameStart,frameEnd)
+          ns=new Selection(this._audioData.sampleRate,frameStart,frameEnd)
         }
         this.selectedEventEmitter.emit(ns)
     }

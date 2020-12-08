@@ -51,13 +51,19 @@
     }
 
     export class Selection{
+      private _sampleRate:number;
       private _startFrame:number;
       private _endFrame:number;
 
-      constructor(startFrame:number,endFrame:number){
+      constructor(sampleRate:number,startFrame:number,endFrame:number){
+          this._sampleRate=sampleRate;
         this._startFrame=startFrame
         this._endFrame=endFrame;
       }
+
+        get sampleRate(): number {
+            return this._sampleRate;
+        }
       get endFrame(): number {
         return this._endFrame;
       }
@@ -76,12 +82,12 @@
         if(otherSelection==null){
           return false
         }else{
-          return (this._startFrame===otherSelection._startFrame && this._endFrame===otherSelection._endFrame)
+          return (this._sampleRate==otherSelection._sampleRate && this._startFrame===otherSelection._startFrame && this._endFrame===otherSelection._endFrame)
         }
       }
 
       toString(){
-          return "Selection: from: "+this.leftFrame+" to: "+this.rightFrame+" frame"
+          return "Selection: from: "+this.leftFrame+" to: "+this.rightFrame+" frame. Refers to sample rate :"+this._sampleRate;
       }
     }
 
