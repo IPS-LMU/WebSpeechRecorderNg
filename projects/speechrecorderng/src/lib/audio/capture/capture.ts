@@ -184,7 +184,7 @@ export class AudioCapture {
     }
 
 
-    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=true,captureVideoStream=true) {
+    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=false,captureVideoStream=true) {
         this.mimeType = mimeType;
         let mimeTypeStr = mimeType.toHeaderString();
 
@@ -219,7 +219,9 @@ export class AudioCapture {
         // Safari at least version 11: Support for media streams
         // TODO test if input is unprocessed
 
-        let msc: any;
+        let msc: MediaStreamConstraints;
+        const supports = navigator.mediaDevices.getSupportedConstraints();
+
         console.info('User agent: ' + navigator.userAgent);
         if (navigator.userAgent.match(".*Edge.*")) {
 
@@ -246,18 +248,12 @@ export class AudioCapture {
             msc = {
                 audio: {
                     "deviceId": selDeviceId,
-                    "channelCount": channelCount,
+                    "channelCount": {exact: channelCount},
                     "echoCancellation": false,
                     "autoGainControl": false,
-                    "googEchoCancellation": false,
-                    "googExperimentalEchoCancellation": false,
-                    "googAutoGainControl": false,
-                    "googTypingNoiseDetection": false,
-                    "googNoiseSuppression": false,
-                    "googHighpassFilter": false,
-                    "googBeamforming": false
+
                 },
-                video: video
+                video: {"channelCount": {exact: channelCount}}
             };
 
             // TODO MediaRecorder of Chrome always creates Matroska files with video/webm
@@ -276,11 +272,11 @@ export class AudioCapture {
                     "deviceId": selDeviceId,
                     "channelCount": channelCount,
                     "echoCancellation": false,
-                    "mozEchoCancellation": false,
+
                     "autoGainControl": false,
-                    "mozAutoGainControl": false,
-                    "noiseSuppression": false,
-                    "mozNoiseSuppression": false
+
+                    "noiseSuppression": false
+
                 },
                 video: video
             };
@@ -299,20 +295,36 @@ export class AudioCapture {
             };
 
         } else {
-
-            // TODO default constraints or error Browser not supported
+            msc = {
+                audio: {
+                    "deviceId": selDeviceId,
+                    "channelCount": channelCount,
+                    "echoCancellation": false
+                },
+                video: video
+            };
         }
 
         let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
+        ump.catch((reason)=>{
+           console.log("Media capture error: "+reason);
+           if(this.listener){
+               this.listener.error("Media capture error.");
+           }
+        });
         ump.then((s) => {
                 this.stream = s;
 
                 let aTracks = s.getAudioTracks();
-
                 for (let i = 0; i < aTracks.length; i++) {
                     let aTrack = aTracks[i];
-
-                    console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
+                    let ccc=aTrack.getCapabilities().channelCount;
+                    let cccStr='';
+                    if(ccc){
+                        cccStr=ccc.min+'-'+ccc.max;
+                    }
+                    //aTrack.applyConstraints({channelCount:{exact: 1}});
+                    console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\" "+cccStr);
                 }
 
                 let vTracks = s.getVideoTracks();
