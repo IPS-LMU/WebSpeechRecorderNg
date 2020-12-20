@@ -17,6 +17,10 @@ export class RecordingFileDescriptor {
       date: string=null;
       _dateAsDateObj:Date=null;
       private _audioBuffer:AudioBuffer=null;
+      persistedNavigator=false;
+      persistedServer=false;
+      persistedDownload=false;
+
       private _audioSizeInBytes:number=0;
       private static _allAudioSizeInBytes=0;
       session:string|number=null;
@@ -45,6 +49,10 @@ export class RecordingFileDescriptor {
               this._audioSizeInBytes+=chSize;
             }
           }
+      }
+
+      isPersisted():boolean{
+        return this.persistedServer || this.persistedDownload || this.persistedNavigator;
       }
 
       set audioBuffer(audioBuffer:AudioBuffer){

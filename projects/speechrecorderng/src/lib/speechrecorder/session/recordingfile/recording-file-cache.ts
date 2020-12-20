@@ -8,13 +8,23 @@ export class RecordingFileCache {
 
     push(recordingFile:RecordingFile){
         let asBytes=recordingFile.audioSizeInBytes;
-        if(asBytes!=null && this.limitBytes!=null) {
+        if(asBytes>0 && this.limitBytes!=null) {
             while( this.cachedAudioBytes+asBytes > this.limitBytes && this.cache.length>0){
-                let expired=this.cache.shift();
-                let expAudioBytes=expired.audioSizeInBytes;
-                expired.audioBuffer=null;
-                this.cachedAudioBytes-=expAudioBytes;
+                for(let ci=0;ci<this.cache.length;ci++) {
+                    let expireCandidate = this.cache[ci];
+                    if(expireCandidate.isPersisted()) {
+                        this.cache.splice(ci,1);
+                        let expAudioBytes = expireCandidate.audioSizeInBytes;
+                        expireCandidate.audioBuffer = null;
+                        this.cachedAudioBytes -= expAudioBytes;
+                        console.log("Recording file cache expired bytes: " + expAudioBytes);
+                    }
+                }
             }
         }
+        this.cache.push(recordingFile);
+        console.log("Recording file cache pushed bytes: "+asBytes);
+        this.cachedAudioBytes+=asBytes;
+        console.log("Recording file number of cached files: "+this.cache.length+ ", cached bytes: "+this.cachedAudioBytes);
     }
 }

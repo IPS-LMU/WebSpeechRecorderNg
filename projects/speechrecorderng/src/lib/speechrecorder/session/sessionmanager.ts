@@ -27,6 +27,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
+import {RecordingFileCache} from "./recordingfile/recording-file-cache";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -161,6 +162,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private autorecording: boolean;
 
   items: Array<Item>;
+  recordingFileCache:RecordingFileCache;
   //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null;
   private displayRecFileVersion: number;
@@ -212,6 +214,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.config && this.config.enableDownloadRecordings != null) {
       this.enableDownloadRecordings = this.config.enableDownloadRecordings;
     }
+    this.recordingFileCache=new RecordingFileCache();
+    this.recordingFileCache.limitBytes=1000*1000*50; // 50MB
     this.init();
   }
 
@@ -576,6 +580,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             let fab = null;
             if (rf) {
               fab = this._displayRecFile.audioBuffer;
+              if(fab){
+                this._displayRecFile.persistedServer=true;
+                this.recordingFileCache.push(this._displayRecFile);
+              }
             } else {
               this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
@@ -609,13 +617,17 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.controlAudioPlayer.stop();
 
     if (this.displayAudioClip) {
-
-      this.levelMeasure.calcBufferLevelInfos(this.displayAudioClip.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
-        this.displayLevelInfos = levelInfos;
-        this.changeDetectorRef.detectChanges();
-      });
-      this.playStartAction.disabled = false;
-
+      if(this.displayAudioClip.buffer) {
+        this.levelMeasure.calcBufferLevelInfos(this.displayAudioClip.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
+          this.displayLevelInfos = levelInfos;
+          this.changeDetectorRef.detectChanges();
+        });
+        this.playStartAction.disabled = false;
+      }else{
+        // Likely caused by a previous error
+        this.displayLevelInfos = null;
+        this.playStartAction.disabled = true;
+      }
     } else {
 
       // TODO
@@ -1135,7 +1147,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       let rf = new RecordingFile(sessId, ic,it.recs.length,ad);
       it.recs.push(rf);
-
+      this.recordingFileCache.push(rf);
       if (this.enableUploadRecordings) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         //new REST API URL
