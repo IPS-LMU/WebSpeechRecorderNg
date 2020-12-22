@@ -34,6 +34,7 @@ export const RECFILE_API_CTX = 'recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
+const DEFAULT_MAX_MEDIA_CACHE_SIZE_BYTES = 1000 * 1000 * 100; // 100MB
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
 
@@ -215,7 +216,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.enableDownloadRecordings = this.config.enableDownloadRecordings;
     }
     this.recordingFileCache=new RecordingFileCache();
-    this.recordingFileCache.limitBytes=1000*1000*50; // 50MB
+    if(this.config && this.config.recordingFileMediaBytesCacheLimit) {
+      this.recordingFileCache.limitBytes=this.config.recordingFileMediaBytesCacheLimit;
+    }else{
+      this.recordingFileCache.limitBytes = DEFAULT_MAX_MEDIA_CACHE_SIZE_BYTES;
+    }
+    console.info("Recording file cache size: "+this.recordingFileCache.limitBytes+" bytes");
     this.init();
   }
 
@@ -1173,7 +1179,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           this.processingRecording=true
           let ww = new WavWriter();
           ww.writeAsync(ad, (wavFile) => {
-            this.postRecording(wavFile, recUrl);
+            this.postRecording(wavFile, recUrl,()=>{
+              // flag as persisted (media cache could expire memory media buffer)
+              rf.persistedServer=true;
+            });
             this.processingRecording=false
           });
       }
@@ -1232,9 +1241,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.changeDetectorRef.detectChanges();
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string) {
+  postRecording(wavFile: Uint8Array, recUrl: string,onuploaded:()=>void) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
+    let ul = new Upload(wavBlob, recUrl,onuploaded);
     this.uploader.queueUpload(ul);
   }
 

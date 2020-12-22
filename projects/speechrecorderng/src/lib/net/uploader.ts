@@ -55,7 +55,7 @@
         private _url:string;
         status: UploadStatus;
 
-        constructor(blob:Blob, url:string) {
+        constructor(blob:Blob, url:string, private _onuploaded?:()=>void) {
             this._data = blob;
             this._url = url;
             this.status = UploadStatus.IDLE;
@@ -63,6 +63,10 @@
 
         get url():string {
             return this._url;
+        }
+
+        get onuploaded(){
+            return this._onuploaded;
         }
 
         get data():Blob {
@@ -99,6 +103,9 @@
         private  uploadDone(ul:Upload) {
 
             ul.status = UploadStatus.DONE;
+            if(ul.onuploaded){
+                ul.onuploaded();
+            }
 
             // remove upload from queue
             for (let i = 0; i < this.que.length; i++) {

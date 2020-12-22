@@ -13,6 +13,8 @@ export class SpeechRecorderConfig{
   withCredentials?: boolean=false;
   enableDownloadRecordings?: boolean=false;
   enableUploadRecordings?: boolean=true;
+  recordingFileMediaBytesCacheLimit?:number=1000*1000*100;
+
   constructor(){
     this.apiEndPoint=null;
     this.apiType=null;

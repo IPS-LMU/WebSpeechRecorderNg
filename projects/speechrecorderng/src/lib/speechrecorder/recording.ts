@@ -60,7 +60,7 @@ export class RecordingFileDescriptor {
         this._audioBuffer=audioBuffer;
         this.updateAudioSizeInBytes();
         RecordingFile._allAudioSizeInBytes+=this._audioSizeInBytes;
-        console.log("Audio bytes in use: "+RecordingFile._allAudioSizeInBytes);
+        //console.log("Audio bytes in use: "+RecordingFile._allAudioSizeInBytes);
       }
 
       get audioBuffer(){

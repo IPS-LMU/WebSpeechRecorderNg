@@ -8,5 +8,6 @@ export const environment = {
   apiType: 'files',
   apiEndPoint: 'test',
   enableDownloadRecordings:true,
-  enableUploadRecordings: false
+  enableUploadRecordings: false,
+  recordingFileMediaBytesCacheLimit: 10000000
 };
