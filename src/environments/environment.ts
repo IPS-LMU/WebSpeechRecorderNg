@@ -9,5 +9,5 @@ export const environment = {
   apiEndPoint: 'test',
   enableDownloadRecordings:true,
   enableUploadRecordings: false,
-  recordingFileMediaBytesCacheLimit: 10000000
+  recordingFileMediaBytesCacheLimit: 25000000
 };

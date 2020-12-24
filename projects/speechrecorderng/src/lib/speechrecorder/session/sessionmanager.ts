@@ -34,7 +34,7 @@ export const RECFILE_API_CTX = 'recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
-const DEFAULT_MAX_MEDIA_CACHE_SIZE_BYTES = 1000 * 1000 * 100; // 100MB
+const DEFAULT_MAX_MEDIA_CACHE_SIZE_BYTES = 1000 * 1000 * 25; // 25MB
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
 
@@ -1185,6 +1185,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             });
             this.processingRecording=false
           });
+
       }
     }
 

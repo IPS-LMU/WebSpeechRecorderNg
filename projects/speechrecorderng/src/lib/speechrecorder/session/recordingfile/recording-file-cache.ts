@@ -18,20 +18,20 @@ export class RecordingFileCache {
                         expAudioBytes = expireCandidate.audioSizeInBytes;
                         expireCandidate.audioBuffer = null;
                         this.cachedAudioBytes -= expAudioBytes;
-                        console.debug("Recording file cache expired bytes: " + expAudioBytes);
+                        //console.debug("Recording file cache expired bytes: " + expAudioBytes);
                         break;
                     }
                 }
                 if(expAudioBytes===0){
                     // break if no files to expire
-                    console.debug("Could not found recording file to expire!");
+                    //console.debug("Could not found recording file to expire!");
                     break;
                 }
             }
         }
         this.cache.push(recordingFile);
-        console.debug("Recording file cache pushed bytes: "+asBytes);
+        //console.debug("Recording file cache pushed bytes: "+asBytes);
         this.cachedAudioBytes+=asBytes;
-        console.log("Recording file number of cached files: "+this.cache.length+ ", cached bytes: "+this.cachedAudioBytes);
+        //console.log("Recording file number of cached files: "+this.cache.length+ ", cached bytes: "+this.cachedAudioBytes);
     }
 }

@@ -422,6 +422,8 @@ export class AudioCapture {
     for (var ch0Chk of ch0Data) {
       frameLen += ch0Chk.length;
     }
+    // TODO Android Chrome rare exception here:
+    // error domexception: failed to execute 'createbuffer' on 'baseaudiocontext'
     var ab = this.context.createBuffer(this.channelCount, frameLen, this.context.sampleRate);
     for (var ch = 0; ch < this.channelCount; ch++) {
 
