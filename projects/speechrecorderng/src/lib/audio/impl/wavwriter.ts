@@ -41,6 +41,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
            }
          }
          postMessage({buf:msg.data.buf}, [msg.data.buf]);
+         //self.close()
        }
      }
 
@@ -99,9 +100,11 @@ declare function postMessage (message:any, transfer:Array<any>):void;
        this.bw.ensureCapacity(dataChkByteLen);
        wo.onmessage = (me) => {
          callback(me.data.buf);
+         wo.terminate();
        }
        //TODO Fixed sample size of 16 bits
        wo.postMessage({sampleSizeInBits:16, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
+
      }
 
      write(audioBuffer:AudioBuffer):Uint8Array{
