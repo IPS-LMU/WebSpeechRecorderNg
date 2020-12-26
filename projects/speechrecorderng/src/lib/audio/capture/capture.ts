@@ -9,20 +9,6 @@ import {
   UserAgentParser
 } from "../../utils/ua-parser";
 
-// interface AudioWorker extends Worker {
-//   terminate (): void;
-//
-//   postMessage (message: any, transfer: Array<any>): void;
-//
-// // readonly        attribute AudioWorkerParamDescriptor[] parameters;
-//   onmessage: (ev: MessageEvent) => any;
-// //     attribute EventHandler                 onloaded;
-//   //      AudioWorkerNode createNode (int numberOfInputs, int numberOfOutputs);
-// //     AudioParam      addParameter (DOMString name, float defaultValue);
-// //     void            removeParameter (DOMString name);
-// }
-// ;
-
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
   video: boolean;
@@ -355,6 +341,10 @@ export class AudioCapture {
         //
         // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
         // AudioWorker is now AudioWorkletProcessor ... (May 2017)
+
+      // Update 12-2020:
+       // The ScriptProcessorNode Interface - DEPRECATED
+      // TODO
 
         if (this.context.createAudioWorker) {
           //console.debug("Audio worker implemented!!")
