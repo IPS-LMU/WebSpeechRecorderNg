@@ -200,7 +200,7 @@ export class AudioCapture {
     // Safari at least version 11: Support for media streams
     // TODO test if input is unprocessed
 
-    let msc:any;
+    let msc:MediaStreamConstraints;
     console.info('User agent: '+navigator.userAgent);
 
     // @ts-ignore
@@ -222,7 +222,8 @@ export class AudioCapture {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          echoCancellation: {exact: false},
+          echoCancellation: {ideal: false},
+          autoGainControl: {ideal: true}
         },
         video: false,
       }
@@ -253,14 +254,7 @@ export class AudioCapture {
             "channelCount": channelCount,
             "echoCancellation": false,
             "autoGainControl": false,
-            "noiseSuppression": false,
-            "googEchoCancellation": false,
-            "googExperimentalEchoCancellation": false,
-            "googAutoGainControl": false,
-            "googTypingNoiseDetection": false,
-            "googNoiseSuppression": false,
-            "googHighpassFilter": false,
-            "googBeamforming": false
+            "noiseSuppression": false
           },
           video: false,
         }
@@ -274,11 +268,11 @@ export class AudioCapture {
             "deviceId": selDeviceId,
             "channelCount": channelCount,
           "echoCancellation": false,
-            "mozEchoCancellation": false,
+
             "autoGainControl": false,
-          "mozAutoGainControl": false,
+
           "noiseSuppression": false,
-          "mozNoiseSuppression": false
+
         },
         video: false,
       }
