@@ -28,6 +28,23 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
+        <button matToolTip="Settings" [matMenuTriggerFor]="settingsMenu" [hidden]="true">
+            <mat-icon>settings</mat-icon>
+        </button>
+        <mat-menu #settingsMenu="matMenu">
+            
+            <button mat-menu-item>
+                <span>Echo cancellation</span>
+            </button>
+            <button mat-menu-item disabled>
+                <mat-icon>voicemail</mat-icon>
+                <span>Check voice mail</span>
+            </button>
+            <button mat-menu-item>
+                <mat-icon>notifications_off</mat-icon>
+                <span>Disable alerts</span>
+            </button>
+        </mat-menu>
         <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
