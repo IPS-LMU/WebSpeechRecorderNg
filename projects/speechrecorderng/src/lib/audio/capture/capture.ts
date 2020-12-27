@@ -223,7 +223,7 @@ export class AudioCapture {
           deviceId: selDeviceId,
           channelCount: channelCount,
           echoCancellation: {exact: false},
-          autoGainControl: {ideal: false}
+          noiseSuppression: {ideal: false}
         },
         video: false,
       }
