@@ -29,7 +29,7 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 
 const ENABLE_AUDIO_DEVICE_PRECHECK=false;
-const ENABLE_LEVEL_MEASURE=false;
+const ENABLE_LEVEL_MEASURE=true;
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -83,6 +83,7 @@ export class Item {
     </app-sprprompting>
     <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
 
+   
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
                               [playStopAction]="controlAudioPlayer?.stopAction"
@@ -96,7 +97,7 @@ export class Item {
                          [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
-
+    
   `,
   styles: [`:host {
     flex: 2;

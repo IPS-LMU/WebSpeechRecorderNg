@@ -13,7 +13,10 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-        <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <div fxLayout="row" fxFill fxLayout.xs="column" >
+            
+        <audio-levelbar fxFlex="grow" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+            <div fxLayout="row">
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
@@ -51,6 +54,9 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         </button>
         <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span matTooltip="Peak level"
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr></table></div>
+
+            </div>
+            </div>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -148,6 +154,7 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
   }
 
     update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo) {
+        console.info("Level update: "+levelInfo);
         let peakDBVal = levelInfo.powerLevelDB();
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;
