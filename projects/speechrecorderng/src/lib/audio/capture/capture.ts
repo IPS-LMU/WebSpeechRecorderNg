@@ -221,7 +221,8 @@ export class AudioCapture {
       msc = {
         audio: {
           "deviceId": selDeviceId,
-          "channelCount": channelCount
+          "channelCount": channelCount,
+          "echoCancelation": {ideal: false}
         },
         video: false,
       }
