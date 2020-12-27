@@ -215,14 +215,14 @@ export class AudioCapture {
     })
 
     let androidWorkaround=ua.runsOnOS(OS_ANDROID);
-
+    androidWorkaround=false;
     if(androidWorkaround){
       console.warn("Disabling switch off of audio pre-processing for Android!!")
       msc = {
         audio: {
-          "deviceId": selDeviceId,
-          "channelCount": channelCount,
-          "echoCancelation": {exact: false}
+          deviceId: selDeviceId,
+          channelCount: channelCount,
+          echoCancellation: {exact: false}
         },
         video: false,
       }
