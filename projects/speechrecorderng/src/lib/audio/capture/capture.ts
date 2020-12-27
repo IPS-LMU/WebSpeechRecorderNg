@@ -322,12 +322,13 @@ export class AudioCapture {
           let aTrack = aTracks[i];
 
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
-          let  atrCaps=aTrack.getCapabilities();
-          console.info("Caps: Device ID: "+atrCaps.deviceId);
-          console.info("Caps: Echo cancellation: "+atrCaps.echoCancellation);
-          console.info("Caps: Auto gain control: "+atrCaps.autoGainControl);
-          console.info("Caps: Noise suppression: "+atrCaps.noiseSuppression);
-
+          if(typeof aTrack.getCapabilities === 'function') {
+            let atrCaps = aTrack.getCapabilities();
+            console.info("Caps: Device ID: " + atrCaps.deviceId);
+            console.info("Caps: Echo cancellation: " + atrCaps.echoCancellation);
+            console.info("Caps: Auto gain control: " + atrCaps.autoGainControl);
+            console.info("Caps: Noise suppression: " + atrCaps.noiseSuppression);
+          }
           let  atrCnstrs=aTrack.getConstraints();
           console.info("Constr: Device ID: "+atrCnstrs.deviceId);
           console.info("Constr: Echo cancellation: "+atrCnstrs.echoCancellation);
@@ -345,8 +346,10 @@ export class AudioCapture {
         for (let i = 0; i < vTracks.length; i++) {
           let vTrack = vTracks[i];
           console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
-          let  vtrCaps=vTrack.getCapabilities();
-          console.info("Caps: Facing mode: "+vtrCaps.facingMode);
+          if(typeof vTrack.getCapabilities === 'function') {
+            let vtrCaps = vTrack.getCapabilities();
+            console.info("Caps: Facing mode: " + vtrCaps.facingMode);
+          }
           let  vtrCnstrs=vTrack.getConstraints();
           console.info("Constr: Facing mode: "+vtrCnstrs.facingMode);
           let  vtrSets=vTrack.getSettings();
