@@ -215,14 +215,16 @@ export class AudioCapture {
     })
 
     let androidWorkaround=ua.runsOnOS(OS_ANDROID);
-    androidWorkaround=false;
+    //androidWorkaround=false;
     if(androidWorkaround){
       console.warn("Disabling switch off of audio pre-processing for Android!!")
       msc = {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          echoCancellation: {exact: false}
+          echoCancellation: {exact: false},
+          autoGainControl: {ideal: false},
+          noiseSuppression: {ideal:false}
         },
         video: false,
       }
@@ -253,6 +255,7 @@ export class AudioCapture {
             "channelCount": channelCount,
             "echoCancellation": false,
             "autoGainControl": false,
+            "noiseSuppression": false,
             "googEchoCancellation": false,
             "googExperimentalEchoCancellation": false,
             "googAutoGainControl": false,
