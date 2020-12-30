@@ -298,6 +298,10 @@ export class AudioCapture {
         // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
         // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
+      // Update 12-2020:
+       // The ScriptProcessorNode Interface - DEPRECATED
+      // TODO
+
         if (this.context.createAudioWorker) {
           //console.debug("Audio worker implemented!!")
         } else {
