@@ -267,7 +267,6 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         s=this._selection
       }
       if(s){
-          //let sr=this._audioData.sampleRate;
         let sf=s.startFrame;
         let ef=s.endFrame;
         let xs=this.frameToViewPortXPixelPosition(sf)

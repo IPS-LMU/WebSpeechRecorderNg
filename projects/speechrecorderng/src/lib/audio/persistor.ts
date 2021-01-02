@@ -67,25 +67,9 @@
         get endFrame():number{
           return this._endFrame;
         }
-
-      //   endFrameForSampleRate(sampleRate:number): number {
-      //     if(this._sampleRate===sampleRate) {
-      //         return this._endFrame;
-      //     }else{
-      //         return Math.round((this._endFrame*sampleRate)/this._sampleRate);
-      //     }
-      // }
       get startFrame(): number {
         return this._startFrame;
       }
-
-        // startFrameForSampleRate(sampleRate:number): number {
-        //     if(this._sampleRate===sampleRate) {
-        //         return this._startFrame;
-        //     }else{
-        //         return Math.round((this._startFrame*sampleRate)/this._sampleRate);
-        //     }
-        // }
 
       get leftFrame(): number {
         return (this._startFrame <= this._endFrame) ? this._startFrame : this._endFrame
