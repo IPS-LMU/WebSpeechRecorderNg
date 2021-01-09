@@ -41,7 +41,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
     styleUrls: ['speechrecorder.component.css']
 
 })
-export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerListener {
+export class SpeechrecorderngComponent implements OnInit,AfterViewInit,OnDestroy,AudioPlayerListener {
 
 	  mode:Mode;
 		controlAudioPlayer:AudioPlayer;
@@ -91,25 +91,28 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
         //
 
         // Save CSS properties set by the main application
-        let htmlStyle=this.d.documentElement.style
-        this.htmlHeightSave=htmlStyle.height
-        this.htmlMarginSave=htmlStyle.margin
-        this.htmlMarginSave=htmlStyle.padding
-        let bodyStyle=this.d.body.style
-        this.bodyHeightSave=bodyStyle.height
-        this.bodyMarginSave=bodyStyle.margin
-        this.bodyPaddingSave=bodyStyle.padding
+        let htmlStyle = this.d.documentElement.style
+        this.htmlHeightSave = htmlStyle.height
+        this.htmlMarginSave = htmlStyle.margin
+        this.htmlMarginSave = htmlStyle.padding
+        let bodyStyle = this.d.body.style
+        this.bodyHeightSave = bodyStyle.height
+        this.bodyMarginSave = bodyStyle.margin
+        this.bodyPaddingSave = bodyStyle.padding
 
         // Apply fit to page properties
-        this.renderer.setStyle(this.d.documentElement,'height','100%')
-        this.renderer.setStyle(this.d.documentElement,'margin','0');
-        this.renderer.setStyle(this.d.documentElement,'padding','0');
+        this.renderer.setStyle(this.d.documentElement, 'height', '100%')
+        this.renderer.setStyle(this.d.documentElement, 'margin', '0');
+        this.renderer.setStyle(this.d.documentElement, 'padding', '0');
 
-        this.renderer.setStyle(this.d.body,'height','100%');
-        this.renderer.setStyle(this.d.body,'margin','0');
-        this.renderer.setStyle(this.d.body,'padding','0');
+        this.renderer.setStyle(this.d.body, 'height', '100%');
+        this.renderer.setStyle(this.d.body, 'margin', '0');
+        this.renderer.setStyle(this.d.body, 'padding', '0');
 
         this.initAudio();
+    }
+
+    ngAfterViewInit(){
 
       if(this.sm.status!== SessionManagerStatus.ERROR) {
 
@@ -118,7 +121,9 @@ export class SpeechrecorderngComponent implements OnInit,OnDestroy,AudioPlayerLi
 
 
           this.route.queryParams.subscribe((params: Params) => {
+              console.info("Starting per query param");
             if (params['sessionId']) {
+                console.info("Session ID query param: "+params['sessionId']);
               this.initSession(params['sessionId']);
             }
           });

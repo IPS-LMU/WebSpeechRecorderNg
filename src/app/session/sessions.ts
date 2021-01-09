@@ -1,5 +1,5 @@
 import {AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, Renderer2, ViewChild} from '@angular/core';
-import {ActivatedRoute, Params} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 import {SessionService} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session.service";
 import {Session} from "../../../projects/speechrecorderng/src/lib/speechrecorder/session/session";
 import {UUID} from "../../../projects/speechrecorderng/src/lib/utils/utils";
@@ -19,6 +19,7 @@ import { map } from 'rxjs/operators';
 import {last} from "rxjs/operators";
 import { MatSort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
+import {Project} from "../../../projects/speechrecorderng/src/lib/speechrecorder/project/project";
 
 
 
@@ -27,7 +28,7 @@ import { MatTableDataSource } from "@angular/material/table";
   templateUrl: 'sessions.html',
   styleUrls: ['../../speechrecorder_mat.scss']
 })
-export class SessionsComponent implements  OnInit {
+export class SessionsComponent implements  OnInit,AfterViewInit {
 
   projectName:string;
   sessions:Array<Session>
@@ -37,6 +38,7 @@ export class SessionsComponent implements  OnInit {
     private d:Document;
     newSessionDisabled=true;
   constructor(private route: ActivatedRoute,
+              private router:Router,
               private chDetRef:ChangeDetectorRef,
               private renderer:Renderer2,
               @Inject(DOCUMENT) private dAsAny: any,
@@ -50,16 +52,20 @@ export class SessionsComponent implements  OnInit {
 
 
   ngOnInit() {
-      this.dataSource.sort=this.sort
 
-    this.route.params.subscribe((params: Params) => {
-      this.projectName = params['projectName'];
-      this.fetchSessions()
-        this.updateNewSessionDisabled()
-    })
   }
 
-  updateNewSessionDisabled(){
+  ngAfterViewInit() {
+      this.dataSource.sort=this.sort
+
+      this.route.params.subscribe((params: Params) => {
+          this.projectName = params['projectName'];
+          this.fetchSessions()
+          this.updateNewSessionDisabled()
+      })
+  }
+
+    updateNewSessionDisabled(){
       let sessionScript:Script=null;
       this.scriptService.randomProjectScriptObserver(this.projectName).subscribe((script)=> {
           sessionScript=script;
@@ -79,10 +85,10 @@ export class SessionsComponent implements  OnInit {
   fetchSessions(){
     if (this.projectName) {
       this.sessionService.projectSessionsObserver(this.projectName).subscribe(sesss=>{
-        console.info("List " + sesss.length + " sessions")
+        console.info("List " + sesss.length + " recordingFiles")
         this.sessions=sesss;
         this.dataSource.data=this.sessions
-        //console.log(this.sessions)
+        //console.log(this.recordingFiles)
         //this.chDetRef.detectChanges()
       })
     }
@@ -117,6 +123,11 @@ export class SessionsComponent implements  OnInit {
       })
 
   }
+
+    toRecordingFiles(session:Session){
+
+        this.router.navigate(['/wsp','project',this.projectName,'session',session.sessionId,'recfile'])
+    }
 
 
   generateZip(jsz:JSZip,name:string,zipFilename:string ){

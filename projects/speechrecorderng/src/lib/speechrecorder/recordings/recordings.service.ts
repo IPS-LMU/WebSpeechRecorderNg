@@ -105,6 +105,81 @@ export class RecordingService {
 
   }
 
+  recordingFileListFromServer(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
+
+    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
+        SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.KEYNAME;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
+    }
+    let wobs = this.http.get<Array<RecordingFile>>(recFilesUrl,{withCredentials:this.withCredentials});
+    return wobs;
+  }
+
+  recordingFileList(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
+
+    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
+        SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.KEYNAME;
+    let httpParams=new HttpParams()
+    httpParams.set('cache', 'false');
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      recFilesUrl = recFilesUrl + '.json'
+      httpParams.set('requestUUID',UUID.generate())
+    }
+    let obs=new Observable<Array<RecordingFile>>(subscriber => {
+      let httpObs = this.http.get<Array<RecordingFile>>(recFilesUrl,{params:httpParams,withCredentials:this.withCredentials});
+      httpObs.subscribe(value=>{
+        subscriber.next(value);
+      },err=> {
+        let rfDescrs = new Array<RecordingFile>()
+            let idbObs = this.sprDb.prepare();
+            idbObs.subscribe(value => {
+              let sessStoreName=RecordingService.KEYNAME
+              if(value.objectStoreNames.contains(sessStoreName)){
+                let rfTr = value.transaction(sessStoreName)
+                let rfSto = rfTr.objectStore(RecordingService.KEYNAME);
+
+                let sessIdx=rfSto.index('sessIdIdx')
+                console.debug("Get all recordings from sessionId: "+sessId)
+                let allS=sessIdx.getAll(IDBKeyRange.only([sessId]));
+
+                allS.onsuccess = (ev) => {
+                  console.info("Found " + allS.result.length + " recFiles")
+                  let allRfDtos:Array<RecordingFileDTO>=allS.result;
+                  rfDescrs=allRfDtos.map(value=>{
+
+                    let rfDescr=new RecordingFile(value.sessionId,value.itemCode,value.version, null);
+                    rfDescr.recordingFileId=value.uuid;
+                    let pi={itemcode:value.itemCode};
+                    rfDescr.recording=pi;
+                    rfDescr.version=value.version;
+                    return rfDescr;
+                  })
+
+                  subscriber.next(<Array<RecordingFile>>rfDescrs);
+                  subscriber.complete()
+                }
+                allS.onerror= (ev)=>{
+                  subscriber.error()
+                }
+              }else{
+                subscriber.next(rfDescrs);
+                subscriber.complete()
+              }
+            },(err)=>{
+              subscriber.error(err)
+            })
+      },() => {
+      }
+      );
+    });
+    return obs;
+  }
+
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
     let httpParams=new HttpParams()
     httpParams.set('cache', 'false');

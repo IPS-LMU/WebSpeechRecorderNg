@@ -33,6 +33,7 @@ import { ProjectComponent } from './project/project/project.component';
 import { ScriptComponent } from './script/script.component';
 import {MatTreeModule} from "@angular/material/tree";
 import {MatNativeDateModule} from "@angular/material/core";
+import {RecordingFilesComponent} from "../../projects/speechrecorderng/src/lib/speechrecorder/session/recordingfile/recording-files.component";
 
 
 const appRoutes: Routes = [
@@ -42,6 +43,9 @@ const appRoutes: Routes = [
   },
   { path: 'wsp/project/:projectName/session',
     component: SessionsComponent
+  },
+  { path: 'wsp/project/:projectName/session/:sessionId/recfile',
+    component: RecordingFilesComponent
   },
   { path: 'wsp/project/:projectName/session/:sessionId',
     component: SpeechrecorderngComponent

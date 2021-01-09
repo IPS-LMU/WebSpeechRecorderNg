@@ -8,6 +8,7 @@ import {AudioDisplayControl} from "./lib/audio/ui/audio_display_control";
 export {SpeechrecorderngModule} from './lib/speechrecorderng.module'
 export {VERSION} from './lib/spr.module.version'
 export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
+export {SprDb} from './lib/db/inddb'
 
 export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
@@ -28,5 +29,9 @@ export {SessionService} from './lib/speechrecorder/session/session.service'
 export {ScriptService} from './lib/speechrecorder/script/script.service'
 export {Script,Section,Group,PromptItem,Mediaitem,PromptPhase,Mode} from './lib/speechrecorder/script/script'
 export {RecordingService} from './lib/speechrecorder/recordings/recordings.service'
+export {RecordingFile} from './lib/speechrecorder/recording'
+export {RecordingFileService} from './lib/speechrecorder/session/recordingfile/recordingfile-service'
+export {RecordingFileViewComponent} from './lib/speechrecorder/session/recordingfile/recording-file-view.component'
+export {RecordingFileUI} from './lib/speechrecorder/session/recordingfile/recording-file-u-i.component'
 export {SpeechRecorderConfig,ApiType} from './lib/spr.config'
 export {SpeechrecorderngComponent} from './lib/speechrecorderng.component'

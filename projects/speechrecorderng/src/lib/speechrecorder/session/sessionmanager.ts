@@ -1161,7 +1161,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         }, (err) => {
           console.error("Recording file store error: " + err)
         }, () => {
-          console.info("Recording file stored to indexed db")
+          console.info("Recording file "+rfDto.uuid+" stored to indexed db")
         })
       });
 

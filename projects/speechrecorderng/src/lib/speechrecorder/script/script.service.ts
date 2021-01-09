@@ -71,7 +71,7 @@ export class ScriptService extends GenericSprService<Script>{
 
   projectScriptsObserver(projectName: string): Observable<Array<Script>> {
 
-    // Example URL: /api/v1/project/_iOS_Test/script?order-direction=DESC&order-by=sessions._size&limit=10
+    // Example URL: /api/v1/project/_iOS_Test/script?order-direction=DESC&order-by=recordingFiles._size&limit=10
     let httpParams=new HttpParams()
     httpParams.set('cache','false');
 
@@ -85,10 +85,10 @@ export class ScriptService extends GenericSprService<Script>{
 
     }else{
         // Some projects may have many scripts, limit the count of fetched scripts and let them be ordered by the server:
-        // Scripts with fewer count of sessions first (lowest usage).
+        // Scripts with fewer count of recordingFiles first (lowest usage).
         // This should make sure that the scripts are used evenly
       httpParams.append('order-direction','DESC')
-      httpParams.append('order-by', 'sessions._size')
+      httpParams.append('order-by', 'recordingFiles._size')
       httpParams.append('limit',ScriptService.SCRIPTS_FETCH_COUNT_LIMIT.toString())
     }
 

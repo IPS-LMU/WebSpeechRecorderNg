@@ -96,14 +96,14 @@ export class SessionService extends GenericSprService<Session>{
   //       subscriber.next(value)
   //
   //     }, err => {
-  //       console.info("Fetching sessions from server failed")
+  //       console.info("Fetching recordingFiles from server failed")
   //       let obs = this.sprDb.prepare();
   //       obs.subscribe(value => {
   //             let sessTr = value.transaction('session')
   //             let sSto = sessTr.objectStore('session');
   //             let allS = sSto.getAll();
   //             allS.onsuccess=(ev)=>{
-  //               console.info("Found " + allS.result.length + " sessions")
+  //               console.info("Found " + allS.result.length + " recordingFiles")
   //               subscriber.next(<Array<Session>>allS.result);
   //               subscriber.complete()
   //           }
