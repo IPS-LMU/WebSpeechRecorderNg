@@ -111,7 +111,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   private bodyMarginSave:string;
   private bodyPaddingSave:string;
 
-  constructor(@Inject(DOCUMENT) private dAsAny: any,protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, private renderer: Renderer2,protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
+  constructor(@Inject(DOCUMENT) protected dAsAny: any,protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, protected renderer: Renderer2,protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
     super(route, ref, eRef)
     this.parentE = this.eRef.nativeElement;
     this.firstAction = new Action<void>('First');

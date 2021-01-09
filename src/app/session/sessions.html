@@ -22,7 +22,7 @@
   </ng-container>
   <ng-container matColumnDef="action">
     <th mat-header-cell *matHeaderCellDef>Action</th>
-    <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" matToolTip="Show recording files" (click)="toRecordingFiles(element)"><mat-icon>archive</mat-icon></button> <button mat-stroked-button  color="primary" matTooltip="Download ZIP archive" (click)="downloadSessionArchive(element.sessionId)"><mat-icon>archive</mat-icon></button>
+    <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" matTooltip="Show recording files" (click)="toRecordingFiles(element)"><mat-icon>list</mat-icon></button> <button mat-stroked-button  color="primary" matTooltip="Download ZIP archive" (click)="downloadSessionArchive(element.sessionId)"><mat-icon>archive</mat-icon></button>
       <button mat-stroked-button [disabled]="element.sealed" color="primary"  routerLink="/wsp/project/{{projectName}}/session/{{element.sessionId}}" matTooltip="Open in Recorder" routerLinkActive="active"><mat-icon>launch</mat-icon></button></td>
   </ng-container>
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

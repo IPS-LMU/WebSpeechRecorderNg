@@ -2,7 +2,7 @@ import {
   Component,
   ChangeDetectorRef,
   AfterViewInit,
-  ElementRef
+  ElementRef, Inject, Renderer2
 } from '@angular/core'
 
 
@@ -16,6 +16,7 @@ import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {DOCUMENT} from "@angular/common";
 
 @Component({
 
@@ -71,8 +72,8 @@ export class RecordingFileUI extends RecordingFileViewComponent implements After
   savedEditSelection:Selection;
   editSaved:boolean=true
 
-  constructor(protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog,private snackBar: MatSnackBar) {
-    super(recordingFileService,recordingService,sessionService,router,route,ref,eRef,dialog)
+  constructor(@Inject(DOCUMENT) protected dAsAny: any,protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected router:Router,protected route: ActivatedRoute, protected renderer: Renderer2, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog,private snackBar: MatSnackBar) {
+    super(dAsAny,recordingFileService,recordingService,sessionService,router,route,renderer,ref,eRef,dialog)
     this.parentE=this.eRef.nativeElement;
 
   }
