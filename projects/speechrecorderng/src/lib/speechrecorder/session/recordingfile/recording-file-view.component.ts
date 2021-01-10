@@ -194,14 +194,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   ngOnDestroy(){
 
     // Restore main app html and body CSS properties
-    // Hmm... use renderer here as well ??
-    this.d.documentElement.style.height=this.htmlHeightSave;
-    this.d.documentElement.style.margin=this.htmlMarginSave;
-    this.d.documentElement.style.padding=this.htmlPaddingSave;
 
-    this.d.body.style.height=this.bodyHeightSave;
-    this.d.body.style.margin=this.bodyMarginSave;
-    this.d.body.style.padding=this.bodyPaddingSave;
+    this.renderer.setStyle(this.d.documentElement, 'height', this.htmlHeightSave)
+    this.renderer.setStyle(this.d.documentElement, 'margin',this.htmlMarginSave);
+    this.renderer.setStyle(this.d.documentElement, 'padding',this.htmlPaddingSave);
+
+    this.renderer.setStyle(this.d.body, 'height', this.bodyHeightSave);
+    this.renderer.setStyle(this.d.body, 'margin', this.bodyMarginSave);
+    this.renderer.setStyle(this.d.body, 'padding', this.bodyPaddingSave);
   }
 
   private navigateToId(rfId:number| string){
