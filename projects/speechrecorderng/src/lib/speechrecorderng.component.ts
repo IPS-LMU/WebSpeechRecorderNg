@@ -11,7 +11,7 @@ import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {Session} from "./speechrecorder/session/session";
-import {Project} from "./speechrecorder/project/project";
+import {Project, ProjectUtil} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
@@ -336,24 +336,21 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
 
-  set project(project: Project) {
+    set project(project: Project) {
+        this._project = project;
+        let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
-		  this._project=project;
-    let chCnt = 2;
+        if (project) {
+            console.info("Project name: " + project.name)
+            this.sm.audioDevices = project.audioDevices;
+            chCnt = ProjectUtil.audioChannelCount(project);
+            console.info("Project requested recording channel count: " + chCnt);
+        } else {
+            console.error("Empty project configuration!")
+        }
+        this.sm.channelCount = chCnt;
 
-    if (project) {
-      console.info("Project name: "+project.name)
-      this.sm.audioDevices = project.audioDevices;
-      if(project.audioFormat) {
-        chCnt =project.audioFormat.channels;
-        console.info("Project requested recording channel count: "+chCnt)
-      }
-    }else{
-      console.error("Empty project configuration!")
     }
-    this.sm.channelCount = chCnt;
-
-  }
 
   get project():Project{
 		  return this._project;
