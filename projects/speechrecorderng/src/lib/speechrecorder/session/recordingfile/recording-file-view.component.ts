@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, ElementRef, OnInit,
+  AfterViewInit, Input, ElementRef, OnInit, Injector,
 } from '@angular/core'
 
 
@@ -102,8 +102,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   naviInfoLoading=false;
 
-  constructor(protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
-    super(route, ref, eRef)
+  constructor(protected injector:Injector,protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
+    super(injector, route, ref, eRef)
     this.parentE = this.eRef.nativeElement;
     this.firstAction = new Action<void>('First');
     this.firstAction.onAction= ()=>{
@@ -128,7 +128,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   ngOnInit() {
     super.ngOnInit();
-
   }
 
   ngAfterViewInit() {

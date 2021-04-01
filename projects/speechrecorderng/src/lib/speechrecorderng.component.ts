@@ -1,4 +1,4 @@
-import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit} from '@angular/core'
+import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, Injector} from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
@@ -17,6 +17,7 @@ import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptor} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
+import {FitToPageComponent} from "./ui/fit_to_page_comp";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -36,7 +37,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener {
+export class SpeechrecorderngComponent extends FitToPageComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
 	  mode:Mode;
 		controlAudioPlayer:AudioPlayer;
@@ -50,7 +51,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     dataSaved: boolean = true;
   @ViewChild(SessionManager, { static: true }) sm:SessionManager;
 
-		constructor(private route: ActivatedRoute,
+		constructor(protected injector:Injector,private route: ActivatedRoute,
                     private router: Router,
                 private changeDetectorRef: ChangeDetectorRef,
                 private sessionsService:SessionService,
@@ -58,9 +59,11 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
                 private scriptService:ScriptService,
                 private recFilesService:RecordingService,
                 private uploader:SpeechRecorderUploader) {
+		    super(injector)
 		}
 
     ngOnInit() {
+		    super.ngOnInit();
 		  try {
         let audioContext = AudioContextProvider.audioContextInstance()
         this.controlAudioPlayer = new AudioPlayer(audioContext, this);

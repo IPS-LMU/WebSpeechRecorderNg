@@ -1,8 +1,8 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
+  Component,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef, Injector,
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
@@ -11,6 +11,7 @@ import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
+import {FitToPageComponent} from "../ui/fit_to_page_comp";
 
 @Component({
 
@@ -46,7 +47,7 @@ import {AudioContextProvider} from "./context";
     }`]
 
 })
-export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
   private _audioUrl: string;
 
   parentE: HTMLElement;
@@ -80,7 +81,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   @ViewChild(AudioDisplayScrollPane, { static: true })
   private audioDisplayScrollPane: AudioDisplayScrollPane;
 
-  constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
+  constructor(protected injector:Injector,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
+    super(injector);
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
@@ -92,6 +94,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
+    super.ngOnInit();
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
       this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
