@@ -54,23 +54,43 @@ import {MatInputModule} from "@angular/material/input";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 
 
-
 export const SPR_ROUTES: Routes = [
-  { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view',      component: RecordingFileViewComponent },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit',      component: RecordingFileUI },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile/:recordingFileId',      component: RecordingFileUI },
-  { path: 'spr/db/project/:project/session/:sessionId/recordingfile',      component: RecordingFileUI },
-  { path: 'spr/db/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
-  { path: 'spr/db/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
-  { path: 'spr/db/recordingfile/_view/',      component: RecordingFileViewComponent },
-  { path: 'spr/db/recordingfile/_view',      component: RecordingFileViewComponent },
-  { path: 'spr/db/recordingfile/_edit',      component: RecordingFileUI },
-  { path: 'spr/db/recordingfile/:recordingFileId',      component: RecordingFileUI },
-  { path: 'spr/db/recordingfile',      component: RecordingFileUI },
-  { path: 'spr',      component: SpeechrecorderngComponent }
+  {
+    path: 'spr',
+    children: [
+      {path: 'session/:id', component: SpeechrecorderngComponent},
+      {path: 'db',
+        children:[
+          {path: 'project/:project',
+            children: [
+              {
+                path: 'session/:sessionId',
+                children: [
+                  {path: 'recordingfile/_view/:recordingFileId', component: RecordingFileViewComponent},
+                  {path: 'recordingfile/_edit/:recordingFileId', component: RecordingFileUI},
+                  {path: 'recordingfile/_view', component: RecordingFileViewComponent},
+                  {path: 'recordingfile/_edit', component: RecordingFileUI},
+                  {path: 'recordingfile/:recordingFileId', component: RecordingFileUI},
+                  {path: 'recordingfile', component: RecordingFileUI}
+                ]
+              }
+
+            ]
+          }
+          ,
+          {path: 'recordingfile/_view/:recordingFileId', component: RecordingFileViewComponent},
+          {path: 'recordingfile/_edit/:recordingFileId', component: RecordingFileUI},
+          {path: 'recordingfile/_view/', component: RecordingFileViewComponent},
+          {path: 'recordingfile/_view', component: RecordingFileViewComponent},
+          {path: 'recordingfile/_edit', component: RecordingFileUI},
+          {path: 'recordingfile/:recordingFileId', component: RecordingFileUI},
+          {path: 'recordingfile', component: RecordingFileUI}
+        ]
+      }
+      ,
+      {path: '', component: SpeechrecorderngComponent}
+    ]
+  }
 ];
 
 @NgModule({
