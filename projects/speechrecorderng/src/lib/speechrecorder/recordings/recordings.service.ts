@@ -39,41 +39,42 @@ export class RecordingService {
     if (config != null && config.withCredentials != null) {
       this.withCredentials = config.withCredentials;
     }
-
-    //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-
   }
 
-  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
+  private recFilesUrl(projectName: string, sessId: string | number):string{
+    let encPrjName=encodeURIComponent(projectName);
+    let encSessId=encodeURIComponent(sessId);
+    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
+        SessionService.SESSION_API_CTX + '/' + encSessId + '/' + RecordingService.REC_API_CTX;
+    return recFilesUrl;
+  }
 
-    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
+  private recFilesReqUrl(projectName: string, sessId: string | number):string{
+    let recFilesUrl=this.recFilesUrl(projectName,sessId);
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
       recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
     }
-    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{withCredentials:this.withCredentials});
+    return recFilesUrl;
+  }
+
+  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
+    let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
+    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   recordingFileList(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
-
-    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-        SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
-    if (this.config && this.config.apiType === ApiType.FILES) {
-      // for development and demo
-      // append UUID to make request URL unique to avoid localhost server caching
-      recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
-    }
-    let wobs = this.http.get<Array<RecordingFile>>(recFilesUrl,{withCredentials:this.withCredentials});
+    let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
+    let wobs = this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
-
-    let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode+'/'+version;
+    let recFilesUrl=this.recFilesUrl(projectName,sessId);
+    let encItemcode=encodeURIComponent(itemcode);
+    let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
