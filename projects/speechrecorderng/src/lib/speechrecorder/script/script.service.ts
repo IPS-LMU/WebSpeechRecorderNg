@@ -33,8 +33,8 @@ export class ScriptService {
   }
 
   scriptObservable(id:string | number):Observable<Script>{
-
-    let scriptUrl = this.scriptCtxUrl + '/' + id;
+    let encScriptId=encodeURIComponent(id);
+    let scriptUrl = this.scriptCtxUrl + '/' + encScriptId;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
