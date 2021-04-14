@@ -43,21 +43,24 @@ export class ProjectService {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
       resUrl = resUrl + '.json?requestUUID='+UUID.generate();
-
     }
     return resUrl
   }
 
   projectUrl(id:string):string{
-    return this.appendRequestUUIDForDevelopmentServer(this.projectCtxUrl + '/' + id)
+    let encPrjId=encodeURIComponent(id);
+    return this.appendRequestUUIDForDevelopmentServer(this.projectCtxUrl + '/' + encPrjId);
   }
 
   projectResourceUrl(projectId: string,relResourcePath:string):string{
-    return this.projectCtxUrl + '/' + projectId +'/'+relResourcePath
+    let encPrjId=encodeURIComponent(projectId);
+    let encRelResPath=encodeURIComponent(relResourcePath);
+    return this.projectCtxUrl + '/' + encPrjId +'/'+encRelResPath;
   }
 
   projectObservable(id:string):Observable<Project>{
-     return this.http.get<Project>(this.projectUrl(id),{withCredentials: this.withCredentials})
+    let prjUrl=this.projectUrl(id);
+     return this.http.get<Project>(prjUrl,{withCredentials: this.withCredentials})
    }
 
 }

@@ -42,10 +42,15 @@ export class RecordingFileService {
 
   }
 
+  private recoFileUrl(recordingFileId: string | number):string{
+    let encRecfileId=encodeURIComponent(recordingFileId);
+    let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + encRecfileId;
+
+    return recUrl;
+  }
 
   private fetchAudiofile(recordingFileId: string | number): Observable<HttpResponse<ArrayBuffer>> {
-
-    let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
+    let recUrl = this.recoFileUrl(recordingFileId);
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
@@ -65,7 +70,7 @@ export class RecordingFileService {
 
   private recordingFileDescrObserver(recordingFileId: string | number): Observable<RecordingFile> {
 
-    let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
+    let recUrl = this.recoFileUrl(recordingFileId);
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
@@ -77,7 +82,7 @@ export class RecordingFileService {
 
   private fetchSessionAudiofileById(projectName: string, sessId: string | number, recordingFileId: string | number): Observable<HttpResponse<ArrayBuffer>> {
 
-    let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
+    let recUrl = this.recoFileUrl(recordingFileId);
     // if (this.config && this.config.apiType === ApiType.FILES) {
     //   // for development and demo
     //   // append UUID to make request URL unique to avoid localhost server caching

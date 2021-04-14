@@ -166,11 +166,11 @@ export class TransportActions {
     </button>
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      {{startStopNextName()}}
+      <span fxShow.xs="false">{{startStopNextName()}}</span>
     </button>
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
-      Pause
+      <span fxShow.xs="false">Pause</span>
     </button>
     <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
       <mat-icon>redo</mat-icon>
