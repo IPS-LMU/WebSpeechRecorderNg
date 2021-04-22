@@ -52,6 +52,7 @@ export interface PromptItem {
   recduration?: number,
   postrecording: number,
   recinstructions?: Recinstructions,
+  blocked?:boolean,
   mediaitems: Array<Mediaitem>
 }
 

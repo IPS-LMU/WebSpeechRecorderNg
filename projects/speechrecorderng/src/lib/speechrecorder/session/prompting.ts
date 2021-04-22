@@ -90,6 +90,7 @@ export class Prompter {
   private _src: string = null;
   private _blocks: Array<Block>=null;
   mimetype: string;
+  private videoPromptEl:HTMLVideoElement=null;
   private currPromptChild: HTMLElement = null;
 
   @HostBinding('class.fill') public prompterStyleFill = false;
@@ -155,6 +156,11 @@ export class Prompter {
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
+      if(this.currPromptChild instanceof HTMLMediaElement){
+        this.currPromptChild.pause();
+        this.currPromptChild.srcObject=null;
+        //this.currPromptChild.src='';
+      }
       this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
     }
     if (this._promptMediaItems && this._promptMediaItems.length == 1) {
@@ -239,6 +245,31 @@ export class Prompter {
 
         }
         promptImage.src = this.srcUrl()
+      }else if (this.mimetype.startsWith('video')){
+        this._text = null
+        this._src = mi.src
+        if(this.videoPromptEl==null){
+          this.videoPromptEl = <HTMLVideoElement>this.renderer.createElement('video');
+          this.videoPromptEl.onloadeddata = (ev: Event) => {
+            console.log("Video loaded data")
+          }
+          this.videoPromptEl.onerror = (ev: Event) => {
+            console.error("Video error: "+this.videoPromptEl.error.message)
+          }
+          this.videoPromptEl.onabort = (ev: Event) => {
+            console.error("Video abort: "+ev)
+          }
+        }
+
+        this.currPromptChild = this.videoPromptEl
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
+        this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
+        this.prompterStyleFill = true
+
+        this.videoPromptEl.src = this.srcUrl()
+        console.log("Video src: "+this.videoPromptEl.src)
+        this.videoPromptEl.load();
       }
 
     } else {
@@ -246,6 +277,19 @@ export class Prompter {
       this._src = null
     }
   }
+
+  startPlayPrompt(){
+    if(this.currPromptChild instanceof HTMLMediaElement){
+      this.currPromptChild.play();
+    }
+  }
+
+  stopPlayPrompt(){
+    if(this.currPromptChild instanceof HTMLMediaElement){
+      this.currPromptChild.pause();
+    }
+  }
+
 }
 
 export const VIRTUAL_HEIGHT = 600;
@@ -347,7 +391,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     }else{
       this.prompterHeight=VIRTUAL_HEIGHT
     }
-    this.prompter.promptMediaItems=this._mediaitems
+    //this.prompter.promptMediaItems=this._mediaitems
     this.autoFontSize=(mimetype!=null && mimetype.startsWith('text/'));
     if(this.autoFontSize){
         this.fontSizeChange = true;
@@ -367,6 +411,10 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   onResize(event: Event): void {
     //console.debug("onresize, call fontSizeToFit hook ");
     this.layout();
+  }
+
+  startPlayPrompt(){
+    this.prompter.startPlayPrompt();
   }
 
   private layout() {
@@ -457,6 +505,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   `]
 })
 export class PromptingContainer {
+  @ViewChild(PromptContainer,{static:true}) promptContainer:PromptContainer;
   @Input() projectName: string | null;
   @Input() promptItem: PromptItem;
   @Input() showPrompt: boolean;
@@ -464,6 +513,8 @@ export class PromptingContainer {
   @Input() itemCount: number;
 
   @Input() transportActions: TransportActions;
+  @Input() promptPlayStartAction: Action<void>;
+  @Input() promptPlayStopAction: Action<void>;
 
   private e: HTMLDivElement;
   private startX: number | null = null
@@ -582,6 +633,10 @@ export class PromptingContainer {
     ev.preventDefault();
   }
 
+  startPlayPrompt(){
+    this.promptContainer.startPlayPrompt();
+  }
+
 }
 
 
@@ -594,7 +649,9 @@ export class PromptingContainer {
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
-                               [transportActions]="transportActions"></app-sprpromptingcontainer>
+                               [transportActions]="transportActions"
+                               [promptPlayStartAction]="promptPlayStartAction"
+                               [promptPlayStopAction]="promptPlayStopAction"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -681,6 +738,7 @@ export class PromptingContainer {
 
 export class Prompting {
   @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
+  @ViewChild(PromptingContainer, { static: true }) promptingContainer: PromptingContainer;
   @ViewChild(AudioDisplay, { static: true }) audioDisplay: AudioDisplay;
   @Input() projectName: string | null;
   @Input() startStopSignalState: StartStopSignalState;
@@ -697,6 +755,8 @@ export class Prompting {
   @Input() playSelectionAction: Action<void>;
   @Input() autoPlayOnSelectToggleAction:Action<boolean>
   @Input() playStopAction: Action<void>;
+  @Input() promptPlayStartAction: Action<void>;
+  @Input() promptPlayStopAction: Action<void>;
   @Output() onItemSelect = new EventEmitter<number>();
   @Output() onNextItem = new EventEmitter();
   @Output() onPrevItem = new EventEmitter();
@@ -711,6 +771,10 @@ export class Prompting {
 
   prevItem() {
     this.onPrevItem.emit();
+  }
+
+  startPromptPlay(){
+    this.promptingContainer.startPlayPrompt();
   }
 }
 

@@ -272,7 +272,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     } else {
       this.ac = new AudioCapture(context);
       if (this.ac) {
-        this.transportActions.startAction.onAction = () => this.startItem();
+        this.transportActions.startAction.onAction = () => this.prepareItem();
         this.ac.listener = this;
         this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
@@ -437,7 +437,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
 
 
-  startItem() {
+  prepareItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if(this.readonly){
@@ -462,8 +462,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       this.ac.open(this._channelCount,this._selectedDeviceId);
     }else {
+     this.startItem();
+    }
+  }
+
+  startItem(){
+    if(!this.promptItem.blocked) {
       this.ac.start();
     }
+    this.prompting.startPromptPlay();
   }
 
 
@@ -529,7 +536,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //this.promptText = this.promptUnit.mediaitems[0].text;
     //this.mediaitem=this.promptUnit.mediaitems[0];
     this.showPrompt = true;
-    this.changeDetectorRef.detectChanges()
+    this.changeDetectorRef.detectChanges();
   }
 
   downloadRecording() {
@@ -959,15 +966,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   opened() {
-    // this.statusAlertType = 'info';
-    // this.statusMsg = 'Ready.';
-    // this.updateStartActionDisableState()
-    // this.transportActions.fwdAction.disabled = false
-    // this.transportActions.bwdAction.disabled = false
-    this.ac.start();
+    // Capture opened, now start the item
+    this.startItem();
   }
 
   started() {
+    // Capture started
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
@@ -1215,7 +1219,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     // apply recorded item
     this.applyItem(startNext);
     if(startNext){
-      this.startItem();
+      this.prepareItem();
     }
     this.changeDetectorRef.detectChanges();
   }
