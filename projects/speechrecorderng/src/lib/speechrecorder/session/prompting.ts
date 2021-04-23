@@ -284,6 +284,9 @@ export class Prompter {
         this.videoPromptEl.src = this.srcUrl()
         console.log("Video src: "+this.videoPromptEl.src)
         this.videoPromptEl.load();
+        if(mi.autoplay === true){
+          this.videoPromptEl.play();
+        }
       }
 
     } else {

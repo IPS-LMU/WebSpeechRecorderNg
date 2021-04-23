@@ -41,6 +41,7 @@ export interface Mediaitem {
   src?: string,
   promptDoc?: PromptDoc,
   mimetype?:string,
+  autoplay?:boolean,
   defaultVirtualViewBox?:VirtualViewBox,
   alt?:string
 }

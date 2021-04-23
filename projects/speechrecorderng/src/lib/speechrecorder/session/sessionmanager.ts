@@ -159,6 +159,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   promptItemIdxInGroup: number;
 
   private autorecording: boolean;
+  private promptAutoplay=false;
 
   items: Array<Item>;
   //selectedItemIdx: number;
@@ -432,15 +433,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.status === Status.IDLE) {
       this.promptIndex=itemIdx;
     }
-
   }
-
-
 
   prepareItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-    if(this.readonly){
+    if (this.readonly) {
       return
     }
     this.transportActions.fwdAction.disabled = true
@@ -453,7 +451,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.section.mode === 'AUTORECORDING') {
       this.autorecording = true;
     }
-
+    this.promptAutoplay = false;
+    for (let mi of this.promptItem.mediaitems){
+      if(mi.autoplay===true){
+        this.promptAutoplay=true;
+        break;
+      }
+    }
     if(!this.ac.opened) {
       if(this._selectedDeviceId){
         console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for "+this._channelCount+" channels");
@@ -471,7 +475,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.ac.start();
     }
     this.prompting.onstarted=()=>{
-
     }
     this.prompting.onended=()=>{
       if(this.promptItem.blocked) {
