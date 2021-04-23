@@ -470,7 +470,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if(!this.promptItem.blocked) {
       this.ac.start();
     }
-    this.prompting.startPromptPlay();
+    this.prompting.onstarted=()=>{
+
+    }
+    this.prompting.onended=()=>{
+      if(this.promptItem.blocked) {
+        this.ac.start();
+      }
+    }
+    this.prompting.start();
   }
 
 

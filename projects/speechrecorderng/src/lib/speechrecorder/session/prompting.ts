@@ -93,6 +93,8 @@ export class Prompter {
   private videoPromptEl:HTMLVideoElement=null;
   private currPromptChild: HTMLElement = null;
 
+  private _onstarted:()=>void;
+  private _onended:()=>void;
   @HostBinding('class.fill') public prompterStyleFill = false;
 
 
@@ -253,6 +255,18 @@ export class Prompter {
           this.videoPromptEl.onloadeddata = (ev: Event) => {
             console.log("Video loaded data")
           }
+          this.videoPromptEl.onplay = (ev: Event) => {
+            console.log("Video play event")
+            if(this._onstarted){
+              this._onstarted();
+            }
+          }
+          this.videoPromptEl.onended = (ev: Event) => {
+            console.log("Video play ended event")
+            if(this._onended){
+              this._onended();
+            }
+          }
           this.videoPromptEl.onerror = (ev: Event) => {
             console.error("Video error: "+this.videoPromptEl.error.message)
           }
@@ -278,13 +292,29 @@ export class Prompter {
     }
   }
 
-  startPlayPrompt(){
+  start(){
     if(this.currPromptChild instanceof HTMLMediaElement){
       this.currPromptChild.play();
+    }else {
+      // Generate fake events for static content (text,images)
+      if (this._onstarted) {
+        this._onstarted();
+      }
+      if (this._onended) {
+        this._onended();
+      }
     }
   }
 
-  stopPlayPrompt(){
+  set onstarted(onstarted:()=>void){
+       this._onstarted=onstarted;
+  }
+
+  set onended(onended:()=>void){
+    this._onended=onended;
+  }
+
+  stop(){
     if(this.currPromptChild instanceof HTMLMediaElement){
       this.currPromptChild.pause();
     }
@@ -413,8 +443,16 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     this.layout();
   }
 
-  startPlayPrompt(){
-    this.prompter.startPlayPrompt();
+  set onstarted(onstarted:()=>void){
+    this.prompter.onstarted=onstarted;
+  }
+
+  set onended(onended:()=>void){
+    this.prompter.onended=onended;
+  }
+
+  start(){
+    this.prompter.start();
   }
 
   private layout() {
@@ -633,8 +671,16 @@ export class PromptingContainer {
     ev.preventDefault();
   }
 
-  startPlayPrompt(){
-    this.promptContainer.startPlayPrompt();
+  set onstarted(onstarted:()=>void){
+    this.promptContainer.onstarted=onstarted;
+  }
+
+  set onended(onended:()=>void){
+    this.promptContainer.onended=onended;
+  }
+
+  start(){
+    this.promptContainer.start();
   }
 
 }
@@ -773,8 +819,16 @@ export class Prompting {
     this.onPrevItem.emit();
   }
 
-  startPromptPlay(){
-    this.promptingContainer.startPlayPrompt();
+  set onstarted(onstarted:()=>void){
+    this.promptingContainer.onstarted=onstarted;
+  }
+
+  set onended(onended:()=>void){
+    this.promptingContainer.onended=onended;
+  }
+
+  start(){
+    this.promptingContainer.start();
   }
 }
 

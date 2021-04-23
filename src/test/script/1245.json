@@ -86,7 +86,20 @@
                 "mimetype": "video/avi",
                 "src": "resources/videos/20160815_131124.mp4"
               } ],
+              "prerecording": 5000,
               "itemcode" : "demo_900"
+            } ]
+          },
+          {
+            "promptItems" : [ {
+              "type" : "recording",
+              "blocked" : true,
+              "mediaitems" : [ {
+                "annotationTemplate" : false,
+                "mimetype": "video/avi",
+                "src": "resources/videos/20160815_131124.mp4"
+              } ],
+              "itemcode" : "demo_901"
             } ]
           },
           {
