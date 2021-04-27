@@ -284,14 +284,27 @@ export class Prompter {
         this.videoPromptEl.src = this.srcUrl()
         console.log("Video src: "+this.videoPromptEl.src)
         this.videoPromptEl.load();
-        if(mi.autoplay === true){
-          this.videoPromptEl.play();
-        }
+
       }
 
     } else {
       this._text = null
       this._src = null
+    }
+  }
+
+  autoplay() {
+    console.log("autoplay()");
+    if (this.currPromptChild != null) {
+      if(this.currPromptChild instanceof HTMLMediaElement) {
+        if (this._promptMediaItems && this._promptMediaItems.length == 1) {
+          let mi = this._promptMediaItems[0]
+          if (mi.autoplay === true) {
+            console.log("Autoplay video prompt...");
+            this.videoPromptEl.play();
+          }
+        }
+      }
     }
   }
 
@@ -452,6 +465,10 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
   set onended(onended:()=>void){
     this.prompter.onended=onended;
+  }
+
+  autoplay(){
+    this.prompter.autoplay();
   }
 
   start(){
@@ -682,6 +699,10 @@ export class PromptingContainer {
     this.promptContainer.onended=onended;
   }
 
+  autoplay(){
+    this.promptContainer.autoplay();
+  }
+
   start(){
     this.promptContainer.start();
   }
@@ -828,6 +849,10 @@ export class Prompting {
 
   set onended(onended:()=>void){
     this.promptingContainer.onended=onended;
+  }
+
+  autoplay(){
+    this.promptingContainer.autoplay();
   }
 
   start(){

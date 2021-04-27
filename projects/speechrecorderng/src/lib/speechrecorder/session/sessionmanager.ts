@@ -27,6 +27,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
+import {PromptPhase} from "../../../public_api";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -189,6 +190,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private audioFetchSubscription:Subscription|null;
 
+  private autoplayStarted=false;
   private destroyed=false;
 
   private navigationDisabled=true;
@@ -426,6 +428,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }else{
       throw new Error("Internal error: Prompt index not found")
     }
+    this.autoplayStarted=false;
     this.applyItem();
   }
 
@@ -451,13 +454,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.section.mode === 'AUTORECORDING') {
       this.autorecording = true;
     }
-    this.promptAutoplay = false;
-    for (let mi of this.promptItem.mediaitems){
-      if(mi.autoplay===true){
-        this.promptAutoplay=true;
-        break;
-      }
-    }
+
     if(!this.ac.opened) {
       if(this._selectedDeviceId){
         console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for "+this._channelCount+" channels");
@@ -470,17 +467,24 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
-  startItem(){
-    if(!this.promptItem.blocked) {
+  startItem() {
+    if (!this.promptItem.blocked) {
       this.ac.start();
     }
-    this.prompting.onstarted=()=>{
-    }
-    this.prompting.onended=()=>{
-      if(this.promptItem.blocked) {
+
+    this.prompting.onended = () => {
+      if (this.promptItem.blocked && this.status===Status.IDLE || this.status===Status.PLAY_PROMPT) {
         this.ac.start();
       }
+      if(this.status===Status.PLAY_PROMPT_PREVIEW){
+        this.status=Status.IDLE;
+        this.navigationDisabled=false;
+        this.updateNavigationActions();
+      }
     }
+    this.status=Status.PLAY_PROMPT;
+    this.navigationDisabled=true;
+    this.updateNavigationActions();
     this.prompting.start();
   }
 
@@ -547,6 +551,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //this.promptText = this.promptUnit.mediaitems[0].text;
     //this.mediaitem=this.promptUnit.mediaitems[0];
     this.showPrompt = true;
+
     this.changeDetectorRef.detectChanges();
   }
 
@@ -673,13 +678,23 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
 
     this.clearPrompt();
-
+    this.prompting.onstarted = () => {
+      if (this.status===Status.IDLE) {
+        // Prompt Autoplay
+        this.status=Status.PLAY_PROMPT_PREVIEW;
+      }
+      this.navigationDisabled=true;
+      this.updateNavigationActions();
+    }
     let isNonrecording=(this.promptItem.type==='nonrecording')
 
     if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
     }
-
+    if(!this.autoplayStarted) {
+      this.prompting.autoplay();
+      this.autoplayStarted=true;
+    }
     if(isNonrecording){
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
