@@ -1153,7 +1153,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
     this.startStopSignalState = StartStopSignalState.IDLE;
-
+    this.prompting.stop();
     let ad = this.ac.audioBuffer();
     let ic = this.promptItem.itemcode;
     if (this._session && ic) {

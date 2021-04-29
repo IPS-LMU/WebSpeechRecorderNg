@@ -83,7 +83,23 @@ export class Recinstructions {
 })
 export class Prompter {
   @Input() projectName: string | null;
-  private _promptMediaItems: Array<Mediaitem>
+  private _promptMediaItems: Array<Mediaitem>;
+  _showPrompt:boolean;
+  @Input() set showPrompt(showPrompt:boolean) {
+    this._showPrompt = showPrompt;
+    if (this.elRef.nativeElement) {
+      if (this._showPrompt) {
+        //this.currPromptChild.style.visibility='visible';
+        this.renderer.setStyle(this.elRef.nativeElement,'visibility','visible');
+      } else {
+        //this.currPromptChild.style.visibility='hidden';
+        this.renderer.setStyle(this.elRef.nativeElement,'visibility','hidden');
+      }
+    }
+  }
+  get showPrompt():boolean{
+    return this._showPrompt;
+  }
 
   @Input() prompterHeight: number
   private _text: string = null;
@@ -91,7 +107,7 @@ export class Prompter {
   private _blocks: Array<Block>=null;
   mimetype: string;
   private videoPromptEl:HTMLVideoElement=null;
-  private currPromptChild: HTMLElement = null;
+  private currPromptChild: any = null;
 
   private _onstarted:()=>void;
   private _onended:()=>void;
@@ -348,7 +364,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
   selector: 'app-sprpromptcontainer',
 
   template: `
-    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
+    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [showPrompt]="showPrompt" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
   `
   ,
   styles: [`:host {
@@ -371,6 +387,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
 })
 export class PromptContainer implements OnInit,AfterContentChecked {
   @Input() projectName: string | null;
+  @Input() showPrompt: boolean;
   private _mediaitems: Array<Mediaitem>;
 
   prompterHeight: number = VIRTUAL_HEIGHT
@@ -453,6 +470,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
 
 
+
   @HostListener('window:resize', ['$event'])
   onResize(event: Event): void {
     //console.debug("onresize, call fontSizeToFit hook ");
@@ -473,6 +491,10 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
   start(){
     this.prompter.start();
+  }
+
+  stop(){
+    this.prompter.stop();
   }
 
   private layout() {
@@ -543,8 +565,8 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
                          [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
-    <app-sprpromptcontainer [projectName]="projectName"
-                            [mediaitems]="showPrompt?promptItem?.mediaitems:null"></app-sprpromptcontainer>
+    <app-sprpromptcontainer [projectName]="projectName" [showPrompt]="showPrompt"
+                            [mediaitems]="promptItem?.mediaitems"></app-sprpromptcontainer>
 
   `
   ,
@@ -707,6 +729,10 @@ export class PromptingContainer {
     this.promptContainer.start();
   }
 
+  stop(){
+    this.promptContainer.stop();
+  }
+
 }
 
 
@@ -857,6 +883,9 @@ export class Prompting {
 
   start(){
     this.promptingContainer.start();
+  }
+  stop(){
+    this.promptingContainer.stop();
   }
 }
 
