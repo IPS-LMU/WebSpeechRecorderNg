@@ -109,7 +109,9 @@ export class Prompter {
   private videoPromptEl:HTMLVideoElement=null;
   private currPromptChild: any = null;
 
+  private _running=false;
   private _onstarted:()=>void;
+  private _onpaused:()=>void;
   private _onended:()=>void;
   @HostBinding('class.fill') public prompterStyleFill = false;
 
@@ -183,6 +185,10 @@ export class Prompter {
     }
     if (this._promptMediaItems && this._promptMediaItems.length == 1) {
       let mi = this._promptMediaItems[0]
+      let modal=false;
+      if(mi.modal === true){
+        modal=true;
+      }
       this.mimetype = 'text/plain'
       if (mi.mimetype) {
         this.mimetype = mi.mimetype.trim();
@@ -273,14 +279,35 @@ export class Prompter {
           }
           this.videoPromptEl.onplay = (ev: Event) => {
             console.log("Video play event")
+            this._running=true;
             if(this._onstarted){
               this._onstarted();
             }
           }
+          this.videoPromptEl.onpause = (ev: Event) => {
+            console.log("Video pause event")
+            this._running=false;
+            if(this._onpaused){
+              this._onpaused();
+            }
+          }
           this.videoPromptEl.onended = (ev: Event) => {
             console.log("Video play ended event")
+            this._running=false;
             if(this._onended){
               this._onended();
+            }
+          }
+          this.videoPromptEl.onclick = (ev: Event) => {
+            console.log("Video clicked")
+            if(this.videoPromptEl) {
+              if (this._running) {
+                if(!modal) {
+                  this.videoPromptEl.pause();
+                }
+              } else {
+                this.videoPromptEl.play();
+              }
             }
           }
           this.videoPromptEl.onerror = (ev: Event) => {
@@ -340,6 +367,10 @@ export class Prompter {
 
   set onstarted(onstarted:()=>void){
        this._onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this._onpaused=onpaused;
   }
 
   set onended(onended:()=>void){
@@ -479,6 +510,10 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
   set onstarted(onstarted:()=>void){
     this.prompter.onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this.prompter.onpaused=onpaused;
   }
 
   set onended(onended:()=>void){
@@ -717,6 +752,10 @@ export class PromptingContainer {
     this.promptContainer.onstarted=onstarted;
   }
 
+  set onpaused(onpaused:()=>void){
+    this.promptContainer.onpaused=onpaused;
+  }
+
   set onended(onended:()=>void){
     this.promptContainer.onended=onended;
   }
@@ -871,6 +910,10 @@ export class Prompting {
 
   set onstarted(onstarted:()=>void){
     this.promptingContainer.onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this.promptingContainer.onpaused=onpaused;
   }
 
   set onended(onended:()=>void){

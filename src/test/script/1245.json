@@ -95,6 +95,7 @@
               "type" : "recording",
               "blocked" : true,
               "mediaitems" : [ {
+                "modal": true,
                 "annotationTemplate" : false,
                 "mimetype": "video/avi",
                 "src": "resources/videos/20160815_131124.mp4"

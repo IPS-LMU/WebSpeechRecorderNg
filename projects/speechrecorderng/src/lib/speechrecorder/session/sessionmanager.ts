@@ -467,20 +467,26 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
+  private onPromptEnd(){
+    if (this.promptItem.blocked && this.status===Status.IDLE || this.status===Status.PLAY_PROMPT) {
+      this.ac.start();
+    }
+    if(this.status===Status.PLAY_PROMPT_PREVIEW){
+      this.status=Status.IDLE;
+      this.navigationDisabled=false;
+      this.updateNavigationActions();
+    }
+  }
+
   startItem() {
     if (!this.promptItem.blocked) {
       this.ac.start();
     }
-
+    this.prompting.onpaused = () => {
+      this.onPromptEnd();
+    }
     this.prompting.onended = () => {
-      if (this.promptItem.blocked && this.status===Status.IDLE || this.status===Status.PLAY_PROMPT) {
-        this.ac.start();
-      }
-      if(this.status===Status.PLAY_PROMPT_PREVIEW){
-        this.status=Status.IDLE;
-        this.navigationDisabled=false;
-        this.updateNavigationActions();
-      }
+      this.onPromptEnd();
     }
     this.status=Status.PLAY_PROMPT;
     this.navigationDisabled=true;
