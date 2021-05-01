@@ -564,7 +564,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
   template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
-                         [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
+                         [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
     <app-sprpromptcontainer [projectName]="projectName" [showPrompt]="showPrompt"
                             [mediaitems]="promptItem?.mediaitems"></app-sprpromptcontainer>
 
