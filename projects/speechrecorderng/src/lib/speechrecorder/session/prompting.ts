@@ -106,6 +106,8 @@ export class Prompter {
   private _src: string = null;
   private _blocks: Array<Block>=null;
   mimetype: string;
+  private mediaPromptEl:HTMLMediaElement=null;
+  private audioPromptEl:HTMLAudioElement=null;
   private videoPromptEl:HTMLVideoElement=null;
   private currPromptChild: any = null;
 
@@ -173,6 +175,50 @@ export class Prompter {
       }
     }
 
+private applyMediaPromptListener(modal:boolean) {
+  this.mediaPromptEl.onloadeddata = (ev: Event) => {
+    console.log("Media loaded data")
+  }
+  this.mediaPromptEl.onplay = (ev: Event) => {
+    console.log("Media play event")
+    this._running = true;
+    if (this._onstarted) {
+      this._onstarted();
+    }
+  }
+  this.mediaPromptEl.onpause = (ev: Event) => {
+    console.log("Media pause event")
+    this._running = false;
+    if (this._onpaused) {
+      this._onpaused();
+    }
+  }
+  this.mediaPromptEl.onended = (ev: Event) => {
+    console.log("Media play ended event")
+    this._running = false;
+    if (this._onended) {
+      this._onended();
+    }
+  }
+  this.mediaPromptEl.onclick = (ev: Event) => {
+    console.log("Media clicked")
+    if (this.mediaPromptEl) {
+      if (this._running) {
+        if (!modal) {
+          this.mediaPromptEl.pause();
+        }
+      } else {
+        this.mediaPromptEl.play();
+      }
+    }
+  }
+  this.mediaPromptEl.onerror = (ev: Event) => {
+    console.error("Media error: " + this.mediaPromptEl.error.message)
+  }
+  this.mediaPromptEl.onabort = (ev: Event) => {
+    console.error("Media abort: " + ev)
+  }
+}
   @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
@@ -274,59 +320,37 @@ export class Prompter {
         this._src = mi.src
         if(this.videoPromptEl==null){
           this.videoPromptEl = <HTMLVideoElement>this.renderer.createElement('video');
-          this.videoPromptEl.onloadeddata = (ev: Event) => {
-            console.log("Video loaded data")
-          }
-          this.videoPromptEl.onplay = (ev: Event) => {
-            console.log("Video play event")
-            this._running=true;
-            if(this._onstarted){
-              this._onstarted();
-            }
-          }
-          this.videoPromptEl.onpause = (ev: Event) => {
-            console.log("Video pause event")
-            this._running=false;
-            if(this._onpaused){
-              this._onpaused();
-            }
-          }
-          this.videoPromptEl.onended = (ev: Event) => {
-            console.log("Video play ended event")
-            this._running=false;
-            if(this._onended){
-              this._onended();
-            }
-          }
-          this.videoPromptEl.onclick = (ev: Event) => {
-            console.log("Video clicked")
-            if(this.videoPromptEl) {
-              if (this._running) {
-                if(!modal) {
-                  this.videoPromptEl.pause();
-                }
-              } else {
-                this.videoPromptEl.play();
-              }
-            }
-          }
-          this.videoPromptEl.onerror = (ev: Event) => {
-            console.error("Video error: "+this.videoPromptEl.error.message)
-          }
-          this.videoPromptEl.onabort = (ev: Event) => {
-            console.error("Video abort: "+ev)
-          }
+          this.mediaPromptEl=this.videoPromptEl;
         }
-
-        this.currPromptChild = this.videoPromptEl
+        this.applyMediaPromptListener(modal);
+        this.currPromptChild = this.mediaPromptEl
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
         this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
         this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
         this.prompterStyleFill = true
 
-        this.videoPromptEl.src = this.srcUrl()
-        console.log("Video src: "+this.videoPromptEl.src)
-        this.videoPromptEl.load();
+        this.mediaPromptEl.src = this.srcUrl()
+        console.log("Video src: "+this.mediaPromptEl.src)
+        this.mediaPromptEl.load();
+
+      }else if (this.mimetype.startsWith('audio')){
+        this._text = null
+        this._src = mi.src
+        if(this.audioPromptEl==null){
+          this.audioPromptEl = <HTMLAudioElement>this.renderer.createElement('audio');
+          this.mediaPromptEl=this.audioPromptEl;
+        }
+        this.applyMediaPromptListener(modal);
+
+        this.currPromptChild = this.mediaPromptEl
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
+        this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
+        this.prompterStyleFill = true
+
+        this.mediaPromptEl.src = this.srcUrl()
+        console.log("Audio src: "+this.mediaPromptEl.src)
+        this.mediaPromptEl.load();
 
       }
 
@@ -344,7 +368,7 @@ export class Prompter {
           let mi = this._promptMediaItems[0]
           if (mi.autoplay === true) {
             console.log("Autoplay video prompt...");
-            this.videoPromptEl.play();
+            this.mediaPromptEl.play();
           }
         }
       }
