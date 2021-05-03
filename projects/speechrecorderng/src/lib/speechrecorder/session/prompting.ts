@@ -320,14 +320,20 @@ private applyMediaPromptListener(modal:boolean) {
         this._src = mi.src
         if(this.videoPromptEl==null){
           this.videoPromptEl = <HTMLVideoElement>this.renderer.createElement('video');
-          this.mediaPromptEl=this.videoPromptEl;
         }
+        this.mediaPromptEl=this.videoPromptEl;
         this.applyMediaPromptListener(modal);
         this.currPromptChild = this.mediaPromptEl
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
         this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
         this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
         this.prompterStyleFill = true
+
+        //let ovlEl = <HTMLDivElement>this.renderer.createElement('div');
+        //this.renderer.setStyle(ovlEl, "position", "absolute");
+        //let bkgval='rgba(#0, #0, #0, 0.5)';
+        //this.renderer.setStyle(ovlEl, "background", bkgval);
+        //this.renderer.appendChild(this.currPromptChild,ovlEl);
 
         this.mediaPromptEl.src = this.srcUrl()
         console.log("Video src: "+this.mediaPromptEl.src)
@@ -338,8 +344,9 @@ private applyMediaPromptListener(modal:boolean) {
         this._src = mi.src
         if(this.audioPromptEl==null){
           this.audioPromptEl = <HTMLAudioElement>this.renderer.createElement('audio');
-          this.mediaPromptEl=this.audioPromptEl;
         }
+        this.mediaPromptEl=this.audioPromptEl;
+
         this.applyMediaPromptListener(modal);
 
         this.currPromptChild = this.mediaPromptEl
