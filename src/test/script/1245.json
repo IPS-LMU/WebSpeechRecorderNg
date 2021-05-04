@@ -373,8 +373,8 @@
                 }
               ],
               "itemcode": "VL5",
-              "prerecdelay": 2000,
-              "postrecdelay": 500,
+              "prerecording": 2000,
+              "postrecording": 500,
               "recduration": 20000,
               "recinstructions": {
                 "mimetype": "text/plain",

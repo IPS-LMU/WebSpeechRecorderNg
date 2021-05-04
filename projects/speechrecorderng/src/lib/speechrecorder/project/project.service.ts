@@ -54,7 +54,9 @@ export class ProjectService {
 
   projectResourceUrl(projectId: string,relResourcePath:string):string{
     let encPrjId=encodeURIComponent(projectId);
-    let encRelResPath=encodeURIComponent(relResourcePath);
+    // Use encodeURI here since the relatice resource path from recording scripts is already a URI
+    // encodeURIComponent function would encode the slashes and fetching the resource would fail
+    let encRelResPath=encodeURI(relResourcePath);
     return this.projectCtxUrl + '/' + encPrjId +'/'+encRelResPath;
   }
 
