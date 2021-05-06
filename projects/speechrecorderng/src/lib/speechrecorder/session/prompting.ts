@@ -384,6 +384,9 @@ private applyMediaPromptListener(modal:boolean) {
 
   start(){
     if(this.currPromptChild instanceof HTMLMediaElement){
+      if(!this._running){
+        this.currPromptChild.currentTime=0;
+      }
       this.currPromptChild.play();
     }else {
       // Generate fake events for static content (text,images)
