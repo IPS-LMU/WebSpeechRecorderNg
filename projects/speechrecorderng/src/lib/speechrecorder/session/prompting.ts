@@ -109,6 +109,7 @@ export class Prompter {
   private mediaPromptEl:HTMLMediaElement=null;
   private audioPromptEl:HTMLAudioElement=null;
   private videoPromptEl:HTMLVideoElement=null;
+  private promptCtrlOvlEl:HTMLDivElement=null;
   private currPromptChild: any = null;
 
   private _running=false;
@@ -344,6 +345,24 @@ private applyMediaPromptListener(modal:boolean) {
         this._src = mi.src
         if(this.audioPromptEl==null){
           this.audioPromptEl = <HTMLAudioElement>this.renderer.createElement('audio');
+          //this.renderer.setStyle(this.audioPromptEl,"background","green");
+          this.renderer.setStyle(this.audioPromptEl, "width", "100%")
+          this.renderer.setStyle(this.audioPromptEl, "height", "100%")
+          this.renderer.setAttribute(this.audioPromptEl,"controls","true");
+        }
+        if(this.promptCtrlOvlEl==null){
+          this.promptCtrlOvlEl = <HTMLDivElement>this.renderer.createElement('div');
+          //this.renderer.setStyle(this.audioPromptEl,"background","green");
+          this.renderer.setStyle(this.promptCtrlOvlEl, "position", "absolute")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "top", "0")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "left", "0")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "width", "100%")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "height", "100%")
+          //this.renderer.setStyle(this.promptCtrlOvlEl, "background", "green")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "z-index", "9")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "opacity", "0.3")
+
+
         }
         this.mediaPromptEl=this.audioPromptEl;
 
@@ -351,6 +370,7 @@ private applyMediaPromptListener(modal:boolean) {
 
         this.currPromptChild = this.mediaPromptEl
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        this.renderer.appendChild(this.elRef.nativeElement, this.promptCtrlOvlEl)
         this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
         this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
         this.prompterStyleFill = true
