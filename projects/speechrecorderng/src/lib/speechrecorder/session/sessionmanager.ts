@@ -27,6 +27,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
+import {Item} from "./item";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -43,18 +44,7 @@ export const enum Status {
   BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
-export class Item {
-  promptAsString: string;
-  training: boolean;
-  recs: Array<RecordingFile> | null;
 
-  constructor(promptAsString: string, training: boolean) {
-    this.promptAsString = promptAsString;
-    this.training = training;
-    this.recs = null;
-  }
-
-}
 
 // TODO enum not possible in template language , use string for now
 //export enum StatusAlertType {INFO,WARN,ERROR};

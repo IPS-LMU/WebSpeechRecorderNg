@@ -14,7 +14,7 @@ import {
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {Item} from "./sessionmanager";
+import {Item} from "./item";
 import {Block, Text, Mediaitem, PromptItem} from "../script/script";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";

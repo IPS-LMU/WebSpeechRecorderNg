@@ -1,13 +1,26 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "0.0.0",
+  "version": "2.18.0",
+  "author": {
+    "name": "Klaus Jänsch",
+    "email": "klausj@phonetik.uni-muenchen.de"
+  },
+  "license": "MIT",
   "scripts": {
     "ng": "ng",
+    "apply_module_version": "node bin/apply_version.js",
+    "new_prerelease": "npm version --no-git-tag-version prerelease && cd projects && cd speechrecorderng && npm version --no-git-tag-version prerelease && cd .. && cd ..",
+    "new_prerelease_build_and_pack_module": "npm run new_prerelease && npm run build_and_pack_module",
+    "build_module": "npm run apply_module_version && ng build speechrecorderng --configuration production",
+    "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
+    "pack_pi_module": "cd dist && cd speechrecorderng && npm pack && cd ../../ && node bin/mv_tgz_pkgs.js",
+    "build_and_pack_module": "npm run build_module && npm run pack_pi_module",
+    "publish_module": "cd dist && cd speechrecorderng && npm publish",
     "start": "ng serve",
+    "start_prod": "ng serve --prod",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "apply_module_version": "node bin/apply_version.js"
+    "test": "ng test"
   },
   "private": true,
   "dependencies": {
