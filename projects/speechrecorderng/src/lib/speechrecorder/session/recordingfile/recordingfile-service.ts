@@ -100,38 +100,44 @@ export class RecordingFileService {
 
   fetchAndApplyRecordingFile(aCtx: AudioContext, recordingFile:RecordingFile):Observable<RecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile>(observer=>{
+    let wobs = new Observable<RecordingFile|null>(observer=>{
+      if(recordingFile.recordingFileId) {
+        let obs = this.fetchAudiofile(recordingFile.recordingFileId);
 
-      let obs = this.fetchAudiofile(recordingFile.recordingFileId);
+        obs.subscribe(resp => {
+              // Do not use Promise version, which does not work with Safari 13
+              if(resp.body) {
+                aCtx.decodeAudioData(resp.body, ab => {
+                  recordingFile.audioBuffer = ab;
+                  if (this.debugDelay > 0) {
+                    window.setTimeout(() => {
 
-
-      obs.subscribe(resp => {
-            // Do not use Promise version, which does not work with Safari 13
-          aCtx.decodeAudioData(resp.body,ab=>{
-            recordingFile.audioBuffer=ab;
-            if(this.debugDelay>0) {
-              window.setTimeout(() => {
-
-                observer.next(recordingFile);
+                      observer.next(recordingFile);
+                      observer.complete();
+                    }, this.debugDelay);
+                  } else {
+                    observer.next(recordingFile);
+                    observer.complete();
+                  }
+                })
+              }else{
+                observer.error('Received no audio data!');
+              }
+            },
+            (error: HttpErrorResponse) => {
+              if (error.status == 404) {
+                // Interpret not as an error, the file ist not recorded yet
+                observer.next(null);
+                observer.complete()
+              } else {
+                // all other states are errors
+                observer.error(error);
                 observer.complete();
-              }, this.debugDelay);
-            }else{
-              observer.next(recordingFile);
-              observer.complete();
-            }
-          })
-        },
-        (error: HttpErrorResponse) => {
-          if (error.status == 404) {
-            // Interpret not as an error, the file ist not recorded yet
-            observer.next(null);
-            observer.complete()
-          }else{
-            // all other states are errors
-            observer.error(error);
-            observer.complete();
-          }
-        });
+              }
+            });
+      }else{
+        observer.error();
+      }
     });
 
     return wobs;
@@ -140,7 +146,7 @@ export class RecordingFileService {
   fetchRecordingFile(aCtx: AudioContext, recordingFileId: string | number): Observable<RecordingFile | null> {
 
     let wobs = new Observable<RecordingFile | null>(observer => {
-      let rf: RecordingFile = null;
+      let rf: RecordingFile|null = null;
       let rfDescrObs = this.recordingFileDescrObserver(recordingFileId);
       rfDescrObs.subscribe(value => {
         rf = value;
@@ -150,11 +156,15 @@ export class RecordingFileService {
         let rfAudioObs = this.fetchAudiofile(recordingFileId);
         rfAudioObs.subscribe(resp => {
               // Do not use Promise version, which does not work with Safari 13
-            aCtx.decodeAudioData(resp.body,ab => {
-              rf.audioBuffer = ab
+          if(resp.body) {
+            aCtx.decodeAudioData(resp.body, ab => {
+              if(rf) {
+                rf.audioBuffer = ab
+              }else{
+                observer.error('Recording file object null');
+              }
               if (this.debugDelay > 0) {
                 window.setTimeout(() => {
-
                   observer.next(rf);
                   observer.complete();
                 }, this.debugDelay);
@@ -163,6 +173,9 @@ export class RecordingFileService {
                 observer.complete();
               }
             })
+          }else{
+            observer.error('Received no audio data');
+          }
           },
           (error: HttpErrorResponse) => {
             if (error.status == 404) {
@@ -175,6 +188,7 @@ export class RecordingFileService {
               observer.complete();
             }
           });
+
       });
     });
 

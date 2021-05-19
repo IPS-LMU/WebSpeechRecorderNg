@@ -4,8 +4,8 @@ import { Directive } from "@angular/core";
 @Directive()
 export abstract class CanvasLayerComponent{
 
-  protected bounds:Rectangle=null;
-  protected virtualDimension:Dimension;
+  protected bounds:Rectangle|null=null;
+  protected virtualDimension!:Dimension;
   protected canvasLayers:Array<HTMLCanvasElement>;
 
   constructor(){

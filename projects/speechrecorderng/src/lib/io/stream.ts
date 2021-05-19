@@ -12,14 +12,13 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
   private bufs = new Array<Float32Array>();
   private filled: number;
 
-  private _channels: number;
-  private _chunkSize: number;
+  private _channels: number=0;
+  private _chunkSize: number=0;
 
   private receivedFrames: number;
   private sentFrames: number;
 
   constructor(private outStream: Float32ArrayOutStream) {
-
     this.filled = 0;
     this.receivedFrames = 0;
     this.sentFrames = 0;
@@ -49,6 +48,7 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
     this.receivedFrames += buffersLen;
     let avail = buffersLen;
     // Fill out buffers until all values copied
+
     while (avail > 0) {
       let toFill = this._chunkSize - this.filled;
       if (toFill > avail) {

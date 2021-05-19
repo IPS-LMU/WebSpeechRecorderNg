@@ -30,7 +30,7 @@ import {Action} from "../../../action/action";
                   <mat-icon>last_page</mat-icon>
                 </button>
               </div>
-              <p *ngIf="items!=null && itemPos!=null">Item {{itemPos+1}} of {{items}}</p>
+              <p *ngIf="items && itemPos">Item {{itemPos+1}} of {{items}}</p>
               <p>(List ordered by date)</p>
             </fieldset>
           </div>
@@ -43,15 +43,15 @@ import {Action} from "../../../action/action";
       }`]
 })
 export class RecordingFileNaviComponent implements OnInit {
-  @Input() firstAction: Action<void>;
-  @Input() prevAction: Action<void>;
-  @Input() nextAction: Action<void>;
-  @Input() lastAction: Action<void>;
-  @Input() items:number | null;
-  @Input() itemPos:number | null;
-  @Input() selectVersion: Action<number>;
-  @Input() versions: Array<number>;
-  @Input() version: number=null;
+  @Input() firstAction: Action<void>|undefined;
+  @Input() prevAction: Action<void>|undefined;
+  @Input() nextAction: Action<void>|undefined;
+  @Input() lastAction: Action<void>|undefined;
+  @Input() items:number | null|undefined;
+  @Input() itemPos:number | null|undefined;
+  @Input() selectVersion: Action<number>|undefined;
+  @Input() versions: Array<number>|null=null;
+  @Input() version: number|null=null;
 
   @Input() naviInfoLoading=false;
 
@@ -60,10 +60,14 @@ export class RecordingFileNaviComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  selectVersionChange(ev){
-    let versionNr=parseInt(ev.target.value);
+  selectVersionChange(ev:Event){
     //console.debug("Change event: "+ev.target.value+ ", as Nr: "+versionNr);
-    this.selectVersion.perform(versionNr)
+
+      const selEl = ev.target as HTMLSelectElement;
+      let versionNr = parseInt(selEl.value);
+      if(this.selectVersion) {
+        this.selectVersion.perform(versionNr);
+      }
   }
 
 }

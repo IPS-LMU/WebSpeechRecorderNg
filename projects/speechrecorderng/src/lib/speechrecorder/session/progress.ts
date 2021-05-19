@@ -78,9 +78,9 @@ import {Item} from './sessionmanager';
 
 })
 export class Progress {
-  @Input() items: Array<Item>;
+  @Input() items: Array<Item>|null=null;
   @Input() selectedItemIdx = 0;
-  @Input() enableDownload: boolean;
+  @Input() enableDownload: boolean=false;
   @Output() onRowSelect = new EventEmitter<number>();
   @Output()
   set rowSelect(rowIdx:number){
@@ -90,7 +90,7 @@ export class Progress {
   @Output() onShowDoneAction = new EventEmitter<number>();
   @Output()
   set clickDone(rowIdx:number){
-    if(this.items[rowIdx] && this.items[rowIdx].recs) {
+    if(this.items &&this.items[rowIdx] && this.items[rowIdx].recs) {
       this.onRowSelect.emit(rowIdx);
       this.onShowDoneAction.emit(rowIdx);
     }
@@ -99,7 +99,7 @@ export class Progress {
   @Output() onDownloadDoneAction = new EventEmitter<number>();
   @Output()
   set clickDownloadDone(rowIdx:number){
-    if(this.items[rowIdx] && this.items[rowIdx].recs) {
+    if(this.items && this.items[rowIdx] && this.items[rowIdx].recs) {
       this.onRowSelect.emit(rowIdx);
       this.onDownloadDoneAction.emit(rowIdx);
     }
