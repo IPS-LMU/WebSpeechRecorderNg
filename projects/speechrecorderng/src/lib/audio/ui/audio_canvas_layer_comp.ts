@@ -194,7 +194,6 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     }
 
     selectionStart(me:MouseEvent){
-        //this.select(null);
         this.selectStartX=me.offsetX;
     }
 
@@ -209,8 +208,10 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
     abstract startDraw(clear:boolean):void;
 
-    updateCursorCanvas(me:MouseEvent|null=null,showCursorPosition=true){
+    updateCursorCanvas(me:MouseEvent,showCursorPosition=true){
+
         if (this.cursorCanvas) {
+
             let w = this.cursorCanvas.width;
             let h = this.cursorCanvas.height;
             let g = this.cursorCanvas.getContext("2d");
@@ -228,9 +229,8 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
                         this.pointerPositionChanged(me.offsetX)
                     }else{
                         this.pointerPositionChanged(null)
-}
+                    }
                 }
-
             }
         }
     }
