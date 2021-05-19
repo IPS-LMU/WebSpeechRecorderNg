@@ -64,15 +64,15 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
     }
   }
 
-  viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
-      let framePos=null;
-    if (this._audioData && this._audioData.numberOfChannels > 0) {
-        let ch0 = this._audioData.getChannelData(0);
-        let frameLength = ch0.length;
-        let vw;
-        if (this.bounds) {
-            vw= this.bounds.dimension.width;
-        }
+    viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
+        let vpXramePos=null;
+        if (this._audioData && this._audioData.numberOfChannels > 0) {
+            let ch0 = this._audioData.getChannelData(0);
+            let frameLength = ch0.length;
+            let vw;
+            if (this.bounds) {
+                vw= this.bounds.dimension.width;
+            }
             if (this.virtualDimension) {
                 vw = this.virtualDimension.width;
             }
@@ -86,12 +86,11 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
                 if (framePos >= frameLength) {
                     framePos = frameLength - 1
                 }
-                framePos = Math.round(framePos);
-
+                vpXramePos = Math.round(framePos);
             }
         }
-    return framePos;
-  }
+        return vpXramePos;
+    }
 
     layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
 
