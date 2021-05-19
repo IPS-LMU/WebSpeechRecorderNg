@@ -48,11 +48,14 @@ export class Recinstructions {
   @Input() itemCount: number|undefined;
 
   displayText():string{
-    let posTxt:string='';
+    let riTxt:string='';
     if(this.itemCount && this.selectedItemIdx){
-      posTxt=this.selectedItemIdx+'/'+(this.itemCount-1)+': ';
+      riTxt=riTxt+this.selectedItemIdx+'/'+(this.itemCount-1);
     }
-    return posTxt+this.recinstructions;
+    if(this.recinstructions){
+      riTxt=riTxt+': '+this.recinstructions;
+    }
+    return riTxt;
   }
 }
 
