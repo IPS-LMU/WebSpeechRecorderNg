@@ -28,6 +28,7 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {PromptPhase} from "../../../public_api";
+import {Item} from "./item";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -44,18 +45,7 @@ export const enum Status {
   BLOCKED, IDLE,NON_RECORDING,PLAY_PROMPT_PREVIEW,PLAY_PROMPT, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
-export class Item {
-  promptAsString: string;
-  training: boolean;
-  recs: Array<RecordingFile> | null;
 
-  constructor(promptAsString: string, training: boolean) {
-    this.promptAsString = promptAsString;
-    this.training = training;
-    this.recs = null;
-  }
-
-}
 
 // TODO enum not possible in template language , use string for now
 //export enum StatusAlertType {INFO,WARN,ERROR};
@@ -79,7 +69,7 @@ export class Item {
                         [playStopAction]="controlAudioPlayer?.stopAction">
 
     </app-sprprompting>
-    <mat-progress-bar [value]="promptIndex*100/(items?.length-1)" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
+    <mat-progress-bar [value]="progressPercentValue()" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
 
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
@@ -111,72 +101,72 @@ export class Item {
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
-  @Input() projectName:string|null;
+  @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;
 
-  ac: AudioCapture;
+  ac: AudioCapture|null=null;
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|null=null;
-  @ViewChild(Prompting, { static: true }) prompting: Prompting;
-  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay: LevelBarDisplay;
+  @ViewChild(Prompting, { static: true }) prompting!: Prompting;
+  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
 
   @Input() dataSaved=true
 
 
-  startStopSignalState: StartStopSignalState;
+  startStopSignalState!: StartStopSignalState;
   // Property audioDevices from project config: list of names of allowed audio devices.
-  private _audioDevices: Array<AudioDevice> | null | undefined;
+  private _audioDevices: Array<AudioDevice> | null| undefined;
   private selCaptureDeviceId: ConstrainDOMString | null;
 
   private updateTimerId: any;
-  private preRecTimerId: number;
-  private preRecTimerRunning: boolean;
-  private postRecTimerId: number;
-  private postRecTimerRunning: boolean;
-  private maxRecTimerId: number;
-  private maxRecTimerRunning: boolean;
+  private preRecTimerId: number|null=null;
+  private preRecTimerRunning: boolean|null=null;
+  private postRecTimerId: number|null=null;
+  private postRecTimerRunning: boolean|null=null;
+  private maxRecTimerId: number|null=null;
+  private maxRecTimerRunning: boolean|null=null;
 
   transportActions: TransportActions;
-  dnlLnk: HTMLAnchorElement;
+  dnlLnk!: HTMLAnchorElement;
   playStartAction: Action<void>;
   audio: any;
 
-  _session: Session;
-  _script: Script;
+  _session: Session|null=null;
+  _script!: Script;
 
-  private _promptIndex:number;
-  private section: Section;
-  group: Group;
-  promptItem:PromptItem;
-  showPrompt: boolean;
+  private _promptIndex=0;
+  private section!: Section;
+  group!: Group;
+  promptItem!:PromptItem;
+  showPrompt!: boolean;
 
   // index of current section
-  sectIdx: number;
+  sectIdx!: number;
   // index of current group in section
-  groupIdxInSection: number;
+  groupIdxInSection!: number;
   // index of current prompt item in group
-  promptItemIdxInGroup: number;
+  promptItemIdxInGroup!: number;
 
-  private autorecording: boolean;
+  private autorecording!: boolean;
   private promptAutoplay=false;
 
-  items: Array<Item>;
+  items: Array<Item>|null=null;
   //selectedItemIdx: number;
-  private _displayRecFile: RecordingFile | null;
-  private displayRecFileVersion: number;
-  displayAudioClip: AudioClip | null;
+  private _displayRecFile: RecordingFile | null=null;
+  private displayRecFileVersion!: number;
+  displayAudioClip: AudioClip | null=null;
 
-  displayLevelInfos: LevelInfos | null;
+  displayLevelInfos: LevelInfos | null=null;
 
-  promptItemCount: number;
+  promptItemCount!: number;
 
   readonly=false
 
-  statusMsg: string;
-  statusAlertType: string;
-  statusWaiting: boolean;
+  statusMsg!: string;
+  statusAlertType!: string;
+  statusWaiting!: boolean;
 
   processingRecording=false
 
@@ -186,9 +176,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private streamLevelMeasure: StreamLevelMeasure;
   private levelMeasure: LevelMeasure;
-  private _controlAudioPlayer: AudioPlayer;
+  private _controlAudioPlayer!: AudioPlayer;
 
-  private audioFetchSubscription:Subscription|null;
+  private audioFetchSubscription:Subscription|null=null;
 
   private autoplayStarted=false;
   private destroyed=false;
@@ -209,10 +199,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
-    if (this.config && this.config.enableUploadRecordings != null) {
+    if (this.config && this.config.enableUploadRecordings) {
       this.enableUploadRecordings = this.config.enableUploadRecordings;
     }
-    if (this.config && this.config.enableDownloadRecordings != null) {
+    if (this.config && this.config.enableDownloadRecordings) {
       this.enableDownloadRecordings = this.config.enableDownloadRecordings;
     }
     this.init();
@@ -255,9 +245,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       });
       return;
     }
-
-    console.info("State of audio context: " + context.state)
-
+    if(context) {
+      console.info("State of audio context: " + context.state)
+    }else{
+      console.info("No audio context available!");
+    }
     if (!navigator.mediaDevices) {
       this.status = Status.ERROR;
       let errMsg = 'Browser does not support Media streams!';
@@ -336,16 +328,23 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
+  progressPercentValue():number {
+    let v=100;
+    if(this.items) {
+      v=this.promptIndex * 100 / (this.items.length - 1);
+    }
+    return v;
+  }
   isTestSession():boolean {
-    return (this._session && (this._session.type === 'TEST' || this._session.type==='TEST_DEF_A' || this._session.type === 'SINUS_TEST'))
+    return ((this._session!=null) && (this._session.type === 'TEST' || this._session.type==='TEST_DEF_A' || this._session.type === 'SINUS_TEST'));
   }
 
   isDefaultAudioTestSession():boolean {
-    return (this._session && (this._session.type==='TEST_DEF_A'))
+    return ((this._session!=null) && (this._session.type==='TEST_DEF_A'));
   }
 
   isDefaultAudioTestSessionOverwriteingProjectRequirements():boolean {
-    return (this._session && (this._session.type==='TEST_DEF_A') && this.audioDevices && this._audioDevices.length>0)
+    return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
 
@@ -428,7 +427,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }else{
       throw new Error("Internal error: Prompt index not found")
     }
-    this.autoplayStarted=false;
     this.applyItem();
   }
 
@@ -436,12 +434,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.status === Status.IDLE) {
       this.promptIndex=itemIdx;
     }
+
   }
 
-  prepareItem() {
+
+
+  startItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-    if (this.readonly) {
+    if(this.readonly){
       return
     }
     this.transportActions.fwdAction.disabled = true
@@ -463,35 +464,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
       this.ac.open(this._channelCount,this._selectedDeviceId);
     }else {
-     this.startItem();
-    }
-  }
-
-  private onPromptEnd(){
-    if (this.promptItem.blocked && (this.status===Status.IDLE || this.status===Status.PLAY_PROMPT)) {
       this.ac.start();
     }
-    if(this.status===Status.PLAY_PROMPT_PREVIEW){
-      this.status=Status.IDLE;
-      this.navigationDisabled=false;
-      this.updateNavigationActions();
-    }
-  }
-
-  startItem() {
-    if (!this.promptItem.blocked) {
-      this.ac.start();
-    }
-    this.prompting.onpaused = () => {
-      this.onPromptEnd();
-    }
-    this.prompting.onended = () => {
-      this.onPromptEnd();
-    }
-    this.status=Status.PLAY_PROMPT;
-    this.navigationDisabled=true;
-    this.updateNavigationActions();
-    this.prompting.start();
   }
 
 
@@ -557,8 +531,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //this.promptText = this.promptUnit.mediaitems[0].text;
     //this.mediaitem=this.promptUnit.mediaitems[0];
     this.showPrompt = true;
-
-    this.changeDetectorRef.detectChanges();
+    this.changeDetectorRef.detectChanges()
   }
 
   downloadRecording() {
@@ -684,23 +657,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
 
     this.clearPrompt();
-    this.prompting.onstarted = () => {
-      if (this.status===Status.IDLE) {
-        // Prompt Autoplay
-        this.status=Status.PLAY_PROMPT_PREVIEW;
-      }
-      this.navigationDisabled=true;
-      this.updateNavigationActions();
-    }
+
     let isNonrecording=(this.promptItem.type==='nonrecording')
 
     if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
     }
-    if(!this.autoplayStarted) {
-      this.prompting.autoplay();
-      this.autoplayStarted=true;
-    }
+
     if(isNonrecording){
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
@@ -998,12 +961,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   opened() {
-    // Capture opened, now start the item
-    this.startItem();
+    // this.statusAlertType = 'info';
+    // this.statusMsg = 'Ready.';
+    // this.updateStartActionDisableState()
+    // this.transportActions.fwdAction.disabled = false
+    // this.transportActions.bwdAction.disabled = false
+    this.ac.start();
   }
 
   started() {
-    // Capture started
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
@@ -1159,7 +1125,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
     this.startStopSignalState = StartStopSignalState.IDLE;
-    this.prompting.stop();
+
     let ad = this.ac.audioBuffer();
     let ic = this.promptItem.itemcode;
     if (this._session && ic) {
@@ -1251,7 +1217,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     // apply recorded item
     this.applyItem(startNext);
     if(startNext){
-      this.prepareItem();
+      this.startItem();
     }
     this.changeDetectorRef.detectChanges();
   }

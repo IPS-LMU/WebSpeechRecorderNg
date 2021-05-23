@@ -11,7 +11,7 @@ import {RecordingFile} from "../../recording";
         <table>
           <tr>
             <td>Itemcode:</td>
-            <td>{{recordingFile?.recording.itemcode}}</td>
+            <td>{{recordingFile?.recording?.itemcode}}</td>
           </tr>
           <tr *ngIf="recordingFile?.date">
             <td>Date:</td>
@@ -34,10 +34,14 @@ import {RecordingFile} from "../../recording";
 })
 export class RecordingFileMetaComponent{
 
-  @Input() sessionId:string | number | null;
-  @Input() recordingFile:RecordingFile;
+  @Input() sessionId:string | number | null=null;
+  @Input() recordingFile:RecordingFile|null=null;
 
   recordingAsPlainText(){
-    return RecordingFileUtil.recordingAsPlainText(this.recordingFile);
+    let t=null;
+    if(this.recordingFile) {
+      t= RecordingFileUtil.recordingAsPlainText(this.recordingFile);
+    }
+    return t;
   }
 }

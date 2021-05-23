@@ -38,17 +38,17 @@ export enum Mode {SINGLE_SESSION,DEMO}
 })
 export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
-	  mode:Mode;
-		controlAudioPlayer:AudioPlayer;
+	  mode!:Mode;
+		controlAudioPlayer!:AudioPlayer;
 		audio:any;
 
-	_project:Project|null;
-  sessionId: string;
-  session:Session;
+	_project:Project|null=null;
+  sessionId!: string;
+  session!:Session;
 
-  script:Script;
+  script!:Script;
     dataSaved: boolean = true;
-  @ViewChild(SessionManager, { static: true }) sm:SessionManager;
+  @ViewChild(SessionManager, { static: true }) sm!:SessionManager;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,
@@ -62,8 +62,10 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     ngOnInit() {
 		  try {
-        let audioContext = AudioContextProvider.audioContextInstance()
-        this.controlAudioPlayer = new AudioPlayer(audioContext, this);
+        let audioContext = AudioContextProvider.audioContextInstance();
+              if(audioContext) {
+                  this.controlAudioPlayer = new AudioPlayer(audioContext, this);
+              }
         this.sm.controlAudioPlayer=this.controlAudioPlayer;
         this.sm.statusAlertType='info';
         this.sm.statusMsg = 'Player initialized.';
@@ -171,29 +173,34 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
       this.sm.statusAlertType='info';
       this.sm.statusMsg = 'Fetching infos of recordings...';
         this.sm.statusWaiting=true;
-        let rfsObs=this.recFilesService.recordingFileDescrList(this.project.name,sess.sessionId);
-        rfsObs.subscribe((rfs:Array<RecordingFileDescriptor>)=>{
-          this.sm.statusAlertType='info';
-          this.sm.statusMsg = 'Received infos of recordings.';
-            this.sm.statusWaiting=false;
-          if(rfs) {
-            if(rfs instanceof Array) {
-              rfs.forEach((rf) => {
-                //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
-                this.sm.addRecordingFileByDescriptor(rf);
-              })
-            }else{
-              console.error('Expected type array for list of already recorded files ')
-            }
-          }else{
-            //console.debug("Recording file list: " + rfs);
-          }
-        },()=>{
-          // we start the session anyway
-          this.startSession()
-        },()=>{
-          this.startSession()
-        })
+        let prNm:string|null=null;
+        if(this.project) {
+            let rfsObs = this.recFilesService.recordingFileDescrList(this.project.name, sess.sessionId);
+            rfsObs.subscribe((rfs: Array<RecordingFileDescriptor>) => {
+                this.sm.statusAlertType = 'info';
+                this.sm.statusMsg = 'Received infos of recordings.';
+                this.sm.statusWaiting = false;
+                if (rfs) {
+                    if (rfs instanceof Array) {
+                        rfs.forEach((rf) => {
+                            //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                            this.sm.addRecordingFileByDescriptor(rf);
+                        })
+                    } else {
+                        console.error('Expected type array for list of already recorded files ')
+                    }
+                } else {
+                    //console.debug("Recording file list: " + rfs);
+                }
+            }, () => {
+                // we start the session anyway
+                this.startSession()
+            }, () => {
+                this.startSession()
+            })
+        }else{
+            // TODO
+        }
     }
 
 
@@ -336,7 +343,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
 
-    set project(project: Project) {
+    set project(project: Project|null) {
         this._project = project;
         let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
@@ -352,7 +359,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     }
 
-  get project():Project{
+  get project():Project|null{
 		  return this._project;
   }
 

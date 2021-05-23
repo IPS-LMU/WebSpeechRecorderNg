@@ -18,8 +18,8 @@ import {AudioClip} from "../persistor";
                         [style.color]="playStartAction?.disabled ? 'grey' : 'green'" matTooltip="Play all">
                     <mat-icon>play_arrow</mat-icon>
                 </button>
-                <button (click)="playSelectionAction.perform()" [disabled]="playSelectionAction.disabled"
-                        [style.color]="playSelectionAction.disabled ? 'grey' : 'green'" matTooltip="Play selection">
+                <button (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
+                        [style.color]="playSelectionAction?.disabled ? 'grey' : 'green'" matTooltip="Play selection">
                     <mat-icon>play_circle_outline</mat-icon>
                 </button>
                 <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled"
@@ -46,7 +46,7 @@ import {AudioClip} from "../persistor";
                 {{audioClip?.selection?.leftFrame}} <span
                     *ngIf="audioClip?.selection">to</span> {{audioClip?.selection?.rightFrame}}
                 <button (click)="clearSelection()" [disabled]="audioClip?.selection==null"
-                        [style.color]="audioClip?.selection!=null ? 'red' : 'grey'" matTooltip="Clear selection">
+                        [style.color]="hasSelection() ? 'red' : 'grey'" matTooltip="Clear selection">
                     <mat-icon>clear</mat-icon>
                 </button>
 
@@ -61,19 +61,19 @@ import {AudioClip} from "../persistor";
   })
 	export class AudioDisplayControl implements AfterContentInit {
 
-    @Input() audioClip: AudioClip
+    @Input() audioClip: AudioClip|null=null;
 
     @ViewChild(MatCheckbox, { static: true })
-    private autoplaySelectedCheckbox: MatCheckbox
-    @Input() playStartAction: Action<void>;
-    @Input() playSelectionAction: Action<void>
-    @Input() playStopAction: Action<void>;
-    @Input() zoomInAction: Action<void>;
-    @Input() zoomOutAction: Action<void>;
-    @Input() zoomFitToPanelAction: Action<void>;
-    @Input() zoomSelectedAction: Action<void>
-    @Input() autoPlayOnSelectToggleAction: Action<boolean>
-	   status:string;
+    private autoplaySelectedCheckbox: MatCheckbox|null=null;
+    @Input() playStartAction: Action<void>|undefined;
+    @Input() playSelectionAction: Action<void>|undefined;
+    @Input() playStopAction: Action<void>|undefined;
+    @Input() zoomInAction: Action<void>|null=null;
+    @Input() zoomOutAction: Action<void>|null=null;
+    @Input() zoomFitToPanelAction: Action<void>|undefined;
+    @Input() zoomSelectedAction: Action<void>|undefined;
+    @Input() autoPlayOnSelectToggleAction: Action<boolean>|undefined;
+	   status:string|null=null;
 
 		audio:any;
 
@@ -90,6 +90,14 @@ import {AudioClip} from "../persistor";
             this.audioClip.selection=null
         }
     }
+
+      hasSelection():boolean{
+          let hs=false;
+          if(this.audioClip){
+              hs=(this.audioClip.selection!=null);
+          }
+          return hs;
+      }
 
     autoPlaySelectionChange(ch: MatCheckboxChange) {
         if (this.autoPlayOnSelectToggleAction) {

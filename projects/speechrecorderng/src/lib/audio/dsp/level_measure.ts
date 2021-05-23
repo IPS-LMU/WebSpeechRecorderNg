@@ -121,7 +121,7 @@ declare function postMessage(message: any, transfer?: Array<any>): void;
 export class LevelMeasure {
 
   private readonly workerURL: string;
-  private worker: Worker;
+  private worker: Worker|null=null;
 
   constructor() {
     this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
@@ -175,7 +175,7 @@ export class LevelMeasure {
 
 
   private terminateWorker() {
-    this.worker.terminate();
+    this.worker?.terminate();
 
   }
 
@@ -183,7 +183,7 @@ export class LevelMeasure {
    *  Method used as worker code.
    */
   workerFunction() {
-    self.onmessage = function (msg) {
+    self.onmessage = function (msg:MessageEvent) {
 
       let chs = msg.data.chs;
       let bufferFrameLength = msg.data.bufferFrameLength;
@@ -230,16 +230,16 @@ export class LevelMeasure {
 
 export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
 
-  currentLevelInfos: LevelInfo;
-  peakLevelInfo: LevelInfo;
+  currentLevelInfos: LevelInfo|null=null;
+  peakLevelInfo: LevelInfo|null=null;
 
   private readonly workerURL: string;
-  private worker: Worker;
-  private channelCount: number;
+  private worker: Worker|null=null;
+  private channelCount: number=0;
   private bufferIndex: number = 0;
   private frameCount: number = 0;
 
-  levelListener: LevelListener;
+  levelListener: LevelListener|null=null;
 
   constructor() {
     this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
@@ -292,7 +292,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
       bufArrCopies[ch] = bufferData[ch].slice();
       buffers[ch] = bufArrCopies[ch].buffer;
     }
-    this.worker.postMessage({
+    this.worker?.postMessage({
       streamFinished: false,
       audioData: buffers,
       chs: this.channelCount,
@@ -303,22 +303,19 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   }
 
   flush() {
-    this.worker.postMessage({streamFinished: true});
+    this.worker?.postMessage({streamFinished: true});
 
   }
 
   close() {
-    if (this.worker) {
-      this.worker.terminate();
-    }
-
+      this.worker?.terminate();
   }
 
   /*
    *  Method used as worker code.
    */
   workerFunction() {
-    self.onmessage = function (msg) {
+    self.onmessage = function (msg:MessageEvent) {
       let streamFinished = msg.data.streamFinished;
       if (streamFinished) {
         postMessage({streamFinished: true});
@@ -361,15 +358,17 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   updateLevels(bufferLevelInfo: LevelInfo) {
 
     this.currentLevelInfos = bufferLevelInfo;
-    this.peakLevelInfo.merge(bufferLevelInfo);
-    if (this.levelListener) {
-      this.levelListener.update(this.currentLevelInfos, this.peakLevelInfo.clone());
+    if(this.peakLevelInfo) {
+      this.peakLevelInfo.merge(bufferLevelInfo);
+      if (this.levelListener) {
+        this.levelListener.update(this.currentLevelInfos, this.peakLevelInfo.clone());
+      }
     }
   }
 
 
   stop() {
-    this.worker.terminate();
+    this.worker?.terminate();
   }
 
 
