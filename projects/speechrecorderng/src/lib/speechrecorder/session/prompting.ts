@@ -94,8 +94,8 @@ export class Recinstructions {
 })
 export class Prompter {
   @Input() projectName: string | undefined;
-  private _promptMediaItems: Array<Mediaitem>|null|undefined=null
-  _showPrompt:boolean;
+  private _promptMediaItems: Array<Mediaitem>|undefined;
+  _showPrompt:boolean=false;
   @Input() set showPrompt(showPrompt:boolean) {
     this._showPrompt = showPrompt;
     if (this.elRef.nativeElement) {
@@ -116,16 +116,16 @@ export class Prompter {
   private _src: string|undefined|null = null;
   private _blocks: Array<Block>|undefined;
   mimetype!: string;
-  private mediaPromptEl:HTMLMediaElement=null;
-  private audioPromptEl:HTMLAudioElement=null;
-  private videoPromptEl:HTMLVideoElement=null;
-  private promptCtrlOvlEl:HTMLDivElement=null;
+  private mediaPromptEl:HTMLMediaElement|null=null;
+  private audioPromptEl:HTMLAudioElement|null=null;
+  private videoPromptEl:HTMLVideoElement|null=null;
+  private promptCtrlOvlEl:HTMLDivElement|null=null;
   private currPromptChild: HTMLElement|null = null;
 
   private _running=false;
-  private _onstarted:()=>void;
-  private _onpaused:()=>void;
-  private _onended:()=>void;
+  private _onstarted:(()=>void)|null=null;
+  private _onpaused:(()=>void)|null=null;
+  private _onended:(()=>void)|null=null;
   @HostBinding('class.fill') public prompterStyleFill = false;
 
   constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService) {
@@ -185,51 +185,56 @@ export class Prompter {
     }
 
   private applyMediaPromptListener(modal:boolean) {
-    this.mediaPromptEl.onloadeddata = (ev: Event) => {
-      console.log("Media loaded data")
-    }
-    this.mediaPromptEl.onplay = (ev: Event) => {
-      console.log("Media play event")
-      this._running = true;
-      if (this._onstarted) {
-        this._onstarted();
+    if(this.mediaPromptEl){
+      this.mediaPromptEl.onloadeddata = (ev: Event) => {
+        console.log("Media loaded data")
       }
-    }
-    this.mediaPromptEl.onpause = (ev: Event) => {
-      console.log("Media pause event")
-      this._running = false;
-      if (this._onpaused) {
-        this._onpaused();
-      }
-    }
-    this.mediaPromptEl.onended = (ev: Event) => {
-      console.log("Media play ended event")
-      this._running = false;
-      if (this._onended) {
-        this._onended();
-      }
-    }
-    this.mediaPromptEl.onclick = (ev: Event) => {
-      console.log("Media clicked")
-      if (this.mediaPromptEl) {
-        if (this._running) {
-          if (!modal) {
-            this.mediaPromptEl.pause();
-          }
-        } else {
-          this.mediaPromptEl.play();
+      this.mediaPromptEl.onplay = (ev: Event) => {
+        console.log("Media play event")
+        this._running = true;
+        if (this._onstarted) {
+          this._onstarted();
         }
       }
-    }
-    this.mediaPromptEl.onerror = (ev: Event) => {
-      console.error("Media error: " + this.mediaPromptEl.error.message)
-    }
-    this.mediaPromptEl.onabort = (ev: Event) => {
-      console.error("Media abort: " + ev)
+      this.mediaPromptEl.onpause = (ev: Event) => {
+        console.log("Media pause event")
+        this._running = false;
+        if (this._onpaused) {
+          this._onpaused();
+        }
+      }
+
+      this.mediaPromptEl.onended = (ev: Event) => {
+        console.log("Media play ended event")
+        this._running = false;
+        if (this._onended) {
+          this._onended();
+        }
+      }
+      this.mediaPromptEl.onclick = (ev: Event) => {
+        console.log("Media clicked")
+        if (this.mediaPromptEl) {
+          if (this._running) {
+            if (!modal) {
+              this.mediaPromptEl.pause();
+            }
+          } else {
+            this.mediaPromptEl.play();
+          }
+        }
+      }
+      this.mediaPromptEl.onerror = (ev: Event | string) => {
+        if (this.mediaPromptEl?.error) {
+          console.error("Media error: " + this.mediaPromptEl.error.message)
+        }
+      }
+      this.mediaPromptEl.onabort = (ev: Event) => {
+        console.error("Media abort: " + ev)
+      }
     }
   }
 
-  @Input() set promptMediaItems(pMis: Array<Mediaitem>|null) {
+  @Input() set promptMediaItems(pMis: Array<Mediaitem>|undefined) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
       if(this.currPromptChild instanceof HTMLMediaElement){
@@ -330,7 +335,6 @@ export class Prompter {
         if(srcUrl) {
           promptImage.src = srcUrl;
         }
-        promptImage.src = this.srcUrl()
       }else if (this.mimetype.startsWith('video')){
         this._text = null
         this._src = mi.src
@@ -350,8 +354,10 @@ export class Prompter {
         //let bkgval='rgba(#0, #0, #0, 0.5)';
         //this.renderer.setStyle(ovlEl, "background", bkgval);
         //this.renderer.appendChild(this.currPromptChild,ovlEl);
-
-        this.mediaPromptEl.src = this.srcUrl()
+        let srcUrl=this.srcUrl();
+        if(srcUrl) {
+          this.mediaPromptEl.src = srcUrl;
+        }
         console.log("Video src: "+this.mediaPromptEl.src)
         this.mediaPromptEl.load();
 
@@ -389,11 +395,12 @@ export class Prompter {
         this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
         this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
         this.prompterStyleFill = true
-
-        this.mediaPromptEl.src = this.srcUrl()
-        console.log("Audio src: "+this.mediaPromptEl.src)
-        this.mediaPromptEl.load();
-
+        let srcUrl=this.srcUrl();
+        if(srcUrl) {
+          this.mediaPromptEl.src = srcUrl;
+        }
+          console.log("Audio src: " + this.mediaPromptEl.src)
+          this.mediaPromptEl.load();
       }
 
     } else {
@@ -410,7 +417,9 @@ export class Prompter {
           let mi = this._promptMediaItems[0]
           if (mi.autoplay === true) {
             console.log("Autoplay video prompt...");
-            this.mediaPromptEl.play();
+            if(this.mediaPromptEl) {
+              this.mediaPromptEl.play();
+            }
           }
         }
       }
@@ -488,7 +497,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
 export class PromptContainer implements OnInit,AfterContentChecked {
   @Input() projectName: string | undefined;
   @Input() showPrompt: boolean=false;
-  private _mediaitems: Array<Mediaitem>|null=null;
+  private _mediaitems: Array<Mediaitem>|undefined;
 
   prompterHeight: number = VIRTUAL_HEIGHT
   fontSize!: number;
@@ -539,7 +548,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   }
 
 
-  @Input() set mediaitems(mediaitems:Array<Mediaitem>|null){
+  @Input() set mediaitems(mediaitems:Array<Mediaitem>|undefined){
 
     this._mediaitems = mediaitems
 
@@ -566,7 +575,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       }
   }
 
-  get mediaitems():Array<Mediaitem>|null{
+  get mediaitems():Array<Mediaitem>|undefined{
       return this._mediaitems;
   }
 
@@ -693,7 +702,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   `]
 })
 export class PromptingContainer {
-  @ViewChild(PromptContainer,{static:true}) promptContainer:PromptContainer;
+  @ViewChild(PromptContainer,{static:true}) promptContainer!:PromptContainer;
   @Input() projectName: string | undefined;
   @Input() promptItem: PromptItem|null=null;
   @Input() showPrompt: boolean=false;
