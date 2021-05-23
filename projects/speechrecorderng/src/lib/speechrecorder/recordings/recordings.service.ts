@@ -39,41 +39,42 @@ export class RecordingService {
     if (config != null && config.withCredentials != null) {
       this.withCredentials = config.withCredentials;
     }
-
-    //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-
   }
 
-  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
+  private recFilesUrl(projectName: string, sessId: string | number):string{
+    let encPrjName=encodeURIComponent(projectName);
+    let encSessId=encodeURIComponent(sessId);
+    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
+        SessionService.SESSION_API_CTX + '/' + encSessId + '/' + RecordingService.REC_API_CTX;
+    return recFilesUrl;
+  }
 
-    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
+  private recFilesReqUrl(projectName: string, sessId: string | number):string{
+    let recFilesUrl=this.recFilesUrl(projectName,sessId);
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
       recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
     }
-    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesUrl,{withCredentials:this.withCredentials});
+    return recFilesUrl;
+  }
+
+  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
+    let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
+    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   recordingFileList(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
-
-    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-        SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX;
-    if (this.config && this.config.apiType === ApiType.FILES) {
-      // for development and demo
-      // append UUID to make request URL unique to avoid localhost server caching
-      recFilesUrl = recFilesUrl + '.json?requestUUID=' + UUID.generate();
-    }
-    let wobs = this.http.get<Array<RecordingFile>>(recFilesUrl,{withCredentials:this.withCredentials});
+    let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
+    let wobs = this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   private fetchAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
-
-    let recUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' +
-      SessionService.SESSION_API_CTX + '/' + sessId + '/' + RecordingService.REC_API_CTX + '/' + itemcode+'/'+version;
+    let recFilesUrl=this.recFilesUrl(projectName,sessId);
+    let encItemcode=encodeURIComponent(itemcode);
+    let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
@@ -93,42 +94,48 @@ export class RecordingService {
 
   fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,recordingFile:RecordingFile):Observable<RecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile>(observer=>{
+    let wobs = new Observable<RecordingFile|null>(observer=>{
+      if(recordingFile.session) {
+        let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
+        obs.subscribe(resp => {
+              //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
-      let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.itemCode,recordingFile.version);
-      obs.subscribe(resp => {
-          //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
+              // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+              if (resp.body) {
+                aCtx.decodeAudioData(resp.body, ab => {
+                  recordingFile.audioBuffer = ab;
+                  if (this.debugDelay > 0) {
+                    window.setTimeout(() => {
 
-          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-          aCtx.decodeAudioData(resp.body,ab=>{
-            recordingFile.audioBuffer=ab;
-            if(this.debugDelay>0) {
-              window.setTimeout(() => {
-
-                observer.next(recordingFile);
+                      observer.next(recordingFile);
+                      observer.complete();
+                    }, this.debugDelay);
+                  } else {
+                    observer.next(recordingFile);
+                    observer.complete();
+                  }
+                }, error => {
+                  observer.error(error);
+                  observer.complete();
+                })
+              } else {
+                observer.error('Fetching audio file: response has no body');
+              }
+            },
+            (error: HttpErrorResponse) => {
+              if (error.status == 404) {
+                // Interpret not as an error, the file ist not recorded yet
+                observer.next(null);
+                observer.complete()
+              } else {
+                // all other states are errors
+                observer.error(error);
                 observer.complete();
-              }, this.debugDelay);
-            }else{
-              observer.next(recordingFile);
-              observer.complete();
-            }
-          },error => {
-            observer.error(error);
-            observer.complete();
-          })
-
-        },
-        (error: HttpErrorResponse) => {
-          if (error.status == 404) {
-            // Interpret not as an error, the file ist not recorded yet
-            observer.next(null);
-            observer.complete()
-          }else{
-            // all other states are errors
-            observer.error(error);
-            observer.complete();
-          }
-        });
+              }
+            });
+      }else{
+        observer.error();
+      }
     });
 
     return wobs;
@@ -142,19 +149,23 @@ export class RecordingService {
 
       obs.subscribe(resp => {
             // Do not use Promise version, which does not work with Safari 13
-          aCtx.decodeAudioData(resp.body,ab=>{
-              let rf=new RecordingFile(sessId,itemcode,version,ab);
-              if(this.debugDelay>0) {
+          if(resp.body) {
+            aCtx.decodeAudioData(resp.body, ab => {
+              let rf = new RecordingFile(sessId, itemcode, version, ab);
+              if (this.debugDelay > 0) {
                 window.setTimeout(() => {
 
                   observer.next(rf);
                   observer.complete();
                 }, this.debugDelay);
-              }else{
+              } else {
                 observer.next(rf);
                 observer.complete();
               }
-          })
+            });
+          }else{
+            observer.error();
+          }
         },
         (error: HttpErrorResponse) => {
           if (error.status == 404) {
