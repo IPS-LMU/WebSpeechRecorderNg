@@ -171,7 +171,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private navigateToRecordingFile(){
-    if(this.posInList) {
+    if(this.posInList!=null) {
       let latestNextRf = this.availRecFiles[this.posInList][0];
       let lnRfId = latestNextRf.recordingFileId;
       if(lnRfId) {
@@ -183,7 +183,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   toVersion(ae: ActionEvent<number>) {
     let toRfId = null;
     let version = ae.value;
-    if(this.posInList) {
+    if(this.posInList!=null) {
       let cRfs = this.availRecFiles[this.posInList];
       let availVersionCnt = cRfs.length;
       for (let cRf of cRfs) {
@@ -200,13 +200,13 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
 
   prevFile() {
-    if(this.posInList) {
+    if(this.posInList!=null) {
       this.posInList--;
     }
     this.navigateToRecordingFile()
   }
   nextFile() {
-    if(this.posInList) {
+    if(this.posInList!=null) {
       this.posInList++;
     }
     this.navigateToRecordingFile()
