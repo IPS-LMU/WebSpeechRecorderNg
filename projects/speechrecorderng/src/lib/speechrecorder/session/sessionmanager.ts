@@ -470,7 +470,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   private onPromptEnd(){
-    if (this.ac && this.promptItem.blocked && (this.status===Status.IDLE || this.status===Status.PLAY_PROMPT)) {
+    if (this.ac && this.promptItem.blocked && this.status===Status.PLAY_PROMPT) {
       this.ac.start();
     }
     if(this.status===Status.PLAY_PROMPT_PREVIEW){
@@ -484,12 +484,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     if (this.ac && !this.promptItem.blocked) {
       this.ac.start();
     }
-    this.prompting.onpaused = () => {
-      this.onPromptEnd();
-  }
-    this.prompting.onended = () => {
-      this.onPromptEnd();
-    }
+
     this.status=Status.PLAY_PROMPT;
     this.navigationDisabled=true;
     this.updateNavigationActions();
@@ -618,7 +613,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             this.controlAudioPlayer.audioClip =this.displayAudioClip
             this.showRecording();
 
-          }, err => {
+          }, (err) => {
             console.error("Could not load recording file from server: " + err)
             this.statusMsg = 'Recording file could not be loaded: ' + err
             this.statusAlertType = 'error'
@@ -701,6 +696,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
     if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
+    }
+    this.prompting.onpaused = () => {
+      this.onPromptEnd();
+    }
+    this.prompting.onended = () => {
+      this.onPromptEnd();
     }
     if(!this.autoplayStarted) {
       this.prompting.autoplay();
