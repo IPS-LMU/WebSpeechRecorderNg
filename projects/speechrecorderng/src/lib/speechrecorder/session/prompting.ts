@@ -96,15 +96,38 @@ export class Recinstructions {
 })
 export class Prompter {
   @Input() projectName: string | undefined;
-  private _promptMediaItems: Array<Mediaitem>|null|undefined=null
-
+  private _promptMediaItems: Array<Mediaitem>|undefined;
+  _showPrompt:boolean=false;
+  @Input() set showPrompt(showPrompt:boolean) {
+    this._showPrompt = showPrompt;
+    if (this.elRef.nativeElement) {
+      if (this._showPrompt) {
+        //this.currPromptChild.style.visibility='visible';
+        this.renderer.setStyle(this.elRef.nativeElement,'visibility','visible');
+      } else {
+        //this.currPromptChild.style.visibility='hidden';
+        this.renderer.setStyle(this.elRef.nativeElement,'visibility','hidden');
+      }
+    }
+  }
+  get showPrompt():boolean{
+    return this._showPrompt;
+  }
   @Input() prompterHeight: number=0;
   private _text: string|undefined|null = null;
   private _src: string|undefined|null = null;
   private _blocks: Array<Block>|undefined;
   mimetype!: string;
+  private mediaPromptEl:HTMLMediaElement|null=null;
+  private audioPromptEl:HTMLAudioElement|null=null;
+  private videoPromptEl:HTMLVideoElement|null=null;
+  private promptCtrlOvlEl:HTMLDivElement|null=null;
   private currPromptChild: HTMLElement|null = null;
 
+  private _running=false;
+  private _onstarted:(()=>void)|null=null;
+  private _onpaused:(()=>void)|null=null;
+  private _onended:(()=>void)|null=null;
   @HostBinding('class.fill') public prompterStyleFill = false;
 
   constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService) {
@@ -315,6 +338,72 @@ export class Prompter {
         if(srcUrl) {
           promptImage.src = srcUrl;
         }
+      }else if (this.mimetype.startsWith('video')){
+        this._text = null
+        this._src = mi.src
+        if(this.videoPromptEl==null){
+          this.videoPromptEl = <HTMLVideoElement>this.renderer.createElement('video');
+        }
+        this.mediaPromptEl=this.videoPromptEl;
+        this.applyMediaPromptListener(modal);
+        this.currPromptChild = this.mediaPromptEl
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
+        this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
+        this.prompterStyleFill = true
+
+        //let ovlEl = <HTMLDivElement>this.renderer.createElement('div');
+        //this.renderer.setStyle(ovlEl, "position", "absolute");
+        //let bkgval='rgba(#0, #0, #0, 0.5)';
+        //this.renderer.setStyle(ovlEl, "background", bkgval);
+        //this.renderer.appendChild(this.currPromptChild,ovlEl);
+        let srcUrl=this.srcUrl();
+        if(srcUrl) {
+          this.mediaPromptEl.src = srcUrl;
+        }
+        console.log("Video src: "+this.mediaPromptEl.src)
+        this.mediaPromptEl.load();
+
+      }else if (this.mimetype.startsWith('audio')){
+        this._text = null
+        this._src = mi.src
+        if(this.audioPromptEl==null){
+          this.audioPromptEl = <HTMLAudioElement>this.renderer.createElement('audio');
+          //this.renderer.setStyle(this.audioPromptEl,"background","green");
+          this.renderer.setStyle(this.audioPromptEl, "width", "100%")
+          this.renderer.setStyle(this.audioPromptEl, "height", "100%")
+          this.renderer.setAttribute(this.audioPromptEl,"controls","true");
+        }
+        if(this.promptCtrlOvlEl==null){
+          this.promptCtrlOvlEl = <HTMLDivElement>this.renderer.createElement('div');
+          //this.renderer.setStyle(this.audioPromptEl,"background","green");
+          this.renderer.setStyle(this.promptCtrlOvlEl, "position", "absolute")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "top", "0")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "left", "0")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "width", "100%")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "height", "100%")
+          //this.renderer.setStyle(this.promptCtrlOvlEl, "background", "green")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "z-index", "9")
+          this.renderer.setStyle(this.promptCtrlOvlEl, "opacity", "0.3")
+
+
+        }
+        this.mediaPromptEl=this.audioPromptEl;
+
+        this.applyMediaPromptListener(modal);
+
+        this.currPromptChild = this.mediaPromptEl
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        this.renderer.appendChild(this.elRef.nativeElement, this.promptCtrlOvlEl)
+        this.renderer.setStyle(this.currPromptChild, "max-width", "100%")
+        this.renderer.setStyle(this.currPromptChild, "max-height", "100%")
+        this.prompterStyleFill = true
+        let srcUrl=this.srcUrl();
+        if(srcUrl) {
+          this.mediaPromptEl.src = srcUrl;
+        }
+          console.log("Audio src: " + this.mediaPromptEl.src)
+          this.mediaPromptEl.load();
       }
 
     } else {
@@ -322,6 +411,59 @@ export class Prompter {
       this._src = null
     }
   }
+
+  autoplay() {
+    console.log("autoplay()");
+    if (this.currPromptChild != null) {
+      if(this.currPromptChild instanceof HTMLMediaElement) {
+        if (this._promptMediaItems && this._promptMediaItems.length == 1) {
+          let mi = this._promptMediaItems[0]
+          if (mi.autoplay === true) {
+            console.log("Autoplay video prompt...");
+            if(this.mediaPromptEl) {
+              this.mediaPromptEl.play();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  start(){
+    if(this.currPromptChild instanceof HTMLMediaElement){
+      if(!this._running){
+        this.currPromptChild.currentTime=0;
+      }
+      this.currPromptChild.play();
+    }else {
+      // Generate fake events for static content (text,images)
+      if (this._onstarted) {
+        this._onstarted();
+      }
+      if (this._onended) {
+        this._onended();
+      }
+    }
+  }
+
+  set onstarted(onstarted:()=>void){
+       this._onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this._onpaused=onpaused;
+  }
+
+  set onended(onended:()=>void){
+    this._onended=onended;
+  }
+
+  stop(){
+    if(this.currPromptChild instanceof HTMLMediaElement){
+      this.currPromptChild.pause();
+    }
+  }
+
 }
 
 export const VIRTUAL_HEIGHT = 600;
@@ -334,7 +476,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
   selector: 'app-sprpromptcontainer',
 
   template: `
-    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
+    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [showPrompt]="showPrompt" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
   `
   ,
   styles: [`:host {
@@ -357,7 +499,8 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
 })
 export class PromptContainer implements OnInit,AfterContentChecked {
   @Input() projectName: string | undefined;
-  private _mediaitems: Array<Mediaitem>|null=null;
+  @Input() showPrompt: boolean=false;
+  private _mediaitems: Array<Mediaitem>|undefined;
 
   prompterHeight: number = VIRTUAL_HEIGHT
   fontSize!: number;
@@ -408,7 +551,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   }
 
 
-  @Input() set mediaitems(mediaitems:Array<Mediaitem>|null){
+  @Input() set mediaitems(mediaitems:Array<Mediaitem>|undefined){
 
     this._mediaitems = mediaitems
 
@@ -435,7 +578,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       }
   }
 
-  get mediaitems():Array<Mediaitem>|null{
+  get mediaitems():Array<Mediaitem>|undefined{
       return this._mediaitems;
   }
 
@@ -445,6 +588,30 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   onResize(event: Event): void {
     //console.debug("onresize, call fontSizeToFit hook ");
     this.layout();
+  }
+
+  set onstarted(onstarted:()=>void){
+    this.prompter.onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this.prompter.onpaused=onpaused;
+  }
+
+  set onended(onended:()=>void){
+    this.prompter.onended=onended;
+  }
+
+  autoplay(){
+    this.prompter.autoplay();
+  }
+
+  start(){
+    this.prompter.start();
+  }
+
+  stop(){
+    this.prompter.stop();
   }
 
   private layout() {
@@ -517,8 +684,8 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
                          [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
-    <app-sprpromptcontainer [projectName]="projectName"
-                            [mediaitems]="showPrompt?(promptItem?promptItem.mediaitems:null):null"></app-sprpromptcontainer>
+    <app-sprpromptcontainer [projectName]="projectName" [showPrompt]="showPrompt"
+                            [mediaitems]="promptItem?.mediaitems"></app-sprpromptcontainer>
 
   `
   ,
@@ -537,6 +704,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   `]
 })
 export class PromptingContainer {
+  @ViewChild(PromptContainer,{static:true}) promptContainer!:PromptContainer;
   @Input() projectName: string | undefined;
   @Input() promptItem: PromptItem|null=null;
   @Input() showPrompt: boolean=false;
@@ -544,6 +712,8 @@ export class PromptingContainer {
   @Input() itemCount: number|undefined;
 
   @Input() transportActions!: TransportActions;
+  @Input() promptPlayStartAction: Action<void>|undefined;
+  @Input() promptPlayStopAction: Action<void>|undefined;
 
   private e!: HTMLDivElement;
   private startX: number | null = null
@@ -662,6 +832,30 @@ export class PromptingContainer {
     ev.preventDefault();
   }
 
+  set onstarted(onstarted:()=>void){
+    this.promptContainer.onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this.promptContainer.onpaused=onpaused;
+  }
+
+  set onended(onended:()=>void){
+    this.promptContainer.onended=onended;
+  }
+
+  autoplay(){
+    this.promptContainer.autoplay();
+  }
+
+  start(){
+    this.promptContainer.start();
+  }
+
+  stop(){
+    this.promptContainer.stop();
+  }
+
 }
 
 
@@ -763,6 +957,7 @@ export class PromptingContainer {
 })
 
 export class Prompting implements MediaPlaybackControls{
+  @ViewChild(PromptingContainer, { static: true }) promptingContainer!: PromptingContainer;
   @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight!: SimpleTrafficLight;
   @ViewChild(MediaDisplay, { static: true }) audioDisplay!: MediaDisplay;
   get startAction(){
@@ -771,6 +966,7 @@ export class Prompting implements MediaPlaybackControls{
   get startSelectionAction(){
     return this.audioDisplay.startSelectionAction;
   }
+
   get stopAction(){
     return this.audioDisplay.stopAction;
   }
@@ -789,9 +985,6 @@ export class Prompting implements MediaPlaybackControls{
   set currentTime(currentTime:number){
     this.audioDisplay.currentTime=currentTime;
   }
-
-  @ViewChild(PromptingContainer, { static: true }) promptingContainer!: PromptingContainer;
-  @ViewChild(AudioDisplay, { static: true }) audioDisplay!: AudioDisplay;
   @Input() projectName: string | undefined;
   @Input() startStopSignalState!: StartStopSignalState;
   @Input() promptItem: PromptItem | null=null;
