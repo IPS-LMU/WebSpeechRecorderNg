@@ -12,7 +12,7 @@ export interface SequenceAudioFloat32OutStream extends AudioFloat32OutStream{
 
 export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOutStream implements SequenceAudioFloat32OutStream{
 
-  private sampleRate:number;
+  private sampleRate:number|null=null;
   private sequenceAudioFloat32OutStream:SequenceAudioFloat32OutStream;
   constructor(outStream:SequenceAudioFloat32OutStream, private chunkDurationSeconds:number){
     super(outStream);

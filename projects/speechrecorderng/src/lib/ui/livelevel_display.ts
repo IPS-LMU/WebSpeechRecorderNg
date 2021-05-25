@@ -123,33 +123,32 @@ export class LevelBarDisplay implements MediaPlaybackControls,LevelListener, Aft
         this.videoPlayer.currentTime=currentTime;
     }
 
-    ce: HTMLDivElement;
-    @ViewChild(VideoPlayer) videoPlayer: VideoPlayer;
+    ce: HTMLDivElement|null=null;
+    @ViewChild(VideoPlayer) videoPlayer!: VideoPlayer;
 
-    private mediaPlayerControls:HTMLVideoElementPlaybackControls;
-    @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
-    @Input() streamingMode: boolean;
-    @Input() mediaStream:MediaStream;
+    private mediaPlayerControls!:HTMLVideoElementPlaybackControls;
+    @ViewChild(LevelBar, { static: true }) liveLevel!: LevelBar;
+    @Input() streamingMode: boolean=false;
+    @Input() mediaStream:MediaStream|null=null;
     @Input() hideVideo: boolean=false;
-    @Input() audioSignalCollapsed: boolean;
-    private _displayAudioBuffer: AudioBuffer=null;
-    private _displayMediaBlob: Blob=null;
-    @Input() enableDownload: boolean;
+    @Input() audioSignalCollapsed: boolean=true;
+    private _displayAudioBuffer: AudioBuffer|null|undefined=null;
+    private _displayMediaBlob: Blob|null=null;
+    @Input() enableDownload: boolean=false;
     peakDbLevelStr = "-___ dB";
     peakDbLvl = MIN_DB_LEVEL;
 
-    _displayLevelInfos: LevelInfos | null;
+    _displayLevelInfos: LevelInfos | null=null;
 
     @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
     @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
 
     //@Input() controlAudioPlayer: AudioPlayer;
-    @Input() playStartAction:Action<void>;
-    @Input() playStopAction:Action<void>;
-
+    @Input() playStartAction:Action<void>|undefined;
+    @Input() playStopAction:Action<void>|undefined;
     playStartEnabled = false;
     playStopEnabled = false;
-    private updateTimerId: number;
+    private updateTimerId: number|null=null;
 
     private destroyed = false;
 
@@ -169,7 +168,7 @@ export class LevelBarDisplay implements MediaPlaybackControls,LevelListener, Aft
     }
 
     @Input()
-    set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null) {
+    set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null| undefined) {
         this._displayAudioBuffer = displayAudioBuffer;
     }
 

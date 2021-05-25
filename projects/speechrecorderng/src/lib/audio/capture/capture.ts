@@ -31,30 +31,30 @@ export class AudioCapture {
         return this._opened;
     }
 
-    static BUFFER_SIZE: number = 8192;
-    context: any;
-    stream: MediaStream;
-    //mediaStream:MediaStreamAudioSourceNode;
-    // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
-    // TODO use AudioRecorder
-    mediaRecorder: MediaRecorder = null;
-    mediaRecorderOptions: MediaRecorderOptions = {};
-    mimeType: MIMEType = null;
-    channelCount: number;
-    mediaStream: any;
-    bufferingNode: any;
-    listener: MediaCaptureListener;
-    data: Array<Array<Float32Array>>;
-    currentSampleRate: number;
-    n: Navigator;
-    audioOutStream: SequenceAudioFloat32OutStream | null;
-    private disconnectStreams = true;
-    private _opened = false;
-    private _audioStreaming=false;
-   private _videoStreaming=false;
-    private capturing = false;
+  static BUFFER_SIZE: number = 8192;
+  context: any;
+  stream: MediaStream;
+  //mediaStream:MediaStreamAudioSourceNode;
+  // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
+  // TODO use AudioRecorder
+  mediaRecorder: MediaRecorder|null = null;
+  mediaRecorderOptions: MediaRecorderOptions = {};
+  mimeType: MIMEType|null = null;
+  channelCount!: number;
+  mediaStream: any;
+  bufferingNode: any;
+  listener!: AudioCaptureListener;
+  data!: Array<Array<Float32Array>>;
+  currentSampleRate!: number;
+  n: Navigator;
+  audioOutStream: SequenceAudioFloat32OutStream | null=null;
+  private disconnectStreams = true;
+  private _opened=false;
+  private _audioStreaming=false;
+  private _videoStreaming=false;
+  private capturing = false;
 
-    framesRecorded: number;
+  framesRecorded: number=0;
 
     constructor(context: any) {
         this.context = context;
@@ -177,14 +177,14 @@ export class AudioCapture {
         }
     }
 
-    open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString) {
+    open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString|null) {
         this.context.resume().then(() => {
             this._open(mimeType, channelCount, selDeviceId);
         })
     }
 
 
-    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=true,captureVideoStream=true) {
+    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString|null,captureAudioStream=true,captureVideoStream=true) {
         this.mimeType = mimeType;
         let mimeTypeStr = mimeType.toHeaderString();
 

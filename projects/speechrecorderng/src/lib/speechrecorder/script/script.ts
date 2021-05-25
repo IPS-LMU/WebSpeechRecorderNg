@@ -116,7 +116,7 @@ export class PromptDocUtil{
 }
 
 export class MediaitemUtil {
-  static toPlainTextString(mediaitem: Mediaitem): string {
+  static toPlainTextString(mediaitem: Mediaitem): string|null {
 
     let txt = mediaitem.text;
     let pd = mediaitem.promptDoc;
@@ -155,7 +155,7 @@ export class MediaitemUtil {
       } else if (src != null) {
         let srcPn;
         try {
-          let srcUrl = new URL(mi.src);
+          let srcUrl = new URL(src);
           srcPn=srcUrl.pathname;
         }catch{
           srcPn=src;
@@ -163,7 +163,7 @@ export class MediaitemUtil {
 
         // Get filename without extension
         let srcFnM=srcPn.match(/([^\/]*)$/);
-        if(srcFnM.length==2){
+        if(srcFnM && srcFnM.length==2){
           let srcFn=srcFnM[1];
           let srcFnNm=srcFn.replace(/[\.][^\.]*/,'');
           description = description.concat(srcFnNm);

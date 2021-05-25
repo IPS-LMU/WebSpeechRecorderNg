@@ -42,16 +42,16 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
         bufSize:number;
         context:AudioContext;
         listener:AudioPlayerListener;
-        _audioClip:AudioClip=null;
-        _audioBuffer:AudioBuffer | null;
-        sourceBufferNode:AudioBufferSourceNode;
+        _audioClip:AudioClip|null=null;
+        _audioBuffer:AudioBuffer | null=null;
+        sourceBufferNode:AudioBufferSourceNode|null=null;
         buffPos:number;
         private zeroBufCnt:number;
         n:any;
         zb:Float32Array;
-        private playStartTime:number;
+        private playStartTime:number|null=null;
 
-        private timerVar:number;
+        private timerVar:number|null=null;
 
         constructor(context:AudioContext, listener:AudioPlayerListener) {
            this.context=context;
@@ -67,7 +67,7 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
             this._startSelectionAction=new Action('Start selected')
             this._startSelectionAction.disabled=true
              this._startSelectionAction.onAction = ()=>this.startSelected();
-            this._autoPlayOnSelectToggleAction=new Action("Autoplay on select",false)
+            this._autoPlayOnSelectToggleAction=new Action<boolean>("Autoplay on select",false);
             this._stopAction = new Action('Stop');
             this._stopAction.disabled = true;
             this._stopAction.onAction = ()=>this.stop();
@@ -201,7 +201,9 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
                 if (this.sourceBufferNode) {
                     this.sourceBufferNode.stop();
                 }
-                window.clearInterval(this.timerVar);
+                if(this.timerVar!==null) {
+                    window.clearInterval(this.timerVar);
+                }
                 this.running=false;
                 if (this.listener) {
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
@@ -211,10 +213,11 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
         }
 
         onended() {
-            window.clearInterval(this.timerVar);
-
+            if(this.timerVar!=null) {
+                window.clearInterval(this.timerVar);
+            }
             this._startAction.disabled = !(this.audioBuffer);
-          this._startSelectionAction.disabled=this.startSelectionDisabled()
+            this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
             if (this.listener) {
@@ -226,18 +229,23 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
             return this.playPositionTime;
         }
 
-
-
-        get playPositionTime() {
-
-            return this.context.currentTime - this.playStartTime;
+        get playPositionTime():number|null {
+            let ppt=null;
+            if(this.playStartTime!==null) {
+                ppt= this.context.currentTime - this.playStartTime;
+            }
+            return ppt;
         }
 
-        get playPositionFrames() {
-          if(this._audioBuffer) {
-            var ppTime = this.playPositionTime;
-            return this._audioBuffer.sampleRate * ppTime;
-          }
+        get playPositionFrames():number|null {
+            let ppFrs:number|null=null;
+            if(this._audioBuffer ) {
+                let ppTime = this.playPositionTime;
+                if(ppTime!==null) {
+                    ppFrs = this._audioBuffer.sampleRate * ppTime;
+                }
+            }
+            return ppFrs;
         }
 
     }
