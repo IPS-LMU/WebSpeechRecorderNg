@@ -51,8 +51,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   parentE: HTMLElement;
 
-  protected videoEl:HTMLVideoElement;
-
   @Input()
   playStartAction: Action<void>;
   @Input()

@@ -702,8 +702,8 @@ export class PromptingContainer {
 })
 
 export class Prompting implements MediaPlaybackControls{
-  @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(MediaDisplay, { static: true }) audioDisplay: MediaDisplay;
+  @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight!: SimpleTrafficLight;
+  @ViewChild(MediaDisplay, { static: true }) audioDisplay!: MediaDisplay;
   get startAction(){
     return this.audioDisplay.startAction;
   }
@@ -740,6 +740,7 @@ export class Prompting implements MediaPlaybackControls{
 
   @Input() audioSignalCollapsed: boolean=true;
   @Input() displayAudioClip: AudioClip | null=null;
+  @Input() displayMediaBlob: Blob | null=null;
   @Input() playStartAction: Action<void>|undefined;
   @Input() playSelectionAction: Action<void>|undefined;
   @Input() autoPlayOnSelectToggleAction:Action<boolean>|undefined;

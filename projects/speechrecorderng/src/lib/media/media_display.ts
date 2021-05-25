@@ -72,7 +72,7 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
 
     //@ViewChild('videoEl') videoElRef: ElementRef;
     //protected videoEl: HTMLVideoElement;
-    @ViewChild(VideoPlayer) videoPlayer: VideoPlayer;
+    @ViewChild(VideoPlayer) videoPlayer!: VideoPlayer;
 
     get startAction():Action<void>{
         return this.videoPlayer.startAction
@@ -102,27 +102,27 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
     //private mediaSelectionListener:(audioClip:AudioClip)=>void=null;
     //private videoEndTime: number = null;
 
-    protected mimeType:MIMEType=null;
+    protected mimeType:MIMEType|null=null;
 
 
     //private _mediaBlob:Blob;
-  private _audioClip:AudioClip
+  private _audioClip:AudioClip|null=null;
 
   @Input()
-  playStartAction: Action<void>;
+  playStartAction: Action<void>|undefined;
   @Input()
-  playStopAction: Action<void>;
+  playStopAction: Action<void>|undefined;
   @Input()
-  playSelectionAction:Action<void>
+  playSelectionAction:Action<void>|undefined;
 
-  private _autoPlayOnSelectToggleAction:Action<boolean>;
-    get autoPlayOnSelectToggleAction(): Action<boolean> {
+  private _autoPlayOnSelectToggleAction:Action<boolean>|undefined;
+    get autoPlayOnSelectToggleAction(): Action<boolean>|undefined {
         return this._autoPlayOnSelectToggleAction;
     }
     @Input()
-    set autoPlayOnSelectToggleAction(value: Action<boolean>) {
+    set autoPlayOnSelectToggleAction(value: Action<boolean>|undefined) {
         this._autoPlayOnSelectToggleAction = value;
-        if(this.videoPlayer) {
+        if(this.videoPlayer && this._autoPlayOnSelectToggleAction) {
             this.videoPlayer.autoPlayOnSelectToggleAction = this._autoPlayOnSelectToggleAction;
         }
     }
@@ -131,12 +131,12 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
     @Input()
     hideVideo:boolean=false;
 
-    zoomFitToPanelAction:Action<void>;
-  zoomSelectedAction:Action<void>
-  zoomInAction:Action<void>;
-  zoomOutAction:Action<void>;
+    zoomFitToPanelAction:Action<void>|undefined;
+    zoomSelectedAction:Action<void>|undefined;
+    zoomInAction:Action<void>|undefined;
+    zoomOutAction:Action<void>|undefined;
 
-  clearSelectionAction:Action<void>
+    clearSelectionAction:Action<void>|undefined;
 
   status: string;
 
@@ -144,7 +144,7 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
     updateTimerId: any;
 
   @ViewChild(AudioDisplayScrollPane, { static: true })
-  audioDisplayScrollPane: AudioDisplayScrollPane;
+  audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
@@ -183,7 +183,7 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
   }
 
     hasVideo():boolean {
-        return(this.mimeType && this.mimeType.isVideo());
+        return(this.mimeType!==null && this.mimeType.isVideo());
     }
 
   started() {
@@ -191,12 +191,12 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
     this.status = 'Playing...';
   }
 
-    get mediaBlob(): Blob {
+    get mediaBlob(): Blob|null {
         return this.videoPlayer.mediaBlob;
     }
 
     @Input()
-    set mediaBlob(value: Blob) {
+    set mediaBlob(value: Blob|null) {
       if(value) {
           this.mimeType = MIMEType.parse(value.type);
       }else{
@@ -209,15 +209,16 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
-
       this.audioDisplayScrollPane.audioData = audioBuffer;
-      this.playStartAction.disabled = (audioBuffer==null)
+      if(this.playStartAction) {
+          this.playStartAction.disabled = (audioBuffer == null);
+      }
   }
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {
 
-    let audioData:AudioBuffer=null;
+    let audioData:AudioBuffer|null=null;
 
     if(audioClip){
       audioData=audioClip.buffer;
@@ -225,8 +226,8 @@ export class MediaDisplay implements OnInit,AfterViewInit , MediaPlaybackControl
     this._audioClip=audioClip
       if(this._audioClip){
           this._audioClip.addSelectionObserver((ac)=>{
-              this.startSelectionAction.disabled = this.startAction.disabled || ! this._audioClip.selection;
-              if (this.mediaBlob && !this.startSelectionAction.disabled && this.autoPlayOnSelectToggleAction.value) {
+              this.startSelectionAction.disabled = this.startAction.disabled || ! this._audioClip?.selection;
+              if (this.mediaBlob && !this.startSelectionAction.disabled && this.autoPlayOnSelectToggleAction?.value) {
                   this.videoPlayer.startSelected();
               }
           });

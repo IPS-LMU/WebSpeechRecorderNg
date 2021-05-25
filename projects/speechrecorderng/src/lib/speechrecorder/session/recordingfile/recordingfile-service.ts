@@ -55,14 +55,16 @@ export class RecordingFileService {
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      let ext = 'wav';
+      let ext:string|null =null;
       if (rectype) {
         let mt = MIMEType.parse(rectype);
-        if(mt){
-          ext=mt.extension;
-        }
+        ext=mt.extension;
+      }else{
+        ext = 'wav';
       }
-      recUrl = recUrl + '.'+ext;
+      if(ext) {
+        recUrl = recUrl + '.' + ext;
+      }
     }
     let headers = new HttpHeaders({
       'Accept': 'audio/wav,video/*'
@@ -165,47 +167,47 @@ export class RecordingFileService {
       }, (error) => {
         observer.error(error);
       }, () => {
-
-        let rfAudioObs = this.fetchMediafile(recordingFileId,rf.rectype);
-        rfAudioObs.subscribe(resp => {
-              // Do not use Promise version, which does not work with Safari 13
-          if(resp.body) {
-              if(mt && mt.isVideo()){
-              // we need the original file
-              rf.blob=new Blob([resp.body],{type: mt.toHeaderString()})
-            }
-            aCtx.decodeAudioData(resp.body,ab => {
-              if(rf) {
-                rf.audioBuffer = ab
-              }else{
-                observer.error('Recording file object null');
-              }
-              if (this.debugDelay > 0) {
-                window.setTimeout(() => {
-                  observer.next(rf);
+        if(rf) {
+          let rfAudioObs = this.fetchMediafile(recordingFileId, rf.rectype);
+          rfAudioObs.subscribe(resp => {
+                // Do not use Promise version, which does not work with Safari 13
+                if (resp.body) {
+                  if (rf && mt && mt.isVideo()) {
+                    // we need the original file
+                    rf.blob = new Blob([resp.body], {type: mt.toHeaderString()})
+                  }
+                  aCtx.decodeAudioData(resp.body, ab => {
+                    if (rf) {
+                      rf.audioBuffer = ab
+                    } else {
+                      observer.error('Recording file object null');
+                    }
+                    if (this.debugDelay > 0) {
+                      window.setTimeout(() => {
+                        observer.next(rf);
+                        observer.complete();
+                      }, this.debugDelay);
+                    } else {
+                      observer.next(rf);
+                      observer.complete();
+                    }
+                  })
+                } else {
+                  observer.error('Received no audio data');
+                }
+              },
+              (error: HttpErrorResponse) => {
+                if (error.status == 404) {
+                  // Interpret not as an error, the file ist not recorded yet
+                  observer.next(null);
+                  observer.complete()
+                } else {
+                  // all other states are errors
+                  observer.error(error);
                   observer.complete();
-                }, this.debugDelay);
-              } else {
-                observer.next(rf);
-                observer.complete();
-              }
-            })
-          }else{
-            observer.error('Received no audio data');
-          }
-          },
-          (error: HttpErrorResponse) => {
-            if (error.status == 404) {
-              // Interpret not as an error, the file ist not recorded yet
-              observer.next(null);
-              observer.complete()
-            } else {
-              // all other states are errors
-              observer.error(error);
-              observer.complete();
-            }
-          });
-
+                }
+              });
+        }
       });
     });
 

@@ -37,7 +37,7 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
         private running=false;
         private _startAction:Action<void>;
         private _startSelectionAction:Action<void>;
-        private _autoPlayOnSelectToggleAction:Action<boolean>
+        private _autoPlayOnSelectToggleAction!:Action<boolean>;
         private _stopAction:Action<void>;
         bufSize:number;
         context:AudioContext;
@@ -100,7 +100,7 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
                 this.audioBuffer = audioClip.buffer;
                 audioClip.addSelectionObserver((ac)=> {
                     this._startSelectionAction.disabled = this.startSelectionDisabled()
-                    if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
+                    if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction?.value) {
                       this.startSelected()
                     }
                   }
@@ -225,7 +225,7 @@ import {MediaPlaybackControls} from "../../media/mediaplayback";
             }
         }
 
-        get currentTime():number{
+        get currentTime():number|null{
             return this.playPositionTime;
         }
 

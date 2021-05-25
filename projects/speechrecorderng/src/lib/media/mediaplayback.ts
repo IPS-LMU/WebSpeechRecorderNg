@@ -4,7 +4,7 @@ export interface MediaPlaybackControls{
     readonly startAction:Action<void>;
     readonly startSelectionAction:Action<void>;
     readonly stopAction:Action<void>;
-    autoPlayOnSelectToggleAction: Action<boolean>;
+    autoPlayOnSelectToggleAction: Action<boolean>|undefined;
     //isPlaying():boolean;
-    readonly currentTime:number;
+    readonly currentTime:number|null;
 }

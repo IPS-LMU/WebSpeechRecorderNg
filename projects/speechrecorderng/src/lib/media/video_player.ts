@@ -31,7 +31,7 @@ import {MediaPlaybackControls} from "./mediaplayback";
 
 })
 export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
-    get videoEndTime(): number {
+    get videoEndTime(): number|null {
         return this._videoEndTime;
     }
     get startAction(): Action<void> {
@@ -50,17 +50,17 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
         return this._videoPlayStopAction;
     }
 
-    autoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
+    autoPlayOnSelectToggleAction: Action<boolean>=new Action<boolean>('Autoplay on select',false);
 
-    @ViewChild('videoEl') videoElRef: ElementRef;
-    protected videoEl: HTMLVideoElement;
+    @ViewChild('videoEl') videoElRef!: ElementRef;
+    protected videoEl!: HTMLVideoElement;
 
-    onplaying:(ev:Event)=>void=null;
-    onpause:(ev:Event)=>void=null;
-    onerror:(ev:Event)=>void=null;
-    onended:(ev:Event)=>void=null;
+    onplaying:((ev:Event)=>void)|null=null;
+    onpause:((ev:Event)=>void)|null=null;
+    onerror:((ev:string|Event)=>void)|null=null;
+    onended:((ev:Event)=>void)|null=null;
 
-    private _videoEndTime: number = null;
+    private _videoEndTime: number|null = null;
 
     private _videoPlayStartAction: Action<void> = new Action('Play');
     private _videoPlaySelectionAction: Action<void> = new Action('Play selection');
@@ -69,9 +69,9 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     //private _autoPlayOnSelectToggleAction: Action<boolean>=new Action('Autoplay on select',false);
 
 
-    private _selection:Selection;
+    private _selection:Selection|null|undefined;
     @Input()
-    set selection(selection:Selection){
+    set selection(selection:Selection|null|undefined){
 
         this._selection=selection;
         this.startSelectionAction.disabled = this.startSelectionDisabled();
@@ -129,7 +129,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
                 this.onended(ev);
             }
         }
-        this.videoEl.onerror = (ev:Event) => {
+        this.videoEl.onerror = (ev:string|Event) => {
             this._videoPlayStartAction.disabled = true;
             this._videoPlayPauseAction.disabled = true;
             this._videoPlayStopAction.disabled = true;
@@ -176,7 +176,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     }
 
     @Input()
-    set mediaStream(mediaStream:MediaStream){
+    set mediaStream(mediaStream:MediaStream|null){
       if(this.videoEl){
           this.videoEl.muted=true;
         this.videoEl.srcObject=mediaStream;
@@ -187,7 +187,7 @@ export class VideoPlayer implements AfterViewInit, MediaPlaybackControls {
     }
 
     @Input()
-    set mediaBlob(mediaBlob: Blob) {
+    set mediaBlob(mediaBlob: Blob|null) {
         if(this.videoEl) {
             if (mediaBlob == null) {
                 this.videoEl.srcObject = null;

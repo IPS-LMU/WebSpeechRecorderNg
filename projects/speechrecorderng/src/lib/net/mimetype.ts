@@ -8,9 +8,14 @@ export class MIMEType {
 
     public static readonly KNOWN_TYPES = [MIMEType.TEXT_PLAIN, MIMEType.AUDIO_WAVE, MIMEType.VIDEO_MP4,MIMEType.VIDEO_WEBM,MIMEType.VIDEO_MATROSKA];
 
-    constructor(private _type: string, private _subType: string,private _extension?: string, private _parameters?:string[]) {
-        if(!this._parameters){
-            this._parameters=[];
+    private _parameters:string[]=[];
+    private _extension:string|null=null;
+    constructor(private _type: string, private _subType: string|null,extension?: string|null, parameters?:string[]) {
+        if(extension){
+            this._extension=extension;
+        }
+        if(parameters){
+            this._parameters=parameters;
         }
     }
 
@@ -18,7 +23,7 @@ export class MIMEType {
         return this._type;
     }
 
-    get subType(): string {
+    get subType(): string|null {
         return this._subType;
     }
 
@@ -26,7 +31,7 @@ export class MIMEType {
         return this._parameters;
     }
 
-    get extension():string{
+    get extension():string|null{
         return this._extension;
     }
 
@@ -38,7 +43,7 @@ export class MIMEType {
         return this.equals(MIMEType.AUDIO_WAVE);
     }
 
-    private static knownType(type: string, subType: string): MIMEType | null {
+    private static knownType(type: string, subType: string|null): MIMEType | null {
         for (let nti = 0; nti < MIMEType.KNOWN_TYPES.length; nti++) {
             let knownType = MIMEType.KNOWN_TYPES[nti];
             if (knownType.type === type && knownType.subType === subType) {
@@ -71,7 +76,7 @@ export class MIMEType {
             if (splitStrCmps > 1) {
                 subType = splitStr[1];
             }
-            let mimeType:MIMEType=null;
+            let mimeType:MIMEType|null=null;
             let prms=new Array<string>();
             for(let pi=1;pi<mimeParamsSplit.length;pi++) {
                 prms.push(mimeParamsSplit[pi]);
@@ -80,7 +85,7 @@ export class MIMEType {
             if(knownType !=null && prms.length==0) {
                 mimeType=knownType;
             }else {
-                let ext:string=null;
+                let ext:string|null=null;
                 if(knownType!=null) {
                     ext=knownType.extension;
                 }
@@ -92,11 +97,11 @@ export class MIMEType {
     }
 
 
-    public static byExtension(extension:string):MIMEType{
-        let mt:MIMEType=null;
+    public static byExtension(extension:string):MIMEType|null{
+        let mt:MIMEType|null=null;
         for (let nti = 0; nti < MIMEType.KNOWN_TYPES.length; nti++) {
             let knownType = MIMEType.KNOWN_TYPES[nti];
-            if (knownType.extension.toLowerCase() === extension.toLowerCase()) {
+            if (knownType.extension?.toLowerCase() === extension.toLowerCase()) {
                 mt=knownType;
                 break;
             }
@@ -144,27 +149,29 @@ export class MIMEType {
 
     public toHeaderString():string{
         let str=this._type+'/'+this._subType;
-        for(let pi=0;pi<this._parameters.length;pi++){
-            str=str.concat(';');
-            let p=this._parameters[pi];
-            let eqSignPos=p.indexOf("=");
-            if(eqSignPos>0){
-                let pk=p.substring(0,eqSignPos+1).trim();
-                str=str.concat(pk);
-                let pVal=p.substring(eqSignPos+1).trim();
-                let pValStr=pVal;
-                // If mime type contains a comma...
-                let pValCommaPos=pVal.indexOf(",");
-                if(pValCommaPos!==-1){
-                    // ...check if already quoted...
-                    if(! (pVal.startsWith('"') && pVal.endsWith('"'))){
-                        // ... and if not, quote the parameter value string
-                        pValStr = '"' + pVal + '"';
+        if(this._parameters) {
+            for (let pi = 0; pi < this._parameters.length; pi++) {
+                str = str.concat(';');
+                let p = this._parameters[pi];
+                let eqSignPos = p.indexOf("=");
+                if (eqSignPos > 0) {
+                    let pk = p.substring(0, eqSignPos + 1).trim();
+                    str = str.concat(pk);
+                    let pVal = p.substring(eqSignPos + 1).trim();
+                    let pValStr = pVal;
+                    // If mime type contains a comma...
+                    let pValCommaPos = pVal.indexOf(",");
+                    if (pValCommaPos !== -1) {
+                        // ...check if already quoted...
+                        if (!(pVal.startsWith('"') && pVal.endsWith('"'))) {
+                            // ... and if not, quote the parameter value string
+                            pValStr = '"' + pVal + '"';
+                        }
                     }
+                    str = str.concat(pValStr);
+                } else {
+                    str = str.concat(p);
                 }
-                str=str.concat(pValStr);
-            }else{
-                str=str.concat(p);
             }
         }
         return str;

@@ -191,7 +191,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   private levelMeasure: LevelMeasure;
   private _controlAudioPlayer!: AudioPlayer;
 
-  private audioFetchSubscription:Subscription|null=null;
+  private mediaFetchSubscription:Subscription|null=null;
 
   private destroyed=false;
 
@@ -383,7 +383,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this._controlAudioPlayer = controlAudioPlayer;
     if (this._controlAudioPlayer) {
       this._controlAudioPlayer.listener = this;
-      this._controlAudioPlayer.autoPlayOnSelectToggleAction=this.autoPlayOnSelectToggleAction;
+      if(this.autoPlayOnSelectToggleAction) {
+        this._controlAudioPlayer.autoPlayOnSelectToggleAction = this.autoPlayOnSelectToggleAction;
+      }
     }
   }
 
@@ -588,15 +590,18 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     dataDnlLnk.type=type;
 
     //document.body.appendChild(dataDnlLnk);
-    this.renderer.appendChild(document.body,dataDnlLnk);
-    let fn = this.displayRecFile.filenameString();
-    fn += '_' + this.displayRecFileVersion;
-    fn += '.'+ext;
-    dataDnlLnk.download=fn;
-    dataDnlLnk.click();
+    if(this.displayRecFile) {
+      this.renderer.appendChild(document.body, dataDnlLnk);
 
-    //document.body.removeChild(dataDnlLnk);
-    this.renderer.removeChild(document.body,dataDnlLnk);
+      let fn = this.displayRecFile.filenameString();
+      fn += '_' + this.displayRecFileVersion;
+      fn += '.' + ext;
+      dataDnlLnk.download = fn;
+      dataDnlLnk.click();
+
+      //document.body.removeChild(dataDnlLnk);
+      this.renderer.removeChild(document.body, dataDnlLnk);
+    }
   }
 
 
@@ -619,7 +624,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   private applyPlaybackActions(){
-    let mpcs:MediaPlaybackControls=null;
+    let mpcs:MediaPlaybackControls|null=null;
     if(this.displayMediaBlob) {
       if (this.audioSignalCollapsed) {
         mpcs = this.liveLevelDisplay;
@@ -646,7 +651,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
     this.videoPlayer.onplaying=(ev:Event)=>{
       this.playbackRunning=true;
-      this.updateTimerId = window.setInterval(e => this.updateMediaPlaybackPosition(), 50);
+      this.updateTimerId = window.setInterval(() => this.updateMediaPlaybackPosition(), 50);
     }
     this.videoPlayer.onpause=(ev:Event)=>{
       this.playbackRunning=false;
@@ -658,7 +663,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       window.clearInterval(this.updateTimerId);
       this.applyVideoPlayer();
     }
-    this.videoPlayer.onerror=(ev:Event)=>{
+    this.videoPlayer.onerror=(ev:string|Event)=>{
       this.playbackRunning=false;
       window.clearInterval(this.updateTimerId);
       this.applyVideoPlayer();
@@ -681,16 +686,18 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   private decodeAudioOfMediaRecordingFile(rf:RecordingFile){
     // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-    let mbBufProm=rf.blob.arrayBuffer();
-    mbBufProm.then((buf)=> {
-      this._controlAudioPlayer.context.decodeAudioData(buf, ab => {
-        rf.audioBuffer = ab;
-        this.displayAudioClip = new AudioClip(ab);
-        this.showRecording();
-      }, error => {
+    if(rf.blob) {
+      let mbBufProm = rf.blob.arrayBuffer();
+      mbBufProm.then((buf) => {
+        this._controlAudioPlayer.context.decodeAudioData(buf, ab => {
+          rf.audioBuffer = ab;
+          this.displayAudioClip = new AudioClip(ab);
+          this.showRecording();
+        }, error => {
 
-      })
-    });
+        })
+      });
+    }
   }
 
 
@@ -721,7 +728,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
           this.mediaFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, rfToFetch).subscribe((fetchedRf) => {
             let fab = null;
             let fmb = null;
-            if (fetchedRf) {
+            if (fetchedRf && this._displayRecFile) {
               fmb = this._displayRecFile.blob;
               fab = this._displayRecFile.audioBuffer;
             } else {
@@ -730,7 +737,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
             }
             if(fetchedRf == this._displayRecFile) {
               if (fmb) {
-                this.displayAudioClip = new AudioClip(fab);
+                if(fab) {
+                  this.displayAudioClip = new AudioClip(fab);
+                }else{
+                  this.displayAudioClip=null;
+                }
                 this.applyDisplayMediaBlob(fmb);
                 this.showRecording();
                 //this.decodeAudioOfMediaRecordingFile(this._displayRecFile);
@@ -757,8 +768,12 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       this.controlAudioPlayer.audioClip = null;
       this.displayMediaBlob = null;
       this.playStartAction.disabled=true;
-      this.playStartSelectionAction.disabled=true;
-      this.playStopAction.disabled=true;
+      if(this.playStartSelectionAction) {
+        this.playStartSelectionAction.disabled = true;
+      }
+      if(this.playStopAction) {
+        this.playStopAction.disabled = true;
+      }
     }
   }
 
@@ -824,7 +839,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
     if(!this._recMIMEType.equals(newMIMEType)){
       // Close Capture engine on recording MIME type change (e.g. audio -> video)
-        if(this.ac.opened){
+        if(this.ac?.opened){
           this.ac.close();
         }
     }
@@ -1436,7 +1451,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   dataAvailable(blob: Blob) {
     let ic = this.promptItem.itemcode;
-    if (this._session && ic) {
+    if (this.items && this._session && ic) {
       let sessId: string | number = this._session.sessionId;
       let cpIdx = this.promptIndex;
       let it = this.items[cpIdx];

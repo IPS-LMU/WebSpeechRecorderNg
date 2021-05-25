@@ -272,7 +272,7 @@ export class RecordingFileViewComponent extends MediaDisplayPlayer implements On
         this.mimeType=null;
       }
       this.configure();
-      if(this.hasVideo && this.recordingFile.blob){
+      if(this.hasVideo() && this.recordingFile.blob){
         //let mbUrl=URL.createObjectURL(this.recordingFile.blob);
         this.videoPlayer.mediaBlob=this.recordingFile.blob
       }

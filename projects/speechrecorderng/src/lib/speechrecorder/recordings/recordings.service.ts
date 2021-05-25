@@ -72,7 +72,7 @@ export class RecordingService {
     return wobs;
   }
 
-  private fetchMediafile(projectName: string, sessId: string | number, itemcode: string,version:number,mimeType:MIMEType=null): Observable<HttpResponse<ArrayBuffer>> {
+  private fetchMediafile(projectName: string, sessId: string | number, itemcode: string,version:number,mimeType:MIMEType|undefined=undefined): Observable<HttpResponse<ArrayBuffer>> {
     let recFilesUrl=this.recFilesUrl(projectName,sessId);
     let encItemcode=encodeURIComponent(itemcode);
     let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
@@ -106,15 +106,13 @@ export class RecordingService {
 
   fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,recordingFile:RecordingFile):Observable<RecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile>(observer=>{
-      let ext='wav';
+    let wobs = new Observable<RecordingFile|null>(observer=>{
       let isVideo=false;
-      let mt:MIMEType|null=null;
+      let mt:MIMEType|undefined;
       if(recordingFile.rectype){
         mt=MIMEType.parse(recordingFile.rectype);
         if(mt){
           isVideo=mt.isVideo();
-          ext=mt.extension;
         }
       }
       if(recordingFile.session) {
@@ -127,7 +125,8 @@ export class RecordingService {
             if (!ctHeader && mt) {
               ctHeader = mt.toHeaderString();
             }
-            recordingFile.blob = new Blob([resp.body], {type: ctHeader});
+            let blobType=(ctHeader?ctHeader:undefined);
+            recordingFile.blob = new Blob([resp.body], {type: blobType});
           }
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           aCtx.decodeAudioData(resp.body, ab => {

@@ -33,17 +33,17 @@ export class AudioCapture {
 
   static BUFFER_SIZE: number = 8192;
   context: any;
-  stream: MediaStream;
+  stream!: MediaStream;
   //mediaStream:MediaStreamAudioSourceNode;
   // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
   // TODO use AudioRecorder
   mediaRecorder: MediaRecorder|null = null;
   mediaRecorderOptions: MediaRecorderOptions = {};
-  mimeType: MIMEType|null = null;
+  mimeType!: MIMEType;
   channelCount!: number;
   mediaStream: any;
   bufferingNode: any;
-  listener!: AudioCaptureListener;
+  listener!: MediaCaptureListener;
   data!: Array<Array<Float32Array>>;
   currentSampleRate!: number;
   n: Navigator;
@@ -525,7 +525,7 @@ export class AudioCapture {
         this._opened = false;
     }
 
-    audioBuffer(): AudioBuffer {
+    audioBuffer(): AudioBuffer |null{
         if (!this.mimeType.isAudioPCM()) {
             return null;
         }

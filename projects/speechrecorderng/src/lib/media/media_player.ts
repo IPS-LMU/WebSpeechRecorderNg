@@ -61,44 +61,44 @@ import {VideoPlayer} from "./video_player";
 
 })
 export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterViewInit {
-    private _mediaUrl: string;
+    private _mediaUrl: string|undefined;
 
     parentE: HTMLElement;
 
-    @ViewChild(VideoPlayer) videoPlayer: VideoPlayer;
+    @ViewChild(VideoPlayer) videoPlayer!: VideoPlayer;
 
-    protected mimeType:MIMEType=null;
+    protected mimeType:MIMEType|null=null;
 
     @Input()
-    playStartAction: Action<void>;
+    playStartAction: Action<void>|undefined;
     @Input()
-    playStopAction: Action<void>;
+    playStopAction: Action<void>|undefined;
     @Input()
-    playSelectionAction: Action<void>
+    playSelectionAction: Action<void>|undefined;
     @Input()
     autoPlayOnSelectToggleAction: Action<boolean>=new Action<boolean>('Autoplay on select');
 
     @Input()
     hideVideo:boolean=false;
 
-    zoomFitToPanelAction: Action<void>;
-    zoomSelectedAction: Action<void>
-    zoomInAction: Action<void>;
-    zoomOutAction: Action<void>;
+    zoomFitToPanelAction!: Action<void>;
+    zoomSelectedAction!: Action<void>;
+    zoomInAction!: Action<void>;
+    zoomOutAction!: Action<void>;
 
-    aCtx: AudioContext;
-    private _audioClip: AudioClip = null;
-    ap: AudioPlayer;
+    aCtx: AudioContext|null=null;
+    private _audioClip: AudioClip|null = null;
+    ap: AudioPlayer|null=null;
     status: string;
 
-    currentLoader: XMLHttpRequest | null;
+    currentLoader: XMLHttpRequest | null=null;
 
     audio: any;
     updateTimerId: any;
 
 
     @ViewChild(AudioDisplayScrollPane, {static: true})
-    private audioDisplayScrollPane: AudioDisplayScrollPane;
+    private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
     constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef, protected eRef: ElementRef) {
         this.parentE = this.eRef.nativeElement;
@@ -113,11 +113,12 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
         this.zoomInAction = this.audioDisplayScrollPane.zoomInAction;
         try {
             this.aCtx = AudioContextProvider.audioContextInstance();
-            this.ap = new AudioPlayer(this.aCtx, this);
-            this.playStartAction = this.ap.startAction;
-            this.playStopAction = this.ap.stopAction;
-            this.playSelectionAction = this.ap.startSelectionAction;
-
+            if (this.aCtx) {
+                this.ap = new AudioPlayer(this.aCtx, this);
+                this.playStartAction = this.ap.startAction;
+                this.playStopAction = this.ap.stopAction;
+                this.playSelectionAction = this.ap.startSelectionAction;
+            }
         } catch (err) {
             this.status = err.message;
         }
@@ -148,12 +149,12 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
         this.audioDisplayScrollPane.layout();
     }
 
-    get mediaUrl(): string {
+    get mediaUrl(): string|undefined {
         return this._mediaUrl;
     }
 
-    set mediaUrl(value: string) {
-        this.ap.stop();
+    set mediaUrl(value: string|undefined) {
+        this.ap?.stop();
         this._mediaUrl = value;
         this.load();
     }
@@ -169,48 +170,49 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
             this.currentLoader = null;
         }
         //this.statusMsg.innerHTML = 'Connecting...';
-        this.currentLoader = new XMLHttpRequest();
-        this.currentLoader.open("GET", this._mediaUrl, true);
-        this.currentLoader.responseType = "arraybuffer";
-        this.currentLoader.onload = (e) => {
-            if (this.currentLoader) {
+        if(this._mediaUrl) {
+            this.currentLoader = new XMLHttpRequest();
+            this.currentLoader.open("GET", this._mediaUrl, true);
+            this.currentLoader.responseType = "arraybuffer";
+            this.currentLoader.onload = (e) => {
+                if (this.currentLoader) {
 
-                var data = this.currentLoader.response; // not responseText
-                //console.debug("Received data ", data.byteLength);
+                    var data = this.currentLoader.response; // not responseText
+                    //console.debug("Received data ", data.byteLength);
 
-                // try to get MIME type
-                let mt: MIMEType = null;
-                let url = this.currentLoader.responseURL;
-                let ct = this.currentLoader.getResponseHeader('Content-type');
-                if (ct === null) {
-                    // guess by extension
-                    let dotIdx = url.lastIndexOf('.');
-                    if (dotIdx >= 0) {
-                        let extStr = url.substring(dotIdx);
-                        mt = MIMEType.byExtension(extStr);
+                    // try to get MIME type
+                    let mt: MIMEType|null = null;
+                    let url = this.currentLoader.responseURL;
+                    let ct = this.currentLoader.getResponseHeader('Content-type');
+                    if (ct === null) {
+                        // guess by extension
+                        let dotIdx = url.lastIndexOf('.');
+                        if (dotIdx >= 0) {
+                            let extStr = url.substring(dotIdx);
+                            mt = MIMEType.byExtension(extStr);
+                        }
+                    } else {
+                        mt = MIMEType.parse(ct);
                     }
-                } else {
-                    mt = MIMEType.parse(ct);
+                    this.mimeType = mt;
+                    this.configure();
+                    this.currentLoader = null;
+                    this.loaded(data);
                 }
-                this.mimeType=mt;
-                this.configure();
-                this.currentLoader = null;
-                this.loaded(data);
             }
-        }
-        this.currentLoader.onerror = (e) => {
-            console.error("Error downloading ...");
-            //this.statusMsg.innerHTML = 'Error loading audio file!';
-            this.currentLoader = null;
-        }
-        //this.statusMsg.innerHTML = 'Loading...';
+            this.currentLoader.onerror = (e) => {
+                console.error("Error downloading ...");
+                //this.statusMsg.innerHTML = 'Error loading audio file!';
+                this.currentLoader = null;
+            }
+            //this.statusMsg.innerHTML = 'Loading...';
 
-        this.currentLoader.send();
-
+            this.currentLoader.send();
+        }
     }
 
     hasVideo():boolean {
-        return(this.mimeType && this.mimeType.isVideo());
+        return(this.mimeType!==null && this.mimeType.isVideo());
     }
 
     protected configure() {
@@ -220,7 +222,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
             this.playStopAction = this.videoPlayer.stopAction;
             this.autoPlayOnSelectToggleAction=this.videoPlayer.autoPlayOnSelectToggleAction;
             this.videoPlayer.onplaying=(ev:Event)=>{
-                this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
+                this.updateTimerId = window.setInterval(() => this.updatePlayPosition(), 50);
             }
             this.videoPlayer.onpause=(ev:Event)=>{
                 window.clearInterval(this.updateTimerId);
@@ -228,14 +230,16 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
             this.videoPlayer.onended=(ev:Event)=>{
                 window.clearInterval(this.updateTimerId);
             }
-            this.videoPlayer.onerror=(ev:Event)=>{
+            this.videoPlayer.onerror=(ev:string|Event)=>{
                 window.clearInterval(this.updateTimerId);
             }
         } else {
-            this.playStartAction = this.ap.startAction;
-            this.playSelectionAction = this.ap.startSelectionAction;
-            this.playStopAction = this.ap.stopAction;
-            this.autoPlayOnSelectToggleAction=this.ap.autoPlayOnSelectToggleAction;
+            if(this.ap) {
+                this.playStartAction = this.ap.startAction;
+                this.playSelectionAction = this.ap.startSelectionAction;
+                this.playStopAction = this.ap.stopAction;
+                this.autoPlayOnSelectToggleAction = this.ap.autoPlayOnSelectToggleAction;
+            }
         }
     }
 
@@ -244,14 +248,17 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
         this.status = 'Audio file loaded.';
         //console.debug("Received data ", data.byteLength);
         if (this.hasVideo()) {
-            let mBlob = new Blob([data], {type: this.mimeType.toHeaderString()});
+           let blobType=this.mimeType?this.mimeType.toHeaderString():undefined;
+            let mBlob = new Blob([data], {type: blobType});
             this.videoPlayer.mediaBlob=mBlob;
         }
         // Do not use Promise version, which does not work with Safari 13
-        this.aCtx.decodeAudioData(data, (audioBuffer) => {
-            //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
-            this.audioClip = new AudioClip(audioBuffer)
-        });
+        if(this.aCtx) {
+            this.aCtx.decodeAudioData(data, (audioBuffer) => {
+                //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
+                this.audioClip = new AudioClip(audioBuffer)
+            });
+        }
     }
 
     @Input()
@@ -271,24 +278,32 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
     }
 
     startSelectionDisabled() {
-        return !(this._audioClip && !this.playStartAction.disabled && this._audioClip.selection)
+        let playStartActionDisabled=false;
+        if(this.playStartAction){
+            playStartActionDisabled=this.playStartAction.disabled;
+        }
+        return !(this._audioClip && !playStartActionDisabled && this._audioClip.selection)
     }
 
     @Input()
     set audioClip(audioClip: AudioClip | null) {
         this._audioClip = audioClip
-        let audioData: AudioBuffer = null;
-        let sel: Selection = null;
+        let audioData: AudioBuffer|null = null;
+        let sel: Selection|null = null;
         if (audioClip) {
             audioData = audioClip.buffer;
             sel = audioClip.selection;
         }
         if (audioData) {
             console.debug("Audio Buffer Samplerate: ", audioData.sampleRate)
-            this.playStartAction.disabled = (!this.ap)
+            if(this.playStartAction) {
+                this.playStartAction.disabled = (!this.ap);
+            }
         }
         this.audioDisplayScrollPane.audioClip = audioClip
-        this.ap.audioClip = audioClip
+        if(this.ap) {
+            this.ap.audioClip = audioClip
+        }
     }
 
     get audioClip(): AudioClip | null {
@@ -312,7 +327,7 @@ export class MediaDisplayPlayer implements AudioPlayerListener, OnInit, AfterVie
     audioPlayerUpdate(e: AudioPlayerEvent) {
         if (EventType.STARTED === e.type) {
             this.status = 'Playback...';
-            this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
+            this.updateTimerId = window.setInterval(() => this.updatePlayPosition(), 50);
         } else if (EventType.ENDED === e.type) {
             this.status = 'Ready.';
             window.clearInterval(this.updateTimerId);
