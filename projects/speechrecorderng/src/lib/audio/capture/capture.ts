@@ -29,24 +29,24 @@ export class AudioCapture {
 
   static BUFFER_SIZE: number = 8192;
   context: any;
-  stream: MediaStream;
+  stream!: MediaStream;
   //mediaStream:MediaStreamAudioSourceNode;
   // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
   // TODO use AudioRecorder
 
-  channelCount: number;
+  channelCount!: number;
   mediaStream: any;
   bufferingNode: any;
-  listener: AudioCaptureListener;
-  data: Array<Array<Float32Array>>;
-  currentSampleRate: number;
+  listener!: AudioCaptureListener;
+  data!: Array<Array<Float32Array>>;
+  currentSampleRate!: number;
   n: Navigator;
-  audioOutStream: SequenceAudioFloat32OutStream | null;
+  audioOutStream: SequenceAudioFloat32OutStream | null=null;
   private disconnectStreams = true;
   private _opened=false;
   private capturing = false;
 
-  framesRecorded: number;
+  framesRecorded: number=0;
 
   constructor(context: any) {
     this.context = context;
@@ -167,13 +167,13 @@ export class AudioCapture {
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString){
+  open(channelCount: number, selDeviceId?: ConstrainDOMString|null){
       this.context.resume().then(()=>{
         this._open(channelCount,selDeviceId);
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString,) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString|null) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();

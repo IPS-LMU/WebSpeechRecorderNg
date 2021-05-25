@@ -60,26 +60,26 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 })
 export class LevelBarDisplay implements LevelListener, OnDestroy {
 
-    ce: HTMLDivElement;
-    @ViewChild(LevelBar, { static: true }) liveLevel: LevelBar;
-    @Input() streamingMode: boolean;
-    @Input() audioSignalCollapsed: boolean;
-    private _displayAudioBuffer: AudioBuffer | null;
-    @Input() enableDownload: boolean;
+    ce: HTMLDivElement|null=null;
+    @ViewChild(LevelBar, { static: true }) liveLevel!: LevelBar;
+    @Input() streamingMode: boolean=false;
+    @Input() audioSignalCollapsed: boolean=true;
+    private _displayAudioBuffer: AudioBuffer | null|undefined;
+    @Input() enableDownload: boolean=false;
     peakDbLevelStr = "-___ dB";
     peakDbLvl = MIN_DB_LEVEL;
 
-    _displayLevelInfos: LevelInfos | null;
+    _displayLevelInfos: LevelInfos | null=null;
 
     @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
     @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
 
     //@Input() controlAudioPlayer: AudioPlayer;
-    @Input() playStartAction:Action<void>;
-    @Input() playStopAction:Action<void>;
+    @Input() playStartAction:Action<void>|undefined;
+    @Input() playStopAction:Action<void>|undefined;
     playStartEnabled = false;
     playStopEnabled = false;
-    private updateTimerId: number;
+    private updateTimerId: number|null=null;
 
     private destroyed = false;
 
@@ -95,7 +95,7 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
 
 
     @Input()
-    set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null) {
+    set displayAudioBuffer(displayAudioBuffer: AudioBuffer | null| undefined) {
         this._displayAudioBuffer = displayAudioBuffer;
     }
 

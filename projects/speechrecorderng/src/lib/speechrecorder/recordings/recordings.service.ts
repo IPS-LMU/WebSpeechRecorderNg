@@ -94,42 +94,48 @@ export class RecordingService {
 
   fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,recordingFile:RecordingFile):Observable<RecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile>(observer=>{
+    let wobs = new Observable<RecordingFile|null>(observer=>{
+      if(recordingFile.session) {
+        let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
+        obs.subscribe(resp => {
+              //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
-      let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.itemCode,recordingFile.version);
-      obs.subscribe(resp => {
-          //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
+              // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+              if (resp.body) {
+                aCtx.decodeAudioData(resp.body, ab => {
+                  recordingFile.audioBuffer = ab;
+                  if (this.debugDelay > 0) {
+                    window.setTimeout(() => {
 
-          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-          aCtx.decodeAudioData(resp.body,ab=>{
-            recordingFile.audioBuffer=ab;
-            if(this.debugDelay>0) {
-              window.setTimeout(() => {
-
-                observer.next(recordingFile);
+                      observer.next(recordingFile);
+                      observer.complete();
+                    }, this.debugDelay);
+                  } else {
+                    observer.next(recordingFile);
+                    observer.complete();
+                  }
+                }, error => {
+                  observer.error(error);
+                  observer.complete();
+                })
+              } else {
+                observer.error('Fetching audio file: response has no body');
+              }
+            },
+            (error: HttpErrorResponse) => {
+              if (error.status == 404) {
+                // Interpret not as an error, the file ist not recorded yet
+                observer.next(null);
+                observer.complete()
+              } else {
+                // all other states are errors
+                observer.error(error);
                 observer.complete();
-              }, this.debugDelay);
-            }else{
-              observer.next(recordingFile);
-              observer.complete();
-            }
-          },error => {
-            observer.error(error);
-            observer.complete();
-          })
-
-        },
-        (error: HttpErrorResponse) => {
-          if (error.status == 404) {
-            // Interpret not as an error, the file ist not recorded yet
-            observer.next(null);
-            observer.complete()
-          }else{
-            // all other states are errors
-            observer.error(error);
-            observer.complete();
-          }
-        });
+              }
+            });
+      }else{
+        observer.error();
+      }
     });
 
     return wobs;
@@ -143,19 +149,23 @@ export class RecordingService {
 
       obs.subscribe(resp => {
             // Do not use Promise version, which does not work with Safari 13
-          aCtx.decodeAudioData(resp.body,ab=>{
-              let rf=new RecordingFile(sessId,itemcode,version,ab);
-              if(this.debugDelay>0) {
+          if(resp.body) {
+            aCtx.decodeAudioData(resp.body, ab => {
+              let rf = new RecordingFile(sessId, itemcode, version, ab);
+              if (this.debugDelay > 0) {
                 window.setTimeout(() => {
 
                   observer.next(rf);
                   observer.complete();
                 }, this.debugDelay);
-              }else{
+              } else {
                 observer.next(rf);
                 observer.complete();
               }
-          })
+            });
+          }else{
+            observer.error();
+          }
         },
         (error: HttpErrorResponse) => {
           if (error.status == 404) {
