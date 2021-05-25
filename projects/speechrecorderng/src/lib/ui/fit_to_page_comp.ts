@@ -4,12 +4,12 @@ import {DOCUMENT} from "@angular/common";
 @Directive()
 export abstract class FitToPageComponent implements OnInit,OnDestroy{
 
-    private htmlHeightSave:string;
-    private htmlMarginSave:string;
-    private htmlPaddingSave:string;
-    private bodyHeightSave:string;
-    private bodyMarginSave:string;
-    private bodyPaddingSave:string;
+    private htmlHeightSave!:string;
+    private htmlMarginSave!:string;
+    private htmlPaddingSave!:string;
+    private bodyHeightSave!:string;
+    private bodyMarginSave!:string;
+    private bodyPaddingSave!:string;
     private d:Document;
     private renderer:Renderer2
 
