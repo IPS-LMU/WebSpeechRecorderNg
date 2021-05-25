@@ -196,10 +196,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
-    if (this.config && this.config.enableUploadRecordings) {
+    if (this.config && this.config.enableUploadRecordings !== undefined) {
       this.enableUploadRecordings = this.config.enableUploadRecordings;
     }
-    if (this.config && this.config.enableDownloadRecordings) {
+    if (this.config && this.config.enableDownloadRecordings !== undefined) {
       this.enableDownloadRecordings = this.config.enableDownloadRecordings;
     }
     this.init();
