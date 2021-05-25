@@ -163,14 +163,73 @@ export class Prompter {
       }
     }
 
-  @Input() set promptMediaItems(pMis: Array<Mediaitem>|null) {
+  private applyMediaPromptListener(modal:boolean) {
+    if(this.mediaPromptEl){
+      this.mediaPromptEl.onloadeddata = (ev: Event) => {
+        console.log("Media loaded data")
+      }
+      this.mediaPromptEl.onplay = (ev: Event) => {
+        console.log("Media play event")
+        this._running = true;
+        if (this._onstarted) {
+          this._onstarted();
+        }
+      }
+      this.mediaPromptEl.onpause = (ev: Event) => {
+        console.log("Media pause event")
+        this._running = false;
+        if (this._onpaused) {
+          this._onpaused();
+        }
+      }
+
+      this.mediaPromptEl.onended = (ev: Event) => {
+        console.log("Media play ended event")
+        this._running = false;
+        if (this._onended) {
+          this._onended();
+        }
+      }
+      this.mediaPromptEl.onclick = (ev: Event) => {
+        console.log("Media clicked")
+        if (this.mediaPromptEl) {
+          if (this._running) {
+            if (!modal) {
+              this.mediaPromptEl.pause();
+            }
+          } else {
+            this.mediaPromptEl.play();
+          }
+        }
+      }
+      this.mediaPromptEl.onerror = (ev: Event | string) => {
+        if (this.mediaPromptEl?.error) {
+          console.error("Media error: " + this.mediaPromptEl.error.message)
+        }
+      }
+      this.mediaPromptEl.onabort = (ev: Event) => {
+        console.error("Media abort: " + ev)
+      }
+    }
+  }
+
+  @Input() set promptMediaItems(pMis: Array<Mediaitem>|undefined) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
+      if(this.currPromptChild instanceof HTMLMediaElement){
+        this.currPromptChild.pause();
+        this.currPromptChild.srcObject=null;
+        //this.currPromptChild.src='';
+      }
       this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
     }
     if (this._promptMediaItems && this._promptMediaItems.length == 1) {
       // TODO use MIMEType
       let mi = this._promptMediaItems[0]
+      let modal=false;
+      if(mi.modal === true){
+        modal=true;
+      }
       this.mimetype = 'text/plain'
       if (mi.mimetype) {
         this.mimetype = mi.mimetype.trim();
@@ -615,7 +674,9 @@ export class PromptingContainer {
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
-                               [transportActions]="transportActions"></app-sprpromptingcontainer>
+                               [transportActions]="transportActions"
+                               [promptPlayStartAction]="promptPlayStartAction"
+                               [promptPlayStopAction]="promptPlayStopAction"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
     <div #asCt [class.active]="!audioSignalCollapsed">
@@ -729,6 +790,8 @@ export class Prompting implements MediaPlaybackControls{
     this.audioDisplay.currentTime=currentTime;
   }
 
+  @ViewChild(PromptingContainer, { static: true }) promptingContainer!: PromptingContainer;
+  @ViewChild(AudioDisplay, { static: true }) audioDisplay!: AudioDisplay;
   @Input() projectName: string | undefined;
   @Input() startStopSignalState!: StartStopSignalState;
   @Input() promptItem: PromptItem | null=null;
@@ -745,6 +808,8 @@ export class Prompting implements MediaPlaybackControls{
   @Input() playSelectionAction: Action<void>|undefined;
   @Input() autoPlayOnSelectToggleAction:Action<boolean>|undefined;
   @Input() playStopAction: Action<void>|undefined;
+  @Input() promptPlayStartAction: Action<void>|undefined;
+  @Input() promptPlayStopAction: Action<void>|undefined;
   @Output() onItemSelect = new EventEmitter<number>();
   @Output() onNextItem = new EventEmitter();
   @Output() onPrevItem = new EventEmitter();
@@ -761,6 +826,29 @@ export class Prompting implements MediaPlaybackControls{
 
   prevItem() {
     this.onPrevItem.emit();
+  }
+
+  set onstarted(onstarted:()=>void){
+    this.promptingContainer.onstarted=onstarted;
+  }
+
+  set onpaused(onpaused:()=>void){
+    this.promptingContainer.onpaused=onpaused;
+  }
+
+  set onended(onended:()=>void){
+    this.promptingContainer.onended=onended;
+  }
+
+  autoplay(){
+    this.promptingContainer.autoplay();
+  }
+
+  start(){
+    this.promptingContainer.start();
+  }
+  stop(){
+    this.promptingContainer.stop();
   }
 }
 

@@ -55,6 +55,7 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {MediaDisplayPlayer} from "./media/media_player";
 import {MediaDisplay} from "./media/media_display";
 import {VideoPlayer} from "./media/video_player";
+import {VideoPlayer as PromptVideoPlayer} from "./video/video_el";
 
 
 
@@ -78,7 +79,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,MediaDisplay,AudioDisplayPlayer,MediaDisplayPlayer,VideoPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
+      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent,PromptVideoPlayer],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],

@@ -27,6 +27,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
+import {PromptPhase} from "../script/script";
 import {Item} from "./item";
 import {MIMEType} from "../../net/mimetype";
 import {MediaPlaybackControls} from "../../media/mediaplayback";
@@ -44,7 +45,7 @@ const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export const enum Mode {SERVER_BOUND, STAND_ALONE}
 
 export const enum Status {
-  BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
+  BLOCKED, IDLE,NON_RECORDING,PLAY_PROMPT_PREVIEW,PLAY_PROMPT, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
 
@@ -163,6 +164,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   promptItemIdxInGroup!: number;
 
   private autorecording!: boolean;
+  private promptAutoplay=false;
 
   items: Array<Item>|null=null;
   //selectedItemIdx: number;
@@ -193,6 +195,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   private mediaFetchSubscription:Subscription|null=null;
 
+  private autoplayStarted=false;
   private destroyed=false;
 
   private navigationDisabled=true;
@@ -285,7 +288,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     } else {
       this.ac = new AudioCapture(context);
       if (this.ac) {
-        this.transportActions.startAction.onAction = () => this.startItem();
+        this.transportActions.startAction.onAction = () => this.prepareItem();
         this.ac.listener = this;
         this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
@@ -406,7 +409,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this._channelCount = channelCount;
   }
 
-  set audioDevices(audioDevices: Array<AudioDevice> | null|undefined) {
+  set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {
     this._audioDevices = audioDevices;
   }
 
@@ -458,6 +461,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }else{
       throw new Error("Internal error: Prompt index not found")
     }
+    this.autoplayStarted=false;
     this.applyItem();
   }
 
@@ -468,9 +472,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   }
 
-
-
-  startItem() {
+  prepareItem() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if(this.readonly){
@@ -499,11 +501,40 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
       }
     }else {
+      this.startItem();
+    }
+    }
+
+    this.status=Status.PLAY_PROMPT;
+    this.navigationDisabled=true;
+    this.updateNavigationActions();
+    this.prompting.start();
+  }
+
+  private onPromptEnd(){
+    if (this.ac && this.promptItem.blocked && this.status===Status.PLAY_PROMPT) {
       this.ac.start();
     }
+    if(this.status===Status.PLAY_PROMPT_PREVIEW){
+      this.status=Status.IDLE;
+      this.navigationDisabled=false;
+      this.updateNavigationActions();
     }
   }
 
+  startItem() {
+    if (this.ac && !this.promptItem.blocked) {
+      this.ac.start();
+      if (this._recMIMEType.isVideo()) {
+        this.mediaLiveStream = this.ac.stream;
+      }
+    }
+
+    this.status=Status.PLAY_PROMPT;
+    this.navigationDisabled=true;
+    this.updateNavigationActions();
+    this.prompting.start();
+  }
 
   private loadScript() {
     this.promptItemCount = 0;
@@ -845,33 +876,50 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     }
     this._recMIMEType=newMIMEType;
 
+    this.prompting.onstarted = () => {
+      if (this.status===Status.IDLE) {
+        // Prompt Autoplay
+        this.status=Status.PLAY_PROMPT_PREVIEW;
+      }
+      this.navigationDisabled=true;
+      this.updateNavigationActions();
+    }
     let isNonrecording=(this.promptItem.type==='nonrecording')
 
     if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
     }
-
+    this.prompting.onpaused = () => {
+      this.onPromptEnd();
+    }
+    this.prompting.onended = () => {
+      this.onPromptEnd();
+    }
+    if(!this.autoplayStarted) {
+      this.prompting.autoplay();
+      this.autoplayStarted=true;
+    }
     if(isNonrecording){
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
       if (this.items) {
-        let it = this.items[this.promptIndex];
-        if (!it.recs) {
-          it.recs = new Array<RecordingFile>();
-        }
+      let it = this.items[this.promptIndex];
+      if (!it.recs) {
+        it.recs = new Array<RecordingFile>();
+      }
 
-        let recentRecFile: RecordingFile | null = null;
-        let availRecfiles: number = it.recs.length;
-        if (availRecfiles > 0) {
-          let rfVers: number = availRecfiles - 1;
-          recentRecFile = it.recs[rfVers];
-          this.displayRecFile = recentRecFile;
-          this.displayRecFileVersion = rfVers;
+      let recentRecFile: RecordingFile | null = null;
+      let availRecfiles: number = it.recs.length;
+      if (availRecfiles > 0) {
+        let rfVers: number = availRecfiles - 1;
+        recentRecFile = it.recs[rfVers];
+        this.displayRecFile = recentRecFile;
+        this.displayRecFileVersion = rfVers;
 
-        } else {
-          this.displayRecFile = null;
-          this.displayRecFileVersion = 0;
-        }
+      } else {
+        this.displayRecFile = null;
+        this.displayRecFileVersion = 0;
+      }
       }
       if (!temporary) {
         this.showRecording();
@@ -890,33 +938,33 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.statusMsg = 'Starting session...';
     this.statusWaiting=false;
     if(this._session) {
-      if (this._session.sealed) {
-        this.readonly = true
-        this.statusMsg = 'Session sealed!';
-        //let dialogRef = this.dialog.open(SessionSealedDialog, {});
-        this.dialog.open(MessageDialog, {
-          data: {
-            type: 'error',
-            title: 'Error',
-            msg: "This session is sealed. Recordings cannot be added anymore.",
-            advise: 'Please ask your experimenter what to do (e.g start a new session).',
-          }
-        });
-      } else {
-        let body: any = {};
-        if (this._session.status === "CREATED") {
-          this._session.status = "LOADED";
-          body.status = this._session.status;
-          if (!this._session.loadedDate) {
-            this._session.loadedDate = new Date();
-            body.loadedDate = this._session.loadedDate;
-          }
-        } else {
-          this._session.restartedDate = new Date();
-          body.restartedDate = this._session.restartedDate;
+    if (this._session.sealed) {
+      this.readonly = true
+      this.statusMsg = 'Session sealed!';
+      //let dialogRef = this.dialog.open(SessionSealedDialog, {});
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Error',
+          msg: "This session is sealed. Recordings cannot be added anymore.",
+          advise: 'Please ask your experimenter what to do (e.g start a new session).',
         }
-        this.sessionService.patchSessionObserver(this._session, body).subscribe()
+      });
+    } else {
+      let body:any={};
+      if (this._session.status === "CREATED") {
+        this._session.status = "LOADED";
+        body.status=this._session.status;
+        if (!this._session.loadedDate) {
+          this._session.loadedDate = new Date();
+          body.loadedDate=this._session.loadedDate;
+        }
+      } else {
+        this._session.restartedDate = new Date();
+        body.restartedDate=this._session.restartedDate;
       }
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
+    }
     }
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=null;
@@ -1139,13 +1187,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     if(this.items!=null) {
       let itRecs=this.items[newPrIdx].recs;
       while (itRecs!=null && (itRecs.length > 0) && newPrIdx < this.promptItemCount) {
-        newPrIdx++;
+      newPrIdx++;
         itRecs=this.items[newPrIdx].recs;
-      }
-      if (!itRecs || itRecs.length == 0) {
-        this.promptIndex = newPrIdx;
-      }
     }
+      if (!itRecs || itRecs.length == 0) {
+      this.promptIndex = newPrIdx;
+    }
+  }
   }
 
   enableStartUserGesture() {
@@ -1162,43 +1210,35 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   }
 
   opened() {
-    // this.statusAlertType = 'info';
-    // this.statusMsg = 'Ready.';
-    // this.updateStartActionDisableState()
-    // this.transportActions.fwdAction.disabled = false
-    // this.transportActions.bwdAction.disabled = false
-    if(this.ac) {
-      this.ac.start();
-      if (this._recMIMEType.isVideo()) {
-        this.mediaLiveStream = this.ac.stream;
-      }
-    }
+    // Capture opened, now start the item
+    this.startItem();
   }
 
   started() {
+    // Capture started
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session) {
-      if (this._session.status === "LOADED") {
-        let body: any = {};
-        if (this.section.training) {
-          this._session.status = "STARTED_TRAINING"
-          body.status = this._session.status;
-          if (!this._session.startedTrainingDate) {
-            this._session.startedTrainingDate = new Date();
-            body.startedTrainingDate = this._session.startedTrainingDate;
-          }
-        } else {
-          this._session.status = "STARTED"
-          body.status = this._session.status;
-          if (!this._session.startedDate) {
-            this._session.startedDate = new Date();
-            body.startedDate = this._session.startedDate;
-          }
+    if(this._session.status==="LOADED") {
+      let body:any={};
+      if (this.section.training) {
+        this._session.status = "STARTED_TRAINING"
+        body.status=this._session.status;
+        if(!this._session.startedTrainingDate) {
+          this._session.startedTrainingDate = new Date();
+          body.startedTrainingDate=this._session.startedTrainingDate;
         }
-        this.sessionService.patchSessionObserver(this._session, body).subscribe()
+      } else {
+        this._session.status = "STARTED"
+        body.status=this._session.status;
+        if(!this._session.startedDate) {
+          this._session.startedDate = new Date();
+          body.startedDate=this._session.startedDate;
+        }
       }
+      this.sessionService.patchSessionObserver(this._session,body).subscribe()
+    }
     }
     if (this.section.promptphase === 'PRERECORDING') {
       this.applyPrompt();
@@ -1287,13 +1327,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
   stopRecording() {
     if (this.maxRecTimerRunning) {
       if(this.maxRecTimerId) {
-        window.clearTimeout(this.maxRecTimerId);
+      window.clearTimeout(this.maxRecTimerId);
       }
       this.maxRecTimerRunning = false;
     }
     if(this.ac) {
-      this.ac.stop();
-    }
+    this.ac.stop();
+  }
   }
 
   stopRecordingMaxRec(){
@@ -1301,13 +1341,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
       if(this.postRecTimerId) {
         window.clearTimeout(this.postRecTimerId);
       }
-      this.postRecTimerRunning=false;
+        this.postRecTimerRunning=false;
     }
     this.maxRecTimerRunning = false;
     this.status = Status.STOPPING_STOP;
     if(this.ac) {
-      this.ac.stop();
-    }
+    this.ac.stop();
+  }
   }
 
   addRecordingFileByDescriptor(rfd:RecordingFileDescriptor){
@@ -1323,13 +1363,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
         rf.rectype=rfd.rectype;
         it.recs[rfd.version]=rf;
 
-        } else {
-          //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
-        }
       } else {
         //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
       }
+    }else{
+      //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
     }
+  }
   }
 
   addRecordingFileByPromptIndex(promptIndex:number, rf:RecordingFile){
@@ -1346,7 +1386,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
     this.startStopSignalState = StartStopSignalState.IDLE;
-
+    this.prompting.stop();
     let ad = null;
     if(this.ac!=null){
       ad=this.ac.audioBuffer();
@@ -1397,14 +1437,15 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     // check complete session
     let complete = true;
     if(this.items) {
-      // search backwards, to gain faster detection of incomplete state
-      for (let ri = this.items.length - 1; ri >= 0; ri--) {
-        let it = this.items[ri];
-        if (!it.training && (!it.recs || it.recs.length == 0)) {
-          complete = false;
-          break;
-        }
+    // search backwards, to gain faster detection of incomplete state
+    for (let ri = this.items.length - 1; ri >= 0; ri--) {
+      let it = this.items[ri];
+      if (!it.training && (!it.recs || it.recs.length == 0)) {
+
+        complete = false;
+        break;
       }
+    }
     }
     let autoStart = (this.status === Status.STOPPING_STOP);
     this.status = Status.IDLE;
@@ -1414,13 +1455,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
         if (!this._session.sealed && this._session.status !== "COMPLETED") {
           let body: any = {}
           this._session.status = "COMPLETED";
-          body.status = this._session.status;
-          if (!this._session.completedDate) {
+          body.status=this._session.status;
+          if(!this._session.completedDate) {
             this._session.completedDate = new Date();
-            body.completedDate = this._session.completedDate;
+            body.completedDate=this._session.completedDate;
           }
-          this.sessionService.patchSessionObserver(this._session, body).subscribe()
-        }
+         this.sessionService.patchSessionObserver(this._session,body).subscribe()
+      }
       }
       this.statusMsg = 'Session complete!';
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
@@ -1444,7 +1485,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
     // apply recorded item
     this.applyItem(startNext);
     if(startNext){
-      this.startItem();
+      this.prepareItem();
     }
     this.changeDetectorRef.detectChanges();
   }
@@ -1502,8 +1543,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, MediaCaptureList
 
   stop() {
     if(this.ac!=null){
-      this.ac.close();
-    }
+    this.ac.close();
+  }
   }
 
   private updateControlPlaybackPosition() {
