@@ -1,5 +1,34 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 
+
+// AudioWorkletProcessor not yet declared in TypeScript
+// https://github.com/microsoft/TypeScript/issues/28308
+
+// interface AudioWorkletProcessor {
+//   readonly port: MessagePort;
+//   process(
+//       inputs: Float32Array[][],
+//       outputs: Float32Array[][],
+//       parameters: Record<string, Float32Array>
+//   ): boolean;
+// }
+//
+// declare var AudioWorkletProcessor: {
+//   prototype: AudioWorkletProcessor;
+//   new (options?: AudioWorkletNodeOptions): AudioWorkletProcessor;
+// };
+//
+// declare function registerProcessor(
+//     name: string,
+//     processorCtor: (new (
+//         options?: AudioWorkletNodeOptions
+//     ) => AudioWorkletProcessor) & {
+//       parameterDescriptors?: AudioParamDescriptor[];
+//     }
+// ): undefined;
+//
+
+
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
   video: boolean;
@@ -22,7 +51,58 @@ export interface AudioCaptureListener {
   error(msg?:string,advice?:string): void;
 }
 
-export class AudioCapture {
+
+
+// class AudioCaptureProcessor extends AudioWorkletProcessor{
+//   set data(value: Float32Array[][] | null) {
+//     this._data = value;
+//   }
+//   set audioOutStream(value: SequenceAudioFloat32OutStream | null) {
+//     this._audioOutStream = value;
+//   }
+//   set capturing(value: boolean) {
+//     this._capturing = value;
+//   }
+//
+//   private _capturing:boolean=false;
+//   private _data:Float32Array[][]|null=null;
+//   private _audioOutStream:SequenceAudioFloat32OutStream|null=null;
+//   private _framesRecorded=0;
+//  process(
+//       inputs: Float32Array[][],
+//       outputs: Float32Array[][],
+//       parameters: Record<string, Float32Array>
+//   ): boolean {
+//     if (this.capturing && this._data) {
+//       let inputsCnt=inputs.length;
+//       for(let ii=0;ii<inputsCnt;ii++) {
+//         let channelCount = inputs[ii].length;
+//         let currentBuffers = new Array<Float32Array>(channelCount);
+//         for (let ch: number = 0; ch < channelCount; ch++) {
+//           let chSamples = inputs[ii][ch];
+//           let chSamplesCopy = chSamples.slice(0);
+//           currentBuffers[ch] = chSamplesCopy.slice(0);
+//           this._data[ch].push(chSamplesCopy);
+//           this._framesRecorded += chSamplesCopy.length;
+//         }
+//         //c++;
+//         if (this.audioOutStream) {
+//           this.audioOutStream.write(currentBuffers);
+//         }
+//       }
+//     }
+//     return true;
+//
+//   }
+// }
+
+
+
+export class AudioCapture{
+
+  //readonly port: MessagePort=new MessagePort();
+
+
   get opened(): boolean {
     return this._opened;
   }
@@ -36,7 +116,7 @@ export class AudioCapture {
 
   channelCount!: number;
   mediaStream: any;
-  bufferingNode: any;
+  //bufferingNode: any;
   listener!: AudioCaptureListener;
   data!: Array<Array<Float32Array>>;
   currentSampleRate!: number;
@@ -165,6 +245,33 @@ export class AudioCapture {
 
       console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
+  }
+
+  process(
+      inputs: Float32Array[][],
+      outputs: Float32Array[][],
+      parameters: Record<string, Float32Array>
+  ): boolean {
+    if (this.capturing) {
+      let inputsCnt=inputs.length;
+      for(let ii=0;ii<inputsCnt;ii++) {
+        let channelCount = inputs[ii].length;
+        let currentBuffers = new Array<Float32Array>(channelCount);
+        for (let ch: number = 0; ch < channelCount; ch++) {
+          let chSamples = inputs[ii][ch];
+          let chSamplesCopy = chSamples.slice(0);
+          currentBuffers[ch] = chSamplesCopy.slice(0);
+          this.data[ch].push(chSamplesCopy);
+          this.framesRecorded += chSamplesCopy.length;
+        }
+        //c++;
+        if (this.audioOutStream) {
+          this.audioOutStream.write(currentBuffers);
+        }
+      }
+    }
+    return true;
+
   }
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|null){
@@ -325,30 +432,85 @@ export class AudioCapture {
           //console.debug("Audio script processor implemented!!");
 
           // TODO should we use streamChannelCount or channelCount here ?
-          this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
-          let c = 0;
-          this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
+          //this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
 
-            if (this.capturing) {
-              // TODO use chCnt
-              let inBuffer = e.inputBuffer;
-              let duration = inBuffer.duration;
-              // only process requested count of channels
-              let currentBuffers = new Array<Float32Array>(channelCount);
-              for (let ch: number = 0; ch < channelCount; ch++) {
-                let chSamples = inBuffer.getChannelData(ch);
-                let chSamplesCopy = chSamples.slice(0);
-                currentBuffers[ch] = chSamplesCopy.slice(0);
-                this.data[ch].push(chSamplesCopy);
-                this.framesRecorded += chSamplesCopy.length;
-              }
-              c++;
-              if (this.audioOutStream) {
-                this.audioOutStream.write(currentBuffers);
-              }
-            }
-          }
+          let c = 0;
+
+          // let awp = new class extends AudioWorkletProcessor {
+          //   process(
+          //       inputs: Float32Array[][],
+          //       outputs: Float32Array[][],
+          //       parameters: Record<string, Float32Array>
+          //   ): boolean {
+          //     if (this.capturing) {
+          //
+          //       let channelCount = inputs.length;
+          //       let currentBuffers = new Array<Float32Array>(channelCount);
+          //       for (let ch: number = 0; ch < channelCount; ch++) {
+          //         let chSamples = inputs[ch];
+          //         let chSamplesCopy = chSamples.slice(0);
+          //         currentBuffers[ch] = chSamplesCopy.slice(0);
+          //         this._data[ch].push(chSamplesCopy);
+          //         this.framesRecorded += chSamplesCopy.length;
+          //       }
+          //       c++;
+          //       if (this.audioOutStream) {
+          //         this.audioOutStream.write(currentBuffers);
+          //       }
+          //     }
+          //   }
+          // }();
+          //
+          // let awp = new class extends AudioWorkletProcessor {
+          //   process(
+          //       inputs: Float32Array[][],
+          //       outputs: Float32Array[][],
+          //       parameters: Record<string, Float32Array>
+          //   ): boolean {
+          //     if (this.capturing) {
+          //
+          //       let channelCount = inputs.length;
+          //       let currentBuffers = new Array<Float32Array>(channelCount);
+          //       for (let ch: number = 0; ch < channelCount; ch++) {
+          //         let chSamples = inputs[ch];
+          //         let chSamplesCopy = chSamples.slice(0);
+          //         currentBuffers[ch] = chSamplesCopy.slice(0);
+          //         this._data[ch].push(chSamplesCopy);
+          //         this.framesRecorded += chSamplesCopy.length;
+          //       }
+          //       c++;
+          //       if (this.audioOutStream) {
+          //         this.audioOutStream.write(currentBuffers);
+          //       }
+          //     }
+          //   }
+          // }();
+
+          // this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
+          //
+          //   if (this.capturing) {
+          //     // TODO use chCnt
+          //     let inBuffer = e.inputBuffer;
+          //     let duration = inBuffer.duration;
+          //     // only process requested count of channels
+          //     let currentBuffers = new Array<Float32Array>(channelCount);
+          //     for (let ch: number = 0; ch < channelCount; ch++) {
+          //       let chSamples = inBuffer.getChannelData(ch);
+          //       let chSamplesCopy = chSamples.slice(0);
+          //       currentBuffers[ch] = chSamplesCopy.slice(0);
+          //       this.data[ch].push(chSamplesCopy);
+          //       this.framesRecorded += chSamplesCopy.length;
+          //     }
+          //     c++;
+          //     if (this.audioOutStream) {
+          //       this.audioOutStream.write(currentBuffers);
+          //     }
+          //   }
+          // }
         }
+        this.context.audioWorklet.process=this.process;
+
+
         this._opened=true;
         if (this.listener) {
 
@@ -380,8 +542,10 @@ export class AudioCapture {
       this.audioOutStream.nextStream()
     }
     this.capturing = true;
-    this.mediaStream.connect(this.bufferingNode);
-    this.bufferingNode.connect(this.context.destination);
+    // this.mediaStream.connect(this.bufferingNode);
+    // this.bufferingNode.connect(this.context.destination);
+    this.mediaStream.connect(this.context.destination);
+
     if (this.listener) {
       this.listener.started();
     }
@@ -391,8 +555,9 @@ export class AudioCapture {
   stop() {
 
     if (this.disconnectStreams) {
-      this.mediaStream.disconnect(this.bufferingNode);
-      this.bufferingNode.disconnect(this.context.destination);
+      // this.mediaStream.disconnect(this.bufferingNode);
+      // this.bufferingNode.disconnect(this.context.destination);
+      this.mediaStream.disconnect(this.context.destination);
     }
 
     if (this.audioOutStream) {
