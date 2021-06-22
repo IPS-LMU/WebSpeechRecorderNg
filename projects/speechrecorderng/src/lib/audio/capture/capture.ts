@@ -30,10 +30,7 @@ export class AudioCapture {
   static BUFFER_SIZE: number = 8192;
   context: any;
   stream!: MediaStream;
-  //mediaStream:MediaStreamAudioSourceNode;
-  // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
-  // TODO use AudioRecorder
-
+  mediaStreamAudioDestinationNode!:MediaStreamAudioDestinationNode;
   channelCount!: number;
   mediaStream: any;
   bufferingNode: any;
@@ -303,6 +300,7 @@ export class AudioCapture {
       // Update 12-2020:
        // The ScriptProcessorNode Interface - DEPRECATED
       // TODO
+  this.mediaStreamAudioDestinationNode=this.context.createMediaStreamDestination();
 
         if (this.context.createAudioWorker) {
           //console.debug("Audio worker implemented!!")
@@ -381,7 +379,7 @@ export class AudioCapture {
     }
     this.capturing = true;
     this.mediaStream.connect(this.bufferingNode);
-    this.bufferingNode.connect(this.context.destination);
+    this.bufferingNode.connect(this.mediaStreamAudioDestinationNode);
     if (this.listener) {
       this.listener.started();
     }
@@ -392,7 +390,7 @@ export class AudioCapture {
 
     if (this.disconnectStreams) {
       this.mediaStream.disconnect(this.bufferingNode);
-      this.bufferingNode.disconnect(this.context.destination);
+      this.bufferingNode.disconnect(this.mediaStreamAudioDestinationNode);
     }
 
     if (this.audioOutStream) {
