@@ -10,24 +10,26 @@ const awpStr="class AudioCaptureInterceptorProcessor extends AudioWorkletProcess
     "  ){\n" +
     "      let inputsCnt=inputs.length;\n" +
     "      for(let ii=0;ii<inputsCnt;ii++) {\n" +
+    "\n" +
     "        let channelCount = inputs[ii].length;\n" +
+    "          let ada = new Array(channelCount);\n" +
     "        //console.debug(\"Input \"+ii+\", chs: \"+channelCount);\n" +
     "        for (let ch= 0; ch < channelCount; ch++) {\n" +
     "            // Mute outputs\n" +
     "            //outputs[ii][ch].fill(0);\n" +
     "          let chSamples = inputs[ii][ch];\n" +
-    "          let chSamplesLen=chSamples.length;\n" +
-    "          if(chSamplesLen>0) {\n" +
-    "              let trData = chSamples.slice(0);\n" +
-    "              this.port.postMessage({data: trData.buffer, inputCnt: ii,ch:ch,chs: channelCount,len:chSamplesLen,byteLen:trData.length}, trData.buffer);\n" +
-    "          }\n" +
+    "          //let chSamplesLen=chSamples.length;\n" +
+    "          //if(chSamplesLen>0) {\n" +
+    "            ada[ch] = chSamples.buffer.slice(0);\n" +
+    "          //}\n" +
     "        }\n" +
+    "        this.port.postMessage({data: ada, inputCnt: ii,chs: channelCount}, ada);\n" +
     "      }\n" +
     "    return true;\n" +
     "  }\n" +
     "}\n" +
     "\n" +
-    "registerProcessor('capture-interceptor',AudioCaptureInterceptorProcessor);\n";
+    "registerProcessor('capture-interceptor',AudioCaptureInterceptorProcessor);";
 
 
 
@@ -277,33 +279,6 @@ export class AudioCapture{
     }
   }
 
-  process(
-      inputs: Float32Array[][],
-      outputs: Float32Array[][],
-      parameters: Record<string, Float32Array>
-  ): boolean {
-    if (this.capturing) {
-      let inputsCnt=inputs.length;
-      for(let ii=0;ii<inputsCnt;ii++) {
-        let channelCount = inputs[ii].length;
-        let currentBuffers = new Array<Float32Array>(channelCount);
-        for (let ch: number = 0; ch < channelCount; ch++) {
-          let chSamples = inputs[ii][ch];
-          let chSamplesCopy = chSamples.slice(0);
-          currentBuffers[ch] = chSamplesCopy.slice(0);
-          this.data[ch].push(chSamplesCopy);
-          this.framesRecorded += chSamplesCopy.length;
-        }
-        //c++;
-        if (this.audioOutStream) {
-          this.audioOutStream.write(currentBuffers);
-        }
-      }
-    }
-    return true;
-
-  }
-
   open(channelCount: number, selDeviceId?: ConstrainDOMString|null){
       this.context.resume().then(()=>{
         this._open(channelCount,selDeviceId);
@@ -500,15 +475,25 @@ export class AudioCapture{
             if(awnPt) {
               awnPt.onmessage = (ev: MessageEvent<any>) => {
                 if(this.capturing) {
-                  let ch = ev.data.ch;
+                  let chs = ev.data.chs;
                   //console.log('Received data from worklet: '+ ev.data.inputCnt+' '+ch+' '+ev.data.chs+' '+ev.data.len+ ' ' +ev.data.byteLen);
-                  if(this.data && this.data[ch]) {
-                    let fa = new Float32Array(ev.data.data);
-                    this.data[ch].push(fa);
-                    // Use samples of channel 0 to count frames (samples)
-                    if (ch == 0) {
-                      this.framesRecorded += fa.length;
+                  let adaLen=ev.data.data.length;
+                  let chunkLen=adaLen/chs;
+                  let chunk=new Array<Float32Array>(chs);
+                  for(let ch=0;ch<chs;ch++) {
+                    if (this.data && this.data[ch]) {
+                      let adaPos=ch*chunkLen;
+                      let fa = new Float32Array(ev.data.data[ch]);
+                      this.data[ch].push(fa);
+                      chunk[ch]=fa;
+                      // Use samples of channel 0 to count frames (samples)
+                      if (ch == 0) {
+                        this.framesRecorded += fa.length;
+                      }
                     }
+                  }
+                  if(this.audioOutStream){
+                    this.audioOutStream.write(chunk);
                   }
                 }
               };
