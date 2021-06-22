@@ -148,7 +148,7 @@ export class AudioCapture{
 
   channelCount!: number;
   mediaStream: any;
-  bufferingNode: any;
+  bufferingNode: AudioNode|null=null;
   listener!: AudioCaptureListener;
   data!: Array<Array<Float32Array>>;
   currentSampleRate!: number;
@@ -409,111 +409,99 @@ export class AudioCapture{
         }
         // W3C  -> new name is createScriptProcessor
         //
-        // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
+        // Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
         // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
       // Update 12-2020:
        // The ScriptProcessorNode Interface - DEPRECATED
-      // TODO
 
-        if (this.context.createAudioWorker) {
-          //console.debug("Audio worker implemented!!")
-        } else {
-          //console.debug("Audio worker NOT implemented.")
-        }
+      // Update 06-2021
+      //  AudioWorkletProcessor is here to stay. Web Audio API has now Recommendation status !
 
-        if (this.context.registerProcessor) {
-          //console.debug("Audio worklet processor implemented!!");
-        } else {
-          //console.debug("Audio worklet processor NOT implemented.")
-        }
 
-        if (!this.context.createScriptProcessor) {
-          //console.debug("Audio script processor NOT implemented.")
 
-        } else {
-          //TODO
-          // The ScriptProcessorNode Interface - DEPRECATED
-          //console.debug("Audio script processor implemented!!");
 
-          // TODO should we use streamChannelCount or channelCount here ?
-          //this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
-
-          let c = 0;
-
-          // this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
-          //
-          //   if (this.capturing) {
-          //     // TODO use chCnt
-          //     let inBuffer = e.inputBuffer;
-          //     let duration = inBuffer.duration;
-          //     // only process requested count of channels
-          //     let currentBuffers = new Array<Float32Array>(channelCount);
-          //     for (let ch: number = 0; ch < channelCount; ch++) {
-          //       let chSamples = inBuffer.getChannelData(ch);
-          //       let chSamplesCopy = chSamples.slice(0);
-          //       currentBuffers[ch] = chSamplesCopy.slice(0);
-          //       this.data[ch].push(chSamplesCopy);
-          //       this.framesRecorded += chSamplesCopy.length;
-          //     }
-          //     c++;
-          //     if (this.audioOutStream) {
-          //       this.audioOutStream.write(currentBuffers);
-          //     }
-          //   }
-          // }
-        }
+        if(this.context.audioWorklet){
       //const workletFileName = ('file-loader!./interceptor_worklet.js');
       //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
       //console.log(awpStr);
       let audioWorkletModuleBlob= new Blob([awpStr], {type: 'text/javascript'});
 
       let audioWorkletModuleBlobUrl=window.URL.createObjectURL(audioWorkletModuleBlob);
-      this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(()=>{
-            const awn=new AudioWorkletNode(this.context,'capture-interceptor');
-            let awnPt=awn.port;
-            if(awnPt) {
+      this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(()=> {
+            const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
+            let awnPt = awn.port;
+            if (awnPt) {
               awnPt.onmessage = (ev: MessageEvent<any>) => {
-                if(this.capturing) {
+                if (this.capturing) {
                   let chs = ev.data.chs;
                   //console.log('Received data from worklet: '+ ev.data.inputCnt+' '+ch+' '+ev.data.chs+' '+ev.data.len+ ' ' +ev.data.byteLen);
-                  let adaLen=ev.data.data.length;
-                  let chunkLen=adaLen/chs;
-                  let chunk=new Array<Float32Array>(chs);
-                  for(let ch=0;ch<chs;ch++) {
+                  let adaLen = ev.data.data.length;
+                  let chunkLen = adaLen / chs;
+                  let chunk = new Array<Float32Array>(chs);
+                  for (let ch = 0; ch < chs; ch++) {
                     if (this.data && this.data[ch]) {
-                      let adaPos=ch*chunkLen;
+                      let adaPos = ch * chunkLen;
                       let fa = new Float32Array(ev.data.data[ch]);
                       this.data[ch].push(fa);
-                      chunk[ch]=fa;
+                      chunk[ch] = fa;
                       // Use samples of channel 0 to count frames (samples)
                       if (ch == 0) {
                         this.framesRecorded += fa.length;
                       }
                     }
                   }
-                  if(this.audioOutStream){
+                  if (this.audioOutStream) {
                     this.audioOutStream.write(chunk);
                   }
                 }
               };
             }
-            this.bufferingNode=awn;
-        this._opened=true;
-        if (this.listener) {
-
-          this.listener.opened();
-        }
+            this.bufferingNode = awn;
+            this._opened = true;
+            if (this.listener) {
+              this.listener.opened();
+            }
           }
       ).catch((error: any)=>{
-        console.log('Could not add module '+error);
-      });
+          console.log('Could not add module '+error);
+        });
+
+      }else if(this.context.createScriptProcessor) {
+          //console.debug("Audio script processor implemented.")
+
+          // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
 
 
+          // TODO should we use streamChannelCount or channelCount here ?
+          this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
 
+          let c = 0;
+          if (this.bufferingNode instanceof ScriptProcessorNode) {
+            this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
+
+              if (this.capturing) {
+                let inBuffer = e.inputBuffer;
+                let duration = inBuffer.duration;
+                // only process requested count of channels
+                let currentBuffers = new Array<Float32Array>(channelCount);
+                for (let ch: number = 0; ch < channelCount; ch++) {
+                  let chSamples = inBuffer.getChannelData(ch);
+                  let chSamplesCopy = chSamples.slice(0);
+                  currentBuffers[ch] = chSamplesCopy.slice(0);
+                  this.data[ch].push(chSamplesCopy);
+                  this.framesRecorded += chSamplesCopy.length;
+                }
+                c++;
+                if (this.audioOutStream) {
+                  this.audioOutStream.write(currentBuffers);
+                }
+              }
+            }
+          }
+        }
       }, (e) => {
         console.error(e + " Error name: " +e.name);
-
         if (this.listener) {
           if('NotAllowedError' === e.name){
             this.listener.error('Not allowed to use your microphone.','Please make sure that microphone access is allowed for this web page and reload the page.');
@@ -537,9 +525,10 @@ export class AudioCapture{
       this.audioOutStream.nextStream()
     }
     this.capturing = true;
-    this.mediaStream.connect(this.bufferingNode);
-    this.bufferingNode.connect(this.context.destination);
-
+    if(this.bufferingNode) {
+      this.mediaStream.connect(this.bufferingNode);
+      this.bufferingNode.connect(this.context.destination);
+    }
     if (this.listener) {
       this.listener.started();
     }
@@ -548,7 +537,7 @@ export class AudioCapture{
 
   stop() {
 
-    if (this.disconnectStreams) {
+    if (this.disconnectStreams && this.bufferingNode) {
       this.mediaStream.disconnect(this.bufferingNode);
       this.bufferingNode.disconnect(this.context.destination);
     }
