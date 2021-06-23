@@ -7,33 +7,79 @@ const ENABLE_AUDIO_WORKLET=true;
 // Super dirty way to load this module
 // Copy content of interceptor_worklet.js to this string
 const awpStr="class AudioCaptureInterceptorProcessor extends AudioWorkletProcessor{\n" +
+    "\n" +
+    "    BUFFER_QUANTUMS=64;\n" +
+    "    QUANTUM_FRAME_LEN=128;\n" +
+    "    BUFFER_FRAME_LEN=this.QUANTUM_FRAME_LEN*this.BUFFER_QUANTUMS;\n" +
+    "    buffer=null;\n" +
+    "    bufferPos=0;\n" +
+    "    bufferPosBytes=0;\n" +
+    "    constructor() {\n" +
+    "        super();\n" +
+    "\n" +
+    "    }\n" +
+    "\n" +
     " process(\n" +
     "      inputs,\n" +
     "      outputs,\n" +
     "      parameters\n" +
     "  ){\n" +
-    "      let inputsCnt=inputs.length;\n" +
-    "      for(let ii=0;ii<inputsCnt;ii++) {\n" +
     "\n" +
-    "        let channelCount = inputs[ii].length;\n" +
-    "          let ada = new Array(channelCount);\n" +
-    "        //console.debug(\"Input \"+ii+\", chs: \"+channelCount);\n" +
-    "        for (let ch= 0; ch < channelCount; ch++) {\n" +
-    "            // Mute outputs\n" +
-    "            //outputs[ii][ch].fill(0);\n" +
-    "          let chSamples = inputs[ii][ch];\n" +
-    "          //let chSamplesLen=chSamples.length;\n" +
-    "          //if(chSamplesLen>0) {\n" +
-    "            ada[ch] = chSamples.buffer.slice(0);\n" +
-    "          //}\n" +
-    "        }\n" +
-    "        this.port.postMessage({data: ada, inputCnt: ii,chs: channelCount}, ada);\n" +
-    "      }\n" +
-    "    return true;\n" +
+    "     let inputsCnt=inputs.length;\n" +
+    "     let channelCount=0;\n" +
+    "     let inputLen=0;\n" +
+    "     let inputLenBytes=0;\n" +
+    "     if(inputsCnt>0) {\n" +
+    "         let input0 = inputs[0];\n" +
+    "         channelCount = input0.length;\n" +
+    "         if (channelCount > 0) {\n" +
+    "             let input0ch0=input0[0];\n" +
+    "             inputLen=input0ch0.length;\n" +
+    "             inputLenBytes=input0ch0.buffer.length;\n" +
+    "         }\n" +
+    "     }\n" +
+    "     if (!this.buffer || this.buffer.length < channelCount) {\n" +
+    "         this.buffer = new Array(channelCount);\n" +
+    "         this.bufferPos = new Array();\n" +
+    "         for (let bch = 0; bch < channelCount; bch++) {\n" +
+    "             this.buffer[bch] = new Float32Array(this.BUFFER_FRAME_LEN);\n" +
+    "             this.bufferPos = 0;\n" +
+    "             this.bufferPosBytes=0;\n" +
+    "         }\n" +
+    "     }\n" +
+    "     let bufAvail = this.BUFFER_FRAME_LEN - this.bufferPos;\n" +
+    "     // check if buffer has to be transferred\n" +
+    "     if (inputLen > bufAvail) {\n" +
+    "         let ada=new Array(channelCount);\n" +
+    "         for (let ch = 0; ch < channelCount; ch++) {\n" +
+    "             ada[ch]=this.buffer[ch].buffer.slice(0);\n" +
+    "         }\n" +
+    "         this.port.postMessage({\n" +
+    "             data: ada,\n" +
+    "             chs: channelCount,\n" +
+    "             len: this.bufferPos\n" +
+    "         }, ada);\n" +
+    "         // buffer transferred, reset\n" +
+    "         this.bufferPos = 0;\n" +
+    "         this.bufferPosBytes=0;\n" +
+    "     }\n" +
+    "\n" +
+    "     for(let ii=0;ii<inputsCnt;ii++) {\n" +
+    "         for (let ch = 0; ch < channelCount; ch++) {\n" +
+    "             // Mute outputs\n" +
+    "             //outputs[ii][ch].fill(0);\n" +
+    "             let chSamples = inputs[ii][ch];\n" +
+    "             this.buffer[ch].set(chSamples,this.bufferPos);\n" +
+    "         }\n" +
+    "         this.bufferPos+=inputLen;\n" +
+    "         this.bufferPosBytes+=inputLenBytes;\n" +
+    "     }\n" +
+    "    \n" +
+    "     return true;\n" +
     "  }\n" +
     "}\n" +
     "\n" +
-    "registerProcessor('capture-interceptor',AudioCaptureInterceptorProcessor);";
+    "registerProcessor('capture-interceptor',AudioCaptureInterceptorProcessor);\n";
 
 
 
@@ -387,7 +433,9 @@ export class AudioCapture{
                     awnPt.onmessage = (ev: MessageEvent<any>) => {
                       if (this.capturing) {
                         let chs = ev.data.chs;
-                        //console.log('Received data from worklet: '+ ev.data.inputCnt+' '+ch+' '+ev.data.chs+' '+ev.data.len+ ' ' +ev.data.byteLen);
+                        if(DEBUG_TRACE_LEVEL>8) {
+                          console.debug('Received data from worklet: ' +ev.data.chs + ' ' + ev.data.len );
+                        }
                         let adaLen = ev.data.data.length;
                         let chunkLen = adaLen / chs;
                         let chunk = new Array<Float32Array>(chs);
