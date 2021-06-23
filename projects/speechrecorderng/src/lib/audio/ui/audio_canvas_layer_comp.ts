@@ -23,8 +23,8 @@ export class ViewSelection{
 
 @Directive()
 export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponent {
-  protected _audioData: AudioBuffer=null;
-  protected _bgColor:string='white';
+  protected _audioData: AudioBuffer|null=null;
+  protected _bgColor:string|null='white';
   protected _selectColor='rgba(0%,0%,100%,25%)';
 
   /**
@@ -32,19 +32,23 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
    * @param framePos audio frame (sample) position
    */
   frameToXPixelPosition(framePos: number): number | null {
-    if (this._audioData && this._audioData.numberOfChannels > 0) {
-      let ch0 = this._audioData.getChannelData(0);
-      let frameLength = ch0.length;
-      let vw = this.bounds.dimension.width;
-      if (this.virtualDimension) {
-        vw = this.virtualDimension.width;
+      let pixelPos=null;
+      if (this._audioData && this._audioData.numberOfChannels > 0) {
+          let ch0 = this._audioData.getChannelData(0);
+          let frameLength = ch0.length;
+          let vw;
+          if(this.bounds) {
+              vw = this.bounds.dimension.width;
+          }
+          if (this.virtualDimension) {
+              vw = this.virtualDimension.width;
+          }
+          if(vw !== undefined) {
+              pixelPos = framePos * vw / frameLength;
+          }
       }
-      let pixelPos = framePos * vw / frameLength;
-      return pixelPos;
-    } else {
-      return null;
-    }
-  }
+    return pixelPos;
+}
 
   /**
    * Returns pixel position in view port (visible window of scroll pane).
@@ -60,27 +64,33 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
     }
   }
 
-  viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
-    if (this._audioData && this._audioData.numberOfChannels > 0) {
-      let ch0 = this._audioData.getChannelData(0);
-      let frameLength = ch0.length;
-      let vw = this.bounds.dimension.width;
-      if (this.virtualDimension) {
-        vw = this.virtualDimension.width;
-      }
-      let xVirtualPixelPos = this.toXVirtualPixelPosition(xViewPortPixelPos)
-      let framesPerPixel = frameLength / vw;
-      let framePos = framesPerPixel * xVirtualPixelPos;
-      if(framePos<0){
-        framePos=0
-      }
-      if(framePos>=frameLength){
-        framePos=frameLength-1
-      }
-      let framePosRound = Math.round(framePos);
-      return framePosRound;
+    viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
+        let vpXramePos=null;
+        if (this._audioData && this._audioData.numberOfChannels > 0) {
+            let ch0 = this._audioData.getChannelData(0);
+            let frameLength = ch0.length;
+            let vw;
+            if (this.bounds) {
+                vw= this.bounds.dimension.width;
+            }
+            if (this.virtualDimension) {
+                vw = this.virtualDimension.width;
+            }
+            if(vw!== undefined) {
+                let xVirtualPixelPos = this.toXVirtualPixelPosition(xViewPortPixelPos)
+                let framesPerPixel = frameLength / vw;
+                let framePos = framesPerPixel * xVirtualPixelPos;
+                if (framePos < 0) {
+                    framePos = 0
+                }
+                if (framePos >= frameLength) {
+                    framePos = frameLength - 1
+                }
+                vpXramePos = Math.round(framePos);
+            }
+        }
+        return vpXramePos;
     }
-  }
 
     layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
 
@@ -132,63 +142,62 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
 
 @Directive()
 export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerComponent {
-    _pointerPosition:Marker=null;
+    _pointerPosition:Marker|null=null;
 
-    protected selectStartX:number=null;
+    protected selectStartX:number|null=null;
 
-    @ViewChild('bg', { static: true }) bgCanvasRef: ElementRef;
-    bgCanvas: HTMLCanvasElement;
+    @ViewChild('bg', { static: true }) bgCanvasRef!: ElementRef;
+    bgCanvas!: HTMLCanvasElement;
 
-    @ViewChild('cursor', { static: true }) cursorCanvasRef: ElementRef;
-    cursorCanvas: HTMLCanvasElement;
+    @ViewChild('cursor', { static: true }) cursorCanvasRef!: ElementRef;
+    cursorCanvas!: HTMLCanvasElement;
 
   @HostListener('document:mouseup', ['$event'])
   onMouseup(me: MouseEvent) {
     this.selectionCommit(me)
   }
 
-    layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean,clear?:boolean) {
+    layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean,clear:boolean=true) {
         super.layoutBounds(bounds,virtualDimension,redraw)
         if (redraw) {
             this.startDraw(clear);
         }
     }
 
-    @Input() set pointerPosition(pointerPosition:Marker){
+    @Input() set pointerPosition(pointerPosition:Marker|null){
         this._pointerPosition=pointerPosition
         this.drawCursorLayer()
     }
 
-    _selecting: Selection =null
+    _selecting: Selection|null =null;
     @Input() set selecting(selecting:Selection| null){
         this._selecting=selecting
         this.drawBg()
         this.drawCursorLayer()
     }
 
-    get selecting():Selection{
+    get selecting():Selection|null{
         return this._selecting
     }
 
-    _selection: Selection =null
-    @Input() set selection(selection:Selection){
-        this._selection=selection
-        this.selecting=null
+    _selection: Selection|null =null
+    @Input() set selection(selection:Selection|null){
+        this._selection=selection;
+        this.selecting=null;
         this.drawBg()
         this.drawCursorLayer()
     }
 
-    get selection():Selection{
+    get selection():Selection|null{
         return this._selection
     }
 
     selectionStart(me:MouseEvent){
-        //this.select(null);
         this.selectStartX=me.offsetX;
     }
 
     selectionCommit(me:MouseEvent){
-        let vs:ViewSelection=null;
+        let vs:ViewSelection|null=null;
         if(this.selectStartX!=null) {
           vs=new ViewSelection(this.selectStartX,me.offsetX)
           this.selectStartX=null;
@@ -198,8 +207,10 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
     abstract startDraw(clear:boolean):void;
 
-    updateCursorCanvas(me:MouseEvent=null,showCursorPosition=true){
+    updateCursorCanvas(me:MouseEvent,showCursorPosition=true){
+
         if (this.cursorCanvas) {
+
             let w = this.cursorCanvas.width;
             let h = this.cursorCanvas.height;
             let g = this.cursorCanvas.getContext("2d");
@@ -217,9 +228,8 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
                         this.pointerPositionChanged(me.offsetX)
                     }else{
                         this.pointerPositionChanged(null)
-}
+                    }
                 }
-
             }
         }
     }
@@ -230,37 +240,44 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
 
     pointerPositionChanged(xPosition:number| null){
-        let pointerPosition:Marker=null
+        let pointerPosition:Marker|undefined=undefined;
         if(xPosition){
-            pointerPosition=new Marker()
-            pointerPosition.framePosition=this.viewPortXPixelToFramePosition(xPosition)
+            pointerPosition=new Marker();
+            let vpXPos=this.viewPortXPixelToFramePosition(xPosition);
+            if(vpXPos!=null) {
+                pointerPosition.framePosition =vpXPos;
+            }
         }
-        this.pointerPositionEventEmitter.emit(pointerPosition)
+        this.pointerPositionEventEmitter.emit(pointerPosition);
     }
 
     selectingChange(viewSel:ViewSelection| null){
-        let ns:Selection=null
+        let ns:Selection|undefined=undefined;
         if(viewSel) {
             let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
             let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            ns = new Selection(this._audioData.sampleRate,frameStart, frameEnd)
+            if(this._audioData && frameStart!=null && frameEnd!=null) {
+                ns = new Selection(this._audioData.sampleRate, frameStart, frameEnd);
+            }
         }
         this.selectingEventEmitter.emit(ns)
     }
 
     select(viewSel:ViewSelection| null){
-        let ns:Selection=null
+        let ns:Selection|undefined=undefined;
         if(viewSel) {
           let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
           let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-          ns=new Selection(this._audioData.sampleRate,frameStart,frameEnd)
+            if(this._audioData && frameStart!=null && frameEnd!=null) {
+                ns = new Selection(this._audioData.sampleRate, frameStart, frameEnd);
+            }
         }
         this.selectedEventEmitter.emit(ns)
     }
 
-    viewSelection():ViewSelection{
-      let vs:ViewSelection=null;
-      let s:Selection=null;
+    viewSelection():ViewSelection|null{
+      let vs:ViewSelection|null=null;
+      let s:Selection|null=null;
       if(this._selecting){
         s=this._selecting
       }else if(this._selection){
@@ -271,14 +288,16 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         let ef=s.endFrame;
         let xs=this.frameToViewPortXPixelPosition(sf)
         let xe=this.frameToViewPortXPixelPosition(ef)
-        vs=new ViewSelection(xs,xe)
+          if(xs!=null && xe!=null) {
+              vs = new ViewSelection(xs, xe)
+          }
       }
       return vs;
     }
 
 
   drawBg(){
-      if(this.bgCanvas) {
+      if(this.bgCanvas && this.bounds) {
           this.bgCanvas.style.left = Math.round(this.bounds.position.left).toString() + 'px';
           this.bgCanvas.width = Math.round(this.bounds.dimension.width);
           this.bgCanvas.height = Math.round(this.bounds.dimension.height);
@@ -327,19 +346,22 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
                     let framePos=this._pointerPosition.framePosition
                     if(framePos) {
                         let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
+                        if (xViewPortPixelpos) {
 
-                        g.fillStyle = 'yellow';
-                        g.strokeStyle = 'yellow';
-                        g.beginPath();
-                        g.moveTo(xViewPortPixelpos, 0);
-                        g.lineTo(xViewPortPixelpos, h);
-                        g.closePath();
-
-                        g.stroke();
-                        if (this._audioData) {
-                            g.font = '14px sans-serif';
                             g.fillStyle = 'yellow';
-                            g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);
+                            g.strokeStyle = 'yellow';
+                            g.beginPath();
+                            g.moveTo(xViewPortPixelpos, 0);
+                            g.lineTo(xViewPortPixelpos, h);
+                            g.closePath();
+
+                            g.stroke();
+
+                            if (this._audioData) {
+                                g.font = '14px sans-serif';
+                                g.fillStyle = 'yellow';
+                                g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);
+                            }
                         }
                     }
                 }

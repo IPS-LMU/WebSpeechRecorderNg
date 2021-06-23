@@ -84,12 +84,12 @@
         //DEBUG_DELAY:number=0;
         private status: UploaderStatus = UploaderStatus.DONE;
         private que:Array<Upload>;
-        listener: (ue: UploaderStatusChangeEvent) => void;
+        listener: ((ue: UploaderStatusChangeEvent) => void) | null=null;
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
 
         private retryTimerRunning=false;
-        private retryTimerId: number;
+        private retryTimerId: number|null=null;
 
         constructor(private http: HttpClient,private withCredentials:boolean=false) {
             this.que = new Array<Upload>();
@@ -130,7 +130,7 @@
             let timeoVal:number=Math.round(this.POST_MIN_TIMEOUT+timeoutForDataSize)
             // pipe(timeout()) is not the same as xhr.timeout
 
-          let uploadedUpload:Upload=null;
+          let uploadedUpload:Upload|null=null;
             //console.debug("Post upload: "+ul)
           this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
             data => {
@@ -186,7 +186,9 @@
       private process() {
         // clear retry timer if set
         if(this.retryTimerRunning){
-          window.clearTimeout(this.retryTimerId)
+            if(this.retryTimerId) {
+                window.clearTimeout(this.retryTimerId)
+            }
           this.retryTimerRunning=false
           //console.debug("Cleared retry timer.")
         }

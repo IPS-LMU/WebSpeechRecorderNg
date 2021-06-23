@@ -49,18 +49,18 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
 })
 export class LevelBar implements LevelListener,AfterViewInit {
 
-  @ViewChild('virtualCanvas', { static: true }) virtualCanvasRef: ElementRef;
-  virtualCanvas: HTMLDivElement;
-  @ViewChild('levelbar', { static: true }) liveLevelCanvasRef: ElementRef;
-  liveLevelCanvas: HTMLCanvasElement;
-  @ViewChild('markerCanvas', { static: true }) markerCanvasRef: ElementRef;
-  markerCanvas: HTMLCanvasElement;
-  ce: HTMLDivElement;
+  @ViewChild('virtualCanvas', { static: true }) virtualCanvasRef!: ElementRef;
+  virtualCanvas!: HTMLDivElement;
+  @ViewChild('levelbar', { static: true }) liveLevelCanvasRef!: ElementRef;
+  liveLevelCanvas!: HTMLCanvasElement;
+  @ViewChild('markerCanvas', { static: true }) markerCanvasRef!: ElementRef;
+  markerCanvas!: HTMLCanvasElement;
+  ce!: HTMLDivElement;
   dbValues: Array<Array<number>>;
   peakDbLvl = MIN_DB_LEVEL;
   private _streamingMode = false;
   private _staticLevelInfos: LevelInfos | null = null;
-  private _playFramePosition: number;
+  private _playFramePosition: number|null=null;
 
   warnDBLevel = DEFAULT_WARN_DB_LEVEL;
 
