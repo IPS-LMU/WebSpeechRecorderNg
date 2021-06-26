@@ -136,7 +136,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   readonly=false
 
   statusMsg: string='';
-  statusAlertType: string|null=null;
+  statusAlertType!: string;
   statusWaiting: boolean=false;
 
   processingRecording=false
