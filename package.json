@@ -17,7 +17,7 @@
     "build_and_pack_module": "npm run build_module && npm run pack_pi_module",
     "publish_module": "cd dist && cd speechrecorderng && npm publish",
     "start": "ng serve",
-    "start_prod": "ng serve --prod",
+    "start_prod": "ng serve --configuration production",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
@@ -41,8 +41,8 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~12.0.0",
-    "@angular/cli": "~12.0.1",
+    "@angular-devkit/build-angular": "~12.1.0",
+    "@angular/cli": "~12.1.0",
     "@angular/compiler-cli": "~12.0.1",
     "@types/jasmine": "~3.6.0",
     "@types/node": "^12.11.1",
