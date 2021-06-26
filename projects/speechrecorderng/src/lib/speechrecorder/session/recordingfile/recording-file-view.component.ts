@@ -48,7 +48,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?.version" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?recordingFile.version:null" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -80,19 +80,19 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   //protected _recordingFileId: string | number = null;
 
-  sessionId: string | number = null;
-  sessionIdFromRoute:string=null;
+  sessionId: string | number | null= null;
+  sessionIdFromRoute:string|null=null;
 
-  availRecFiles: Array<Array<RecordingFile>>;
-  versions: Array<number>=null;
+  availRecFiles!: Array<Array<RecordingFile>>;
+  versions: Array<number>|null=null;
 
-  recordingFile: RecordingFile=null;
+  recordingFile: RecordingFile|null=null;
   private routedByQueryParam=false;
-  posInList: number=null;
+  posInList: number|null=null;
 
 
   @ViewChild(AudioDisplayScrollPane)
-  private ac: AudioDisplayScrollPane;
+  private ac!: AudioDisplayScrollPane;
 
   firstAction: Action<void>;
   prevAction: Action<void>;
@@ -171,20 +171,26 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private navigateToRecordingFile(){
-    let latestNextRf = this.availRecFiles[this.posInList][0];
-    let lnRfId=latestNextRf.recordingFileId;
-    this.navigateToId(lnRfId);
+    if(this.posInList!=null) {
+      let latestNextRf = this.availRecFiles[this.posInList][0];
+      let lnRfId = latestNextRf.recordingFileId;
+      if(lnRfId) {
+        this.navigateToId(lnRfId);
+      }
+    }
   }
 
   toVersion(ae: ActionEvent<number>) {
     let toRfId = null;
     let version = ae.value;
-    let cRfs = this.availRecFiles[this.posInList];
-    let availVersionCnt = cRfs.length;
-    for (let cRf of cRfs) {
-      if (cRf.version === version) {
-        toRfId = cRf.recordingFileId;
-        break;
+    if(this.posInList!=null) {
+      let cRfs = this.availRecFiles[this.posInList];
+      let availVersionCnt = cRfs.length;
+      for (let cRf of cRfs) {
+        if (cRf.version === version) {
+          toRfId = cRf.recordingFileId;
+          break;
+        }
       }
     }
     if (toRfId != null) {
@@ -194,11 +200,15 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
 
   prevFile() {
-    this.posInList--;
+    if(this.posInList!=null) {
+      this.posInList--;
+    }
     this.navigateToRecordingFile()
   }
   nextFile() {
-    this.posInList++;
+    if(this.posInList!=null) {
+      this.posInList++;
+    }
     this.navigateToRecordingFile()
   }
 
@@ -236,56 +246,55 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   protected loadRecFile(rfId:number | string) {
-    this.ap.stop();
+    this.ap?.stop();
     this.audioClip =null;
     this.recordingFile=null;
     this.posInList=null;
     this.updateActions();
-    let audioContext = AudioContextProvider.audioContextInstance()
-    this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
+    let audioContext = AudioContextProvider.audioContextInstance();
+    if(audioContext) {
+      this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
+        this.status = 'Audio file loaded.';
+        let clip = null;
+        this.recordingFile = value;
+        if (this.recordingFile) {
+          let ab = this.recordingFile.audioBuffer;
+          if (ab) {
+            clip = new AudioClip(ab);
 
-      this.status = 'Audio file loaded.';
+            let esffsr = null;
+            let eeffsr = null;
+            let esr = null;
 
-      this.recordingFile = value;
-
-      let ab=this.recordingFile.audioBuffer;
-
-      let clip = new AudioClip(ab);
-
-      let esffsr=null;
-      let eeffsr=null;
-      let esr=null;
-
-      if(clip.buffer!=null){
-        esr=ab.sampleRate;
-      }
-
-      if (esr!=null) {
-        esffsr=RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile,esr);
-        eeffsr=RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile,esr);
-      }
-
-      let sel: Selection = null;
-      if (esffsr != null) {
-        if (eeffsr != null) {
-          sel = new Selection(ab.sampleRate,esffsr, eeffsr);
-        } else {
-          let ch0 = ab.getChannelData(0);
-          let frameLength = ch0.length;
-          sel = new Selection(esr,esffsr, frameLength);
+            if (clip.buffer != null) {
+              esr = ab.sampleRate;
+              if (esr != null) {
+                esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
+                eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
+              }
+              let sel: Selection | null = null;
+              if (esffsr != null) {
+                if (eeffsr != null) {
+                  sel = new Selection(ab.sampleRate, esffsr, eeffsr);
+                } else {
+                  let ch0 = ab.getChannelData(0);
+                  let frameLength = ch0.length;
+                  sel = new Selection(esr, esffsr, frameLength);
+                }
+              } else if (eeffsr != null) {
+                sel = new Selection(esr, 0, eeffsr);
+              }
+              clip.selection = sel
+            }
+          }
         }
-      } else if (eeffsr != null) {
-        sel = new Selection(esr,0, eeffsr);
-      }
+        this.audioClip = clip
+        this.loadedRecfile();
 
-      clip.selection = sel
-      this.audioClip = clip
-
-      this.loadedRecfile();
-
-    }, error1 => {
-      this.status = 'Error loading audio file!';
-    });
+      }, error1 => {
+        this.status = 'Error loading audio file!';
+      });
+    }
   }
 
   protected loadedRecfile() {
@@ -303,7 +312,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private updateActions(){
-    let itemCnt:number=null;
+    let itemCnt:number|null=null;
     if(this.availRecFiles) {
       itemCnt = this.availRecFiles.length;
     }
@@ -335,20 +344,22 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             }
             let r = rfd.recording;
             let ic = r.itemcode;
-            let exRfsForIc = icIdx[ic];
-            if (exRfsForIc == null) {
-              // itemcode not yet stored
-              let arfd = new Array<RecordingFile>();
-              arfd.push(rfd);
-              icIdx[ic] = arfd;
-              this.availRecFiles.push(arfd);
-            } else {
-              // rec file with itemcode already exists, add (push) this version ...
-              exRfsForIc.push(rfd);
-              // .. and sort latest version (highest version number) to lowest index
-              exRfsForIc.sort((rfd1, rfd2) => {
-                return rfd2.version - rfd1.version;
-              })
+            if(ic) {
+              let exRfsForIc = icIdx[ic];
+              if (exRfsForIc == null) {
+                // itemcode not yet stored
+                let arfd = new Array<RecordingFile>();
+                arfd.push(rfd);
+                icIdx[ic] = arfd;
+                this.availRecFiles.push(arfd);
+              } else {
+                // rec file with itemcode already exists, add (push) this version ...
+                exRfsForIc.push(rfd);
+                // .. and sort latest version (highest version number) to lowest index
+                exRfsForIc.sort((rfd1, rfd2) => {
+                  return rfd2.version - rfd1.version;
+                })
+              }
             }
           }
           // have unsorted ietmcode indexed recording files here

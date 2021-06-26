@@ -21,10 +21,10 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
   selector: 'app-audiodisplayplayer',
 
-  template: `      
+  template: `
       <h1>Recording file editing</h1>
       <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
-      
+
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
         <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile"></app-recording-file-meta>
@@ -37,9 +37,9 @@ import {MatSnackBar} from "@angular/material/snack-bar";
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-        <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?.version" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+        <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?recordingFile.version:null" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
-      
+
       <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
   `,
   styles: [
@@ -53,14 +53,14 @@ import {MatSnackBar} from "@angular/material/snack-bar";
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`        
+    }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;
         }
     `,`
       audio-display-control{
-        
+
         flex: 3;
       }
     `]
@@ -68,7 +68,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 })
 export class RecordingFileUI extends RecordingFileViewComponent implements AfterViewInit {
 
-  savedEditSelection:Selection;
+  savedEditSelection:Selection|null=null;
   editSaved:boolean=true
 
   constructor(protected recordingFileService:RecordingFileService,protected recordingService:RecordingService,protected sessionService:SessionService,protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef, protected dialog:MatDialog,private snackBar: MatSnackBar) {
@@ -101,49 +101,43 @@ export class RecordingFileUI extends RecordingFileViewComponent implements After
 
 protected loadedRecfile() {
   super.loadedRecfile();
-
-  this.audioClip.addSelectionObserver((clip) => {
-    let s = clip.selection
-    this.editSaved = ((this.savedEditSelection == null && s == null) || this.savedEditSelection != null && this.savedEditSelection.equals(s))
-  })
-  this.savedEditSelection = this.audioClip.selection;
+  if(this.audioClip) {
+    this.audioClip.addSelectionObserver((clip) => {
+      let s = clip.selection
+      this.editSaved = ((this.savedEditSelection == null && s == null) || this.savedEditSelection != null && this.savedEditSelection.equals(s))
+    });
+  }
+  this.savedEditSelection = this.audioClip?this.audioClip.selection:null;
   this.editSaved = true
 }
 
   applySelection(){
-
-    let sf:number=null;
-    let ef:number=null;
-    let sr=null;
     if(this.audioClip) {
       let ab=this.audioClip.buffer;
       let s = this.audioClip.selection
-      if (s && ab) {
-        sr= ab.sampleRate;
-        sf = s.startFrame;
-        ef = s.endFrame;
+      if (s && ab && this.recordingFile?.recordingFileId) {
+        let sr= ab.sampleRate;
+        let sf = s.startFrame;
+        let ef = s.endFrame;
+        this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe((value) => {},
+            () => {
+              this.dialog.open(MessageDialog, {
+
+                data: {
+                  type: 'error',
+                  title: 'Save selection edit error',
+                  msg: "Could not save edit selection to WikiSpeech server!",
+                  advice: "Please check network connection and server state."
+                }
+              })
+            },
+            () => {
+              // Or use returned selection value from server?
+              this.savedEditSelection = s
+              this.editSaved = true
+              this.snackBar.open('Selection edit saved successfully.', 'OK', {duration: 1500})
+            });
       }
-
-      this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr,sf, ef).subscribe((value) => {
-
-        },
-        () => {
-          this.dialog.open(MessageDialog, {
-
-            data: {
-              type: 'error',
-              title: 'Save selection edit error',
-              msg: "Could not save edit selection to WikiSpeech server!",
-              advice: "Please check network connection and server state."
-            }
-          })
-        },
-        () => {
-        // Or use returned selection value from server?
-          this.savedEditSelection = s
-          this.editSaved = true
-          this.snackBar.open('Selection edit saved successfully.','OK',{duration: 1500})
-        })
     }
   }
 

@@ -30,7 +30,7 @@ import {SessionService} from "./session.service";
   ` ]
 })
 export class WarningBar {
-  @Input() warningText:string;
+  @Input() warningText!:string;
   @Input() set show(show:boolean){
     if(show){
       this.displayClass='on'
