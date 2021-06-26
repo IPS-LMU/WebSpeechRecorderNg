@@ -61,7 +61,7 @@ export class Item {
 
 @Component({
 
-  selector: 'app-sprrecordingsession',
+  selector: 'app-audiorecorder',
   providers: [SessionService],
   template: `
 
