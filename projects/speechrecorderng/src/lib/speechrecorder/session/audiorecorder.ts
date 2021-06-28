@@ -102,7 +102,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
   ac: AudioCapture|null=null;
   private _channelCount = 2; //TODO define constant for default format
-  private _selectedDeviceId:string|null=null;
+  private _selectedDeviceId:string|undefined;
 
   @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
 
@@ -485,7 +485,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       }
     }
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
-    this._selectedDeviceId=null;
+    this._selectedDeviceId=undefined;
 
     if (!this.readonly && this.ac) {
       this.statusMsg = 'Requesting audio permissions...';
