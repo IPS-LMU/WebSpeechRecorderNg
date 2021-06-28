@@ -276,13 +276,13 @@ export class AudioCapture{
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString|null){
+  open(channelCount: number, selDeviceId?: ConstrainDOMString){
       this.context.resume().then(()=>{
         this._open(channelCount,selDeviceId);
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|null) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
