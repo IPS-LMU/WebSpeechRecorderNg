@@ -1,4 +1,6 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
+import {MIMEType} from "../../net/mimetype";
+import {migrateExpression} from "@angular/core/schematics/migrations/renderer-to-renderer2/migration";
 
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
@@ -10,7 +12,7 @@ class AudioStreamConstr implements MediaStreamConstraints {
   }
 }
 
-export interface AudioCaptureListener {
+export interface MediaCaptureListener {
   opened(): void;
 
   started(): void;
@@ -18,6 +20,8 @@ export interface AudioCaptureListener {
   stopped(): void;
 
   closed(): void;
+
+    dataAvailable(blob: Blob): void;
 
   error(msg?:string,advice?:string): void;
 }
@@ -33,17 +37,21 @@ export class AudioCapture {
   //mediaStream:MediaStreamAudioSourceNode;
   // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
   // TODO use AudioRecorder
-
+  mediaRecorder: MediaRecorder|null = null;
+  mediaRecorderOptions: MediaRecorderOptions = {};
+  mimeType!: MIMEType;
   channelCount!: number;
   mediaStream: any;
   bufferingNode: any;
-  listener!: AudioCaptureListener;
+  listener!: MediaCaptureListener;
   data!: Array<Array<Float32Array>>;
   currentSampleRate!: number;
   n: Navigator;
   audioOutStream: SequenceAudioFloat32OutStream | null=null;
   private disconnectStreams = true;
   private _opened=false;
+  private _audioStreaming=false;
+  private _videoStreaming=false;
   private capturing = false;
 
   framesRecorded: number=0;
@@ -54,10 +62,12 @@ export class AudioCapture {
   }
 
   private initData() {
+        if (this.mimeType.isAudioPCM()) {
     this.data = new Array<Array<Float32Array>>();
     for (let i = 0; i < this.channelCount; i++) {
       this.data.push(new Array<Float32Array>());
     }
+        }
     this.framesRecorded = 0;
   }
 
