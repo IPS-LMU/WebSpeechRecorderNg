@@ -21,10 +21,10 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
   selector: 'app-audiodisplayplayer',
 
-  template: `      
+  template: `
       <h1>Recording file editing</h1>
       <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
-      
+
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
         <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile"></app-recording-file-meta>
@@ -39,7 +39,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
         <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?recordingFile.version:null" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
-      
+
       <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
   `,
   styles: [
@@ -53,14 +53,14 @@ import {MatSnackBar} from "@angular/material/snack-bar";
       z-index: 5;
       box-sizing: border-box;
       background-color: white;
-    }`,`        
+    }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;
         }
     `,`
       audio-display-control{
-        
+
         flex: 3;
       }
     `]
