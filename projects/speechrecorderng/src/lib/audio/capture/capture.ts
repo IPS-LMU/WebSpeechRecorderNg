@@ -173,18 +173,18 @@ export class AudioCapture {
         for (let i = 0; i < l.length; i++) {
             let di = l[i];
 
-            console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
-        }
+      console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
+  }
 
-    open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString|null) {
+    open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString) {
         this.context.resume().then(() => {
             this._open(mimeType, channelCount, selDeviceId);
         })
     }
 
 
-    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString|null,captureAudioStream=true,captureVideoStream=true) {
+    private _open(mimeType: MIMEType, channelCount: number, selDeviceId?: ConstrainDOMString,captureAudioStream=true,captureVideoStream=true) {
         this.mimeType = mimeType;
         let mimeTypeStr = mimeType.toHeaderString();
 
