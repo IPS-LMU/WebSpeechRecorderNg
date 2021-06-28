@@ -111,7 +111,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   ac: AudioCapture|null=null;
   private _channelCount = 2; //TODO define constant for default format
-  private _selectedDeviceId:string|null=null;
+  private _selectedDeviceId:string|undefined=undefined;
   @ViewChild(Prompting, { static: true }) prompting!: Prompting;
   @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
 
@@ -742,7 +742,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       }
     }
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
-    this._selectedDeviceId=null;
+    this._selectedDeviceId=undefined;
 
     if (!this.readonly && this.ac) {
       if(ENABLE_AUDIO_DEVICE_PRECHECK) {
