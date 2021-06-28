@@ -1,10 +1,13 @@
 export class UserAgentComponent{
-  constructor(public name:string,public version:string,public comment?:string) {
+  constructor(public name:string,public version:string|null,public comment?:string) {
 
   }
 
   toString():string{
-    let s='['+this.name+'] ['+this.version+']';
+    let s='['+this.name+']';
+    if(this.version){
+      s=s+' ['+this.version+']';
+    }
     if(this.comment){
       s=s+' ['+this.comment+']';
     }
@@ -57,9 +60,9 @@ export class UserAgentParser {
     let pp = 0;
     while (pp < ua.length) {
       //parse name/version
-      let name:string=null
-      let version:string=null;
-      let comment:string=null;
+      let name:string|null=null
+      let version:string|null=null;
+      let comment:string|undefined;
 
       let blPos=ua.indexOf(' ',pp);
       let prt:string;
