@@ -65,6 +65,17 @@ export class SessionService {
     return wrapObs;
   }
 
+  projectSessionsObserver(projectName: string): Observable<Array<Session>> {
+
+    let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' + SessionService.SESSION_API_CTX
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      sesssUrl = sesssUrl + '_list.json?requestUUID=' + UUID.generate();
+    }
+    return this.http.get<Array<Session>>(sesssUrl,{ withCredentials: this.withCredentials });
+  }
+
   // putSessionObserver(session: Session): Observable<Session> {
   //
   //   let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.session
