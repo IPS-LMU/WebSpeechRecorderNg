@@ -17,6 +17,8 @@ export class ProjectService {
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
 
+  selectedProject?:Project;
+
   constructor(private http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
