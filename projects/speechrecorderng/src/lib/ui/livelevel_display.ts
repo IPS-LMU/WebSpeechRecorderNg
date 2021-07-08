@@ -14,7 +14,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     selector: 'spr-recordingitemdisplay',
     template: `
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
-        <button matTooltip="Start playback" (click)="playStartAction?.perform()"
+        <button i18n-matTooltip  matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>

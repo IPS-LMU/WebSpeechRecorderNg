@@ -5,6 +5,7 @@ import {
 
 import { MatDialog} from "@angular/material/dialog";
 import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
+import '@angular/localize/init';
 
 
 @Component({
@@ -145,7 +146,8 @@ export class TransportActions {
   bwdAction: Action<void>;
 
   constructor() {
-    this.startAction = new Action('Start');
+    const locStart=$localize `Start`;
+    this.startAction = new Action(locStart);
     this.stopAction = new Action('Stop');
     this.nextAction = new Action('Next');
     this.pauseAction = new Action('Pause');
@@ -171,7 +173,7 @@ export class TransportActions {
     </button>
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
-      <span fxShow.xs="false">Pause</span>
+      <span i18n fxShow.xs="false">Pause</span>
     </button>
     <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
       <mat-icon>redo</mat-icon>

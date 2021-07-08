@@ -16,6 +16,12 @@
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
+      "i18n": {
+        "sourceLocale": "en-US",
+        "locales": {
+          "de": "src/locale/messages.de.xlf"
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -25,6 +31,7 @@
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
+            "localize": true,
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/assets",
@@ -65,6 +72,9 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "en-US": {
+              "localize": ["en-US"]
             }
           },
           "defaultConfiguration": "production"
@@ -113,12 +123,20 @@
       "root": "projects/speechrecorderng",
       "sourceRoot": "projects/speechrecorderng/src",
       "prefix": "lib",
+      "i18n": {
+        "sourceLocale": "en-US",
+        "locales": {
+          "de": "src/locale/messages.de.xlf"
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "project": "projects/speechrecorderng/ng-package.json"
+
           },
+          "localize": true,
           "configurations": {
             "production": {
               "tsConfig": "projects/speechrecorderng/tsconfig.lib.prod.json"
