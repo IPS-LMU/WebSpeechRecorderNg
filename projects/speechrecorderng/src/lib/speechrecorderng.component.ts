@@ -31,6 +31,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   styles: [`:host{
     flex: 2;
     display: flex;
+      height: 100%;
     flex-direction: column;
     min-height:0;
 
