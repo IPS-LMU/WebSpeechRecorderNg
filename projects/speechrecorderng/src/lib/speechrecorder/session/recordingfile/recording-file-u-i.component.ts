@@ -47,6 +47,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
           flex: 2;
           display: flex;
           flex-direction: column;
+            heigth: 100%;
           min-height:0;
           overflow: hidden;
       padding: 20px;
