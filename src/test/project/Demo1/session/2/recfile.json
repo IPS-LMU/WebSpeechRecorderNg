@@ -39,4 +39,66 @@
   "samplerate" : 48000.0,
   "signalFile" : "file:/vdata/CM_test/101236542/101236542X1_00.wav",
   "version" : 0
-} ]
+},
+  {
+    "recordingFileId": "1234",
+    "session": 2,
+    "date" : "2020-05-01T20:03:00.456+01:00",
+    "recording" : {
+      "mediaitems" : [ {
+        "annotationTemplate" : true,
+        "text" : "Heute ist schönes Frühlingswetter!"
+      } ],
+      "itemcode" : "demo_99",
+      "recduration" : 4000,
+      "recinstructions" : {
+        "recinstructions" : "Please read:"
+      }
+    }
+  },
+  {
+    "recordingFileId": "5678",
+    "session": 2,
+    "date" : "2020-06-10T20:04:44.123+01:00",
+    "version": 0,
+    "recording": {
+      "itemcode": "N0",
+      "recduration": 10000,
+
+      "recinstructions": {
+        "recinstructions": "Please answer:"
+      },
+      "mediaitems": [
+        {
+          "annotationTemplate": false,
+          "autoplay": false,
+          "mimetype": "text/plain",
+          "text": "What's your name?"
+        }
+      ]
+    }
+  },
+  {
+    "recordingFileId": "9999",
+    "session": 2,
+    "date" : "2020-06-15T 18:05:19.000+01:00",
+    "version": 1,
+    "recording": {
+      "itemcode": "N0",
+      "recduration": 10000,
+
+      "recinstructions": {
+        "recinstructions": "Please answer:"
+      },
+      "mediaitems": [
+        {
+          "annotationTemplate": false,
+          "autoplay": false,
+          "mimetype": "text/plain",
+          "text": "What's your name?"
+        }
+      ]
+    }
+  }
+
+]

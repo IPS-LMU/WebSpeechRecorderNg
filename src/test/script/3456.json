@@ -1,0 +1,229 @@
+{
+  "name": "Random-Test",
+  "type": "script",
+  "scriptId": 3456,
+  "virtualViewBox": {
+    "height": 500
+  },
+  "sections": [
+    {
+      "mode": "MANUAL",
+      "name": "Introduction",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+      "training": true,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "I0",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "I1",
+              "recduration": 8000,
+              "postrecording": 2000,
+              "recinstructions": {
+                "recinstructions": "Hier finden Sie kurze Anleitungen"
+              },
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "type": "recording",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "image/jpg",
+                  "src": "resources/images/IMG_2447.JPG"
+                }
+              ],
+              "itemcode": "demo_001"
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "I2",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Jetzt geht's los!"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTOPROGRESS",
+      "name": "Randomized section",
+      "order": "RANDOM",
+      "speakerDisplay": true,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "RS0",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RS0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "RS1",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RS1"
+                }
+              ]
+            }
+          ]
+        },{
+          "promptItems": [
+            {
+              "itemcode": "RS2",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RS2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "RS3",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RS3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTOPROGRESS",
+      "name": "Randomized groups",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+
+      "groups": [
+        {
+          "order": "RANDOM",
+          "promptItems": [
+            {
+              "itemcode": "RG00",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG00"
+                }
+              ]
+            },
+            {
+              "itemcode": "RG01",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG01"
+                }
+              ]
+            },
+            {
+              "itemcode": "RG02",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG02"
+                }
+              ]
+            },
+            {
+              "itemcode": "RG03",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG03"
+                }
+              ]
+            }
+          ]
+        },{
+          "order": "RANDOM",
+          "promptItems": [
+            {
+              "itemcode": "RG10",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG10"
+                }
+              ]
+            },
+            {
+              "itemcode": "RG11",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG11"
+                }
+              ]
+            },
+            {
+              "itemcode": "RG12",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG12"
+                }
+              ]
+            },
+            {
+              "itemcode": "RG13",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt RG13"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

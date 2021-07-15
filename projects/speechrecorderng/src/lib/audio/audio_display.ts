@@ -2,11 +2,11 @@ import {
     Component,
     ViewChild,
     ChangeDetectorRef,
-    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
+    AfterViewInit, Input, OnInit, ElementRef,
 } from '@angular/core'
 
-import {AudioClip} from './persistor'
-import {ActivatedRoute, Params} from "@angular/router";
+import {AudioClip, Selection} from './persistor'
+import {ActivatedRoute} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 
@@ -15,14 +15,18 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
   selector: 'app-audiodisplay',
 
   template: `
-   
+
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-  
-    <div #controlPanel>
-    <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled" [style.color]="playStartAction?.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled" [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
-    Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
-    </div><p>{{status}}
+
+    <audio-display-control [audioClip]="audioClip"
+                             [playStartAction]="playStartAction"
+                             [playSelectionAction]="playSelectionAction"
+                            [playStopAction]="playStopAction"
+    [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
+    [zoomInAction]="zoomInAction"
+    [zoomOutAction]="zoomOutAction"
+    [zoomSelectedAction]="zoomSelectedAction"
+    [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
   `,
   styles: [
       `:host {
@@ -36,56 +40,60 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
       padding: 20px;
       z-index: 5;
       box-sizing: border-box;
-      background-color: rgba(230, 230, 230, 0.75)
-    }`]
+      background-color: rgba(230, 230, 230, 1.0)
+    }`,`
+          legend{
+              margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
+      }`,`
+        fieldset{
+            border: 1px darkgray solid
+      }
+      `]
 
 })
-export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
-  private _audioUrl: string;
+export class AudioDisplay implements OnInit,AfterViewInit {
 
   parentE: HTMLElement;
+  private _audioClip:AudioClip|null=null
 
   @Input()
-  playStartAction: Action;
+  playStartAction: Action<void>|undefined;
   @Input()
-  playStopAction: Action;
+  playStopAction: Action<void>|undefined;
+  @Input()
+  playSelectionAction:Action<void>|undefined;
+  @Input()
+  autoPlayOnSelectToggleAction!:Action<boolean>|undefined;
 
-  zoomFitToPanelAction:Action;
-  zoomInAction:Action;
-  zoomOutAction:Action;
+  zoomFitToPanelAction!:Action<void>;
+  zoomSelectedAction!:Action<void>
+  zoomInAction!:Action<void>;
+  zoomOutAction!:Action<void>;
+
+  clearSelectionAction!:Action<void>
 
   status: string;
 
   audio: any;
-  updateTimerId: any;
 
-  @ViewChild(AudioDisplayScrollPane)
-  private audioDisplayScrollPane: AudioDisplayScrollPane;
+  @ViewChild(AudioDisplayScrollPane, { static: true })
+  audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
+    this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
 
   }
 
   ngOnInit(){
-    //console.log("OnInit: "+this.ac);
-      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
-    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
-    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
-
-
-  }
-
-  ngAfterContentInit(){
-    //console.log("AfterContentInit: "+this.ac);
-  }
-
-  ngAfterContentChecked(){
-    //console.log("AfterContentChecked: "+this.ac);
+    this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
+    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction
+    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction
+    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction
   }
 
   ngAfterViewInit() {
@@ -99,19 +107,8 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
           })
       });
       heightListener.observe(this.parentE,{attributes: true,childList: true, characterData: true});
-
   }
 
-
-  ngAfterViewChecked(){
-    //console.log("AfterViewChecked: "+this.ac);
-  }
-
-
-  init() {
-
-
-  }
 
   layout(){
     this.audioDisplayScrollPane.layout();
@@ -127,14 +124,28 @@ export class AudioDisplay implements OnInit,AfterContentInit,AfterContentChecked
   @Input()
   set audioData(audioBuffer: AudioBuffer){
       this.audioDisplayScrollPane.audioData = audioBuffer;
-      if(audioBuffer) {
-          let clip = new AudioClip(audioBuffer);
-
-      }else{
-          this.playStartAction.disabled = true
+      if(this.playStartAction) {
+          this.playStartAction.disabled = (audioBuffer == null)
       }
   }
 
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+
+    let audioData:AudioBuffer|null=null;
+    let sel:Selection|null=null;
+    if(audioClip){
+      audioData=audioClip.buffer;
+      sel=audioClip.selection;
+      }
+    this._audioClip=audioClip
+    this.audioDisplayScrollPane.audioClip = audioClip;
+    //this.playStartAction.disabled = (audioData!==null)
+  }
+
+  get audioClip():AudioClip|null{
+    return this._audioClip
+  }
 
   set playFramePosition(playFramePosition:number){
       this.audioDisplayScrollPane.playFramePosition = playFramePosition

@@ -3,7 +3,7 @@ import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
 } from './audio/playback/player';
-import { Script } from './speechrecorder/script/script'
+import {Group, Order, PromptItem, Script} from './speechrecorder/script/script'
 import { SessionManager,Status as SessionManagerStatus} from './speechrecorder/session/sessionmanager';
 import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
@@ -11,11 +11,12 @@ import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {Session} from "./speechrecorder/session/session";
-import {Project} from "./speechrecorder/project/project";
+import {Project, ProjectUtil} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFile, RecordingFileDescriptor} from "./speechrecorder/recording";
+import {RecordingFileDescriptor} from "./speechrecorder/recording";
+import {Arrays} from "./utils/utils";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -24,30 +25,30 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession [project]="project"></app-sprrecordingsession>
+    <app-sprrecordingsession [project]="project" [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
   styles: [`:host{
     flex: 2;
     display: flex;
     flex-direction: column;
-    min-height:0;      
+    min-height:0;
 
   }`]
 
 })
 export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
-	  mode:Mode;
-		controlAudioPlayer:AudioPlayer;
+	  mode!:Mode;
+		controlAudioPlayer!:AudioPlayer;
 		audio:any;
 
-	_project:Project|null;
-  sessionId: string;
-  session:Session;
+	_project:Project|null=null;
+  sessionId!: string;
+  session!:Session;
 
-  script:Script;
+  script!:Script;
     dataSaved: boolean = true;
-  @ViewChild(SessionManager) sm:SessionManager;
+  @ViewChild(SessionManager, { static: true }) sm!:SessionManager;
 
 		constructor(private route: ActivatedRoute,
                     private router: Router,
@@ -61,15 +62,17 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     ngOnInit() {
 		  try {
-        let audioContext = AudioContextProvider.audioContextInstance()
-        this.controlAudioPlayer = new AudioPlayer(audioContext, this);
+        let audioContext = AudioContextProvider.audioContextInstance();
+              if(audioContext) {
+                  this.controlAudioPlayer = new AudioPlayer(audioContext, this);
+              }
         this.sm.controlAudioPlayer=this.controlAudioPlayer;
         this.sm.statusAlertType='info';
         this.sm.statusMsg = 'Player initialized.';
       }catch(err){
         this.sm.statusMsg=err.message;
         this.sm.statusAlertType='error';
-        console.log(err.message)
+        console.error(err.message)
       }
     }
        ngAfterViewInit(){
@@ -94,34 +97,44 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
     fetchSession(sessionId:string){
+
+
+		  //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
+      // params.subscribe seems not to be asynchronous
+
+      // this.sm.statusAlertType='info';
+      // this.sm.statusMsg = 'Fetching session info...';
+      // this.sm.statusWaiting=true;
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
         sessObs.subscribe(sess => {
           this.setSession(sess);
-
-
+            this.sm.statusAlertType='info';
+            this.sm.statusMsg = 'Received session info.';
+            this.sm.statusWaiting=false;
           if (sess.project) {
-            console.log("Session associated project: "+sess.project)
-
+            //console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
               this.fetchScript(sess);
             },reason =>{
               this.sm.statusMsg=reason;
               this.sm.statusAlertType='error';
-              console.log("Error fetching project config: "+reason)
+                this.sm.statusWaiting=false;
+              console.error("Error fetching project config: "+reason)
             });
 
           } else {
-            console.log("Session has no associated project. Using default configuration.")
+            console.info("Session has no associated project. Using default configuration.")
             this.fetchScript(sess);
           }
         },
         (reason) => {
             this.sm.statusMsg = reason;
             this.sm.statusAlertType = 'error';
-            console.log("Error fetching session " + reason)
+            this.sm.statusWaiting=false;
+            console.error("Error fetching session " + reason)
           });
       }
     }
@@ -129,20 +142,26 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     fetchScript(sess:Session){
       if(sess.script){
+        this.sm.statusAlertType='info';
+        this.sm.statusMsg = 'Fetching recording script...';
+          this.sm.statusWaiting=true;
         this.scriptService.scriptObservable(sess.script).subscribe(script=>{
+          this.sm.statusAlertType='info';
+          this.sm.statusMsg = 'Received recording script.';
+          this.sm.statusWaiting=false;
           this.setScript(script)
           this.sm.session=sess;
           this.fetchRecordings(sess,this.script)
         },reason =>{
           let errMsg="Error fetching recording script: "+reason
-           console.log(errMsg)
+           console.error(errMsg)
             this.sm.statusMsg=errMsg;
             this.sm.statusAlertType='error';
-
+            this.sm.statusWaiting=false;
           });
       }else{
         let errMsg="No recording script is defined for this session with ID "+sess.sessionId;
-        console.log(this.sm.statusMsg)
+        console.error(this.sm.statusMsg)
         this.sm.statusMsg=errMsg;
         this.sm.statusAlertType='error';
 
@@ -151,45 +170,56 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
 
     fetchRecordings(sess:Session,script:Script){
-        let rfsObs=this.recFilesService.recordingFileDescrList(this.project.name,sess.sessionId);
-        rfsObs.subscribe((rfs:Array<RecordingFileDescriptor>)=>{
-          if(rfs) {
-            if(rfs instanceof Array) {
-              rfs.forEach((rf) => {
-                // TODO test output for now
-                console.log("Already recorded: " + rf+ " "+rf.recording.itemcode);
-                this.sm.addRecordingFileByDescriptor(rf);
-              })
-            }else{
-              console.error('Expected type array for list of already recorded files ')
-            }
-          }else{
-            console.log("Recording file list: " + rfs);
-          }
-        },()=>{
-          // we start the session anyway
-          this.startSession()
-        },()=>{
-          this.startSession()
-        })
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg = 'Fetching infos of recordings...';
+        this.sm.statusWaiting=true;
+        let prNm:string|null=null;
+        if(this.project) {
+            let rfsObs = this.recFilesService.recordingFileDescrList(this.project.name, sess.sessionId);
+            rfsObs.subscribe((rfs: Array<RecordingFileDescriptor>) => {
+                this.sm.statusAlertType = 'info';
+                this.sm.statusMsg = 'Received infos of recordings.';
+                this.sm.statusWaiting = false;
+                if (rfs) {
+                    if (rfs instanceof Array) {
+                        rfs.forEach((rf) => {
+                            //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
+                            this.sm.addRecordingFileByDescriptor(rf);
+                        })
+                    } else {
+                        console.error('Expected type array for list of already recorded files ')
+                    }
+                } else {
+                    //console.debug("Recording file list: " + rfs);
+                }
+            }, () => {
+                // we start the session anyway
+                this.startSession()
+            }, () => {
+                this.startSession()
+            })
+        }else{
+            // TODO
+        }
     }
 
 
     private startSession(){
-
+        this.sm.statusWaiting=false;
 		  this.sm.start();
     }
 
 
         setSession(session:any){
 		    if(session) {
-                console.log("Session ID: " + session.sessionId);
-
-
+               // console.debug("Session ID: " + session.sessionId);
             }else{
-                console.log("Session Undefined");
+                //console.debug("Session Undefined");
             }
+        }
 
+        ready():boolean{
+		    return this.dataSaved && !this.sm.isActive()
         }
 
 		init():boolean {
@@ -227,9 +257,9 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             }
 
             window.addEventListener('beforeunload', (e) => {
-                console.log("Before page unload event");
+                console.debug("Before page unload event");
 
-                if (this.dataSaved && !this.sm.isActive()) {
+                if (this.ready()) {
                     return;
                 } else {
                     // all this attempts to customize the message do not work anymore (for security reasons)!!
@@ -289,33 +319,47 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
 
+    private randomize(script:Script){
+		    script.sections.forEach((s)=>{
+		        if('RANDOM'===s.order) {
+                    s._shuffledGroups = Arrays.shuffleArray<Group>(s.groups);
+                }else{
+		            s._shuffledGroups=s.groups;
+                }
+		        s._shuffledGroups.forEach((g)=>{
+		            if('RANDOM'===g.order){
+		               g._shuffledPromptItems=Arrays.shuffleArray<PromptItem>(g.promptItems);
+                    }else{
+		                g._shuffledPromptItems=g.promptItems;
+                    }
+                });
+            });
+    }
+
     setScript(script:Script){
         this.script=script;
+        this.randomize(this.script);
         this.sm.script = this.script;
-
     }
 
 
-  set project(project: Project) {
+    set project(project: Project|null) {
+        this._project = project;
+        let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
-		  this._project=project;
-    let chCnt = 2;
+        if (project) {
+            console.info("Project name: " + project.name)
+            this.sm.audioDevices = project.audioDevices;
+            chCnt = ProjectUtil.audioChannelCount(project);
+            console.info("Project requested recording channel count: " + chCnt);
+        } else {
+            console.error("Empty project configuration!")
+        }
+        this.sm.channelCount = chCnt;
 
-    if (project) {
-      console.log("Project name: "+project.name)
-      this.sm.audioDevices = project.audioDevices;
-      if(project.audioFormat) {
-        chCnt =project.audioFormat.channels;
-        console.log("Project requested recording channel count: "+chCnt)
-      }
-    }else{
-      console.error("Empty project configuration!")
     }
-    this.sm.channelCount = chCnt;
 
-  }
-
-  get project():Project{
+  get project():Project|null{
 		  return this._project;
   }
 
@@ -347,7 +391,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
           callback();
         }
         pLoader.onerror = (e) => {
-          console.log("Error downloading project data ...");
+          console.error("Error downloading project data ...");
         }
         pLoader.send();
       }

@@ -45,14 +45,13 @@ export class SessionService {
 
   }
 
-
-  putSessionObserver(session: Session): Observable<Session> {
+  patchSessionObserver(session:Session,body:any): Observable<Session> {
 
     let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.sessionId
 
     let wrapObs = new Observable<Session>(subscriber => {
       this._uploadCount++;
-      let obs = this.http.put<Session>(sesssUrl, session, {withCredentials: this.withCredentials});
+      let obs = this.http.patch<Session>(sesssUrl, body, {withCredentials: this.withCredentials});
       obs.subscribe((value) => {
         subscriber.next(value);
       }, error => {
@@ -65,6 +64,28 @@ export class SessionService {
     });
     return wrapObs;
   }
+
+  // putSessionObserver(session: Session): Observable<Session> {
+  //
+  //   let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.session
+  //
+  //   let wrapObs = new Observable<Session>(subscriber => {
+  //     this._uploadCount++;
+  //     let obs = this.http.put<Session>(sesssUrl, session, {withCredentials: this.withCredentials});
+  //     obs.subscribe((value) => {
+  //       subscriber.next(value);
+  //     }, error => {
+  //       this._uploadCount--;
+  //       subscriber.error(error);
+  //     }, () => {
+  //       this._uploadCount--;
+  //       subscriber.complete();
+  //     });
+  //   });
+  //   return wrapObs;
+  // }
+  //
+
 
 }
 

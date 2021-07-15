@@ -1,21 +1,33 @@
 
-    export class ActionEvent {
-        constructor() {
+    export class ActionEvent<T> {
+        get value(): T|null {
+            return this._value;
+        }
+        constructor(private _value:T|null=null) {
 
         }
     }
 
-    export class Action {
+    export interface ActionEventListener<T>{
+        (ae:ActionEvent<T>):void;
+    }
+
+    export class Action<T> {
+        get value(): T|null {
+            return this._value;
+        }
 
         private _name:string;
+        private _value:T|null;
         _disabled=true;
-        private _onAction:EventListener;
-        listeners:Array<EventListener>;
+        private _onAction:ActionEventListener<T>|null=null;
+        listeners:Array<ActionEventListener<T>>;
         private controls:HTMLInputElement[];
 
-        constructor(name:string) {
+        constructor(name:string,value:T|null=null) {
             this._name = name;
-            this.listeners = new Array<EventListener>();
+            this._value=value
+            this.listeners = new Array<ActionEventListener<T>>();
             this.controls = [];
         }
 
@@ -24,22 +36,24 @@
         }
 
 
-        get onAction():EventListener {
+        get onAction():ActionEventListener<T>|null {
             return this._onAction;
         }
 
-        set onAction(value:EventListener) {
+        set onAction(value:ActionEventListener<T>|null) {
             this._onAction = value;
         }
 
-        protected  createActionEvent():ActionEvent {
+        protected  createActionEvent(value: T|null=null):ActionEvent<T> {
             // default:
-            return new ActionEvent();
+            return new ActionEvent(value);
         }
 
-        perform():void {
+        perform(value: T|null=null):void {
+            this._value=value
             if (!this.disabled && this._onAction) {
-                this._onAction.call(this.createActionEvent());
+                let ae=this.createActionEvent(value)
+                this._onAction(ae);
             }
         }
 

@@ -3,35 +3,37 @@ import {PromptItem} from "./script/script";
 
 
 export class RecordingFileDescriptor {
-
-  //sessionId:string|number;
-  recording:PromptItem;
-  version:number;
+  recording!:PromptItem;
+  version!:number;
   constructor() {}
-
 }
 
-    export class RecordingFile {
-
-      audioBuffer:AudioBuffer;
-      sessionId:string|number;
+    export class RecordingFile extends RecordingFileDescriptor{
+      recordingFileId: string | number | null= null;
+      uuid:string|null=null;
+      date: string|null=null;
+      _dateAsDateObj:Date|null=null;
+      audioBuffer:AudioBuffer|null=null;
+      session:string|number|null=null;
       itemCode:string;
-      version:number;
-      uuid:string;
-      constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer) {
-          this.sessionId=sessionId;
+      frames:number|null=null;
+      editSampleRate:number|null=null;
+      editStartFrame:number|null=null
+      editEndFrame:number|null=null
+
+      constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer|null) {
+          super()
+          this.session=sessionId;
           this.itemCode=itemcode;
           this.version=version;
           this.audioBuffer=audioBuffer;
           this.uuid=UUID.generate();
       }
 
-
-
       filenameString():string{
         let fns:string='';
-        if(this.sessionId){
-            fns+=this.sessionId;
+        if(this.session){
+            fns+=this.session;
             fns+='_';
         }
         if(this.itemCode){

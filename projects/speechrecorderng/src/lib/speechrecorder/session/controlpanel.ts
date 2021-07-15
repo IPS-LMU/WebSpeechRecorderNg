@@ -1,9 +1,10 @@
 import {Action} from '../../action/action'
 import {
-  Component, ViewChild, Input, EventEmitter, Output
+  Component, ViewChild, Input
 } from "@angular/core";
 
-import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
+import { MatDialog} from "@angular/material/dialog";
+import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
 
 
 @Component({
@@ -12,7 +13,7 @@ import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
 
   template: `
     <p matTooltip="Status">
-      <mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
+      <mat-progress-spinner *ngIf="statusWaiting" color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
       {{statusMsg}}
     </p>
   `,
@@ -23,6 +24,16 @@ import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
     text-align: left;
     font-size: smaller;
   }`, `
+    p {
+      white-space:nowrap;
+      display: inline-block;
+    }
+  `, `
+    mat-progress-spinner {
+      color: black;
+      display: inline-block;
+    }
+  `, `
     span {
       color: red;
     }
@@ -33,38 +44,74 @@ import {MatDialog, MatDialogConfig, MatIcon} from "@angular/material";
 export class StatusDisplay {
   @Input() statusAlertType = 'info';
   @Input() statusMsg = 'Initialize...';
-
+  @Input() statusWaiting =false;
 }
 
 
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value"></mat-progress-spinner>Upload: {{_value}}%
+    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value" [matTooltip]="toolTipText"></mat-progress-spinner>
   `,
   styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
-    display: inline;
+    /*display: inline; */
     text-align: left;
+  }`,`mat-progress-spinner{
+      display: inline-block;
   }`]
 })
 export class UploadStatus {
-  spinnerMode = 'determinate'
-  spinnerColor = 'default'
+  private _awaitNewUpload=false;
+  spinnerMode:ProgressSpinnerMode = 'determinate';
+  _status!:string
   _value = 100
-  @Input()
-  set value(value: number) {
-    if (value === 0) {
+  displayValue:string|null=null
+  toolTipText:string=''
+
+  private _updateSpinner(){
+
+    let uplMsg;
+    if (this._awaitNewUpload || this._value === 0) {
       this.spinnerMode = 'indeterminate'
+      this.displayValue='&nbsp;&nbsp;&nbsp;&nbsp;'
+      uplMsg='Preparing upload.'
     } else {
       this.spinnerMode = 'determinate'
+      this.displayValue=this._value+'%'
+      if(this._value===100){
+        uplMsg = 'Upload complete'
+      }else {
+        uplMsg = 'Upload progress: ' + this.displayValue
+      }
     }
+    if(this.status==='warn'){
+      uplMsg='Upload error occurred. Please check your network connection. '+uplMsg
+    }
+    this.toolTipText=uplMsg
+  }
 
+  @Input()
+  set value(value: number) {
     this._value = value;
+    this._updateSpinner()
   };
 
-  @Input() status: string;
+  @Input() set awaitNewUpload(awaitNewUpload:boolean){
+    this._awaitNewUpload=awaitNewUpload
+    this._updateSpinner()
+  }
+
+  @Input() set status(status:string){
+    this._status=status
+    this._updateSpinner()
+  }
+
+  get status():string{
+    return this._status
+  }
+
 }
 
 
@@ -76,7 +123,8 @@ export class UploadStatus {
   styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
-    display: inline;
+    /*display: inline; */
+      width: 100%;
     text-align: left;
   }`]
 })
@@ -88,18 +136,20 @@ export class ProgressDisplay {
 
 
 export class TransportActions {
-  startAction: Action;
-  stopAction: Action;
-  nextAction: Action;
-  pauseAction: Action;
-  fwdAction: Action;
-  bwdAction: Action;
+  startAction: Action<void>;
+  stopAction: Action<void>;
+  nextAction: Action<void>;
+  fwdNextAction: Action<void>;
+  pauseAction: Action<void>;
+  fwdAction: Action<void>;
+  bwdAction: Action<void>;
 
   constructor() {
     this.startAction = new Action('Start');
     this.stopAction = new Action('Stop');
     this.nextAction = new Action('Next');
     this.pauseAction = new Action('Pause');
+    this.fwdNextAction = new Action('Next recording');
     this.fwdAction = new Action('Forward');
     this.bwdAction = new Action('Backward');
 
@@ -117,22 +167,16 @@ export class TransportActions {
     </button>
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      {{startStopNextName()}}
+      <span fxShow.xs="false">{{startStopNextName()}}</span>
     </button>
-    <!--<button id="stopBtn" (click)="actions.stopAction.perform()" [disabled]="stopDisabled()" mat-raised-button>
-      <mat-icon [style.color]="stopDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
-      Stop
-    </button> 
-    <button id="nextBtn" (click)="actions.nextAction.perform()" [disabled]="nextDisabled()" mat-raised-button>
-      <mat-icon [style.color]="nextDisabled() ? 'grey' : 'yellow'">stop</mat-icon>
-      <mat-icon [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      Next
-    </button>-->
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
-      Pause
+      <span fxShow.xs="false">Pause</span>
     </button>
-    <button id="fwdBtn" (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
+    <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+      <mat-icon>redo</mat-icon>
+    </button>
+    <button id="fwdBtn"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
       <mat-icon>chevron_right</mat-icon>
     </button>
 
@@ -154,11 +198,11 @@ export class TransportActions {
 })
 export class TransportPanel {
 
-  @Input() readonly:boolean;
-  @Input() actions: TransportActions;
+  @Input() readonly!:boolean;
+  @Input() actions!: TransportActions;
 
-  startStopNextButtonName:string;
-    startStopNextButtonIconName:string;
+  startStopNextButtonName!:string;
+  startStopNextButtonIconName!:string;
 
   startDisabled() {
     return !this.actions || this.readonly || this.actions.startAction.disabled
@@ -178,6 +222,10 @@ export class TransportPanel {
 
   fwdDisabled() {
     return !this.actions || this.actions.fwdAction.disabled
+  }
+
+  fwdNextDisabled() {
+    return !this.actions || this.actions.fwdNextAction.disabled
   }
 
   bwdDisabled() {
@@ -232,13 +280,14 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
 
     <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
 
-    <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus"></app-uploadstatus>
+    <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                      [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+    <mat-icon fxHide.xs [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
   styles: [`:host {
     flex: 0; /* only required vertical space */
@@ -258,21 +307,39 @@ export class TransportPanel {
   `]
 })
 export class ControlPanel {
-  @ViewChild(StatusDisplay) statusDisplay: StatusDisplay;
-  @ViewChild(TransportPanel) transportPanel: TransportPanel;
+  @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
+  @ViewChild(TransportPanel, { static: true }) transportPanel!: TransportPanel;
 
-  @Input() readonly:boolean
-  @Input() transportActions: TransportActions
-  @Input() statusMsg: string;
-  @Input() statusAlertType: string;
-  @Input() uploadStatus: string;
-  @Input() uploadProgress: number;
-  @Input() currentRecording: AudioBuffer;
-  @Input() enableUploadRecordings: boolean;
+
+  @Input() readonly!:boolean
+  @Input() transportActions!: TransportActions
+  @Input() processing=false
+  @Input() statusMsg!: string;
+  @Input() statusAlertType!: string;
+  @Input() statusWaiting!: boolean;
+  @Input() uploadStatus!: string;
+  @Input() uploadProgress!: number;
+  @Input() currentRecording: AudioBuffer| null| undefined;
+  @Input() enableUploadRecordings!: boolean;
+
+  _ready=true
+  hourGlassIconName='hourglass_empty'
+  readyStateToolTip:string=''
 
   constructor(public dialog: MatDialog) {
 
   }
+
+  @Input() set ready(ready:boolean){
+    this._ready=ready
+    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
+    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
+  }
+
+  get ready():boolean{
+    return this._ready
+  }
+
 }
 
 

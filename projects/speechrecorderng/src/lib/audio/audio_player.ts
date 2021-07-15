@@ -5,9 +5,8 @@ import {
     AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
-import {AudioClip} from './persistor'
+import {AudioClip, Selection} from './persistor'
 import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
-import {AudioClipUIContainer} from './ui/container'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
@@ -18,14 +17,18 @@ import {AudioContextProvider} from "./context";
   selector: 'app-audiodisplayplayer',
 
   template: `
-   
+
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-  
-    <div #controlPanel>
-    <button (click)="playStartAction.perform()" [disabled]="playStartAction.disabled" [style.color]="playStartAction.disabled ? 'grey' : 'green'"><mat-icon>play_arrow</mat-icon></button> <button (click)="playStopAction.perform()" [disabled]="playStopAction.disabled" [style.color]="playStopAction.disabled ? 'grey' : 'yellow'"><mat-icon>stop</mat-icon></button>
-    Zoom:<button (click)="zoomFitToPanelAction?.perform()" [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button> <button (click)="zoomOutAction?.perform()" [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
-    <button (click)="zoomInAction?.perform()" [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
-    </div><p>{{status}}
+
+    <audio-display-control [audioClip]="audioClip"
+                             [playStartAction]="playStartAction"
+                             [playSelectionAction]="playSelectionAction"
+                             [playStopAction]="playStopAction"
+                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                             [zoomInAction]="zoomInAction"
+                             [zoomOutAction]="zoomOutAction"
+                             [zoomSelectedAction]="zoomSelectedAction"
+                             [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control><p>{{status}}
   `,
   styles: [
       `:host {
@@ -44,37 +47,44 @@ import {AudioContextProvider} from "./context";
 
 })
 export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
-  private _audioUrl: string;
+  private _audioUrl: string|null=null;
 
   parentE: HTMLElement;
 
   @Input()
-  playStartAction: Action;
+  playStartAction: Action<void>;
   @Input()
-  playStopAction: Action;
+  playStopAction: Action<void>;
+  @Input()
+  playSelectionAction:Action<void>
+  @Input()
+  autoPlayOnSelectToggleAction!:Action<boolean>;
 
-  zoomFitToPanelAction:Action;
-  zoomInAction:Action;
-  zoomOutAction:Action;
+  zoomFitToPanelAction!:Action<void>;
+  zoomSelectedAction!:Action<void>;
+  zoomInAction!:Action<void>;
+  zoomOutAction!:Action<void>;
 
 
-  aCtx: AudioContext;
-  ap: AudioPlayer;
+  aCtx: AudioContext|null=null;
+  private _audioClip:AudioClip|null=null;
+  ap: AudioPlayer|undefined;
   status: string;
 
-  currentLoader: XMLHttpRequest | null;
+  currentLoader: XMLHttpRequest | null=null;
 
   audio: any;
   updateTimerId: any;
 
 
-  @ViewChild(AudioDisplayScrollPane)
-  private ac: AudioDisplayScrollPane;
+  @ViewChild(AudioDisplayScrollPane, { static: true })
+  private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
-  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
+  constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
+    this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
 
@@ -82,12 +92,15 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   ngOnInit(){
     //console.log("OnInit: "+this.ac);
-      this.zoomFitToPanelAction=this.ac.zoomFitToPanelAction;
-    this.zoomOutAction=this.ac.zoomOutAction;
-    this.zoomInAction=this.ac.zoomInAction;
+    this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
+      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
+    this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
      try {
        this.aCtx = AudioContextProvider.audioContextInstance();
-       this.ap = new AudioPlayer(this.aCtx, this);
+       if(this.aCtx) {
+         this.ap = new AudioPlayer(this.aCtx, this);
+       }
      }catch(err){
           this.status = err.message;
       }
@@ -103,8 +116,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
 
   ngAfterViewInit() {
       if (this.aCtx && this.ap) {
-          this.playStartAction.onAction = () => this.ap.start();
-          this.playStopAction.onAction = () => this.ap.stop();
+          this.playStartAction.onAction = () => this.ap?.start();
+          this.playSelectionAction.onAction = () => this.ap?.startSelected();
+          this.playStopAction.onAction = () => this.ap?.stop();
       }
       this.layout();
       let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
@@ -134,22 +148,24 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   }
 
   layout(){
-    this.ac.layout();
+    this.audioDisplayScrollPane.layout();
   }
 
-  get audioUrl(): string {
+  get audioUrl(): string|null {
     return this._audioUrl;
   }
 
-  set audioUrl(value: string) {
-    this.ap.stop();
+  set audioUrl(value: string|null) {
+    if(this.ap) {
+      this.ap.stop();
+    }
     this._audioUrl = value;
     this.load();
   }
 
 
   started() {
-    console.log("Play started");
+    //console.debug("Play started");
     this.status = 'Playing...';
   }
 
@@ -159,45 +175,49 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.currentLoader.abort();
       this.currentLoader = null;
     }
-    //this.statusMsg.innerHTML = 'Connecting...';
-    this.currentLoader = new XMLHttpRequest();
-    this.currentLoader.open("GET", this._audioUrl, true);
-    this.currentLoader.responseType = "arraybuffer";
-    this.currentLoader.onload = (e) => {
-      if (this.currentLoader) {
+    if(this._audioUrl) {
+      //this.statusMsg.innerHTML = 'Connecting...';
+      this.currentLoader = new XMLHttpRequest();
+      this.currentLoader.open("GET", this._audioUrl, true);
+      this.currentLoader.responseType = "arraybuffer";
+      this.currentLoader.onload = (e) => {
+        if (this.currentLoader) {
 
-        var data = this.currentLoader.response; // not responseText
-        console.log("Received data ", data.byteLength);
-        this.currentLoader = null;
-        this.loaded(data);
+          var data = this.currentLoader.response; // not responseText
+          //console.debug("Received data ", data.byteLength);
+          this.currentLoader = null;
+          this.loaded(data);
+        }
       }
-    }
-    this.currentLoader.onerror = (e) => {
-      console.log("Error downloading ...");
-      //this.statusMsg.innerHTML = 'Error loading audio file!';
-      this.currentLoader = null;
-    }
-    //this.statusMsg.innerHTML = 'Loading...';
+      this.currentLoader.onerror = (e) => {
+        console.error("Error downloading ...");
+        //this.statusMsg.innerHTML = 'Error loading audio file!';
+        this.currentLoader = null;
+      }
+      //this.statusMsg.innerHTML = 'Loading...';
 
-    this.currentLoader.send();
-
+      this.currentLoader.send();
+    }
   }
 
   private loaded(data: ArrayBuffer) {
 
-    console.log("Loaded");
+    //console.debug("Loaded");
     this.status = 'Audio file loaded.';
-    console.log("Received data ", data.byteLength);
+    //console.debug("Received data ", data.byteLength);
 
-    var audioBuffer = this.aCtx.decodeAudioData(data, (audioBuffer) => {
-      console.log("Samplerate: ", audioBuffer.sampleRate);
-      this.audioData=audioBuffer;
-    });
+    // Do not use Promise version, which does not work with Safari 13
+    if(this.aCtx) {
+      this.aCtx.decodeAudioData(data, (audioBuffer) => {
+        //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
+        this.audioClip = new AudioClip(audioBuffer)
+      });
+    }
   }
 
   @Input()
   set audioData(audioBuffer: AudioBuffer){
-      this.ac.audioData = audioBuffer;
+      this.audioDisplayScrollPane.audioData = audioBuffer;
       if(audioBuffer) {
           let clip = new AudioClip(audioBuffer);
           if (this.ap){
@@ -210,26 +230,69 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
               this.ap.audioClip = null;
           }
       }
+    this.playSelectionAction.disabled=true
   }
 
+  startSelectionDisabled(){
+    return !(this._audioClip && this.ap!=null && !this.playStartAction.disabled && this._audioClip.selection )
+  }
+
+  @Input()
+  set audioClip(audioClip: AudioClip | null) {
+    this._audioClip=audioClip
+    let audioData:AudioBuffer|null=null;
+    let sel:Selection|null=null;
+    if(audioClip){
+      audioData=audioClip.buffer;
+      sel=audioClip.selection;
+      if(this._audioClip) {
+        this._audioClip.addSelectionObserver((ac) => {
+
+          this.playSelectionAction.disabled = this.startSelectionDisabled()
+          // if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
+          //   this.ap.startSelected()
+          // }
+
+        })
+      }
+    }
+    if(audioData) {
+      this.playStartAction.disabled =(!this.ap)
+      this.playSelectionAction.disabled=this.startSelectionDisabled()
+    }else{
+      this.playStartAction.disabled = true
+      this.playSelectionAction.disabled=true
+  }
+
+    this.audioDisplayScrollPane.audioClip=audioClip
+    if(this.ap) {
+      this.ap.audioClip = audioClip
+    }
+  }
+
+  get audioClip():AudioClip|null{
+    return this._audioClip
+  }
 
   updatePlayPosition() {
 
     if (this.ap && this.ap.playPositionFrames) {
-      this.ac.playFramePosition = this.ap.playPositionFrames;
+      this.audioDisplayScrollPane.playFramePosition = this.ap.playPositionFrames;
     }
   }
 
   audioPlayerUpdate(e: AudioPlayerEvent) {
     if (EventType.STARTED === e.type) {
       this.status = 'Playback...';
-      this.updateTimerId = window.setInterval(e => this.updatePlayPosition(), 50);
+      this.updateTimerId = window.setInterval(() => this.updatePlayPosition(), 50);
       this.playStartAction.disabled = true;
+      this.playSelectionAction.disabled=true
       this.playStopAction.disabled = false;
     } else if (EventType.ENDED === e.type) {
       this.status = 'Ready.';
       window.clearInterval(this.updateTimerId);
       this.playStartAction.disabled = false;
+      this.playSelectionAction.disabled=this.startSelectionDisabled()
       this.playStopAction.disabled = true;
     }
 

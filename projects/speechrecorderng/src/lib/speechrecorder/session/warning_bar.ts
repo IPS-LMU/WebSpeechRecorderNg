@@ -1,6 +1,5 @@
-import {AfterViewInit, Component, Input, OnDestroy} from "@angular/core";
+import {Component, Input} from "@angular/core";
 import {SessionService} from "./session.service";
-import {AudioCaptureListener} from "../../audio/capture/capture";
 
 @Component({
 
@@ -11,10 +10,10 @@ import {AudioCaptureListener} from "../../audio/capture/capture";
 
   `,
   styles: [`:host {
-    
+
     flex: 0 0 content;
     background: orange;
-   
+
   }`,`
     .off {
       display: none;
@@ -31,7 +30,7 @@ import {AudioCaptureListener} from "../../audio/capture/capture";
   ` ]
 })
 export class WarningBar {
-  @Input() warningText:string;
+  @Input() warningText!:string;
   @Input() set show(show:boolean){
     if(show){
       this.displayClass='on'

@@ -1,3 +1,7 @@
 Audio display uses separate player. Should use audioplayer which is shared with sessionmanager.
 
 copy audio_display.ts to audio_player.ts and remove player from audio_display.ts
+
+On Android: Chromium based browsers (Chrome, Opera, Edge?):
+AGC cannot be turned on with echo cancellation off.
+https://bugs.chromium.org/p/chromium/issues/detail?id=1006565&q=EchoCancellation&can=1
