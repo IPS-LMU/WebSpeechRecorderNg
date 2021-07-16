@@ -27,7 +27,7 @@ export class BasicService<T> {
     protected apiEndPoint='';
     protected withCredentials:boolean=false;
 
-    constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+    constructor(protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
 
         if(config && config.apiEndPoint) {
             this.apiEndPoint=config.apiEndPoint;
@@ -52,6 +52,11 @@ export class BasicService<T> {
         }
         return resUrl
     }
+
+  entityObserver(url: string): Observable<T> {
+    let durl=this.appendRequestUUIDForDevelopmentServer(url);
+    return this.http.get<T>(durl, {withCredentials: this.withCredentials});
+  }
 
     listObserver(url: string, selection?:Selection|null,order?:Order): Observable<Array<T>> {
 
