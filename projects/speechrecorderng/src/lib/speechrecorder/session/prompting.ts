@@ -641,10 +641,10 @@ export class PromptingContainer {
   }`]
 })
 export class ProgressAndSpeakerContainer{
-  @Input() items: Array<Item>;
-  @Input() selectedItemIdx: number;
+  @Input() items?: Array<Item>;
+  @Input() selectedItemIdx?: number;
   @Output() onItemSelect = new EventEmitter<number>();
-  @Input() project:Project
+  @Input() project?:Project
   speaker: Speaker;
   itemSelect(rowIdx: number) {
     this.onItemSelect.emit(rowIdx);

@@ -24,6 +24,6 @@ import {Speaker} from "./speaker";
 })
 
 export class SpeakerInfo {
-    @Input() speaker:Speaker|null;
+    @Input() speaker:Speaker|null=null;
 
 }

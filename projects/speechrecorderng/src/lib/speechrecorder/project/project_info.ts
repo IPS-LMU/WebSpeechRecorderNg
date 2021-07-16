@@ -24,6 +24,6 @@ import {Project} from "./project";
 })
 
 export class ProjectInfo {
-    @Input() project:Project|null;
+    @Input() project:Project|undefined;
 
 }

@@ -42,7 +42,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 		controlAudioPlayer!:AudioPlayer;
 		audio:any;
 
-	_project:Project|null=null;
+	_project:Project|undefined;
   sessionId!: string;
   session!:Session;
 
@@ -343,7 +343,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
     }
 
 
-    set project(project: Project|null) {
+    set project(project: Project|undefined) {
         this._project = project;
         let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
@@ -359,7 +359,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
 
     }
 
-  get project():Project|null{
+  get project():Project|undefined{
 		  return this._project;
   }
 
