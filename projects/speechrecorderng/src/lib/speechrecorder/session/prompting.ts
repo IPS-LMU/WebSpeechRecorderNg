@@ -619,7 +619,7 @@ export class PromptingContainer {
       margin: 0;
       padding: 0;
       background: lightgrey;
-     
+
      flex: 0 0 content;
       display: flex;
       flex-direction: column;
@@ -641,8 +641,8 @@ export class PromptingContainer {
   }`]
 })
 export class ProgressAndSpeakerContainer{
-  @Input() items?: Array<Item>;
-  @Input() selectedItemIdx?: number;
+  @Input() items: Array<Item>|null=null;
+  @Input() selectedItemIdx: number=0;
   @Output() onItemSelect = new EventEmitter<number>();
   @Input() project?:Project
   speaker: Speaker;
