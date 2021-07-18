@@ -56,6 +56,7 @@ import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {RecordingFilesComponent} from "./speechrecorder/session/recordingfile/recording-files.component";
 import {SpeakerInfo} from "./speechrecorder/speaker/speaker_info";
 import {ProjectInfo} from "./speechrecorder/project/project_info";
+import {SpeakerService} from "./speechrecorder/speaker/speaker.service";
 
 
 
@@ -99,14 +100,14 @@ export const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [ProjectInfo,SpeakerInfo,ProgressAndSpeakerContainer,AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
+    declarations: [ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
       ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFilesComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
     exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
     imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule,MatInputModule, MatSelectModule,MatSnackBarModule],
-  providers: [SessionService,ProjectService,ScriptService,RecordingService,RecordingFileService,SpeechRecorderUploader]
+  providers: [ProjectService,SessionService,SpeakerService,ScriptService,RecordingService,RecordingFileService,SpeechRecorderUploader]
 
 })
 export class SpeechrecorderngModule{

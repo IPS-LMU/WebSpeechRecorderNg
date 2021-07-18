@@ -58,6 +58,7 @@ export const enum Status {
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
       <app-sprprompting [project]="project" 
                         [projectName]="projectName" 
+                        [speakerIds]="_session?.speakers"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"

@@ -610,7 +610,7 @@ export class PromptingContainer {
 
   template: `
     <spr-projectinfo fxHide.xs [project]="project"></spr-projectinfo>
-    <spr-speakerinfo fxHide.xs [speaker]="speaker"></spr-speakerinfo>
+    <spr-speakerinfo fxHide.xs [speakerIds]="speakerIds"></spr-speakerinfo>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
   `,
@@ -645,13 +645,14 @@ export class ProgressAndSpeakerContainer{
   @Input() selectedItemIdx: number=0;
   @Output() onItemSelect = new EventEmitter<number>();
   @Input() project?:Project
-  speaker: Speaker;
+  @Input() speakerIds?:Array<number|string>;
+
   itemSelect(rowIdx: number) {
     this.onItemSelect.emit(rowIdx);
   }
 
   constructor(){
-    this.speaker={speakerId:0,code:'ABC',name:'Jänsch',forename:'Klaus',dateOfBirth:new Date()}
+    //this.speaker={personId:0,code:'ABC',name:'Jänsch',forename:'Klaus',dateOfBirth:new Date()}
   }
 
 }
@@ -666,7 +667,7 @@ export class ProgressAndSpeakerContainer{
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <spr-progress-speaker-container [project]="project" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
+    <spr-progress-speaker-container [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
     <div #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
@@ -754,6 +755,7 @@ export class Prompting {
   @ViewChild(AudioDisplay, { static: true }) audioDisplay!: AudioDisplay;
   @Input() project: Project | undefined;
   @Input() projectName: string | undefined;
+  @Input() speakerIds?:Array<number|string>;
   @Input() startStopSignalState!: StartStopSignalState;
   @Input() promptItem: PromptItem | null=null;
   @Input() showPrompt: boolean=false;

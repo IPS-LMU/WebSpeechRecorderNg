@@ -1,8 +1,6 @@
-
-
 export interface Speaker{
 
-  speakerId: string | number,
+  personId: string | number,
   code?: string;
   name?:string;
   forename?:string;

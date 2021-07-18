@@ -1,13 +1,14 @@
 import {Component, Input} from "@angular/core";
 import {Speaker} from "./speaker";
+import {SpeakerService} from "./speaker.service";
 
 @Component({
 
     selector: 'spr-speakerinfo',
 
     template: `
-    <table matTooltip="Speaker data info">
-        <tr><td>Speaker:</td><td style="text-align: right"><span *ngIf="speaker?.code"> {{speaker?.code}}</span> <span *ngIf="speaker?.name"> {{speaker?.name}}</span> <span *ngIf="speaker?.forename"> {{speaker?.forename}}</span> <span *ngIf="speaker?.dateOfBirth"> {{speaker?.dateOfBirth | date}}</span></td></tr>
+    <table matTooltip="Speakers data info">
+        <tr *ngFor="let spk of speakers"><td>Speaker:</td><td style="text-align: right"><span *ngIf="spk.code"> {{spk?.code}}</span> <span *ngIf="spk.name"> {{spk.name}}</span> <span *ngIf="spk.forename"> {{spk.forename}}</span> <span *ngIf="spk.dateOfBirth"> {{spk.dateOfBirth | date}}</span></td></tr>
     </table>
   `,
     styles: [`:host {
@@ -24,6 +25,25 @@ import {Speaker} from "./speaker";
 })
 
 export class SpeakerInfo {
-    @Input() speaker:Speaker|null=null;
+    constructor(private speakerService:SpeakerService) {
+
+    }
+    speakers:Array<Speaker>=new Array();
+    private _speakerIds:Array<string|number>|undefined;
+
+    @Input() set speakerIds(speakerIds:Array<string|number>|undefined){
+        this._speakerIds=speakerIds;
+        this.speakers=new Array<Speaker>();
+        if(this._speakerIds) {
+            this._speakerIds.forEach((spkId)=>{
+                this.speakerService.speakerObservable(spkId).subscribe((spk) => {
+                    this.speakers.push(spk);
+                }, (err) => {
+                    //
+                })
+            })
+
+        }
+    }
 
 }
