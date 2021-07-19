@@ -19,9 +19,9 @@ export class ProjectService {
 
   selectedProject?:Project;
 
-  constructor(private http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
 
-    console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
+    //console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
 
     let apiEndPoint = ''
 
