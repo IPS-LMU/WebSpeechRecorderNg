@@ -618,7 +618,7 @@ export class PromptingContainer {
       position: relative;
       margin: 0;
       padding: 0;
-      background: lightgrey;
+      background: white;
 
      flex: 0 0 content;
       display: flex;
