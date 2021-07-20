@@ -26,11 +26,11 @@ export {AudioDisplayControl} from "./lib/audio/ui/audio_display_control"
 export {LevelBar} from './lib/audio/ui/livelevel'
 
 export {BasicService} from './lib/net/basic_service'
+export {Project,FormConfiguration,InputPropertyConfiguration} from './lib/speechrecorder/project/project'
 export {ProjectService} from './lib/speechrecorder/project/project.service'
 export {Session} from './lib/speechrecorder/session/session'
 export {SessionService} from './lib/speechrecorder/session/session.service'
 export {Speaker} from './lib/speechrecorder/speaker/speaker'
-export {SPEAKER_API_CTX} from './lib/speechrecorder/speaker/speaker.service'
 export {SpeakerService} from './lib/speechrecorder/speaker/speaker.service'
 export {ScriptService} from './lib/speechrecorder/script/script.service'
 export {Script,Section,Group,PromptItem,Mediaitem,PromptPhase,Mode} from './lib/speechrecorder/script/script'

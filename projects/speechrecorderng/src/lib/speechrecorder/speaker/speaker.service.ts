@@ -5,10 +5,10 @@ import {Inject, Injectable} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Observable} from "rxjs";
 
-export const SPEAKER_API_CTX='speaker'
 
 @Injectable()
 export class SpeakerService extends BasicService<Speaker>{
+  public static readonly SPEAKER_API_CTX='speaker';
 
   constructor(protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
     super(http,config);
@@ -16,7 +16,7 @@ export class SpeakerService extends BasicService<Speaker>{
 
   speakerObservable(speakerId:number|string):Observable<Speaker>{
       let encSpkId=encodeURIComponent(speakerId);
-      let url=this.apiEndPoint+SPEAKER_API_CTX+'/'+encSpkId;
+      let url=this.apiEndPoint+SpeakerService.SPEAKER_API_CTX+'/'+encSpkId;
       return this.entityObserver(url);
   }
 

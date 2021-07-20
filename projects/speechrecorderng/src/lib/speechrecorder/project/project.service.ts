@@ -13,7 +13,7 @@ import {PlatformLocation} from "@angular/common";
 
 @Injectable()
 export class ProjectService {
-  public static readonly PROJECT_API_CTX='project'
+  public static readonly PROJECT_API_CTX='project';
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
 
