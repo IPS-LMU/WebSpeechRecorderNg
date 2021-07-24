@@ -11,6 +11,7 @@ export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
 
 export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
+export {ClassDescriptor,PropertyDescriptor,DataType,UiFieldHint,LocalizedMessage} from './lib/reflect/class_descriptor'
 
 export {MessageDialog} from "./lib/ui/message_dialog"
 
