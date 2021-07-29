@@ -67,10 +67,6 @@ export class ProjectService {
      return this.http.get<Project>(prjUrl,{withCredentials: this.withCredentials})
    }
 
-  projetcsObservable():Observable<Array<Project>>{
-    let prjsUrl=this.appendRequestUUIDForDevelopmentServer(this.projectCtxUrl);
-    return this.http.get<Array<Project>>(prjsUrl,{withCredentials: this.withCredentials})
-  }
 
 }
 
