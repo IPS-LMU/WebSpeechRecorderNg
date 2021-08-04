@@ -9,10 +9,11 @@ import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 
 
-export const SCRIPT_API_CTX='script'
-
 @Injectable()
 export class ScriptService {
+
+  public static readonly SCRIPT_API_CTX='script';
+
   private scriptCtxUrl:string;
   private withCredentials:boolean=false;
 
@@ -29,7 +30,7 @@ export class ScriptService {
     if(config!=null && config.withCredentials!=null){
       this.withCredentials=config.withCredentials;
     }
-    this.scriptCtxUrl = apiEndPoint + SCRIPT_API_CTX;
+    this.scriptCtxUrl = apiEndPoint + ScriptService.SCRIPT_API_CTX;
   }
 
   scriptObservable(id:string | number):Observable<Script>{
