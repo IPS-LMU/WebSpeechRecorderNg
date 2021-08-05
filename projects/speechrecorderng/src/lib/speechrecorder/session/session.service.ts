@@ -65,7 +65,7 @@ export class SessionService {
     return wrapObs;
   }
 
-  projectSessionsObserver(projectName: string,orderBy?:string,orderDirection?:string): Observable<Array<Session>> {
+  projectSessionsObserver(projectName: string,orderBy?:string,orderDirection?:string,compat=true): Observable<Array<Session>> {
 
     let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' + SessionService.SESSION_API_CTX
     if (this.config && this.config.apiType === ApiType.FILES) {
@@ -75,12 +75,20 @@ export class SessionService {
     }
     let params=new HttpParams();
     if(orderBy) {
-      params=params.set('order-by', orderBy);
+      if(compat) {
+        params = params.set('order-by', orderBy);
+      }else{
+        params = params.set('_order-by', orderBy);
+      }
       let od='DESC';
       if(orderDirection){
         od=orderDirection.toUpperCase();
       }
-      params=params.set('order-direction',od);
+      if(compat) {
+        params = params.set('order-direction', od);
+      }else{
+        params = params.set('_order-direction', od);
+      }
     }
     return this.http.get<Array<Session>>(sesssUrl,{ params:params,withCredentials: this.withCredentials });
   }
