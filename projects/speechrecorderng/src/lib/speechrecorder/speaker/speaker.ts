@@ -8,8 +8,12 @@ export interface InformedConsents{
   informedConsent:Array<InformedConsent>;
 }
 
-export interface Speaker{
-  personId: string | number,
+export interface Speaker extends GlobSpeaker{
+  personId: string | number;
+}
+
+export interface GlobSpeaker{
+  uuid:string,
   code?: string;
   name?:string;
   forename?:string;
