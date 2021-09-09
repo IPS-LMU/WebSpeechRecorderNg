@@ -31,7 +31,7 @@ export class ItemcodeIndex{
 
 @Component({
 
-  selector: 'app-audiodisplayplayer',
+  selector: 'app-audiodisplayplayerview',
 
   template: `
 

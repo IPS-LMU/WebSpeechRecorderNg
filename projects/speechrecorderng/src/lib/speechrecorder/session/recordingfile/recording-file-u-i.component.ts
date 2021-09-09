@@ -19,7 +19,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
 
-  selector: 'app-audiodisplayplayer',
+  selector: 'app-audiodisplayplayeredit',
 
   template: `
       <h1>Recording file editing</h1>
