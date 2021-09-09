@@ -71,7 +71,7 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
   }
 
     toRecordingFileDetail(rf:RecordingFile){
-        this.router.navigate(['/spr','db','recordingfile',rf.recordingFileId])
+        this.router.navigate(['/spr','db','recordingfile','_view',rf.recordingFileId])
     }
 
 }
