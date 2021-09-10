@@ -13,11 +13,13 @@ export interface AudioDevice {
   regex : boolean
 }
 
+
 export interface Project {
   name: string,
   audioFormat?: AudioFormat,
   mediaCaptureFormat?: MediaCaptureFormat,
-  audioDevices?: Array<AudioDevice>
+  audioDevices?: Array<AudioDevice>,
+
 }
 
 

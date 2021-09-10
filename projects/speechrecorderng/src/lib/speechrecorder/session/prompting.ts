@@ -21,6 +21,9 @@ import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
+import {Speaker} from "../speaker/speaker";
+import {Project} from "../project/project";
+
 
 @Component({
 
@@ -602,6 +605,57 @@ export class PromptingContainer {
 
 }
 
+@Component({
+  selector: 'spr-progress-speaker-container',
+
+  template: `
+    <spr-projectinfo fxHide.xs [project]="project"></spr-projectinfo>
+    <spr-speakerinfo fxHide.xs [speakerIds]="speakerIds"></spr-speakerinfo>
+    <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
+                     (onRowSelect)="itemSelect($event)"></app-sprprogress>
+  `,
+  styles: [`:host {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      background: white;
+
+     flex: 0 0 content;
+      display: flex;
+      flex-direction: column;
+      min-height: 1px;
+}`, `
+    app-sprprogress {
+      z-index: 3;
+    }
+  `,`spr-projectinfo {
+    padding-top: 10pt;
+    padding-left: 5pt;
+    padding-right: 5pt;
+    padding-bottom: 1pt;
+  }`,`spr-speakerinfo {
+    padding-top: 1pt;
+    padding-left: 5pt;
+    padding-right: 5pt;
+    padding-bottom: 10pt;
+  }`]
+})
+export class ProgressAndSpeakerContainer{
+  @Input() items: Array<Item>|null=null;
+  @Input() selectedItemIdx: number=0;
+  @Output() onItemSelect = new EventEmitter<number>();
+  @Input() project?:Project
+  @Input() speakerIds?:Array<number|string>;
+
+  itemSelect(rowIdx: number) {
+    this.onItemSelect.emit(rowIdx);
+  }
+
+  constructor(){
+    //this.speaker={personId:0,code:'ABC',name:'Jänsch',forename:'Klaus',dateOfBirth:new Date()}
+  }
+
+}
 
 @Component({
 
@@ -613,8 +667,7 @@ export class PromptingContainer {
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
-                     (onRowSelect)="itemSelect($event)"></app-sprprogress>
+    <spr-progress-speaker-container [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
     <div #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
@@ -655,7 +708,7 @@ export class PromptingContainer {
       z-index: 3;
     }
   `, `
-    app-sprprogress {
+    spr-progress-speaker-container{
       z-index: 3;
     }
   `, `
@@ -700,7 +753,9 @@ export class PromptingContainer {
 export class Prompting {
   @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight!: SimpleTrafficLight;
   @ViewChild(AudioDisplay, { static: true }) audioDisplay!: AudioDisplay;
+  @Input() project: Project | undefined;
   @Input() projectName: string | undefined;
+  @Input() speakerIds?:Array<number|string>;
   @Input() startStopSignalState!: StartStopSignalState;
   @Input() promptItem: PromptItem | null=null;
   @Input() showPrompt: boolean=false;

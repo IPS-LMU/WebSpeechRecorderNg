@@ -19,7 +19,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
 
-  selector: 'app-audiodisplayplayer',
+  selector: 'app-audiodisplayplayeredit',
 
   template: `
       <h1>Recording file editing</h1>
@@ -47,6 +47,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
           flex: 2;
           display: flex;
           flex-direction: column;
+            height: 100%;
           min-height:0;
           overflow: hidden;
       padding: 20px;

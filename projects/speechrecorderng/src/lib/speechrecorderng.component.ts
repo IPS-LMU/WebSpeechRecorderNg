@@ -26,11 +26,12 @@ export enum Mode {SINGLE_SESSION,DEMO}
   selector: 'app-speechrecorder',
   providers: [SessionService],
   template: `
-    <app-sprrecordingsession [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
+    <app-sprrecordingsession [project]="project" [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
   styles: [`:host{
     flex: 2;
     display: flex;
+      height: 100%;
     flex-direction: column;
     min-height:0;
 
@@ -43,7 +44,7 @@ export class SpeechrecorderngComponent extends FitToPageComponent implements OnI
 		controlAudioPlayer!:AudioPlayer;
 		audio:any;
 
-	_project:Project|null=null;
+	_project:Project|undefined;
   sessionId!: string;
   session!:Session;
 
@@ -346,7 +347,7 @@ export class SpeechrecorderngComponent extends FitToPageComponent implements OnI
     }
 
 
-    set project(project: Project|null) {
+    set project(project: Project|undefined) {
         this._project = project;
         let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
@@ -362,7 +363,7 @@ export class SpeechrecorderngComponent extends FitToPageComponent implements OnI
 
     }
 
-  get project():Project|null{
+  get project():Project|undefined{
 		  return this._project;
   }
 

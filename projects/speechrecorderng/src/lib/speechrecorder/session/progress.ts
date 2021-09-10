@@ -40,7 +40,7 @@ import {Item} from './item';
     padding: 10pt;
     /*flex: 0.1 0 300px;  
       min-width: 300px; */
-    flex: 0.1 0 content;
+    flex: 0.1 1 content;
     background: white;
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and

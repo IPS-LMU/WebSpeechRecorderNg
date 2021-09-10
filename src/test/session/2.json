@@ -3,6 +3,7 @@
   "sessionId": 2,
   "type": "NORM",
   "project": "Demo1",
+  "speakers": [5678],
   "status": "CREATED",
   "sealed": false,
   "script": 1245

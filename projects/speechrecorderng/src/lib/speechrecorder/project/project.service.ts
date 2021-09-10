@@ -13,15 +13,15 @@ import {PlatformLocation} from "@angular/common";
 
 @Injectable()
 export class ProjectService {
-  public static readonly PROJECT_API_CTX='project'
+  public static readonly PROJECT_API_CTX='project';
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
 
   selectedProject?:Project;
 
-  constructor(private http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
 
-    console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
+    //console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
 
     let apiEndPoint = ''
 
@@ -67,10 +67,6 @@ export class ProjectService {
      return this.http.get<Project>(prjUrl,{withCredentials: this.withCredentials})
    }
 
-  projetcsObservable():Observable<Array<Project>>{
-    let prjsUrl=this.appendRequestUUIDForDevelopmentServer(this.projectCtxUrl);
-    return this.http.get<Array<Project>>(prjsUrl,{withCredentials: this.withCredentials})
-  }
 
 }
 

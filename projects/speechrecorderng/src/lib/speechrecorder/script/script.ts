@@ -75,6 +75,8 @@ export interface VirtualViewBox{
 }
 
 export interface Script {
+  scriptId:number|string;
+  name?:string;
   virtualViewBox?:VirtualViewBox;
   sections: Array<Section>;
 }

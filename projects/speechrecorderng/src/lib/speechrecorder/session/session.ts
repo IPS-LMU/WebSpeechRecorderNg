@@ -3,9 +3,12 @@ export type Status= "CREATED" | "LOADED" | "STARTED_TRAINING" | "STARTED" | "COM
 
 export type Type= 'NORM' | 'TEST' | 'TEST_DEF_A' | 'SINUS_TEST';
 
-export interface Session{
-
+export interface Session extends GlobSession{
   sessionId: string | number,
+}
+
+export interface GlobSession{
+  uuid: string,
   status: Status,
   sealed?:boolean,
   type: Type,
@@ -15,6 +18,6 @@ export interface Session{
   completedDate?:Date,
   restartedDate?:Date,
   project: string,
-  script: string | number
-
+  script: string | number,
+  speakers?: Array<number|string>,
 }

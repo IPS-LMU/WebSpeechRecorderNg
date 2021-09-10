@@ -15,7 +15,7 @@ import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import {AudioDevice} from "../project/project";
+import {AudioDevice, Project} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
@@ -56,7 +56,9 @@ export const enum Status {
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [projectName]="projectName"
+      <app-sprprompting [project]="project" 
+                        [projectName]="projectName" 
+                        [speakerIds]="_session?.speakers"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
                         [transportActions]="transportActions"
@@ -100,6 +102,7 @@ export const enum Status {
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
+  @Input() project:Project|undefined;
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
