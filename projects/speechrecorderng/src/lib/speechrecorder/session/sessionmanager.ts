@@ -56,8 +56,8 @@ export const enum Status {
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [project]="project" 
-                        [projectName]="projectName" 
+      <app-sprprompting [project]="project"
+                        [projectName]="projectName"
                         [speakerIds]="_session?.speakers"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
                         [items]="items"
@@ -741,7 +741,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this._selectedDeviceId=undefined;
 
     if (!this.readonly && this.ac) {
-      this.statusMsg = 'Requesting audio permissions...';
+      this.statusMsg = $localize `Requesting audio permissions...`;
       this.statusAlertType = 'info';
 
       this.ac.deviceInfos((mdis) => {

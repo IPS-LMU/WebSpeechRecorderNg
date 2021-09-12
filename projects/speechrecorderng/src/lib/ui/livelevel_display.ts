@@ -7,6 +7,7 @@ import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 
 
+
 export const MIN_DB_LEVEL = -40.0;
 export const DEFAULT_WARN_DB_LEVEL = -2;
 
@@ -14,25 +15,25 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     selector: 'spr-recordingitemdisplay',
     template: `
         <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
-        <button i18n-matTooltip  matTooltip="Start playback" (click)="playStartAction?.perform()"
+        <button i18n-matTooltip matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
-        <button matTooltip="Stop playback" (click)="playStopAction?.perform()"
+        <button i18n-matTooltip matTooltip="Stop playback" (click)="playStopAction?.perform()"
                 [disabled]="playStopAction?.disabled"
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null"
+        <button i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
-        <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null"
+        <button i18n-matTooltip matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
-        <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span matTooltip="Peak level"
+        <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span i18n-matTooltip  matTooltip="Peak level"
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr></table></div>
     `,
     styles: [`:host {
@@ -84,6 +85,8 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
     private destroyed = false;
 
     warnDbLevel = DEFAULT_WARN_DB_LEVEL;
+
+    //localizeVarTest=$localize `Hello world!`;
 
     constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
 
