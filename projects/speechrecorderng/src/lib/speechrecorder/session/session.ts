@@ -20,4 +20,5 @@ export interface GlobSession{
   project: string,
   script: string | number,
   speakers?: Array<number|string>,
+  comment?:string
 }
