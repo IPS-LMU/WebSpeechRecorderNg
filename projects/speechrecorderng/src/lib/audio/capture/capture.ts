@@ -200,7 +200,7 @@ export class AudioCapture {
     // Safari at least version 11: Support for media streams
     // TODO test if input is unprocessed
 
-    let msc:any;
+    let msc:MediaStreamConstraints;
     console.info('User agent: '+navigator.userAgent);
 
     // @ts-ignore
@@ -215,13 +215,15 @@ export class AudioCapture {
     })
 
     let androidWorkaround=ua.runsOnOS(OS_ANDROID);
-
+    //androidWorkaround=false;
     if(androidWorkaround){
       console.warn("Disabling switch off of audio pre-processing for Android!!")
       msc = {
         audio: {
-          "deviceId": selDeviceId,
-          "channelCount": channelCount
+          deviceId: selDeviceId,
+          channelCount: channelCount,
+          echoCancellation: {ideal: false},
+          autoGainControl: {ideal: true}
         },
         video: false,
       }
@@ -252,13 +254,7 @@ export class AudioCapture {
             "channelCount": channelCount,
             "echoCancellation": false,
             "autoGainControl": false,
-            "googEchoCancellation": false,
-            "googExperimentalEchoCancellation": false,
-            "googAutoGainControl": false,
-            "googTypingNoiseDetection": false,
-            "googNoiseSuppression": false,
-            "googHighpassFilter": false,
-            "googBeamforming": false
+            "noiseSuppression": false
           },
           video: false,
         }
@@ -272,11 +268,11 @@ export class AudioCapture {
             "deviceId": selDeviceId,
             "channelCount": channelCount,
           "echoCancellation": false,
-            "mozEchoCancellation": false,
+
             "autoGainControl": false,
-          "mozAutoGainControl": false,
+
           "noiseSuppression": false,
-          "mozNoiseSuppression": false
+
         },
         video: false,
       }
@@ -309,6 +305,13 @@ export class AudioCapture {
       console.info("Setting default media track constraints.")
     }
 
+    let scs=navigator.mediaDevices.getSupportedConstraints();
+    console.info("Supported: Device ID: "+scs.deviceId);
+    console.info("Supported: Echo cancellation: "+scs.echoCancellation);
+    console.info("Supported: Auto gain control: "+scs.autoGainControl);
+    console.info("Supported: Noise suppression: "+scs.noiseSuppression);
+    console.info("Supported: Facing mode: "+scs.facingMode);
+
     let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
     ump.then((s) => {
         this.stream = s;
@@ -319,12 +322,39 @@ export class AudioCapture {
           let aTrack = aTracks[i];
 
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
+          if(typeof aTrack.getCapabilities === 'function') {
+            let atrCaps = aTrack.getCapabilities();
+            console.info("Caps: Device ID: " + atrCaps.deviceId);
+            console.info("Caps: Echo cancellation: " + atrCaps.echoCancellation);
+            console.info("Caps: Auto gain control: " + atrCaps.autoGainControl);
+            console.info("Caps: Noise suppression: " + atrCaps.noiseSuppression);
+          }
+          let  atrCnstrs=aTrack.getConstraints();
+          console.info("Constr: Device ID: "+atrCnstrs.deviceId);
+          console.info("Constr: Echo cancellation: "+atrCnstrs.echoCancellation);
+          console.info("Constr: Auto gain control: "+atrCnstrs.autoGainControl);
+          console.info("Constr: Noise suppression: "+atrCnstrs.noiseSuppression);
+
+          let  atrSets=aTrack.getSettings();
+          console.info("Device ID: "+atrSets.deviceId);
+          console.info("Echo cancellation: "+atrSets.echoCancellation);
+          console.info("Auto gain control: "+atrSets.autoGainControl);
+          console.info("Noise suppression: "+atrSets.noiseSuppression);
         }
 
         let vTracks = s.getVideoTracks();
         for (let i = 0; i < vTracks.length; i++) {
           let vTrack = vTracks[i];
           console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
+          if(typeof vTrack.getCapabilities === 'function') {
+            let vtrCaps = vTrack.getCapabilities();
+            console.info("Caps: Facing mode: " + vtrCaps.facingMode);
+          }
+          let  vtrCnstrs=vTrack.getConstraints();
+          console.info("Constr: Facing mode: "+vtrCnstrs.facingMode);
+          let  vtrSets=vTrack.getSettings();
+          console.info("Facing mode: "+vtrSets.facingMode);
+
         }
         this.mediaStream = this.context.createMediaStreamSource(s);
         // stream channel count ( is always 2 !)

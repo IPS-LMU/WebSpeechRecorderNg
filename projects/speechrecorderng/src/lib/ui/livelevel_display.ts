@@ -13,7 +13,10 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-        <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <div fxLayout="row" fxFill fxLayout.xs="column" >
+            
+        <audio-levelbar fxFlex="grow" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+            <div fxLayout="row">
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?.disabled"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
@@ -28,12 +31,32 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
+        <button matToolTip="Settings" [matMenuTriggerFor]="settingsMenu" [hidden]="true">
+            <mat-icon>settings</mat-icon>
+        </button>
+        <mat-menu #settingsMenu="matMenu">
+            
+            <button mat-menu-item>
+                <span>Echo cancellation</span>
+            </button>
+            <button mat-menu-item disabled>
+                <mat-icon>voicemail</mat-icon>
+                <span>Check voice mail</span>
+            </button>
+            <button mat-menu-item>
+                <mat-icon>notifications_off</mat-icon>
+                <span>Disable alerts</span>
+            </button>
+        </mat-menu>
         <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="displayAudioBuffer==null"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
         <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span matTooltip="Peak level"
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr></table></div>
+
+            </div>
+            </div>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -131,6 +154,7 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
   }
 
     update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo) {
+        console.info("Level update: "+levelInfo);
         let peakDBVal = levelInfo.powerLevelDB();
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;

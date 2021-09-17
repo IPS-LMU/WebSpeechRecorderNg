@@ -30,7 +30,7 @@ import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 
 const ENABLE_AUDIO_DEVICE_PRECHECK=false;
-const ENABLE_LEVEL_MEASURE=false;
+const ENABLE_LEVEL_MEASURE=true;
 
 export const RECFILE_API_CTX = 'recfile';
 
@@ -73,6 +73,7 @@ export const enum Status {
     </app-sprprompting>
     <mat-progress-bar [value]="progressPercentValue()" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
 
+   
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
                               [playStopAction]="controlAudioPlayer?.stopAction"
@@ -86,7 +87,7 @@ export const enum Status {
                          [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
-
+    
   `,
   styles: [`:host {
     flex: 2;
