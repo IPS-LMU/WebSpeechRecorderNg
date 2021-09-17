@@ -14,7 +14,7 @@ import {
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {Item} from "./sessionmanager";
+import {Item} from "./item";
 import {Block, Text, Mediaitem, PromptItem} from "../script/script";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
@@ -28,7 +28,7 @@ import {AudioClip} from "../../audio/persistor";
 
   template: `
 
-    {{selectedItemIdx}}/{{itemCount - 1}}: {{recinstructions}}
+    {{displayText()}}
   `,
   styles: [`:host {
 
@@ -43,9 +43,20 @@ import {AudioClip} from "../../audio/persistor";
   `]
 })
 export class Recinstructions {
-  @Input() recinstructions: string
-  @Input() selectedItemIdx: number;
-  @Input() itemCount: number;
+  @Input() recinstructions: string|null| undefined;
+  @Input() selectedItemIdx: number|null|undefined;
+  @Input() itemCount: number|undefined;
+
+  displayText():string{
+    let riTxt:string='';
+    if(this.itemCount && this.selectedItemIdx){
+      riTxt=riTxt+this.selectedItemIdx+'/'+(this.itemCount-1);
+    }
+    if(this.recinstructions){
+      riTxt=riTxt+': '+this.recinstructions;
+    }
+    return riTxt;
+  }
 }
 
 @Component({
@@ -82,54 +93,52 @@ export class Recinstructions {
   }`]
 })
 export class Prompter {
-  @Input() projectName: string | null;
-  private _promptMediaItems: Array<Mediaitem>
+  @Input() projectName: string | undefined;
+  private _promptMediaItems: Array<Mediaitem>|null|undefined=null
 
-  @Input() prompterHeight: number
-  private _text: string = null;
-  private _src: string = null;
-  private _blocks: Array<Block>=null;
-  mimetype: string;
-  private currPromptChild: HTMLElement = null;
+  @Input() prompterHeight: number=0;
+  private _text: string|undefined|null = null;
+  private _src: string|undefined|null = null;
+  private _blocks: Array<Block>|undefined;
+  mimetype!: string;
+  private currPromptChild: HTMLElement|null = null;
 
   @HostBinding('class.fill') public prompterStyleFill = false;
-
 
   constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService) {
 
   }
 
   get text() {
-
     return this._text;
   }
 
   get src() {
-
     return this._src;
   }
 
-  srcUrl(): string {
-    if (this._src) {
+  srcUrl(): string|null{
+    if (this.projectName && this._src) {
       return this.projectService.projectResourceUrl(this.projectName, this._src);
     }
     return null;
   }
 
-    width():number{
+    width():number|null{
       if(this.elRef){
         if(this.elRef.nativeElement){
             return this.elRef.nativeElement.clientWidth
         }
       }
-      return null
+      return null;
     }
-    height():number{
+    height():number|null{
         if(this.elRef){
             if(this.elRef.nativeElement){
                 return this.elRef.nativeElement.clientHeight
             }
         }
+        return null;
     }
 
     private appendTextElement(parentEl:HTMLElement,txt:Text){
@@ -152,7 +161,7 @@ export class Prompter {
       }
     }
 
-  @Input() set promptMediaItems(pMis: Array<Mediaitem>) {
+  @Input() set promptMediaItems(pMis: Array<Mediaitem>|null) {
     this._promptMediaItems = pMis
     if (this.currPromptChild != null) {
       this.renderer.removeChild(this.elRef.nativeElement, this.currPromptChild)
@@ -166,14 +175,18 @@ export class Prompter {
       if (this.mimetype === 'text/plain') {
         this._text = mi.text
         this._src = null;
-        this.currPromptChild = this.renderer.createText(this._text)
-        this.prompterStyleFill = false
-        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
+        let prTxt='';
+        if(this._text){
+          prTxt=this._text;
+        }
+        this.currPromptChild = this.renderer.createText(prTxt);
+        this.prompterStyleFill = false;
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild);
       } else if (this.mimetype === 'text/x-prompt') {
         //this.rendering=true
         this._text=null;
         this._src=null;
-        this._blocks=new Array<Block>()
+        this._blocks=new Array<Block>();
         let pd=mi.promptDoc
         if(pd){
           let pdBody=pd.body
@@ -184,39 +197,39 @@ export class Prompter {
 
         this.prompterStyleFill = false
         this.currPromptChild = this.renderer.createElement('div')
-
-        for(let bi=0;bi<this._blocks.length;bi++){
-          let bl=this._blocks[bi]
-          if('p' === bl.type){
-            let pBlEl = this.renderer.createElement('p')
-            this.renderer.appendChild(this.currPromptChild,pBlEl)
-            for(let ti=0;ti<bl.texts.length;ti++){
-              let txt=bl.texts[ti]
-              if(txt) {
-                if ('text' === txt.type) {
-                  this.appendTextElement(pBlEl,txt)
-                } else if ('font' === txt.type) {
-                  let spEl = this.renderer.createElement('span')
-                  let styleStr=''
-                  if(txt.style){
-                      styleStr=styleStr+'font-style: '+txt.style+';'
+        if(this._blocks) {
+          for (let bi = 0; bi < this._blocks.length; bi++) {
+            let bl = this._blocks[bi]
+            if ('p' === bl.type) {
+              let pBlEl = this.renderer.createElement('p')
+              this.renderer.appendChild(this.currPromptChild, pBlEl)
+              for (let ti = 0; ti < bl.texts.length; ti++) {
+                let txt = bl.texts[ti]
+                if (txt) {
+                  if ('text' === txt.type) {
+                    this.appendTextElement(pBlEl, txt)
+                  } else if ('font' === txt.type) {
+                    let spEl = this.renderer.createElement('span')
+                    let styleStr = ''
+                    if (txt.style) {
+                      styleStr = styleStr + 'font-style: ' + txt.style + ';'
+                    }
+                    if (txt.size) {
+                      styleStr = styleStr + 'font-size: ' + txt.size + ';'
+                    }
+                    if (txt.weight) {
+                      styleStr = styleStr + 'font-weight: ' + txt.weight + ';'
+                    }
+                    spEl.style = styleStr
+                    this.renderer.appendChild(pBlEl, spEl)
+                    this.appendTextElement(spEl, <Text>txt.text)
+                  } else if ('linebreak' === txt.type) {
+                    let brEl = this.renderer.createElement('br')
+                    this.renderer.appendChild(pBlEl, brEl)
                   }
-                  if(txt.size){
-                    styleStr=styleStr+'font-size: '+txt.size+';'
-                  }
-                  if(txt.weight){
-                    styleStr=styleStr+'font-weight: '+txt.weight+';'
-                  }
-                  spEl.style=styleStr
-                  this.renderer.appendChild(pBlEl, spEl)
-                  this.appendTextElement(spEl,<Text>txt.text)
-                }else if ('linebreak' === txt.type) {
-                  let brEl = this.renderer.createElement('br')
-                  this.renderer.appendChild(pBlEl, brEl)
                 }
               }
             }
-
           }
         }
         this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild)
@@ -235,10 +248,11 @@ export class Prompter {
         // https://stackoverflow.com/questions/7273338/how-to-vertically-align-an-image-inside-a-div
 
         //console.log(promptImage.naturalWidth + "x"+promptImage.naturalHeight);
-        promptImage.onload = (ev: ProgressEvent) => {
-
+        promptImage.onload = (ev: Event) => {}
+        let srcUrl=this.srcUrl();
+        if(srcUrl) {
+          promptImage.src = srcUrl;
         }
-        promptImage.src = this.srcUrl()
       }
 
     } else {
@@ -280,19 +294,19 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
   `]
 })
 export class PromptContainer implements OnInit,AfterContentChecked {
-  @Input() projectName: string | null;
-  private _mediaitems: Array<Mediaitem>;
+  @Input() projectName: string | undefined;
+  private _mediaitems: Array<Mediaitem>|null=null;
 
   prompterHeight: number = VIRTUAL_HEIGHT
-  fontSize: number;
+  fontSize!: number;
   fontSizeChange=false
   contentChecked=false;
   prDisplay='hidden';
-  defaultStyle: CSSStyleDeclaration;
-  defaultFontSizePx: number;
+  defaultStyle!: CSSStyleDeclaration;
+  defaultFontSizePx!: number;
 
   autoFontSize=false;
-  @ViewChild(Prompter, { static: true }) prompter: Prompter;
+  @ViewChild(Prompter, { static: true }) prompter!: Prompter;
 
   constructor(private elRef:ElementRef){}
 
@@ -332,8 +346,10 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   }
 
 
-  @Input() set mediaitems(mediaitems:Array<Mediaitem>){
-      this._mediaitems=mediaitems
+  @Input() set mediaitems(mediaitems:Array<Mediaitem>|null){
+
+    this._mediaitems = mediaitems
+
     let mimetype:string|null=null;
     if (this._mediaitems && this._mediaitems.length == 1) {
       let mi = this._mediaitems[0]
@@ -357,7 +373,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       }
   }
 
-  get mediaitems():Array<Mediaitem>{
+  get mediaitems():Array<Mediaitem>|null{
       return this._mediaitems;
   }
 
@@ -393,36 +409,38 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
 
   private fontSizeToFit(){
-      //this.fsmc++;
-      //console.log("fontSizeToFit #"+this.fsmc);
-      if(this._mediaitems && this.prompter && this.elRef) {
-                let nEl = this.elRef.nativeElement
-                //console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
-                if(this.fontSize>=MIN_FONT_SIZE && (this.prompter.width()>nEl.offsetWidth || this.prompter.height()>nEl.offsetHeight)){
-                    // prompter oversizes prompter container. Decrease font size.
-                    // set invisible during font size checks
-                    this.prDisplay='hidden'
-                  // decrease font size
-                    this.fontSize=this.fontSize-1
-                   // console.log("Decreased font size: "+this.fontSize )
-                  // Set flags
-                    this.fontSizeChange=true
-                    this.contentChecked=false
-                  // hook the next check
-                    window.setTimeout(()=>this.fontSizeToFit())
-                }else {
-                  // prompter fits in  prompter container, font size should be fine
+      if(this.prompter) {
+        let pW=this.prompter.width();
+        let pH=this.prompter.height();
+        if (this._mediaitems && this.elRef && pW && pH) {
+          let nEl = this.elRef.nativeElement
+          //console.log("prompter: " + this.prompter.width() + "x" + this.prompter.height()+ " font size: "+this.fontSize)
+          if (this.fontSize >= MIN_FONT_SIZE && (pW > nEl.offsetWidth || pH > nEl.offsetHeight)) {
+            // prompter oversizes prompter container. Decrease font size.
+            // set invisible during font size checks
+            this.prDisplay = 'hidden'
+            // decrease font size
+            this.fontSize = this.fontSize - 1
+            // console.log("Decreased font size: "+this.fontSize )
+            // Set flags
+            this.fontSizeChange = true
+            this.contentChecked = false
+            // hook the next check
+            window.setTimeout(() => this.fontSizeToFit())
+          } else {
+            // prompter fits in  prompter container, font size should be fine
 
-                  //console.log("prDisplay: "+this.prDisplay)
+            //console.log("prDisplay: "+this.prDisplay)
 
-                  //if(this.contentChecked && ! this.fontSizeChange) {
-                    //console.log("Display!")
-                    // set prompter visible now
-                  this.prDisplay = 'visible'
-                  //}
-                  this.fontSizeChange = false
-                }
+            //if(this.contentChecked && ! this.fontSizeChange) {
+            //console.log("Display!")
+            // set prompter visible now
+            this.prDisplay = 'visible'
+            //}
+            this.fontSizeChange = false
+          }
           //console.log("Prompt text width: "+textSize.width+" "+this.elRef.nativeElement.offsetWidth+"x"+this.elRef.nativeElement.offsetHeight)
+        }
       }
   }
 
@@ -436,9 +454,9 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
   template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
-                         [recinstructions]="showPrompt?promptItem?.recinstructions?.recinstructions:null"></spr-recinstructions>
+                         [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
     <app-sprpromptcontainer [projectName]="projectName"
-                            [mediaitems]="showPrompt?promptItem?.mediaitems:null"></app-sprpromptcontainer>
+                            [mediaitems]="showPrompt?(promptItem?promptItem.mediaitems:null):null"></app-sprpromptcontainer>
 
   `
   ,
@@ -457,17 +475,17 @@ export class PromptContainer implements OnInit,AfterContentChecked {
   `]
 })
 export class PromptingContainer {
-  @Input() projectName: string | null;
-  @Input() promptItem: PromptItem;
-  @Input() showPrompt: boolean;
-  @Input() selectedItemIdx: number;
-  @Input() itemCount: number;
+  @Input() projectName: string | undefined;
+  @Input() promptItem: PromptItem|null=null;
+  @Input() showPrompt: boolean=false;
+  @Input() selectedItemIdx!: number;
+  @Input() itemCount: number|undefined;
 
-  @Input() transportActions: TransportActions;
+  @Input() transportActions!: TransportActions;
 
-  private e: HTMLDivElement;
+  private e!: HTMLDivElement;
   private startX: number | null = null
-  private touchStartTimeStamp: number | null;
+  private touchStartTimeStamp: number | null=null;
 
   constructor(private ref: ElementRef) {
     type TouchStart = {}
@@ -680,23 +698,23 @@ export class PromptingContainer {
 })
 
 export class Prompting {
-  @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight: SimpleTrafficLight;
-  @ViewChild(AudioDisplay, { static: true }) audioDisplay: AudioDisplay;
-  @Input() projectName: string | null;
-  @Input() startStopSignalState: StartStopSignalState;
-  @Input() promptItem: PromptItem | null;
-  @Input() showPrompt: boolean;
-  @Input() items: Array<Item>;
-  @Input() selectedItemIdx: number;
-  @Input() transportActions: TransportActions;
-  @Input() enableDownload: boolean;
+  @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight!: SimpleTrafficLight;
+  @ViewChild(AudioDisplay, { static: true }) audioDisplay!: AudioDisplay;
+  @Input() projectName: string | undefined;
+  @Input() startStopSignalState!: StartStopSignalState;
+  @Input() promptItem: PromptItem | null=null;
+  @Input() showPrompt: boolean=false;
+  @Input() items: Array<Item>|null=null;
+  @Input() selectedItemIdx!: number;
+  @Input() transportActions!: TransportActions;
+  @Input() enableDownload: boolean=false;
 
-  @Input() audioSignalCollapsed: boolean;
-  @Input() displayAudioClip: AudioClip | null;
-  @Input() playStartAction: Action<void>;
-  @Input() playSelectionAction: Action<void>;
-  @Input() autoPlayOnSelectToggleAction:Action<boolean>
-  @Input() playStopAction: Action<void>;
+  @Input() audioSignalCollapsed: boolean=true;
+  @Input() displayAudioClip: AudioClip | null=null;
+  @Input() playStartAction: Action<void>|undefined;
+  @Input() playSelectionAction: Action<void>|undefined;
+  @Input() autoPlayOnSelectToggleAction:Action<boolean>|undefined;
+  @Input() playStopAction: Action<void>|undefined;
   @Output() onItemSelect = new EventEmitter<number>();
   @Output() onNextItem = new EventEmitter();
   @Output() onPrevItem = new EventEmitter();

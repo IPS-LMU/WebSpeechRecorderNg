@@ -1,6 +1,6 @@
     export class AudioClip {
         private _buffer: AudioBuffer;
-        private _selection:Selection=null;
+        private _selection:Selection|null=null;
         private selectionObservers:Array<(audioClip:AudioClip)=>void>;
 
         constructor(buffer: AudioBuffer) {
@@ -12,11 +12,11 @@
             return this._buffer;
         };
 
-      get selection(): Selection {
+      get selection(): Selection|null{
         return this._selection;
       }
 
-      set selection(value: Selection) {
+      set selection(value: Selection|null) {
         this._selection = value;
         // let obsCnt=this.selectionObservers.length
         // this.selectionObservers.forEach((obs)=> {
@@ -67,25 +67,9 @@
         get endFrame():number{
           return this._endFrame;
         }
-
-      //   endFrameForSampleRate(sampleRate:number): number {
-      //     if(this._sampleRate===sampleRate) {
-      //         return this._endFrame;
-      //     }else{
-      //         return Math.round((this._endFrame*sampleRate)/this._sampleRate);
-      //     }
-      // }
       get startFrame(): number {
         return this._startFrame;
       }
-
-        // startFrameForSampleRate(sampleRate:number): number {
-        //     if(this._sampleRate===sampleRate) {
-        //         return this._startFrame;
-        //     }else{
-        //         return Math.round((this._startFrame*sampleRate)/this._sampleRate);
-        //     }
-        // }
 
       get leftFrame(): number {
         return (this._startFrame <= this._endFrame) ? this._startFrame : this._endFrame
@@ -94,12 +78,11 @@
         return (this._startFrame <= this._endFrame) ? this._endFrame : this._startFrame
       }
 
-      equals(otherSelection:Selection):boolean{
-        if(otherSelection==null){
-          return false
-        }else{
-          return (this._sampleRate==otherSelection._sampleRate && this._startFrame===otherSelection._startFrame && this._endFrame===otherSelection._endFrame)
+      equals(otherSelection:Selection|null|undefined):boolean{
+        if(otherSelection) {
+            return (this._sampleRate == otherSelection._sampleRate && this._startFrame === otherSelection._startFrame && this._endFrame === otherSelection._endFrame);
         }
+        return false;
       }
 
       toString(){

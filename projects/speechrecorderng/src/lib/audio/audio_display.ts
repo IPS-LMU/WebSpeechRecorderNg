@@ -54,30 +54,30 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 export class AudioDisplay implements OnInit,AfterViewInit {
 
   parentE: HTMLElement;
-  private _audioClip:AudioClip
+  private _audioClip:AudioClip|null=null
 
   @Input()
-  playStartAction: Action<void>;
+  playStartAction: Action<void>|undefined;
   @Input()
-  playStopAction: Action<void>;
+  playStopAction: Action<void>|undefined;
   @Input()
-  playSelectionAction:Action<void>
+  playSelectionAction:Action<void>|undefined;
   @Input()
-  autoPlayOnSelectToggleAction:Action<boolean>
+  autoPlayOnSelectToggleAction!:Action<boolean>|undefined;
 
-  zoomFitToPanelAction:Action<void>;
-  zoomSelectedAction:Action<void>
-  zoomInAction:Action<void>;
-  zoomOutAction:Action<void>;
+  zoomFitToPanelAction!:Action<void>;
+  zoomSelectedAction!:Action<void>
+  zoomInAction!:Action<void>;
+  zoomOutAction!:Action<void>;
 
-  clearSelectionAction:Action<void>
+  clearSelectionAction!:Action<void>
 
   status: string;
 
   audio: any;
 
   @ViewChild(AudioDisplayScrollPane, { static: true })
-  audioDisplayScrollPane: AudioDisplayScrollPane;
+  audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
@@ -124,14 +124,16 @@ export class AudioDisplay implements OnInit,AfterViewInit {
   @Input()
   set audioData(audioBuffer: AudioBuffer){
       this.audioDisplayScrollPane.audioData = audioBuffer;
-      this.playStartAction.disabled = (audioBuffer==null)
+      if(this.playStartAction) {
+          this.playStartAction.disabled = (audioBuffer == null)
+      }
   }
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {
 
-    let audioData:AudioBuffer=null;
-    let sel:Selection=null;
+    let audioData:AudioBuffer|null=null;
+    let sel:Selection|null=null;
     if(audioClip){
       audioData=audioClip.buffer;
       sel=audioClip.selection;

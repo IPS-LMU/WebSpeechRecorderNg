@@ -9,20 +9,6 @@ import {
   UserAgentParser
 } from "../../utils/ua-parser";
 
-// interface AudioWorker extends Worker {
-//   terminate (): void;
-//
-//   postMessage (message: any, transfer: Array<any>): void;
-//
-// // readonly        attribute AudioWorkerParamDescriptor[] parameters;
-//   onmessage: (ev: MessageEvent) => any;
-// //     attribute EventHandler                 onloaded;
-//   //      AudioWorkerNode createNode (int numberOfInputs, int numberOfOutputs);
-// //     AudioParam      addParameter (DOMString name, float defaultValue);
-// //     void            removeParameter (DOMString name);
-// }
-// ;
-
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
   video: boolean;
@@ -52,24 +38,24 @@ export class AudioCapture {
 
   static BUFFER_SIZE: number = 8192;
   context: any;
-  stream: MediaStream;
+  stream!: MediaStream;
   //mediaStream:MediaStreamAudioSourceNode;
   // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
   // TODO use AudioRecorder
 
-  channelCount: number;
+  channelCount!: number;
   mediaStream: any;
   bufferingNode: any;
-  listener: AudioCaptureListener;
-  data: Array<Array<Float32Array>>;
-  currentSampleRate: number;
+  listener!: AudioCaptureListener;
+  data!: Array<Array<Float32Array>>;
+  currentSampleRate!: number;
   n: Navigator;
-  audioOutStream: SequenceAudioFloat32OutStream | null;
+  audioOutStream: SequenceAudioFloat32OutStream | null=null;
   private disconnectStreams = true;
   private _opened=false;
   private capturing = false;
 
-  framesRecorded: number;
+  framesRecorded: number=0;
 
   constructor(context: any) {
     this.context = context;
@@ -196,7 +182,7 @@ export class AudioCapture {
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString,) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
@@ -355,6 +341,10 @@ export class AudioCapture {
         //
         // TODO Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
         // AudioWorker is now AudioWorkletProcessor ... (May 2017)
+
+      // Update 12-2020:
+       // The ScriptProcessorNode Interface - DEPRECATED
+      // TODO
 
         if (this.context.createAudioWorker) {
           //console.debug("Audio worker implemented!!")

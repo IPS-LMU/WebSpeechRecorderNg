@@ -4,6 +4,7 @@ import {
 } from "@angular/core";
 
 import { MatDialog} from "@angular/material/dialog";
+import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
 
 
 @Component({
@@ -62,11 +63,11 @@ export class StatusDisplay {
   }`]
 })
 export class UploadStatus {
-  private _awaitNewUpload=false
-  spinnerMode = 'determinate'
-  _status:string
+  private _awaitNewUpload=false;
+  spinnerMode:ProgressSpinnerMode = 'determinate';
+  _status!:string
   _value = 100
-  displayValue=null
+  displayValue:string|null=null
   toolTipText:string=''
 
   private _updateSpinner(){
@@ -166,11 +167,11 @@ export class TransportActions {
     </button>
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      {{startStopNextName()}}
+      <span fxShow.xs="false">{{startStopNextName()}}</span>
     </button>
     <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
-      Pause
+      <span fxShow.xs="false">Pause</span>
     </button>
     <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
       <mat-icon>redo</mat-icon>
@@ -197,11 +198,11 @@ export class TransportActions {
 })
 export class TransportPanel {
 
-  @Input() readonly:boolean;
-  @Input() actions: TransportActions;
+  @Input() readonly!:boolean;
+  @Input() actions!: TransportActions;
 
-  startStopNextButtonName:string;
-    startStopNextButtonIconName:string;
+  startStopNextButtonName!:string;
+  startStopNextButtonIconName!:string;
 
   startDisabled() {
     return !this.actions || this.readonly || this.actions.startAction.disabled
@@ -306,20 +307,20 @@ export class TransportPanel {
   `]
 })
 export class ControlPanel {
-  @ViewChild(StatusDisplay, { static: true }) statusDisplay: StatusDisplay;
-  @ViewChild(TransportPanel, { static: true }) transportPanel: TransportPanel;
+  @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
+  @ViewChild(TransportPanel, { static: true }) transportPanel!: TransportPanel;
 
 
-  @Input() readonly:boolean
-  @Input() transportActions: TransportActions
+  @Input() readonly!:boolean
+  @Input() transportActions!: TransportActions
   @Input() processing=false
-  @Input() statusMsg: string;
-  @Input() statusAlertType: string;
-  @Input() statusWaiting: boolean;
-  @Input() uploadStatus: string;
-  @Input() uploadProgress: number;
-  @Input() currentRecording: AudioBuffer;
-  @Input() enableUploadRecordings: boolean;
+  @Input() statusMsg!: string;
+  @Input() statusAlertType!: string;
+  @Input() statusWaiting!: boolean;
+  @Input() uploadStatus!: string;
+  @Input() uploadProgress!: number;
+  @Input() currentRecording: AudioBuffer| null| undefined;
+  @Input() enableUploadRecordings!: boolean;
 
   _ready=true
   hourGlassIconName='hourglass_empty'

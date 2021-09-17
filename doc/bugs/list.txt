@@ -5,3 +5,8 @@ copy audio_display.ts to audio_player.ts and remove player from audio_display.ts
 
 Noisy audio capture on Android 10, Chrome and Firefox, caused by echoCancellation=false
 https://bugs.chromium.org/p/webrtc/issues/detail?id=8248
+
+
+On Android: Chromium based browsers (Chrome, Opera, Edge?):
+AGC cannot be turned on with echo cancellation off.
+https://bugs.chromium.org/p/chromium/issues/detail?id=1006565&q=EchoCancellation&can=1

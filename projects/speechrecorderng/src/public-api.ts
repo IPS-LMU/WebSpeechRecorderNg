@@ -16,11 +16,14 @@ export {MessageDialog} from "./lib/ui/message_dialog"
 
 export {AudioClip,Selection} from './lib/audio/persistor'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
+export {AudioDisplay} from './lib/audio/audio_display'
 export {AudioDisplayPlayer} from './lib/audio/audio_player'
 export {AudioClipUIContainer} from './lib/audio/ui/container'
+export {ScrollPaneHorizontal} from './lib/audio/ui/scroll_pane_horizontal'
 export {AudioDisplayScrollPane} from "./lib/audio/ui/audio_display_scroll_pane";
 export {AudioContextProvider} from "./lib/audio/context";
 export {AudioDisplayControl} from "./lib/audio/ui/audio_display_control"
+export {LevelBar} from './lib/audio/ui/livelevel'
 
 export {ProjectService} from './lib/speechrecorder/project/project.service'
 export {Session} from './lib/speechrecorder/session/session'

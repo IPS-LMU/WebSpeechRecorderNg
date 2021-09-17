@@ -10,9 +10,9 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      static PCM:number = 1;
      static DEFAULT_SAMPLE_SIZE_BYTES:number = 2;
      private bw:BinaryByteWriter;
-     private format:PCMAudioFormat;
-     private dataLength:number;
-     private workerURL: string;
+     private format:PCMAudioFormat|null=null;
+     private dataLength:number|null=null;
+     private workerURL: string|null=null;
 
      constructor() {
        this.bw = new BinaryByteWriter();
@@ -22,7 +22,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
       *  Method used as worker code.
       */
      workerFunction() {
-       self.onmessage = function (msg) {
+       self.onmessage = function (msg:MessageEvent) {
 
          let bufLen=msg.data.frameLength * msg.data.chs;
          let valView = new DataView(msg.data.buf,msg.data.bufPos);
@@ -41,6 +41,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
            }
          }
          postMessage({buf:msg.data.buf}, [msg.data.buf]);
+         //self.close()
        }
      }
 
@@ -99,9 +100,11 @@ declare function postMessage (message:any, transfer:Array<any>):void;
        this.bw.ensureCapacity(dataChkByteLen);
        wo.onmessage = (me) => {
          callback(me.data.buf);
+         wo.terminate();
        }
        //TODO Fixed sample size of 16 bits
        wo.postMessage({sampleSizeInBits:16, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
+
      }
 
      write(audioBuffer:AudioBuffer):Uint8Array{

@@ -14,11 +14,14 @@ declare function postMessage(message: any, transfer: Array<any>): void;
             (mouseleave)="updateCursorCanvas($event, false)"></canvas>
     <canvas #marker height="10"></canvas>`,
 
-  styles: [`canvas {
+  styles: [`:host{
+      min-height: 0px;
+    }`,`canvas {
     top: 0;
     left: 0;
     width: 0;
     height: 0;
+    min-height: 0px;
     position: absolute;
   }`]
 
@@ -26,14 +29,14 @@ declare function postMessage(message: any, transfer: Array<any>): void;
 export class AudioSignal extends AudioCanvasLayerComponent{
 
   n: any;
-  ce: HTMLDivElement;
-  @ViewChild('audioSignal', { static: true }) audioSignalCanvasRef: ElementRef;
-  @ViewChild('marker', { static: true }) playPosCanvasRef: ElementRef;
-  signalCanvas: HTMLCanvasElement;
+  ce!: HTMLDivElement;
+  @ViewChild('audioSignal', { static: true }) audioSignalCanvasRef!: ElementRef;
+  @ViewChild('marker', { static: true }) playPosCanvasRef!: ElementRef;
+  signalCanvas!: HTMLCanvasElement;
 
-  markerCanvas: HTMLCanvasElement;
+  markerCanvas!: HTMLCanvasElement;
 
-  private _playFramePosition: number;
+  private _playFramePosition: number|null=null;
   private worker: Worker | null;
   private workerURL: string;
 
@@ -66,11 +69,11 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
   }
 
-  get playFramePosition(): number {
+  get playFramePosition(): number |null{
     return this._playFramePosition;
   }
 
-  set playFramePosition(playFramePosition: number) {
+  set playFramePosition(playFramePosition: number|null) {
     this._playFramePosition = playFramePosition;
     this.drawPlayPosition();
   }
@@ -84,15 +87,17 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       let g = this.markerCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
-        let pixelPos=this.frameToViewPortXPixelPosition(this._playFramePosition);
-        if(pixelPos){
-          g.fillStyle = 'red';
-          g.strokeStyle = 'red';
-          g.beginPath();
-          g.moveTo(pixelPos, 0);
-          g.lineTo(pixelPos, h);
-          g.closePath();
-          g.stroke();
+        if(this._playFramePosition) {
+          let pixelPos = this.frameToViewPortXPixelPosition(this._playFramePosition);
+          if (pixelPos) {
+            g.fillStyle = 'red';
+            g.strokeStyle = 'red';
+            g.beginPath();
+            g.moveTo(pixelPos, 0);
+            g.lineTo(pixelPos, h);
+            g.closePath();
+            g.stroke();
+          }
         }
       }
     }
@@ -166,16 +171,17 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
   startDraw(clear = true) {
     if (clear) {
+      if(this.bounds) {
+        this.signalCanvas.style.left = Math.round(this.bounds.position.left).toString() + 'px';
+        this.signalCanvas.width = Math.round(this.bounds.dimension.width);
+        this.signalCanvas.height = Math.round(this.bounds.dimension.height);
 
-      this.signalCanvas.style.left = Math.round(this.bounds.position.left).toString() + 'px';
-      this.signalCanvas.width = Math.round(this.bounds.dimension.width);
-      this.signalCanvas.height = Math.round(this.bounds.dimension.height);
-
-      let g = this.signalCanvas.getContext("2d");
-      if (g) {
-        //g.clearRect(0, 0,w, h);
-        g.fillStyle = "black";
-        g.fillRect(0, 0, Math.round(this.bounds.dimension.width), Math.round(this.bounds.dimension.height));
+        let g = this.signalCanvas.getContext("2d");
+        if (g) {
+          //g.clearRect(0, 0,w, h);
+          g.fillStyle = "black";
+          g.fillRect(0, 0, Math.round(this.bounds.dimension.width), Math.round(this.bounds.dimension.height));
+        }
       }
     }
     this.startRender();

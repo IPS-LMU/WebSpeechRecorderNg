@@ -40,13 +40,13 @@ declare enum ResizeObserverBoxOptions {
   "border-box", "content-box", "device-pixel-content-box"
 };
 
-// Declare Resizeobserver
-declare class ResizeObserver{
-  constructor(callback: ResizeObserverCallback);
-  observe: (Element,ResizeObserverBoxOptions?)=>void;
-  unobserve: (Element)=>void;
-  disconnect: ()=>void;
-}
+// // Declare Resizeobserver
+// declare class ResizeObserver{
+//   constructor(callback: ResizeObserverCallback);
+//   observe: (el:Element,opts: ResizeObserverBoxOptions | null)=>void;
+//   unobserve: (el:Element)=>void;
+//   disconnect: ()=>void;
+// }
 
 /*
  * Container component for audio display.
@@ -109,22 +109,22 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   parentE: HTMLElement;
 
   // Divider canvas
-  @ViewChild('divider', { static: true }) canvasRef: ElementRef;
-  dc: HTMLCanvasElement;
+  @ViewChild('divider', { static: true }) canvasRef!: ElementRef;
+  dc!: HTMLCanvasElement;
 
   // Virtual container
-  @ViewChild('virtualCanvas', { static: true }) ceRef: ElementRef;
-  ce: HTMLDivElement;
+  @ViewChild('virtualCanvas', { static: true }) ceRef!: ElementRef;
+  ce!: HTMLDivElement;
 
-  @ViewChild(AudioSignal, { static: true }) as: AudioSignal;
-  @ViewChild(Sonagram, { static: true }) so: Sonagram;
+  @ViewChild(AudioSignal, { static: true }) as!: AudioSignal;
+  @ViewChild(Sonagram, { static: true }) so!: Sonagram;
 
   private _audioClip:AudioClip | null=null;
-  pointer: Marker=null;
-  selecting: Selection=null;
-  selection: Selection=null;
+  pointer: Marker|null=null;
+  selecting: Selection|null=null;
+  selection: Selection|null=null;
   @Output() selectionEventEmitter = new EventEmitter<Selection>();
-  private _playFramePosition: number;
+  private _playFramePosition: number|null=null;
   private dragStartMouseY: number | null = null;
   private dragStartY: number | null = null;
   private dividerPosition = 0.5;
@@ -259,10 +259,9 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   private canvasMousePos(c: HTMLCanvasElement, e: MouseEvent): Point {
     const cr = c.getBoundingClientRect();
-    const p = new Point();
-    p.x = e.x - cr.left;
-    p.y = e.y - cr.top;
-    return p;
+    const x = e.x - cr.left;
+    const y = e.y - cr.top;
+    return new Point(x,y);
   }
 
   dividerCursorPosition(e: MouseEvent, show: boolean) {
@@ -318,10 +317,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   }
 
   clipBounds(clipBounds: Rectangle) {
-
     this.bounds = clipBounds;
     this.layout();
-
   }
 
   currentXZoom(): number | null {
@@ -452,13 +449,15 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   @Input()
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
-      let audioData:AudioBuffer=null;
-    let sel:Selection=null;
-      if(audioClip){
-        audioData=audioClip.buffer;
-        this._audioClip.addSelectionObserver((clip)=>{
-          this.selection=clip.selection
-        })
+      let audioData:AudioBuffer|null=null;
+    let sel:Selection|null=null;
+      if(audioClip) {
+        audioData = audioClip.buffer;
+        if (this._audioClip) {
+          this._audioClip.addSelectionObserver((clip) => {
+            this.selection = clip.selection
+          });
+        }
         sel=audioClip.selection;
       }
       this._audioData = audioData;
@@ -469,11 +468,11 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     this.layout();
   }
 
-  get playFramePosition(): number {
+  get playFramePosition(): number |null {
     return this._playFramePosition;
   }
 
-  set playFramePosition(playFramePosition: number) {
+  set playFramePosition(playFramePosition: number|null) {
     this._playFramePosition = playFramePosition;
     this.as.playFramePosition = playFramePosition;
     this.so.playFramePosition = playFramePosition;

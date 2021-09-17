@@ -46,7 +46,7 @@ import {AudioClip, Selection} from "../persistor";
 })
 export class AudioDisplayScrollPane {
 
-  private spEl:HTMLElement;
+  private spEl!:HTMLElement;
 
   @Output() zoomInAction:Action<void>=new Action('+');
   @Output() zoomOutAction:Action<void>=new Action('-');
@@ -56,7 +56,7 @@ export class AudioDisplayScrollPane {
 
 
   @ViewChild(AudioClipUIContainer, { static: true })
-  private ac: AudioClipUIContainer;
+  private ac!: AudioClipUIContainer;
 
 
 
@@ -107,27 +107,27 @@ export class AudioDisplayScrollPane {
 
           let s = this.ac.selection
           if (s) {
-             // this.ac.userAction = true;
               // reset auto fit to panel mode
               this.ac.fixFitToPanel = false
 
               // calculate selection length in seconds
-              let sr=this.ac.audioData.sampleRate;
-              let selFrLen = s.endFrame - s.startFrame;
-              let selLenInSecs = selFrLen / sr;
-              // calculate corresponding xZoom value
-              let newXZoom = this.spEl.clientWidth / selLenInSecs
-              // apply xZoom
-              this.ac.xZoom = newXZoom
+              if(this.ac.audioData) {
+                  let sr = this.ac.audioData.sampleRate;
+                  let selFrLen = s.endFrame - s.startFrame;
+                  let selLenInSecs = selFrLen / sr;
+                  // calculate corresponding xZoom value
+                  let newXZoom = this.spEl.clientWidth / selLenInSecs
+                  // apply xZoom
+                  this.ac.xZoom = newXZoom
 
-              // Move viewport to show selection
-              let x1 = this.ac.frameToXPixelPosition(s.startFrame);
-              //console.debug("Set scroll left")
-              this.spEl.scrollLeft = x1;
-              //console.debug("Scroll left set.")
+                  // Move viewport to show selection
+                  let x1 = this.ac.frameToXPixelPosition(s.startFrame);
+                  if (x1 !== null) {
+                      this.spEl.scrollLeft = x1;
+                  }
+              }
               this.updateClipBounds()
               this.zoomFitToPanelAction.disabled = false
-             // this.ac.userAction = false;
           }
       }
 
@@ -166,8 +166,8 @@ export class AudioDisplayScrollPane {
   @Input()
   set audioClip(audioClip: AudioClip | null) {
 
-    let audioData:AudioBuffer=null;
-    let sel:Selection=null;
+    let audioData:AudioBuffer|null=null;
+    let sel:Selection|null=null;
     if(audioClip){
       audioData=audioClip.buffer;
       sel=audioClip.selection;
