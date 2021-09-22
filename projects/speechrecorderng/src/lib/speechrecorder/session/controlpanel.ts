@@ -163,7 +163,7 @@ export class TransportActions {
   selector: 'app-sprtransport',
 
   template: `
-    <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
+    <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
             mat-raised-button>
       <mat-icon>chevron_left</mat-icon>
     </button>
@@ -175,10 +175,10 @@ export class TransportActions {
       <mat-icon>pause</mat-icon>
       <span i18n fxShow.xs="false">Pause</span>
     </button>
-    <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+    <button id="fwdNextBtn" *ngIf="navigationEnabled" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
       <mat-icon>redo</mat-icon>
     </button>
-    <button id="fwdBtn"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
+    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
       <mat-icon>chevron_right</mat-icon>
     </button>
 
@@ -202,6 +202,7 @@ export class TransportPanel {
 
   @Input() readonly!:boolean;
   @Input() actions!: TransportActions;
+  @Input() navigationEnabled=true;
 
   startStopNextButtonName!:string;
   startStopNextButtonIconName!:string;
@@ -215,7 +216,7 @@ export class TransportPanel {
   }
 
   nextDisabled() {
-    return !this.actions || this.actions.nextAction.disabled
+    return !this.actions || this.actions.nextAction.disabled || !this.navigationEnabled;
   }
 
   pauseDisabled() {
@@ -223,15 +224,15 @@ export class TransportPanel {
   }
 
   fwdDisabled() {
-    return !this.actions || this.actions.fwdAction.disabled
+    return !this.actions || this.actions.fwdAction.disabled || !this.navigationEnabled;
   }
 
   fwdNextDisabled() {
-    return !this.actions || this.actions.fwdNextAction.disabled
+    return !this.actions || this.actions.fwdNextAction.disabled || !this.navigationEnabled;
   }
 
   bwdDisabled() {
-    return !this.actions || this.actions.bwdAction.disabled
+    return !this.actions || this.actions.bwdAction.disabled || !this.navigationEnabled;
   }
 
     startStopNextName():string{
@@ -285,7 +286,7 @@ export class TransportPanel {
     <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
 
-    <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
+    <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
 
     <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
@@ -323,6 +324,7 @@ export class ControlPanel {
   @Input() uploadProgress!: number;
   @Input() currentRecording: AudioBuffer| null| undefined;
   @Input() enableUploadRecordings!: boolean;
+  @Input() navigationEnabled=true;
 
   _ready=true
   hourGlassIconName='hourglass_empty'

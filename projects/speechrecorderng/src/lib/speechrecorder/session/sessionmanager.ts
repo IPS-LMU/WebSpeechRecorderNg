@@ -84,7 +84,7 @@ export const enum Status {
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
+                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording" [navigationEnabled]="items==null || items.length>1"></app-sprcontrolpanel>
 
   `,
   styles: [`:host {
