@@ -73,7 +73,7 @@ export const enum Status {
     </app-sprprompting>
     <mat-progress-bar [value]="progressPercentValue()" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
 
-   
+
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
                               [playStopAction]="controlAudioPlayer?.stopAction"
@@ -86,8 +86,8 @@ export const enum Status {
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
-    
+                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording" [navigationEnabled]="items==null || items.length>1"></app-sprcontrolpanel>
+
   `,
   styles: [`:host {
     flex: 2;
@@ -1193,16 +1193,13 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         if(ad && rf) {
           let ww = new WavWriter();
           //new REST API URL
-
           let apiEndPoint = '';
-
           if (this.config && this.config.apiEndPoint) {
             apiEndPoint = this.config.apiEndPoint;
           }
           if (apiEndPoint !== '') {
             apiEndPoint = apiEndPoint + '/'
           }
-
           let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
           let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
           ww.writeAsync(ad, (wavFile) => {
@@ -1220,7 +1217,6 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       for (let ri = this.items.length - 1; ri >= 0; ri--) {
         let it = this.items[ri];
         if (!it.training && (!it.recs || it.recs.length == 0)) {
-
           complete = false;
           break;
         }
