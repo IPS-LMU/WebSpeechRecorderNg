@@ -180,7 +180,7 @@ export class AudioCapture {
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|null,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
       this.context.resume().then(()=>{
-        this._open(channelCount,selDeviceId);
+        this._open(channelCount,selDeviceId,autoGainControlConfigs);
       })
   }
 
