@@ -233,6 +233,7 @@ export class AudioCapture {
      let agcCfg:AutoGainControlConfig|null=null;
 
     let autoGainControl=false;
+    let chromiumEchoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
         if(agcc.platform===Platform.Android && ua.runsOnOS(OS_ANDROID)){
@@ -247,7 +248,7 @@ export class AudioCapture {
       if(agcCfg){
         // TODO use EXACT/IDEAL constraint
         autoGainControl=agcCfg.value;
-
+        //chromiumEchoCancellation=agcCfg.value;
         // TODO query real AGC status
         this.agcStatus=agcCfg.value;
       }else{
@@ -283,11 +284,11 @@ export class AudioCapture {
         audio: {
           "deviceId": selDeviceId,
           "channelCount": channelCount,
-          "echoCancellation": false,
+          "echoCancellation": chromiumEchoCancellation,
           "autoGainControl": autoGainControl,
-          "googEchoCancellation": false,
+          "googEchoCancellation": chromiumEchoCancellation,
           "googExperimentalEchoCancellation": false,
-          "googAutoGainControl": false,
+          "googAutoGainControl": autoGainControl,
           "googTypingNoiseDetection": false,
           "googNoiseSuppression": false,
           "googHighpassFilter": false,
