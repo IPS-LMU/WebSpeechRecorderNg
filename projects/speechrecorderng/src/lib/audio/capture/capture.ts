@@ -232,6 +232,7 @@ export class AudioCapture {
 
      let agcCfg:AutoGainControlConfig|null=null;
 
+    let autoGainControl=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
         if(agcc.platform===Platform.Android && ua.runsOnOS(OS_ANDROID)){
@@ -242,6 +243,15 @@ export class AudioCapture {
           agcCfg=agcc;
           break;
         }
+      }
+      if(agcCfg){
+        // TODO use EXACT/IDEAL constraint
+        autoGainControl=agcCfg.value;
+
+        // TODO query real AGC status
+        this.agcStatus=agcCfg.value;
+      }else{
+        this.agcStatus=false;
       }
     }
 
@@ -255,7 +265,8 @@ export class AudioCapture {
         audio: {
           deviceId: selDeviceId,
           echoCancellation: false,
-          channelCount: channelCount
+          channelCount: channelCount,
+          autoGainControl: autoGainControl
         },
         video: false
       };
@@ -273,7 +284,7 @@ export class AudioCapture {
           "deviceId": selDeviceId,
           "channelCount": channelCount,
           "echoCancellation": false,
-          "autoGainControl": false,
+          "autoGainControl": autoGainControl,
           "googEchoCancellation": false,
           "googExperimentalEchoCancellation": false,
           "googAutoGainControl": false,
@@ -294,8 +305,8 @@ export class AudioCapture {
             "channelCount": channelCount,
           "echoCancellation": false,
             "mozEchoCancellation": false,
-            "autoGainControl": false,
-          "mozAutoGainControl": false,
+            "autoGainControl": autoGainControl,
+          "mozAutoGainControl": autoGainControl,
           "noiseSuppression": false,
           "mozNoiseSuppression": false
         },
@@ -320,15 +331,7 @@ export class AudioCapture {
       // TODO default constraints or error Browser not supported
     }
 
-    if(agcCfg){
-      // TODO use EXACT/IDEAL constraint
-      msc.autoGainControl=agcCfg.value;
 
-      // TODO query real AGC status
-      this.agcStatus=agcCfg.value;
-    }else{
-      this.agcStatus=false;
-    }
 
     console.debug("Audio capture, AGC: "+this.agcStatus)
 
