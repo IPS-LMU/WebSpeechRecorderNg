@@ -1,4 +1,13 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
+import {
+  NAME_CHROME,
+  NAME_EDGE,
+  NAME_FIREFOX,
+  NAME_SAFARI,
+  OS_ANDROID,
+  UserAgent,
+  UserAgentParser
+} from "../../utils/ua-parser";
 
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
@@ -193,7 +202,34 @@ export class AudioCapture {
 
     let msc:any;
     console.info('User agent: '+navigator.userAgent);
-    if (navigator.userAgent.match(".*Edge.*")) {
+
+    // @ts-ignore
+    if(navigator.userAgentData){
+      // maybe we can use this in  the future
+      console.info("Browser provides userAgentData:");
+
+      console.info("Brands:");
+      // @ts-ignore
+      navigator.userAgentData.brands.forEach((br=>{
+        console.info(br.brand +" "+br.version);
+      }))
+      // @ts-ignore
+      console.info("Platform: "+navigator.userAgentData.platform);
+      // @ts-ignore
+      console.info("Mobile:"+navigator.userAgentData.mobile);
+      // @ts-ignore
+      //console.info(navigator.userAgentData.toJSON());
+    }else {
+      console.info("Browser does not provide userAgentData.");
+    }
+      let ua=UserAgentParser.parse(navigator.userAgent);
+
+      ua.components.forEach((c)=>{
+        console.info("UA_Comp: "+c.toString());
+      })
+
+
+    if (ua.isBrowser(NAME_EDGE)) {
 
       // Microsoft Edge sends unmodified audio
       // The constraint can follow the specification
@@ -206,7 +242,7 @@ export class AudioCapture {
         },
         video: false
       };
-    } else if (navigator.userAgent.match(".*Chrome.*")) {
+    } else if (ua.isBrowser(NAME_CHROME)) {
       // Google Chrome: we need to switch of each of the preprocessing units including the
       console.info("Setting media track constraints for Google Chrome.");
 
@@ -232,7 +268,7 @@ export class AudioCapture {
         video: false,
       }
 
-    } else if (navigator.userAgent.match(".*Firefox.*")) {
+    } else if (ua.isBrowser(NAME_FIREFOX)) {
       console.info("Setting media track constraints for Mozilla Firefox.");
       // Firefox
       msc = {
@@ -249,7 +285,7 @@ export class AudioCapture {
         video: false,
       }
 
-    } else if (navigator.userAgent.match(".*Safari.*")) {
+    } else if (ua.isBrowser(NAME_SAFARI)) {
       console.info("Setting media track constraints for Safari browser.")
       console.info("Apply workaround for Safari: Avoid disconnect of streams.");
       this.disconnectStreams = false;
