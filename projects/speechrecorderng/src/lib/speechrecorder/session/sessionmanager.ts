@@ -15,7 +15,7 @@ import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import {AudioDevice} from "../project/project";
+import {AudioDevice, AutoGainControlConfig} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
@@ -75,7 +75,9 @@ export const enum Status {
                               [playStopAction]="controlAudioPlayer?.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
-                              [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
+                              [displayAudioBuffer]="displayAudioClip?.buffer"
+                              [agc]="this.ac?.agcStatus"
+                              [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
@@ -118,6 +120,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   // Property audioDevices from project config: list of names of allowed audio devices.
   private _audioDevices: Array<AudioDevice> | null| undefined;
   private selCaptureDeviceId: ConstrainDOMString | null;
+
+  private _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
 
   private updateTimerId: any;
   private preRecTimerId: number|null=null;
@@ -376,6 +380,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this._audioDevices = audioDevices;
   }
 
+  set autoGainControlConfigs(autoGainControlConfigs: Array<AutoGainControlConfig>|null|undefined){
+    this._autoGainControlConfigs=autoGainControlConfigs;
+  }
+
   update(e: AudioPlayerEvent) {
     if (e.type == EventType.STARTED) {
       this.playStartAction.disabled = true;
@@ -460,7 +468,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId);
+        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
       } else {
         this.ac.start();
       }

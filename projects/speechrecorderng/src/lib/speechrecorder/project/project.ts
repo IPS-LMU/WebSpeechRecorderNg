@@ -13,10 +13,26 @@ export interface AudioDevice {
   regex : boolean
 }
 
+
+export enum ConstraintType {Exact='EXACT',Ideal='IDEAL'};
+
+export enum Platform {Linux='LINUX',macOS='MACOS',Windows='WINDOWS',Android='ANDROID'}
+export enum BrowserBase {Chromium='CHROMIUM'};
+export enum Browser {Firefox='FIREFOX',Chromium='CHROMIUM',Chrome='CHROME',Edge='EDGE',Opera='OPERA'}
+
+export interface AutoGainControlConfig {
+  value: boolean,
+  constraintType : ConstraintType,
+  platform: Platform,
+  browserBase:BrowserBase,
+  browser:Browser
+}
+
 export interface Project {
   name: string,
   audioFormat?: AudioFormat,
   mediaCaptureFormat?: MediaCaptureFormat,
+  autoGainControlConfigs?:Array<AutoGainControlConfig>,
   audioDevices?: Array<AudioDevice>
 }
 

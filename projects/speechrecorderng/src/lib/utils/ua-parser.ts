@@ -19,6 +19,7 @@ export const NAME_CHROME='Chrome';
 export const NAME_SAFARI='Safari';
 export const NAME_EDGE='Edge';
 
+export const OS_WINDOWS='Windows';
 export const OS_ANDROID='Android';
 
 export class UserAgent{

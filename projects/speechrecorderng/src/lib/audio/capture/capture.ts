@@ -5,9 +5,10 @@ import {
   NAME_FIREFOX,
   NAME_SAFARI,
   OS_ANDROID,
-  UserAgent,
+  OS_WINDOWS,
   UserAgentParser
 } from "../../utils/ua-parser";
+import {AutoGainControlConfig, Platform} from "../../speechrecorder/project/project";
 
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
@@ -45,6 +46,7 @@ export class AudioCapture {
 
   channelCount!: number;
   mediaStream: any;
+  agcStatus:boolean|null=null;
   bufferingNode: any;
   listener!: AudioCaptureListener;
   data!: Array<Array<Float32Array>>;
@@ -176,13 +178,13 @@ export class AudioCapture {
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString){
+  open(channelCount: number, selDeviceId?: ConstrainDOMString|null,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
       this.context.resume().then(()=>{
         this._open(channelCount,selDeviceId);
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString|null,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
@@ -227,6 +229,21 @@ export class AudioCapture {
       ua.components.forEach((c)=>{
         console.info("UA_Comp: "+c.toString());
       })
+
+     let agcCfg:AutoGainControlConfig|null=null;
+
+    if(autoGainControlConfigs){
+      for(let agcc of autoGainControlConfigs){
+        if(agcc.platform===Platform.Android && ua.runsOnOS(OS_ANDROID)){
+            agcCfg=agcc;
+            break;
+        }
+        if(agcc.platform===Platform.Windows && ua.runsOnOS(OS_WINDOWS)){
+          agcCfg=agcc;
+          break;
+        }
+      }
+    }
 
 
     if (ua.isBrowser(NAME_EDGE)) {
@@ -302,6 +319,19 @@ export class AudioCapture {
 
       // TODO default constraints or error Browser not supported
     }
+
+    if(agcCfg){
+      // TODO use EXACT/IDEAL constraint
+      msc.autoGainControl=agcCfg.value;
+
+      // TODO query real AGC status
+      this.agcStatus=agcCfg.value;
+    }else{
+      this.agcStatus=false;
+    }
+
+    console.debug("Audio capture, AGC: "+this.agcStatus)
+
 
     let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
     ump.then((s) => {
