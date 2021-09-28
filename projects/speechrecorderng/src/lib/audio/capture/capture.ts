@@ -10,6 +10,8 @@ import {
 } from "../../utils/ua-parser";
 import {AutoGainControlConfig, Platform} from "../../speechrecorder/project/project";
 
+export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=true;
+
 class AudioStreamConstr implements MediaStreamConstraints {
   audio: boolean;
   video: boolean;
@@ -233,7 +235,7 @@ export class AudioCapture {
      let agcCfg:AutoGainControlConfig|null=null;
 
     let autoGainControl=false;
-    let chromiumEchoCancellation=false;
+    let chromeEchoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
         if(agcc.platform===Platform.Android && ua.runsOnOS(OS_ANDROID)){
@@ -248,7 +250,9 @@ export class AudioCapture {
       if(agcCfg){
         // TODO use EXACT/IDEAL constraint
         autoGainControl=agcCfg.value;
-        //chromiumEchoCancellation=agcCfg.value;
+        if(CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC){
+          chromeEchoCancellation=agcCfg.value;
+        }
         // TODO query real AGC status
         this.agcStatus=agcCfg.value;
       }else{
@@ -284,10 +288,9 @@ export class AudioCapture {
         audio: {
           "deviceId": selDeviceId,
           "channelCount": channelCount,
-          "echoCancellation": chromiumEchoCancellation,
+          "echoCancellation": chromeEchoCancellation,
           "autoGainControl": autoGainControl,
-          "googEchoCancellation": chromiumEchoCancellation,
-          "googExperimentalEchoCancellation": false,
+          "googEchoCancellation": chromeEchoCancellation,
           "googAutoGainControl": autoGainControl,
           "googTypingNoiseDetection": false,
           "googNoiseSuppression": false,
