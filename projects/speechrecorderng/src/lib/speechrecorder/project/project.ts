@@ -22,10 +22,10 @@ export enum Browser {Firefox='FIREFOX',Chromium='CHROMIUM',Chrome='CHROME',Edge=
 
 export interface AutoGainControlConfig {
   value: boolean,
-  constraintType : ConstraintType,
+  //constraintType : ConstraintType,
   platform: Platform,
-  browserBase:BrowserBase,
-  browser:Browser
+  //browserBase:BrowserBase,
+  //browser:Browser
 }
 
 export interface Project {
