@@ -33,7 +33,7 @@ class AudioCaptureInterceptorProcessor extends AudioWorkletProcessor{
      }
      if (!this.buffer || this.buffer.length < channelCount) {
          this.buffer = new Array(channelCount);
-         this.bufferPos = new Array();
+         this.bufferPos = 0;
          for (let bch = 0; bch < channelCount; bch++) {
              this.buffer[bch] = new Float32Array(this.BUFFER_FRAME_LEN);
              this.bufferPos = 0;
