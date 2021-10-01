@@ -52,7 +52,7 @@ const awpStr="class AudioCaptureInterceptorProcessor extends AudioWorkletProcess
     "     }\n" +
     "     if (!this.buffer || this.buffer.length < channelCount) {\n" +
     "         this.buffer = new Array(channelCount);\n" +
-    "         this.bufferPos = new Array();\n" +
+    "         this.bufferPos = 0\n" +
     "         for (let bch = 0; bch < channelCount; bch++) {\n" +
     "             this.buffer[bch] = new Float32Array(this.BUFFER_FRAME_LEN);\n" +
     "             this.bufferPos = 0;\n" +
@@ -95,43 +95,6 @@ const awpStr="class AudioCaptureInterceptorProcessor extends AudioWorkletProcess
 
 
 
-// AudioWorkletProcessor not yet declared in TypeScript
-// https://github.com/microsoft/TypeScript/issues/28308
-
-// interface AudioWorkletProcessor {
-//   readonly port: MessagePort;
-//   process(
-//       inputs: Float32Array[][],
-//       outputs: Float32Array[][],
-//       parameters: Record<string, Float32Array>
-//   ): boolean;
-// }
-//
-// declare var AudioWorkletProcessor: {
-//   prototype: AudioWorkletProcessor;
-//   new (options?: AudioWorkletNodeOptions): AudioWorkletProcessor;
-// };
-//
-// declare function registerProcessor(
-//     name: string,
-//     processorCtor: (new (
-//         options?: AudioWorkletNodeOptions
-//     ) => AudioWorkletProcessor) & {
-//       parameterDescriptors?: AudioParamDescriptor[];
-//     }
-// ): undefined;
-//
-
-
-class AudioStreamConstr implements MediaStreamConstraints {
-  audio: boolean;
-  video: boolean;
-
-  constructor() {
-    this.audio = true;
-    this.video = false;
-  }
-}
 
 export interface AudioCaptureListener {
   opened(): void;
@@ -153,10 +116,6 @@ export class AudioCapture {
   static BUFFER_SIZE: number = 8192;
   context: any;
   stream!: MediaStream;
-  //mediaStream:MediaStreamAudioSourceNode;
-  // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
-  // TODO use AudioRecorder
-
   channelCount!: number;
   mediaStream: any;
   agcStatus:boolean|null=null;
@@ -188,7 +147,6 @@ export class AudioCapture {
   listDevices() {
     navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => this.printDevices(l));
   }
-
 
   private dummySession():Promise<MediaStream>{
     // workaround to request permissions:
@@ -291,13 +249,13 @@ export class AudioCapture {
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString|null,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
+  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
       this.context.resume().then(()=>{
         this._open(channelCount,selDeviceId,autoGainControlConfigs);
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|null,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
@@ -315,7 +273,7 @@ export class AudioCapture {
     // Safari at least version 11: Support for media streams
     // TODO test if input is unprocessed
 
-    let msc:any;
+    let msc:MediaStreamConstraints;
     console.info('User agent: '+navigator.userAgent);
 
     // @ts-ignore
@@ -339,9 +297,9 @@ export class AudioCapture {
     }
       let ua=UserAgentParser.parse(navigator.userAgent);
 
-      ua.components.forEach((c)=>{
-        console.info("UA_Comp: "+c.toString());
-      })
+      // ua.components.forEach((c)=>{
+      //   console.info("UA_Comp: "+c.toString());
+      // })
 
      let agcCfg:AutoGainControlConfig|null=null;
 
@@ -371,6 +329,16 @@ export class AudioCapture {
       }
     }
 
+    // default
+    msc = {
+      audio: {
+        deviceId: selDeviceId,
+        echoCancellation: false,
+        channelCount: channelCount,
+        autoGainControl: autoGainControl
+      },
+      video: false
+    };
 
     if (ua.isBrowser(NAME_EDGE)) {
 
@@ -397,16 +365,11 @@ export class AudioCapture {
       // Requires at least Chrome 61
       msc = {
         audio: {
-          "deviceId": selDeviceId,
-          "channelCount": channelCount,
-          "echoCancellation": chromeEchoCancellation,
-          "autoGainControl": autoGainControl,
-          "googEchoCancellation": chromeEchoCancellation,
-          "googAutoGainControl": autoGainControl,
-          "googTypingNoiseDetection": false,
-          "googNoiseSuppression": false,
-          "googHighpassFilter": false,
-          "googBeamforming": false
+          deviceId: selDeviceId,
+          channelCount: channelCount,
+          echoCancellation: {exact:chromeEchoCancellation},
+          autoGainControl: {exact:autoGainControl},
+          sampleSize:{min: 16},
         },
         video: false,
       }
@@ -416,14 +379,11 @@ export class AudioCapture {
       // Firefox
       msc = {
         audio: {
-            "deviceId": selDeviceId,
-            "channelCount": channelCount,
-          "echoCancellation": false,
-            "mozEchoCancellation": false,
-            "autoGainControl": autoGainControl,
-          "mozAutoGainControl": autoGainControl,
-          "noiseSuppression": false,
-          "mozNoiseSuppression": false
+            deviceId: selDeviceId,
+            channelCount: channelCount,
+          echoCancellation: false,
+            autoGainControl: autoGainControl,
+          noiseSuppression: false
         },
         video: false,
       }
@@ -434,9 +394,9 @@ export class AudioCapture {
       this.disconnectStreams = false;
       msc = {
         audio: {
-          "deviceId": selDeviceId,
-          "channelCount": channelCount,
-          "echoCancellation": false
+          deviceId: selDeviceId,
+          channelCount: channelCount,
+          echoCancellation: false
         },
         video: false,
       }
@@ -451,7 +411,7 @@ export class AudioCapture {
     console.debug("Audio capture, AGC: "+this.agcStatus)
 
 
-    let ump = navigator.mediaDevices.getUserMedia(<MediaStreamConstraints>msc);
+    let ump = navigator.mediaDevices.getUserMedia(msc);
     ump.then((s) => {
         this.stream = s;
 
@@ -507,22 +467,30 @@ export class AudioCapture {
                   if (awnPt) {
                     awnPt.onmessage = (ev: MessageEvent<any>) => {
                       if (this.capturing) {
-                        let chs = ev.data.chs;
+                        let dt=ev.data;
+                        let chs = dt.chs;
+                        let adaLen = dt.data.length;
                         if(DEBUG_TRACE_LEVEL>8) {
-                          console.debug('Received data from worklet: ' +ev.data.chs + ' ' + ev.data.len );
+                          console.debug('Received data from worklet: ' +chs + ' ' + dt.len +' Data chs: '+adaLen);
                         }
-                        let adaLen = ev.data.data.length;
-                        let chunkLen = adaLen / chs;
+                        //let chunkLen = adaLen / chs;
+                        let chunkLen = adaLen;
                         let chunk = new Array<Float32Array>(chs);
                         for (let ch = 0; ch < chs; ch++) {
                           if (this.data && this.data[ch]) {
                             let adaPos = ch * chunkLen;
-                            let fa = new Float32Array(ev.data.data[ch]);
-                            this.data[ch].push(fa);
-                            chunk[ch] = fa;
-                            // Use samples of channel 0 to count frames (samples)
-                            if (ch == 0) {
-                              this.framesRecorded += fa.length;
+                            if(dt.data[ch]) {
+                              let fa = new Float32Array(dt.data[ch]);
+                              this.data[ch].push(fa);
+                              chunk[ch] = fa;
+                              // Use samples of channel 0 to count frames (samples)
+                              if (ch == 0) {
+                                this.framesRecorded += fa.length;
+                              }
+                            }else{
+                              if(DEBUG_TRACE_LEVEL>8) {
+                                console.debug('Channel '+ch+' data not set!!');
+                              }
                             }
                           }
                         }
