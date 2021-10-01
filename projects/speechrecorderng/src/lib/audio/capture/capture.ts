@@ -180,7 +180,7 @@ export class AudioCapture {
       if (!labelsAvailable) {
         //console.debug("Media device enumeration: No labels.")
         if (retry) {
-          //console.debug("Starting dummy session to request audio permissions...")
+            console.info("Starting dummy session to request audio permissions...")
 
             this.dummySession().then((s: MediaStream) => {
             // and stop it immediately

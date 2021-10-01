@@ -29,7 +29,7 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 
-
+export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
 
 
@@ -745,7 +745,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=undefined;
 
-    if (!this.readonly && this.ac) {
+    if (!this.readonly && this.ac && (FORCE_REQUEST_AUDIO_PERMISSIONS || (this._audioDevices && this._audioDevices.length > 0))) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
