@@ -421,6 +421,8 @@ export class AudioCapture {
           let aTrack = aTracks[i];
 
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
+          let mtrSts=aTrack.getSettings();
+          console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation)
         }
 
         let vTracks = s.getVideoTracks();
@@ -431,7 +433,7 @@ export class AudioCapture {
         this.mediaStream = this.context.createMediaStreamSource(s);
         // stream channel count ( is always 2 !)
         let streamChannelCount: number = this.mediaStream.channelCount;
-
+        console.info("Stream channel count: "+streamChannelCount);
         // is not set!!
         //this.currentSampleRate = this.mediaStream.sampleRate;
         this.currentSampleRate = this.context.sampleRate;
