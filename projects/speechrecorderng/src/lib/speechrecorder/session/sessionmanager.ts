@@ -15,7 +15,7 @@ import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import {AudioDevice} from "../project/project";
+import {AudioDevice, AutoGainControlConfig} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
@@ -29,7 +29,7 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 
-
+export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
 
 
@@ -75,14 +75,16 @@ export const enum Status {
                               [playStopAction]="controlAudioPlayer?.stopAction"
                               [streamingMode]="isRecording()"
                               [displayLevelInfos]="displayLevelInfos"
-                              [displayAudioBuffer]="displayAudioClip?.buffer" [audioSignalCollapsed]="audioSignalCollapsed"
+                              [displayAudioBuffer]="displayAudioClip?.buffer"
+                              [agc]="this.ac?.agcStatus"
+                              [audioSignalCollapsed]="audioSignalCollapsed"
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
     <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
+                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording" [navigationEnabled]="items==null || items.length>1"></app-sprcontrolpanel>
 
   `,
   styles: [`:host {
@@ -118,6 +120,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   // Property audioDevices from project config: list of names of allowed audio devices.
   private _audioDevices: Array<AudioDevice> | null| undefined;
   private selCaptureDeviceId: ConstrainDOMString | null;
+
+  private _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
 
   private updateTimerId: any;
   private preRecTimerId: number|null=null;
@@ -376,6 +380,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this._audioDevices = audioDevices;
   }
 
+  set autoGainControlConfigs(autoGainControlConfigs: Array<AutoGainControlConfig>|null|undefined){
+    this._autoGainControlConfigs=autoGainControlConfigs;
+  }
+
   update(e: AudioPlayerEvent) {
     if (e.type == EventType.STARTED) {
       this.playStartAction.disabled = true;
@@ -460,7 +468,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId);
+        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
       } else {
         this.ac.start();
       }
@@ -737,7 +745,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=undefined;
 
-    if (!this.readonly && this.ac) {
+    if (!this.readonly && this.ac && (FORCE_REQUEST_AUDIO_PERMISSIONS || (this._audioDevices && this._audioDevices.length > 0))) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
