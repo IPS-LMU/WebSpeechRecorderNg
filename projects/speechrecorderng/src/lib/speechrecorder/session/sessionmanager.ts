@@ -224,7 +224,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
-    let context=null;
+    let context:AudioContext|null=null;
     try {
       context = AudioContextProvider.audioContextInstance()
     } catch (err) {
@@ -247,7 +247,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }else{
       console.info("No audio context available!");
     }
-    if (!navigator.mediaDevices) {
+    if (!context || !navigator.mediaDevices) {
       this.status = Status.ERROR;
       let errMsg = 'Browser does not support Media streams!';
       this.statusMsg = 'ERROR: ' + errMsg;
