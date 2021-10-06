@@ -131,7 +131,7 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
-  constructor(context: any) {
+  constructor(context: AudioContext) {
     this.context = context;
     this.n = navigator;
   }
