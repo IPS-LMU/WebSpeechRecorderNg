@@ -422,7 +422,10 @@ export class AudioCapture {
 
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
           let mtrSts=aTrack.getSettings();
-          console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation)
+          console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
+          if(mtrSts.autoGainControl){
+            this.agcStatus=mtrSts.autoGainControl;
+          }
         }
 
         let vTracks = s.getVideoTracks();
