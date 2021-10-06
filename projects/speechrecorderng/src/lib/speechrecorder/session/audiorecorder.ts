@@ -179,8 +179,8 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   }
 
   ngAfterViewInit() {
-
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
+    this.start();
   }
     ngOnDestroy() {
        this.destroyed=true;
@@ -194,6 +194,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
+
     let context=null;
     try {
       context = AudioContextProvider.audioContextInstance()
@@ -215,7 +216,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     if(context) {
       console.info("State of audio context: " + context.state)
     }
-    if (!navigator.mediaDevices) {
+    if (!context || !navigator.mediaDevices) {
       this.status = Status.ERROR;
       let errMsg = 'Browser does not support Media streams!';
       this.statusMsg = 'ERROR: ' + errMsg;
@@ -230,6 +231,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       });
       return;
     } else {
+      this.controlAudioPlayer = new AudioPlayer(context, this);
       this.ac = new AudioCapture(context);
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
@@ -689,39 +691,26 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   started() {
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
-    //this.startStopSignalState = StartStopSignalState.PRERECORDING;
-    if (this._session!=null && this._session.status === "LOADED") {
-      let body: any = {};
-
-      this._session.status = "STARTED"
-      body.status = this._session.status;
-      if (!this._session.startedDate) {
-        this._session.startedDate = new Date();
-        body.startedDate = this._session.startedDate;
-      }
-
-    this.sessionService.patchSessionObserver(this._session, body).subscribe()
-  }
 
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
-    let preDelay = DEFAULT_PRE_REC_DELAY;
-
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
-
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
+
+    this.status = Status.RECORDING;
+    this.transportActions.stopAction.disabled = false;
   }
 
   stopItem() {
     this.status = Status.POST_REC_STOP;
-    //this.startStopSignalState = StartStopSignalState.POSTRECORDING;
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
-    let postDelay = 500;
+    this.status = Status.STOPPING_STOP;
+    this.stopRecording();
 
   }
 
