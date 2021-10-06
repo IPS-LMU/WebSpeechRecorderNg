@@ -10,6 +10,7 @@ import {
 } from "../../utils/ua-parser";
 import {AutoGainControlConfig, Platform} from "../../speechrecorder/project/project";
 
+export const USE_SCRIPT_PROCESSOR_FOR_SAFARI_STEREO_CAPTURE=true;
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=true;
 
 const DEBUG_TRACE_LEVEL=0;
@@ -458,7 +459,7 @@ export class AudioCapture {
 
 
 
-          if(ENABLE_AUDIO_WORKLET && this.context.audioWorklet){
+          if(ENABLE_AUDIO_WORKLET && this.context.audioWorklet && !(USE_SCRIPT_PROCESSOR_FOR_SAFARI_STEREO_CAPTURE && ua.isBrowser(NAME_SAFARI) && this.channelCount>1)){
             //const workletFileName = ('file-loader!./interceptor_worklet.js');
             //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
             //console.log(awpStr);
