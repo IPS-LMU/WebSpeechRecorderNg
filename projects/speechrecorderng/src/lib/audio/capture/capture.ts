@@ -114,7 +114,7 @@ export class AudioCapture {
   }
 
   static BUFFER_SIZE: number = 8192;
-  context: any;
+  context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
   mediaStream: any;
