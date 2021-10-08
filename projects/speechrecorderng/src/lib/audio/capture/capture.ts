@@ -28,7 +28,7 @@ export class AudioCapture {
   }
 
   static BUFFER_SIZE: number = 8192;
-  context: any;
+  context: AudioContext;
   stream!: MediaStream;
   //mediaStream:MediaStreamAudioSourceNode;
   // no d.ts for Web audio API found so far (tsd query *audio*) (Nov 2015)
@@ -302,25 +302,10 @@ export class AudioCapture {
 
       // Update 12-2020:
        // The ScriptProcessorNode Interface - DEPRECATED
-      // TODO
-
-        if (this.context.createAudioWorker) {
-          //console.debug("Audio worker implemented!!")
-        } else {
-          //console.debug("Audio worker NOT implemented.")
-        }
-
-        if (this.context.registerProcessor) {
-          //console.debug("Audio worklet processor implemented!!");
-        } else {
-          //console.debug("Audio worklet processor NOT implemented.")
-        }
-
         if (!this.context.createScriptProcessor) {
           //console.debug("Audio script processor NOT implemented.")
 
         } else {
-          //TODO
           // The ScriptProcessorNode Interface - DEPRECATED
           //console.debug("Audio script processor implemented!!");
 
