@@ -26,6 +26,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
+import {RecordingList} from "./recording_list";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -62,6 +63,7 @@ export class Item {
   selector: 'app-audiorecorder',
   providers: [SessionService],
   template: `
+    <app-recordinglist></app-recordinglist>
 
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
@@ -102,6 +104,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|undefined;
 
+  @ViewChild(RecordingList, { static: true }) recordingListComp!: RecordingList;
   @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
 
   @Input() dataSaved=true
@@ -814,6 +817,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
           ww.writeAsync(ad, (wavFile) => {
             //this.postRecording(wavFile, recUrl);
             this.displayRecFile=rf;
+            this.recordingListComp.recordingList.push(rf);
             this.processingRecording=false
           });
       // }
