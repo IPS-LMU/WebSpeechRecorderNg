@@ -463,9 +463,6 @@ export class AudioCapture {
       // Update 06-2021
       //  AudioWorkletProcessor is here to stay. Web Audio API has now Recommendation status !
 
-
-
-
           if(ENABLE_AUDIO_WORKLET && this.context.audioWorklet){
             //const workletFileName = ('file-loader!./interceptor_worklet.js');
             //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
@@ -476,6 +473,16 @@ export class AudioCapture {
 
             this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(()=> {
                   const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
+                  awn.onprocessorerror=(ev:Event)=>{
+                    let msg='Unknwon error';
+                    if(ev instanceof ErrorEvent){
+                      msg=ev.message;
+                    }
+                    console.error("Capture audio worklet error: "+msg);
+                    if(this.listener){
+                      this.listener.error(msg);
+                    }
+                  }
                   let awnPt = awn.port;
                   if (awnPt) {
                     awnPt.onmessage = (ev: MessageEvent<any>) => {
@@ -524,17 +531,13 @@ export class AudioCapture {
             });
 
           }else if(this.context.createScriptProcessor) {
-            //console.debug("Audio script processor implemented.")
-
             // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
-
-
             // TODO should we use streamChannelCount or channelCount here ?
-            this.bufferingNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
-
+            let scriptProcessorNode= this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
+            this.bufferingNode=scriptProcessorNode;
             let c = 0;
-            if (this.bufferingNode instanceof ScriptProcessorNode) {
-              this.bufferingNode.onaudioprocess = (e: AudioProcessingEvent) => {
+            if(scriptProcessorNode.onaudioprocess){
+              scriptProcessorNode.onaudioprocess = (e: AudioProcessingEvent) => {
 
                 if (this.capturing) {
                   let inBuffer = e.inputBuffer;
@@ -556,12 +559,16 @@ export class AudioCapture {
                     this.audioOutStream.write(currentBuffers);
                   }
                 }
+              };
+              this._opened = true;
+              if (this.listener) {
+                this.listener.opened();
               }
+            }else{
+              this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
             }
-            this._opened = true;
-            if (this.listener) {
-              this.listener.opened();
-            }
+          }else{
+            this.listener.error('Browser does not support audio processing (neither AudioWorkletProcessor nor ScriptProcessor)!');
           }
         }, (e) => {
           console.error(e + " Error name: " +e.name);
