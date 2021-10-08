@@ -2,15 +2,15 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group, PromptItem, PromptitemUtil} from '../script/script';
+
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
-import {Upload} from '../../net/uploader';
+
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
   AfterViewInit, HostListener, OnDestroy, Input, Renderer2
 } from "@angular/core";
 import {SessionService} from "./session.service";
-import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
+
 import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
@@ -18,10 +18,9 @@ import {Session} from "./session";
 import {AudioDevice} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
-import {Prompting} from "./prompting";
+
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
-import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 import {Subscription} from "rxjs";
@@ -33,8 +32,7 @@ export const RECFILE_API_CTX = 'recfile';
 
 
 const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
-const DEFAULT_PRE_REC_DELAY=1000;
-const DEFAULT_POST_REC_DELAY=500;
+
 
 const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export const enum Mode {SERVER_BOUND, STAND_ALONE}
@@ -413,6 +411,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       this.displayAudioClip = null;
       this.controlAudioPlayer.audioClip = null;
     }
+    this.showRecording();
   }
 
   get displayRecFile(): RecordingFile | null {
