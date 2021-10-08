@@ -770,17 +770,22 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
     //this.startStopSignalState = StartStopSignalState.IDLE;
+    let ad:AudioBuffer;
     if(this.ac) {
-      let ad = this.ac.audioBuffer();
-    }
-    if (this._session && this._promptIndex ) {
-      // let sessId: string | number = this._session.sessionId;
+      ad = this.ac.audioBuffer();
+    //}
+    //if (this._session && this._promptIndex ) {
+      let sessId: string | number = 0;
+      if(this._session){
+        sessId=this._session.sessionId;
+      }
       // let cpIdx = this._promptIndex;
       // let it = this.items[cpIdx];
       // if (!it.recs) {
       //   it.recs = new Array<RecordingFile>();
       // }
-      // let rf = new RecordingFile(sessId, null,it.recs.length,ad);
+
+      let rf = new RecordingFile(sessId, '',0,ad);
       // it.recs.push(rf);
       //
       // if (this.enableUploadRecordings) {
@@ -805,12 +810,13 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
       //     // TODO duplicate conversion for manual download
       //     //console.log("Build wav writer...");
-      //     this.processingRecording=true
-      //     let ww = new WavWriter();
-      //     ww.writeAsync(ad, (wavFile) => {
-      //       this.postRecording(wavFile, recUrl);
-      //       this.processingRecording=false
-      //     });
+          this.processingRecording=true
+          let ww = new WavWriter();
+          ww.writeAsync(ad, (wavFile) => {
+            //this.postRecording(wavFile, recUrl);
+            this.displayRecFile=rf;
+            this.processingRecording=false
+          });
       // }
     }
 
@@ -829,8 +835,8 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
   postRecording(wavFile: Uint8Array, recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
-    this.uploader.queueUpload(ul);
+    //let ul = new Upload(wavBlob, recUrl);
+    //this.uploader.queueUpload(ul);
   }
 
   stop() {
