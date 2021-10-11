@@ -28,6 +28,7 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
+import {NAME_SAFARI, UserAgent, UserAgentParser} from "../../utils/ua-parser";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -186,6 +187,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   private navigationDisabled=true;
 
+  private userAgent:UserAgent;
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               public dialog: MatDialog,
@@ -200,6 +203,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
+    this.userAgent=UserAgentParser.parse(navigator.userAgent);
     if (this.config && this.config.enableUploadRecordings !== undefined) {
       this.enableUploadRecordings = this.config.enableUploadRecordings;
     }
@@ -742,6 +746,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.sessionService.patchSessionObserver(this._session, body).subscribe()
       }
     }
+
+    // Check browser compatibility
+    if(this.userAgent && this.userAgent.isBrowser(NAME_SAFARI) && this.channelCount>1){
+      let eMsg="Error: Safari browser does not support stereo recordings.";
+      console.error(eMsg);
+      this.dialog.open(MessageDialog, {
+        data: {
+          type: 'error',
+          title: 'Browser not supported',
+          msg: eMsg,
+          advice: "Please use a supported browser, e.g. Mozilla Firefox."
+        }
+      })
+    }
+
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=undefined;
 
@@ -865,7 +884,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                   }
                 })
               }
-              if (!audioPlayDeviceAvail) {
+              // Safari does not list playback devices
+              if (!audioPlayDeviceAvail && !(this.userAgent && this.userAgent.isBrowser(NAME_SAFARI))) {
                   // Firefox does not enumerate audiooutput devices
                   // Do not show this warning, because it would always appear on Firefox
                   // When https://bugzilla.mozilla.org/show_bug.cgi?id=1498512 is fixed the warning can be enabled for Firefox as well

@@ -391,14 +391,7 @@ export class AudioCapture {
     } else if (ua.isBrowser(NAME_SAFARI)) {
       console.info("Setting media track constraints for Safari browser.")
       console.info("Apply workaround for Safari: Avoid disconnect of streams.");
-      if(channelCount>1){
-        let eMsg="Error: Safari browser does not support stereo recordings.";
-        console.error(eMsg);
-        if (this.listener) {
-          this.listener.error(eMsg);
-        }
-        return;
-      }
+
       this.disconnectStreams = false;
       msc = {
         audio: {
