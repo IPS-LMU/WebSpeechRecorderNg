@@ -2,16 +2,23 @@ import {Action} from '../../action/action'
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Script, Section, Group, PromptItem, PromptitemUtil} from '../script/script';
+import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
 import {RecordingFile, RecordingFileDescriptor} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
-  Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  Inject,
+  Input,
+  OnDestroy,
+  Renderer2,
+  ViewChild
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import { MatDialog } from "@angular/material/dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -28,7 +35,7 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
-import {NAME_SAFARI, UserAgent, UserAgentParser} from "../../utils/ua-parser";
+import {Browser, UserAgent, UserAgentBuilder} from "../../utils/ua-parser";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -203,7 +210,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.selCaptureDeviceId = null;
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
-    this.userAgent=UserAgentParser.parse(navigator.userAgent);
+    this.userAgent=UserAgentBuilder.userAgent();
+    console.debug("Detected platform: "+this.userAgent.detectedPlatform);
+    console.debug("Detected browser: "+this.userAgent.detectedBrowser);
+
     if (this.config && this.config.enableUploadRecordings !== undefined) {
       this.enableUploadRecordings = this.config.enableUploadRecordings;
     }
@@ -748,7 +758,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
 
     // Check browser compatibility
-    if(this.userAgent && this.userAgent.isBrowser(NAME_SAFARI) && this.channelCount>1){
+    if(this.userAgent.detectedBrowser===Browser.Safari && this.channelCount>1){
       let eMsg="Error: Safari browser does not support stereo recordings.";
       console.error(eMsg);
       this.dialog.open(MessageDialog, {
@@ -885,7 +895,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
                 })
               }
               // Safari does not list playback devices
-              if (!audioPlayDeviceAvail && !(this.userAgent && this.userAgent.isBrowser(NAME_SAFARI))) {
+              if (!audioPlayDeviceAvail) {
                   // Firefox does not enumerate audiooutput devices
                   // Do not show this warning, because it would always appear on Firefox
                   // When https://bugzilla.mozilla.org/show_bug.cgi?id=1498512 is fixed the warning can be enabled for Firefox as well
@@ -895,7 +905,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
                   // Output devices are listed if about:config media.setsinkid.enabled=true
                   // but default setting is false
-                  if (!navigator.userAgent.match(".*Firefox.*")) {
+
+
+                  // Same problem with Safari
+
+                  if (!(this.userAgent.detectedBrowser===Browser.Safari || this.userAgent.detectedBrowser===Browser.Firefox)) {
                       // no device found
                       this.statusMsg = 'WARNING: No audio playback device available!';
                       this.statusAlertType = 'warn';
