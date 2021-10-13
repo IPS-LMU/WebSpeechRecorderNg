@@ -758,7 +758,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
 
     // Check browser compatibility
-    if(this.userAgent.detectedBrowser===Browser.Safari && this.channelCount>1){
+    if(this.userAgent.detectedBrowser===Browser.Safari && this._channelCount>1){
       let eMsg="Error: Safari browser does not support stereo recordings.";
       console.error(eMsg);
       this.dialog.open(MessageDialog, {
