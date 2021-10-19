@@ -7,7 +7,6 @@ import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 
 
-
 export const MIN_DB_LEVEL = -40.0;
 export const DEFAULT_WARN_DB_LEVEL = -2;
 
@@ -34,7 +33,8 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
             <mat-icon>file_download</mat-icon>
         </button>
         <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span i18n-matTooltip  matTooltip="Peak level"
-                                                                        [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr></table></div>
+                                                                        [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
+          <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
     `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -71,6 +71,22 @@ export class LevelBarDisplay implements LevelListener, OnDestroy {
     peakDbLvl = MIN_DB_LEVEL;
 
     _displayLevelInfos: LevelInfos | null=null;
+
+    _agc:boolean|null|undefined=undefined;
+    agcString='n/a';
+
+    @Input() set agc(agc:boolean|null|undefined){
+      this._agc=agc;
+      if(this._agc===undefined || this._agc===null){
+        this.agcString='n/a';
+      }else{
+        if(this._agc===true){
+          this.agcString='On';
+        }else{
+          this.agcString='Off';
+        }
+      }
+    }
 
     @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
     @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
