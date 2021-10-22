@@ -352,6 +352,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
             this.sm.audioDevices = project.audioDevices;
             chCnt = ProjectUtil.audioChannelCount(project);
             console.info("Project requested recording channel count: " + chCnt);
+            this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
         } else {
             console.error("Empty project configuration!")
         }
