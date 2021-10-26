@@ -19,29 +19,136 @@ export const NAME_CHROME='Chrome';
 export const NAME_SAFARI='Safari';
 export const NAME_EDGE='Edge';
 
+
+
+export enum Browser {Firefox='Firefox',Chrome='Chrome',Safari='Safari',Edge='Edge'}
+
 export const OS_WINDOWS='Windows';
 export const OS_ANDROID='Android';
 
+export enum Platform {Windows='Windows',Android='Android',macOS='MAC OS X'}
+
 export class UserAgent{
 
-  constructor(public components:Array<UserAgentComponent>) {
+  constructor(private _detectedPlatform:Platform|null,private _detectedBrowser:Browser|null) {
   }
 
-  isBrowser(browserName:string){
-    for(let ci=0;ci<this.components.length;ci++){
-      let bn=this.components[ci].name
-        let bnRe=new RegExp(browserName,'i');
-        if(bn.match(bnRe)){
-          return true;
-        }
+  get detectedBrowser(): Browser | null {
+    return this._detectedBrowser;
+  }
 
+  get detectedPlatform(): Platform | null {
+    return this._detectedPlatform;
+  }
+
+}
+
+export class UserAgentBuilder {
+  static instance:UserAgentBuilder|undefined=undefined;
+  private comps:Array<UserAgentComponent>=new Array<UserAgentComponent>();
+  private userAgent!:UserAgent;
+
+  private build() {
+
+    // // @ts-ignore
+    // if(navigator.userAgentData){
+    //   // maybe we can use this in  the future
+    //   console.info("Browser provides userAgentData:");
+    //
+    //   console.info("Brands:");
+    //   // @ts-ignore
+    //   navigator.userAgentData.brands.forEach((br=>{
+    //     console.info(br.brand +" "+br.version);
+    //   }))
+    //   // @ts-ignore
+    //   console.info("Platform: "+navigator.userAgentData.platform);
+    //   // @ts-ignore
+    //   console.info("Mobile:"+navigator.userAgentData.mobile);
+    //   // @ts-ignore
+    //   //console.info(navigator.userAgentData.toJSON());
+    // }else {
+    //   console.info("Browser does not provide userAgentData.");
+    // }
+
+    let ua=navigator.userAgent;
+
+    this.comps = new Array<UserAgentComponent>();
+
+    let pp = 0;
+    while (pp < ua.length) {
+      //parse name/version
+      let name: string | null = null
+      let version: string | null = null;
+      let comment: string | undefined;
+
+      let blPos = ua.indexOf(' ', pp);
+      let prt: string;
+      if (blPos == -1) {
+        prt = ua.substr(pp);
+        pp += prt.length;
+      } else {
+        prt = ua.substr(pp, blPos - pp);
+        pp = blPos + 1;
+      }
+      let sepPos = prt.indexOf('/');
+      if (sepPos > 0) {
+        name = prt.substr(0, sepPos);
+        version = prt.substr(sepPos + 1);
+      } else {
+        name = prt;
+      }
+      while (ua[pp] === ' ' && pp < ua.length) {
+        pp++;
+      }
+      if (ua[pp] === '(') {
+        pp++;
+        let commEnd = ua.indexOf(')', pp);
+        comment = ua.substr(pp, commEnd - pp);
+        pp = commEnd + 1;
+      }
+      while (ua[pp] === ' ' && pp < ua.length) {
+        pp++;
+      }
+      this.comps.push(new UserAgentComponent(name, version, comment));
+    }
+
+    let detPlatf:Platform|null=null;
+    if(this.runsOnOS(Platform.Android)){
+      detPlatf=Platform.Android;
+    }else if(this.runsOnOS(Platform.Windows)){
+      detPlatf=Platform.Windows;
+    }else if(this.runsOnOS(Platform.macOS)){
+      detPlatf=Platform.macOS;
+    }
+
+
+  let detBr:Browser|null=null;
+    if(this.matchesBrowser(Browser.Firefox)){
+      detBr=Browser.Firefox;
+    }else if(this.matchesBrowser(Browser.Chrome)){
+      detBr=Browser.Chrome;
+    }else if(this.matchesBrowser(Browser.Safari)){
+      detBr=Browser.Safari;
+    }
+
+    this.userAgent=new UserAgent(detPlatf,detBr);
+
+  }
+
+  private matchesBrowser(browserName:string){
+    for(let ci=0;ci<this.comps.length;ci++){
+      let bn=this.comps[ci].name
+      let bnRe=new RegExp(browserName,'i');
+      if(bn.match(bnRe)){
+        return true;
+      }
     }
     return false;
   }
 
-  runsOnOS(os:string):boolean{
-    for(let ci=0;ci<this.components.length;ci++){
-      let cc=this.components[ci].comment
+  private runsOnOS(os:string):boolean{
+    for(let ci=0;ci<this.comps.length;ci++){
+      let cc=this.comps[ci].comment
       if(cc){
         var osRe = new RegExp(os,'i');
         if(cc.match(osRe)){
@@ -52,50 +159,13 @@ export class UserAgent{
     return false;
   }
 
-}
+  static userAgent():UserAgent{
+      if(!this.instance){
+        this.instance=new UserAgentBuilder();
+      }
+      this.instance.build();
+      return this.instance.userAgent;
 
-export class UserAgentParser {
-  static parse(ua:string): UserAgent {
-    let comps = new Array<UserAgentComponent>();
-
-    let pp = 0;
-    while (pp < ua.length) {
-      //parse name/version
-      let name:string|null=null
-      let version:string|null=null;
-      let comment:string|undefined;
-
-      let blPos=ua.indexOf(' ',pp);
-      let prt:string;
-      if(blPos==-1){
-        prt=ua.substr(pp);
-        pp+=prt.length;
-      }else {
-        prt = ua.substr(pp, blPos - pp);
-        pp=blPos+1;
-      }
-      let sepPos=prt.indexOf('/');
-      if(sepPos>0) {
-          name=prt.substr(0,sepPos);
-          version=prt.substr(sepPos+1);
-      }else {
-        name=prt;
-      }
-      while(ua[pp]===' ' && pp<ua.length){
-        pp++;
-      }
-      if(ua[pp]==='(') {
-        pp++;
-        let commEnd=ua.indexOf(')',pp);
-        comment=ua.substr(pp,commEnd-pp);
-        pp=commEnd+1;
-      }
-      while(ua[pp]===' '  && pp<ua.length){
-        pp++;
-      }
-      comps.push(new UserAgentComponent(name,version,comment));
-    }
-
-    return new UserAgent(comps);
   }
+
 }

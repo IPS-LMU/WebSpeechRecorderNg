@@ -1,14 +1,8 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
-import {
-  NAME_CHROME,
-  NAME_EDGE,
-  NAME_FIREFOX,
-  NAME_SAFARI,
-  OS_ANDROID,
-  OS_WINDOWS,
-  UserAgentParser
-} from "../../utils/ua-parser";
-import {AutoGainControlConfig, Platform} from "../../speechrecorder/project/project";
+import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
+
+import {AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
+
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
 
@@ -276,26 +270,8 @@ export class AudioCapture {
     let msc:MediaStreamConstraints;
     console.info('User agent: '+navigator.userAgent);
 
-    // @ts-ignore
-    if(navigator.userAgentData){
-      // maybe we can use this in  the future
-      console.info("Browser provides userAgentData:");
 
-      console.info("Brands:");
-      // @ts-ignore
-      navigator.userAgentData.brands.forEach((br=>{
-        console.info(br.brand +" "+br.version);
-      }))
-      // @ts-ignore
-      console.info("Platform: "+navigator.userAgentData.platform);
-      // @ts-ignore
-      console.info("Mobile:"+navigator.userAgentData.mobile);
-      // @ts-ignore
-      //console.info(navigator.userAgentData.toJSON());
-    }else {
-      console.info("Browser does not provide userAgentData.");
-    }
-      let ua=UserAgentParser.parse(navigator.userAgent);
+      let ua=UserAgentBuilder.userAgent();
 
       // ua.components.forEach((c)=>{
       //   console.info("UA_Comp: "+c.toString());
@@ -307,11 +283,11 @@ export class AudioCapture {
     let chromeEchoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
-        if(agcc.platform===Platform.Android && ua.runsOnOS(OS_ANDROID)){
+        if(agcc.platform===CfgPlatform.Android && ua.detectedPlatform===Platform.Android){
             agcCfg=agcc;
             break;
         }
-        if(agcc.platform===Platform.Windows && ua.runsOnOS(OS_WINDOWS)){
+        if(agcc.platform===CfgPlatform.Windows && ua.detectedPlatform===Platform.Windows){
           agcCfg=agcc;
           break;
         }
@@ -340,7 +316,7 @@ export class AudioCapture {
       video: false
     };
 
-    if (ua.isBrowser(NAME_EDGE)) {
+    if (ua.detectedBrowser===Browser.Edge) {
 
       // Microsoft Edge sends unmodified audio
       // The constraint can follow the specification
@@ -354,7 +330,7 @@ export class AudioCapture {
         },
         video: false
       };
-    } else if (ua.isBrowser(NAME_CHROME)) {
+    } else if (ua.detectedBrowser===Browser.Chrome) {
       // Google Chrome: we need to switch of each of the preprocessing units including the
       console.info("Setting media track constraints for Google Chrome.");
 
@@ -374,7 +350,7 @@ export class AudioCapture {
         video: false,
       }
 
-    } else if (ua.isBrowser(NAME_FIREFOX)) {
+    } else if (ua.detectedBrowser===Browser.Firefox) {
       console.info("Setting media track constraints for Mozilla Firefox.");
       // Firefox
       msc = {
@@ -388,17 +364,10 @@ export class AudioCapture {
         video: false,
       }
 
-    } else if (ua.isBrowser(NAME_SAFARI)) {
+    } else if (ua.detectedBrowser===Browser.Safari) {
       console.info("Setting media track constraints for Safari browser.")
       console.info("Apply workaround for Safari: Avoid disconnect of streams.");
-      if(channelCount>1){
-        let eMsg="Error: Safari browser does not support stereo recordings.";
-        console.error(eMsg);
-        if (this.listener) {
-          this.listener.error(eMsg);
-        }
-        return;
-      }
+
       this.disconnectStreams = false;
       msc = {
         audio: {
