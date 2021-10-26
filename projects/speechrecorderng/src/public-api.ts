@@ -16,6 +16,7 @@ export {MessageDialog} from "./lib/ui/message_dialog"
 
 export {AudioClip,Selection} from './lib/audio/persistor'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
+export {AudioRecorder} from './lib/speechrecorder/session/audiorecorder'
 export {AudioDisplay} from './lib/audio/audio_display'
 export {AudioDisplayPlayer} from './lib/audio/audio_player'
 export {AudioClipUIContainer} from './lib/audio/ui/container'

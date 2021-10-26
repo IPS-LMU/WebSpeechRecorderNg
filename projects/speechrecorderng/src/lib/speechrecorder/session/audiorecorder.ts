@@ -15,7 +15,7 @@ import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import {AudioDevice} from "../project/project";
+import {AudioDevice, AutoGainControlConfig, Project, ProjectUtil} from "../project/project";
 import {LevelBarDisplay} from "../../ui/livelevel_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 
@@ -27,6 +27,9 @@ import {Subscription} from "rxjs";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {RecordingList} from "./recording_list";
+import {Upload, UploaderStatus, UploaderStatusChangeEvent} from "../../net/uploader";
+import {ActivatedRoute, Params} from "@angular/router";
+import {ProjectService} from "../project/project.service";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -63,7 +66,7 @@ export class Item {
   selector: 'app-audiorecorder',
   providers: [SessionService],
   template: `
-    <app-recordinglist></app-recordinglist>
+    <app-recordinglist (selectedRecordingFileChanged)="selectRecordingFile($event)" [selectedRecordingFile]="displayRecFile"></app-recordinglist>
 
     <spr-recordingitemdisplay #levelbardisplay
                               [playStartAction]="controlAudioPlayer?.startAction"
@@ -74,7 +77,7 @@ export class Item {
                               (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                               (onDownloadRecording)="downloadRecording()"
                               [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
+    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [navigationEnabled]="false" [currentRecording]="displayAudioClip?.buffer"
                          [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
                          [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
                          [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording"></app-sprcontrolpanel>
@@ -95,6 +98,7 @@ export class Item {
 })
 export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
+  _project:Project|null=null;
   @Input() projectName:string|null=null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
@@ -112,6 +116,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   // Property audioDevices from project config: list of names of allowed audio devices.
   private _audioDevices: Array<AudioDevice> | null | undefined;
   private selCaptureDeviceId: ConstrainDOMString | null;
+  private _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
 
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
@@ -157,8 +162,10 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   private navigationDisabled=true;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
+              private route: ActivatedRoute,
               private renderer: Renderer2,
               public dialog: MatDialog,
+              private projectService:ProjectService,
               private sessionService:SessionService,
               private recFileService:RecordingService,
               private uploader: SpeechRecorderUploader,
@@ -180,8 +187,13 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   }
 
   ngAfterViewInit() {
+    this.route.queryParams.subscribe((params: Params) => {
+      if (params['sessionId']) {
+        this.fetchSession(params['sessionId']);
+      }
+    });
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
-    this.start();
+
   }
     ngOnDestroy() {
        this.destroyed=true;
@@ -262,6 +274,9 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       this.playStartAction.onAction = () => this.controlAudioPlayer.start();
 
     }
+    this.uploader.listener = (ue) => {
+      this.uploadUpdate(ue);
+    }
 }
 
   @HostListener('window:keypress', ['$event'])
@@ -291,6 +306,91 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     }
   }
 
+  fetchSession(sessionId:string){
+
+
+    //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
+    // params.subscribe seems not to be asynchronous
+
+    // this.sm.statusAlertType='info';
+    // this.sm.statusMsg = 'Fetching session info...';
+    // this.sm.statusWaiting=true;
+    let sessObs= this.sessionService.sessionObserver(sessionId);
+
+    if(sessObs) {
+      sessObs.subscribe(sess => {
+          //this.setSession(sess);
+          this.statusAlertType='info';
+          this.statusMsg = 'Received session info.';
+          this.statusWaiting=false;
+          this.session=sess;
+          if (sess.project) {
+            //console.debug("Session associated project: "+sess.project)
+            this.projectService.projectObservable(sess.project).subscribe(project=>{
+              this.project=project;
+              this.start();
+            },reason =>{
+              this.statusMsg=reason;
+              this.statusAlertType='error';
+              this.statusWaiting=false;
+              console.error("Error fetching project config: "+reason)
+            });
+
+          } else {
+            console.info("Session has no associated project. Using default configuration.")
+          }
+        },
+        (reason) => {
+          this.statusMsg = reason;
+          this.statusAlertType = 'error';
+          this.statusWaiting=false;
+          console.error("Error fetching session " + reason)
+        });
+    }
+  }
+
+  set project(project: Project|null) {
+    this._project = project;
+    let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
+
+    if (project) {
+      console.info("Project name: " + project.name)
+      this.audioDevices = project.audioDevices;
+      chCnt = ProjectUtil.audioChannelCount(project);
+      console.info("Project requested recording channel count: " + chCnt);
+      this.autoGainControlConfigs=project.autoGainControlConfigs;
+    } else {
+      console.error("Empty project configuration!")
+    }
+    this.channelCount = chCnt;
+
+  }
+
+  set autoGainControlConfigs(autoGainControlConfigs: Array<AutoGainControlConfig>|null|undefined){
+    this._autoGainControlConfigs=autoGainControlConfigs;
+  }
+
+  selectRecordingFile(rf:RecordingFile){
+    this.displayRecFile=rf;
+  }
+
+  uploadUpdate(ue: UploaderStatusChangeEvent) {
+    let upStatus = ue.status;
+    this.dataSaved = (UploaderStatus.DONE === upStatus);
+    let percentUpl = ue.percentDone();
+    if (UploaderStatus.ERR === upStatus) {
+      this.uploadStatus = 'warn'
+    } else {
+      if (percentUpl < 50) {
+        this.uploadStatus = 'accent'
+      } else {
+        this.uploadStatus = 'success'
+      }
+      this.uploadProgress = percentUpl;
+    }
+
+    this.changeDetectorRef.detectChanges()
+  }
 
   set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
     if (this._controlAudioPlayer) {
@@ -354,7 +454,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId);
+        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
       } else {
         this.ac.start();
       }
@@ -794,17 +894,17 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       //   // TODO use SpeechRecorderconfig resp. RecfileService
       //   //new REST API URL
       //
-      //   let apiEndPoint = '';
-      //
-      //   if (this.config && this.config.apiEndPoint) {
-      //     apiEndPoint = this.config.apiEndPoint;
-      //   }
-      //   if (apiEndPoint !== '') {
-      //     apiEndPoint = apiEndPoint + '/'
-      //   }
-      //
-      //   let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-      //   let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+        let apiEndPoint = '';
+
+        if (this.config && this.config.apiEndPoint) {
+          apiEndPoint = this.config.apiEndPoint;
+        }
+        if (apiEndPoint !== '') {
+          apiEndPoint = apiEndPoint + '/'
+        }
+
+          let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+           let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
       //
       //
       //
@@ -818,6 +918,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
             //this.postRecording(wavFile, recUrl);
             this.displayRecFile=rf;
             this.recordingListComp.recordingList.push(rf);
+            this.postRecording(wavFile, recUrl);
             this.processingRecording=false
           });
       // }
@@ -838,8 +939,8 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
   postRecording(wavFile: Uint8Array, recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    //let ul = new Upload(wavBlob, recUrl);
-    //this.uploader.queueUpload(ul);
+    let ul = new Upload(wavBlob, recUrl);
+    this.uploader.queueUpload(ul);
   }
 
   stop() {
