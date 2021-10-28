@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from "@angular/core";
-import {RecordingFile} from "../recording";
+import {RecordingFile, SprRecordingFile} from "../recording";
 
 @Component({
 

@@ -3,7 +3,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 
-import {RecordingFile, RecordingFileDescriptor} from '../recording'
+import {RecordingFile} from '../recording'
 
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
@@ -30,6 +30,7 @@ import {RecordingList} from "./recording_list";
 import {Upload, UploaderStatus, UploaderStatusChangeEvent} from "../../net/uploader";
 import {ActivatedRoute, Params} from "@angular/router";
 import {ProjectService} from "../project/project.service";
+import {UUID} from "../../utils/utils";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -844,24 +845,24 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     }
   }
 
-  addRecordingFileByDescriptor(rfd:RecordingFileDescriptor){
-     let prIdx=0;
-     if(this.items) {
-       let it = this.items[prIdx];
-       if (it) {
-         if (!it.recs) {
-           it.recs = new Array<RecordingFile>();
-         }
-
-       } else {
-         //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
-       }
-     }
-  }
-
-  addRecordingFileByPromptIndex(promptIndex:number, rf:RecordingFile){
-
-  }
+  // addRecordingFileByDescriptor(rfd:RecordingFileDescriptorImpl){
+  //    let prIdx=0;
+  //    if(this.items) {
+  //      let it = this.items[prIdx];
+  //      if (it) {
+  //        if (!it.recs) {
+  //          it.recs = new Array<SprRecordingFile>();
+  //        }
+  //
+  //      } else {
+  //        //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
+  //      }
+  //    }
+  // }
+  //
+  // addRecordingFileByPromptIndex(promptIndex:number, rf:SprRecordingFile){
+  //
+  // }
 
 
   stopped() {
@@ -887,7 +888,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       //   it.recs = new Array<RecordingFile>();
       // }
 
-      let rf = new RecordingFile(sessId, '',0,ad);
+      let rf = new RecordingFile(UUID.generate(),sessId,ad);
       // it.recs.push(rf);
       //
       // if (this.enableUploadRecordings) {

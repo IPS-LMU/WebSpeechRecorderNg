@@ -1,9 +1,9 @@
-import {RecordingFile} from "../recording";
+import {SprRecordingFile} from "../recording";
 
 export class Item {
     promptAsString: string;
     training: boolean;
-    recs: Array<RecordingFile> | null;
+    recs: Array<SprRecordingFile> | null;
 
     constructor(promptAsString: string, training: boolean) {
         this.promptAsString = promptAsString;

@@ -3,7 +3,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {RecordingFile, RecordingFileDescriptor} from '../recording'
+import {SprRecordingFile, RecordingFileDescriptorImpl} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   AfterViewInit,
@@ -164,7 +164,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   items: Array<Item>|null=null;
   //selectedItemIdx: number;
-  private _displayRecFile: RecordingFile | null=null;
+  private _displayRecFile: SprRecordingFile | null=null;
   private displayRecFileVersion!: number;
   displayAudioClip: AudioClip | null=null;
 
@@ -584,7 +584,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
-  set displayRecFile(displayRecFile: RecordingFile | null) {
+  set displayRecFile(displayRecFile: SprRecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
       let ab: AudioBuffer|null = this._displayRecFile.audioBuffer;
@@ -628,7 +628,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
-  get displayRecFile(): RecordingFile | null {
+  get displayRecFile(): SprRecordingFile | null {
     return this._displayRecFile;
   }
 
@@ -695,10 +695,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (this.items) {
         let it = this.items[this.promptIndex];
         if (!it.recs) {
-          it.recs = new Array<RecordingFile>();
+          it.recs = new Array<SprRecordingFile>();
         }
 
-        let recentRecFile: RecordingFile | null = null;
+        let recentRecFile: SprRecordingFile | null = null;
         let availRecfiles: number = it.recs.length;
         if (availRecfiles > 0) {
           let rfVers: number = availRecfiles - 1;
@@ -1164,16 +1164,16 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
-  addRecordingFileByDescriptor(rfd:RecordingFileDescriptor){
+  addRecordingFileByDescriptor(rfd:RecordingFileDescriptorImpl){
     if(rfd.recording && rfd.recording.itemcode) {
       let prIdx = this.promptIndexByItemcode(rfd.recording.itemcode);
       if (this.items!=null && prIdx !== null) {
         let it = this.items[prIdx];
         if (it && this._session) {
           if (!it.recs) {
-            it.recs = new Array<RecordingFile>();
+            it.recs = new Array<SprRecordingFile>();
           }
-          let rf = new RecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
+          let rf = new SprRecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
           it.recs[rfd.version] = rf;
 
         } else {
@@ -1185,7 +1185,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     }
   }
 
-  addRecordingFileByPromptIndex(promptIndex:number, rf:RecordingFile){
+  addRecordingFileByPromptIndex(promptIndex:number, rf:SprRecordingFile){
 
   }
 
@@ -1211,9 +1211,9 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       if (this.items) {
         let it=this.items[cpIdx];
         if (!it.recs) {
-          it.recs = new Array<RecordingFile>();
+          it.recs = new Array<SprRecordingFile>();
         }
-        rf = new RecordingFile(sessId, ic, it.recs.length, ad);
+        rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
         it.recs.push(rf);
       }
       if (this.enableUploadRecordings) {

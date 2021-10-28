@@ -6,7 +6,7 @@ import {HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse} from "@angular
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
-import {RecordingFile, RecordingFileDescriptor} from "../recording";
+import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
 import {Observable} from "rxjs";
@@ -59,15 +59,21 @@ export class RecordingService {
     return recFilesUrl;
   }
 
-  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptor>> {
+  recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptorImpl>> {
     let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
-    let wobs = this.http.get<Array<RecordingFileDescriptor>>(recFilesReqUrl,{withCredentials:this.withCredentials});
+    let wobs = this.http.get<Array<RecordingFileDescriptorImpl>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   recordingFileList(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
     let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
     let wobs = this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
+    return wobs;
+  }
+
+  sprRecordingFileList(projectName: string, sessId: string | number):Observable<Array<SprRecordingFile>> {
+    let recFilesReqUrl = this.recFilesReqUrl(projectName,sessId);
+    let wobs = this.http.get<Array<SprRecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
@@ -92,9 +98,9 @@ export class RecordingService {
 
   }
 
-  fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,recordingFile:RecordingFile):Observable<RecordingFile|null> {
+  fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string,recordingFile:SprRecordingFile):Observable<SprRecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile|null>(observer=>{
+    let wobs = new Observable<SprRecordingFile|null>(observer=>{
       if(recordingFile.session) {
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
         obs.subscribe(resp => {
@@ -141,9 +147,9 @@ export class RecordingService {
     return wobs;
   }
 
-  fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string,version:number):Observable<RecordingFile|null> {
+  fetchRecordingFile(aCtx: AudioContext, projectName: string, sessId: string | number, itemcode: string,version:number):Observable<SprRecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile | null>(observer=>{
+    let wobs = new Observable<SprRecordingFile | null>(observer=>{
       let obs = this.fetchAudiofile(projectName, sessId, itemcode,version);
 
 
@@ -151,7 +157,7 @@ export class RecordingService {
             // Do not use Promise version, which does not work with Safari 13
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
-              let rf = new RecordingFile(sessId, itemcode, version, ab);
+              let rf = new SprRecordingFile(sessId, itemcode, version, ab);
               if (this.debugDelay > 0) {
                 window.setTimeout(() => {
 
