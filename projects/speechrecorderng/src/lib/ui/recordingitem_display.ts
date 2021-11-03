@@ -61,8 +61,8 @@ export class RecordingItemControls implements OnDestroy {
   @Input() audioSignalCollapsed: boolean=true;
   private _displayAudioBuffer: AudioBuffer | null|undefined;
   @Input() enableDownload: boolean=false;
-  peakDbLevelStr = "-___ dB";
-  peakDbLvl = MIN_DB_LEVEL;
+
+  @Input() peakDbLvl = MIN_DB_LEVEL;
 
   _displayLevelInfos: LevelInfos | null=null;
 
@@ -122,22 +122,8 @@ export class RecordingItemControls implements OnDestroy {
     this._displayLevelInfos = levelInfos;
   }
 
-
-  update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo) {
-    let peakDBVal = levelInfo.powerLevelDB();
-    if (this.peakDbLvl < peakDBVal) {
-      this.peakDbLvl = peakDBVal;
-      // the event comes from outside of an Angular zone
-      this.changeDetectorRef.detectChanges();
-    }
-  }
-
   error() {
     // this.status = 'ERROR';
-  }
-
-  reset() {
-    this.peakDbLvl = MIN_DB_LEVEL;
   }
 
 }
@@ -148,7 +134,7 @@ export class RecordingItemControls implements OnDestroy {
     template: `
       <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
         <audio-levelbar fxFlex="1 0 1" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
-        <spr-recordingitemcontrols fxFlex="0 0 0" [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
+        <spr-recordingitemcontrols fxFlex="0 0 0" [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" [peakDbLvl]="peakDbLvl" [agc]="_agc" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
       </div>
     `,
     styles: [`div {
@@ -170,7 +156,7 @@ export class RecordingItemDisplay implements LevelListener, OnDestroy {
     @Input() audioSignalCollapsed: boolean=true;
     private _displayAudioBuffer: AudioBuffer | null|undefined;
     @Input() enableDownload: boolean=false;
-    peakDbLevelStr = "-___ dB";
+
     peakDbLvl = MIN_DB_LEVEL;
 
     _displayLevelInfos: LevelInfos | null=null;
@@ -180,15 +166,6 @@ export class RecordingItemDisplay implements LevelListener, OnDestroy {
 
     @Input() set agc(agc:boolean|null|undefined){
       this._agc=agc;
-      if(this._agc===undefined || this._agc===null){
-        this.agcString='n/a';
-      }else{
-        if(this._agc===true){
-          this.agcString='On';
-        }else{
-          this.agcString='Off';
-        }
-      }
     }
 
     @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
@@ -266,13 +243,11 @@ export class RecordingItemDisplay implements LevelListener, OnDestroy {
 
     streamFinished() {
         this.liveLevel.streamFinished();
-
     }
 
     reset() {
         this.peakDbLvl = MIN_DB_LEVEL;
-
-
+        this.changeDetectorRef.detectChanges();
     }
 
 
