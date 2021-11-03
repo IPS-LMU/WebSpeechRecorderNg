@@ -146,28 +146,18 @@ export class RecordingItemControls implements OnDestroy {
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-        <audio-levelbar [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
-        <spr-recordingitemcontrols [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
+      <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
+        <audio-levelbar fxFlex="1 0 1" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <spr-recordingitemcontrols fxFlex="0 0 0" [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
+      </div>
     `,
-    styles: [`:host {
-        flex: 0; /* only required vertical space */
+    styles: [`div {
         width: 100%;
         background: darkgray;
         padding: 4px;
         box-sizing: border-box;
-        height: 100px;
-        min-height: 100px;
-        display: flex; /* flex container: left level bar, right decimal peak level value */
-        flex-direction: row;
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
     }`, `audio-levelbar {
-        flex: 1;
-        box-sizing: border-box;
-    }`, `span {
-        flex: 0;
-        font-weight: bold;
-        display: inline-block;
-        white-space: nowrap;
         box-sizing: border-box;
     }`]
 
