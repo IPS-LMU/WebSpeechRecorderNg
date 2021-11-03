@@ -24,7 +24,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null"
+        <button fxHide.xs matTooltip="Toggle detailed audio display" [disabled]="displayAudioBuffer==null"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>

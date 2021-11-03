@@ -615,7 +615,7 @@ export class PromptingContainer {
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
-    <div #asCt [class.active]="!audioSignalCollapsed">
+    <div fxHide.xs #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
                         [audioClip]="displayAudioClip"
