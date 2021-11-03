@@ -23,7 +23,7 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {AudioDevice, AutoGainControlConfig} from "../project/project";
-import {LevelBarDisplay} from "../../ui/livelevel_display";
+import {RecordingItemDisplay} from "../../ui/recordingitem_display";
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
@@ -119,7 +119,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|undefined=undefined;
   @ViewChild(Prompting, { static: true }) prompting!: Prompting;
-  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
+  @ViewChild(RecordingItemDisplay, { static: true }) liveLevelDisplay!: RecordingItemDisplay;
 
   @Input() dataSaved=true
 

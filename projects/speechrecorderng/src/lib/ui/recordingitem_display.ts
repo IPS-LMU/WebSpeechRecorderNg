@@ -32,7 +32,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
-        <div style="min-width: 14ch;padding:2px"><table border="0"><tr><td>Peak:</td><td><span matTooltip="Peak level"
+        <div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span matTooltip="Peak level"
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
           <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
     `,
@@ -59,7 +59,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     }`]
 
 })
-export class LevelBarDisplay implements LevelListener, OnDestroy {
+export class RecordingItemDisplay implements LevelListener, OnDestroy {
 
     ce: HTMLDivElement|null=null;
     @ViewChild(LevelBar, { static: true }) liveLevel!: LevelBar;
