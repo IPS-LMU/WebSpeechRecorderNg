@@ -27,7 +27,7 @@ import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStat
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionFinishedDialog} from "./speechrecorder/session/session_finished_dialog";
 import {MessageDialog} from "./ui/message_dialog";
-import {RecordingItemDisplay} from "./ui/recordingitem_display";
+import {RecordingItemControls, RecordingItemDisplay} from "./ui/recordingitem_display";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {ScrollPaneHorizontal} from "./audio/ui/scroll_pane_horizontal";
 import {AudioClipUIContainer} from "./audio/ui/container";
@@ -75,7 +75,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,RecordingItemDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
+      ProgressDisplay,RecordingItemDisplay,RecordingItemControls,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
