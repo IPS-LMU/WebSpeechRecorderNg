@@ -25,6 +25,9 @@ import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
     font-size: smaller;
   }`, `
     p {
+     
+      padding: 4px;
+      border-style: inset;
       white-space:nowrap;
       display: inline-block;
     }
@@ -188,6 +191,7 @@ export class TransportActions {
     text-align: center;
     align-content: center;
     margin: 0;
+    
   }`, `
     div {
       display: inline;
@@ -281,22 +285,21 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <div fxHide.xs  fxLayout="row">
-    <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div fxHide.xs  fxLayout="row" >
+     <app-sprstatusdisplay fxFlex="0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
-
-    <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-
-    <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <app-sprtransport fxFlex="10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-    <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+        <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
     </div>
     <div fxShow.xs fxHide fxLayout="column">
       <div fxLayout="row" fxFlexFill>
-      <app-sprstatusdisplay fxFlexAlign="left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+       <app-sprstatusdisplay fxFlex="10 0 0" fxFlexAlign="left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
-      <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus><mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+       <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+        <mat-icon fxFlex="0 0 0" [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
       </div>
       <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
       
