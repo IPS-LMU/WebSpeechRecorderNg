@@ -281,31 +281,34 @@ export class TransportPanel {
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div fxHide.xs  fxLayout="row">
+    <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
 
     <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
 
     <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-    <mat-icon fxHide.xs [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+    <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+    </div>
+    <div fxShow.xs fxHide fxLayout="column">
+      <div fxLayout="row" fxFlexFill>
+      <app-sprstatusdisplay fxFlexAlign="left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+                            class="hidden-xs"></app-sprstatusdisplay>
+      <app-uploadstatus *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus><mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+      </div>
+      <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      
+    </div>
   `,
-  styles: [`:host {
-    flex: 0; /* only required vertical space */
-    /*  width: 100%; */ /* available horizontal sace */
-    /* display: inline; */
-    display: flex; /* Horizontal flex container: Bottom transport panel, above prompting panel */
-    flex-direction: row;
+  styles: [`div {
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`, `
-    div {
-      flex: 0;
-    }
-  `]
+  }`]
 })
 export class ControlPanel {
   @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
