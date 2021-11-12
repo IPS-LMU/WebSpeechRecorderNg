@@ -84,7 +84,7 @@ export const enum Status {
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
       <div fxLayout="row">
-      <spr-recordingitemcontrols fxFlex="10 0 0"
+      <spr-recordingitemcontrols fxFlex="10 0 1"
                                  [audioLoaded]="displayAudioClip?.buffer!==null"
                                  [playStartAction]="controlAudioPlayer?.startAction"
                                  [playStopAction]="controlAudioPlayer?.stopAction"
@@ -92,9 +92,9 @@ export const enum Status {
                                  [agc]="this.ac?.agcStatus"
                                  (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
       </spr-recordingitemcontrols>
-      <app-uploadstatus class="ricontrols" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                                                     [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
       </div>
     <!--<app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
@@ -103,12 +103,12 @@ export const enum Status {
                          [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording" [navigationEnabled]="items==null || items.length>1"></app-sprcontrolpanel>
 -->
     <div #controlpanel class="controlpanel">
-    <app-sprstatusdisplay fxHide.xs  fxFlex="0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <app-sprstatusdisplay fxHide.xs  fxFlex="1 4 1" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
-    <app-sprtransport fxFlex="10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
-    <app-uploadstatus fxHide.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+    <app-sprtransport fxFlex="10 0 1" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
+    <app-uploadstatus class="ricontrols" fxHide.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-    <app-readystateindicator fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+    <app-readystateindicator class="ricontrols" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
     </div>
   `,
   styles: [`:host {
@@ -123,11 +123,12 @@ export const enum Status {
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }`,`.ricontrols {
-        background: darkgray;
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
-    }`,`.controlpanel {
+    }`,`.dark {
+    background: darkgray;
+  }`,`.controlpanel {
     align-content: center;
     align-items: center;
     margin: 0;
