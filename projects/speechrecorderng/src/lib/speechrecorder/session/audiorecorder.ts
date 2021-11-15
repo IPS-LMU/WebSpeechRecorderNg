@@ -16,7 +16,7 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {AudioDevice, AutoGainControlConfig, Project, ProjectUtil} from "../project/project";
-import {LevelBarDisplay} from "../../ui/livelevel_display";
+
 import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
@@ -31,6 +31,7 @@ import {Upload, UploaderStatus, UploaderStatusChangeEvent} from "../../net/uploa
 import {ActivatedRoute, Params} from "@angular/router";
 import {ProjectService} from "../project/project.service";
 import {UUID} from "../../utils/utils";
+import {RecordingItemDisplay} from "../../ui/recordingitem_display";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -110,7 +111,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   private _selectedDeviceId:string|undefined;
 
   @ViewChild(RecordingList, { static: true }) recordingListComp!: RecordingList;
-  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
+  @ViewChild(RecordingItemDisplay, { static: true }) liveLevelDisplay!: RecordingItemDisplay;
 
   @Input() dataSaved=true
 

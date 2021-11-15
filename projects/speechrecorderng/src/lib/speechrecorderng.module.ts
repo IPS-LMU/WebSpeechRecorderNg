@@ -85,7 +85,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,RecordingItemDisplay,RecordingItemControls,LevelBarDisplay,UploadStatus,TransportPanel,ReadyStateIndicator,ControlPanel,WarningBar,AudioRecorder,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent,RecordingList,AudioRecorder],
+      ProgressDisplay,RecordingItemDisplay,RecordingItemControls,UploadStatus,TransportPanel,ReadyStateIndicator,ControlPanel,WarningBar,AudioRecorder,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent,RecordingList,AudioRecorder],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],
