@@ -7,8 +7,8 @@ import { BinaryByteReader } from '../../io/BinaryReader'
 
 
         private br:BinaryByteReader;
-        private format:PCMAudioFormat | null;
-        private dataLength:number;
+        private format:PCMAudioFormat | null=null;
+        private dataLength:number=0;
 
         constructor(data:ArrayBuffer) {
             this.br = new BinaryByteReader(data);
