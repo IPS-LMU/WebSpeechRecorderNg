@@ -2,22 +2,22 @@
   "name": "speechrecorderng",
   "version": "2.21.2",
   "peerDependencies": {
-    "@angular/animations": "~12.2.10",
-    "@angular/cdk": "^12.2.10",
-    "@angular/common": "~12.2.10",
-    "@angular/compiler": "~12.2.10",
-    "@angular/core": "~12.2.10",
-    "@angular/forms": "~12.2.10",
-    "@angular/material": "^12.2.10",
-    "@angular/platform-browser": "~12.2.10",
-    "@angular/platform-browser-dynamic": "~12.2.10",
-    "@angular/router": "~12.2.10",
-    "@angular/service-worker": "^12.2.10",
+    "@angular/animations": "~12.2.13",
+    "@angular/cdk": "^12.2.13",
+    "@angular/common": "~12.2.13",
+    "@angular/compiler": "~12.2.13",
+    "@angular/core": "~12.2.13",
+    "@angular/forms": "~12.2.13",
+    "@angular/material": "^12.2.13",
+    "@angular/platform-browser": "~12.2.13",
+    "@angular/platform-browser-dynamic": "~12.2.13",
+    "@angular/router": "~12.2.13",
+    "@angular/service-worker": "^12.2.13",
     "@angular/flex-layout": "~12.0.0-beta.35",
-    "rxjs": "~6.6.0",
+    "rxjs": "~6.6.7",
     "zone.js": "~0.11.4"
   },
   "dependencies": {
-    "tslib": "^2.1.0"
+    "tslib": "^2.3.1"
   }
 }
