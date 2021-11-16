@@ -18,16 +18,12 @@ import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
     </p>
   `,
   styles: [`:host {
-    flex: 1;
-    /* align-self: flex-start; */
     display: inline;
     text-align: left;
     font-size: smaller;
   }`, `
     p {
-
       padding: 4px;
-      border-style: inset;
       white-space:nowrap;
       display: inline-block;
     }

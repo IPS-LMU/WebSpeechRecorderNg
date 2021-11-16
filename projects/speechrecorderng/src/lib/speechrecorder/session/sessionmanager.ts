@@ -97,15 +97,15 @@ export const enum Status {
       <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
       </div>
-    <div #controlpanel class="controlpanel">
-    <app-sprstatusdisplay fxHide.xs  fxFlex="30% 1 30%" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
-                          class="hidden-xs"></app-sprstatusdisplay>
-    <app-sprtransport fxFlex="100% 0 30%" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
-    <div fxFlex="30% 1 30%">
-      <div fxFlex="1 1 auto"></div>
-      <app-uploadstatus class="ricontrols" fxHide.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+    <div #controlpanel class="controlpanel" fxLayout="row">
+      <div fxFlex="1 1 30%" fxLayoutAlign="start center">
+        <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
+      </div>
+    <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
+    <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
+      <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-    <app-readystateindicator class="ricontrols" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
     </div>
     </div>
   `,
