@@ -159,7 +159,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
   private _promptIndex:number|null=null;
 
-  items: Array<Item>|null=null;
+  //items: Array<Item>|null=null;
   //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
@@ -949,6 +949,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
           let ww = new WavWriter();
           ww.writeAsync(ad, (wavFile) => {
             //this.postRecording(wavFile, recUrl);
+            rf._dateAsDateObj=new Date();
             this.displayRecFile=rf;
             this.recordingListComp.recordingList.push(rf);
             this.postRecording(wavFile, recUrl);

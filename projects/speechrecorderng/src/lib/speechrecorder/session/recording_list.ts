@@ -8,7 +8,7 @@ import {RecordingFile, SprRecordingFile} from "../recording";
   template: `
     <h2>Recording list</h2>
     <table>
-      <tr *ngFor="let rf of recordingList" [className]="(rf.uuid===selectedRecordingFile?.uuid)?'selected':'unselected'"><td>{{rf.uuid}}</td><td><button *ngIf="recordingList.length>1" mat-stroked-button  color="primary" (click)="selectRecordingFile(rf)" [disabled]="rf.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td></tr>
+      <tr *ngFor="let rf of recordingList; let i = index;" [className]="(rf.uuid===selectedRecordingFile?.uuid)?'selected':'unselected'"><td>#{{i}}</td><td>{{rf._dateAsDateObj}}</td><td><button *ngIf="recordingList.length>1" mat-stroked-button  color="primary" (click)="selectRecordingFile(rf)" [disabled]="rf.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td></tr>
     </table>
 
 
