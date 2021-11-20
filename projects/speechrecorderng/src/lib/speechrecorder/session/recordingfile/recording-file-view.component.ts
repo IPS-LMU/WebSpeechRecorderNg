@@ -326,6 +326,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.loadSession(sId);
       }
     }
+
     this.updatePos();
     this.ref.detectChanges();
   }

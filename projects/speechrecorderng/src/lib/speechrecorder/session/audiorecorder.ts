@@ -949,11 +949,14 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
           let ww = new WavWriter();
           ww.writeAsync(ad, (wavFile) => {
             //this.postRecording(wavFile, recUrl);
-            rf._dateAsDateObj=new Date();
+            //rf._dateAsDateObj=new Date();
+            rf.frames=ad.length;
             this.displayRecFile=rf;
-            this.recordingListComp.recordingList.push(rf);
+            //this.recordingListComp.recordingList.push(rf);
+            this.recordingListComp.push(rf);
             this.postRecording(wavFile, recUrl);
-            this.processingRecording=false
+            this.processingRecording=false;
+            this.changeDetectorRef.detectChanges();
           });
       // }
     }
