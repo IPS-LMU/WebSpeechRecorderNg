@@ -33,6 +33,7 @@ import {ProjectService} from "../project/project.service";
 import {UUID} from "../../utils/utils";
 import {MIN_DB_LEVEL, RecordingItemDisplay} from "../../ui/recordingitem_display";
 import {LevelBar} from "../../audio/ui/livelevel";
+import {RecorderCombiPane} from "./recorder_combi_pane";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -69,7 +70,16 @@ export class Item {
   selector: 'app-audiorecorder',
   providers: [SessionService],
   template: `
-    <app-recordinglist (selectedRecordingFileChanged)="selectRecordingFile($event)" [selectedRecordingFile]="displayRecFile" [selectDisabled]="isActive()"></app-recordinglist>
+    <app-recordercombipane (selectedRecordingFileChanged)="selectRecordingFile($event)"
+                           [audioSignalCollapsed]="audioSignalCollapsed"
+                           [selectedRecordingFile]="displayRecFile"
+                           [selectDisabled]="isActive()"
+                           [displayAudioClip]="displayAudioClip"
+                           [playStartAction]="controlAudioPlayer.startAction"
+                           [playStopAction]="controlAudioPlayer.stopAction"
+                           [playSelectionAction]="controlAudioPlayer.startSelectionAction"
+                           [autoPlayOnSelectToggleAction]="controlAudioPlayer.autoPlayOnSelectToggleAction"
+    ></app-recordercombipane>
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
@@ -136,7 +146,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|undefined;
 
-  @ViewChild(RecordingList, { static: true }) recordingListComp!: RecordingList;
+  @ViewChild(RecorderCombiPane, { static: true }) recorderCombiPane!: RecorderCombiPane;
   @ViewChild(LevelBar, { static: true }) liveLevelDisplay!: LevelBar;
 
   @Input() dataSaved=true
@@ -943,7 +953,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
             rf.frames=ad.length;
             this.displayRecFile=rf;
             //this.recordingListComp.recordingList.push(rf);
-            this.recordingListComp.push(rf);
+            this.recorderCombiPane.push(rf);
             this.postRecording(wavFile, recUrl);
             this.processingRecording=false;
             this.changeDetectorRef.detectChanges();
@@ -978,7 +988,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
   private updateControlPlaybackPosition() {
     if (this._controlAudioPlayer.playPositionFrames) {
-      //this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+      this.recorderCombiPane.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
   }

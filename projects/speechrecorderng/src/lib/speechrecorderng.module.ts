@@ -61,6 +61,7 @@ import {MatInputModule} from "@angular/material/input";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {AudioRecorder} from "./speechrecorder/session/audiorecorder";
 import {RecordingList} from "./speechrecorder/session/recording_list";
+import {RecorderCombiPane} from "./speechrecorder/session/recorder_combi_pane";
 
 
 
@@ -85,7 +86,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,RecordingItemDisplay,RecordingItemControls,UploadStatus,TransportPanel,ReadyStateIndicator,ControlPanel,WarningBar,AudioRecorder,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent,RecordingList,AudioRecorder],
+      ProgressDisplay,RecordingItemDisplay,RecordingItemControls,UploadStatus,TransportPanel,ReadyStateIndicator,ControlPanel,WarningBar,AudioRecorder,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent,RecordingList,RecorderCombiPane,AudioRecorder],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],

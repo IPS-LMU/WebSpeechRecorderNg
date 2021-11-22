@@ -9,7 +9,11 @@ import {Observable, Subject} from "rxjs";
   selector: 'app-recordinglist',
 
   template: `
-    <h2>Recording list</h2>
+    <mat-card>
+        <mat-card-header>
+          <h2>Recording list</h2>
+        </mat-card-header>
+      <mat-card-content>
     <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
       <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
       <tr mat-row *matRowDef="let recordingList; columns: cols;"></tr>
@@ -33,18 +37,9 @@ import {Observable, Subject} from "rxjs";
         <th mat-header-cell *matHeaderCellDef>Action</th>
         <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
       </ng-container>
-      <!--
-      <tr mat-header-row><th>#</th><th>Length</th><th>Samples</th><th>Samplerate</th><th>Action</th></tr>
-      <tr *ngFor="let rf of recordingList; let i = index;" mat-row  [className]="(rf.uuid===selectedRecordingFile?.uuid)?'selected':'unselected'">
-        <td>{{i}}</td>
-        <td>{{lengthTimeFormatted(rf)}}</td>
-        <td>{{rf.frames}}</td>
-        <td>{{rf.audioBuffer?.sampleRate}}Hz</td>
-        <td><button *ngIf="recordingList.length>1" mat-stroked-button  color="primary" (click)="selectRecordingFile(rf)" [disabled]="rf.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
-      </tr>
-      -->
     </table>
-
+      </mat-card-content>
+    </mat-card>
 
 
   `,
@@ -80,8 +75,6 @@ export class RecordingList implements AfterViewInit{
   @Input() selectDisabled:boolean=false;
   @Output() selectedRecordingFileChanged = new EventEmitter<RecordingFile>();
   @Input() selectedRecordingFile:RecordingFile|null=null;
-
-  @Input() audioSignalCollapsed: boolean=true;
 
   constructor() {
     this.recordingListDataSource=new MatTableDataSource<RecordingFile>();
