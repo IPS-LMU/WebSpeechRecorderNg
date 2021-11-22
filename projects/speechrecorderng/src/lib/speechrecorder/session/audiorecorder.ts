@@ -90,7 +90,7 @@ export class Item {
     <div #controlpanel class="controlpanel">
       <app-sprstatusdisplay fxHide.xs  fxFlex="30% 1 30%" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
-      <app-sprtransport fxFlex="100% 0 30%" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="false"></app-sprtransport>
+      <app-sprtransport fxFlex="100% 0 30%" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="false" [pausingEnabled]="false"></app-sprtransport>
       <div fxFlex="30% 1 30%">
         <div fxFlex="1 1 auto"></div>
         <app-uploadstatus class="ricontrols" fxHide.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"

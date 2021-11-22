@@ -168,7 +168,7 @@ export class TransportActions {
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       <span fxShow.xs="false">{{startStopNextName()}}</span>
     </button>
-    <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
       <span fxShow.xs="false">Pause</span>
     </button>
@@ -201,6 +201,7 @@ export class TransportPanel {
   @Input() readonly!:boolean;
   @Input() actions!: TransportActions;
   @Input() navigationEnabled=true;
+  @Input() pausingEnabled=true;
 
   startStopNextButtonName!:string;
   startStopNextButtonIconName!:string;
@@ -218,7 +219,7 @@ export class TransportPanel {
   }
 
   pauseDisabled() {
-    return !this.actions || this.actions.pauseAction.disabled
+    return !this.actions || this.actions.pauseAction.disabled || !this.pausingEnabled;
   }
 
   fwdDisabled() {
