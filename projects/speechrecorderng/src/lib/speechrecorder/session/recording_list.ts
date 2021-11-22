@@ -11,7 +11,7 @@ import {Observable, Subject} from "rxjs";
   template: `
     <h2>Recording list</h2>
     <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
-      <tr mat-header-row *matHeaderRowDef="cols"></tr>
+      <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
       <tr mat-row *matRowDef="let recordingList; columns: cols;"></tr>
       <ng-container matColumnDef="index">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
