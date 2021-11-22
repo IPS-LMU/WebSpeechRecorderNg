@@ -45,7 +45,7 @@ const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 export const enum Mode {SERVER_BOUND, STAND_ALONE}
 
 export const enum Status {
-  BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
+  BLOCKED, IDLE, RECORDING,  STOPPING_STOP, ERROR
 }
 
 export class Item {
@@ -69,7 +69,7 @@ export class Item {
   selector: 'app-audiorecorder',
   providers: [SessionService],
   template: `
-    <app-recordinglist (selectedRecordingFileChanged)="selectRecordingFile($event)" [selectedRecordingFile]="displayRecFile"></app-recordinglist>
+    <app-recordinglist (selectedRecordingFileChanged)="selectRecordingFile($event)" [selectedRecordingFile]="displayRecFile" [selectDisabled]="isActive()"></app-recordinglist>
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
@@ -302,7 +302,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       }
       this.transportActions.stopAction.onAction = () => this.stopItem();
       this.transportActions.nextAction.onAction = () => this.stopItem();
-      this.transportActions.pauseAction.onAction = () => this.pauseItem();
+      //this.transportActions.pauseAction.onAction = () => this.pauseItem();
 
       this.playStartAction.onAction = () => this.controlAudioPlayer.start();
 
@@ -790,7 +790,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   }
 
   isRecording(): boolean {
-    return (this.status === Status.PRE_RECORDING || this.status === Status.RECORDING);
+    return (this.status === Status.RECORDING);
   }
 
   isActive(): boolean{
@@ -824,7 +824,6 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   }
 
   started() {
-    this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
 
     this.statusAlertType = 'info';
@@ -841,21 +840,12 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   }
 
   stopItem() {
-    this.status = Status.POST_REC_STOP;
+
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.status = Status.STOPPING_STOP;
     this.stopRecording();
 
-  }
-
-  pauseItem() {
-    this.status = Status.POST_REC_PAUSE;
-    this.transportActions.pauseAction.disabled = true;
-    //this.startStopSignalState = StartStopSignalState.POSTRECORDING;
-    this.transportActions.stopAction.disabled = true;
-    this.transportActions.nextAction.disabled = true;
-    this.transportActions.pauseAction.disabled = true;
   }
 
   stopRecording() {

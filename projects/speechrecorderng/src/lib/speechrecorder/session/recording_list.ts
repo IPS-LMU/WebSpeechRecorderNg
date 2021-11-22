@@ -31,7 +31,7 @@ import {Observable, Subject} from "rxjs";
       </ng-container>
       <ng-container matColumnDef="action">
         <th mat-header-cell *matHeaderCellDef>Action</th>
-        <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
+        <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
       </ng-container>
       <!--
       <tr mat-header-row><th>#</th><th>Length</th><th>Samples</th><th>Samplerate</th><th>Action</th></tr>
@@ -77,6 +77,7 @@ export class RecordingList implements AfterViewInit{
   //recordingListSubject:Subject<Array<RecordingFile>> = new Subject<Array<RecordingFile>>();
   recordingListDataSource:MatTableDataSource<RecordingFile>;
   cols=['index','length','samples','samplerate','action'];
+  @Input() selectDisabled:boolean=false;
   @Output() selectedRecordingFileChanged = new EventEmitter<RecordingFile>();
   @Input() selectedRecordingFile:RecordingFile|null=null;
 
