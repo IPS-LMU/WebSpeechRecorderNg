@@ -25,14 +25,16 @@ import {Observable, Subject} from "rxjs";
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Length</th>
         <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
       </ng-container>
-      <ng-container matColumnDef="samples">
+      <!--
+      <ng-container fxHide.xs matColumnDef="samples">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Sample count</th>
         <td mat-cell *matCellDef="let element">{{element.audioBuffer?.length}}</td>
       </ng-container>
-      <ng-container matColumnDef="samplerate">
+      <ng-container fxHide.xs  matColumnDef="samplerate">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Samplerate</th>
         <td mat-cell *matCellDef="let element">{{element.audioBuffer?.sampleRate}}Hz</td>
       </ng-container>
+      -->
       <ng-container matColumnDef="action">
         <th mat-header-cell *matHeaderCellDef>Action</th>
         <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
@@ -40,7 +42,6 @@ import {Observable, Subject} from "rxjs";
     </table>
       </mat-card-content>
     </mat-card>
-
 
   `,
   styles: [`:host {
@@ -71,7 +72,8 @@ export class RecordingList implements AfterViewInit{
   recordingList:Array<RecordingFile>=new Array<RecordingFile>();
   //recordingListSubject:Subject<Array<RecordingFile>> = new Subject<Array<RecordingFile>>();
   recordingListDataSource:MatTableDataSource<RecordingFile>;
-  cols=['index','length','samples','samplerate','action'];
+  //cols=['index','length','samples','samplerate','action'];
+  cols=['index','length','action'];
   @Input() selectDisabled:boolean=false;
   @Output() selectedRecordingFileChanged = new EventEmitter<RecordingFile>();
   @Input() selectedRecordingFile:RecordingFile|null=null;
