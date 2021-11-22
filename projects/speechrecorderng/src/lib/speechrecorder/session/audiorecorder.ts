@@ -70,6 +70,8 @@ export class Item {
   selector: 'app-audiorecorder',
   providers: [SessionService],
   template: `
+    <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
+    <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
     <app-recordercombipane (selectedRecordingFileChanged)="selectRecordingFile($event)"
                            [audioSignalCollapsed]="audioSignalCollapsed"
                            [selectedRecordingFile]="displayRecFile"
@@ -347,6 +349,18 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     if (ke.key === 'ArrowLeft') {
       this.transportActions.bwdAction.perform();
     }
+  }
+
+  isTestSession():boolean {
+    return ((this._session!=null) && (this._session.type === 'TEST' || this._session.type==='TEST_DEF_A' || this._session.type === 'SINUS_TEST'));
+  }
+
+  isDefaultAudioTestSession():boolean {
+    return ((this._session!=null) && (this._session.type==='TEST_DEF_A'));
+  }
+
+  isDefaultAudioTestSessionOverwriteingProjectRequirements():boolean {
+    return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
   fetchSession(sessionId:string){
