@@ -24,11 +24,18 @@ import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {ProjectService} from "./speechrecorder/project/project.service";
-import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./speechrecorder/session/controlpanel";
+import {
+  ControlPanel,
+  ProgressDisplay,
+  ReadyStateIndicator,
+  StatusDisplay,
+  TransportPanel,
+  UploadStatus
+} from "./speechrecorder/session/controlpanel";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionFinishedDialog} from "./speechrecorder/session/session_finished_dialog";
 import {MessageDialog} from "./ui/message_dialog";
-import {LevelBarDisplay} from "./ui/livelevel_display";
+import {RecordingItemControls, RecordingItemDisplay} from "./ui/recordingitem_display";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {ScrollPaneHorizontal} from "./audio/ui/scroll_pane_horizontal";
 import {AudioClipUIContainer} from "./audio/ui/container";
@@ -101,7 +108,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFilesComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
+      ProgressDisplay,RecordingItemDisplay,RecordingItemControls,UploadStatus,TransportPanel,ReadyStateIndicator,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFilesComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent],
   entryComponents: [
     MessageDialog,SessionFinishedDialog
   ],

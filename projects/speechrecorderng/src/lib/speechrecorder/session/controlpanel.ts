@@ -19,13 +19,12 @@ import '@angular/localize/init';
     </p>
   `,
   styles: [`:host {
-    flex: 1;
-    /* align-self: flex-start; */
     display: inline;
     text-align: left;
     font-size: smaller;
   }`, `
     p {
+      padding: 4px;
       white-space:nowrap;
       display: inline-block;
     }
@@ -190,6 +189,7 @@ export class TransportActions {
     text-align: center;
     align-content: center;
     margin: 0;
+
   }`, `
     div {
       display: inline;
@@ -277,42 +277,70 @@ export class TransportPanel {
 
 }
 
+@Component({
+
+  selector: 'app-readystateindicator',
+
+  template: `
+        <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+  `,
+  styles: []
+})
+export class ReadyStateIndicator {
+  _ready=true
+  hourGlassIconName='hourglass_empty'
+  readyStateToolTip:string=''
+
+  constructor() {}
+
+  @Input() set ready(ready:boolean){
+    this._ready=ready
+    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
+    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
+  }
+
+  get ready():boolean{
+    return this._ready
+  }
+
+}
 
 @Component({
 
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div fxHide.xs  fxLayout="row" >
+     <app-sprstatusdisplay fxFlex="0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
-
-    <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-
-    <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <app-sprtransport fxFlex="10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-    <mat-icon fxHide.xs [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+      <app-readystateindicator [ready]="_ready"></app-readystateindicator>
+    </div>
+    <div fxShow.xs fxHide fxLayout="column">
+      <div fxLayout="row" fxFlexFill>
+       <app-sprstatusdisplay fxFlex="10 0 0" fxFlexAlign="left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+                            class="hidden-xs"></app-sprstatusdisplay>
+       <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+        <app-readystateindicator [ready]="_ready"></app-readystateindicator>
+      </div>
+      <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+
+    </div>
   `,
-  styles: [`:host {
-    flex: 0; /* only required vertical space */
-    /*  width: 100%; */ /* available horizontal sace */
-    /* display: inline; */
-    display: flex; /* Horizontal flex container: Bottom transport panel, above prompting panel */
-    flex-direction: row;
+  styles: [`div {
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`, `
-    div {
-      flex: 0;
-    }
-  `]
+  }`]
 })
 export class ControlPanel {
   @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
   @ViewChild(TransportPanel, { static: true }) transportPanel!: TransportPanel;
-
 
   @Input() readonly!:boolean
   @Input() transportActions!: TransportActions
@@ -327,8 +355,6 @@ export class ControlPanel {
   @Input() navigationEnabled=true;
 
   _ready=true
-  hourGlassIconName='hourglass_empty'
-  readyStateToolTip:string=''
 
   constructor(public dialog: MatDialog) {
 
@@ -336,8 +362,6 @@ export class ControlPanel {
 
   @Input() set ready(ready:boolean){
     this._ready=ready
-    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
-    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
   }
 
   get ready():boolean{

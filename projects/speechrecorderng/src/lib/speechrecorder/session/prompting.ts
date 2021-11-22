@@ -667,8 +667,8 @@ export class ProgressAndSpeakerContainer{
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <spr-progress-speaker-container [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
-    <div #asCt [class.active]="!audioSignalCollapsed">
+    <spr-progress-speaker-container fxHide.xs [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
+    <div fxHide.xs #asCt [class.active]="!audioSignalCollapsed">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
                         [audioClip]="displayAudioClip"

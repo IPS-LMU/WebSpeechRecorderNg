@@ -23,8 +23,8 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {Project, AudioDevice, AutoGainControlConfig} from "../project/project";
-import {LevelBarDisplay} from "../../ui/livelevel_display";
-import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
+import {MIN_DB_LEVEL, RecordingItemDisplay} from "../../ui/recordingitem_display";
+import {LevelInfos,LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
 import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {TransportActions} from "./controlpanel";
@@ -36,6 +36,8 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 import {Browser, UserAgent, UserAgentBuilder} from "../../utils/ua-parser";
+import {LevelBar} from "../../audio/ui/livelevel";
+
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -80,22 +82,34 @@ export const enum Status {
     </app-sprprompting>
     <mat-progress-bar [value]="progressPercentValue()" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
 
-    <spr-recordingitemdisplay #levelbardisplay
-                              [playStartAction]="controlAudioPlayer?.startAction"
-                              [playStopAction]="controlAudioPlayer?.stopAction"
-                              [streamingMode]="isRecording()"
-                              [displayLevelInfos]="displayLevelInfos"
-                              [displayAudioBuffer]="displayAudioClip?.buffer"
-                              [agc]="this.ac?.agcStatus"
-                              [audioSignalCollapsed]="audioSignalCollapsed"
-                              (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
-                              (onDownloadRecording)="downloadRecording()"
-                              [enableDownload]="enableDownloadRecordings"></spr-recordingitemdisplay>
-    <app-sprcontrolpanel [enableUploadRecordings]="enableUploadRecordings" [readonly]="readonly" [currentRecording]="displayAudioClip?.buffer"
-                         [transportActions]="transportActions" [statusMsg]="statusMsg" [statusWaiting]="statusWaiting"
-                         [statusAlertType]="statusAlertType" [uploadProgress]="uploadProgress"
-                         [uploadStatus]="uploadStatus" [ready]="dataSaved && !isActive()" [processing]="processingRecording" [navigationEnabled]="items==null || items.length>1"></app-sprcontrolpanel>
 
+    <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
+      <div fxLayout="row">
+      <spr-recordingitemcontrols fxFlex="10 0 1"
+                                 [audioLoaded]="displayAudioClip?.buffer!==null"
+                                 [playStartAction]="controlAudioPlayer?.startAction"
+                                 [playStopAction]="controlAudioPlayer?.stopAction"
+                                 [peakDbLvl]="peakLevelInDb"
+                                 [agc]="this.ac?.agcStatus"
+                                 (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
+      </spr-recordingitemcontrols>
+      <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                                                    [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+      <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      </div>
+      </div>
+    <div #controlpanel class="controlpanel" fxLayout="row">
+      <div fxFlex="1 1 30%" fxLayoutAlign="start center">
+        <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
+      </div>
+    <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
+    <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
+      <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                      [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+    </div>
+    </div>
   `,
   styles: [`:host {
     flex: 2;
@@ -108,7 +122,19 @@ export const enum Status {
 
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
-  }` ]
+  }`,`.ricontrols {
+        padding: 4px;
+        box-sizing: border-box;
+        height: 100%;
+    }`,`.dark {
+    background: darkgray;
+  }`,`.controlpanel {
+    align-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+    min-height: min-content; /* important */
+  }`]
 })
 export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
@@ -122,7 +148,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   private _channelCount = 2; //TODO define constant for default format
   private _selectedDeviceId:string|undefined=undefined;
   @ViewChild(Prompting, { static: true }) prompting!: Prompting;
-  @ViewChild(LevelBarDisplay, { static: true }) liveLevelDisplay!: LevelBarDisplay;
+  @ViewChild(LevelBar, { static: true }) liveLevelDisplay!: LevelBar;
 
   @Input() dataSaved=true
 
@@ -172,6 +198,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   displayAudioClip: AudioClip | null=null;
 
   displayLevelInfos: LevelInfos | null=null;
+
+  peakLevelInDb:number=MIN_DB_LEVEL;
 
   promptItemCount!: number;
 
@@ -227,8 +255,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
   }
 
   ngAfterViewInit() {
-
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
+    this.streamLevelMeasure.peakLevelListener=(peakLvlInDb)=>{
+      this.peakLevelInDb=peakLvlInDb;
+      this.changeDetectorRef.detectChanges();
+    }
   }
     ngOnDestroy() {
        this.destroyed=true;
@@ -778,7 +809,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this._selectedDeviceId=undefined;
 
     if (!this.readonly && this.ac && (FORCE_REQUEST_AUDIO_PERMISSIONS || (this._audioDevices && this._audioDevices.length > 0))) {
-      this.statusMsg =  $localize `Requesting audio permissions...`;
+      this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
       this.ac.deviceInfos((mdis) => {
