@@ -87,6 +87,9 @@
             },
             "development": {
               "browserTarget": "WebSpeechRecorderNg:build:development"
+            },
+            "en-US": {
+              "browserTarget": "WebSpeechRecorderNg:build:en-US"
             }
           },
           "defaultConfiguration": "development"

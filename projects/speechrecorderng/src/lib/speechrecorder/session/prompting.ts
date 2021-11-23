@@ -609,7 +609,7 @@ export class PromptingContainer {
   selector: 'spr-progress-speaker-container',
 
   template: `
-    <spr-projectinfo fxHide.xs [project]="project"></spr-projectinfo>
+    <!--<spr-projectinfo fxHide.xs [project]="project"></spr-projectinfo>-->
     <spr-speakerinfo fxHide.xs [speakerIds]="speakerIds"></spr-speakerinfo>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
