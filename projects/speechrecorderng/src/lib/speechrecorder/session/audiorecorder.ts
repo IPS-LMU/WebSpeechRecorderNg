@@ -3,7 +3,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 
-import {RecordingFile} from '../recording'
+import {RecordingFile, RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
@@ -34,6 +34,7 @@ import {UUID} from "../../utils/utils";
 import {MIN_DB_LEVEL, RecordingItemDisplay} from "../../ui/recordingitem_display";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
+import {Script} from "../script/script";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -385,7 +386,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
             //console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
               this.project=project;
-              this.start();
+              this.fetchRecordings(sess);
             },reason =>{
               this.statusMsg=reason;
               this.statusAlertType='error';
@@ -406,6 +407,48 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     }
   }
 
+  fetchRecordings(sess:Session){
+    this.statusAlertType='info';
+    this.statusMsg = 'Fetching infos of recordings...';
+    this.statusWaiting=true;
+    let prNm:string|null=null;
+    if(this.project) {
+      let rfsObs = this.recFileService.recordingFileList(this.project.name, sess.sessionId);
+      rfsObs.subscribe((rfs: Array<RecordingFile>) => {
+        this.statusAlertType = 'info';
+        this.statusMsg = 'Received infos of recordings.';
+        this.statusWaiting = false;
+        if (rfs) {
+          if (rfs instanceof Array) {
+            rfs.forEach((rf) => {
+              //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
+              //this.addRecordingFileByDescriptor(rf);
+              this.recorderCombiPane.push(rf);
+            })
+          } else {
+            console.error('Expected type array for list of already recorded files ')
+          }
+
+        } else {
+          //console.debug("Recording file list: " + rfs);
+        }
+      }, () => {
+        // Failed fetching existing, but we start the session anyway
+        this.start()
+      }, () => {
+        // Normal start
+        this.start()
+      })
+    }else{
+      // No project def -> error
+      this.statusAlertType = 'error';
+      this.statusMsg = 'No project definiton.';
+      this.statusWaiting = false;
+      console.error(this.statusMsg);
+    }
+  }
+
+
   set project(project: Project|null) {
     this._project = project;
     let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
@@ -420,7 +463,10 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       console.error("Empty project configuration!")
     }
     this.channelCount = chCnt;
+  }
 
+  get project():Project|null{
+    return this._project;
   }
 
   set autoGainControlConfigs(autoGainControlConfigs: Array<AutoGainControlConfig>|null|undefined){
@@ -463,8 +509,12 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     return this._controlAudioPlayer;
   }
 
-  set session(session: Session) {
+  set session(session: Session|null) {
     this._session = session;
+  }
+
+  get session():Session|null{
+    return this._session;
   }
 
   set channelCount(channelCount: number) {
@@ -559,8 +609,28 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
         // clear for now ...
         this.displayAudioClip = null;
         this.controlAudioPlayer.audioClip = null;
-        if (this._controlAudioPlayer) {
 
+        if (this._controlAudioPlayer && this._session) {
+            //... and try to fetch from server
+            this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+              let fab = null;
+              if (rf && this._displayRecFile) {
+                fab = this._displayRecFile.audioBuffer;
+              } else {
+                this.statusMsg = 'Recording file could not be loaded.'
+                this.statusAlertType = 'error'
+              }
+              if (fab){
+                this.displayAudioClip = new AudioClip(fab);
+              }
+              this.controlAudioPlayer.audioClip =this.displayAudioClip
+              this.showRecording();
+
+            }, err => {
+              console.error("Could not load recording file from server: " + err)
+              this.statusMsg = 'Recording file could not be loaded: ' + err
+              this.statusAlertType = 'error'
+            })
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
           this.statusAlertType = 'error'
@@ -809,7 +879,9 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
       });
     }
-
+    if(this.recorderCombiPane.recordingListComp.recordingList.length>0){
+      this.selectRecordingFile(this.recorderCombiPane.recordingListComp.recordingList[0]);
+    }
     this.enableNavigation()
   }
 

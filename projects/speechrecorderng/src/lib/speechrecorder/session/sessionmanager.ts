@@ -628,7 +628,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
         this.controlAudioPlayer.audioClip = null;
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
-          this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+          this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
             let fab = null;
             if (rf && this._displayRecFile) {
               fab = this._displayRecFile.audioBuffer;
