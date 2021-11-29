@@ -1,12 +1,13 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "2.22.0-alpha.7",
+  "version": "2.22.0-alpha.8",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
   },
   "license": "MIT",
   "scripts": {
+    "npm_version": "npm version --no-git-tag-version prerelease ",
     "ng": "ng",
     "apply_module_version": "node bin/apply_version.js",
     "new_prerelease": "npm version --no-git-tag-version prerelease && cd projects && cd speechrecorderng && npm version --no-git-tag-version prerelease && cd .. && cd ..",

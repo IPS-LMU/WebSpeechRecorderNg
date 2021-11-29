@@ -51,11 +51,11 @@
 
     export class Upload {
 
-        private _data:Blob;
+        private _data:Blob|FormData;
         private _url:string;
         status: UploadStatus;
 
-        constructor(blob:Blob, url:string) {
+        constructor(blob:Blob|FormData, url:string) {
             this._data = blob;
             this._url = url;
             this.status = UploadStatus.IDLE;
@@ -65,36 +65,59 @@
             return this._url;
         }
 
-        get data():Blob {
+        get data():Blob|FormData {
             return this._data;
         }
 
       public toString = () : string => {
-
-        return `Upload: Status: ${this.status}, URL: ${this._url}, Size: ${this._data.size}`;
+        let s=`Upload: Status: ${this.status}, URL: ${this._url}`;
+        if(this._data instanceof Blob){
+            s=s+`, Size: ${this._data.size}`;
+        }else if(this._data instanceof  FormData){
+           // TODO (iterate through parts ??)
+        }
+        return s;
       }
     }
 
     export class Uploader {
-        POST_MIN_TIMEOUT=120000; // 2min plus ...
-        POST_TIMEOUT_PER_KB=1000;  // ... 1s per kB
+        POST_MIN_TIMEOUT = 120000; // 2min plus ...
+        POST_TIMEOUT_PER_KB = 1000;  // ... 1s per kB
 
         RETRY_DELAY: number = 30000; // retry every 30s
         DEBUG_DELAY: number = 0;
         //DEBUG_DELAY:number=0;
         private status: UploaderStatus = UploaderStatus.DONE;
-        private que:Array<Upload>;
-        listener: ((ue: UploaderStatusChangeEvent) => void) | null=null;
+        private que: Array<Upload>;
+        listener: ((ue: UploaderStatusChangeEvent) => void) | null = null;
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
 
-        private retryTimerRunning=false;
-        private retryTimerId: number|null=null;
+        private retryTimerRunning = false;
+        private retryTimerId: number | null = null;
 
-        constructor(private http: HttpClient,private withCredentials:boolean=false) {
+        private te:TextEncoder=new TextEncoder();
+
+        constructor(private http: HttpClient, private withCredentials: boolean = false) {
             this.que = new Array<Upload>();
         }
 
+        private dataSize(dt:Blob|FormData){
+            let si=0;
+            if(dt instanceof Blob){
+                si=dt.size;
+            }else if(dt instanceof  FormData){
+                dt.forEach((v,k)=>{
+                    if(v instanceof File){
+                        si+=v.size;
+                    }else if(typeof v ==='string'){
+                        // encode to UT-f8 to get upload size
+                        si+= this.te.encode().length;
+                    }
+                })
+            }
+            return si;
+        }
 
         private  uploadDone(ul:Upload) {
 
@@ -105,7 +128,7 @@
                 if (this.que[i] === ul) {
                     // found, remove
                     this.que.splice(i, 1);
-                    let ulSize = ul.data.size;
+                    let ulSize = this.dataSize(ul.data);
                     this._sizeDone += ulSize;
                     break;
                 }
@@ -125,7 +148,7 @@
                 this.status = UploaderStatus.UPLOADING;
             }
 
-            let dSize=ul.data.size
+            let dSize=this.dataSize(ul.data);
             let timeoutForDataSize=dSize*this.POST_TIMEOUT_PER_KB/1000;
             let timeoVal:number=Math.round(this.POST_MIN_TIMEOUT+timeoutForDataSize)
             // pipe(timeout()) is not the same as xhr.timeout
@@ -241,7 +264,7 @@
 
         queueUpload(ul: Upload) {
             if (ul) {
-                let ulSize = ul.data.size;
+                let ulSize = this.dataSize(ul.data);
                 this.que.push(ul);
                 this._sizeQueued += ulSize;
                 this.process();

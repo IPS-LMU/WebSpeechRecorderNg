@@ -1040,7 +1040,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
             this.displayRecFile=rf;
             //this.recordingListComp.recordingList.push(rf);
             this.recorderCombiPane.push(rf);
-            this.postRecording(wavFile, recUrl);
+            this.postRecordingMultipart(wavFile, rf,recUrl);
             this.processingRecording=false;
             this.changeDetectorRef.detectChanges();
           });
@@ -1063,6 +1063,15 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   postRecording(wavFile: Uint8Array, recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
     let ul = new Upload(wavBlob, recUrl);
+    this.uploader.queueUpload(ul);
+  }
+
+  postRecordingMultipart(wavFile: Uint8Array, rf:RecordingFile,recUrl: string) {
+    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+    let fd=new FormData();
+    fd.set('descr',JSON.stringify(rf));
+    fd.set('audio',wavBlob);
+    let ul = new Upload(fd, recUrl);
     this.uploader.queueUpload(ul);
   }
 
