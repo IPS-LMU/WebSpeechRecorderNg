@@ -720,11 +720,20 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       this.applyPrompt();
     }
 
+    let it=null;
+    if (this.items) {
+      it = this.items[this.promptIndex];
+    }
+
+    if(it){
+      it.visited=true;
+    }
+
     if(isNonrecording){
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
-      if (this.items) {
-        let it = this.items[this.promptIndex];
+      if (it) {
+
         if (!it.recs) {
           it.recs = new Array<RecordingFile>();
         }

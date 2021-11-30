@@ -26,7 +26,7 @@ import {Item} from './item';
           <td class="promptDescriptor">{{item.promptAsString}}</td>
           <td>
             <mat-icon *ngIf="item.recs && item.recs.length>0">done</mat-icon>
-
+            <mat-icon *ngIf="!item.recording && item.visited" style="color: lightgray">done</mat-icon>
           </td>
         </tr>
       </ng-container>
