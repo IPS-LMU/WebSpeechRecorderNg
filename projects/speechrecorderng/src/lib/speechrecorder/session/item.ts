@@ -3,9 +3,7 @@ import {RecordingFile} from "../recording";
 export class Item {
     recs: Array<RecordingFile> | null;
 
-    constructor(promptAsString: string, training: boolean) {
-        this.promptAsString = promptAsString;
-        this.training = training;
+    constructor(private _promptAsString: string, private _training: boolean,private _recording:boolean) {
         this.recs = null;
     }
 
