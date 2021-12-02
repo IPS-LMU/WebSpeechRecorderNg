@@ -311,6 +311,7 @@ export class AudioCapture {
         deviceId: selDeviceId,
         echoCancellation: false,
         channelCount: channelCount,
+        // @ts-ignore
         autoGainControl: autoGainControl
       },
       video: false
@@ -326,6 +327,7 @@ export class AudioCapture {
           deviceId: selDeviceId,
           echoCancellation: false,
           channelCount: channelCount,
+          // @ts-ignore
           autoGainControl: autoGainControl
         },
         video: false
@@ -344,6 +346,7 @@ export class AudioCapture {
           deviceId: selDeviceId,
           channelCount: channelCount,
           echoCancellation: {exact:chromeEchoCancellation},
+          // @ts-ignore
           autoGainControl: {exact:autoGainControl},
           sampleSize:{min: 16},
         },
@@ -358,6 +361,7 @@ export class AudioCapture {
             deviceId: selDeviceId,
             channelCount: channelCount,
           echoCancellation: false,
+          // @ts-ignore
             autoGainControl: autoGainControl,
           noiseSuppression: false
         },
@@ -399,8 +403,11 @@ export class AudioCapture {
 
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
           let mtrSts=aTrack.getSettings();
+          // @ts-ignore
           console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
+          // @ts-ignore
           if(mtrSts.autoGainControl){
+            // @ts-ignore
             this.agcStatus=mtrSts.autoGainControl;
           }
         }

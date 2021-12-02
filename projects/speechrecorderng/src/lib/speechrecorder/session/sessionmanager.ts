@@ -278,7 +278,10 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       context = AudioContextProvider.audioContextInstance()
     } catch (err) {
       this.status = Status.ERROR;
-      let errMsg = err.message;
+      let errMsg = 'Unknown error';
+      if(err instanceof Error){
+        errMsg=err.message;
+      }
       this.statusMsg = 'ERROR: ' + errMsg;
       this.statusAlertType = 'error';
       this.dialog.open(MessageDialog, {

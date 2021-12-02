@@ -102,7 +102,9 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
          this.ap = new AudioPlayer(this.aCtx, this);
        }
      }catch(err){
-          this.status = err.message;
+       if(err instanceof Error) {
+         this.status = err.message;
+       }
       }
   }
 
