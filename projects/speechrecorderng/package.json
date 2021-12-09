@@ -3,7 +3,7 @@
   "version": "2.21.4",
   "peerDependencies": {
     "@angular/animations": "~13.0.2",
-    "@angular/cdk": "^13.0.2",
+    "@angular/cdk": "~13.0.2",
     "@angular/common": "~13.0.2",
     "@angular/compiler": "~13.0.2",
     "@angular/core": "~13.0.2",
@@ -12,12 +12,12 @@
     "@angular/platform-browser": "~13.0.2",
     "@angular/platform-browser-dynamic": "~13.0.2",
     "@angular/router": "~13.0.2",
-    "@angular/service-worker": "^13.0.2",
+    "@angular/service-worker": "~13.0.2",
     "@angular/flex-layout": "~13.0.0-beta.36",
     "rxjs": "~6.6.7",
     "zone.js": "~0.11.4"
   },
   "dependencies": {
-    "tslib": "^2.3.1"
+    "tslib": "~2.3.1"
   }
 }
