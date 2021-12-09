@@ -15,392 +15,6 @@
         "groups": []
       },
       {
-        "mode": "MANUAL",
-        "name": "Introduction",
-        "order": "SEQUENTIAL",
-
-        "speakerDisplay": true,
-        "training": true,
-        "groups": [
-          {
-            "promptItems": [
-              {
-                "itemcode": "I0",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "text": "Willkommen bei der IPS-Sprachaufnahme!"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "I1",
-                "recduration":8000,
-                "postrecording": 2000,
-                "recinstructions": {
-                  "recinstructions": "Hier finden Sie kurze Anleitungen"
-                },
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
-                  }
-                ]
-              }
-            ]
-          },{
-            "promptItems" : [ {
-              "type" : "recording",
-              "mediaitems" : [ {
-                "annotationTemplate" : false,
-                "mimetype": "image/jpg",
-                "src": "resources/images/IMG_2447.JPG"
-              } ],
-              "itemcode" : "demo_001"
-            } ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "I2",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Jetzt geht's los!"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL1",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shined out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL2",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "„Wind und Sonne machten Wette, Wer die meisten Kräfte hätte, Einen armen Wandersmann Seiner Kleider zu berauben.  Wind begann; Doch sein Schnauben Tat ihm nichts; der Wandersmann Zog den Mantel dichter an. Wind verzweifelt nun und ruht; Und ein lieber Sonnenschein Füllt mit holder, sanfter Gluth Wanderers Gebein.  Hüllt er nun sich tiefer ein? Nein! Ab wirft er nun sein Gewand, Und die Sonne überwand.  Übermacht, Vernunftgewalt Macht und läßt uns kalt; Warme Christusliebe – Wer, der kalt ihr bliebe?“  – Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL3",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "„Wind und Sonne machten Wette, Wer die meisten Kräfte hätte, Einen armen Wandersmann Seiner Kleider zu berauben.  Wind begann; Doch sein Schnauben Tat ihm nichts; der Wandersmann Zog den Mantel dichter an. Wind verzweifelt nun und ruht; Und ein lieber Sonnenschein Füllt mit holder, sanfter Gluth Wanderers Gebein.  Hüllt er nun sich tiefer ein? Nein! Ab wirft er nun sein Gewand, Und die Sonne überwand.  Übermacht, Vernunftgewalt Macht und läßt uns kalt; Warme Christusliebe – Wer, der kalt ihr bliebe?“  – Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel. Wind und Sonne machten Wette, Wer die meisten Kräfte hätte, Einen armen Wandersmann Seiner Kleider zu berauben.  Wind begann; Doch sein Schnauben Tat ihm nichts; der Wandersmann Zog den Mantel dichter an. Wind verzweifelt nun und ruht; Und ein lieber Sonnenschein Füllt mit holder, sanfter Gluth Wanderers Gebein.  Hüllt er nun sich tiefer ein? Nein! Ab wirft er nun sein Gewand, Und die Sonne überwand.  Übermacht, Vernunftgewalt Macht und läßt uns kalt; Warme Christusliebe – Wer, der kalt ihr bliebe?“  – Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel. "
-                  }
-                ]
-              }
-            ]
-        },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL4",
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/x-prompt",
-                    "promptDoc": {
-                      "body": {
-                        "blocks": [
-                          {
-                            "type": "p",
-                            "texts": [
-                              {
-                                "type": "text",
-                                "text": "„Wind und Sonne machten Wette,"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Wer die meisten Kräfte hätte,"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Einen armen Wandersmann"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Seiner Kleider zu berauben."
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Wind begann;"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Doch sein Schnauben"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Tat ihm nichts; der Wandersmann"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Zog den Mantel dichter an."
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Wind verzweifelt nun und ruht;"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Und ein lieber Sonnenschein"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Füllt mit holder, sanfter Gluth"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Wanderers Gebein."
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Hüllt er nun sich tiefer ein?"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Nein!"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Ab wirft er nun sein Gewand,"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "text",
-                                "text": "Und die Sonne überwand."
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "font",
-                                "style": "italic",
-                                "text": {
-                                  "type": "text",
-                                  "text": "Übermacht, Vernunftgewalt"
-                                }
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "font",
-                                "style": "italic",
-                                "text": {
-                                  "type": "text",
-                                  "text": "Macht und läßt uns kalt;"
-                                }
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "font",
-                                "style": "italic",
-                                "text": {
-                                  "type": "text",
-                                  "text": "Warme Christusliebe –"
-                                }
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-                                "type": "font",
-                                "style": "italic",
-                                "text": {
-                                  "type": "text",
-                                  "text": "Wer, der kalt ihr bliebe?“"
-                                }
-                              },
-                              {
-                                "type": "linebreak"
-                              },
-                              {
-
-                                "type": "text",
-                                "text": "– Gedichte, Fünftes Buch, Geschichte und Fabel, 4. Fabel."
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-
-              },
-        {
-          "promptItems": [
-            {
-              "type": "recording",
-              "mediaitems": [
-                {
-                  "annotationTemplate": false,
-                  "promptDoc": {
-                    "body": {
-                      "blocks": [
-                        {
-                          "type": "p",
-                          "texts": [
-                            {
-                              "type": "font",
-                              "size": "71.00%",
-                              "style": "italic",
-                              "weight": "normal",
-                              "text": {
-                                "text": "Welcome to the "
-                              }
-                            },
-                            {
-                              "type": "linebreak"
-                            },
-                            {
-                              "type": "text",
-                              "text": "and "
-                            },
-                            {
-                              "type": "text",
-                              "color": "red",
-                              "decoration": "underline",
-                              "text": "here"
-                            },
-                            {
-                              "type": "text",
-                              "text": " is the prompt:"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "p",
-                          "texts": [
-                            {
-                              "type": "text",
-                              "text": " a text to read, a question to answer, a picture to describe, or something completely different."
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  },
-                  "languageISO639code": "en",
-                  "mimetype": "text/x-prompt"
-                }
-              ],
-              "itemcode": "VL5",
-              "prerecording": 2000,
-              "postrecording": 500,
-              "recduration": 20000,
-              "recinstructions": {
-                "mimetype": "text/plain",
-                "recinstructions": " \t\t\t\tHere you'll find the instructions... \t\t\t"
-              }
-            }
-          ]
-          },
-          {
-            "promptItems": [
-              {
-                "itemcode": "VL6",
-                "recduration":2000,
-                "mediaitems": [
-                  {
-                    "annotationTemplate": false,
-                    "mimetype": "text/plain",
-                    "text": "Short text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
         "mode": "AUTORECORDING",
         "name": "Recording Session",
         "order": "SEQUENTIAL",
@@ -408,6 +22,38 @@
         "speakerDisplay": true,
         "training": false,
         "groups": [
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "autoplay": false,
+                    "mimetype": "text/plain",
+                    "text": "Hello!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "Non recording."
+                  }
+                ]
+              }
+            ]
+          },
           {
             "promptItems": [
               {

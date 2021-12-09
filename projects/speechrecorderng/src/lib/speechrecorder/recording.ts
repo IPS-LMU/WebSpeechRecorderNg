@@ -17,6 +17,7 @@ export class RecordingFile {
   uuid:string|null=null;
   date: string|null=null;
   _dateAsDateObj:Date|null=null;
+  startedDate?:Date|null=null;
   audioBuffer:AudioBuffer|null=null;
   session:string|number|null=null;
   frames:number|null=null;

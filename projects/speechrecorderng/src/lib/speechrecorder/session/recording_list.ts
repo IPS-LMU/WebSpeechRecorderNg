@@ -21,10 +21,15 @@ import {Observable, Subject} from "rxjs";
         <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
         <td mat-cell class="monospaced" *matCellDef="let element;let i = index">{{i}}</td>
       </ng-container>
+      <ng-container matColumnDef="startedDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Started</th>
+        <td mat-cell class="monospaced" *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
+      </ng-container>
       <ng-container matColumnDef="length">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Length</th>
         <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
       </ng-container>
+      
       <!--
       <ng-container fxHide.xs matColumnDef="samples">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Sample count</th>
@@ -73,7 +78,7 @@ export class RecordingList implements AfterViewInit{
   //recordingListSubject:Subject<Array<RecordingFile>> = new Subject<Array<RecordingFile>>();
   recordingListDataSource:MatTableDataSource<RecordingFile>;
   //cols=['index','length','samples','samplerate','action'];
-  cols=['index','length','action'];
+  cols=['index','startedDate','length','action'];
   @Input() selectDisabled:boolean=false;
   @Output() selectedRecordingFileChanged = new EventEmitter<RecordingFile>();
   @Input() selectedRecordingFile:RecordingFile|null=null;

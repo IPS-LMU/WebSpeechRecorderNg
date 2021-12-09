@@ -159,6 +159,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   private selCaptureDeviceId: ConstrainDOMString | null;
   private _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
 
+  private startedDate:Date|null=null;
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
   private updateTimerId: any;
@@ -920,6 +921,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   }
 
   started() {
+    this.startedDate=new Date();
     this.transportActions.startAction.disabled = true;
 
     this.statusAlertType = 'info';
@@ -1007,6 +1009,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       // }
 
       let rf = new RecordingFile(UUID.generate(),sessId,ad);
+      rf.startedDate=this.startedDate;
       // it.recs.push(rf);
       //
       // if (this.enableUploadRecordings) {
@@ -1040,7 +1043,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
             this.displayRecFile=rf;
             //this.recordingListComp.recordingList.push(rf);
             this.recorderCombiPane.push(rf);
-            this.postRecordingMultipart(wavFile, rf,recUrl);
+            this.postRecordingMultipart(wavFile, rf.uuid,rf.session,rf.startedDate,recUrl);
             this.processingRecording=false;
             this.changeDetectorRef.detectChanges();
           });
@@ -1066,10 +1069,19 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     this.uploader.queueUpload(ul);
   }
 
-  postRecordingMultipart(wavFile: Uint8Array, rf:RecordingFile,recUrl: string) {
+  postRecordingMultipart(wavFile: Uint8Array, uuid:string|null,sessionId:string|number|null,startedDate:Date|null|undefined,recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+
     let fd=new FormData();
-    fd.set('descr',JSON.stringify(rf));
+    if(uuid) {
+      fd.set('uuid', uuid);
+    }
+    if(sessionId!==null) {
+      fd.set('sessionId', sessionId.toString());
+    }
+    if(startedDate){
+      fd.set('startedDate',startedDate.toJSON());
+    }
     fd.set('audio',wavBlob);
     let ul = new Upload(fd, recUrl);
     this.uploader.queueUpload(ul);
