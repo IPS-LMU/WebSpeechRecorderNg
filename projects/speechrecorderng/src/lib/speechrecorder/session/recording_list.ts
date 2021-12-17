@@ -16,10 +16,10 @@ import {Observable, Subject} from "rxjs";
       <mat-card-content>
     <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
       <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
-      <tr mat-row *matRowDef="let recordingList; columns: cols;"></tr>
+      <tr mat-row *matRowDef="let element; columns: cols;" [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid"></tr>
       <ng-container matColumnDef="index">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
-        <td mat-cell class="monospaced" *matCellDef="let element;let i = index">{{i}}</td>
+        <td mat-cell class="monospaced" *matCellDef="let element;let i = index">{{recordingListDataSource.data.length-i}}</td>
       </ng-container>
       <ng-container matColumnDef="startedDate">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Started</th>
@@ -29,17 +29,6 @@ import {Observable, Subject} from "rxjs";
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Length</th>
         <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
       </ng-container>
-      
-      <!--
-      <ng-container fxHide.xs matColumnDef="samples">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Sample count</th>
-        <td mat-cell *matCellDef="let element">{{element.audioBuffer?.length}}</td>
-      </ng-container>
-      <ng-container fxHide.xs  matColumnDef="samplerate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Samplerate</th>
-        <td mat-cell *matCellDef="let element">{{element.audioBuffer?.sampleRate}}Hz</td>
-      </ng-container>
-      -->
       <ng-container matColumnDef="action">
         <th mat-header-cell *matHeaderCellDef>Action</th>
         <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
@@ -85,15 +74,16 @@ export class RecordingList implements AfterViewInit{
 
   constructor() {
     this.recordingListDataSource=new MatTableDataSource<RecordingFile>();
+
   }
 
   ngAfterViewInit() {
-    this.recordingListDataSource.data=this.recordingList;
+    this.recordingListDataSource.data=this.recordingList.reverse();
   }
 
   push(rf:RecordingFile){
     this.recordingList.push(rf);
-    this.recordingListDataSource.data=this.recordingList;
+    this.recordingListDataSource.data=this.recordingList.reverse();
   }
 
   selectRecordingFile(rf:RecordingFile){
