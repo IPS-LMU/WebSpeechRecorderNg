@@ -72,7 +72,8 @@ export class Item {
   providers: [SessionService],
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
-    <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
+    <app-warningbar [show]="isDefaultAudioTestSession()"
+                    warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
     <app-recordercombipane (selectedRecordingFileChanged)="selectRecordingFile($event)"
                            [audioSignalCollapsed]="audioSignalCollapsed"
                            [selectedRecordingFile]="displayRecFile"
@@ -84,8 +85,10 @@ export class Item {
                            [autoPlayOnSelectToggleAction]="controlAudioPlayer.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
 
-    <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
+    <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
+         [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()"
+                      [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.buffer!==null"
@@ -95,20 +98,32 @@ export class Item {
                                    [agc]="this.ac?.agcStatus"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-        <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+        <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
+                          [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0"
+                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
-    <div #controlpanel class="controlpanel">
-      <app-sprstatusdisplay fxHide.xs  fxFlex="30% 1 30%" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div #controlpanel class="controlpanel" fxLayout="row">
+      <app-sprstatusdisplay fxHide.xs fxFlex="30% 1 30%" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+                            [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
-      <app-sprtransport fxFlex="100% 0 30%" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="false" [pausingEnabled]="false"></app-sprtransport>
-      <div fxFlex="30% 1 30%">
+      <div fxFlex="100% 0 100%" class="startstop">
+        <div style="align-content: center">
+        <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
+          <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
+          <span style="font-weight: bolder;font-size: 14px">{{startStopNextName()}}</span>
+        </button>
+        </div>
+      </div>
+      <div fxFlex="30% 1 30%" >
         <div fxFlex="1 1 auto"></div>
-        <app-uploadstatus class="ricontrols" fxHide.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+        <app-uploadstatus class="ricontrols" fxHide.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
+                          [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-readystateindicator class="ricontrols" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-readystateindicator class="ricontrols" fxHide.xs
+                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
   `,
@@ -135,7 +150,18 @@ export class Item {
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }` ]
+  }`,`.startstop {
+    width: 100%;
+    text-align: center;
+    align-content: center;
+    align-items: center;
+  }`,`.bigbutton {
+    min-width: 70px;
+    min-height: 50px;
+    font-size: 50px;
+    border-radius: 20px;
+  }`
+   ]
 })
 export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener {
 
@@ -165,7 +191,8 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
   private updateTimerId: any;
 
   transportActions: TransportActions;
-  //dnlLnk: HTMLAnchorElement;
+  startStopNextButtonName!:string;
+  startStopNextButtonIconName!:string;
   playStartAction: Action<void>;
   audio: any;
 
@@ -540,6 +567,47 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     }
   }
 
+  startDisabled() {
+    return !this.transportActions || this.readonly || this.transportActions.startAction.disabled
+  }
+
+  stopDisabled() {
+    return !this.transportActions || this.transportActions.stopAction.disabled
+  }
+
+  startStopNextName():string{
+    if(!this.startDisabled()){
+      this.startStopNextButtonName="Start"
+    }else if(!this.stopDisabled()) {
+      this.startStopNextButtonName = "Stop"
+    }
+    return this.startStopNextButtonName;
+  }
+  startStopNextIconName():string{
+    if(!this.startDisabled()){
+      this.startStopNextButtonIconName="fiber_manual_record"
+    }else if(!this.stopDisabled()){
+      this.startStopNextButtonIconName="stop"
+    }
+    return this.startStopNextButtonIconName
+  }
+  startStopNextIconColor():string{
+    if(!this.startDisabled()){
+      return "red"
+    }else if(!this.stopDisabled()){
+      return "yellow"
+    }else{
+      return "grey";
+    }
+  }
+
+  startStopPerform(){
+    if(!this.startDisabled()){
+      this.transportActions.startAction.perform();
+    }else if(!this.stopDisabled()){
+      this.transportActions.stopAction.perform();
+    }
+  }
 
   startItem() {
     this.transportActions.startAction.disabled = true;
