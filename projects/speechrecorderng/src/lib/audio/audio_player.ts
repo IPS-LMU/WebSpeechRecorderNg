@@ -105,7 +105,9 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
          this.ap = new AudioPlayer(this.aCtx, this);
        }
      }catch(err){
-          this.status = err.message;
+       if(err instanceof Error) {
+         this.status = err.message;
+       }
       }
   }
 

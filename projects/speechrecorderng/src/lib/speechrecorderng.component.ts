@@ -74,9 +74,13 @@ export class SpeechrecorderngComponent extends FitToPageComponent implements OnI
         this.sm.statusAlertType='info';
         this.sm.statusMsg = 'Player initialized.';
       }catch(err){
-        this.sm.statusMsg=err.message;
+        let errMsg='Unknown error';
+        if(err instanceof Error){
+          errMsg=err.message;
+        }
+        this.sm.statusMsg=errMsg;
         this.sm.statusAlertType='error';
-        console.error(err.message)
+        console.error(errMsg)
       }
     }
        ngAfterViewInit(){
