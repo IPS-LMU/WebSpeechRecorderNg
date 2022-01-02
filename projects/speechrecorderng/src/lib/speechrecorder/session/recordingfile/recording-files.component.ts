@@ -15,7 +15,8 @@ import {SessionService} from "../session.service";
 
 @Component({
   selector: 'app-sessions',
-  templateUrl: 'recording-files.html'
+  templateUrl: 'recording-files.html',
+    styleUrls: ['recording-files.css']
 })
 export class RecordingFilesComponent implements  OnInit,AfterViewInit {
 

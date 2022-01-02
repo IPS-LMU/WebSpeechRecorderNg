@@ -10,7 +10,7 @@
             </ng-container>
           <ng-container matColumnDef="itemCode">
             <th mat-header-cell *matHeaderCellDef mat-sort-header>Item code</th>
-            <td mat-cell class="monospaced" *matCellDef="let element">{{element.itemCode}}</td>
+            <td mat-cell class="monospaced" *matCellDef="let element">{{element.recording?.itemcode}}</td>
           </ng-container>
             <ng-container matColumnDef="action">
                 <th mat-header-cell *matHeaderCellDef>Action</th>
