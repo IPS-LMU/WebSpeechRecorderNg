@@ -597,10 +597,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       let ab: AudioBuffer|null = this.displayRecFile.audioBuffer;
       let ww = new WavWriter();
       if(ab) {
-        let wavFile = ww.writeAsync(ab, (wavFile) => {
-          let blob = new Blob([wavFile], {type: 'audio/wav'});
-          let rfUrl = URL.createObjectURL(blob);
-
+        let wavFile = ww.writeUrlAsync(ab, (rfUrl) => {
           let dataDnlLnk = this.renderer.createElement('a');
           //dataDnlLnk.name = 'Recording';
           dataDnlLnk.href = rfUrl;
@@ -1272,8 +1269,8 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
           }
           let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
           let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-          ww.writeAsync(ad, (wavFile) => {
-            this.postRecording(wavFile, recUrl);
+          ww.writeBlobAsync(ad, (wavFile) => {
+            this.postRecordingBlob(wavFile, recUrl);
             this.processingRecording = false
           });
         }
@@ -1336,11 +1333,11 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
     this.changeDetectorRef.detectChanges();
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string) {
-    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
+  postRecordingBlob(audioFileBlob: Blob, recUrl: string) {
+    let ul = new Upload(audioFileBlob, recUrl);
     this.uploader.queueUpload(ul);
   }
+
 
   stop() {
     if(this.ac!=null){
