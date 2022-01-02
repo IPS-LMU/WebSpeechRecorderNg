@@ -65,6 +65,12 @@ export class SessionService {
     return wrapObs;
   }
 
+  deleteSessionObserver(session:Session):Observable<void> {
+    let prjNmEnc=encodeURIComponent(session.project);
+    let url=this.apiEndPoint+ProjectService.PROJECT_API_CTX+'/'+prjNmEnc+'/'+SessionService.SESSION_API_CTX+ '/' + session.sessionId;
+    return this.http.delete<void>(url,{withCredentials:this.withCredentials});
+  }
+
   projectSessionsObserver(projectName: string,orderBy?:string,orderDirection?:string,compat=true): Observable<Array<Session>> {
 
     let sesssUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + projectName + '/' + SessionService.SESSION_API_CTX
