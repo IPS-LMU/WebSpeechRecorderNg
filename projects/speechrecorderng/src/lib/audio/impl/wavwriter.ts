@@ -81,6 +81,20 @@ declare function postMessage (message:any, transfer:Array<any>):void;
        this.bw.writeUint32(chkLen,true);
      }
 
+     writeUrlAsync(audioBuffer:AudioBuffer,callback: (wavFileUrl:string)=> any){
+       this.writeBlobAsync(audioBuffer,(wavFileBlob)=> {
+         let url=URL.createObjectURL(wavFileBlob);
+         callback(url);
+       });
+     }
+
+     writeBlobAsync(audioBuffer:AudioBuffer,callback: (wavFileBlob:Blob)=> any){
+       this.writeAsync(audioBuffer,(wavFileData)=> {
+         let wavBlob = new Blob([wavFileData], {type: 'audio/wav'});
+         callback(wavBlob);
+       });
+     }
+
      writeAsync(audioBuffer:AudioBuffer,callback: (wavFileData:Uint8Array)=> any){
 
        let dataChkByteLen=this.writeHeader(audioBuffer);
