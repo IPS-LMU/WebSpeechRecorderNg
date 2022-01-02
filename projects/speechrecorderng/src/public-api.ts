@@ -17,6 +17,7 @@ export {FitToPageComponent} from "./lib/ui/fit_to_page_comp"
 export {MessageDialog} from "./lib/ui/message_dialog"
 
 export {AudioClip,Selection} from './lib/audio/persistor'
+export {WavWriter} from './lib/audio/impl/wavwriter'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
 export {AudioDisplay} from './lib/audio/audio_display'
 export {AudioDisplayPlayer} from './lib/audio/audio_player'
