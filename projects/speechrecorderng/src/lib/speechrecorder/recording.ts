@@ -14,6 +14,7 @@ export class RecordingFileDescriptor {
       date: string|null=null;
       _dateAsDateObj:Date|null=null;
       audioBuffer:AudioBuffer|null=null;
+      audioBlob:Blob|null=null;
       session:string|number|null=null;
       itemCode:string;
       frames:number|null=null;
