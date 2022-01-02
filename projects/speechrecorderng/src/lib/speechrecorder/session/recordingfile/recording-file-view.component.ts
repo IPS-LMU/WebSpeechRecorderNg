@@ -344,7 +344,9 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             }
             let r = rfd.recording;
             let ic = r.itemcode;
+
             if(ic) {
+              rfd.itemCode=ic;
               let exRfsForIc = icIdx[ic];
               if (exRfsForIc == null) {
                 // itemcode not yet stored
