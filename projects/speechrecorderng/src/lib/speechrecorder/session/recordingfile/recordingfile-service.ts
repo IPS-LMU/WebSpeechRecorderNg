@@ -8,6 +8,9 @@ import {Observable} from "rxjs";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
 import {RecordingFile} from "../../recording";
+import {Session} from "../session";
+import {ProjectService} from "../../project/project.service";
+import {SessionService} from "../session.service";
 
 
 @Injectable()
@@ -204,6 +207,11 @@ export class RecordingFileService {
     }
     console.log("Path request URL: "+recUrl)
     return this.http.patch<RecordingFile>(recUrl,{editSampleRate:editSampleRate,editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
+  }
+
+  deleteRecordingFileObserver(recordingFileId: string | number):Observable<void> {
+    let url = this.recoFileUrl(recordingFileId);
+    return this.http.delete<void>(url,{withCredentials:this.withCredentials});
   }
 
 }

@@ -10,6 +10,11 @@ import {RecordingFile, RecordingFileDescriptor} from "../../recording";
 import {ScriptService} from "../../script/script.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {SessionService} from "../session.service";
+import {MatDialog} from "@angular/material/dialog";
+import {RecordingFileDeleteConfirmDialog} from "./recoring-file_delete_confirm_dialog";
+import {MessageDialog} from "../../../ui/message_dialog";
+import {MatSnackBar} from "@angular/material/snack-bar";
+import {RecordingFileService} from "./recordingfile-service";
 
 
 
@@ -32,10 +37,13 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
   constructor(private route: ActivatedRoute,
               private router: Router,
               private chDetRef:ChangeDetectorRef,
+              public dialog: MatDialog,
+              private snackBar: MatSnackBar,
               private renderer:Renderer2,
               @Inject(DOCUMENT) private dAsAny: any,
               private scriptService:ScriptService,
               private recService:RecordingService,
+              private recFileService:RecordingFileService,
               private sessionService: SessionService) {
       this.d=dAsAny as Document;
       this.recordingFiles=new Array<RecordingFile>()
@@ -73,6 +81,30 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
 
     toRecordingFileDetail(rf:RecordingFile){
         this.router.navigate(['/spr','db','recordingfile','_view',rf.recordingFileId])
+    }
+
+    deleteRecordingFileRequest(rf:RecordingFile){
+        let dialogRef = this.dialog.open(RecordingFileDeleteConfirmDialog, {data: rf });
+        dialogRef.afterClosed().subscribe((data)=>{
+            if(data){
+                this.recFileService.deleteRecordingFileObserver(data.recordingFileId).subscribe((value) => {},
+                    () => {
+                        this.dialog.open(MessageDialog, {
+                            data: {
+                                type: 'error',
+                                title: 'Delete recording file error',
+                                msg: "Could not delete recording on WikiSpeech server!",
+                                advice: "Please check network connection and server state."
+                            }
+                        })
+                    },
+                    () => {
+                        this.snackBar.open('Recordng file deleted successfully.', 'OK', {duration: 2000});
+                        this.fetchRecordingFiles();
+                    });
+            }
+        })
+
     }
 
 }
