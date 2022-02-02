@@ -541,7 +541,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
             let pi = pis[piSectIdx];
             let promptAsStr = PromptitemUtil.toPlainTextString(pi);
 
-            let it = new Item(promptAsStr, section.training);
+            let it = new Item(promptAsStr, section.training,(!pi.type || pi.type==='recording'));
             this.items.push(it);
             ln++;
           }
@@ -1280,7 +1280,7 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
       // search backwards, to gain faster detection of incomplete state
       for (let ri = this.items.length - 1; ri >= 0; ri--) {
         let it = this.items[ri];
-        if (!it.training && (!it.recs || it.recs.length == 0)) {
+        if (it.recording && !it.training && (!it.recs || it.recs.length == 0)) {
           complete = false;
           break;
         }
