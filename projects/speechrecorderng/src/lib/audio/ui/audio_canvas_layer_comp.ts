@@ -347,7 +347,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
                     if(framePos) {
                         let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)
                         if (xViewPortPixelpos) {
-
+                            console.debug("Cursor: "+w+"x"+h+", "+xViewPortPixelpos+", FP:"+framePos);
                             g.fillStyle = 'yellow';
                             g.strokeStyle = 'yellow';
                             g.beginPath();
