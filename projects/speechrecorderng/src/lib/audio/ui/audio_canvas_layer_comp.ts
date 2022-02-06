@@ -105,7 +105,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
             cl.style.top = topStyle;
         }
         if (bounds.dimension.width) {
-            let intW=Math.round(bounds.dimension.width);
+            let intW=Math.floor(bounds.dimension.width);
             if (redraw) {
                 // Do not set width of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
@@ -120,7 +120,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
             }
         }
         if (bounds.dimension.height) {
-            let intH=Math.round(bounds.dimension.height)
+            let intH=Math.floor(bounds.dimension.height)
             if (redraw) {
                 // Do not set height of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {

@@ -28,7 +28,7 @@ import {AudioClip, Selection} from "../persistor";
       height: 100%;
       position: relative;
       overflow-x: scroll;
-      overflow-y: auto;
+      overflow-y: hidden;
     }`,
     `app-audio {
 
