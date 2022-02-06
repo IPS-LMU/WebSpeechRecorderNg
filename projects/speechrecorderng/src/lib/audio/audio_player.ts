@@ -126,7 +126,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       let heightListener=new MutationObserver((mrs:Array<MutationRecord>,mo:MutationObserver)=>{
           mrs.forEach((mr:MutationRecord)=>{
               if('attributes'===mr.type && ('class'===mr.attributeName || 'style'===mr.attributeName)){
-                  this.layout();
+                  //window.setTimeout(()=>{this.layout(),5000});
+                this.layout();
               }
           })
       });

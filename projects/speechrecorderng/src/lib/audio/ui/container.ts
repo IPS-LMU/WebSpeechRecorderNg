@@ -78,6 +78,7 @@ declare enum ResizeObserverBoxOptions {
     position: relative; /* TODO container div position must not be 'static' (default) to act as reference for the canvases */
     box-sizing: border-box;
     transform: none;
+    overflow: hidden; /* Prevents Error in WebKit: ResizeObserver loop completed with undelivered notifications. */
   }`, `canvas{
     top: 0;
     left: 0;
@@ -87,12 +88,14 @@ declare enum ResizeObserverBoxOptions {
     position: absolute;
     zIndex: 1;
     transform: none;
+    /*overflow: hidden;*/
   }`, `audio-signal {
     top: 0;
     left: 0;
     position: absolute;
     zIndex: 1;
     transform: none;
+
   }`, `audio-sonagram {
     top: 0;
     left: 0;
@@ -354,7 +357,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       soH = 0;
     }
 
-  // sonagram top position
+    // sonagram top position
     const soTop = asH + AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
 
     // Visible bounds
@@ -369,17 +372,37 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
     // Divider
     // left position
-    this.dc.style.left = vbLeft + 'px';
+    let vbLeftStyl = vbLeft + 'px';
+    if (this.dc.style.left != vbLeftStyl) {
+      this.dc.style.left = vbLeftStyl;
+      console.log("set style left: " + vbLeft);
+    }
     // top position
     const dTop = asH;
     const dTopStr = dTop + 'px';
-    this.dc.style.top = dTopStr;
+    if (this.dc.style.top != dTopStr) {
+      this.dc.style.top = dTopStr;
+      console.log("set style top: " + dTopStr);
+    }
     // width
-    this.dc.style.width = vbWidth + 'px';
-    this.dc.width = vbWidth;
+    let vbWidthStyle = vbWidth + 'px';
+    if (this.dc.style.width != vbWidthStyle) {
+      this.dc.style.width = vbWidthStyle;
+    }
+    if (this.dc.width != vbWidth) {
+      this.dc.width = vbWidth;
+      console.log("set width: " + vbWidth);
+    }
     // height
-    this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
-    this.dc.style.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+    if(this.dc.height!=AudioClipUIContainer.DIVIDER_PIXEL_SIZE) {
+      this.dc.height = AudioClipUIContainer.DIVIDER_PIXEL_SIZE;
+
+    }
+    let divPixelSizeStyle=AudioClipUIContainer.DIVIDER_PIXEL_SIZE.toString() + 'px';
+    if(this.dc.style.height!=divPixelSizeStyle) {
+      this.dc.style.height = divPixelSizeStyle;
+      console.log("set div style height: " + divPixelSizeStyle);
+    }
 
     this.drawDivider();
 
@@ -417,7 +440,10 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       if(this._audioData){
         if(this._fixFitToPanel) {
           // Set the virtual canvas width to the visible width
-          this.ce.style.width = '100%';
+          if(this.ce.style.width!='100%') {
+            console.log("set width to 100%");
+            this.ce.style.width = '100%';
+          }
         }else{
           if (this._xZoom) {
             // Set the virtual canvas width according to the value of the user selected xZoom value

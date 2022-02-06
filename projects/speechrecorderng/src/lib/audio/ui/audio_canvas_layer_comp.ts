@@ -93,7 +93,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
     }
 
     layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
-
+        //return;
         this.bounds=bounds;
         this.virtualDimension=virtualDimension;
         //this.canvasLayers.forEach(cl=>{
@@ -101,37 +101,56 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
             let cl = this.canvasLayers[ci];
             const leftStyle=bounds.position.left+ 'px';
             const topStyle=bounds.position.top + 'px';
-            cl.style.left = leftStyle;
-            cl.style.top = topStyle;
+            if(cl.style.left!=leftStyle) {
+              cl.style.left = leftStyle;
+              console.log("set style left: " + leftStyle);
+            }
+            if(cl.style.top!=topStyle) {
+              console.log("set style top: \"" + cl.style.top+ "\" \""+topStyle+"\"");
+              cl.style.top = topStyle;
+
+            }
         }
         if (bounds.dimension.width) {
-            let intW=Math.round(bounds.dimension.width);
+            let intW=Math.floor(bounds.dimension.width);
             if (redraw) {
                 // Do not set width of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
                     let cl = this.canvasLayers[ci];
-                    cl.width = intW;
+                    if(cl.width!=intW) {
+                      console.log("set cl width: \"" + cl.width+ "\" \""+intW+"\"");
+                      cl.width = intW;
+                    }
                 }
             }
             let wStr = intW.toString() + 'px';
             for(let ci=0;ci<this.canvasLayers.length;ci++) {
                 let cl = this.canvasLayers[ci];
-                cl.style.width = wStr;
+                if(cl.style.width!=wStr) {
+                  console.log("set cl style width: \"" + cl.style.width+ "\" -> \""+wStr+"\"");
+                  cl.style.width = wStr;
+                }
             }
         }
         if (bounds.dimension.height) {
-            let intH=Math.round(bounds.dimension.height)
+            let intH=Math.floor(bounds.dimension.height)
             if (redraw) {
                 // Do not set height of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
                     let cl = this.canvasLayers[ci];
-                    cl.height = intH;
+                    if(cl.height!=intH) {
+                      console.log("set cl height: \"" + cl.height+ "\" \""+intH+"\"");
+                      cl.height = intH;
+                    }
                 }
             }
             let hStr = intH + 'px';
             for(let ci=0;ci<this.canvasLayers.length;ci++) {
                 let cl = this.canvasLayers[ci];
-                cl.style.height = hStr;
+                if(cl.style.height!=hStr) {
+                  console.log("set cl style heigth: \"" + cl.style.height+ "\" -> \""+hStr+"\"");
+                  cl.style.height = hStr;
+                }
             }
         }
         //});
