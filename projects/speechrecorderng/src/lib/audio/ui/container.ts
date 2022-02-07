@@ -78,7 +78,7 @@ declare enum ResizeObserverBoxOptions {
     position: relative; /* TODO container div position must not be 'static' (default) to act as reference for the canvases */
     box-sizing: border-box;
     transform: none;
-    overflow: hidden; /* Prevents Error in WebKit: ResizeObserver loop completed with undelivered notifications. */
+    overflow: hidden;
   }`, `canvas{
     top: 0;
     left: 0;
