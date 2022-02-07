@@ -287,7 +287,10 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       context = AudioContextProvider.audioContextInstance()
     } catch (err) {
       this.status = Status.ERROR;
-      let errMsg = err.message;
+      let errMsg = 'Unknown';
+      if(err instanceof Error){
+        errMsg=err.message;
+      }
       this.statusMsg = 'ERROR: ' + errMsg;
       this.statusAlertType = 'error';
       this.dialog.open(MessageDialog, {
