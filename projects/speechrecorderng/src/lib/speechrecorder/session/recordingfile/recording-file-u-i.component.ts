@@ -115,11 +115,18 @@ protected loadedRecfile() {
     if(this.audioClip) {
       let ab=this.audioClip.buffer;
       let s = this.audioClip.selection
-      if (s && ab && this.recordingFile?.recordingFileId) {
-        let sr= ab.sampleRate;
-        let sf = s.startFrame;
-        let ef = s.endFrame;
-        this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe((value) => {},
+      if (ab && this.recordingFile?.recordingFileId) {
+
+        let sr= null;
+        let sf=null;
+        let ef=null;
+        if(s) {
+          sr= ab.sampleRate;
+          sf = s.startFrame;
+          ef = s.endFrame;
+        }
+          this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe((value) => {
+            },
             () => {
               this.dialog.open(MessageDialog, {
 

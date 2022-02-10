@@ -258,7 +258,7 @@ export class RecordingFileService {
     return wobs;
   }
 
-  saveEditSelection(recordingFileId: string | number,editSampleRate:number,editStartFrame:number,editEndFrame:number): Observable<SprRecordingFile | null> {
+  saveEditSelection(recordingFileId: string | number,editSampleRate:number|null,editStartFrame:number|null,editEndFrame:number|null): Observable<SprRecordingFile | null> {
     let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
