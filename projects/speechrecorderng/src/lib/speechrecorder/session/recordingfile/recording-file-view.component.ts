@@ -83,10 +83,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   sessionId: string | number | null= null;
   sessionIdFromRoute:string|null=null;
 
-  availRecFiles!: Array<Array<RecordingFile>>;
+  availRecFiles!: Array<Array<SprRecordingFile>>;
   versions: Array<number>|null=null;
 
-  recordingFile: RecordingFile|null=null;
+  recordingFile: SprRecordingFile|null=null;
   recordingFileVersion:number|null=null;
   private routedByQueryParam=false;
   posInList: number|null=null;
@@ -217,9 +217,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   private positionInList():number | null{
     if (this.availRecFiles && this.recordingFile) {
-      if (this.recordingFile instanceof SprRecordingFile) {
-        let sprRf = <SprRecordingFile>this.recordingFile;
-        let cic = sprRf.recording.itemcode;
+      let cic=this.recordingFile.itemCode;
+      if (cic) {
         let itemCnt = this.availRecFiles.length
         for (let rfdi = 0; rfdi < itemCnt; rfdi++) {
           let arRf = this.availRecFiles[rfdi][0];
@@ -272,7 +271,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.updateActions();
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
-      this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
+      this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(value => {
         this.status = 'Audio file loaded.';
         let clip = null;
         this.recordingFile = value;
@@ -351,8 +350,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         // received session data
         this.sessionId = s.sessionId;
         // fetch recording file meta data list
-        this.recordingService.recordingFileList(s.project, s.sessionId).subscribe((rfds) => {
-          this.availRecFiles = new Array<Array<RecordingFile>>();
+        this.recordingService.sprRecordingFileList(s.project, s.sessionId).subscribe((rfds) => {
+          this.availRecFiles = new Array<Array<SprRecordingFile>>();
           // build structure indexed by itemcode
           let icIdx = new ItemcodeIndex();
           for (let rfdi = 0; rfdi < rfds.length; rfdi++) {
@@ -362,30 +361,35 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               let rfdd = new Date(rfd.date);
               rfd._dateAsDateObj = rfdd;
             }
-            if(rfd instanceof SprRecordingFile) {
+            let ic = rfd.itemCode;
+
+            if (!ic) {
               let r = rfd.recording;
-              let ic = r.itemcode;
-              if (ic) {
-                let exRfsForIc = icIdx[ic];
-                if (exRfsForIc == null) {
-                  // itemcode not yet stored
-                  let arfd = new Array<SprRecordingFile>();
-                  arfd.push(rfd);
-                  icIdx[ic] = arfd;
-                  this.availRecFiles.push(arfd);
-                } else {
-                  // rec file with itemcode already exists, add (push) this version ...
-                  exRfsForIc.push(rfd);
-                  // .. and sort latest version (highest version number) to lowest index
-                  exRfsForIc.sort((rfd1, rfd2) => {
-                    return rfd2.version - rfd1.version;
-                  })
-                }
+              if (r && r.itemcode) {
+                ic = r.itemcode;
               }
-            }else{
-                let arfd = new Array<RecordingFile>();
+            }
+            if (ic) {
+              let exRfsForIc = icIdx[ic];
+              if (exRfsForIc == null) {
+                // itemcode not yet stored
+                let arfd = new Array<SprRecordingFile>();
                 arfd.push(rfd);
+                icIdx[ic] = arfd;
                 this.availRecFiles.push(arfd);
+              } else {
+                // rec file with itemcode already exists, add (push) this version ...
+                exRfsForIc.push(rfd);
+                // .. and sort latest version (highest version number) to lowest index
+                exRfsForIc.sort((rfd1, rfd2) => {
+                  return rfd2.version - rfd1.version;
+                })
+              }
+
+            } else {
+              let arfd = new Array<SprRecordingFile>();
+              arfd.push(rfd);
+              this.availRecFiles.push(arfd);
             }
           }
           // have unsorted itemcode indexed recording files here
@@ -415,7 +419,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
           this.ref.detectChanges();
         });
       });
-    }
+      }
   }
 }
 

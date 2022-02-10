@@ -13,7 +13,15 @@ import {RecordingFile, SprRecordingFile} from "../../recording";
             <td>Itemcode:</td>
             <td>{{itemCode}}</td>
           </tr>
-          <tr *ngIf="recordingFile?.date">
+          <tr *ngIf="uuid && !itemCode">
+            <td>UUID:</td>
+            <td>{{uuid}}</td>
+          </tr>
+          <tr *ngIf="recordingFile?.startedDate">
+            <td>Started:</td>
+            <td>{{recordingFile?.startedDate}}</td>
+          </tr>
+          <tr *ngIf="!recordingFile?.startedDate && recordingFile?.date">
             <td>Date:</td>
             <td>{{recordingFile?.date}}</td>
           </tr>
@@ -37,25 +45,41 @@ export class RecordingFileMetaComponent{
 
   @Input() sessionId:string | number | null=null;
 
-  private _recordingFile:RecordingFile|null=null;
+  private _recordingFile:SprRecordingFile|null=null;
 
-  get recordingFile(): RecordingFile | null {
+  get recordingFile(): SprRecordingFile | null {
     return this._recordingFile;
   }
 
-  @Input() set recordingFile(recordingFile:RecordingFile|null){
+  @Input() set recordingFile(recordingFile:SprRecordingFile|null){
     this._recordingFile=recordingFile;
-    if(this._recordingFile instanceof SprRecordingFile){
-      this.itemCode=this._recordingFile.itemCode;
+    if(this._recordingFile) {
+      this.itemCode = this._recordingFile.itemCode;
+      if(!this.itemCode && this._recordingFile.recording?.itemcode){
+        this.itemCode=this._recordingFile.recording.itemcode;
+      }
+      if (this.itemCode) {
+
+        this.uuid = null;
+        console.debug("SprRecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+      } else {
+        this.itemCode = null;
+        this.uuid = this._recordingFile?.uuid;
+        console.debug("RecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+      }
+    }else{
+      this.itemCode=null;
+      this.uuid=null;
     }
   }
 
   itemCode:string|null=null;
+  uuid:string|null|undefined=null;
 
   recordingAsPlainText(){
     let t=null;
-    if(this.recordingFile instanceof SprRecordingFile) {
-      t= RecordingFileUtil.recordingAsPlainText(this.recordingFile);
+    if(this._recordingFile) {
+      t = RecordingFileUtil.recordingAsPlainText(this._recordingFile);
     }
     return t;
   }
