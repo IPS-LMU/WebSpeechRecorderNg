@@ -18,6 +18,7 @@ import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
 import {FitToPageComponent} from "./ui/fit_to_page_comp";
+import {RecorderComponent} from "./recorder_component";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -38,7 +39,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechrecorderngComponent extends FitToPageComponent implements OnInit,AfterViewInit,AudioPlayerListener {
+export class SpeechrecorderngComponent extends RecorderComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
 	  mode!:Mode;
 		controlAudioPlayer!:AudioPlayer;
@@ -99,7 +100,7 @@ export class SpeechrecorderngComponent extends FitToPageComponent implements OnI
             if (routeParamsId) {
               this.fetchSession(routeParamsId);
             }
-          })
+          });
         }
       }
     }

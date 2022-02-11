@@ -14,6 +14,7 @@ export {Action} from "./lib/action/action";
 export {ClassDescriptor,PropertyDescriptor,DataType,UiFieldHint,LocalizedMessage} from './lib/reflect/class_descriptor'
 
 export {FitToPageComponent} from "./lib/ui/fit_to_page_comp"
+export {RecorderComponent} from "./lib/recorder_component"
 export {MessageDialog} from "./lib/ui/message_dialog"
 
 export {AudioClip,Selection} from './lib/audio/persistor'

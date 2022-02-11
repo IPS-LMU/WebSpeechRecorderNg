@@ -11,7 +11,7 @@ export abstract class FitToPageComponent implements OnInit,OnDestroy{
     private bodyMarginSave!:string;
     private bodyPaddingSave!:string;
     private d:Document;
-    private renderer:Renderer2
+    protected renderer:Renderer2
 
     constructor(injector:Injector) {
         this.d=injector.get(DOCUMENT);

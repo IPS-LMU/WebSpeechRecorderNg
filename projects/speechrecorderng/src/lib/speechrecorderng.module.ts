@@ -55,7 +55,7 @@ import {RecordingFileUI} from "./speechrecorder/session/recordingfile/recording-
 import {RecordingFileService} from "./speechrecorder/session/recordingfile/recordingfile-service";
 import {RecordingFileViewComponent} from "./speechrecorder/session/recordingfile/recording-file-view.component";
 import {MatTableModule} from "@angular/material/table";
-import { RecordingFileNaviComponent } from './speechrecorder/session/recordingfile/recording-file-navi.component';
+import {RecordingFileNaviComponent } from './speechrecorder/session/recordingfile/recording-file-navi.component';
 import {RecordingFileMetaComponent} from "./speechrecorder/session/recordingfile/recording-file-meta.component";
 import {MatSelectModule} from "@angular/material/select";
 import {MatInputModule} from "@angular/material/input";
@@ -70,11 +70,18 @@ import {SpeakerService} from "./speechrecorder/speaker/speaker.service";
 import {
   RecordingFileDeleteConfirmDialog
 } from "./speechrecorder/session/recordingfile/recoring-file_delete_confirm_dialog";
+import {RecorderComponent} from "./recorder_component";
 
 
 
 export const SPR_ROUTES: Routes = [
-  { path: 'recorder',      component: AudioRecorder },
+  {
+    path: 'recorder',
+    children: [
+      {path: 'session/:id', component: AudioRecorder},
+      {path: '', component: AudioRecorder}
+    ]
+  },
   {
     path: 'spr',
     children: [

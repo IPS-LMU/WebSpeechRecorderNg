@@ -7,7 +7,7 @@ import {RecordingFile, RecordingFileDescriptorImpl, SprRecordingFile} from '../r
 
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2, Injector, OnInit
 } from "@angular/core";
 import {SessionService} from "./session.service";
 
@@ -35,6 +35,8 @@ import {MIN_DB_LEVEL, RecordingItemDisplay} from "../../ui/recordingitem_display
 import {LevelBar} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
 import {Script} from "../script/script";
+import {FitToPageComponent} from "../../ui/fit_to_page_comp";
+import {RecorderComponent} from "../../recorder_component";
 
 
 export const RECFILE_API_CTX = 'recfile';
@@ -134,8 +136,8 @@ export class Item {
     flex-direction: column;
     margin: 0;
     padding: 0;
+    height: 100%;
     min-height: 0px;
-
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }`,`.ricontrols {
@@ -163,7 +165,7 @@ export class Item {
   }`
    ]
 })
-export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener {
+export class AudioRecorder extends RecorderComponent implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener {
 
   _project:Project|null=null;
   @Input() projectName:string|null=null;
@@ -232,15 +234,16 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
   private navigationDisabled=true;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef,
+  constructor(protected injector:Injector,
+              private changeDetectorRef: ChangeDetectorRef,
               private route: ActivatedRoute,
-              private renderer: Renderer2,
               public dialog: MatDialog,
               private projectService:ProjectService,
               private sessionService:SessionService,
               private recFileService:RecordingService,
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
+    super(injector);
     this.status = Status.IDLE;
     this.transportActions = new TransportActions();
     this.playStartAction = new Action('Play');
@@ -254,13 +257,20 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
     if (this.config && this.config.enableDownloadRecordings != null) {
       this.enableDownloadRecordings = this.config.enableDownloadRecordings;
     }
-    this.init();
+    //this.init();
   }
+
 
   ngAfterViewInit() {
     this.route.queryParams.subscribe((params: Params) => {
       if (params['sessionId']) {
         this.fetchSession(params['sessionId']);
+      }
+    });
+    this.route.params.subscribe((params: Params) => {
+      let routeParamsId = params['id'];
+      if (routeParamsId) {
+        this.fetchSession(routeParamsId);
       }
     });
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
@@ -269,12 +279,17 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       this.changeDetectorRef.detectChanges();
     }
   }
+
+  ready():boolean{
+    return this.dataSaved && !this.isActive()
+  }
     ngOnDestroy() {
        this.destroyed=true;
        // TODO stop capture /playback
     }
 
-  private init() {
+  ngOnInit() {
+    super.ngOnInit();
 
     this.transportActions.startAction.disabled = true;
     this.transportActions.stopAction.disabled = true;
