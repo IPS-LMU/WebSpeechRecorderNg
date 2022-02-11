@@ -7,7 +7,7 @@ import {Observable} from "rxjs";
 
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
-import {RecordingFile} from "../../recording";
+import {RecordingFile, SprRecordingFile} from "../../recording";
 import {Session} from "../session";
 import {ProjectService} from "../../project/project.service";
 import {SessionService} from "../session.service";
@@ -82,6 +82,17 @@ export class RecordingFileService {
     return this.http.get<RecordingFile>(recUrl,{ withCredentials: this.withCredentials });
   }
 
+  private sprRecordingFileDescrObserver(recordingFileId: string | number): Observable<SprRecordingFile> {
+
+    let recUrl = this.recoFileUrl(recordingFileId);
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      recUrl = recUrl + '.json?requestUUID='+UUID.generate();
+    }
+    return this.http.get<SprRecordingFile>(recUrl,{ withCredentials: this.withCredentials });
+  }
+
 
   private fetchSessionAudiofileById(projectName: string, sessId: string | number, recordingFileId: string | number): Observable<HttpResponse<ArrayBuffer>> {
 
@@ -101,9 +112,9 @@ export class RecordingFileService {
 
   // TODO test
 
-  fetchAndApplyRecordingFile(aCtx: AudioContext, recordingFile:RecordingFile):Observable<RecordingFile|null> {
+  fetchAndApplyRecordingFile(aCtx: AudioContext, recordingFile:SprRecordingFile):Observable<SprRecordingFile|null> {
 
-    let wobs = new Observable<RecordingFile|null>(observer=>{
+    let wobs = new Observable<SprRecordingFile|null>(observer=>{
       if(recordingFile.recordingFileId) {
         let obs = this.fetchAudiofile(recordingFile.recordingFileId);
 
@@ -158,6 +169,58 @@ export class RecordingFileService {
       }, () => {
         let rfAudioObs = this.fetchAudiofile(recordingFileId);
         rfAudioObs.subscribe(resp => {
+            // Do not use Promise version, which does not work with Safari 13
+            if(resp.body) {
+              aCtx.decodeAudioData(resp.body, ab => {
+                if(rf) {
+                  rf.audioBuffer = ab
+                }else{
+                  observer.error('Recording file object null');
+                }
+                if (this.debugDelay > 0) {
+                  window.setTimeout(() => {
+                    observer.next(rf);
+                    observer.complete();
+                  }, this.debugDelay);
+                } else {
+                  observer.next(rf);
+                  observer.complete();
+                }
+              })
+            }else{
+              observer.error('Received no audio data');
+            }
+          },
+          (error: HttpErrorResponse) => {
+            if (error.status == 404) {
+              // Interpret not as an error, the file ist not recorded yet
+              observer.next(null);
+              observer.complete()
+            } else {
+              // all other states are errors
+              observer.error(error);
+              observer.complete();
+            }
+          });
+
+      });
+    });
+
+    return wobs;
+  }
+
+  fetchSprRecordingFile(aCtx: AudioContext, recordingFileId: string | number): Observable<SprRecordingFile | null> {
+
+    let wobs = new Observable<SprRecordingFile | null>(observer => {
+      let rf: SprRecordingFile|null = null;
+      let rfDescrObs = this.sprRecordingFileDescrObserver(recordingFileId);
+      rfDescrObs.subscribe(value => {
+        rf = value;
+      }, (error) => {
+        observer.error(error);
+      }, () => {
+        let rfAudioObs = this.fetchAudiofile(recordingFileId);
+        rfAudioObs.subscribe(resp => {
               // Do not use Promise version, which does not work with Safari 13
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
@@ -198,7 +261,7 @@ export class RecordingFileService {
     return wobs;
   }
 
-  saveEditSelection(recordingFileId: string | number,editSampleRate:number,editStartFrame:number,editEndFrame:number): Observable<RecordingFile | null> {
+  saveEditSelection(recordingFileId: string | number,editSampleRate:number|null,editStartFrame:number|null,editEndFrame:number|null): Observable<SprRecordingFile | null> {
     let recUrl = this.apiEndPoint + RecordingFileService.RECOFILE_API_CTX + '/' + recordingFileId;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
@@ -206,7 +269,7 @@ export class RecordingFileService {
       recUrl = recUrl + '.json?requestUUID='+UUID.generate();
     }
     console.log("Path request URL: "+recUrl)
-    return this.http.patch<RecordingFile>(recUrl,{editSampleRate:editSampleRate,editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
+    return this.http.patch<SprRecordingFile>(recUrl,{editSampleRate:editSampleRate,editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
   }
 
   deleteRecordingFileObserver(recordingFileId: string | number):Observable<void> {

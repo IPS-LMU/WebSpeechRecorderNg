@@ -37,7 +37,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-        <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?recordingFile.version:null" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+        <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
 
       <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
@@ -116,11 +116,18 @@ protected loadedRecfile() {
     if(this.audioClip) {
       let ab=this.audioClip.buffer;
       let s = this.audioClip.selection
-      if (s && ab && this.recordingFile?.recordingFileId) {
-        let sr= ab.sampleRate;
-        let sf = s.startFrame;
-        let ef = s.endFrame;
-        this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe((value) => {},
+      if (ab && this.recordingFile?.recordingFileId) {
+
+        let sr= null;
+        let sf=null;
+        let ef=null;
+        if(s) {
+          sr= ab.sampleRate;
+          sf = s.startFrame;
+          ef = s.endFrame;
+        }
+          this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe((value) => {
+            },
             () => {
               this.dialog.open(MessageDialog, {
 

@@ -15,7 +15,7 @@ import {Project, ProjectUtil} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
-import {RecordingFileDescriptor} from "./speechrecorder/recording";
+import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
 import {FitToPageComponent} from "./ui/fit_to_page_comp";
 
@@ -184,7 +184,7 @@ export class SpeechrecorderngComponent extends FitToPageComponent implements OnI
         let prNm:string|null=null;
         if(this.project) {
             let rfsObs = this.recFilesService.recordingFileDescrList(this.project.name, sess.sessionId);
-            rfsObs.subscribe((rfs: Array<RecordingFileDescriptor>) => {
+            rfsObs.subscribe((rfs: Array<RecordingFileDescriptorImpl>) => {
                 this.sm.statusAlertType = 'info';
                 this.sm.statusMsg = 'Received infos of recordings.';
                 this.sm.statusWaiting = false;

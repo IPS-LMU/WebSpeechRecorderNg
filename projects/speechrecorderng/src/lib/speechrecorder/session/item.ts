@@ -1,7 +1,7 @@
-import {RecordingFile} from "../recording";
+import {SprRecordingFile} from "../recording";
 
 export class Item {
-    recs: Array<RecordingFile> | null;
+    recs: Array<SprRecordingFile> | null;
 
     constructor(private _promptAsString: string, private _training: boolean,private _recording:boolean) {
         this.recs = null;

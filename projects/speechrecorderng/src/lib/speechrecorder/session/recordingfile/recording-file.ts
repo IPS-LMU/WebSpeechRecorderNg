@@ -1,5 +1,5 @@
-import {PromptItem, PromptitemUtil} from "../../script/script";
-import {RecordingFile} from "../../recording";
+import {PromptitemUtil} from "../../script/script";
+import {RecordingFile, SprRecordingFile} from "../../recording";
 
 
 // export class RecordingFile {
@@ -35,7 +35,7 @@ import {RecordingFile} from "../../recording";
 // }
 
 export class RecordingFileUtil {
-  public static recordingAsPlainText(recordingFile:RecordingFile) {
+  public static recordingAsPlainText(recordingFile:SprRecordingFile) {
     if (recordingFile) {
       let r = recordingFile.recording;
       if (r) {
@@ -62,12 +62,12 @@ export class RecordingFileUtil {
     return fpFSr;
   }
 
-  public static editStartFrameForSampleRate(recordingFile:RecordingFile,sampleRate:number):number | null{
+  public static editStartFrameForSampleRate(recordingFile:RecordingFile, sampleRate:number):number | null{
     let esffSr=RecordingFileUtil.framePosForSampleRate(recordingFile.editSampleRate,recordingFile.editStartFrame,sampleRate);
     return esffSr;
   }
 
-  public static editEndFrameForSampleRate(recordingFile:RecordingFile,sampleRate:number):number | null{
+  public static editEndFrameForSampleRate(recordingFile:RecordingFile, sampleRate:number):number | null{
     let eeffSr=RecordingFileUtil.framePosForSampleRate(recordingFile.editSampleRate,recordingFile.editEndFrame,sampleRate);
     return eeffSr;
   }

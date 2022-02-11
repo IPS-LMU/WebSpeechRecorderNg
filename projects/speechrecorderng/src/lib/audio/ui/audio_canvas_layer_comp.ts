@@ -100,38 +100,50 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
             let cl = this.canvasLayers[ci];
             const leftStyle=bounds.position.left+ 'px';
+            if(cl.style.left!=leftStyle) {
+              cl.style.left = leftStyle;
+            }
             const topStyle=bounds.position.top + 'px';
-            cl.style.left = leftStyle;
-            cl.style.top = topStyle;
+            if(cl.style.top!=topStyle) {
+              cl.style.top = topStyle;
+            }
         }
         if (bounds.dimension.width) {
-            let intW=Math.round(bounds.dimension.width);
+            let intW=Math.floor(bounds.dimension.width);
             if (redraw) {
                 // Do not set width of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
                     let cl = this.canvasLayers[ci];
-                    cl.width = intW;
+                    if(cl.width!=intW) {
+                      cl.width = intW;
+                    }
                 }
             }
             let wStr = intW.toString() + 'px';
             for(let ci=0;ci<this.canvasLayers.length;ci++) {
                 let cl = this.canvasLayers[ci];
-                cl.style.width = wStr;
+                if(cl.style.width!=wStr) {
+                  cl.style.width = wStr;
+                }
             }
         }
         if (bounds.dimension.height) {
-            let intH=Math.round(bounds.dimension.height)
+            let intH=Math.floor(bounds.dimension.height)
             if (redraw) {
                 // Do not set height of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
                     let cl = this.canvasLayers[ci];
-                    cl.height = intH;
+                    if(cl.height!=intH) {
+                      cl.height = intH;
+                    }
                 }
             }
             let hStr = intH + 'px';
             for(let ci=0;ci<this.canvasLayers.length;ci++) {
                 let cl = this.canvasLayers[ci];
-                cl.style.height = hStr;
+                if(cl.style.height!=hStr){
+                  cl.style.height = hStr;
+                }
             }
         }
         //});

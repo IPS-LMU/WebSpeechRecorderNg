@@ -1,6 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {RecordingFileUtil} from "./recording-file";
-import {RecordingFile} from "../../recording";
+import {RecordingFile, SprRecordingFile} from "../../recording";
 
 @Component({
   selector: 'app-recording-file-meta',
@@ -9,19 +9,27 @@ import {RecordingFile} from "../../recording";
       <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
       <mat-card-content>
         <table>
-          <tr>
+          <tr *ngIf="itemCode">
             <td>Itemcode:</td>
-            <td>{{recordingFile?.recording?.itemcode}}</td>
+            <td>{{itemCode}}</td>
           </tr>
-          <tr *ngIf="recordingFile?.date">
+          <tr *ngIf="uuid && !itemCode">
+            <td>UUID:</td>
+            <td>{{uuid}}</td>
+          </tr>
+          <tr *ngIf="recordingFile?.startedDate">
+            <td>Started:</td>
+            <td>{{recordingFile?.startedDate}}</td>
+          </tr>
+          <tr *ngIf="!recordingFile?.startedDate && recordingFile?.date">
             <td>Date:</td>
             <td>{{recordingFile?.date}}</td>
           </tr>
-          <tr>
+          <tr *ngIf="itemCode">
             <td>Prompt:</td>
             <td>{{recordingAsPlainText()}}</td>
           </tr>
-         
+
           <tr *ngIf="sessionId">
             <td>Session:</td>
             <td>{{sessionId}}</td>
@@ -34,13 +42,44 @@ import {RecordingFile} from "../../recording";
 })
 export class RecordingFileMetaComponent{
 
+
   @Input() sessionId:string | number | null=null;
-  @Input() recordingFile:RecordingFile|null=null;
+
+  private _recordingFile:SprRecordingFile|null=null;
+
+  get recordingFile(): SprRecordingFile | null {
+    return this._recordingFile;
+  }
+
+  @Input() set recordingFile(recordingFile:SprRecordingFile|null){
+    this._recordingFile=recordingFile;
+    if(this._recordingFile) {
+      this.itemCode = this._recordingFile.itemCode;
+      if(!this.itemCode && this._recordingFile.recording?.itemcode){
+        this.itemCode=this._recordingFile.recording.itemcode;
+      }
+      if (this.itemCode) {
+
+        this.uuid = null;
+        console.debug("SprRecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+      } else {
+        this.itemCode = null;
+        this.uuid = this._recordingFile?.uuid;
+        console.debug("RecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+      }
+    }else{
+      this.itemCode=null;
+      this.uuid=null;
+    }
+  }
+
+  itemCode:string|null=null;
+  uuid:string|null|undefined=null;
 
   recordingAsPlainText(){
     let t=null;
-    if(this.recordingFile) {
-      t= RecordingFileUtil.recordingAsPlainText(this.recordingFile);
+    if(this._recordingFile) {
+      t = RecordingFileUtil.recordingAsPlainText(this._recordingFile);
     }
     return t;
   }
