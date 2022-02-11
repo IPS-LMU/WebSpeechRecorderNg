@@ -452,8 +452,12 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
         if (rfs) {
           if (rfs instanceof Array) {
             rfs.forEach((rf) => {
-              //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
-              //this.addRecordingFileByDescriptor(rf);
+              if(rf.startedDate){
+                rf._startedAsDateObj=new Date(rf.startedDate);
+              }
+              if(rf.date){
+                rf._dateAsDateObj=new Date(rf.date);
+              }
               this.recorderCombiPane.push(rf);
             })
           } else {
@@ -951,10 +955,11 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
 
       });
     }
-    if(this.recorderCombiPane.recordingListComp.recordingList.length>0){
-      this.selectRecordingFile(this.recorderCombiPane.recordingListComp.recordingList[0]);
-    }
-    this.enableNavigation()
+    // if(this.recorderCombiPane.recordingListComp.recordingList.length>0){
+    //   this.selectRecordingFile(this.recorderCombiPane.recordingListComp.recordingList[0]);
+    // }
+    this.recorderCombiPane.selectTop();
+    this.enableNavigation();
   }
 
   isRecording(): boolean {
@@ -1080,7 +1085,10 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
       // }
 
       let rf = new RecordingFile(UUID.generate(),sessId,ad);
-      rf.startedDate=this.startedDate;
+      rf._startedAsDateObj=this.startedDate;
+      if(rf._startedAsDateObj) {
+        rf.startedDate = rf._startedAsDateObj.toString();
+      }
       // it.recs.push(rf);
       //
       // if (this.enableUploadRecordings) {
@@ -1114,7 +1122,7 @@ export class AudioRecorder implements AfterViewInit,OnDestroy, AudioCaptureListe
             this.displayRecFile=rf;
             //this.recordingListComp.recordingList.push(rf);
             this.recorderCombiPane.push(rf);
-            this.postRecordingMultipart(wavFile, rf.uuid,rf.session,rf.startedDate,recUrl);
+            this.postRecordingMultipart(wavFile, rf.uuid,rf.session,rf._startedAsDateObj,recUrl);
             this.processingRecording=false;
             this.changeDetectorRef.detectChanges();
           });

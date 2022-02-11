@@ -100,4 +100,8 @@ export class RecorderCombiPane implements AfterViewInit{
     this.selectedRecordingFileChanged.emit(rf);
   }
 
+  selectTop() {
+    this.recordingListComp.selectTop();
+  }
+
 }

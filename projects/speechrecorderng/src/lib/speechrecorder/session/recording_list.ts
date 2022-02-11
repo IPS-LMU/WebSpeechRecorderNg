@@ -18,15 +18,15 @@ import {Observable, Subject} from "rxjs";
       <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
       <tr mat-row *matRowDef="let element; columns: cols;" [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid"></tr>
       <ng-container matColumnDef="index">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
+        <th mat-header-cell *matHeaderCellDef mat-header>#</th>
         <td mat-cell class="monospaced" *matCellDef="let element;let i = index">{{recordingListDataSource.data.length-i}}</td>
       </ng-container>
       <ng-container matColumnDef="startedDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Started</th>
+        <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
         <td mat-cell class="monospaced" *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
       </ng-container>
       <ng-container matColumnDef="length">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Length</th>
+        <th mat-header-cell *matHeaderCellDef mat-header>Length</th>
         <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
       </ng-container>
       <ng-container matColumnDef="action">
@@ -63,7 +63,7 @@ import {Observable, Subject} from "rxjs";
 
 })
 export class RecordingList implements AfterViewInit{
-  recordingList:Array<RecordingFile>=new Array<RecordingFile>();
+  private recordingList:Array<RecordingFile>=new Array<RecordingFile>();
   //recordingListSubject:Subject<Array<RecordingFile>> = new Subject<Array<RecordingFile>>();
   recordingListDataSource:MatTableDataSource<RecordingFile>;
   //cols=['index','length','samples','samplerate','action'];
@@ -74,20 +74,48 @@ export class RecordingList implements AfterViewInit{
 
   constructor() {
     this.recordingListDataSource=new MatTableDataSource<RecordingFile>();
-
   }
 
   ngAfterViewInit() {
-    this.recordingListDataSource.data=this.recordingList.reverse();
+    this.buildDataSource();
+  }
+
+  private buildDataSource(){
+    this.recordingList.sort((a, b) => {
+      let cmp:number=0;
+      let aD:Date|null=null;
+      let bD:Date|null=null;
+      if(a._startedAsDateObj && b._startedAsDateObj){
+        aD=a._startedAsDateObj
+        bD=b._startedAsDateObj
+      }else if(a.startedDate && b.startedDate){
+        aD=new Date(a.startedDate);
+        bD=new Date(b.startedDate);
+      }else if(a.date && b.date) {
+        aD=new Date(a.date);
+        bD=new Date(b.date);
+      }
+      if(aD!==null && bD!==null){
+        cmp=bD.getTime()-aD.getTime();
+      }
+      return cmp;
+    });
+    this.recordingListDataSource.data=this.recordingList;
   }
 
   push(rf:RecordingFile){
     this.recordingList.push(rf);
-    this.recordingListDataSource.data=this.recordingList.reverse();
+    this.buildDataSource();
   }
 
   selectRecordingFile(rf:RecordingFile){
     this.selectedRecordingFileChanged.emit(rf);
+  }
+
+  selectTop() {
+    if (this.recordingList.length > 0) {
+      this.selectRecordingFile(this.recordingList[0]);
+    }
   }
 
   lengthTimeFormatted(rf:RecordingFile){
