@@ -363,12 +363,21 @@ export class SessionManager implements AfterViewInit,OnDestroy, AudioCaptureList
 
   @HostListener('window:keydown', ['$event'])
   onKeyDown(ke: KeyboardEvent) {
-    if (ke.key == ' ' || ke.key == 'Escape') {
+    if (ke.key == ' ') {
       this.transportActions.stopAction.perform();
     }
-    if (ke.key == 'p' || ke.key == 'Escape') {
+    if (ke.key == 'p') {
       this.transportActions.pauseAction.perform();
     }
+
+    if (ke.key == 'Escape') {
+      if(!this.audioSignalCollapsed){
+        this.audioSignalCollapsed=true;
+      }
+      this.transportActions.stopAction.perform();
+      this.transportActions.pauseAction.perform();
+    }
+
     if (ke.key == 'MediaPlayPause') {
       this.playStartAction.perform();
     }
