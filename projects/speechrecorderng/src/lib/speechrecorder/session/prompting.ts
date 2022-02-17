@@ -515,11 +515,11 @@ export class PromptingContainer {
           this.touchStartTimeStamp = ev.timeStamp;
           this.e.style.transition = 'none';
           //console.log("Touch start x: "+this.startX)
+          //ev.preventDefault();
         }
       }
-
-      ev.preventDefault();
     }
+
   }
 
   @HostListener('touchend', ['$event'])
@@ -561,6 +561,7 @@ export class PromptingContainer {
             }
           } else {
           }
+          ev.preventDefault();
         }
       }
 
@@ -570,8 +571,6 @@ export class PromptingContainer {
     this.startX = null;
     this.touchStartTimeStamp = null;
     this.e.style.left = "0px";
-    ev.preventDefault();
-
   }
 
   @HostListener('touchmove', ['$event'])
@@ -588,8 +587,8 @@ export class PromptingContainer {
           this.e.style.left = deltaX + "px";
           // console.log("Touch move delta x: "+deltaX)
         }
+        ev.preventDefault();
       }
-      ev.preventDefault();
     }
   }
 
@@ -597,7 +596,7 @@ export class PromptingContainer {
   onTouchCancel(ev: TouchEvent | any) {
     //console.log("Touch cancel!")
     this.e.style.left = "0px";
-    ev.preventDefault();
+    //ev.preventDefault();
   }
 
 }
