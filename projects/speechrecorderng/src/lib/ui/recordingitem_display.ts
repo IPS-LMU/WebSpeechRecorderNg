@@ -52,7 +52,10 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         display: inline-block;
         white-space: nowrap;
         box-sizing: border-box;
-    }`]
+    }`,`
+     button {
+       touch-action: manipulation;
+     }`]
 
 })
 export class RecordingItemControls implements OnDestroy {
