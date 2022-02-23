@@ -194,7 +194,10 @@ export class TransportActions {
     div {
       display: inline;
       flex: 0;
-    }`
+    }`,`
+     button {
+       touch-action: manipulation;
+     }`
   ]
 
 })
