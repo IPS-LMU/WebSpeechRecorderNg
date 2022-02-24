@@ -689,9 +689,10 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
   }
 
   start() {
-    super.start(true);
+    super.start();
     this.recorderCombiPane.selectTop();
     this.enableNavigation();
+    this.updateStartActionDisableState();
   }
 
   isRecording(): boolean {

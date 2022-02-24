@@ -91,7 +91,7 @@ export class BasicRecorder {
     this.statusMsg = 'Ready.';
   }
 
-  start(requestAudioPerms:boolean=false) {
+  start() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Starting session...';
     this.statusWaiting=false;
@@ -142,7 +142,7 @@ export class BasicRecorder {
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=undefined;
 
-    if (!this.readonly && this.ac && (requestAudioPerms || FORCE_REQUEST_AUDIO_PERMISSIONS || (this._audioDevices && this._audioDevices.length > 0))) {
+    if (!this.readonly && this.ac && (FORCE_REQUEST_AUDIO_PERMISSIONS || (this._audioDevices && this._audioDevices.length > 0))) {
       this.statusMsg = 'Requesting audio permissions...';
       this.statusAlertType = 'info';
 
