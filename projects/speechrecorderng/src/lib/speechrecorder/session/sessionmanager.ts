@@ -801,6 +801,24 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       postDelay=this.promptItem.postrecording;
     }
 
+    this.preRecTimerId = window.setTimeout(() => {
+      if(this.status === Status.PRE_RECORDING) {
+        this.preRecTimerRunning = false;
+        this.status = Status.RECORDING;
+        this.startStopSignalState = StartStopSignalState.RECORDING;
+        if (this.section.mode === 'AUTORECORDING') {
+          this.transportActions.nextAction.disabled = false;
+          this.transportActions.pauseAction.disabled = false;
+        } else {
+          this.transportActions.stopAction.disabled = false;
+        }
+        if (this.section.promptphase === 'RECORDING') {
+          this.applyPrompt();
+        }
+      }
+    }, preDelay);
+    this.preRecTimerRunning = true;
+
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     if (this.promptItem.recduration) {
       maxRecordingTimeMs = preDelay+this.promptItem.recduration+postDelay;
@@ -810,24 +828,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
-
-
-    this.preRecTimerId = window.setTimeout(() => {
-
-      this.preRecTimerRunning = false;
-      this.status = Status.RECORDING;
-      this.startStopSignalState = StartStopSignalState.RECORDING;
-      if (this.section.mode === 'AUTORECORDING') {
-        this.transportActions.nextAction.disabled = false;
-        this.transportActions.pauseAction.disabled = false;
-      } else {
-        this.transportActions.stopAction.disabled = false;
-      }
-      if (this.section.promptphase === 'RECORDING') {
-        this.applyPrompt();
-      }
-    }, preDelay);
-    this.preRecTimerRunning = true;
   }
 
   stopItem() {
@@ -881,6 +881,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   stopRecordingMaxRec(){
+    if(this.preRecTimerRunning){
+      if(this.preRecTimerId) {
+        window.clearTimeout(this.preRecTimerId);
+      }
+      this.preRecTimerRunning=false;
+    }
     if(this.postRecTimerRunning){
       if(this.postRecTimerId) {
         window.clearTimeout(this.postRecTimerId);
