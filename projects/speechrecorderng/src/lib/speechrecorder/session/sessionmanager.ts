@@ -820,7 +820,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.preRecTimerRunning = true;
 
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
-    if (this.promptItem.recduration) {
+    if (this.promptItem.recduration!==null && this.promptItem.recduration!==undefined) {
       maxRecordingTimeMs = preDelay+this.promptItem.recduration+postDelay;
     }
     this.maxRecTimerId = window.setTimeout(() => {
@@ -881,12 +881,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   stopRecordingMaxRec(){
-    if(this.preRecTimerRunning){
-      if(this.preRecTimerId) {
-        window.clearTimeout(this.preRecTimerId);
-      }
-      this.preRecTimerRunning=false;
-    }
     if(this.postRecTimerRunning){
       if(this.postRecTimerId) {
         window.clearTimeout(this.postRecTimerId);
