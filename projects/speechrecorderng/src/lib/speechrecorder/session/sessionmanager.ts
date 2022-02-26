@@ -785,7 +785,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.sessionService.patchSessionObserver(this._session, body).subscribe()
       }
     }
-    if (this.section.promptphase === 'PRERECORDING') {
+    if (this.section.promptphase === 'PRERECORDING' || this.section.promptphase === 'PRERECORDINGONLY') {
       this.applyPrompt();
     }
     this.statusAlertType = 'info';
@@ -826,6 +826,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if (this.section.promptphase === 'RECORDING') {
         this.applyPrompt();
       }
+      if (this.section.promptphase === 'PRERECORDINGONLY'){
+        this.clearPrompt();
+      }
+
     }, preDelay);
     this.preRecTimerRunning = true;
   }
