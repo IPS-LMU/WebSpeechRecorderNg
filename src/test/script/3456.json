@@ -73,6 +73,20 @@
               ]
             }
           ]
+        },
+        {
+          "promptItems": [
+            {
+              "itemcode": "PRO1",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "mimetype": "text/plain",
+                  "text": "Heute ist schönes Frühlingswetter!"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -224,6 +238,28 @@
           ]
         }
       ]
+    },
+    {
+      "mode": "AUTOPROGRESS",
+      "name": "Randomized section",
+      "promptphase": "PRERECORDINGONLY",
+      "prerecdelay": 4000,
+      "speakerDisplay": true,
+      "groups": [
+        {
+          "promptItems": [
+            {
+              "itemcode": "PRO",
+              "mediaitems": [
+                {
+                  "annotationTemplate": false,
+                  "text": "Prompt Prerecording PromptPhase"
+                }
+              ]
+            }
+          ]
+        }
+        ]
     }
   ]
 }
