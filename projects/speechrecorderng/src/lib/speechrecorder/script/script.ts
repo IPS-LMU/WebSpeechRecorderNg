@@ -1,6 +1,6 @@
 
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
-export type PromptPhase = "IDLE" | "PRERECORDING" | "RECORDING";
+export type PromptPhase = "IDLE" | "PRERECORDING" | "PRERECORDINGONLY" | "RECORDING";
 
 export type Order = 'SEQUENTIAL' | 'RANDOM' | 'RANDOMIZED';
 
