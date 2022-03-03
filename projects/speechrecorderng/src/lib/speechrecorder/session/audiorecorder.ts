@@ -969,11 +969,12 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
     if(sessObs) {
       sessObs.subscribe(sess => {
-          //this.setSession(sess);
+
           this.ar.statusAlertType='info';
           this.ar.statusMsg = 'Received session info.';
           this.ar.statusWaiting=false;
           this.session=sess;
+          this.ar.session=sess;
           if (sess.project) {
             //console.debug("Session associated project: "+sess.project)
             this.projectService.projectObservable(sess.project).subscribe(project=>{
