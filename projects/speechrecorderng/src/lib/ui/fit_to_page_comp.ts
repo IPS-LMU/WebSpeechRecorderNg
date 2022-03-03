@@ -1,8 +1,11 @@
 import {Directive, Inject, Injector, OnDestroy, OnInit, Renderer2} from "@angular/core";
 import {DOCUMENT} from "@angular/common";
 
-@Directive()
-export abstract class FitToPageComponent implements OnInit,OnDestroy{
+export interface FitToPageComponent{}
+
+
+
+export class FitToPageUtil {
 
     private htmlHeightSave!:string;
     private htmlMarginSave!:string;
@@ -19,7 +22,7 @@ export abstract class FitToPageComponent implements OnInit,OnDestroy{
     }
 
 
-    ngOnInit() {
+    init() {
         // Set CSS for fit to screen mode
 
         // Alternatives
@@ -50,7 +53,7 @@ export abstract class FitToPageComponent implements OnInit,OnDestroy{
 
     }
 
-    ngOnDestroy(){
+    destroy(){
 
         // Restore main app html and body CSS properties
 

@@ -1,4 +1,4 @@
-import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, Injector} from '@angular/core'
+import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, Injector, OnDestroy} from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
@@ -17,8 +17,8 @@ import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
-import {FitToPageComponent} from "./ui/fit_to_page_comp";
-import {RecorderComponent} from "./recorder_component";
+import {FitToPageComponent, FitToPageUtil} from "./ui/fit_to_page_comp";
+import {ReadyStateProvider, RecorderComponent} from "./recorder_component";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -39,8 +39,8 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechrecorderngComponent extends RecorderComponent implements OnInit,AfterViewInit,AudioPlayerListener {
-
+export class SpeechrecorderngComponent extends  RecorderComponent implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,AudioPlayerListener,ReadyStateProvider {
+    protected fitToPageUtil:FitToPageUtil;
 	  mode!:Mode;
 		controlAudioPlayer!:AudioPlayer;
 		audio:any;
@@ -61,11 +61,12 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
                 private scriptService:ScriptService,
                 private recFilesService:RecordingService,
                 private uploader:SpeechRecorderUploader) {
-		    super(injector)
+      super();
+      this.fitToPageUtil=new FitToPageUtil(injector);
 		}
 
     ngOnInit() {
-		    super.ngOnInit();
+        this.fitToPageUtil.init();
 		  try {
         let audioContext = AudioContextProvider.audioContextInstance();
               if(audioContext) {
@@ -105,7 +106,11 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }
     }
 
-    fetchSession(sessionId:string){
+    ngOnDestroy() {
+      this.fitToPageUtil.destroy();
+    }
+
+  fetchSession(sessionId:string){
 
 
 		  //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.

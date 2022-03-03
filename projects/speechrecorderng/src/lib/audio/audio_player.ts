@@ -2,7 +2,15 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef, Injector,
+  AfterViewInit,
+  Input,
+  AfterContentInit,
+  OnInit,
+  AfterContentChecked,
+  AfterViewChecked,
+  ElementRef,
+  Injector,
+  OnDestroy,
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
@@ -11,7 +19,7 @@ import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
-import {FitToPageComponent} from "../ui/fit_to_page_comp";
+import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
 
 @Component({
 
@@ -47,7 +55,8 @@ import {FitToPageComponent} from "../ui/fit_to_page_comp";
     }`]
 
 })
-export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+export class AudioDisplayPlayer implements FitToPageComponent, AudioPlayerListener, OnInit,OnDestroy,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+  protected fitToPageUtil:FitToPageUtil;
   private _audioUrl: string|null=null;
 
   parentE: HTMLElement;
@@ -82,7 +91,7 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
   private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(protected injector:Injector,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
-    super(injector);
+    this.fitToPageUtil=new FitToPageUtil(injector);
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
@@ -93,8 +102,7 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
   }
 
   ngOnInit(){
-    //console.log("OnInit: "+this.ac);
-    super.ngOnInit();
+    this.fitToPageUtil.init();
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
       this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
@@ -146,6 +154,9 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
     //console.log("AfterViewChecked: "+this.ac);
   }
 
+  ngOnDestroy(){
+    this.fitToPageUtil.destroy();
+  }
 
   init() {
 
