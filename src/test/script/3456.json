@@ -242,6 +242,7 @@
     {
       "mode": "AUTOPROGRESS",
       "name": "Randomized section",
+
       "promptphase": "PRERECORDINGONLY",
       "prerecdelay": 4000,
       "speakerDisplay": true,
@@ -250,6 +251,9 @@
           "promptItems": [
             {
               "itemcode": "PRO",
+              "recinstructions":{
+                "recinstructions": "Bitte lesen:"
+              },
               "mediaitems": [
                 {
                   "annotationTemplate": false,
