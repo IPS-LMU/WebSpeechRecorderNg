@@ -188,7 +188,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
       let cRfs = this.availRecFiles[this.posInList];
       let availVersionCnt = cRfs.length;
       for (let cRf of cRfs) {
-        if(cRf instanceof SprRecordingFile) {
+        if(cRf.version !=null) {
           if (cRf.version === version) {
             toRfId = cRf.recordingFileId;
             break;
@@ -218,11 +218,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   private positionInList():number | null{
     if (this.availRecFiles && this.recordingFile) {
       let cic=this.recordingFile.itemCode;
+      if(!cic && this.recordingFile.recording && this.recordingFile.recording.itemcode){
+        cic=this.recordingFile.recording.itemcode;
+      }
       if (cic) {
         let itemCnt = this.availRecFiles.length
         for (let rfdi = 0; rfdi < itemCnt; rfdi++) {
           let arRf = this.availRecFiles[rfdi][0];
-          if (arRf instanceof SprRecordingFile) {
+          if (arRf.recording) {
             let ar = arRf.recording;
             if (cic === ar.itemcode) {
               return rfdi;
@@ -252,7 +255,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         if (arfs) {
           this.versions = new Array<number>();
           for (let arf of arfs) {
-            if(arf instanceof SprRecordingFile) {
+            if(arf.recording?.itemcode) {
               this.versions.push(arf.version)
             }
           }
