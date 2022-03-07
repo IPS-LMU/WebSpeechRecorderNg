@@ -148,8 +148,8 @@ export class Item {
   }`
    ]
 })
-export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy,FitToPageComponent, AudioCaptureListener,ReadyStateProvider {
-  protected fitToPageUtil:FitToPageUtil;
+export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
+
   @Input() _project:Project|undefined| null=null;
   @Input() projectName:string|undefined|null=null;
   enableUploadRecordings: boolean = true;
@@ -178,10 +178,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
 
-
-
-  constructor(protected injector:Injector,
-              private changeDetectorRef: ChangeDetectorRef,
+  constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               private route: ActivatedRoute,
               public dialog: MatDialog,
@@ -191,7 +188,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     super(dialog,sessionService);
-    this.fitToPageUtil=new FitToPageUtil(injector);
+
     //super(injector);
     this.status = Status.IDLE;
 
@@ -220,14 +217,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     return this.dataSaved && !this.isActive()
   }
     ngOnDestroy() {
-      this.fitToPageUtil.destroy();
        this.destroyed=true;
        // TODO stop capture /playback
     }
 
   ngOnInit() {
-    this.fitToPageUtil.init();
-
     this.transportActions.startAction.disabled = true;
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
@@ -906,7 +900,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
 })
 export class AudioRecorderComponent extends RecorderComponent  implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,ReadyStateProvider {
-  protected fitToPageUtil:FitToPageUtil;
+
   mode!:Mode;
   controlAudioPlayer!:AudioPlayer;
   audio:any;
@@ -925,12 +919,11 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               private projectService:ProjectService,
               private recFilesService:RecordingService,
   ) {
-    super();
-    this.fitToPageUtil=new FitToPageUtil(injector);
+    super(injector);
   }
 
   ngOnInit() {
-    this.fitToPageUtil.init();
+    super.ngOnInit();
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
       this.controlAudioPlayer = new AudioPlayer(audioContext,this.ar);
@@ -953,7 +946,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   ngOnDestroy() {
-    this.fitToPageUtil.destroy();
+    super.ngOnDestroy();
   }
 
   fetchSession(sessionId:string){

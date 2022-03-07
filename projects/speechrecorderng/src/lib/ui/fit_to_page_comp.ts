@@ -1,8 +1,20 @@
 import {Directive, Inject, Injector, OnDestroy, OnInit, Renderer2} from "@angular/core";
 import {DOCUMENT} from "@angular/common";
 
-export interface FitToPageComponent{}
+@Directive()
+export class FitToPageComponent implements OnInit,OnDestroy{
+  protected fitToPageUtil:FitToPageUtil;
+  constructor(injector:Injector) {
+    this.fitToPageUtil=new FitToPageUtil(injector);
+  }
+  ngOnInit() {
+    this.fitToPageUtil.init();
+  }
+  ngOnDestroy() {
+    this.fitToPageUtil.destroy();
+  }
 
+}
 
 
 export class FitToPageUtil {

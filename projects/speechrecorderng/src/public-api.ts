@@ -19,6 +19,7 @@ export {MessageDialog} from "./lib/ui/message_dialog"
 
 export {AudioClip,Selection} from './lib/audio/persistor'
 export {WavWriter} from './lib/audio/impl/wavwriter'
+export {RecorderComponent} from './lib/recorder_component'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
 export {AudioRecorder,AudioRecorderComponent} from './lib/speechrecorder/session/audiorecorder'
 export {AudioDisplay} from './lib/audio/audio_display'

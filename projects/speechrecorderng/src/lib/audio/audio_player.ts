@@ -55,8 +55,7 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
     }`]
 
 })
-export class AudioDisplayPlayer implements FitToPageComponent, AudioPlayerListener, OnInit,OnDestroy,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
-  protected fitToPageUtil:FitToPageUtil;
+export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,OnDestroy,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
   private _audioUrl: string|null=null;
 
   parentE: HTMLElement;
@@ -91,7 +90,7 @@ export class AudioDisplayPlayer implements FitToPageComponent, AudioPlayerListen
   private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(protected injector:Injector,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
-    this.fitToPageUtil=new FitToPageUtil(injector);
+    super(injector);
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
@@ -102,7 +101,7 @@ export class AudioDisplayPlayer implements FitToPageComponent, AudioPlayerListen
   }
 
   ngOnInit(){
-    this.fitToPageUtil.init();
+    super.ngOnInit();
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
       this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
@@ -155,7 +154,7 @@ export class AudioDisplayPlayer implements FitToPageComponent, AudioPlayerListen
   }
 
   ngOnDestroy(){
-    this.fitToPageUtil.destroy();
+   super.ngOnDestroy();
   }
 
   init() {

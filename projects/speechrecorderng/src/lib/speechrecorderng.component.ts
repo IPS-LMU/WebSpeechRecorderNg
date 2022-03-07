@@ -40,7 +40,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
 
 })
 export class SpeechrecorderngComponent extends  RecorderComponent implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,AudioPlayerListener,ReadyStateProvider {
-    protected fitToPageUtil:FitToPageUtil;
+
 	  mode!:Mode;
 		controlAudioPlayer!:AudioPlayer;
 		audio:any;
@@ -61,12 +61,12 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
                 private scriptService:ScriptService,
                 private recFilesService:RecordingService,
                 private uploader:SpeechRecorderUploader) {
-      super();
-      this.fitToPageUtil=new FitToPageUtil(injector);
+      super(injector);
+
 		}
 
     ngOnInit() {
-        this.fitToPageUtil.init();
+      super.ngOnInit();
 		  try {
         let audioContext = AudioContextProvider.audioContextInstance();
               if(audioContext) {
@@ -107,7 +107,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     }
 
     ngOnDestroy() {
-      this.fitToPageUtil.destroy();
+      super.ngOnDestroy();
     }
 
   fetchSession(sessionId:string){
