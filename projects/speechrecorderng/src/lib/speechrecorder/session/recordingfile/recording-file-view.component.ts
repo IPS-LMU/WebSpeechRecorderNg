@@ -259,9 +259,20 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               this.versions.push(arf.version)
             }
           }
+
           this.toVersionAction.disabled=(this.versions.length<2);
         }
       }
+    }
+
+    if(this.recordingFile){
+      if(this.recordingFile.version){
+        this.recordingFileVersion=this.recordingFile.version;
+      }else{
+        this.recordingFileVersion=0;
+      }
+    }else{
+      this.recordingFileVersion=null;
     }
     this.updateActions()
   }
@@ -417,6 +428,15 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               }
             }
           });
+          for(let avRf of this.availRecFiles){
+              if(avRf[0] && avRf[0].recording) {
+                let os = avRf[0].recording.itemcode + ': versions: ';
+                for (let avRfV of avRf) {
+                  os += avRfV.version + '/';
+                }
+                console.debug(os);
+              }
+          }
           this.updatePos()
           this.naviInfoLoading=false;
           this.ref.detectChanges();
