@@ -48,9 +48,11 @@ export interface Mediaitem {
 export interface PromptItem {
   type?:string;
   itemcode?: string,
-  prerecording: number,
+  prerecdelay?: number,
+  prerecording?: number,
   recduration?: number,
-  postrecording: number,
+  postrecording?: number,
+  postrecdelay?: number,
   recinstructions?: Recinstructions,
   mediaitems: Array<Mediaitem>
 }
