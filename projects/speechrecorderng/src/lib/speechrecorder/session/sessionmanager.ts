@@ -137,6 +137,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private updateTimerId: any;
   private preRecTimerId: number|null=null;
   private preRecTimerRunning: boolean|null=null;
+  private postDelay:number=DEFAULT_POST_REC_DELAY;
   private postRecTimerId: number|null=null;
   private postRecTimerRunning: boolean|null=null;
   private maxRecTimerId: number|null=null;
@@ -797,18 +798,22 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.statusMsg = 'Recording...';
 
     let preDelay = DEFAULT_PRE_REC_DELAY;
-    if (this.promptItem.prerecording) {
+    if (this.promptItem.prerecdelay!=null) {
+      preDelay = this.promptItem.prerecdelay;
+    }else if (this.promptItem.prerecording!=null) {
       preDelay = this.promptItem.prerecording;
     }
 
-    let postDelay=DEFAULT_POST_REC_DELAY;
-    if(this.promptItem.postrecording){
-      postDelay=this.promptItem.postrecording;
+    this.postDelay=DEFAULT_POST_REC_DELAY;
+    if(this.promptItem.postrecdelay!=null){
+      this.postDelay=this.promptItem.postrecdelay;
+    }else if(this.promptItem.postrecording!=null){
+      this.postDelay=this.promptItem.postrecording;
     }
 
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     if (this.promptItem.recduration!==null && this.promptItem.recduration!==undefined) {
-      maxRecordingTimeMs = preDelay+this.promptItem.recduration+postDelay;
+      maxRecordingTimeMs = preDelay+this.promptItem.recduration+this.postDelay;
     }
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
@@ -844,15 +849,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.startStopSignalState = StartStopSignalState.POSTRECORDING;
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
-    let postDelay = 500;
-    if (this.promptItem.postrecording) {
-      postDelay = this.promptItem.postrecording;
-    }
+
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_STOP;
       this.stopRecording();
-    }, postDelay);
+    }, this.postDelay);
     this.postRecTimerRunning = true;
   }
 
@@ -863,17 +865,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-    let postDelay = 500;
-    if (this.promptItem.postrecording) {
-      postDelay = this.promptItem.postrecording;
-    }
-
 
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_PAUSE;
       this.stopRecording();
-    }, postDelay);
+    }, this.postDelay);
     this.postRecTimerRunning = true;
   }
 
