@@ -860,17 +860,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-    let postDelay = 500;
-    if (this.promptItem.postrecording) {
-      postDelay = this.promptItem.postrecording;
-    }
-
 
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_PAUSE;
       this.stopRecording();
-    }, postDelay);
+    }, this.postDelay);
     this.postRecTimerRunning = true;
   }
 
