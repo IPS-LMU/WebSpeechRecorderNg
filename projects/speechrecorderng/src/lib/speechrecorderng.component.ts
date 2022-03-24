@@ -122,34 +122,38 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
-        sessObs.subscribe(sess => {
-          this.setSession(sess);
-            this.sm.statusAlertType='info';
-            this.sm.statusMsg = 'Received session info.';
-            this.sm.statusWaiting=false;
-          if (sess.project) {
-            //console.debug("Session associated project: "+sess.project)
-            this.projectService.projectObservable(sess.project).subscribe(project=>{
-              this.project=project;
-              this.fetchScript(sess);
-            },reason =>{
-              this.sm.statusMsg=reason;
-              this.sm.statusAlertType='error';
-                this.sm.statusWaiting=false;
-              console.error("Error fetching project config: "+reason)
-            });
 
-          } else {
-            console.info("Session has no associated project. Using default configuration.")
-            this.fetchScript(sess);
-          }
-        },
-        (reason) => {
-            this.sm.statusMsg = reason;
+        sessObs.subscribe({
+          next: (sess:Session) => {
+            this.setSession(sess);
+            this.sm.statusAlertType = 'info';
+            this.sm.statusMsg = 'Received session info.';
+            this.sm.statusWaiting = false;
+            if (sess.project) {
+              //console.debug("Session associated project: "+sess.project)
+              this.projectService.projectObservable(sess.project).subscribe(project => {
+                this.project = project;
+                this.fetchScript(sess);
+              }, reason => {
+                this.sm.statusMsg = reason;
+                this.sm.statusAlertType = 'error';
+                this.sm.statusWaiting = false;
+                console.error("Error fetching project config: " + reason)
+              });
+
+            } else {
+              console.info("Session has no associated project. Using default configuration.")
+              this.fetchScript(sess);
+            }
+          },
+          error: (error:any) => {
+            this.sm.statusMsg = error.toString();
             this.sm.statusAlertType = 'error';
-            this.sm.statusWaiting=false;
-            console.error("Error fetching session " + reason)
-          });
+            this.sm.statusWaiting = false;
+            console.error("Error fetching session " + error)
+          }
+        });
+
       }
     }
 
