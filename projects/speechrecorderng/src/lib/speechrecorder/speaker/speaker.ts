@@ -1,15 +1,5 @@
-export interface InformedConsent{
-  project:string;
-  informedConsentInPaperFormSigned: boolean;
-  text: string;
-}
-
-export interface InformedConsents{
-  informedConsent:Array<InformedConsent>;
-}
-
 export interface Speaker extends GlobSpeaker{
-  personId: string | number;
+  personId?: string | number;
 }
 
 export interface GlobSpeaker{
@@ -18,5 +8,4 @@ export interface GlobSpeaker{
   name?:string;
   forename?:string;
   dateOfBirth?:Date;
-  informedConsents?: InformedConsents;
 }
