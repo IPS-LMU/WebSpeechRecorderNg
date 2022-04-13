@@ -123,6 +123,7 @@ export class Item {
     min-height: 0px;
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
+    /* filter:blur(2px); */
   }`,`.ricontrols {
         padding: 4px;
         box-sizing: border-box;

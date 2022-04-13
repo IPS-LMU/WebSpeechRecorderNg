@@ -9,7 +9,7 @@ import {
   ChangeDetectorRef,
   Component,
   HostListener,
-  Inject,
+  Inject, Injector,
   Input,
   OnDestroy,
   Renderer2,
@@ -35,6 +35,7 @@ import {Item} from "./item";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {FitToPageComponent} from "../../ui/fit_to_page_comp";
+import {HighlighterUtil} from "../../ui/highlighter";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -105,7 +106,16 @@ export const enum Status {
 
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
-  }`,`.ricontrols {
+    
+    
+  }`,
+  //   `:host *:not(app-simpletrafficlight) {
+  //
+  //   filter: blur(2px);
+  //   opacity: 50%;
+  //
+  // }`,
+    `.ricontrols {
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
@@ -168,8 +178,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private displayRecFileVersion!: number;
 
   promptItemCount!: number;
+  highlighter:HighlighterUtil;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef,
+  constructor(protected injector:Injector,
+              private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               public dialog: MatDialog,
               protected sessionService:SessionService,
@@ -177,6 +189,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     super(dialog,sessionService);
+    this.highlighter=new HighlighterUtil(injector);
+    //this.highlighter.blur(true);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {
@@ -194,10 +208,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
+
+    //this.renderer.setStyle(this.liveLevelDisplay,'filter','none');
+    //this.renderer.setStyle(this.liveLevelDisplay,'background','orange');
   }
     ngOnDestroy() {
        this.destroyed=true;
+      this.highlighter.destroy();
        // TODO stop capture /playback
+
     }
 
   private init() {

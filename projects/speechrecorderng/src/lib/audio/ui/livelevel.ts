@@ -30,6 +30,9 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
     position: relative;
     overflow-x: scroll;
     overflow-y: auto;
+    filter: blur(0);
+    filter: none;
+    opacity: 100%;
   }`, `div {
     top: 0;
     left: 0;

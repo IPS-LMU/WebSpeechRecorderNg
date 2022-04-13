@@ -19,6 +19,7 @@ import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
 import {FitToPageComponent, FitToPageUtil} from "./ui/fit_to_page_comp";
 import {ReadyStateProvider, RecorderComponent} from "./recorder_component";
+import {HighlighterUtil} from "./ui/highlighter";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -51,6 +52,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
 
   script!:Script;
     dataSaved: boolean = true;
+
   @ViewChild(SessionManager, { static: true }) sm!:SessionManager;
 
 		constructor(protected injector:Injector,private route: ActivatedRoute,
@@ -104,10 +106,12 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
           });
         }
       }
+
     }
 
     ngOnDestroy() {
       this.controlAudioPlayer.stop();
+
       super.ngOnDestroy();
     }
 

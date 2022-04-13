@@ -662,7 +662,7 @@ export class ProgressAndSpeakerContainer{
 
   template: `
 
-    <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
+    <app-simpletrafficlight [status]="startStopSignalState" style="opacity: 100%"></app-simpletrafficlight>
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
@@ -700,11 +700,15 @@ export class ProgressAndSpeakerContainer{
     display: flex; /* flex container: left traffic light, right prompter (container) */
     flex-direction: row;
     flex-wrap: nowrap; /* wrap could completely destroy the layout */
+    filter: none;
+    opacity: 100%;
   }`, `
     app-simpletrafficlight {
       margin: 10px;
       min-height: 0px;
       z-index: 3;
+      filter: none;
+      opacity: 100%;
     }
   `, `
     spr-progress-speaker-container{
