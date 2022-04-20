@@ -36,7 +36,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener {
+export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener,ReadyStateProvider {
 
 	  mode!:Mode;
 		controlAudioPlayer!:AudioPlayer;

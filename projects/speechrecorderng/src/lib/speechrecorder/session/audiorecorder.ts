@@ -26,6 +26,7 @@ import {UUID} from "../../utils/utils";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
+import {ReadyStateProvider} from "../../recorder_component";
 
 
 export const enum Status {
@@ -140,7 +141,7 @@ export class Item {
   }`
    ]
 })
-export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener {
+export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
 
   _project:Project|null=null;
   @Input() projectName:string|null=null;
@@ -206,6 +207,10 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
+  }
+
+  ready():boolean{
+    return this.dataSaved && !this.isActive()
   }
     ngOnDestroy() {
        this.destroyed=true;

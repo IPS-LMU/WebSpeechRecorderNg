@@ -13,7 +13,7 @@ export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
 
 export {MessageDialog} from "./lib/ui/message_dialog"
-
+export {ReadyStateProvider} from "./lib/recorder_component"
 export {AudioClip,Selection} from './lib/audio/persistor'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
 export {AudioRecorder} from './lib/speechrecorder/session/audiorecorder'
