@@ -17,6 +17,8 @@ import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
+import {AudioRecorderComponent} from "./speechrecorder/session/audiorecorder";
+import {RecorderComponent} from "./recorder_component";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -36,7 +38,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
   }`]
 
 })
-export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlayerListener,ReadyStateProvider {
+export class SpeechrecorderngComponent extends RecorderComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
 	  mode!:Mode;
 		controlAudioPlayer!:AudioPlayer;
@@ -58,6 +60,7 @@ export class SpeechrecorderngComponent implements OnInit,AfterViewInit,AudioPlay
                 private scriptService:ScriptService,
                 private recFilesService:RecordingService,
                 private uploader:SpeechRecorderUploader) {
+      super();
 		}
 
     ngOnInit() {

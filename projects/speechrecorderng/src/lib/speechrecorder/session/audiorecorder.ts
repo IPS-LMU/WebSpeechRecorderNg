@@ -4,7 +4,7 @@ import {WavWriter} from '../../audio/impl/wavwriter'
 import {RecordingFile, RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input, Renderer2
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import { MatDialog } from "@angular/material/dialog";
@@ -20,13 +20,14 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 
 import {Upload, UploaderStatus, UploaderStatusChangeEvent} from "../../net/uploader";
-import {ActivatedRoute, Params} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 import {ProjectService} from "../project/project.service";
 import {UUID} from "../../utils/utils";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
-import {ReadyStateProvider} from "../../recorder_component";
+import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
+import {Mode} from "../../speechrecorderng.component";
 
 
 export const enum Status {
@@ -44,6 +45,7 @@ export class Item {
     this.recs = null;
   }
 }
+
 
 @Component({
   selector: 'app-audiorecorder',
@@ -112,8 +114,8 @@ export class Item {
     flex-direction: column;
     margin: 0;
     padding: 0;
+    height: 100%;
     min-height: 0px;
-
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }`,`.ricontrols {
@@ -141,10 +143,10 @@ export class Item {
   }`
    ]
 })
-export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
+export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
 
-  _project:Project|null=null;
-  @Input() projectName:string|null=null;
+  @Input() _project:Project|undefined| null=null;
+  @Input() projectName:string|undefined|null=null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
   status: Status = Status.BLOCKED;
@@ -171,11 +173,9 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
 
-
-
   constructor(private changeDetectorRef: ChangeDetectorRef,
-              private route: ActivatedRoute,
               private renderer: Renderer2,
+              private route: ActivatedRoute,
               public dialog: MatDialog,
               private projectService:ProjectService,
               protected sessionService:SessionService,
@@ -183,6 +183,8 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
               private uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     super(dialog,sessionService);
+
+    //super(injector);
     this.status = Status.IDLE;
 
     this.audio = document.getElementById('audio');
@@ -193,15 +195,12 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
     if (this.config && this.config.enableDownloadRecordings != null) {
       this.enableDownloadRecordings = this.config.enableDownloadRecordings;
     }
-    this.init();
+    //this.init();
   }
 
+
   ngAfterViewInit() {
-    this.route.queryParams.subscribe((params: Params) => {
-      if (params['sessionId']) {
-        this.fetchSession(params['sessionId']);
-      }
-    });
+
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
     this.streamLevelMeasure.peakLevelListener=(peakLvlInDb)=>{
       this.peakLevelInDb=peakLvlInDb;
@@ -217,8 +216,7 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
        // TODO stop capture /playback
     }
 
-  private init() {
-
+  ngOnInit() {
     this.transportActions.startAction.disabled = true;
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
@@ -266,7 +264,7 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
       });
       return;
     } else {
-      this.controlAudioPlayer = new AudioPlayer(context, this);
+      //this.controlAudioPlayer = new AudioPlayer(context, this);
       this.ac = new AudioCapture(context);
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
@@ -352,48 +350,7 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
-  fetchSession(sessionId:string){
 
-
-    //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
-    // params.subscribe seems not to be asynchronous
-
-    // this.sm.statusAlertType='info';
-    // this.sm.statusMsg = 'Fetching session info...';
-    // this.sm.statusWaiting=true;
-    let sessObs= this.sessionService.sessionObserver(sessionId);
-
-    if(sessObs) {
-      sessObs.subscribe(sess => {
-          //this.setSession(sess);
-          this.statusAlertType='info';
-          this.statusMsg = 'Received session info.';
-          this.statusWaiting=false;
-          this.session=sess;
-          if (sess.project) {
-            //console.debug("Session associated project: "+sess.project)
-            this.projectService.projectObservable(sess.project).subscribe(project=>{
-              this.project=project;
-              this.fetchRecordings(sess);
-            },reason =>{
-              this.statusMsg=reason;
-              this.statusAlertType='error';
-              this.statusWaiting=false;
-              console.error("Error fetching project config: "+reason)
-            });
-
-          } else {
-            console.info("Session has no associated project. Using default configuration.")
-          }
-        },
-        (reason) => {
-          this.statusMsg = reason;
-          this.statusAlertType = 'error';
-          this.statusWaiting=false;
-          console.error("Error fetching session " + reason)
-        });
-    }
-  }
 
   fetchRecordings(sess:Session){
     this.statusAlertType='info';
@@ -441,7 +398,7 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
   }
 
 
-  set project(project: Project|null) {
+  set project(project: Project|undefined|null) {
     this._project = project;
     let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
@@ -457,7 +414,7 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
     this.channelCount = chCnt;
   }
 
-  get project():Project|null{
+  get project():Project|undefined|null{
     return this._project;
   }
 
@@ -919,3 +876,120 @@ export class AudioRecorder extends BasicRecorder implements AfterViewInit,OnDest
   }
 }
 
+
+@Component({
+
+  selector: 'app-audiorecorder-comp',
+  providers: [SessionService],
+  template: `
+    <app-audiorecorder [projectName]="_project?.name" [dataSaved]="dataSaved"></app-audiorecorder>
+  `,
+  styles: [`:host{
+    flex: 2;
+    display: flex;
+      height: 100%;
+    flex-direction: column;
+    min-height:0;
+
+  }`]
+
+})
+export class AudioRecorderComponent extends RecorderComponent  implements OnInit,OnDestroy,AfterViewInit,ReadyStateProvider {
+
+  mode!:Mode;
+  controlAudioPlayer!:AudioPlayer;
+  audio:any;
+
+  _project:Project|undefined;
+  sessionId!: string;
+  session!:Session;
+
+  dataSaved: boolean = true;
+  @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
+
+  constructor(protected injector:Injector,private route: ActivatedRoute,
+              private router: Router,
+              private changeDetectorRef: ChangeDetectorRef,
+              private sessionService:SessionService,
+              private projectService:ProjectService,
+              private recFilesService:RecordingService,
+  ) {
+    super();
+  }
+
+  ngOnInit() {
+    //super.ngOnInit();
+    let audioContext = AudioContextProvider.audioContextInstance();
+    if(audioContext) {
+      this.controlAudioPlayer = new AudioPlayer(audioContext,this.ar);
+    }
+    this.ar.controlAudioPlayer=this.controlAudioPlayer;
+  }
+
+  ngAfterViewInit() {
+    this.route.queryParams.subscribe((params: Params) => {
+      if (params['sessionId']) {
+        this.fetchSession(params['sessionId']);
+      }
+    });
+    this.route.params.subscribe((params: Params) => {
+      let routeParamsId = params['id'];
+      if (routeParamsId) {
+        this.fetchSession(routeParamsId);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    //super.ngOnDestroy();
+  }
+
+  fetchSession(sessionId:string){
+
+
+    //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
+    // params.subscribe seems not to be asynchronous
+
+    // this.sm.statusAlertType='info';
+    // this.sm.statusMsg = 'Fetching session info...';
+    // this.sm.statusWaiting=true;
+    let sessObs= this.sessionService.sessionObserver(sessionId);
+
+    if(sessObs) {
+      sessObs.subscribe(sess => {
+
+          this.ar.statusAlertType='info';
+          this.ar.statusMsg = 'Received session info.';
+          this.ar.statusWaiting=false;
+          this.session=sess;
+          this.ar.session=sess;
+          if (sess.project) {
+            //console.debug("Session associated project: "+sess.project)
+            this.projectService.projectObservable(sess.project).subscribe(project=>{
+              this.ar.project=project;
+              this.ar.fetchRecordings(sess);
+            },reason =>{
+              this.ar.statusMsg=reason;
+              this.ar.statusAlertType='error';
+              this.ar.statusWaiting=false;
+              console.error("Error fetching project config: "+reason)
+            });
+
+          } else {
+            console.info("Session has no associated project. Using default configuration.")
+          }
+        },
+        (reason) => {
+          this.ar.statusMsg = reason;
+          this.ar.statusAlertType = 'error';
+          this.ar.statusWaiting=false;
+          console.error("Error fetching session " + reason)
+        });
+    }
+  }
+
+  ready():boolean{
+    return this.dataSaved && !this.ar.isActive()
+  }
+
+}

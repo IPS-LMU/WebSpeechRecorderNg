@@ -15,8 +15,10 @@ export {Action} from "./lib/action/action";
 export {MessageDialog} from "./lib/ui/message_dialog"
 export {ReadyStateProvider} from "./lib/recorder_component"
 export {AudioClip,Selection} from './lib/audio/persistor'
+export {WavWriter} from './lib/audio/impl/wavwriter'
+export {RecorderComponent} from './lib/recorder_component'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
-export {AudioRecorder} from './lib/speechrecorder/session/audiorecorder'
+export {AudioRecorder,AudioRecorderComponent} from './lib/speechrecorder/session/audiorecorder'
 export {AudioDisplay} from './lib/audio/audio_display'
 export {AudioDisplayPlayer} from './lib/audio/audio_player'
 export {AudioClipUIContainer} from './lib/audio/ui/container'
