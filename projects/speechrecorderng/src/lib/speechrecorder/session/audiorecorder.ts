@@ -929,6 +929,33 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
       this.controlAudioPlayer = new AudioPlayer(audioContext,this.ar);
     }
     this.ar.controlAudioPlayer=this.controlAudioPlayer;
+
+    //TODO Duplicate code in SpeechRecorderComponent
+    window.addEventListener('beforeunload', (e) => {
+      console.debug("Before page unload event");
+
+      if (this.ready()) {
+        return;
+      } else {
+        // all this attempts to customize the message do not work anymore (for security reasons)!!
+        var message = "Please do not leave the page, until all recordings are uploaded!";
+        alert(message);
+        e = e || window.event;
+
+        if (e) {
+          e.returnValue = message;
+          e.cancelBubble = true;
+          if (e.stopPropagation) {
+            e.stopPropagation();
+          }
+          if (e.preventDefault) {
+            e.preventDefault();
+          }
+        }
+
+        return message;
+      }
+    });
   }
 
   ngAfterViewInit() {

@@ -16,7 +16,7 @@ export {ClassDescriptor,PropertyDescriptor,DataType,UiFieldHint,LocalizedMessage
 export {FitToPageComponent,FitToPageUtil} from "./lib/ui/fit_to_page_comp"
 export {ReadyStateProvider} from "./lib/recorder_component"
 export {MessageDialog} from "./lib/ui/message_dialog"
-
+export {ReadyStateProvider} from "./lib/recorder_component"
 export {AudioClip,Selection} from './lib/audio/persistor'
 export {WavWriter} from './lib/audio/impl/wavwriter'
 export {RecorderComponent} from './lib/recorder_component'
