@@ -262,7 +262,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
             this.uploader.listener = (ue) => {
                 this.uploadUpdate(ue);
             }
-
+           //TODO Duplicate code in AudioRecorderComponent
             window.addEventListener('beforeunload', (e) => {
                 console.debug("Before page unload event");
 
