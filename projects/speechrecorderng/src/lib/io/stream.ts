@@ -7,7 +7,11 @@ export interface Float32ArrayOutStream {
   close(): void;
 }
 
-export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
+export interface Float32ArrayOutStreamAw extends Float32ArrayOutStream{
+  available():number;
+}
+
+export class Float32ArrayChunkerOutStream implements Float32ArrayOutStreamAw {
 
   private bufs = new Array<Float32Array>();
   private filled: number;
@@ -39,6 +43,10 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
   set channels(channels: number) {
     this._channels = channels;
     this.createBuffers();
+  }
+
+  available(): number {
+    return this._chunkSize-this.filled;
   }
 
   write(buffers: Array<Float32Array>): number {
@@ -96,4 +104,6 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
   close(): void {
     this.outStream.close();
   }
+
+
 }

@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {SprRecordingFile, RecordingFileDescriptorImpl} from '../recording'
+import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   AfterViewInit,
@@ -21,7 +21,11 @@ import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Prompting} from "./prompting";
-import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
+import {
+  SequenceAudioFloat32ChunkerOutStream,
+  SequenceAudioFloat32OutStream,
+  SequenceAudioFloat32OutStreamMultiplier
+} from "../../audio/io/stream";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
@@ -37,6 +41,65 @@ const DEFAULT_POST_REC_DELAY=500;
 export const enum Status {
   BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
+
+export interface ChunkAudioBufferReceiver{
+    postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
+    postAudioStreamEnd(chunkCount:number):void;
+}
+
+export class ChunkManager implements SequenceAudioFloat32OutStream{
+
+  set recordingFile(value: SprRecordingFile) {
+    this._rf = value;
+  }
+
+  private channels:number=0;
+  private sampleRate:number=-1;
+
+  private _rf!:SprRecordingFile;
+
+  private chunkIdx:number=0;
+
+  constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
+  }
+
+  close(): void {
+    // Nothing to do
+  }
+
+  flush(): void {
+    this.chunkAudioBufferReceiver.postAudioStreamEnd(this.chunkIdx);
+  }
+
+  nextStream(): void {
+    // reset chunk counter
+    this.chunkIdx=0;
+  }
+
+  setFormat(channels: number, sampleRate: number): void {
+    this.channels=channels;
+    this.sampleRate=sampleRate;
+  }
+
+  write(buffers: Array<Float32Array>): number {
+    console.debug("TODO: Uploading audio data with "+buffers.length+ " channels ")
+    let aCtx=AudioContextProvider.audioContextInstance();
+    let bChs=buffers.length;
+    let frameLen=0;
+    if(aCtx && bChs>0) {
+      frameLen=buffers[0].length;
+      let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
+      for (let ch = 0; ch < this.channels; ch++) {
+        ad.copyToChannel(buffers[ch],ch);
+      }
+      this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
+      this.chunkIdx++;
+    }
+    return frameLen;
+  }
+
+}
+
 
 @Component({
   selector: 'app-sprrecordingsession',
@@ -112,7 +175,7 @@ export const enum Status {
     min-height: min-content; /* important */
   }`]
 })
-export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener {
+export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
@@ -161,14 +224,16 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   promptItemCount!: number;
 
+
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               public dialog: MatDialog,
               protected sessionService:SessionService,
               private recFileService:RecordingService,
-              private uploader: SpeechRecorderUploader,
+              protected uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
-    super(dialog,sessionService);
+    super(dialog,sessionService,uploader,config);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {
@@ -179,6 +244,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
     this.init();
   }
+
+
 
   ngAfterViewInit() {
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
@@ -247,7 +314,25 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
-        this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+
+        if(this._uploadChunkSizeSeconds) {
+          // Multiply the capture stream to...
+          let sasm=new SequenceAudioFloat32OutStreamMultiplier();
+
+
+          // ...upload audio data in chunks...
+          let chMng = new ChunkManager(this);  // The chunk manager connects the chunked audio stream to this class to upload the chunks
+          let chOsUpload = new SequenceAudioFloat32ChunkerOutStream(chMng, 30); // The audio stream chunker itself
+          sasm.sequenceAudioFloat32OutStreams.push(chOsUpload);
+
+          // ...and to measure the level
+          let chOsLvlMeas = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS)
+          sasm.sequenceAudioFloat32OutStreams.push(chOsLvlMeas);
+
+          this.ac.audioOutStream = sasm;
+        }else{
+          this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+        }
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
         //this.ac.listDevices();
       } else {
@@ -947,7 +1032,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
         it.recs.push(rf);
       }
-      if (this.enableUploadRecordings) {
+      if (this.enableUploadRecordings && !this._uploadChunkSizeSeconds) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
         // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
@@ -1028,6 +1113,42 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.startItem();
     }
     this.changeDetectorRef.detectChanges();
+  }
+
+  postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
+    let ww = new WavWriter();
+    //new REST API URL
+    let apiEndPoint = '';
+    if (this.config && this.config.apiEndPoint) {
+      apiEndPoint = this.config.apiEndPoint;
+    }
+    if (apiEndPoint !== '') {
+      apiEndPoint = apiEndPoint + '/'
+    }
+    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+chunkIdx;
+    ww.writeAsync(audioBuffer, (wavFile) => {
+      this.postRecording(wavFile, recUrl);
+      this.processingRecording = false
+    });
+  }
+
+  postAudioStreamEnd(chunkCount: number): void {
+
+    //new REST API URL
+    let apiEndPoint = '';
+    if (this.config && this.config.apiEndPoint) {
+      apiEndPoint = this.config.apiEndPoint;
+    }
+    if (apiEndPoint !== '') {
+      apiEndPoint = apiEndPoint + '/'
+    }
+    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/concatChunksRequest';
+    let fd=new FormData();
+    fd.set('chunkCount',chunkCount.toString());
+    let ul = new Upload( fd,recUrl);
+    this.uploader.queueUpload(ul);
   }
 
   postRecording(wavFile: Uint8Array, recUrl: string) {

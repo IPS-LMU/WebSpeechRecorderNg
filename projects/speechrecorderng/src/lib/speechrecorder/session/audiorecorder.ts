@@ -12,7 +12,7 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import { Project, ProjectUtil} from "../project/project";
-import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
+import {SequenceAudioFloat32ChunkerOutStream, SequenceAudioFloat32OutStreamMultiplier} from "../../audio/io/stream";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 
@@ -28,6 +28,7 @@ import {RecorderCombiPane} from "./recorder_combi_pane";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
+import {ChunkManager} from "./sessionmanager";
 
 
 export const enum Status {
@@ -157,6 +158,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   @Input() dataSaved=true
 
   private startedDate:Date|null=null;
+  private rfUuid:string|null=null;
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
   private updateTimerId: any;
@@ -180,9 +182,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               private projectService:ProjectService,
               protected sessionService:SessionService,
               private recFileService:RecordingService,
-              private uploader: SpeechRecorderUploader,
+              protected uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
-    super(dialog,sessionService);
+    super(dialog,sessionService,uploader,config);
 
     //super(injector);
     this.status = Status.IDLE;
@@ -269,7 +271,24 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
-        this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+        if(this._uploadChunkSizeSeconds) {
+          // Multiply the capture stream to...
+          let sasm=new SequenceAudioFloat32OutStreamMultiplier();
+
+
+          // ...upload audio data in chunks...
+          let chMng = new ChunkManager(this);  // The chunk manager connects the chunked audio stream to this class to upload the chunks
+          let chOsUpload = new SequenceAudioFloat32ChunkerOutStream(chMng, 30); // The audio stream chunker itself
+          sasm.sequenceAudioFloat32OutStreams.push(chOsUpload);
+
+          // ...and to measure the level
+          let chOsLvlMeas = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS)
+          sasm.sequenceAudioFloat32OutStreams.push(chOsLvlMeas);
+
+          this.ac.audioOutStream = sasm;
+        }else{
+          this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+        }
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
         //this.ac.listDevices();
       } else {
@@ -688,6 +707,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   started() {
+    this.rfUuid=UUID.generate();
     this.startedDate=new Date();
     this.transportActions.startAction.disabled = true;
 
@@ -767,7 +787,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if(this._session){
         sessId=this._session.sessionId;
       }
-      let rf = new RecordingFile(UUID.generate(),sessId,ad);
+      if(!this.rfUuid){
+        this.rfUuid=UUID.generate()
+      }
+      let rf = new RecordingFile(this.rfUuid,sessId,ad);
       rf._startedAsDateObj=this.startedDate;
       if(rf._startedAsDateObj) {
         rf.startedDate = rf._startedAsDateObj.toString();
@@ -819,11 +842,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.changeDetectorRef.detectChanges();
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string) {
-    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
-    this.uploader.queueUpload(ul);
-  }
+
 
   postRecordingMultipart(wavFile: Uint8Array, uuid:string|null,sessionId:string|number|null,startedDate:Date|null|undefined,recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
@@ -840,6 +859,42 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     }
     fd.set('audio',wavBlob);
     let ul = new Upload(fd, recUrl);
+    this.uploader.queueUpload(ul);
+  }
+
+  postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
+    let ww = new WavWriter();
+    //new REST API URL
+    let apiEndPoint = '';
+    if (this.config && this.config.apiEndPoint) {
+      apiEndPoint = this.config.apiEndPoint;
+    }
+    if (apiEndPoint !== '') {
+      apiEndPoint = apiEndPoint + '/'
+    }
+    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
+    ww.writeAsync(audioBuffer, (wavFile) => {
+      this.postRecording(wavFile, recUrl);
+      this.processingRecording = false
+    });
+  }
+
+  postAudioStreamEnd(chunkCount: number): void {
+
+    //new REST API URL
+    let apiEndPoint = '';
+    if (this.config && this.config.apiEndPoint) {
+      apiEndPoint = this.config.apiEndPoint;
+    }
+    if (apiEndPoint !== '') {
+      apiEndPoint = apiEndPoint + '/'
+    }
+    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
+    let fd=new FormData();
+    fd.set('chunkCount',chunkCount.toString());
+    let ul = new Upload( fd,recUrl);
     this.uploader.queueUpload(ul);
   }
 
@@ -1014,6 +1069,8 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
         });
     }
   }
+
+
 
   ready():boolean{
     return this.dataSaved && !this.ar.isActive()

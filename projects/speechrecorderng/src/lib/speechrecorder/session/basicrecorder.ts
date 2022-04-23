@@ -12,6 +12,11 @@ import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
+import {WavWriter} from "../../audio/impl/wavwriter";
+import {Upload} from "../../net/uploader";
+import {Inject} from "@angular/core";
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
+import {SpeechRecorderUploader} from "../spruploader";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -19,7 +24,7 @@ export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 
 export const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 
-export class BasicRecorder {
+export abstract class BasicRecorder {
   protected userAgent:UserAgent;
   statusMsg: string='';
   statusAlertType!: string;
@@ -55,7 +60,13 @@ export class BasicRecorder {
 
   protected navigationDisabled=true;
 
-  constructor(  public dialog: MatDialog,protected sessionService:SessionService) {
+  // TODO Test fixed 30 seconds chunk size
+  protected _uploadChunkSizeSeconds:number|null=30;
+
+  constructor(  public dialog: MatDialog,
+                protected sessionService:SessionService,
+                protected uploader: SpeechRecorderUploader,
+                @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.userAgent=UserAgentBuilder.userAgent();
     console.debug("Detected platform: "+this.userAgent.detectedPlatform);
     console.debug("Detected browser: "+this.userAgent.detectedBrowser);
@@ -311,6 +322,18 @@ export class BasicRecorder {
       });
     }
   }
+
+  postRecording(wavFile: Uint8Array, recUrl: string) {
+    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+    let ul = new Upload(wavBlob, recUrl);
+    this.uploader.queueUpload(ul);
+  }
+
+  abstract postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void;
+
+  abstract postAudioStreamEnd(chunkCount: number): void;
+
+
 
   closed() {
     this.statusAlertType = 'info';
