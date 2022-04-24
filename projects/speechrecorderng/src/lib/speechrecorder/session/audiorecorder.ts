@@ -158,7 +158,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   @Input() dataSaved=true
 
   private startedDate:Date|null=null;
-  private rfUuid:string|null=null;
+
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
   private updateTimerId: any;
@@ -813,19 +813,22 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
       //     // TODO duplicate conversion for manual download
       //     //console.log("Build wav writer...");
-          this.processingRecording=true
-          let ww = new WavWriter();
-          ww.writeAsync(ad, (wavFile) => {
-            //this.postRecording(wavFile, recUrl);
-            //rf._dateAsDateObj=new Date();
-            rf.frames=ad.length;
-            this.displayRecFile=rf;
-            //this.recordingListComp.recordingList.push(rf);
-            this.recorderCombiPane.push(rf);
-            this.postRecordingMultipart(wavFile, rf.uuid,rf.session,rf._startedAsDateObj,recUrl);
-            this.processingRecording=false;
-            this.changeDetectorRef.detectChanges();
-          });
+
+      if (this.enableUploadRecordings && !this._uploadChunkSizeSeconds) {
+        this.processingRecording = true
+        let ww = new WavWriter();
+        ww.writeAsync(ad, (wavFile) => {
+          //this.postRecording(wavFile, recUrl);
+          //rf._dateAsDateObj=new Date();
+          rf.frames = ad.length;
+          this.displayRecFile = rf;
+          //this.recordingListComp.recordingList.push(rf);
+          this.recorderCombiPane.push(rf);
+          this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
+          this.processingRecording = false;
+          this.changeDetectorRef.detectChanges();
+        });
+      }
       // }
     }
 

@@ -30,6 +30,7 @@ export abstract class BasicRecorder {
   statusAlertType!: string;
   statusWaiting: boolean=false;
   readonly=false;
+  protected rfUuid:string|null=null;
   processingRecording=false;
   ac: AudioCapture|null=null;
   // Property audioDevices from project config: list of names of allowed audio devices.

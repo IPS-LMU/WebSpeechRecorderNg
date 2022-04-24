@@ -34,6 +34,7 @@ import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
+import {UUID} from "../../utils/utils";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -847,6 +848,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   started() {
+    this.rfUuid=UUID.generate();
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
@@ -1126,7 +1128,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       apiEndPoint = apiEndPoint + '/'
     }
     let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+chunkIdx;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
     ww.writeAsync(audioBuffer, (wavFile) => {
       this.postRecording(wavFile, recUrl);
       this.processingRecording = false
@@ -1144,7 +1146,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       apiEndPoint = apiEndPoint + '/'
     }
     let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/concatChunksRequest';
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
     let fd=new FormData();
     fd.set('chunkCount',chunkCount.toString());
     let ul = new Upload( fd,recUrl);
