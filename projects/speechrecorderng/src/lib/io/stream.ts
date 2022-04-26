@@ -7,11 +7,7 @@ export interface Float32ArrayOutStream {
   close(): void;
 }
 
-export interface Float32ArrayOutStreamAw extends Float32ArrayOutStream{
-  available():number;
-}
-
-export class Float32ArrayChunkerOutStream implements Float32ArrayOutStreamAw {
+export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
 
   private bufs = new Array<Float32Array>();
   private filled: number;

@@ -1,19 +1,11 @@
-import {Float32ArrayChunkerOutStream, Float32ArrayOutStream, Float32ArrayOutStreamAw} from "../../io/stream";
+import {Float32ArrayChunkerOutStream, Float32ArrayOutStream} from "../../io/stream";
 
 export interface AudioFloat32OutStream extends Float32ArrayOutStream{
     setFormat(channels: number,sampleRate:number):void;
 }
 
-export interface AudioFloat32OutStreamAw extends Float32ArrayOutStreamAw{
-  setFormat(channels: number,sampleRate:number):void;
-}
-
 export interface SequenceAudioFloat32OutStream extends AudioFloat32OutStream{
     nextStream():void;
-}
-
-export interface SequenceAudioFloat32OutStreamAw extends AudioFloat32OutStreamAw{
-  nextStream():void;
 }
 
 export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOutStream implements SequenceAudioFloat32OutStream{
@@ -43,13 +35,13 @@ export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOut
  */
 export class SequenceAudioFloat32OutStreamMultiplier implements SequenceAudioFloat32OutStream{
 
-  private _sequenceAudioFloat32OutStreams!:Array<SequenceAudioFloat32OutStreamAw>;
+  private _sequenceAudioFloat32OutStreams!:Array<SequenceAudioFloat32OutStream>;
 
   constructor() {
-    this._sequenceAudioFloat32OutStreams=new Array<SequenceAudioFloat32OutStreamAw>();
+    this._sequenceAudioFloat32OutStreams=new Array<SequenceAudioFloat32OutStream>();
   }
 
-  get sequenceAudioFloat32OutStreams(): Array<SequenceAudioFloat32OutStreamAw> {
+  get sequenceAudioFloat32OutStreams(): Array<SequenceAudioFloat32OutStream> {
     return this._sequenceAudioFloat32OutStreams;
   }
 
