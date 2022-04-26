@@ -26,9 +26,11 @@ export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOut
   }
 
   setFormat(channels: number,sampleRate:number):void{
+    console.debug("SequenceAudioFloat32ChunkerOutStream:setFormat(channels: "+channels+",sampleRate: "+sampleRate+")")
     this.channels=channels;
     this.sampleRate=sampleRate;
     this.chunkSize=Math.round(sampleRate*this.chunkDurationSeconds);
+    console.debug("SequenceAudioFloat32ChunkerOutStream: chunkSize: "+this.chunkSize);
     this.sequenceAudioFloat32OutStream.setFormat(channels,sampleRate);
   }
   nextStream():void{
@@ -54,6 +56,7 @@ export class SequenceAudioFloat32OutStreamMultiplier implements SequenceAudioFlo
     // this.sampleRate=sampleRate;
     // this.chunkSize=Math.round(sampleRate*this.chunkDurationSeconds);
     // this.sequenceAudioFloat32OutStream.setFormat(channels,sampleRate);
+    console.debug("SequenceAudioFloat32OutStreamMultiplier:setFormat(channels: "+channels+",sampleRate: "+sampleRate+")")
     for(let os of this._sequenceAudioFloat32OutStreams){
         os.setFormat(channels,sampleRate);
     }
@@ -90,7 +93,9 @@ export class SequenceAudioFloat32OutStreamMultiplier implements SequenceAudioFlo
         }
       }
       let bufsToWrite;
+      console.debug("SequenceAudioFloat32OutStreamMultiplier: minAvail: " +minAvail+", toWrite: "+toWrite);
       if (minAvail < toWrite) {
+
         toWrite = minAvail;
         let wBufs = new Array<Float32Array>(len);
         for (let bi = 0; bi < len; bi++) {
