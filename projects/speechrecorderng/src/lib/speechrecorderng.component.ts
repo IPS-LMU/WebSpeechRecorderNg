@@ -83,6 +83,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }
     }
        ngAfterViewInit(){
+        let wakeLockSupp=('wakeLock' in navigator);
+        alert('Wake lock API supported: '+wakeLockSupp);
+
 
 		  if(this.sm.status!== SessionManagerStatus.ERROR) {
         let initSuccess = this.init();

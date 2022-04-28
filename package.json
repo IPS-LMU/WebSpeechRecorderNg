@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "2.23.9",
+  "version": "2.24.0-alpha.1",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -49,6 +49,7 @@
     "@angular/compiler-cli": "~13.3.2",
     "@types/jasmine": "~4.0.1",
     "@types/node": "~17.0.23",
+    "@types/dom-screen-wake-lock": "~1.0.0",
     "karma": "~6.3.17",
     "karma-chrome-launcher": "~3.1.1",
     "karma-coverage": "~2.2.0",

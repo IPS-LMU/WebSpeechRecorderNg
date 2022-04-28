@@ -206,6 +206,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
+    let wakeLockSupp=('wakeLock' in navigator);
+    alert('Wake lock API supported: '+wakeLockSupp);
   }
 
   ready():boolean{
@@ -655,6 +657,21 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.recorderCombiPane.selectTop();
     this.enableNavigation();
     this.updateStartActionDisableState();
+    let wakeLockSupp=('wakeLock' in navigator);
+
+    if(wakeLockSupp) {
+      let wakeLock = null;
+      try {
+        //@ts-ignore
+        wakeLock = navigator.wakeLock.request('screen');
+
+        //statusElem.textContent = 'Wake Lock is active!';
+      } catch (err) {
+        // The Wake Lock request has failed - usually system related, such as battery.
+        console.error('Wakelock failed'+err)
+      }
+    }
+
   }
 
   isRecording(): boolean {
