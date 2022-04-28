@@ -12,6 +12,7 @@ import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
+import NoSleep from "nosleep.js";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -55,6 +56,9 @@ export class BasicRecorder {
 
   protected navigationDisabled=true;
 
+  protected noSleep!:NoSleep;
+
+
   constructor(  public dialog: MatDialog,protected sessionService:SessionService) {
     this.userAgent=UserAgentBuilder.userAgent();
     console.debug("Detected platform: "+this.userAgent.detectedPlatform);
@@ -64,6 +68,7 @@ export class BasicRecorder {
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
     this.selCaptureDeviceId = null;
+    this.noSleep=new NoSleep();
   }
 
   set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {

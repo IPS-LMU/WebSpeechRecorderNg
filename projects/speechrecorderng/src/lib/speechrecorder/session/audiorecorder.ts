@@ -30,6 +30,9 @@ import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
 
 
+
+
+
 export const enum Status {
   BLOCKED, IDLE, RECORDING,  STOPPING_STOP, ERROR
 }
@@ -173,6 +176,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
 
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               private route: ActivatedRoute,
@@ -214,6 +218,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     return this.dataSaved && !this.isActive()
   }
     ngOnDestroy() {
+      this.noSleep.disable();
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -299,7 +304,27 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
-}
+
+    let wakeLockSupp=('wakeLock' in navigator);
+
+    // if(wakeLockSupp) {
+    //   let wakeLock = null;
+    //   try {
+    //     //@ts-ignore
+    //     wakeLock = navigator.wakeLock.request('screen');
+    //
+    //     //statusElem.textContent = 'Wake Lock is active!';
+    //   } catch (err) {
+    //     // The Wake Lock request has failed - usually system related, such as battery.
+    //     console.error('Wakelock failed'+err)
+    //   }
+    // }else{
+    //   let noSleep=new NoSleep();
+    //   noSleep.enable();
+    //
+    // }
+
+  }
 
   @HostListener('window:keypress', ['$event'])
   onKeyPress(ke: KeyboardEvent) {
@@ -513,6 +538,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
+    this.noSleep.enable();
+
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if (this.readonly) {
@@ -657,20 +684,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.recorderCombiPane.selectTop();
     this.enableNavigation();
     this.updateStartActionDisableState();
-    let wakeLockSupp=('wakeLock' in navigator);
-
-    if(wakeLockSupp) {
-      let wakeLock = null;
-      try {
-        //@ts-ignore
-        wakeLock = navigator.wakeLock.request('screen');
-
-        //statusElem.textContent = 'Wake Lock is active!';
-      } catch (err) {
-        // The Wake Lock request has failed - usually system related, such as battery.
-        console.error('Wakelock failed'+err)
-      }
-    }
 
   }
 
@@ -986,6 +999,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   ngOnDestroy() {
     //super.ngOnDestroy();
+
   }
 
   fetchSession(sessionId:string){
