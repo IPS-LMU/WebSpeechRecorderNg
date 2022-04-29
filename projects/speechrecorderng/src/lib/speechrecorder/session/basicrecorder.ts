@@ -17,6 +17,7 @@ import {Upload} from "../../net/uploader";
 import {Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
+import NoSleep from "nosleep.js";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -33,6 +34,8 @@ export abstract class BasicRecorder {
   protected rfUuid:string|null=null;
   processingRecording=false;
   ac: AudioCapture|null=null;
+
+  protected _wakeLock:boolean=false;
   // Property audioDevices from project config: list of names of allowed audio devices.
   protected _audioDevices: Array<AudioDevice> | null| undefined;
   protected _selectedDeviceId:string|undefined=undefined;
@@ -61,6 +64,8 @@ export abstract class BasicRecorder {
 
   protected navigationDisabled=true;
 
+  protected noSleep:NoSleep|null=null;
+
   // TODO Test fixed 30 seconds chunk size
   protected _uploadChunkSizeSeconds:number|null=30;
 
@@ -76,6 +81,31 @@ export abstract class BasicRecorder {
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
     this.selCaptureDeviceId = null;
+  }
+
+  get wakeLock(): boolean {
+    return this._wakeLock;
+  }
+
+  set wakeLock(value: boolean) {
+    this._wakeLock = value;
+  }
+
+  enableWakeLockCond(){
+    if(this.wakeLock===true) {
+      if(!this.noSleep){
+        this.noSleep=new NoSleep();
+      }
+      if(!this.noSleep.isEnabled) {
+        this.noSleep.enable();
+      }
+    }
+  }
+
+  disableWakeLockCond(){
+      if(this.noSleep && this.noSleep.isEnabled){
+          this.noSleep.disable();
+      }
   }
 
   set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {

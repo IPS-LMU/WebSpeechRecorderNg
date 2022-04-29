@@ -29,6 +29,10 @@ import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFI
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
 import {ChunkManager} from "./sessionmanager";
+import NoSleep from "nosleep.js";
+
+
+
 
 
 export const enum Status {
@@ -158,7 +162,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   @Input() dataSaved=true
 
   private startedDate:Date|null=null;
-
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
   private updateTimerId: any;
@@ -208,12 +211,15 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
+    //let wakeLockSupp=('wakeLock' in navigator);
+    //alert('Wake lock API supported: '+wakeLockSupp);
   }
 
   ready():boolean{
     return this.dataSaved && !this.isActive()
   }
     ngOnDestroy() {
+      this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -316,7 +322,27 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
-}
+
+    let wakeLockSupp=('wakeLock' in navigator);
+
+    // if(wakeLockSupp) {
+    //   let wakeLock = null;
+    //   try {
+    //     //@ts-ignore
+    //     wakeLock = navigator.wakeLock.request('screen');
+    //
+    //     //statusElem.textContent = 'Wake Lock is active!';
+    //   } catch (err) {
+    //     // The Wake Lock request has failed - usually system related, such as battery.
+    //     console.error('Wakelock failed'+err)
+    //   }
+    // }else{
+    //   let noSleep=new NoSleep();
+    //   noSleep.enable();
+    //
+    // }
+
+  }
 
   @HostListener('window:keypress', ['$event'])
   onKeyPress(ke: KeyboardEvent) {
@@ -423,6 +449,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     if (project) {
       console.info("Project name: " + project.name)
+      if(project.recordingDeviceWakeLock===true){
+        this.wakeLock=true;
+      }
       this.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
@@ -530,6 +559,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
+   this.enableWakeLockCond();
+
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if (this.readonly) {
@@ -1072,8 +1103,6 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
         });
     }
   }
-
-
 
   ready():boolean{
     return this.dataSaved && !this.ar.isActive()
