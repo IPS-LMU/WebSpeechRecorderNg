@@ -83,8 +83,8 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }
     }
        ngAfterViewInit(){
-        let wakeLockSupp=('wakeLock' in navigator);
-        alert('Wake lock API supported: '+wakeLockSupp);
+        // let wakeLockSupp=('wakeLock' in navigator);
+        // alert('Wake lock API supported: '+wakeLockSupp);
 
 
 		  if(this.sm.status!== SessionManagerStatus.ERROR) {
@@ -353,22 +353,25 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
     }
 
 
-    set project(project: Project|null) {
-        this._project = project;
-        let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
+  set project(project: Project|null) {
+    this._project = project;
+    let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
-        if (project) {
-            console.info("Project name: " + project.name)
-            this.sm.audioDevices = project.audioDevices;
-            chCnt = ProjectUtil.audioChannelCount(project);
-            console.info("Project requested recording channel count: " + chCnt);
-            this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
-        } else {
-            console.error("Empty project configuration!")
-        }
-        this.sm.channelCount = chCnt;
-
+    if (project) {
+      console.info("Project name: " + project.name)
+      if(project.recordingDeviceWakeLock===true){
+        this.sm.wakeLock=true;
+      }
+      this.sm.audioDevices = project.audioDevices;
+      chCnt = ProjectUtil.audioChannelCount(project);
+      console.info("Project requested recording channel count: " + chCnt);
+      this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
+    } else {
+      console.error("Empty project configuration!")
     }
+    this.sm.channelCount = chCnt;
+
+  }
 
   get project():Project|null{
 		  return this._project;

@@ -30,6 +30,7 @@ export interface AutoGainControlConfig {
 
 export interface Project {
   name: string,
+  recordingDeviceWakeLock?:boolean,
   audioFormat?: AudioFormat,
   mediaCaptureFormat?: MediaCaptureFormat,
   autoGainControlConfigs?:Array<AutoGainControlConfig>,

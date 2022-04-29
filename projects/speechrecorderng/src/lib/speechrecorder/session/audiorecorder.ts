@@ -28,6 +28,7 @@ import {RecorderCombiPane} from "./recorder_combi_pane";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
+import NoSleep from "nosleep.js";
 
 
 
@@ -210,15 +211,15 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
-    let wakeLockSupp=('wakeLock' in navigator);
-    alert('Wake lock API supported: '+wakeLockSupp);
+    //let wakeLockSupp=('wakeLock' in navigator);
+    //alert('Wake lock API supported: '+wakeLockSupp);
   }
 
   ready():boolean{
     return this.dataSaved && !this.isActive()
   }
     ngOnDestroy() {
-      this.noSleep.disable();
+      this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -431,6 +432,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     if (project) {
       console.info("Project name: " + project.name)
+      if(project.recordingDeviceWakeLock===true){
+        this.wakeLock=true;
+      }
       this.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
@@ -538,7 +542,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
-    this.noSleep.enable();
+   this.enableWakeLockCond();
 
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
