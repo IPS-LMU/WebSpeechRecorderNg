@@ -826,6 +826,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if(rf._startedAsDateObj) {
         rf.startedDate = rf._startedAsDateObj.toString();
       }
+      rf.frames = ad.length;
+      this.displayRecFile = rf;
+      this.recorderCombiPane.push(rf);
+
+      // Upload if upload enabled and not in chunked upload mode
+      if (this.enableUploadRecordings && !this._uploadChunkSizeSeconds) {
         let apiEndPoint = '';
 
         if (this.config && this.config.apiEndPoint) {
@@ -835,32 +841,21 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           apiEndPoint = apiEndPoint + '/'
         }
 
-          let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-           let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
-      //
-      //
-      //
-      //     // convert asynchronously to 16-bit integer PCM
-      //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-      //     // TODO duplicate conversion for manual download
-      //     //console.log("Build wav writer...");
+        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
 
-      if (this.enableUploadRecordings && !this._uploadChunkSizeSeconds) {
+        // convert asynchronously to 16-bit integer PCM
+        // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+        // TODO duplicate conversion for manual download
+
         this.processingRecording = true
         let ww = new WavWriter();
         ww.writeAsync(ad, (wavFile) => {
-          //this.postRecording(wavFile, recUrl);
-          //rf._dateAsDateObj=new Date();
-          rf.frames = ad.length;
-          this.displayRecFile = rf;
-          //this.recordingListComp.recordingList.push(rf);
-          this.recorderCombiPane.push(rf);
           this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
           this.processingRecording = false;
           this.changeDetectorRef.detectChanges();
         });
       }
-      // }
     }
 
     // check complete session
