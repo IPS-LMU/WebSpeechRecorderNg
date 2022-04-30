@@ -196,6 +196,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
     ngOnDestroy() {
+      this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -423,6 +424,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
   startItem() {
+    this.enableWakeLockCond();
+
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if(this.readonly){

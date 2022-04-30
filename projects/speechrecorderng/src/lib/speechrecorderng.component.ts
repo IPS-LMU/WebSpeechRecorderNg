@@ -363,21 +363,24 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
 
 
     set project(project: Project|undefined) {
-        this._project = project;
-        let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
+    this._project = project;
+    let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
 
-        if (project) {
-            console.info("Project name: " + project.name)
-            this.sm.audioDevices = project.audioDevices;
-            chCnt = ProjectUtil.audioChannelCount(project);
-            console.info("Project requested recording channel count: " + chCnt);
-            this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
-        } else {
-            console.error("Empty project configuration!")
-        }
-        this.sm.channelCount = chCnt;
-
+    if (project) {
+      console.info("Project name: " + project.name)
+      if(project.recordingDeviceWakeLock===true){
+        this.sm.wakeLock=true;
+      }
+      this.sm.audioDevices = project.audioDevices;
+      chCnt = ProjectUtil.audioChannelCount(project);
+      console.info("Project requested recording channel count: " + chCnt);
+      this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
+    } else {
+      console.error("Empty project configuration!")
     }
+    this.sm.channelCount = chCnt;
+
+  }
 
   get project():Project|undefined{
 		  return this._project;

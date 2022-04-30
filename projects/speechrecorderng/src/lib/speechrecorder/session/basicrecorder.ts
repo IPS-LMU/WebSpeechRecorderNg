@@ -12,6 +12,7 @@ import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
+import NoSleep from "nosleep.js";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -20,6 +21,7 @@ export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 export const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 
 export class BasicRecorder {
+
   protected userAgent:UserAgent;
   statusMsg: string='';
   statusAlertType!: string;
@@ -27,6 +29,8 @@ export class BasicRecorder {
   readonly=false;
   processingRecording=false;
   ac: AudioCapture|null=null;
+
+  protected _wakeLock:boolean=false;
   // Property audioDevices from project config: list of names of allowed audio devices.
   protected _audioDevices: Array<AudioDevice> | null| undefined;
   protected _selectedDeviceId:string|undefined=undefined;
@@ -55,6 +59,9 @@ export class BasicRecorder {
 
   protected navigationDisabled=true;
 
+  protected noSleep:NoSleep|null=null;
+
+
   constructor(  public dialog: MatDialog,protected sessionService:SessionService) {
     this.userAgent=UserAgentBuilder.userAgent();
     console.debug("Detected platform: "+this.userAgent.detectedPlatform);
@@ -64,6 +71,31 @@ export class BasicRecorder {
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
     this.selCaptureDeviceId = null;
+  }
+
+  get wakeLock(): boolean {
+    return this._wakeLock;
+  }
+
+  set wakeLock(value: boolean) {
+    this._wakeLock = value;
+  }
+
+  enableWakeLockCond(){
+    if(this.wakeLock===true) {
+      if(!this.noSleep){
+        this.noSleep=new NoSleep();
+      }
+      if(!this.noSleep.isEnabled) {
+        this.noSleep.enable();
+      }
+    }
+  }
+
+  disableWakeLockCond(){
+      if(this.noSleep && this.noSleep.isEnabled){
+          this.noSleep.disable();
+      }
   }
 
   set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {

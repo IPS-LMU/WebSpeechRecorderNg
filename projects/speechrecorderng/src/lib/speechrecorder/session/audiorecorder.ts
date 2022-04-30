@@ -32,6 +32,9 @@ import {SessionManager} from "./sessionmanager";
 import {Script} from "../script/script";
 import {Mode} from "../../speechrecorderng.component";
 import {ScriptService} from "../script/script.service";
+import NoSleep from "nosleep.js";
+
+
 
 
 
@@ -211,12 +214,15 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
+    //let wakeLockSupp=('wakeLock' in navigator);
+    //alert('Wake lock API supported: '+wakeLockSupp);
   }
 
   ready():boolean{
     return this.dataSaved && !this.isActive()
   }
     ngOnDestroy() {
+      this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -302,7 +308,27 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
-}
+
+    let wakeLockSupp=('wakeLock' in navigator);
+
+    // if(wakeLockSupp) {
+    //   let wakeLock = null;
+    //   try {
+    //     //@ts-ignore
+    //     wakeLock = navigator.wakeLock.request('screen');
+    //
+    //     //statusElem.textContent = 'Wake Lock is active!';
+    //   } catch (err) {
+    //     // The Wake Lock request has failed - usually system related, such as battery.
+    //     console.error('Wakelock failed'+err)
+    //   }
+    // }else{
+    //   let noSleep=new NoSleep();
+    //   noSleep.enable();
+    //
+    // }
+
+  }
 
   @HostListener('window:keypress', ['$event'])
   onKeyPress(ke: KeyboardEvent) {
@@ -409,6 +435,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     if (project) {
       console.info("Project name: " + project.name)
+      if(project.recordingDeviceWakeLock===true){
+        this.wakeLock=true;
+      }
       this.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
@@ -516,6 +545,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
+   this.enableWakeLockCond();
+
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if (this.readonly) {
