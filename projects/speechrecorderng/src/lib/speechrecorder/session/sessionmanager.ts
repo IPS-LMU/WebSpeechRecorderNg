@@ -1121,6 +1121,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
+    this.processingRecording = true;
     let ww = new WavWriter();
     //new REST API URL
     let apiEndPoint = '';

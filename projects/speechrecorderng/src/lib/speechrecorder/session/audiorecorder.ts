@@ -892,6 +892,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
+    this.processingRecording = true;
     let ww = new WavWriter();
     //new REST API URL
     let apiEndPoint = '';
@@ -905,12 +906,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     ww.writeAsync(audioBuffer, (wavFile) => {
       this.postRecording(wavFile, recUrl);
-      this.processingRecording = false
+      this.processingRecording = false;
     });
   }
 
   postAudioStreamEnd(chunkCount: number): void {
-
     //new REST API URL
     let apiEndPoint = '';
     if (this.config && this.config.apiEndPoint) {
