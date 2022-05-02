@@ -378,8 +378,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
-
-
   fetchRecordings(sess:Session){
     this.statusAlertType='info';
     this.statusMsg = 'Fetching infos of recordings...';
@@ -387,7 +385,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     let prNm:string|null=null;
     if(this.project) {
       let rfsObs = this.recFileService.recordingFileList(this.project.name, sess.sessionId);
-      rfsObs.subscribe((rfs: Array<RecordingFile>) => {
+      rfsObs.subscribe({next:(rfs: Array<RecordingFile>) => {
         this.statusAlertType = 'info';
         this.statusMsg = 'Received infos of recordings.';
         this.statusWaiting = false;
@@ -409,13 +407,14 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         } else {
           //console.debug("Recording file list: " + rfs);
         }
-      }, () => {
+      }, error:(err) => {
         // Failed fetching existing, but we start the session anyway
         this.start()
-      }, () => {
+      }, complete:() => {
         // Normal start
         this.start()
-      })
+      }
+    })
     }else{
       // No project def -> error
       this.statusAlertType = 'error';
@@ -766,26 +765,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     }
   }
 
-  // addRecordingFileByDescriptor(rfd:RecordingFileDescriptorImpl){
-  //    let prIdx=0;
-  //    if(this.items) {
-  //      let it = this.items[prIdx];
-  //      if (it) {
-  //        if (!it.recs) {
-  //          it.recs = new Array<SprRecordingFile>();
-  //        }
-  //
-  //      } else {
-  //        //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
-  //      }
-  //    }
-  // }
-  //
-  // addRecordingFileByPromptIndex(promptIndex:number, rf:SprRecordingFile){
-  //
-  // }
-
-
   stopped() {
     this.updateStartActionDisableState()
     this.transportActions.stopAction.disabled = true;
@@ -827,11 +806,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           this.processingRecording=true
           let ww = new WavWriter();
           ww.writeAsync(ad, (wavFile) => {
-            //this.postRecording(wavFile, recUrl);
-            //rf._dateAsDateObj=new Date();
             rf.frames=ad.length;
             this.displayRecFile=rf;
-            //this.recordingListComp.recordingList.push(rf);
             this.recorderCombiPane.push(rf);
             this.postRecordingMultipart(wavFile, rf.uuid,rf.session,rf._startedAsDateObj,recUrl);
             this.processingRecording=false;
@@ -902,17 +878,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       window.clearInterval(this.updateTimerId);
 
     }
-
     if(!this.destroyed) {
         this.changeDetectorRef.detectChanges();
     }
-
   }
 }
 
-
 @Component({
-
   selector: 'app-audiorecorder-comp',
   providers: [SessionService],
   template: `
@@ -938,7 +910,6 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   sessionId!: string;
   session!:Session;
 
-  dataSaved: boolean = true;
   @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
 
   constructor(protected injector:Injector,private route: ActivatedRoute,
@@ -947,8 +918,9 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               private sessionService:SessionService,
               private projectService:ProjectService,
               private recFilesService:RecordingService,
+              protected uploader:SpeechRecorderUploader
   ) {
-    super();
+    super(uploader);
   }
 
   ngOnInit() {
@@ -988,6 +960,9 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   ngAfterViewInit() {
+    this.uploader.listener = (ue) => {
+      this.uploadUpdate(ue);
+    }
     this.route.queryParams.subscribe((params: Params) => {
       if (params['sessionId']) {
         this.fetchSession(params['sessionId']);
@@ -1003,23 +978,15 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   ngOnDestroy() {
     //super.ngOnDestroy();
-
   }
 
   fetchSession(sessionId:string){
 
-
-    //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
-    // params.subscribe seems not to be asynchronous
-
-    // this.sm.statusAlertType='info';
-    // this.sm.statusMsg = 'Fetching session info...';
-    // this.sm.statusWaiting=true;
     let sessObs= this.sessionService.sessionObserver(sessionId);
 
     if(sessObs) {
-      sessObs.subscribe(sess => {
-
+      sessObs.subscribe({
+        next:(sess) => {
           this.ar.statusAlertType='info';
           this.ar.statusMsg = 'Received session info.';
           this.ar.statusWaiting=false;
@@ -1027,28 +994,48 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
           this.ar.session=sess;
           if (sess.project) {
             //console.debug("Session associated project: "+sess.project)
-            this.projectService.projectObservable(sess.project).subscribe(project=>{
+            this.projectService.projectObservable(sess.project).subscribe({
+              next:(project)=>{
               this.ar.project=project;
               this.ar.fetchRecordings(sess);
-            },reason =>{
+            },error:(reason) =>{
               this.ar.statusMsg=reason;
               this.ar.statusAlertType='error';
               this.ar.statusWaiting=false;
               console.error("Error fetching project config: "+reason)
-            });
+            }});
 
           } else {
             console.info("Session has no associated project. Using default configuration.")
           }
         },
-        (reason) => {
+        error:(reason) => {
           this.ar.statusMsg = reason;
           this.ar.statusAlertType = 'error';
           this.ar.statusWaiting=false;
           console.error("Error fetching session " + reason)
-        });
+        }});
     }
   }
+
+  uploadUpdate(ue: UploaderStatusChangeEvent) {
+    let upStatus = ue.status;
+    this.dataSaved = (UploaderStatus.DONE === upStatus);
+    let percentUpl = ue.percentDone();
+    if (UploaderStatus.ERR === upStatus) {
+      this.ar.uploadStatus = 'warn'
+    } else {
+      if (percentUpl < 50) {
+        this.ar.uploadStatus = 'accent'
+      } else {
+        this.ar.uploadStatus = 'success'
+      }
+      this.ar.uploadProgress = percentUpl;
+    }
+
+    this.changeDetectorRef.detectChanges()
+  }
+
 
   ready():boolean{
     return this.dataSaved && !this.ar.isActive()
