@@ -19,6 +19,7 @@ import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
 import {AudioRecorderComponent} from "./speechrecorder/session/audiorecorder";
 import {RecorderComponent} from "./recorder_component";
+import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -335,6 +336,12 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
+      if(project.chunkedRecording===true){
+        console.debug("Enable chunked upload: chunkSize: "+BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS)
+        this.sm.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      }else{
+        this.sm.uploadChunkSizeSeconds=null;
+      }
     } else {
       console.error("Empty project configuration!")
     }

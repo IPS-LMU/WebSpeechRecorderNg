@@ -1,7 +1,7 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {RecordingFile, RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
+import {RecordingFile} from '../recording'
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
   AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
@@ -12,7 +12,6 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import { Project, ProjectUtil} from "../project/project";
-import {SequenceAudioFloat32ChunkerOutStream, SequenceAudioFloat32OutStreamMultiplier} from "../../audio/io/stream";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 
@@ -28,11 +27,6 @@ import {RecorderCombiPane} from "./recorder_combi_pane";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
-import {ChunkManager} from "./sessionmanager";
-import NoSleep from "nosleep.js";
-
-
-
 
 
 export const enum Status {
@@ -150,7 +144,7 @@ export class Item {
 })
 export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
 
-  @Input() _project:Project|undefined| null=null;
+  _project:Project|undefined| null=null;
   @Input() projectName:string|undefined|null=null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
@@ -183,7 +177,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               private renderer: Renderer2,
               private route: ActivatedRoute,
               public dialog: MatDialog,
-              private projectService:ProjectService,
               protected sessionService:SessionService,
               private recFileService:RecordingService,
               protected uploader: SpeechRecorderUploader,
@@ -278,24 +271,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
-        if(this._uploadChunkSizeSeconds) {
-          // Multiply the capture stream to...
-          let sasm=new SequenceAudioFloat32OutStreamMultiplier();
+        this.configureStreamCaptureStream();
 
-
-          // ...upload audio data in chunks...
-          let chMng = new ChunkManager(this);  // The chunk manager connects the chunked audio stream to this class to upload the chunks
-          let chOsUpload = new SequenceAudioFloat32ChunkerOutStream(chMng, 30); // The audio stream chunker itself
-          sasm.sequenceAudioFloat32OutStreams.push(chOsUpload);
-
-          // ...and to measure the level
-          let chOsLvlMeas = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS)
-          sasm.sequenceAudioFloat32OutStreams.push(chOsLvlMeas);
-
-          this.ac.audioOutStream = sasm;
-        }else{
-          this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
-        }
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
         //this.ac.listDevices();
       } else {
@@ -323,26 +300,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
-
-    let wakeLockSupp=('wakeLock' in navigator);
-
-    // if(wakeLockSupp) {
-    //   let wakeLock = null;
-    //   try {
-    //     //@ts-ignore
-    //     wakeLock = navigator.wakeLock.request('screen');
-    //
-    //     //statusElem.textContent = 'Wake Lock is active!';
-    //   } catch (err) {
-    //     // The Wake Lock request has failed - usually system related, such as battery.
-    //     console.error('Wakelock failed'+err)
-    //   }
-    // }else{
-    //   let noSleep=new NoSleep();
-    //   noSleep.enable();
-    //
-    // }
-
   }
 
   @HostListener('window:keypress', ['$event'])
@@ -458,11 +415,17 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.autoGainControlConfigs=project.autoGainControlConfigs;
+      if(project.chunkedRecording===true){
+        this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      }else{
+        this.uploadChunkSizeSeconds=null;
+      }
     } else {
       console.error("Empty project configuration!")
     }
     this.channelCount = chCnt;
   }
+
 
   get project():Project|undefined|null{
     return this._project;
@@ -814,7 +777,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.recorderCombiPane.push(rf);
 
       // Upload if upload enabled and not in chunked upload mode
-      if (this.enableUploadRecordings && !this._uploadChunkSizeSeconds) {
+      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         let apiEndPoint = '';
 
         if (this.config && this.config.apiEndPoint) {
@@ -974,7 +937,6 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               private changeDetectorRef: ChangeDetectorRef,
               private sessionService:SessionService,
               private projectService:ProjectService,
-              private recFilesService:RecordingService,
               protected uploader:SpeechRecorderUploader
   ) {
     super(uploader);

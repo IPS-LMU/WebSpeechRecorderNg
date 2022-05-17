@@ -36,10 +36,19 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
     this.createBuffers();
   }
 
+  get chunkSize(): number {
+    return this._chunkSize;
+  }
+
   set channels(channels: number) {
     this._channels = channels;
     this.createBuffers();
   }
+
+  get channels(): number {
+    return this._channels;
+  }
+
 
   available(): number {
     return this._chunkSize-this.filled;

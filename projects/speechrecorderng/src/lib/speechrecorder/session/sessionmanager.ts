@@ -33,7 +33,13 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 import {LevelBar} from "../../audio/ui/livelevel";
-import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
+import {
+  BasicRecorder,
+  ChunkAudioBufferReceiver,
+  LEVEL_BAR_INTERVALL_SECONDS,
+  MAX_RECORDING_TIME_MS,
+  RECFILE_API_CTX
+} from "./basicrecorder";
 import {UUID} from "../../utils/utils";
 
 const DEFAULT_PRE_REC_DELAY=1000;
@@ -42,65 +48,6 @@ const DEFAULT_POST_REC_DELAY=500;
 export const enum Status {
   BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
-
-export interface ChunkAudioBufferReceiver{
-    postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
-    postAudioStreamEnd(chunkCount:number):void;
-}
-
-export class ChunkManager implements SequenceAudioFloat32OutStream{
-
-  set recordingFile(value: SprRecordingFile) {
-    this._rf = value;
-  }
-
-  private channels:number=0;
-  private sampleRate:number=-1;
-
-  private _rf!:SprRecordingFile;
-
-  private chunkIdx:number=0;
-
-  constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
-  }
-
-  close(): void {
-    // Nothing to do
-  }
-
-  flush(): void {
-    this.chunkAudioBufferReceiver.postAudioStreamEnd(this.chunkIdx);
-  }
-
-  nextStream(): void {
-    // reset chunk counter
-    this.chunkIdx=0;
-  }
-
-  setFormat(channels: number, sampleRate: number): void {
-    this.channels=channels;
-    this.sampleRate=sampleRate;
-  }
-
-  write(buffers: Array<Float32Array>): number {
-    console.debug("TODO: Uploading audio data with "+buffers.length+ " channels ")
-    let aCtx=AudioContextProvider.audioContextInstance();
-    let bChs=buffers.length;
-    let frameLen=0;
-    if(aCtx && bChs>0) {
-      frameLen=buffers[0].length;
-      let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
-      for (let ch = 0; ch < this.channels; ch++) {
-        ad.copyToChannel(buffers[ch],ch);
-      }
-      this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
-      this.chunkIdx++;
-    }
-    return frameLen;
-  }
-
-}
-
 
 @Component({
   selector: 'app-sprrecordingsession',
@@ -317,24 +264,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
 
-        if(this._uploadChunkSizeSeconds) {
-          // Multiply the capture stream to...
-          let sasm=new SequenceAudioFloat32OutStreamMultiplier();
+        this.configureStreamCaptureStream();
 
-
-          // ...upload audio data in chunks...
-          let chMng = new ChunkManager(this);  // The chunk manager connects the chunked audio stream to this class to upload the chunks
-          let chOsUpload = new SequenceAudioFloat32ChunkerOutStream(chMng, 30); // The audio stream chunker itself
-          sasm.sequenceAudioFloat32OutStreams.push(chOsUpload);
-
-          // ...and to measure the level
-          let chOsLvlMeas = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS)
-          sasm.sequenceAudioFloat32OutStreams.push(chOsLvlMeas);
-
-          this.ac.audioOutStream = sasm;
-        }else{
-          this.ac.audioOutStream=new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
-        }
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
         //this.ac.listDevices();
       } else {
@@ -1037,7 +968,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
         it.recs.push(rf);
       }
-      if (this.enableUploadRecordings && !this._uploadChunkSizeSeconds) {
+      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
         // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
