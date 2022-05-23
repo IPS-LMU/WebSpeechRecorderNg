@@ -155,7 +155,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   @Input() dataSaved=true
 
-  private startedDate:Date|null=null;
+
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
   private updateTimerId: any;
@@ -524,13 +524,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
-   this.enableWakeLockCond();
-    this.rfUuid=UUID.generate();
-    this.transportActions.startAction.disabled = true;
-    this.transportActions.pauseAction.disabled = true;
-    if (this.readonly) {
-      return
-    }
+    super.startItem();
     this.transportActions.fwdAction.disabled = true
     this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
@@ -704,9 +698,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   started() {
-
-    this.startedDate=new Date();
-    this.transportActions.startAction.disabled = true;
+    super.started();
 
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';

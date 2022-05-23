@@ -24,6 +24,7 @@ import {
 } from "../../audio/io/stream";
 import {SprRecordingFile} from "../recording";
 import {AudioContextProvider} from "../../audio/context";
+import {UUID} from "../../utils/utils";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -124,6 +125,8 @@ export abstract class BasicRecorder {
 
   transportActions: TransportActions;
   playStartAction: Action<void>;
+
+  protected startedDate:Date|null=null;
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
@@ -458,6 +461,24 @@ export abstract class BasicRecorder {
     }
   }
 
+  startItem() {
+    this.startedDate=null;
+    this.enableWakeLockCond();
+    this.rfUuid=UUID.generate();
+    this.transportActions.startAction.disabled = true;
+    this.transportActions.pauseAction.disabled = true;
+    if (this.readonly) {
+      return
+    }
+  }
+
+  started() {
+    if(!this.startedDate) {
+      this.startedDate=new Date();
+    }
+    this.transportActions.startAction.disabled = true;
+  }
+
   postRecording(wavFile: Uint8Array, recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
     let ul = new Upload(wavBlob, recUrl);
@@ -478,6 +499,11 @@ export abstract class BasicRecorder {
       let fd = new FormData();
       // Note: At least one parameter must be set
       fd.set('uuid',this.rfUuid);
+      if(!this.startedDate) {
+        this.startedDate=new Date();
+      }
+      fd.set('startedDate',this.startedDate.toJSON());
+
       let ul = new Upload(fd, recUrl);
       this.uploader.queueUpload(ul);
     }else{

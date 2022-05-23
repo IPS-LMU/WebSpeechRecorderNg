@@ -433,13 +433,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
   startItem() {
-    this.enableWakeLockCond();
-    this.rfUuid=UUID.generate();
-    this.transportActions.startAction.disabled = true;
-    this.transportActions.pauseAction.disabled = true;
-    if(this.readonly){
-      return
-    }
+    super.startItem();
     this.transportActions.fwdAction.disabled = true
     this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
@@ -782,9 +776,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   started() {
-
+    super.started();
     this.status = Status.PRE_RECORDING;
-    this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session) {
       if (this._session.status === "LOADED") {
