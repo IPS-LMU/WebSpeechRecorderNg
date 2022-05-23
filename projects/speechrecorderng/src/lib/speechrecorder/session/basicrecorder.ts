@@ -32,6 +32,7 @@ export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 export const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 
 export interface ChunkAudioBufferReceiver{
+  postAudioStreamStart():void;
   postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
   postAudioStreamEnd(chunkCount:number):void;
 }
@@ -63,6 +64,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   nextStream(): void {
     // reset chunk counter
     this.chunkIdx=0;
+    this.chunkAudioBufferReceiver.postAudioStreamStart();
   }
 
   setFormat(channels: number, sampleRate: number): void {
@@ -71,7 +73,6 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   }
 
   write(buffers: Array<Float32Array>): number {
-    console.debug("TODO: Uploading audio data with "+buffers.length+ " channels ")
     let aCtx=AudioContextProvider.audioContextInstance();
     let bChs=buffers.length;
     let frameLen=0;
@@ -463,9 +464,50 @@ export abstract class BasicRecorder {
     this.uploader.queueUpload(ul);
   }
 
+  postAudioStreamStart(): void {
+    if(this.rfUuid) {
+      let apiEndPoint = '';
+      if (this.config && this.config.apiEndPoint) {
+        apiEndPoint = this.config.apiEndPoint;
+      }
+      if (apiEndPoint !== '') {
+        apiEndPoint = apiEndPoint + '/'
+      }
+      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+      let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid + '/prepareChunksRequest';
+      let fd = new FormData();
+      // Note: At least one parameter must be set
+      fd.set('uuid',this.rfUuid);
+      let ul = new Upload(fd, recUrl);
+      this.uploader.queueUpload(ul);
+    }else{
+      console.error("Recording file UUID not set!")
+    }
+  }
+
   abstract postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void;
 
-  abstract postAudioStreamEnd(chunkCount: number): void;
+  postAudioStreamEnd(chunkCount: number): void {
+
+    if(this.rfUuid) {
+      let apiEndPoint = '';
+      if (this.config && this.config.apiEndPoint) {
+        apiEndPoint = this.config.apiEndPoint;
+      }
+      if (apiEndPoint !== '') {
+        apiEndPoint = apiEndPoint + '/'
+      }
+      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+      let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
+      let fd=new FormData();
+      fd.set('uuid',this.rfUuid);
+      fd.set('chunkCount',chunkCount.toString());
+      let ul = new Upload( fd,recUrl);
+      this.uploader.queueUpload(ul);
+    }else{
+      console.error("Recording file UUID not set!")
+    }
+  }
 
 
 

@@ -434,7 +434,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   startItem() {
     this.enableWakeLockCond();
-
+    this.rfUuid=UUID.generate();
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if(this.readonly){
@@ -782,7 +782,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   started() {
-    this.rfUuid=UUID.generate();
+
     this.status = Status.PRE_RECORDING;
     this.transportActions.startAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
@@ -1070,23 +1070,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     });
   }
 
-  postAudioStreamEnd(chunkCount: number): void {
-
-    //new REST API URL
-    let apiEndPoint = '';
-    if (this.config && this.config.apiEndPoint) {
-      apiEndPoint = this.config.apiEndPoint;
-    }
-    if (apiEndPoint !== '') {
-      apiEndPoint = apiEndPoint + '/'
-    }
-    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
-    let fd=new FormData();
-    fd.set('chunkCount',chunkCount.toString());
-    let ul = new Upload( fd,recUrl);
-    this.uploader.queueUpload(ul);
-  }
 
   postRecording(wavFile: Uint8Array, recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});

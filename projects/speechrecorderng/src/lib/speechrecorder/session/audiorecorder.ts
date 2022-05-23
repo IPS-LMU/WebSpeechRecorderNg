@@ -525,7 +525,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   startItem() {
    this.enableWakeLockCond();
-
+    this.rfUuid=UUID.generate();
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     if (this.readonly) {
@@ -704,7 +704,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   started() {
-    this.rfUuid=UUID.generate();
+
     this.startedDate=new Date();
     this.transportActions.startAction.disabled = true;
 
@@ -854,23 +854,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.postRecording(wavFile, recUrl);
       this.processingRecording = false;
     });
-  }
-
-  postAudioStreamEnd(chunkCount: number): void {
-    //new REST API URL
-    let apiEndPoint = '';
-    if (this.config && this.config.apiEndPoint) {
-      apiEndPoint = this.config.apiEndPoint;
-    }
-    if (apiEndPoint !== '') {
-      apiEndPoint = apiEndPoint + '/'
-    }
-    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
-    let fd=new FormData();
-    fd.set('chunkCount',chunkCount.toString());
-    let ul = new Upload( fd,recUrl);
-    this.uploader.queueUpload(ul);
   }
 
   stop() {
