@@ -181,6 +181,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
 
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               private route: ActivatedRoute,
@@ -691,6 +692,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.recorderCombiPane.selectTop();
     this.enableNavigation();
     this.updateStartActionDisableState();
+
   }
 
   isRecording(): boolean {
@@ -940,7 +942,6 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   sessionId!: string;
   session!:Session;
 
-  dataSaved: boolean = true;
   @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
 
   constructor(protected injector:Injector,private route: ActivatedRoute,
@@ -949,8 +950,10 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               private sessionService:SessionService,
               private projectService:ProjectService,
               private recFilesService:RecordingService,
+              protected uploader:SpeechRecorderUploader
   ) {
     super(injector);
+    //super(uploader);
   }
 
   ngOnInit() {
@@ -1009,18 +1012,11 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   fetchSession(sessionId:string){
 
-
-    //Error: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'statusMsg: Player initialized.'. Current value: 'statusMsg: Fetching session info...'.
-    // params.subscribe seems not to be asynchronous
-
-    // this.sm.statusAlertType='info';
-    // this.sm.statusMsg = 'Fetching session info...';
-    // this.sm.statusWaiting=true;
     let sessObs= this.sessionService.sessionObserver(sessionId);
 
     if(sessObs) {
-      sessObs.subscribe(sess => {
-
+      sessObs.subscribe({
+        next:(sess) => {
           this.ar.statusAlertType='info';
           this.ar.statusMsg = 'Received session info.';
           this.ar.statusWaiting=false;
@@ -1028,28 +1024,48 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
           this.ar.session=sess;
           if (sess.project) {
             //console.debug("Session associated project: "+sess.project)
-            this.projectService.projectObservable(sess.project).subscribe(project=>{
+            this.projectService.projectObservable(sess.project).subscribe({
+              next:(project)=>{
               this.ar.project=project;
               this.ar.fetchRecordings(sess);
-            },reason =>{
+            },error:(reason) =>{
               this.ar.statusMsg=reason;
               this.ar.statusAlertType='error';
               this.ar.statusWaiting=false;
               console.error("Error fetching project config: "+reason)
-            });
+            }});
 
           } else {
             console.info("Session has no associated project. Using default configuration.")
           }
         },
-        (reason) => {
+        error:(reason) => {
           this.ar.statusMsg = reason;
           this.ar.statusAlertType = 'error';
           this.ar.statusWaiting=false;
           console.error("Error fetching session " + reason)
-        });
+        }});
     }
   }
+
+  uploadUpdate(ue: UploaderStatusChangeEvent) {
+    let upStatus = ue.status;
+    this.dataSaved = (UploaderStatus.DONE === upStatus);
+    let percentUpl = ue.percentDone();
+    if (UploaderStatus.ERR === upStatus) {
+      this.ar.uploadStatus = 'warn'
+    } else {
+      if (percentUpl < 50) {
+        this.ar.uploadStatus = 'accent'
+      } else {
+        this.ar.uploadStatus = 'success'
+      }
+      this.ar.uploadProgress = percentUpl;
+    }
+
+    this.changeDetectorRef.detectChanges()
+  }
+
 
   ready():boolean{
     return this.dataSaved && !this.ar.isActive()

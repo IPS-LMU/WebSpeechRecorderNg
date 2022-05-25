@@ -610,23 +610,45 @@ export class AudioCapture {
   }
 
   audioBuffer(): AudioBuffer {
-    var frameLen: number = 0;
-    var ch0Data = this.data[0];
+    let frameLen: number = 0;
+    let ch0Data = this.data[0];
 
-    for (var ch0Chk of ch0Data) {
+    for (let ch0Chk of ch0Data) {
       frameLen += ch0Chk.length;
     }
-    var ab = this.context.createBuffer(this.channelCount, frameLen, this.context.sampleRate);
-    for (var ch = 0; ch < this.channelCount; ch++) {
-
-      var chD = ab.getChannelData(ch);
-      var pos = 0;
-      for (var chChk of this.data[ch]) {
-        var bufLen = chChk.length;
-        chD.set(chChk, pos);
-        pos += bufLen;
+    let ab:AudioBuffer;
+      try {
+        ab = this.context.createBuffer(this.channelCount, frameLen, this.context.sampleRate);
+      }catch(err){
+        if(err instanceof DOMException){
+          if(err.name==='NotSupportedError'){
+            if(frameLen==0){
+              // Empty buffers are not supported by Chromium
+              // Create dummy buffer with one sample
+              ab = this.context.createBuffer(this.channelCount, 1, this.context.sampleRate);
+            }else{
+              throw err;
+            }
+          }else{
+            throw err;
+          }
+        }else if (err instanceof RangeError){
+          // Out of memory
+          // TODO What to do ??
+          throw err;
+        }else{
+          throw err;
+        }
       }
-    }
+      for (let ch = 0; ch < this.channelCount; ch++) {
+        let chD = ab.getChannelData(ch);
+        let pos = 0;
+        for (let chChk of this.data[ch]) {
+          let bufLen = chChk.length;
+          chD.set(chChk, pos);
+          pos += bufLen;
+        }
+      }
     return ab;
   }
 }
