@@ -1,6 +1,6 @@
 import {FitToPageComponent} from "./ui/fit_to_page_comp";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
-import {UploaderStatus, UploaderStatusChangeEvent} from "./net/uploader";
+import {Injector} from "@angular/core";
 
 
 export interface ReadyStateProvider {
@@ -12,7 +12,8 @@ export abstract class RecorderComponent extends FitToPageComponent implements Re
 
     dataSaved: boolean = true;
 
-    constructor(protected uploader:SpeechRecorderUploader) {
+    constructor(injector:Injector,protected uploader:SpeechRecorderUploader) {
+        super(injector);
     }
     abstract ready():boolean;
 }

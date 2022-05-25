@@ -53,18 +53,16 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
 
   @ViewChild(SessionManager, { static: true }) sm!:SessionManager;
 
-		constructor(protected injector:Injector,private route: ActivatedRoute,
-                    private router: Router,
-                private changeDetectorRef: ChangeDetectorRef,
-                private sessionsService:SessionService,
-                private projectService:ProjectService,
-                private scriptService:ScriptService,
-                private recFilesService:RecordingService,
-                protected uploader:SpeechRecorderUploader) {
-      super(uploader);
-      super(injector);
-
-		}
+  constructor(protected injector:Injector,private route: ActivatedRoute,
+              private router: Router,
+              private changeDetectorRef: ChangeDetectorRef,
+              private sessionsService:SessionService,
+              private projectService:ProjectService,
+              private scriptService:ScriptService,
+              private recFilesService:RecordingService,
+              protected uploader:SpeechRecorderUploader) {
+    super(injector,uploader);
+  }
 
     ngOnInit() {
       super.ngOnInit();

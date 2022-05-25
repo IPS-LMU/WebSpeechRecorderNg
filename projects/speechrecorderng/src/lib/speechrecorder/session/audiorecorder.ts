@@ -952,8 +952,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               private recFilesService:RecordingService,
               protected uploader:SpeechRecorderUploader
   ) {
-    super(injector);
-    //super(uploader);
+    super(injector,uploader);
   }
 
   ngOnInit() {
