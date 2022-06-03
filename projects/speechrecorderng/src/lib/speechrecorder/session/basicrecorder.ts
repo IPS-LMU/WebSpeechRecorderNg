@@ -190,12 +190,16 @@ export abstract class BasicRecorder {
         this.noSleep=new NoSleep();
       //}
       let allVideoElems=document.getElementsByTagName('video');
-      for(let veIdx=0; veIdx<allVideoElems.length;veIdx++) {
+      let aveLen=allVideoElems.length;
+      console.debug("All videos length: "+aveLen);
+      for(let veIdx=0; veIdx<aveLen;veIdx++) {
         let ve = allVideoElems.item(veIdx);
         if (ve) {
           let veTitle = ve.getAttribute('title');
+          console.debug("Video "+veIdx+": title: "+veTitle);
           if(NOSLEEP_VIDEO_TITLE===veTitle){
             this.noSleepVideoElement=ve;
+            console.debug("Set nosleep video element.");
           }
         }
       }
