@@ -32,6 +32,8 @@ export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 
 export const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 
+export const NOSLEEP_VIDEO_TITLE='No Sleep';
+
 export interface ChunkAudioBufferReceiver{
   postAudioStreamStart():void;
   postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
@@ -50,6 +52,8 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   private _rf!:SprRecordingFile;
 
   private chunkIdx:number=0;
+
+
 
   constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
   }
@@ -152,6 +156,8 @@ export abstract class BasicRecorder {
 
   protected _screenLocked=false;
 
+  private noSleepVideoElement:HTMLVideoElement|null=null;
+
   constructor(  public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
@@ -179,7 +185,16 @@ export abstract class BasicRecorder {
       if(!this.noSleep){
         this.noSleep=new NoSleep();
       }
-
+      let allVideoElems=document.getElementsByTagName('video');
+      for(let veIdx=0; veIdx<allVideoElems.length;veIdx++) {
+        let ve = allVideoElems.item(veIdx);
+        if (ve) {
+          let veTitle = ve.getAttribute('title');
+          if(NOSLEEP_VIDEO_TITLE===veTitle){
+            this.noSleepVideoElement=ve;
+          }
+        }
+      }
       //if(!this.noSleep.isEnabled) {
       // Try to fix:  Wake lock does not work reliable #33
 
@@ -187,7 +202,22 @@ export abstract class BasicRecorder {
         this.noSleep.disable();
         this.noSleep.enable().then((v)=>{
           this._screenLocked=true;
+          if(this.noSleepVideoElement){
+            this.noSleepVideoElement.addEventListener('ended',(ev)=>{
+              this._screenLocked=false;
+              console.debug("Nosleep video ended.")
+            })
+            this.noSleepVideoElement.addEventListener('pause',(ev)=>{
+              this._screenLocked=false;
+              console.debug("Nosleep video pause.")
+            })
+            this.noSleepVideoElement.addEventListener('error',(ev)=>{
+              this._screenLocked=false;
+              console.debug("Nosleep video error.")
+            })
+          }
           console.debug("Enabled wake lock.");
+
         }).catch(reason=>{
           this._screenLocked=false;
           console.error("Enabling wake lock failed: "+reason.msg);
@@ -200,6 +230,7 @@ export abstract class BasicRecorder {
   disableWakeLockCond(){
       if(this.noSleep && this.noSleep.isEnabled){
         this.noSleep?.disable();
+        this._screenLocked=false;
         console.debug("Disabled wake lock.")
       }
   }
