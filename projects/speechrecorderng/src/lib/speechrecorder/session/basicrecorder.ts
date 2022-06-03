@@ -204,6 +204,10 @@ export abstract class BasicRecorder {
         this.noSleep.enable().then((v)=>{
           this._screenLocked=true;
           if(this.noSleepVideoElement){
+            this.noSleepVideoElement.addEventListener('play',(ev)=>{
+              this._screenLocked=false;
+              console.debug("Nosleep video playing...")
+            })
             this.noSleepVideoElement.addEventListener('ended',(ev)=>{
               this._screenLocked=false;
               console.debug("Nosleep video ended.")
@@ -216,6 +220,7 @@ export abstract class BasicRecorder {
               this._screenLocked=false;
               console.debug("Nosleep video error.")
             })
+            console.debug("Added listener to Nosleep video.")
           }
           console.debug("Enabled wake lock.");
 
