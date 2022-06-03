@@ -182,9 +182,13 @@ export abstract class BasicRecorder {
 
   enableWakeLockCond(){
     if(this.wakeLock===true) {
-      if(!this.noSleep){
-        this.noSleep=new NoSleep();
+      if(this.noSleep){
+        // Disable first
+        this.noSleep.disable();
       }
+      //if(!this.noSleep){
+        this.noSleep=new NoSleep();
+      //}
       let allVideoElems=document.getElementsByTagName('video');
       for(let veIdx=0; veIdx<allVideoElems.length;veIdx++) {
         let ve = allVideoElems.item(veIdx);
@@ -197,9 +201,6 @@ export abstract class BasicRecorder {
       }
       //if(!this.noSleep.isEnabled) {
       // Try to fix:  Wake lock does not work reliable #33
-
-      // Disable first
-        this.noSleep.disable();
         this.noSleep.enable().then((v)=>{
           this._screenLocked=true;
           if(this.noSleepVideoElement){
