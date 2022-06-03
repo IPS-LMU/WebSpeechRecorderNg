@@ -83,7 +83,7 @@ export const enum Status {
       </spr-recordingitemcontrols>
       <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                                                     [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
       </div>
       </div>
     <div #controlpanel class="controlpanel" fxLayout="row">
@@ -94,7 +94,7 @@ export const enum Status {
     <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
       <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
     </div>
     </div>
   `,

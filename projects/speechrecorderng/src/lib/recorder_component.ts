@@ -15,5 +15,6 @@ export abstract class RecorderComponent implements ReadyStateProvider{
     }
 
     abstract ready():boolean;
+    abstract get screenLocked():boolean;
 }
 

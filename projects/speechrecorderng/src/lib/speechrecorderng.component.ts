@@ -215,6 +215,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
     }
   }
 
+  get screenLocked():boolean{
+      return  this.sm.screenLocked;
+  }
 
     private startSession(){
         this.sm.statusWaiting=false;

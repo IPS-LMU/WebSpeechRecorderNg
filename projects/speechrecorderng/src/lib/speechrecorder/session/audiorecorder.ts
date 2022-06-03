@@ -974,6 +974,10 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
     //super.ngOnDestroy();
   }
 
+  get screenLocked():boolean{
+    return  this.ar.screenLocked;
+  }
+
   fetchSession(sessionId:string){
 
     let sessObs= this.sessionService.sessionObserver(sessionId);

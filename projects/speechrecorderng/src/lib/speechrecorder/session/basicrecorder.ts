@@ -150,6 +150,8 @@ export abstract class BasicRecorder {
   // Default: Disabled chunked upload
   private _uploadChunkSizeSeconds:number|null=null;
 
+  protected _screenLocked=false;
+
   constructor(  public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
@@ -177,18 +179,33 @@ export abstract class BasicRecorder {
       if(!this.noSleep){
         this.noSleep=new NoSleep();
       }
-      if(!this.noSleep.isEnabled) {
-        this.noSleep.enable();
-        console.debug("Enabled wake lock.");
-      }
+
+      //if(!this.noSleep.isEnabled) {
+      // Try to fix:  Wake lock does not work reliable #33
+
+      // Disable first
+        this.noSleep.disable();
+        this.noSleep.enable().then((v)=>{
+          this._screenLocked=true;
+          console.debug("Enabled wake lock.");
+        }).catch(reason=>{
+          this._screenLocked=false;
+          console.error("Enabling wake lock failed: "+reason.msg);
+        })
+
+      //}
     }
   }
 
   disableWakeLockCond(){
       if(this.noSleep && this.noSleep.isEnabled){
-          this.noSleep.disable();
+        this.noSleep?.disable();
         console.debug("Disabled wake lock.")
       }
+  }
+
+  get screenLocked(){
+    return this._screenLocked;
   }
 
   set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {

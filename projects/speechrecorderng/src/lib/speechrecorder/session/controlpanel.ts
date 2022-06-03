@@ -284,12 +284,14 @@ export class TransportPanel {
   selector: 'app-readystateindicator',
 
   template: `
-        <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+    <mat-icon *ngIf="_screenLocked">screen_lock_portrait</mat-icon>
+    <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
   styles: []
 })
 export class ReadyStateIndicator {
-  _ready=true
+  _ready=true;
+  _screenLocked=false;
   hourGlassIconName='hourglass_empty'
   readyStateToolTip:string=''
 
@@ -303,6 +305,10 @@ export class ReadyStateIndicator {
 
   get ready():boolean{
     return this._ready
+  }
+
+  @Input() set screenLocked(screenLock:boolean){
+      this._screenLocked=screenLock;
   }
 
 }
