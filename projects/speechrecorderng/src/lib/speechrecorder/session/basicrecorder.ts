@@ -16,7 +16,7 @@ import {Upload} from "../../net/uploader";
 import {Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
-import NoSleep from "nosleep.js";
+
 import {
   SequenceAudioFloat32ChunkerOutStream,
   SequenceAudioFloat32OutStream,
@@ -25,6 +25,7 @@ import {
 import {SprRecordingFile} from "../recording";
 import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
+import {WakeLockManager} from "../../utils/wake_lock";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -148,15 +149,12 @@ export abstract class BasicRecorder {
 
   protected navigationDisabled=true;
 
-  // Default: Do not try to keep the device awake
-  protected noSleep:NoSleep|null=null;
-
   // Default: Disabled chunked upload
   private _uploadChunkSizeSeconds:number|null=null;
 
   protected _screenLocked=false;
 
-  private noSleepVideoElement:HTMLVideoElement|null=null;
+  private wakeLockManager?:WakeLockManager;
 
   constructor(  public dialog: MatDialog,
                 protected sessionService:SessionService,
@@ -182,67 +180,25 @@ export abstract class BasicRecorder {
 
   enableWakeLockCond(){
     if(this.wakeLock===true) {
-      if(this.noSleep){
-        // Disable first
-        this.noSleep.disable();
-      }
-      //if(!this.noSleep){
-        this.noSleep=new NoSleep();
-      //}
-      let allVideoElems=document.getElementsByTagName('video');
-      let aveLen=allVideoElems.length;
-      console.debug("All videos length: "+aveLen);
-      for(let veIdx=0; veIdx<aveLen;veIdx++) {
-        let ve = allVideoElems.item(veIdx);
-        if (ve) {
-          let veTitle = ve.getAttribute('title');
-          console.debug("Video "+veIdx+": title: "+veTitle);
-          if(NOSLEEP_VIDEO_TITLE===veTitle){
-            this.noSleepVideoElement=ve;
-            console.debug("Set nosleep video element.");
+      if(!this.wakeLockManager){
+        this.wakeLockManager=new WakeLockManager();
+        this.wakeLockManager.behaviorSubject.subscribe({
+            next: (v) => {
+              this._screenLocked = v;
+            },
+            error: (err) => {
+              console.debug("Wake lock error!")
+              this._screenLocked = false;
+            }
           }
-        }
+        );
       }
-      //if(!this.noSleep.isEnabled) {
-      // Try to fix:  Wake lock does not work reliable #33
-        this.noSleep.enable().then((v)=>{
-          this._screenLocked=true;
-          if(this.noSleepVideoElement){
-            this.noSleepVideoElement.addEventListener('play',(ev)=>{
-              this._screenLocked=false;
-              console.debug("Nosleep video playing...")
-            })
-            this.noSleepVideoElement.addEventListener('ended',(ev)=>{
-              this._screenLocked=false;
-              console.debug("Nosleep video ended.")
-            })
-            this.noSleepVideoElement.addEventListener('pause',(ev)=>{
-              this._screenLocked=false;
-              console.debug("Nosleep video pause.")
-            })
-            this.noSleepVideoElement.addEventListener('error',(ev)=>{
-              this._screenLocked=false;
-              console.debug("Nosleep video error.")
-            })
-            console.debug("Added listener to Nosleep video.")
-          }
-          console.debug("Enabled wake lock.");
-
-        }).catch(reason=>{
-          this._screenLocked=false;
-          console.error("Enabling wake lock failed: "+reason.msg);
-        })
-
-      //}
+      this.wakeLockManager.enableWakeLock();
     }
   }
 
   disableWakeLockCond(){
-      if(this.noSleep && this.noSleep.isEnabled){
-        this.noSleep?.disable();
-        this._screenLocked=false;
-        console.debug("Disabled wake lock.")
-      }
+    this.wakeLockManager?.disableWakeLock();
   }
 
   get screenLocked(){
