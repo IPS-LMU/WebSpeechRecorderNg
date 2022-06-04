@@ -1,5 +1,5 @@
 import {BehaviorSubject, Observable} from "rxjs";
-import {WAKE_LOCK_VIDEO_MP4_URI} from "./wake_lock_media";
+import {WAKE_LOCK_VIDEO_MP4_URI, WAKE_LOCK_VIDEO_WEBM_URI} from "./wake_lock_media";
 
 
 export class WakeLockManager {
@@ -35,7 +35,7 @@ export class WakeLockManager {
           this.mp4VideoElement.loop = true;
           this.mp4VideoElement.playsInline = true;
 
-          this.mp4VideoElement.src=WAKE_LOCK_VIDEO_MP4_URI;
+          this.mp4VideoElement.src=WAKE_LOCK_VIDEO_WEBM_URI;
 
           this.mp4VideoElement.addEventListener('play', (ev) => {
             console.debug("Wake lock video playing...")
