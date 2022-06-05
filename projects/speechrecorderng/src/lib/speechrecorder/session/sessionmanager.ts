@@ -333,6 +333,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
+  updateWakeLock(){
+    if(this.dataSaved && ! this.isActive()){
+      this.disableWakeLockCond();
+    }
+  }
+
   progressPercentValue():number {
     let v=100;
     if(this.items) {

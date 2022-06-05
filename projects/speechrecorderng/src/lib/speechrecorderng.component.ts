@@ -107,6 +107,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }
     }
 
+
     fetchSession(sessionId:string){
 
       let sessObs= this.sessionsService.sessionObserver(sessionId);
@@ -284,7 +285,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }
       this.sm.uploadProgress = percentUpl;
     }
-
+    this.sm.updateWakeLock();
     this.changeDetectorRef.detectChanges()
   }
 

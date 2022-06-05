@@ -675,6 +675,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording || this.sessionService.uploadCount>0)
   }
 
+  updateWakeLock(){
+    if(this.ready()){
+      this.disableWakeLockCond();
+    }
+  }
+
   private updateNavigationActions(){
 
     this.transportActions.fwdAction.disabled = this.navigationDisabled;
@@ -805,7 +811,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
         this.navigationDisabled = false;
         this.updateNavigationActions();
-
+    this.updateWakeLock();
     this.changeDetectorRef.detectChanges();
   }
 
@@ -1030,7 +1036,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
       }
       this.ar.uploadProgress = percentUpl;
     }
-
+    this.ar.updateWakeLock();
     this.changeDetectorRef.detectChanges()
   }
 
