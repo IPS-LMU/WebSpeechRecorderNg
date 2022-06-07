@@ -81,7 +81,7 @@ export class Item {
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0"
-                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
+                                 [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
       </div>
     </div>
     <div #controlpanel class="controlpanel" fxLayout="row">
@@ -102,7 +102,7 @@ export class Item {
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-readystateindicator class="ricontrols" fxHide.xs
-                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
+                                 [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
       </div>
     </div>
   `,
@@ -675,8 +675,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording || this.sessionService.uploadCount>0)
   }
 
-  updateWakeLock(){
-    if(this.ready()){
+
+  updateWakeLock(dataSaved:boolean=this.dataSaved){
+    //console.debug("Update wake lock: dataSaved: "+dataSaved+", not active: "+! this.isActive())
+    if(dataSaved && ! this.isActive()){
       this.disableWakeLockCond();
     }
   }
@@ -704,8 +706,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   started() {
+    this.status = Status.RECORDING;
     super.started();
-
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
@@ -715,7 +717,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
-    this.status = Status.RECORDING;
+
     this.transportActions.stopAction.disabled = false;
   }
 
@@ -797,6 +799,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         ww.writeAsync(ad, (wavFile) => {
           this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
           this.processingRecording = false;
+          this.updateWakeLock();
           this.changeDetectorRef.detectChanges();
         });
       }
@@ -809,8 +812,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.status = Status.IDLE;
     let startNext=false;
 
-        this.navigationDisabled = false;
-        this.updateNavigationActions();
+    this.navigationDisabled = false;
+    this.updateNavigationActions();
     this.updateWakeLock();
     this.changeDetectorRef.detectChanges();
   }
@@ -1036,7 +1039,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
       }
       this.ar.uploadProgress = percentUpl;
     }
-    this.ar.updateWakeLock();
+    this.ar.updateWakeLock(this.dataSaved);
     this.changeDetectorRef.detectChanges()
   }
 

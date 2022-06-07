@@ -203,6 +203,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
     ngOnDestroy() {
+      console.debug("Com destroy, disable wake lock.")
       this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback
@@ -333,8 +334,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
-  updateWakeLock(){
-    if(this.dataSaved && ! this.isActive()){
+  updateWakeLock(dataSaved:boolean=this.dataSaved){
+    //console.debug("Update wake lock: dataSaved: "+dataSaved+", not active: "+! this.isActive())
+    if(dataSaved && ! this.isActive()){
       this.disableWakeLockCond();
     }
   }
@@ -782,8 +784,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   started() {
-    super.started();
     this.status = Status.PRE_RECORDING;
+    super.started();
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session) {
       if (this._session.status === "LOADED") {
@@ -989,6 +991,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           ww.writeAsync(ad, (wavFile) => {
             this.postRecording(wavFile, recUrl);
             this.processingRecording = false
+            this.updateWakeLock();
           });
         }
       }
@@ -1024,11 +1027,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         }
       }
       this.statusMsg = 'Session complete!';
+      this.updateWakeLock();
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
 
       // enable navigation
       this.transportActions.fwdAction.disabled = false
       this.transportActions.bwdAction.disabled = false
+
     } else {
 
       if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -1040,6 +1045,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       } else {
         this.navigationDisabled = false;
         this.updateNavigationActions();
+        this.updateWakeLock();
       }
     }
     // apply recorded item

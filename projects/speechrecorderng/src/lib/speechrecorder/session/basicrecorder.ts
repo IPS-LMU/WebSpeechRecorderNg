@@ -477,7 +477,7 @@ export abstract class BasicRecorder {
 
   startItem() {
     this.startedDate=null;
-    this.enableWakeLockCond();
+    //this.enableWakeLockCond();
     this.rfUuid=UUID.generate();
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
@@ -487,6 +487,7 @@ export abstract class BasicRecorder {
   }
 
   started() {
+    this.enableWakeLockCond();
     if(!this.startedDate) {
       this.startedDate=new Date();
     }

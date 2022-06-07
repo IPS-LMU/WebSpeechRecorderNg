@@ -285,7 +285,8 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }
       this.sm.uploadProgress = percentUpl;
     }
-    this.sm.updateWakeLock();
+    console.debug("Upload update, update wake lock.")
+    this.sm.updateWakeLock(this.dataSaved);
     this.changeDetectorRef.detectChanges()
   }
 
