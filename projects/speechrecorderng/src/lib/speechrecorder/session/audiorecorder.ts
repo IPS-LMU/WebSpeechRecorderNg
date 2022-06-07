@@ -77,11 +77,12 @@ export class Item {
                                    [agc]="this.ac?.agcStatus"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
+        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0"
-                                 [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
+                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
     <div #controlpanel class="controlpanel" fxLayout="row">
@@ -98,11 +99,12 @@ export class Item {
       </div>
       <div fxFlex="30% 1 30%" >
         <div fxFlex="1 1 auto"></div>
+        <app-wakelockindicator class="ricontrols" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-uploadstatus class="ricontrols" fxHide.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-readystateindicator class="ricontrols" fxHide.xs
-                                 [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
+                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
   `,

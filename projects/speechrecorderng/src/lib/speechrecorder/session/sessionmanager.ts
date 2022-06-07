@@ -81,9 +81,10 @@ export const enum Status {
                                  [agc]="this.ac?.agcStatus"
                                  (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
       </spr-recordingitemcontrols>
+        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
       <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                                                     [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
+      <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
       </div>
     <div #controlpanel class="controlpanel" fxLayout="row">
@@ -92,9 +93,10 @@ export const enum Status {
       </div>
     <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
     <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
+      <app-wakelockindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
       <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()" [screenLocked]="screenLocked"></app-readystateindicator>
+      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
     </div>
     </div>
   `,
