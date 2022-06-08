@@ -187,7 +187,7 @@ export abstract class BasicRecorder {
               this._screenLocked = v;
             },
             error: (err) => {
-              console.debug("Wake lock error!")
+              console.error("Wake lock error!")
               this._screenLocked = false;
             }
           }

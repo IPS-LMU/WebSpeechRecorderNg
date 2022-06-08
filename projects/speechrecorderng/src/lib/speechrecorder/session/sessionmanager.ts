@@ -73,31 +73,32 @@ export const enum Status {
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
       <div fxLayout="row">
-      <spr-recordingitemcontrols fxFlex="10 0 1"
-                                 [audioLoaded]="displayAudioClip?.buffer!==null"
-                                 [playStartAction]="controlAudioPlayer?.startAction"
-                                 [playStopAction]="controlAudioPlayer?.stopAction"
-                                 [peakDbLvl]="peakLevelInDb"
-                                 [agc]="this.ac?.agcStatus"
-                                 (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
-      </spr-recordingitemcontrols>
+        <spr-recordingitemcontrols fxFlex="10 0 1"
+                                   [audioLoaded]="displayAudioClip?.buffer!==null"
+                                   [playStartAction]="controlAudioPlayer?.startAction"
+                                   [playStopAction]="controlAudioPlayer?.stopAction"
+                                   [peakDbLvl]="peakLevelInDb"
+                                   [agc]="this.ac?.agcStatus"
+                                   (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
+        </spr-recordingitemcontrols>
+
+        <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
-      <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                                                    [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
-      </div>
+    </div>
     <div #controlpanel class="controlpanel" fxLayout="row">
       <div fxFlex="1 1 30%" fxLayoutAlign="start center">
         <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
-    <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
-    <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
-      <app-wakelockindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
-      <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
-    </div>
+      <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
+      <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
+        <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      </div>
     </div>
   `,
   styles: [`:host {

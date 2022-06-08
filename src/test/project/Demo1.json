@@ -5,7 +5,8 @@
     "audioFormat" : {
       "channels": 1
     },
-    "speakerWindowShowStopRecordAction": true
+    "speakerWindowShowStopRecordAction": true,
+    "recordingDeviceWakeLock": true
 
 }
 

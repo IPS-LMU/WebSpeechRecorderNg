@@ -16,6 +16,7 @@ export class WakeLockManager {
 
   constructor() {
     this.wakeLockApiSupported=('wakeLock' in navigator);
+    console.debug("Wake lock API supported: "+this.wakeLockApiSupported);
   }
 
   enableWakeLock(){
@@ -23,6 +24,7 @@ export class WakeLockManager {
           //@ts-ignore
           navigator.wakeLock.request('screen').then((wls)=>{
             this.wakeLockSentinel=wls;
+            console.debug('Wake lock screen request successful.');
             this._behaviorSubject.next(true);
           }).catch((reason:any)=>{
             console.error('Wakelock failed: '+reason)
@@ -38,24 +40,24 @@ export class WakeLockManager {
           this.mp4VideoElement.src=WAKE_LOCK_VIDEO_MP4_URI;
 
           this.mp4VideoElement.addEventListener('play', (ev) => {
-            console.debug("Wake lock video playing...")
+            console.debug('Wake lock video playing...');
             this._behaviorSubject.next(true);
           })
           this.mp4VideoElement.addEventListener('ended', (ev) => {
-            console.debug("Wake lock video ended.")
+            console.debug('Wake lock video ended.');
             this._behaviorSubject.next(false);
           })
           this.mp4VideoElement.addEventListener('pause', (ev) => {
 
-            console.debug("Wake lock video pause.")
+            console.debug('Wake lock video pause.');
             this._behaviorSubject.next(false);
           })
           this.mp4VideoElement.addEventListener('error', (ev) => {
-            console.debug("Wake lock video error: "+ev.message)
+            console.debug('Wake lock video error: '+ev.message);
             this._behaviorSubject.error(ev.error);
 
           })
-          console.debug("Added listeners to wake lock video.")
+          console.debug('Added listeners to wake lock video.');
         }
         this.mp4VideoElement.play();
       }
@@ -65,6 +67,7 @@ export class WakeLockManager {
   disableWakeLock(){
     if(this.wakeLockApiSupported) {
         this.wakeLockSentinel.release().then(()=>{
+          console.debug('Wake lock release successful.');
           this._behaviorSubject.next(false);
         }).catch((reason:any)=>{
           console.error('Wakelock release failed: '+reason)

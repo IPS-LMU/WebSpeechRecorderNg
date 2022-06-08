@@ -77,10 +77,11 @@ export class Item {
                                    [agc]="this.ac?.agcStatus"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+
         <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
@@ -91,18 +92,19 @@ export class Item {
                             class="hidden-xs"></app-sprstatusdisplay>
       <div fxFlex="100% 0 100%" class="startstop">
         <div style="align-content: center">
-        <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
-          <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
-          <span style="font-weight: bolder;font-size: 14px">{{startStopNextName()}}</span>
-        </button>
+          <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
+            <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
+            <span style="font-weight: bolder;font-size: 14px">{{startStopNextName()}}</span>
+          </button>
         </div>
       </div>
       <div fxFlex="30% 1 30%" >
         <div fxFlex="1 1 auto"></div>
-        <app-wakelockindicator class="ricontrols" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
+
         <app-uploadstatus class="ricontrols" fxHide.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator class="ricontrols" fxHide.xs
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
