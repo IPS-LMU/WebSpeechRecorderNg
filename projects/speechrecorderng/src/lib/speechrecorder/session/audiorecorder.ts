@@ -30,7 +30,7 @@ import {Mode} from "../../speechrecorderng.component";
 
 
 export const enum Status {
-  BLOCKED, IDLE, RECORDING,  STOPPING_STOP, ERROR
+  BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
 }
 
 export class Item {
@@ -528,7 +528,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
+    this.status=Status.STARTING;
     super.startItem();
+    if (this.readonly) {
+      this.status=Status.IDLE;
+      return
+    }
     this.transportActions.fwdAction.disabled = true
     this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
@@ -808,14 +813,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         });
       }
     }
-
-    // check complete session
-    let complete = true;
-
-    let autoStart = (this.status === Status.STOPPING_STOP);
     this.status = Status.IDLE;
-    let startNext=false;
-
     this.navigationDisabled = false;
     this.updateNavigationActions();
     this.updateWakeLock();

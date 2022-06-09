@@ -46,7 +46,7 @@ const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
 
 export const enum Status {
-  BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
+  BLOCKED, IDLE, STARTING, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
 @Component({
@@ -444,7 +444,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
   startItem() {
+    this.status=Status.STARTING;
     super.startItem();
+    if (this.readonly) {
+      this.status=Status.IDLE;
+      return
+    }
     this.transportActions.fwdAction.disabled = true
     this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
