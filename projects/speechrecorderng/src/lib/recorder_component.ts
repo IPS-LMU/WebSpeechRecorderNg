@@ -16,5 +16,6 @@ export abstract class RecorderComponent extends FitToPageComponent implements Re
         super(injector);
     }
     abstract ready():boolean;
+    abstract get screenLocked():boolean;
 }
 

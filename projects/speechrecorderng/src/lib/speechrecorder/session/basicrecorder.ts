@@ -12,7 +12,20 @@ import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
-import NoSleep from "nosleep.js";
+import {Upload} from "../../net/uploader";
+import {Inject} from "@angular/core";
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
+import {SpeechRecorderUploader} from "../spruploader";
+
+import {
+  SequenceAudioFloat32ChunkerOutStream,
+  SequenceAudioFloat32OutStream,
+  SequenceAudioFloat32OutStreamMultiplier
+} from "../../audio/io/stream";
+import {SprRecordingFile} from "../recording";
+import {AudioContextProvider} from "../../audio/context";
+import {UUID} from "../../utils/utils";
+import {WakeLockManager} from "../../utils/wake_lock";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -20,13 +33,88 @@ export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
 
 export const LEVEL_BAR_INTERVALL_SECONDS = 0.1;  // 100ms
 
-export class BasicRecorder {
+export const NOSLEEP_VIDEO_TITLE='No Sleep';
 
+export interface ChunkAudioBufferReceiver{
+  postAudioStreamStart():void;
+  postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
+  postAudioStreamEnd(chunkCount:number):void;
+}
+
+export class ChunkManager implements SequenceAudioFloat32OutStream{
+
+  set recordingFile(value: SprRecordingFile) {
+    this._rf = value;
+  }
+
+  private channels:number=0;
+  private sampleRate:number=-1;
+
+  private _rf!:SprRecordingFile;
+
+  private chunkIdx:number=0;
+
+
+
+  constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
+  }
+
+  close(): void {
+    // Nothing to do
+  }
+
+  flush(): void {
+    this.chunkAudioBufferReceiver.postAudioStreamEnd(this.chunkIdx);
+  }
+
+  nextStream(): void {
+    // reset chunk counter
+    this.chunkIdx=0;
+    this.chunkAudioBufferReceiver.postAudioStreamStart();
+  }
+
+  setFormat(channels: number, sampleRate: number): void {
+    this.channels=channels;
+    this.sampleRate=sampleRate;
+  }
+
+  write(buffers: Array<Float32Array>): number {
+    let aCtx=AudioContextProvider.audioContextInstance();
+    let bChs=buffers.length;
+    let frameLen=0;
+    if(aCtx && bChs>0) {
+      frameLen=buffers[0].length;
+      let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
+      for (let ch = 0; ch < this.channels; ch++) {
+        ad.copyToChannel(buffers[ch],ch);
+      }
+      this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
+      this.chunkIdx++;
+    }
+    return frameLen;
+  }
+
+}
+
+export abstract class BasicRecorder {
+  get uploadChunkSizeSeconds(): number | null {
+    return this._uploadChunkSizeSeconds;
+  }
+
+  set uploadChunkSizeSeconds(value: number | null) {
+    let oldValue=this.uploadChunkSizeSeconds;
+    this._uploadChunkSizeSeconds = value;
+    if(value!==oldValue){
+      this.configureStreamCaptureStream();
+    }
+  }
+  public static readonly DEFAULT_CHUNK_SIZE_SECONDS=30;
   protected userAgent:UserAgent;
   statusMsg: string='';
   statusAlertType!: string;
   statusWaiting: boolean=false;
   readonly=false;
+  protected rfUuid:string|null=null;
   processingRecording=false;
   ac: AudioCapture|null=null;
 
@@ -42,6 +130,8 @@ export class BasicRecorder {
 
   transportActions: TransportActions;
   playStartAction: Action<void>;
+
+  protected startedDate:Date|null=null;
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
@@ -59,10 +149,17 @@ export class BasicRecorder {
 
   protected navigationDisabled=true;
 
-  protected noSleep:NoSleep|null=null;
+  // Default: Disabled chunked upload
+  private _uploadChunkSizeSeconds:number|null=null;
 
+  protected _screenLocked=false;
 
-  constructor(  public dialog: MatDialog,protected sessionService:SessionService) {
+  private wakeLockManager?:WakeLockManager;
+
+  constructor(  public dialog: MatDialog,
+                protected sessionService:SessionService,
+                protected uploader: SpeechRecorderUploader,
+                @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     this.userAgent=UserAgentBuilder.userAgent();
     console.debug("Detected platform: "+this.userAgent.detectedPlatform);
     console.debug("Detected browser: "+this.userAgent.detectedBrowser);
@@ -83,19 +180,29 @@ export class BasicRecorder {
 
   enableWakeLockCond(){
     if(this.wakeLock===true) {
-      if(!this.noSleep){
-        this.noSleep=new NoSleep();
+      if(!this.wakeLockManager){
+        this.wakeLockManager=new WakeLockManager();
+        this.wakeLockManager.behaviorSubject.subscribe({
+            next: (v) => {
+              this._screenLocked = v;
+            },
+            error: (err) => {
+              console.error("Wake lock error!")
+              this._screenLocked = false;
+            }
+          }
+        );
       }
-      if(!this.noSleep.isEnabled) {
-        this.noSleep.enable();
-      }
+      this.wakeLockManager.enableWakeLock();
     }
   }
 
   disableWakeLockCond(){
-      if(this.noSleep && this.noSleep.isEnabled){
-          this.noSleep.disable();
-      }
+    this.wakeLockManager?.disableWakeLock();
+  }
+
+  get screenLocked(){
+    return this._screenLocked;
   }
 
   set audioDevices(audioDevices: Array<AudioDevice> | null | undefined) {
@@ -121,6 +228,30 @@ export class BasicRecorder {
   enableStartUserGesture() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Ready.';
+  }
+
+  configureStreamCaptureStream() {
+    let outStream;
+    if (this.uploadChunkSizeSeconds) {
+      // Multiply the capture stream to...
+      let sasm = new SequenceAudioFloat32OutStreamMultiplier();
+
+      // ...upload audio data in chunks...
+      let chMng = new ChunkManager(this);  // The chunk manager connects the chunked audio stream to this class to upload the chunks
+      let chOsUpload = new SequenceAudioFloat32ChunkerOutStream(chMng, this.uploadChunkSizeSeconds); // The audio stream chunker itself
+      sasm.sequenceAudioFloat32OutStreams.push(chOsUpload);
+
+      // ...and to measure the level
+      let chOsLvlMeas = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS)
+      sasm.sequenceAudioFloat32OutStreams.push(chOsLvlMeas);
+
+      outStream = sasm;
+    } else {
+      outStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+    }
+    if(this.ac) {
+      this.ac.audioOutStream = outStream;
+    }
   }
 
   start() {
@@ -343,6 +474,80 @@ export class BasicRecorder {
       });
     }
   }
+
+  startItem() {
+    this.startedDate=null;
+    this.enableWakeLockCond();
+    this.rfUuid=UUID.generate();
+    this.transportActions.startAction.disabled = true;
+    this.transportActions.pauseAction.disabled = true;
+  }
+
+  started() {
+    //this.enableWakeLockCond();
+    if(!this.startedDate) {
+      this.startedDate=new Date();
+    }
+    this.transportActions.startAction.disabled = true;
+  }
+
+  postRecording(wavFile: Uint8Array, recUrl: string) {
+    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+    let ul = new Upload(wavBlob, recUrl);
+    this.uploader.queueUpload(ul);
+  }
+
+  postAudioStreamStart(): void {
+    if(this.rfUuid) {
+      let apiEndPoint = '';
+      if (this.config && this.config.apiEndPoint) {
+        apiEndPoint = this.config.apiEndPoint;
+      }
+      if (apiEndPoint !== '') {
+        apiEndPoint = apiEndPoint + '/'
+      }
+      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+      let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid + '/prepareChunksRequest';
+      let fd = new FormData();
+      // Note: At least one parameter must be set
+      fd.set('uuid',this.rfUuid);
+      if(!this.startedDate) {
+        this.startedDate=new Date();
+      }
+      fd.set('startedDate',this.startedDate.toJSON());
+
+      let ul = new Upload(fd, recUrl);
+      this.uploader.queueUpload(ul);
+    }else{
+      console.error("Recording file UUID not set!")
+    }
+  }
+
+  abstract postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void;
+
+  postAudioStreamEnd(chunkCount: number): void {
+
+    if(this.rfUuid) {
+      let apiEndPoint = '';
+      if (this.config && this.config.apiEndPoint) {
+        apiEndPoint = this.config.apiEndPoint;
+      }
+      if (apiEndPoint !== '') {
+        apiEndPoint = apiEndPoint + '/'
+      }
+      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+      let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
+      let fd=new FormData();
+      fd.set('uuid',this.rfUuid);
+      fd.set('chunkCount',chunkCount.toString());
+      let ul = new Upload( fd,recUrl);
+      this.uploader.queueUpload(ul);
+    }else{
+      console.error("Recording file UUID not set!")
+    }
+  }
+
+
 
   closed() {
     this.statusAlertType = 'info';

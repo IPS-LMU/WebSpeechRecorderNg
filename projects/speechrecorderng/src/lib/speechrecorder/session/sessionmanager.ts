@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {SprRecordingFile, RecordingFileDescriptorImpl} from '../recording'
+import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from '../recording'
 import {Upload} from '../../net/uploader';
 import {
   AfterViewInit,
@@ -20,12 +20,12 @@ import {State as StartStopSignalState} from "../startstopsignal/startstopsignal"
 import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
-import {Session} from "./session";
-import {Project, AudioDevice, AutoGainControlConfig} from "../project/project";
-import {MIN_DB_LEVEL, RecordingItemDisplay} from "../../ui/recordingitem_display";
-import {LevelInfos,LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {Prompting} from "./prompting";
-import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
+import {
+  SequenceAudioFloat32ChunkerOutStream,
+  SequenceAudioFloat32OutStream,
+  SequenceAudioFloat32OutStreamMultiplier
+} from "../../audio/io/stream";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
@@ -35,12 +35,20 @@ import {Item} from "./item";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {FitToPageComponent} from "../../ui/fit_to_page_comp";
+import {
+  BasicRecorder,
+  ChunkAudioBufferReceiver,
+  LEVEL_BAR_INTERVALL_SECONDS,
+  MAX_RECORDING_TIME_MS,
+  RECFILE_API_CTX
+} from "./basicrecorder";
+import {UUID} from "../../utils/utils";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
 
 export const enum Status {
-  BLOCKED, IDLE, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
+  BLOCKED, IDLE, STARTING, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, ERROR
 }
 
 @Component({
@@ -69,29 +77,32 @@ export const enum Status {
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
       <div fxLayout="row">
-      <spr-recordingitemcontrols fxFlex="10 0 1"
-                                 [audioLoaded]="displayAudioClip?.buffer!==null"
-                                 [playStartAction]="controlAudioPlayer?.startAction"
-                                 [playStopAction]="controlAudioPlayer?.stopAction"
-                                 [peakDbLvl]="peakLevelInDb"
-                                 [agc]="this.ac?.agcStatus"
-                                 (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
-      </spr-recordingitemcontrols>
-      <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                                                    [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols dark"  fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <spr-recordingitemcontrols fxFlex="10 0 1"
+                                   [audioLoaded]="displayAudioClip?.buffer!==null"
+                                   [playStartAction]="controlAudioPlayer?.startAction"
+                                   [playStopAction]="controlAudioPlayer?.stopAction"
+                                   [peakDbLvl]="peakLevelInDb"
+                                   [agc]="this.ac?.agcStatus"
+                                   (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
+        </spr-recordingitemcontrols>
+
+        <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
-      </div>
+    </div>
     <div #controlpanel class="controlpanel" fxLayout="row">
       <div fxFlex="1 1 30%" fxLayoutAlign="start center">
         <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
-    <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
-    <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
-      <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-      <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
-    </div>
+      <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
+      <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
+        <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+      </div>
     </div>
   `,
   styles: [`:host {
@@ -119,7 +130,7 @@ export const enum Status {
     min-height: min-content; /* important */
   }`]
 })
-export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener {
+export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 
   @Input() project:Project|undefined;
   @Input() projectName:string|undefined;
@@ -169,14 +180,16 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   promptItemCount!: number;
 
+
+
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               public dialog: MatDialog,
               protected sessionService:SessionService,
               private recFileService:RecordingService,
-              private uploader: SpeechRecorderUploader,
+              protected uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
-    super(dialog,sessionService);
+    super(dialog,sessionService,uploader,config);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {
@@ -188,6 +201,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.init();
   }
 
+
+
   ngAfterViewInit() {
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
     this.streamLevelMeasure.peakLevelListener=(peakLvlInDb)=>{
@@ -196,6 +211,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
     ngOnDestroy() {
+      console.debug("Com destroy, disable wake lock.")
       this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback
@@ -256,7 +272,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
-        this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+
+        this.configureStreamCaptureStream();
+
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
         //this.ac.listDevices();
       } else {
@@ -321,6 +339,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
     if (ke.key === 'ArrowLeft') {
       this.transportActions.bwdAction.perform();
+    }
+  }
+
+  updateWakeLock(dataSaved:boolean=this.dataSaved){
+    //console.debug("Update wake lock: dataSaved: "+dataSaved+", not active: "+! this.isActive())
+    if(dataSaved && ! this.isActive()){
+      this.disableWakeLockCond();
     }
   }
 
@@ -424,11 +449,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
   startItem() {
-    this.enableWakeLockCond();
-
-    this.transportActions.startAction.disabled = true;
-    this.transportActions.pauseAction.disabled = true;
-    if(this.readonly){
+    this.status=Status.STARTING;
+    super.startItem();
+    if (this.readonly) {
+      this.status=Status.IDLE;
       return
     }
     this.transportActions.fwdAction.disabled = true
@@ -771,7 +795,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   started() {
     this.status = Status.PRE_RECORDING;
-    this.transportActions.startAction.disabled = true;
+    super.started();
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session) {
       if (this._session.status === "LOADED") {
@@ -955,7 +979,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
         it.recs.push(rf);
       }
-      if (this.enableUploadRecordings) {
+      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
         // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
@@ -977,6 +1001,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           ww.writeBlobAsync(ad, (wavFile) => {
             this.postRecordingBlob(wavFile, recUrl);
             this.processingRecording = false
+            this.updateWakeLock();
           });
         }
       }
@@ -1012,11 +1037,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         }
       }
       this.statusMsg = 'Session complete!';
+      this.updateWakeLock();
       let dialogRef = this.dialog.open(SessionFinishedDialog, {});
 
       // enable navigation
       this.transportActions.fwdAction.disabled = false
       this.transportActions.bwdAction.disabled = false
+
     } else {
 
       if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
@@ -1036,6 +1063,25 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.startItem();
     }
     this.changeDetectorRef.detectChanges();
+  }
+
+  postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
+    this.processingRecording = true;
+    let ww = new WavWriter();
+    //new REST API URL
+    let apiEndPoint = '';
+    if (this.config && this.config.apiEndPoint) {
+      apiEndPoint = this.config.apiEndPoint;
+    }
+    if (apiEndPoint !== '') {
+      apiEndPoint = apiEndPoint + '/'
+    }
+    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
+    ww.writeAsync(audioBuffer, (wavFile) => {
+      this.postRecording(wavFile, recUrl);
+      this.processingRecording = false
+    });
   }
 
   postRecordingBlob(audioFileBlob: Blob, recUrl: string) {

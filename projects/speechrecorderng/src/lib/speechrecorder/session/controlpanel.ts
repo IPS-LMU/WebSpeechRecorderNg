@@ -282,16 +282,33 @@ export class TransportPanel {
 }
 
 @Component({
+  selector: 'app-wakelockindicator',
+  template: `
+    <mat-icon *ngIf="_screenLocked">screen_lock_portrait</mat-icon>
+  `,
+  styles: []
+})
+export class WakeLockIndicator {
+  _screenLocked=false;
+
+  constructor() {}
+
+  @Input() set screenLocked(screenLock:boolean){
+    this._screenLocked=screenLock;
+  }
+}
+
+@Component({
 
   selector: 'app-readystateindicator',
 
   template: `
-        <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+    <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
   styles: []
 })
 export class ReadyStateIndicator {
-  _ready=true
+  _ready=true;
   hourGlassIconName='hourglass_empty'
   readyStateToolTip:string=''
 
@@ -306,7 +323,6 @@ export class ReadyStateIndicator {
   get ready():boolean{
     return this._ready
   }
-
 }
 
 @Component({

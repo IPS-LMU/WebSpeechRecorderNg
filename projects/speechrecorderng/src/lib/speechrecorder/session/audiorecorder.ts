@@ -1,10 +1,10 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, AudioPlayerListener, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {RecordingFile, RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
+import {RecordingFile} from '../recording'
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input, Renderer2, Injector, OnInit
+  AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import { MatDialog } from "@angular/material/dialog";
@@ -12,7 +12,6 @@ import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import { Project, ProjectUtil} from "../project/project";
-import {SequenceAudioFloat32ChunkerOutStream} from "../../audio/io/stream";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 
@@ -32,14 +31,13 @@ import {SessionManager} from "./sessionmanager";
 import {Script} from "../script/script";
 import {Mode} from "../../speechrecorderng.component";
 import {ScriptService} from "../script/script.service";
-import NoSleep from "nosleep.js";
 
 
 
 
 
 export const enum Status {
-  BLOCKED, IDLE, RECORDING,  STOPPING_STOP, ERROR
+  BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
 }
 
 export class Item {
@@ -86,9 +84,11 @@ export class Item {
                                    [agc]="this.ac?.agcStatus"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
+
         <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
@@ -99,17 +99,19 @@ export class Item {
                             class="hidden-xs"></app-sprstatusdisplay>
       <div fxFlex="100% 0 100%" class="startstop">
         <div style="align-content: center">
-        <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
-          <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
-          <span style="font-weight: bolder;font-size: 14px">{{startStopNextName()}}</span>
-        </button>
+          <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
+            <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
+            <span style="font-weight: bolder;font-size: 14px">{{startStopNextName()}}</span>
+          </button>
         </div>
       </div>
       <div fxFlex="30% 1 30%" >
         <div fxFlex="1 1 auto"></div>
+
         <app-uploadstatus class="ricontrols" fxHide.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        <app-wakelockindicator class="ricontrols" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator class="ricontrols" fxHide.xs
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
@@ -153,7 +155,7 @@ export class Item {
 })
 export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
 
-  @Input() _project:Project|undefined| null=null;
+  _project:Project|undefined| null=null;
   @Input() projectName:string|undefined|null=null;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
@@ -164,7 +166,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   @Input() dataSaved=true
 
-  private startedDate:Date|null=null;
+
   private maxRecTimerId: number|null=null;
   private maxRecTimerRunning: boolean=false;
   private updateTimerId: any;
@@ -186,12 +188,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               private renderer: Renderer2,
               private route: ActivatedRoute,
               public dialog: MatDialog,
-              private projectService:ProjectService,
               protected sessionService:SessionService,
               private recFileService:RecordingService,
-              private uploader: SpeechRecorderUploader,
+              protected uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
-    super(dialog,sessionService);
+    super(dialog,sessionService,uploader,config);
 
     //super(injector);
     this.status = Status.IDLE;
@@ -281,7 +282,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
-        this.ac.audioOutStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
+        this.configureStreamCaptureStream();
+
         // Don't list the devices here. If we do not have audio permissions we only get anonymized devices without labels.
         //this.ac.listDevices();
       } else {
@@ -309,26 +311,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
-
-    let wakeLockSupp=('wakeLock' in navigator);
-
-    // if(wakeLockSupp) {
-    //   let wakeLock = null;
-    //   try {
-    //     //@ts-ignore
-    //     wakeLock = navigator.wakeLock.request('screen');
-    //
-    //     //statusElem.textContent = 'Wake Lock is active!';
-    //   } catch (err) {
-    //     // The Wake Lock request has failed - usually system related, such as battery.
-    //     console.error('Wakelock failed'+err)
-    //   }
-    // }else{
-    //   let noSleep=new NoSleep();
-    //   noSleep.enable();
-    //
-    // }
-
   }
 
   @HostListener('window:keypress', ['$event'])
@@ -381,8 +363,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   isDefaultAudioTestSessionOverwriteingProjectRequirements():boolean {
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
-
-
 
   fetchRecordings(sess:Session){
     this.statusAlertType='info';
@@ -443,11 +423,17 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.autoGainControlConfigs=project.autoGainControlConfigs;
+      if(project.chunkedRecording===true){
+        this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      }else{
+        this.uploadChunkSizeSeconds=null;
+      }
     } else {
       console.error("Empty project configuration!")
     }
     this.channelCount = chCnt;
   }
+
 
   get project():Project|undefined|null{
     return this._project;
@@ -546,11 +532,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   startItem() {
-   this.enableWakeLockCond();
-
-    this.transportActions.startAction.disabled = true;
-    this.transportActions.pauseAction.disabled = true;
+    this.status=Status.STARTING;
+    super.startItem();
     if (this.readonly) {
+      this.status=Status.IDLE;
       return
     }
     this.transportActions.fwdAction.disabled = true
@@ -703,6 +688,14 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     return (!(this.status === Status.BLOCKED || this.status=== Status.IDLE || this.status===Status.ERROR) || this.processingRecording || this.sessionService.uploadCount>0)
   }
 
+
+  updateWakeLock(dataSaved:boolean=this.dataSaved){
+    //console.debug("Update wake lock: dataSaved: "+dataSaved+", not active: "+! this.isActive())
+    if(dataSaved && ! this.isActive()){
+      this.disableWakeLockCond();
+    }
+  }
+
   private updateNavigationActions(){
 
     this.transportActions.fwdAction.disabled = this.navigationDisabled;
@@ -726,9 +719,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   started() {
-    this.startedDate=new Date();
-    this.transportActions.startAction.disabled = true;
-
+    this.status = Status.RECORDING;
+    super.started();
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
@@ -738,7 +730,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
 
-    this.status = Status.RECORDING;
+
     this.transportActions.stopAction.disabled = false;
   }
 
@@ -770,26 +762,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     }
   }
 
-  // addRecordingFileByDescriptor(rfd:RecordingFileDescriptorImpl){
-  //    let prIdx=0;
-  //    if(this.items) {
-  //      let it = this.items[prIdx];
-  //      if (it) {
-  //        if (!it.recs) {
-  //          it.recs = new Array<SprRecordingFile>();
-  //        }
-  //
-  //      } else {
-  //        //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
-  //      }
-  //    }
-  // }
-  //
-  // addRecordingFileByPromptIndex(promptIndex:number, rf:SprRecordingFile){
-  //
-  // }
-
-
   stopped() {
     this.updateStartActionDisableState()
     this.transportActions.stopAction.disabled = true;
@@ -805,11 +777,20 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if(this._session){
         sessId=this._session.sessionId;
       }
-      let rf = new RecordingFile(UUID.generate(),sessId,ad);
+      if(!this.rfUuid){
+        this.rfUuid=UUID.generate()
+      }
+      let rf = new RecordingFile(this.rfUuid,sessId,ad);
       rf._startedAsDateObj=this.startedDate;
       if(rf._startedAsDateObj) {
         rf.startedDate = rf._startedAsDateObj.toString();
       }
+      rf.frames = ad.length;
+      this.displayRecFile = rf;
+      this.recorderCombiPane.push(rf);
+
+      // Upload if upload enabled and not in chunked upload mode
+      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         let apiEndPoint = '';
 
         if (this.config && this.config.apiEndPoint) {
@@ -819,49 +800,31 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           apiEndPoint = apiEndPoint + '/'
         }
 
-          let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-           let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
-      //
-      //
-      //
-      //     // convert asynchronously to 16-bit integer PCM
-      //     // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-      //     // TODO duplicate conversion for manual download
-      //     //console.log("Build wav writer...");
-          this.processingRecording=true
-          let ww = new WavWriter();
-          ww.writeAsync(ad, (wavFile) => {
-            //this.postRecording(wavFile, recUrl);
-            //rf._dateAsDateObj=new Date();
-            rf.frames=ad.length;
-            this.displayRecFile=rf;
-            //this.recordingListComp.recordingList.push(rf);
-            this.recorderCombiPane.push(rf);
-            this.postRecordingMultipart(wavFile, rf.uuid,rf.session,rf._startedAsDateObj,recUrl);
-            this.processingRecording=false;
-            this.changeDetectorRef.detectChanges();
-          });
-      // }
+        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
+
+        // convert asynchronously to 16-bit integer PCM
+        // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+        // TODO duplicate conversion for manual download
+
+        this.processingRecording = true
+        let ww = new WavWriter();
+        ww.writeAsync(ad, (wavFile) => {
+          this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
+          this.processingRecording = false;
+          this.updateWakeLock();
+          this.changeDetectorRef.detectChanges();
+        });
+      }
     }
-
-    // check complete session
-    let complete = true;
-
-    let autoStart = (this.status === Status.STOPPING_STOP);
     this.status = Status.IDLE;
-    let startNext=false;
-
-        this.navigationDisabled = false;
-        this.updateNavigationActions();
-
+    this.navigationDisabled = false;
+    this.updateNavigationActions();
+    this.updateWakeLock();
     this.changeDetectorRef.detectChanges();
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string) {
-    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
-    this.uploader.queueUpload(ul);
-  }
+
 
   postRecordingMultipart(wavFile: Uint8Array, uuid:string|null,sessionId:string|number|null,startedDate:Date|null|undefined,recUrl: string) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
@@ -879,6 +842,25 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     fd.set('audio',wavBlob);
     let ul = new Upload(fd, recUrl);
     this.uploader.queueUpload(ul);
+  }
+
+  postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
+    this.processingRecording = true;
+    let ww = new WavWriter();
+    //new REST API URL
+    let apiEndPoint = '';
+    if (this.config && this.config.apiEndPoint) {
+      apiEndPoint = this.config.apiEndPoint;
+    }
+    if (apiEndPoint !== '') {
+      apiEndPoint = apiEndPoint + '/'
+    }
+    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
+    ww.writeAsync(audioBuffer, (wavFile) => {
+      this.postRecording(wavFile, recUrl);
+      this.processingRecording = false;
+    });
   }
 
   stop() {
@@ -906,17 +888,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       window.clearInterval(this.updateTimerId);
 
     }
-
     if(!this.destroyed) {
         this.changeDetectorRef.detectChanges();
     }
-
   }
 }
 
-
 @Component({
-
   selector: 'app-audiorecorder-comp',
   providers: [SessionService],
   template: `
@@ -949,7 +927,6 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               private changeDetectorRef: ChangeDetectorRef,
               private sessionService:SessionService,
               private projectService:ProjectService,
-              private recFilesService:RecordingService,
               protected uploader:SpeechRecorderUploader
   ) {
     super(injector,uploader);
@@ -992,6 +969,9 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   ngAfterViewInit() {
+    this.uploader.listener = (ue) => {
+      this.uploadUpdate(ue);
+    }
     this.route.queryParams.subscribe((params: Params) => {
       if (params['sessionId']) {
         this.fetchSession(params['sessionId']);
@@ -1007,6 +987,10 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   ngOnDestroy() {
     super.ngOnDestroy();
+  }
+
+  get screenLocked():boolean{
+    return  this.ar.screenLocked;
   }
 
   fetchSession(sessionId:string){
@@ -1061,7 +1045,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
       }
       this.ar.uploadProgress = percentUpl;
     }
-
+    this.ar.updateWakeLock(this.dataSaved);
     this.changeDetectorRef.detectChanges()
   }
 

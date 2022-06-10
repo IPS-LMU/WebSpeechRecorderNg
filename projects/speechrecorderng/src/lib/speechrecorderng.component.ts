@@ -19,6 +19,7 @@ import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
 import {FitToPageComponent, FitToPageUtil} from "./ui/fit_to_page_comp";
 import {ReadyStateProvider, RecorderComponent} from "./recorder_component";
+import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -112,6 +113,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       this.controlAudioPlayer.stop();
       super.ngOnDestroy();
     }
+
 
   fetchSession(sessionId:string){
 
@@ -222,6 +224,9 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     }
   }
 
+  get screenLocked():boolean{
+      return  this.sm.screenLocked;
+  }
 
     private startSession(){
         this.sm.statusWaiting=false;
@@ -288,7 +293,8 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       }
       this.sm.uploadProgress = percentUpl;
     }
-
+    //console.debug("Upload update, update wake lock.")
+    this.sm.updateWakeLock(this.dataSaved);
     this.changeDetectorRef.detectChanges()
   }
 
@@ -343,6 +349,12 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
+      if(project.chunkedRecording===true){
+        console.debug("Enable chunked upload: chunkSize: "+BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS)
+        this.sm.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      }else{
+        this.sm.uploadChunkSizeSeconds=null;
+      }
     } else {
       console.error("Empty project configuration!")
     }

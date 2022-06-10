@@ -1,4 +1,4 @@
-import {SequenceAudioFloat32OutStream} from "../io/stream";
+import {SequenceAudioFloat32OutStream, SequenceAudioFloat32OutStreamMultiplier} from "../io/stream";
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
 import {AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
