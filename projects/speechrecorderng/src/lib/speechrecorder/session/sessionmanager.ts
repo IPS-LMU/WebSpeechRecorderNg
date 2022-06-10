@@ -33,7 +33,6 @@ import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 import {LevelBar} from "../../audio/ui/livelevel";
-import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {FitToPageComponent} from "../../ui/fit_to_page_comp";
 import {
   BasicRecorder,
@@ -43,6 +42,7 @@ import {
   RECFILE_API_CTX
 } from "./basicrecorder";
 import {UUID} from "../../utils/utils";
+import {Project} from "../project/project";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
