@@ -125,6 +125,8 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
+  private static audioProcessorRegistered=false;
+
   constructor(context: AudioContext) {
     this.context = context;
     this.n = navigator;
@@ -242,6 +244,64 @@ export class AudioCapture {
       console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
   }
+
+ applyAudioWorkletNode(){
+
+  const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
+  awn.onprocessorerror = (ev: Event) => {
+    let msg = 'Unknwon error';
+    if (ev instanceof ErrorEvent) {
+      msg = ev.message;
+    }
+    console.error("Capture audio worklet error: " + msg);
+    if (this.listener) {
+      this.listener.error(msg);
+    }
+  }
+  let awnPt = awn.port;
+  if (awnPt) {
+    awnPt.onmessage = (ev: MessageEvent<any>) => {
+      if (this.capturing) {
+        let dt = ev.data;
+        let chs = dt.chs;
+        let adaLen = dt.data.length;
+        if (DEBUG_TRACE_LEVEL > 8) {
+          console.debug('Received data from worklet: ' + chs + ' ' + dt.len + ' Data chs: ' + adaLen);
+        }
+        //let chunkLen = adaLen / chs;
+        let chunkLen = adaLen;
+        let chunk = new Array<Float32Array>(chs);
+        for (let ch = 0; ch < chs; ch++) {
+          if (this.data && this.data[ch]) {
+            let adaPos = ch * chunkLen;
+            if (dt.data[ch]) {
+              let fa = new Float32Array(dt.data[ch]);
+              this.data[ch].push(fa);
+              chunk[ch] = fa;
+              // Use samples of channel 0 to count frames (samples)
+              if (ch == 0) {
+                this.framesRecorded += fa.length;
+              }
+            } else {
+              if (DEBUG_TRACE_LEVEL > 8) {
+                console.debug('Channel ' + ch + ' data not set!!');
+              }
+            }
+          }
+        }
+        if (this.audioOutStream) {
+          this.audioOutStream.write(chunk);
+        }
+      }
+    };
+  }
+  this.bufferingNode = awn;
+  this._opened = true;
+  if (this.listener) {
+  this.listener.opened();
+}
+
+}
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
       this.context.resume().then(()=>{
@@ -436,128 +496,79 @@ export class AudioCapture {
       // Update 06-2021
       //  AudioWorkletProcessor is here to stay. Web Audio API has now Recommendation status !
 
-          if(ENABLE_AUDIO_WORKLET && this.context.audioWorklet){
-            //const workletFileName = ('file-loader!./interceptor_worklet.js');
-            //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
-            //console.log(awpStr);
-            let audioWorkletModuleBlob= new Blob([awpStr], {type: 'text/javascript'});
+      if(ENABLE_AUDIO_WORKLET && this.context.audioWorklet){
+        //const workletFileName = ('file-loader!./interceptor_worklet.js');
+        //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
+        //console.log(awpStr);
 
-            let audioWorkletModuleBlobUrl=window.URL.createObjectURL(audioWorkletModuleBlob);
+        if(!AudioCapture.audioProcessorRegistered) {
+          let audioWorkletModuleBlob = new Blob([awpStr], {type: 'text/javascript'});
+          let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
+          this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
+              AudioCapture.audioProcessorRegistered=true;
+              this.applyAudioWorkletNode();
+            }
+          ).catch((error: any) => {
+            console.error('Could not add module ' + error);
+          });
+        }else{
+          this.applyAudioWorkletNode();
+        }
+      }else if(this.context.createScriptProcessor) {
+        // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
+        // TODO should we use streamChannelCount or channelCount here ?
+        let scriptProcessorNode= this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
+        this.bufferingNode=scriptProcessorNode;
+        let c = 0;
+        if(scriptProcessorNode.onaudioprocess){
+          scriptProcessorNode.onaudioprocess = (e: AudioProcessingEvent) => {
 
-            this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(()=> {
-                  const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
-                  awn.onprocessorerror=(ev:Event)=>{
-                    let msg='Unknwon error';
-                    if(ev instanceof ErrorEvent){
-                      msg=ev.message;
-                    }
-                    console.error("Capture audio worklet error: "+msg);
-                    if(this.listener){
-                      this.listener.error(msg);
-                    }
-                  }
-                  let awnPt = awn.port;
-                  if (awnPt) {
-                    awnPt.onmessage = (ev: MessageEvent<any>) => {
-                      if (this.capturing) {
-                        let dt=ev.data;
-                        let chs = dt.chs;
-                        let adaLen = dt.data.length;
-                        if(DEBUG_TRACE_LEVEL>8) {
-                          console.debug('Received data from worklet: ' +chs + ' ' + dt.len +' Data chs: '+adaLen);
-                        }
-                        //let chunkLen = adaLen / chs;
-                        let chunkLen = adaLen;
-                        let chunk = new Array<Float32Array>(chs);
-                        for (let ch = 0; ch < chs; ch++) {
-                          if (this.data && this.data[ch]) {
-                            let adaPos = ch * chunkLen;
-                            if(dt.data[ch]) {
-                              let fa = new Float32Array(dt.data[ch]);
-                              this.data[ch].push(fa);
-                              chunk[ch] = fa;
-                              // Use samples of channel 0 to count frames (samples)
-                              if (ch == 0) {
-                                this.framesRecorded += fa.length;
-                              }
-                            }else{
-                              if(DEBUG_TRACE_LEVEL>8) {
-                                console.debug('Channel '+ch+' data not set!!');
-                              }
-                            }
-                          }
-                        }
-                        if (this.audioOutStream) {
-                          this.audioOutStream.write(chunk);
-                        }
-                      }
-                    };
-                  }
-                  this.bufferingNode = awn;
-                  this._opened = true;
-                  if (this.listener) {
-                    this.listener.opened();
-                  }
+            if (this.capturing) {
+              let inBuffer = e.inputBuffer;
+              let duration = inBuffer.duration;
+              // only process requested count of channels
+              let currentBuffers = new Array<Float32Array>(channelCount);
+              for (let ch: number = 0; ch < channelCount; ch++) {
+                let chSamples = inBuffer.getChannelData(ch);
+                let chSamplesCopy = chSamples.slice(0);
+                currentBuffers[ch] = chSamplesCopy.slice(0);
+                this.data[ch].push(chSamplesCopy);
+                if(DEBUG_TRACE_LEVEL>8){
+                  console.debug("Process "+chSamplesCopy.length+" samples.");
                 }
-            ).catch((error: any)=>{
-              console.log('Could not add module '+error);
-            });
-
-          }else if(this.context.createScriptProcessor) {
-            // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
-            // TODO should we use streamChannelCount or channelCount here ?
-            let scriptProcessorNode= this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
-            this.bufferingNode=scriptProcessorNode;
-            let c = 0;
-            if(scriptProcessorNode.onaudioprocess){
-              scriptProcessorNode.onaudioprocess = (e: AudioProcessingEvent) => {
-
-                if (this.capturing) {
-                  let inBuffer = e.inputBuffer;
-                  let duration = inBuffer.duration;
-                  // only process requested count of channels
-                  let currentBuffers = new Array<Float32Array>(channelCount);
-                  for (let ch: number = 0; ch < channelCount; ch++) {
-                    let chSamples = inBuffer.getChannelData(ch);
-                    let chSamplesCopy = chSamples.slice(0);
-                    currentBuffers[ch] = chSamplesCopy.slice(0);
-                    this.data[ch].push(chSamplesCopy);
-                    if(DEBUG_TRACE_LEVEL>8){
-                      console.debug("Process "+chSamplesCopy.length+" samples.");
-                    }
-                    this.framesRecorded += chSamplesCopy.length;
-                  }
-                  c++;
-                  if (this.audioOutStream) {
-                    this.audioOutStream.write(currentBuffers);
-                  }
-                }
-              };
-              this._opened = true;
-              if (this.listener) {
-                this.listener.opened();
+                this.framesRecorded += chSamplesCopy.length;
               }
-            }else{
-              this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
+              c++;
+              if (this.audioOutStream) {
+                this.audioOutStream.write(currentBuffers);
+              }
             }
-          }else{
-            this.listener.error('Browser does not support audio processing (neither AudioWorkletProcessor nor ScriptProcessor)!');
-          }
-        }, (e) => {
-          console.error(e + " Error name: " +e.name);
+          };
+          this._opened = true;
           if (this.listener) {
-            if('NotAllowedError' === e.name){
-              this.listener.error('Not allowed to use your microphone.','Please make sure that microphone access is allowed for this web page and reload the page.');
-            }else if('NotReadableError' === e.name){
-              this.listener.error('Could not read from your audio device.','Please make sure your audio device is working.');
-            }else if('OverconstrainedError' === e.name){
-              let eMsg=e.msg?e.msg:'Overconstrained media device request error.';
-              this.listener.error(eMsg);
-            } else {
-              this.listener.error();
-            }
+            this.listener.opened();
+          }
+        }else{
+          this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
+        }
+      }else{
+        this.listener.error('Browser does not support audio processing (neither AudioWorkletProcessor nor ScriptProcessor)!');
+      }
+      }, (e) => {
+        console.error(e + " Error name: " +e.name);
+        if (this.listener) {
+          if('NotAllowedError' === e.name){
+            this.listener.error('Not allowed to use your microphone.','Please make sure that microphone access is allowed for this web page and reload the page.');
+          }else if('NotReadableError' === e.name){
+            this.listener.error('Could not read from your audio device.','Please make sure your audio device is working.');
+          }else if('OverconstrainedError' === e.name){
+            let eMsg=e.msg?e.msg:'Overconstrained media device request error.';
+            this.listener.error(eMsg);
+          } else {
+            this.listener.error();
           }
         }
+      }
     )
   }
 
