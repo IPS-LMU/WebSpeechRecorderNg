@@ -5,6 +5,7 @@ export interface AudioFormat {
 
 export interface MediaCaptureFormat {
   audioChannelCount: number;
+  audioQuantisationBits?:number;
 }
 
 export interface AudioDevice {
@@ -42,7 +43,7 @@ export interface Project {
 export class ProjectUtil {
 
   public static readonly DEFAULT_AUDIO_CHANNEL_COUNT=2;
-
+  public static readonly DEFAULT_SAMPLE_SIZE=16;
   static audioChannelCount(project:Project): number{
     let chs=ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
     if(project.mediaCaptureFormat){
@@ -51,6 +52,16 @@ export class ProjectUtil {
       chs=project.audioFormat.channels;
     }
     return chs;
+  }
+
+  static sampleSize(project:Project):number|null{
+    let sampleSize=null;
+
+      if(project.mediaCaptureFormat?.audioQuantisationBits) {
+        sampleSize = project.mediaCaptureFormat.audioQuantisationBits;
+      }
+
+    return sampleSize;
   }
 
 }

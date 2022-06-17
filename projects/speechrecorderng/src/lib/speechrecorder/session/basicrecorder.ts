@@ -97,6 +97,13 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+  get sampleSize(): number | null {
+    return this._sampleSize;
+  }
+
+  set sampleSize(value: number | null) {
+    this._sampleSize = value;
+  }
   get uploadChunkSizeSeconds(): number | null {
     return this._uploadChunkSizeSeconds;
   }
@@ -124,6 +131,7 @@ export abstract class BasicRecorder {
   protected _selectedDeviceId:string|undefined=undefined;
   protected selCaptureDeviceId: ConstrainDOMString | null;
   protected _channelCount = 2;
+  private _sampleSize:number|null=null;
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
 
   _session: Session|null=null;

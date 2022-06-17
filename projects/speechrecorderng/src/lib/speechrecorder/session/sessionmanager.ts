@@ -79,6 +79,8 @@ export const enum Status {
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
                                    [agc]="this.ac?.agcStatus"
+                                    [enableDownload]="enableDownloadRecordings"
+                                   (onDownloadRecording)="downloadRecording()"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
@@ -468,7 +470,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
+        this.ac.open(this._channelCount,this.sampleSize, this._selectedDeviceId,this._autoGainControlConfigs);
       } else {
         this.ac.start();
       }
@@ -545,6 +547,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if (this.displayRecFile) {
       let ab: AudioBuffer|null = this.displayRecFile.audioBuffer;
       let ww = new WavWriter();
+      if(this.sampleSize){
+        ww.sampleSize=this.sampleSize;
+      }
       if(ab) {
         let wavFile = ww.writeAsync(ab, (wavFile) => {
           let blob = new Blob([wavFile], {type: 'audio/wav'});
@@ -986,6 +991,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.processingRecording=true
         if(ad && rf) {
           let ww = new WavWriter();
+          if(this.sampleSize){
+            ww.sampleSize=this.sampleSize;
+          }
           //new REST API URL
           let apiEndPoint = '';
           if (this.config && this.config.apiEndPoint) {
@@ -1067,6 +1075,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
     let ww = new WavWriter();
+    if(this.sampleSize){
+      ww.sampleSize=this.sampleSize;
+    }
     //new REST API URL
     let apiEndPoint = '';
     if (this.config && this.config.apiEndPoint) {

@@ -111,7 +111,8 @@ export class AudioCapture {
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
-  mediaStream: any;
+  sampleSize:number|null=null;
+  mediaStream?: MediaStreamAudioSourceNode;
   agcStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
   listener!: AudioCaptureListener;
@@ -243,14 +244,15 @@ export class AudioCapture {
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
+  open(channelCount: number, sampleSize:number|null,selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
       this.context.resume().then(()=>{
-        this._open(channelCount,selDeviceId,autoGainControlConfigs);
+        this._open(channelCount,sampleSize,selDeviceId,autoGainControlConfigs);
       })
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
+  _open(channelCount: number, sampleSize:number|null,selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
     this.channelCount = channelCount;
+    this.sampleSize=sampleSize;
     this.framesRecorded = 0;
     //var msc = new AudioStreamConstr();
     // var msc={};
@@ -306,15 +308,30 @@ export class AudioCapture {
     }
 
     // default
-    msc = {
-      audio: {
-        deviceId: selDeviceId,
-        echoCancellation: false,
-        channelCount: channelCount,
-        autoGainControl: autoGainControl
-      },
-      video: false
-    };
+    if(sampleSize) {
+      msc = {
+        audio: {
+          deviceId: selDeviceId,
+          echoCancellation: false,
+          channelCount: channelCount,
+          sampleSize: sampleSize,
+          autoGainControl: autoGainControl
+        },
+        video: false
+      };
+    }else {
+      msc = {
+        audio: {
+          deviceId: selDeviceId,
+          echoCancellation: false,
+          channelCount: channelCount,
+          autoGainControl: autoGainControl
+        },
+        video: false
+      };
+    }
+
+
 
     if (ua.detectedBrowser===Browser.Edge) {
 
@@ -339,16 +356,31 @@ export class AudioCapture {
 
 
       // Requires at least Chrome 61
-      msc = {
-        audio: {
-          deviceId: selDeviceId,
-          channelCount: channelCount,
-          echoCancellation: {exact:chromeEchoCancellation},
-          autoGainControl: {exact:autoGainControl},
-          sampleSize:{min: 16},
-        },
-        video: false,
+      if(sampleSize){
+        msc = {
+          audio: {
+            deviceId: selDeviceId,
+            channelCount: channelCount,
+            echoCancellation: {exact: chromeEchoCancellation},
+            autoGainControl: {exact: autoGainControl},
+            sampleSize: {ideal: sampleSize},
+          },
+          video: false,
+        }
+        console.info("Media track constraints for Google Chrome, sample size :"+sampleSize);
+      }else {
+        msc = {
+          audio: {
+            deviceId: selDeviceId,
+            channelCount: channelCount,
+            echoCancellation: {exact: chromeEchoCancellation},
+            autoGainControl: {exact: autoGainControl},
+            sampleSize: {min: 16},
+          },
+          video: false,
+        }
       }
+
 
     } else if (ua.detectedBrowser===Browser.Firefox) {
       console.info("Setting media track constraints for Mozilla Firefox.");
@@ -403,7 +435,7 @@ export class AudioCapture {
           // Typescript lib.dom.ts MediaTrackSettings.channelCount is missing
           // https://github.com/mdn/browser-compat-data/blob/5493d8f937e05b2ddbd41b99f5bdfad4a1f2ed85/api/MediaTrackSettings.json
           //@ts-ignore
-          console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
+          console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", sample size: ",mtrSts.sampleSize,", rate: ",mtrSts.sampleRate,", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
           if(mtrSts.autoGainControl){
             this.agcStatus=mtrSts.autoGainControl;
           }
@@ -418,6 +450,14 @@ export class AudioCapture {
         // stream channel count ( is always 2 !)
         let streamChannelCount: number = this.mediaStream.channelCount;
         console.info("Stream channel count: "+streamChannelCount);
+
+        if(this.mediaStream.mediaStream){
+          let mtrks=this.mediaStream.mediaStream.getTracks();
+          for(let mtrk of mtrks){
+
+          }
+        }
+
         // is not set!!
         //this.currentSampleRate = this.mediaStream.sampleRate;
         this.currentSampleRate = this.context.sampleRate;
@@ -569,7 +609,7 @@ export class AudioCapture {
     }
     this.capturing = true;
     if(this.bufferingNode) {
-      this.mediaStream.connect(this.bufferingNode);
+      this.mediaStream?.connect(this.bufferingNode);
       this.bufferingNode.connect(this.context.destination);
     }
     if (this.listener) {
@@ -581,7 +621,7 @@ export class AudioCapture {
   stop() {
 
     if (this.disconnectStreams && this.bufferingNode) {
-      this.mediaStream.disconnect(this.bufferingNode);
+      this.mediaStream?.disconnect(this.bufferingNode);
       this.bufferingNode.disconnect(this.context.destination);
     }
 
@@ -596,7 +636,7 @@ export class AudioCapture {
 
 
   close() {
-    this.mediaStream.disconnect();
+    this.mediaStream?.disconnect();
     if (this.stream) {
       //this.stream.stop();
       //'MediaStream.stop()' is deprecated and will be removed in M47, around November 2015. Please use 'MediaStream.active' instead.

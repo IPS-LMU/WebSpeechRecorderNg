@@ -409,7 +409,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   set project(project: Project|undefined|null) {
     this._project = project;
     let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
-
+    let sampleSize:number|null=null;
     if (project) {
       console.info("Project name: " + project.name)
       if(project.recordingDeviceWakeLock===true){
@@ -418,6 +418,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
+      sampleSize=ProjectUtil.sampleSize(project);
+      if(sampleSize) {
+        console.info("Project requested sampleSize: " + sampleSize);
+      }
       this.autoGainControlConfigs=project.autoGainControlConfigs;
       if(project.chunkedRecording===true){
         this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
@@ -428,6 +432,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       console.error("Empty project configuration!")
     }
     this.channelCount = chCnt;
+    this.sampleSize=sampleSize;
   }
 
 
@@ -549,7 +554,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
+        this.ac.open(this._channelCount,this.sampleSize, this._selectedDeviceId,this._autoGainControlConfigs);
       } else {
         this.ac.start();
       }
@@ -561,6 +566,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     if (this.displayRecFile) {
       let ab: AudioBuffer | null = this.displayRecFile.audioBuffer;
       let ww = new WavWriter();
+      if(this.sampleSize){
+        ww.sampleSize=this.sampleSize;
+      }
       if (ab) {
         let wavFile = ww.writeAsync(ab, (wavFile) => {
           let blob = new Blob([wavFile], {type: 'audio/wav'});
@@ -805,6 +813,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
         this.processingRecording = true
         let ww = new WavWriter();
+        if(this.sampleSize){
+          ww.sampleSize=this.sampleSize;
+        }
         ww.writeAsync(ad, (wavFile) => {
           this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
           this.processingRecording = false;
@@ -843,6 +854,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
     let ww = new WavWriter();
+    if(this.sampleSize){
+      ww.sampleSize=this.sampleSize;
+    }
     //new REST API URL
     let apiEndPoint = '';
     if (this.config && this.config.apiEndPoint) {

@@ -1,12 +1,11 @@
 {
-
-    "description": "Demo project 1",
-    "name": "Demo1",
-    "audioFormat" : {
-      "channels": 1
-    },
-    "speakerWindowShowStopRecordAction": true,
-    "recordingDeviceWakeLock": true
-
+  "description": "Demo project 1",
+  "name": "Demo1",
+  "mediaCaptureFormat": {
+    "audioChannelCount": 1,
+    "audioQuantisationBits": 32
+  },
+  "speakerWindowShowStopRecordAction": true,
+  "recordingDeviceWakeLock": true
 }
 

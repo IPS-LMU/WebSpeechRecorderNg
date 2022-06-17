@@ -331,7 +331,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
   set project(project: Project|null) {
     this._project = project;
     let chCnt = ProjectUtil.DEFAULT_AUDIO_CHANNEL_COUNT;
-
+    let sampleSize:number|null=null;
     if (project) {
       console.info("Project name: " + project.name)
       if(project.recordingDeviceWakeLock===true){
@@ -340,6 +340,10 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       this.sm.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
+      sampleSize=ProjectUtil.sampleSize(project);
+      if(sampleSize) {
+        console.info("Project requested sampleSize: " + sampleSize);
+      }
       this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
       if(project.chunkedRecording===true){
         console.debug("Enable chunked upload: chunkSize: "+BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS)
@@ -351,6 +355,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       console.error("Empty project configuration!")
     }
     this.sm.channelCount = chCnt;
+    this.sm.sampleSize=sampleSize;
 
   }
 
