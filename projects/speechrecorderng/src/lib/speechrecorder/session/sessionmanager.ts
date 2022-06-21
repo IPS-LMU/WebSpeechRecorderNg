@@ -41,6 +41,7 @@ import {
   RECFILE_API_CTX
 } from "./basicrecorder";
 import {UUID} from "../../utils/utils";
+import {SprDb} from "../../db/inddb";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -208,6 +209,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     ngOnDestroy() {
       console.debug("Com destroy, disable wake lock.")
       this.disableWakeLockCond();
+      if(this.ac){
+        this.ac.release();
+      }
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -960,108 +964,119 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.statusMsg = 'Recorded.';
     this.startStopSignalState = StartStopSignalState.IDLE;
 
-    let ad:AudioBuffer|null = null;
+   // let ad:AudioBuffer|null = null;
     if(this.ac!=null){
-      ad=this.ac.audioBuffer();
-    }
-    let ic = this.promptItem.itemcode;
-    let rf=null;
-    if (this._session && ic) {
-      let sessId: string | number = this._session.sessionId;
-      let cpIdx = this.promptIndex;
-      if (this.items) {
-        let it=this.items[cpIdx];
-        if (!it.recs) {
-          it.recs = new Array<SprRecordingFile>();
-        }
-        rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
-        it.recs.push(rf);
-      }
-      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
-        // TODO use SpeechRecorderconfig resp. RecfileService
-        // convert asynchronously to 16-bit integer PCM
-        // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-        // TODO duplicate conversion for manual download
-        //console.log("Build wav writer...");
-        this.processingRecording=true
-        if(ad && rf) {
-          let ww = new WavWriter();
-          //new REST API URL
-          let apiEndPoint = '';
-          if (this.config && this.config.apiEndPoint) {
-            apiEndPoint = this.config.apiEndPoint;
+      this.ac.audioBuffer().subscribe(
+        {
+          next: (ad)=>{
+            let ic = this.promptItem.itemcode;
+            let rf=null;
+            if (this._session && ic) {
+              let sessId: string | number = this._session.sessionId;
+              let cpIdx = this.promptIndex;
+              if (this.items) {
+                let it=this.items[cpIdx];
+                if (!it.recs) {
+                  it.recs = new Array<SprRecordingFile>();
+                }
+                rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
+                it.recs.push(rf);
+              }
+              if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
+                // TODO use SpeechRecorderconfig resp. RecfileService
+                // convert asynchronously to 16-bit integer PCM
+                // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+                // TODO duplicate conversion for manual download
+                //console.log("Build wav writer...");
+                this.processingRecording=true
+                if(ad && rf) {
+                  let ww = new WavWriter();
+                  //new REST API URL
+                  let apiEndPoint = '';
+                  if (this.config && this.config.apiEndPoint) {
+                    apiEndPoint = this.config.apiEndPoint;
+                  }
+                  if (apiEndPoint !== '') {
+                    apiEndPoint = apiEndPoint + '/'
+                  }
+                  let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+                  let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+                  ww.writeAsync(ad, (wavFile) => {
+                    this.postRecording(wavFile, recUrl);
+                    this.processingRecording = false
+                    this.updateWakeLock();
+                  });
+                }
+              }
+            }
+            // check complete session
+            let complete = true;
+            if(this.items) {
+              // search backwards, to gain faster detection of incomplete state
+              for (let ri = this.items.length - 1; ri >= 0; ri--) {
+                let it = this.items[ri];
+                if (it.recording && !it.training && (!it.recs || it.recs.length == 0)) {
+                  complete = false;
+                  break;
+                }
+              }
+            }
+
+            let autoStart = (this.status === Status.STOPPING_STOP);
+            this.status = Status.IDLE;
+            let startNext=false;
+            if (complete) {
+              if(this._session!=null) {
+                if (!this._session.sealed && this._session.status !== "COMPLETED") {
+                  let body: any = {}
+                  this._session.status = "COMPLETED";
+                  body.status = this._session.status;
+                  if (!this._session.completedDate) {
+                    this._session.completedDate = new Date();
+                    body.completedDate = this._session.completedDate;
+                  }
+                  this.sessionService.patchSessionObserver(this._session, body).subscribe()
+                }
+              }
+              this.statusMsg = 'Session complete!';
+              this.updateWakeLock();
+              let dialogRef = this.dialog.open(SessionFinishedDialog, {});
+
+              // enable navigation
+              this.transportActions.fwdAction.disabled = false
+              this.transportActions.bwdAction.disabled = false
+
+            } else {
+
+              if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
+                this.nextItem();
+              }
+
+              if (this.section.mode === 'AUTORECORDING' && this.autorecording && autoStart) {
+                startNext=true;
+              } else {
+                this.navigationDisabled = false;
+                this.updateNavigationActions();
+                this.updateWakeLock();
+              }
+            }
+            // apply recorded item
+            this.applyItem(startNext);
+            if(startNext){
+              this.startItem();
+            }
+            this.changeDetectorRef.detectChanges();
+          },
+          error:(err)=>{
+            this.status=Status.ERROR;
+            this.statusAlertType='error';
+            this.statusMsg='Could not process recording: '+err;
           }
-          if (apiEndPoint !== '') {
-            apiEndPoint = apiEndPoint + '/'
-          }
-          let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-          let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-          ww.writeAsync(ad, (wavFile) => {
-            this.postRecording(wavFile, recUrl);
-            this.processingRecording = false
-            this.updateWakeLock();
-          });
         }
-      }
+      )
     }
 
-    // check complete session
-    let complete = true;
-    if(this.items) {
-      // search backwards, to gain faster detection of incomplete state
-      for (let ri = this.items.length - 1; ri >= 0; ri--) {
-        let it = this.items[ri];
-        if (it.recording && !it.training && (!it.recs || it.recs.length == 0)) {
-          complete = false;
-          break;
-        }
-      }
-    }
 
-    let autoStart = (this.status === Status.STOPPING_STOP);
-    this.status = Status.IDLE;
-    let startNext=false;
-    if (complete) {
-      if(this._session!=null) {
-        if (!this._session.sealed && this._session.status !== "COMPLETED") {
-          let body: any = {}
-          this._session.status = "COMPLETED";
-          body.status = this._session.status;
-          if (!this._session.completedDate) {
-            this._session.completedDate = new Date();
-            body.completedDate = this._session.completedDate;
-          }
-          this.sessionService.patchSessionObserver(this._session, body).subscribe()
-        }
-      }
-      this.statusMsg = 'Session complete!';
-      this.updateWakeLock();
-      let dialogRef = this.dialog.open(SessionFinishedDialog, {});
-
-      // enable navigation
-      this.transportActions.fwdAction.disabled = false
-      this.transportActions.bwdAction.disabled = false
-
-    } else {
-
-      if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
-        this.nextItem();
-      }
-
-      if (this.section.mode === 'AUTORECORDING' && this.autorecording && autoStart) {
-        startNext=true;
-      } else {
-        this.navigationDisabled = false;
-        this.updateNavigationActions();
-        this.updateWakeLock();
-      }
-    }
-    // apply recorded item
-    this.applyItem(startNext);
-    if(startNext){
-      this.startItem();
-    }
-    this.changeDetectorRef.detectChanges();
   }
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {

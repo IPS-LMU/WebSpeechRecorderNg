@@ -218,6 +218,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
     ngOnDestroy() {
       this.disableWakeLockCond();
+      if(this.ac){
+        this.ac.release();
+      }
        this.destroyed=true;
        // TODO stop capture /playback
     }
@@ -766,52 +769,57 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
 
-    let ad:AudioBuffer;
+   // let ad:AudioBuffer;
     if(this.ac) {
-      ad = this.ac.audioBuffer();
-      let sessId: string | number = 0;
-      if(this._session){
-        sessId=this._session.sessionId;
-      }
-      if(!this.rfUuid){
-        this.rfUuid=UUID.generate()
-      }
-      let rf = new RecordingFile(this.rfUuid,sessId,ad);
-      rf._startedAsDateObj=this.startedDate;
-      if(rf._startedAsDateObj) {
-        rf.startedDate = rf._startedAsDateObj.toString();
-      }
-      rf.frames = ad.length;
-      this.displayRecFile = rf;
-      this.recorderCombiPane.push(rf);
+      this.ac.audioBuffer().subscribe(
+        {
+          next:(ad)=>{
+            let sessId: string | number = 0;
+            if(this._session){
+              sessId=this._session.sessionId;
+            }
+            if(!this.rfUuid){
+              this.rfUuid=UUID.generate()
+            }
+            let rf = new RecordingFile(this.rfUuid,sessId,ad);
+            rf._startedAsDateObj=this.startedDate;
+            if(rf._startedAsDateObj) {
+              rf.startedDate = rf._startedAsDateObj.toString();
+            }
+            rf.frames = ad.length;
+            this.displayRecFile = rf;
+            this.recorderCombiPane.push(rf);
 
-      // Upload if upload enabled and not in chunked upload mode
-      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
-        let apiEndPoint = '';
+            // Upload if upload enabled and not in chunked upload mode
+            if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
+              let apiEndPoint = '';
 
-        if (this.config && this.config.apiEndPoint) {
-          apiEndPoint = this.config.apiEndPoint;
+              if (this.config && this.config.apiEndPoint) {
+                apiEndPoint = this.config.apiEndPoint;
+              }
+              if (apiEndPoint !== '') {
+                apiEndPoint = apiEndPoint + '/'
+              }
+
+              let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+              let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
+
+              // convert asynchronously to 16-bit integer PCM
+              // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+              // TODO duplicate conversion for manual download
+
+              this.processingRecording = true
+              let ww = new WavWriter();
+              ww.writeAsync(ad, (wavFile) => {
+                this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
+                this.processingRecording = false;
+                this.updateWakeLock();
+                this.changeDetectorRef.detectChanges();
+              });
+            }
+          }
         }
-        if (apiEndPoint !== '') {
-          apiEndPoint = apiEndPoint + '/'
-        }
-
-        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
-
-        // convert asynchronously to 16-bit integer PCM
-        // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-        // TODO duplicate conversion for manual download
-
-        this.processingRecording = true
-        let ww = new WavWriter();
-        ww.writeAsync(ad, (wavFile) => {
-          this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
-          this.processingRecording = false;
-          this.updateWakeLock();
-          this.changeDetectorRef.detectChanges();
-        });
-      }
+      );
     }
     this.status = Status.IDLE;
     this.navigationDisabled = false;

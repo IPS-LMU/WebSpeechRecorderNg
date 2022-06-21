@@ -2,6 +2,9 @@ import {SequenceAudioFloat32OutStream, SequenceAudioFloat32OutStreamMultiplier} 
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
 import {AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
+import {SprDb} from "../../db/inddb";
+import {UUID} from "../../utils/utils";
+import {Observable, Subscriber} from "rxjs";
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -124,6 +127,10 @@ export class AudioCapture {
   private capturing = false;
 
   framesRecorded: number=0;
+
+  //private useIndDbAudioCache=true;
+
+  db?:IDBDatabase;
 
   constructor(context: AudioContext) {
     this.context = context;
@@ -473,7 +480,9 @@ export class AudioCapture {
                           if (this.data && this.data[ch]) {
                             let adaPos = ch * chunkLen;
                             if(dt.data[ch]) {
+                              // Copy data
                               let fa = new Float32Array(dt.data[ch]);
+                              // push to captured data array
                               this.data[ch].push(fa);
                               chunk[ch] = fa;
                               // Use samples of channel 0 to count frames (samples)
@@ -609,47 +618,163 @@ export class AudioCapture {
     this._opened=false;
   }
 
-  audioBuffer(): AudioBuffer {
+  private readChunkFromIndDBCache(trr:IDBTransaction,cacheObjStore:IDBObjectStore,chs:number,chCksLen:number,uuid:string,ab:AudioBuffer,ch:number,chCkIdx:number,pos:number,subscriber:Subscriber<AudioBuffer>){
+    //let cacheId=uuid+'_'+ch+'_'+chCkIdx;
+    let cacheId=[uuid,ch,chCkIdx];
+    let chD = ab.getChannelData(ch);
+    let chChkReq=cacheObjStore.get(cacheId);
+    chChkReq.onsuccess=(d)=>{
+      let chChk:Float32Array=chChkReq.result;
+      let bufLen = chChk.length;
+      chD.set(chChk, pos);
+      pos += bufLen;
+      chCkIdx++;
+      if(chCkIdx===chCksLen){
+        ch++;
+        if(ch===chs){
+          // complete
+          console.debug('Reading audio from indexed db completed. Commiting read transaction.')
+          trr.commit();
+          return;
+        }
+      }
+      this.readChunkFromIndDBCache(trr,cacheObjStore,chs,chCksLen,uuid,ab,ch,chCkIdx,pos,subscriber);
+    }
+
+  }
+
+  audioBuffer(): Observable<AudioBuffer> {
     let frameLen: number = 0;
     let ch0Data = this.data[0];
-
+    let chChksLen = ch0Data.length;
     for (let ch0Chk of ch0Data) {
       frameLen += ch0Chk.length;
     }
-    let ab:AudioBuffer;
+    let ab: AudioBuffer;
+
+    let obs = new Observable<AudioBuffer>(subscriber => {
       try {
+        //throw new RangeError();  // TODO TEST only!!!
         ab = this.context.createBuffer(this.channelCount, frameLen, this.context.sampleRate);
-      }catch(err){
-        if(err instanceof DOMException){
-          if(err.name==='NotSupportedError'){
-            if(frameLen==0){
+        for (let ch = 0; ch < this.channelCount; ch++) {
+          let chD = ab.getChannelData(ch);
+          let pos = 0;
+          for (let chChk of this.data[ch]) {
+            let bufLen = chChk.length;
+            chD.set(chChk, pos);
+            pos += bufLen;
+          }
+        }
+        subscriber.next(ab);
+        subscriber.complete();
+      } catch (err) {
+        if (err instanceof DOMException) {
+          if (err.name === 'NotSupportedError') {
+            if (frameLen == 0) {
               // Empty buffers are not supported by Chromium
               // Create dummy buffer with one sample
               ab = this.context.createBuffer(this.channelCount, 1, this.context.sampleRate);
-            }else{
-              throw err;
+            } else {
+              subscriber.error(err);
             }
-          }else{
-            throw err;
+          } else {
+            subscriber.error(err);
           }
-        }else if (err instanceof RangeError){
+        } else if (err instanceof RangeError) {
           // Out of memory
-          // TODO What to do ??
-          throw err;
-        }else{
-          throw err;
+          // Try to safe to indexed db and retrieve from there.
+          // This procedure should require less memory
+          console.debug('Could not create audio buffer: '+err);
+          console.debug('Trying workaround via IndexedDB...');
+          SprDb.prepare().subscribe(db => {
+              this.db=db;
+              let tr = db.transaction(SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME, 'readwrite');
+              let cacheObjStore = tr.objectStore(SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME);
+              let clearReq=cacheObjStore.clear();
+              clearReq.onerror=(err)=>{
+                subscriber.error(err);
+              }
+              clearReq.onsuccess=()=>{
+                let uuid = UUID.generate();
+                try {
+                  for (let ch = 0; ch < this.channelCount; ch++) {
+                    let pos = 0;
+                    for (let chCkIdx = 0; chCkIdx < chChksLen; chCkIdx++) {
+                      let chChk = this.data[ch][chCkIdx];
+                      let bufLen = chChk.length;
+                      //let cacheId = uuid + '_' + ch + '_' + chCkIdx;
+                      let cacheId=[uuid,ch,chCkIdx];
+                      let cr = cacheObjStore.add(chChk, cacheId);
+                      pos += bufLen;
+                    }
+                  }
+                  tr.onerror = (err) => {
+                    console.error('Failed to cache audio data to indexed db: ' + err)
+                    subscriber.error(err);
+                  }
+                  tr.oncomplete = () => {
+                    console.debug('Transferred capture audio data to indexed db cache, deleting original data from memory...');
+                    // Try to free RAM space...
+                    this.initData();
+                    // ... and now build the AudioBuffer from indexed db chunks
+                    try {
+                      ab = this.context.createBuffer(this.channelCount, frameLen, this.context.sampleRate);
+                      let trr=db.transaction(SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME, "readonly");
+                      trr.onerror=(err)=>{
+                        subscriber.error(err);
+                      }
+                      trr.oncomplete = () => {
+                        console.debug('Transferred capture audio data from indexed db cache to audio buffer');
+                        subscriber.next(ab);
+                        subscriber.complete();
+                      }
+                      cacheObjStore = trr.objectStore(SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME);
+                      this.readChunkFromIndDBCache(trr,cacheObjStore, this.channelCount, chChksLen, uuid, ab, 0, 0, 0, subscriber);
+                    } catch (err) {
+                      if (err instanceof DOMException) {
+                        if (err.name === 'NotSupportedError') {
+                          if (frameLen == 0) {
+                            // Empty buffers are not supported by Chromium
+                            // Create dummy buffer with one sample
+                            ab = this.context.createBuffer(this.channelCount, 1, this.context.sampleRate);
+                          } else {
+                            subscriber.error(err);
+                          }
+                        } else {
+                          subscriber.error(err);
+                        }
+                      } else if (err instanceof RangeError) {
+                        // Out of memory
+                        console.error('Could not create the audio buffer even using the indexed db workaround. Giving up. ERROR.')
+                        subscriber.error(err);
+                      } else {
+                        subscriber.error(err);
+                      }
+                    }
+                  }
+                  // Commit cached chunks
+                  tr.commit();
+                } catch (err) {
+                  // And now ??
+                  subscriber.error(err);
+                }
+              }
+            }
+          );
+          //subscriber.error(err);
+        } else {
+          subscriber.error(err);
         }
       }
-      for (let ch = 0; ch < this.channelCount; ch++) {
-        let chD = ab.getChannelData(ch);
-        let pos = 0;
-        for (let chChk of this.data[ch]) {
-          let bufLen = chChk.length;
-          chD.set(chChk, pos);
-          pos += bufLen;
-        }
-      }
-    return ab;
+
+    });
+
+    return obs;
+  }
+
+
+  release(){
+    this.db?.close();
   }
 }
 
