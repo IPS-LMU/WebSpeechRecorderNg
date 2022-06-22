@@ -41,6 +41,8 @@ import {
   RECFILE_API_CTX
 } from "./basicrecorder";
 import {UUID} from "../../utils/utils";
+import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -74,7 +76,7 @@ export const enum Status {
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
-                                   [audioLoaded]="displayAudioClip?.buffer!==null"
+                                   [audioLoaded]="displayAudioClip?.audioDataHolder?.buffer!==null"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
@@ -177,14 +179,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
 
-  constructor(private changeDetectorRef: ChangeDetectorRef,
+  constructor(changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
-              public dialog: MatDialog,
-              protected sessionService:SessionService,
+              dialog: MatDialog,
+              sessionService:SessionService,
               private recFileService:RecordingService,
-              protected uploader: SpeechRecorderUploader,
-              @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
-    super(dialog,sessionService,uploader,config);
+              uploader: SpeechRecorderUploader,
+              @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
+    super(changeDetectorRef,dialog,sessionService,uploader,config);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {
@@ -363,12 +365,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
-
   set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
-    if (this._controlAudioPlayer) {
-      //this._controlAudioPlayer.listener=null;
-    }
-    this._controlAudioPlayer = controlAudioPlayer;
+    this._controlAudioPlayer=controlAudioPlayer;
     if (this._controlAudioPlayer) {
       this._controlAudioPlayer.listener = this;
     }
@@ -543,10 +541,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   downloadRecording() {
     if (this.displayRecFile) {
-      let ab: AudioBuffer|null = this.displayRecFile.audioBuffer;
+      let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
       let ww = new WavWriter();
-      if(ab) {
-        let wavFile = ww.writeAsync(ab, (wavFile) => {
+      if(ab?.buffer) {
+        let wavFile = ww.writeAsync(ab.buffer, (wavFile) => {
           let blob = new Blob([wavFile], {type: 'audio/wav'});
           let rfUrl = URL.createObjectURL(blob);
 
@@ -570,23 +568,27 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
+
+
   set displayRecFile(displayRecFile: SprRecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
-      let ab: AudioBuffer|null = this._displayRecFile.audioBuffer;
+      let ab: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(ab) {
         this.displayAudioClip = new AudioClip(ab);
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else {
         // clear for now ...
         this.displayAudioClip = null;
-        this.controlAudioPlayer.audioClip = null;
+        if(this.controlAudioPlayer) {
+          this.controlAudioPlayer.audioClip = null;
+        }
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
           this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
             let fab = null;
             if (rf && this._displayRecFile) {
-              fab = this._displayRecFile.audioBuffer;
+              fab = this._displayRecFile.audioDataHolder;
             } else {
               this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
@@ -610,42 +612,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     } else {
       this.displayAudioClip = null;
-      this.controlAudioPlayer.audioClip = null;
+      if(this.controlAudioPlayer) {
+        this.controlAudioPlayer.audioClip = null;
+      }
     }
   }
 
   get displayRecFile(): SprRecordingFile | null {
     return this._displayRecFile;
   }
-
-  showRecording() {
-    this.controlAudioPlayer.stop();
-
-    if (this.displayAudioClip) {
-
-      this.levelMeasure.calcBufferLevelInfos(this.displayAudioClip.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
-        this.displayLevelInfos = levelInfos;
-        this.changeDetectorRef.detectChanges();
-      });
-      this.playStartAction.disabled = false;
-
-    } else {
-
-      // TODO
-      // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
-      // The level bar display does not clear, it shows the last captured stream
-      this.displayLevelInfos = null;
-
-      this.playStartAction.disabled = true;
-
-      // Collapse audio signal display if open
-      if (!this.audioSignalCollapsed) {
-        this.audioSignalCollapsed = true;
-      }
-    }
-    this.changeDetectorRef.detectChanges();
-  }
-
 
   isRecordingItem():boolean{
     return(this.promptItem!=null && this.promptItem.type!=='nonrecording')
@@ -961,8 +936,19 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.startStopSignalState = StartStopSignalState.IDLE;
 
     let ad:AudioBuffer|null = null;
+    let ada:ArrayAudioBuffer|null=null;
+    let adh:AudioDataHolder|null=null;
+    let frameLen:number=0;
+
     if(this.ac!=null){
-      ad=this.ac.audioBuffer();
+      if(this.uploadChunkSizeSeconds){
+        ada=this.ac.audioBufferArray();
+        frameLen = ada.frameLen;
+      }else{
+        ad=this.ac.audioBuffer();
+        frameLen=ad.length;
+      }
+      adh=new AudioDataHolder(ad,ada);
     }
     let ic = this.promptItem.itemcode;
     let rf=null;
@@ -974,7 +960,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         if (!it.recs) {
           it.recs = new Array<SprRecordingFile>();
         }
-        rf = new SprRecordingFile(sessId, ic, it.recs.length, ad);
+        rf = new SprRecordingFile(sessId, ic, it.recs.length, adh);
         it.recs.push(rf);
       }
       if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {

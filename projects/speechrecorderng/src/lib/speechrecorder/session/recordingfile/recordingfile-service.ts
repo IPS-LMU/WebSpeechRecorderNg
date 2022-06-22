@@ -8,6 +8,7 @@ import {Observable} from "rxjs";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
 import {RecordingFile, SprRecordingFile} from "../../recording";
+import {AudioDataHolder} from "../../../audio/audio_data_holder";
 
 
 @Injectable()
@@ -119,7 +120,7 @@ export class RecordingFileService {
               // Do not use Promise version, which does not work with Safari 13
               if(resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
-                  recordingFile.audioBuffer = ab;
+                  recordingFile.audioDataHolder=new AudioDataHolder(ab);
                   if (this.debugDelay > 0) {
                     window.setTimeout(() => {
 
@@ -170,7 +171,7 @@ export class RecordingFileService {
             if(resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
                 if(rf) {
-                  rf.audioBuffer = ab
+                  rf.audioDataHolder=new AudioDataHolder(ab);
                 }else{
                   observer.error('Recording file object null');
                 }
@@ -222,7 +223,8 @@ export class RecordingFileService {
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
               if(rf) {
-                rf.audioBuffer = ab
+                let adh=new AudioDataHolder(ab);
+                rf.audioDataHolder=adh;
               }else{
                 observer.error('Recording file object null');
               }

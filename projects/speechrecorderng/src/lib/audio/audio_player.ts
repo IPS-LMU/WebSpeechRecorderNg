@@ -11,6 +11,7 @@ import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
+import {AudioDataHolder} from "./audio_data_holder";
 
 @Component({
 
@@ -212,7 +213,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     if(this.aCtx) {
       this.aCtx.decodeAudioData(data, (audioBuffer) => {
         //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
-        this.audioClip = new AudioClip(audioBuffer)
+        let adh=new AudioDataHolder(audioBuffer,null);
+        this.audioClip = new AudioClip(adh);
       });
     }
   }
@@ -221,7 +223,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   set audioData(audioBuffer: AudioBuffer){
       this.audioDisplayScrollPane.audioData = audioBuffer;
       if(audioBuffer) {
-          let clip = new AudioClip(audioBuffer);
+        let adh=new AudioDataHolder(audioBuffer);
+          let clip = new AudioClip(adh);
           if (this.ap){
               this.ap.audioClip = clip;
                 this.playStartAction.disabled = false
@@ -245,7 +248,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     let audioData:AudioBuffer|null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.buffer;
+      audioData=audioClip.audioDataHolder.buffer;
       sel=audioClip.selection;
       if(this._audioClip) {
         this._audioClip.addSelectionObserver((ac) => {

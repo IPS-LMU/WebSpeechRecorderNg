@@ -187,6 +187,7 @@ export class LevelMeasure {
     this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
   }
 
+  // TODO support array audio buffer
   calcBufferLevelInfos(audioBuffer: AudioBuffer, bufferTimeLength: number): Promise<LevelInfos> {
     return new Promise<LevelInfos>((resolve)=>{
       let chs = audioBuffer.numberOfChannels;

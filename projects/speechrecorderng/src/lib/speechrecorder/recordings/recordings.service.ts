@@ -10,6 +10,7 @@ import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from "../r
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
 import {Observable} from "rxjs";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 
 export const REC_API_CTX='recfile'
@@ -133,7 +134,8 @@ export class RecordingService {
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
-                recordingFile.audioBuffer = ab;
+                let adh=new AudioDataHolder(ab,null);
+                recordingFile.audioDataHolder=adh;
                 if (this.debugDelay > 0) {
                   window.setTimeout(() => {
 
@@ -182,7 +184,7 @@ export class RecordingService {
               // Do not use Promise version, which does not work with Safari 13 (13.0.5)
               if (resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
-                  recordingFile.audioBuffer = ab;
+                  recordingFile.audioDataHolder=new AudioDataHolder(ab,null);
                   if (this.debugDelay > 0) {
                     window.setTimeout(() => {
 
@@ -230,7 +232,8 @@ export class RecordingService {
             // Do not use Promise version, which does not work with Safari 13
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
-              let rf = new SprRecordingFile(sessId, itemcode, version, ab);
+              let adh=new AudioDataHolder(ab,null);
+              let rf = new SprRecordingFile(sessId, itemcode, version, adh);
               if (this.debugDelay > 0) {
                 window.setTimeout(() => {
 

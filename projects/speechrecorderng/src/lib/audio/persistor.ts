@@ -1,93 +1,95 @@
-    export class AudioClip {
-        private _buffer: AudioBuffer;
-        private _selection:Selection|null=null;
-        private selectionObservers:Array<(audioClip:AudioClip)=>void>;
+import {AudioDataHolder} from "./audio_data_holder";
 
-        constructor(buffer: AudioBuffer) {
-          this.selectionObservers=new Array<(audioClip:AudioClip)=>void>()
-            this._buffer = buffer;
-        }
+export class AudioClip {
 
-        get buffer() {
-            return this._buffer;
-        };
+  private _selection:Selection|null=null;
+  private selectionObservers:Array<(audioClip:AudioClip)=>void>;
 
-      get selection(): Selection|null{
-        return this._selection;
-      }
+  constructor(private _audioDataHolder:AudioDataHolder) {
 
-      set selection(value: Selection|null) {
-        this._selection = value;
-        // let obsCnt=this.selectionObservers.length
-        // this.selectionObservers.forEach((obs)=> {
-        //   console.log("Calling observer")
-        //   obs(this)
-        // });
-        for(let selObs of this.selectionObservers){
-          selObs(this)
-        }
-      }
+    this.selectionObservers=new Array<(audioClip:AudioClip)=>void>()
+  }
 
-      addSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void,init=false){
-        let obsAlreadyInList=this.selectionObservers.find((obs)=>(obs===selectionObserver))
-        if(!obsAlreadyInList) {
-          this.selectionObservers.push(selectionObserver)
-        }
-        if(init){
-          selectionObserver(this)
-        }
-      }
+  get audioDataHolder(): AudioDataHolder {
+    return this._audioDataHolder;
+  }
 
-      removeSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void){
-        this.selectionObservers=this.selectionObservers.filter((obs)=>{obs!==selectionObserver})
-      }
+  get selection(): Selection|null{
+    return this._selection;
+  }
+
+  set selection(value: Selection|null) {
+    this._selection = value;
+    // let obsCnt=this.selectionObservers.length
+    // this.selectionObservers.forEach((obs)=> {
+    //   console.log("Calling observer")
+    //   obs(this)
+    // });
+    for(let selObs of this.selectionObservers){
+      selObs(this)
     }
+  }
 
-    export interface Reader {
-        read(data: Blob): AudioClip;
+  addSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void,init=false){
+    let obsAlreadyInList=this.selectionObservers.find((obs)=>(obs===selectionObserver))
+    if(!obsAlreadyInList) {
+      this.selectionObservers.push(selectionObserver)
     }
-    export interface Writer {
-        write(audioData: AudioClip): Blob;
+    if(init){
+      selectionObserver(this)
     }
+  }
 
-    export class Selection{
-      private _sampleRate:number;
-      private _startFrame:number;
-      private _endFrame:number;
+  removeSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void){
+    this.selectionObservers=this.selectionObservers.filter((obs)=>{obs!==selectionObserver})
+  }
+}
 
-      constructor(sampleRate:number,startFrame:number,endFrame:number){
-          this._sampleRate=sampleRate;
-        this._startFrame=startFrame
-        this._endFrame=endFrame;
-      }
+export interface Reader {
+  read(data: Blob): AudioClip;
+}
+export interface Writer {
+  write(audioData: AudioClip): Blob;
+}
 
-        get sampleRate(): number {
-            return this._sampleRate;
-        }
-        get endFrame():number{
-          return this._endFrame;
-        }
-      get startFrame(): number {
-        return this._startFrame;
-      }
+export class Selection{
+  private _sampleRate:number;
+  private _startFrame:number;
+  private _endFrame:number;
 
-      get leftFrame(): number {
-        return (this._startFrame <= this._endFrame) ? this._startFrame : this._endFrame
-      }
-      get rightFrame(): number {
-        return (this._startFrame <= this._endFrame) ? this._endFrame : this._startFrame
-      }
+  constructor(sampleRate:number,startFrame:number,endFrame:number){
+    this._sampleRate=sampleRate;
+    this._startFrame=startFrame
+    this._endFrame=endFrame;
+  }
 
-      equals(otherSelection:Selection|null|undefined):boolean{
-        if(otherSelection) {
-            return (this._sampleRate == otherSelection._sampleRate && this._startFrame === otherSelection._startFrame && this._endFrame === otherSelection._endFrame);
-        }
-        return false;
-      }
+  get sampleRate(): number {
+    return this._sampleRate;
+  }
+  get endFrame():number{
+    return this._endFrame;
+  }
+  get startFrame(): number {
+    return this._startFrame;
+  }
 
-      toString(){
-          return "Selection: from: "+this.leftFrame+" to: "+this.rightFrame+" frame. Refers to sample rate :"+this._sampleRate;
-      }
+  get leftFrame(): number {
+    return (this._startFrame <= this._endFrame) ? this._startFrame : this._endFrame
+  }
+  get rightFrame(): number {
+    return (this._startFrame <= this._endFrame) ? this._endFrame : this._startFrame
+  }
+
+  equals(otherSelection:Selection|null|undefined):boolean{
+    if(otherSelection) {
+      return (this._sampleRate == otherSelection._sampleRate && this._startFrame === otherSelection._startFrame && this._endFrame === otherSelection._endFrame);
     }
+    return false;
+  }
+
+  toString(){
+    return "Selection: from: "+this.leftFrame+" to: "+this.rightFrame+" frame. Refers to sample rate :"+this._sampleRate;
+  }
+}
 
 

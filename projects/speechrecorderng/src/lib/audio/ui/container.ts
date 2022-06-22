@@ -472,7 +472,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       let audioData:AudioBuffer|null=null;
     let sel:Selection|null=null;
       if(audioClip) {
-        audioData = audioClip.buffer;
+        audioData = audioClip.audioDataHolder.buffer;
         if (this._audioClip) {
           this._audioClip.addSelectionObserver((clip) => {
             this.selection = clip.selection

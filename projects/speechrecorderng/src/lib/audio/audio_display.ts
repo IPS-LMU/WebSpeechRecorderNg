@@ -135,7 +135,7 @@ export class AudioDisplay implements OnInit,AfterViewInit {
     let audioData:AudioBuffer|null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.buffer;
+      audioData=audioClip.audioDataHolder.buffer;
       sel=audioClip.selection;
       }
     this._audioClip=audioClip

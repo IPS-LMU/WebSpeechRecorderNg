@@ -2,6 +2,7 @@ import {SequenceAudioFloat32OutStream, SequenceAudioFloat32OutStreamMultiplier} 
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
 import {AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
+import {ArrayAudioBuffer} from "../array_audio_buffer";
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -651,5 +652,11 @@ export class AudioCapture {
       }
     return ab;
   }
+
+  audioBufferArray():ArrayAudioBuffer{
+      let aba=new ArrayAudioBuffer(this.channelCount,this.currentSampleRate,this.data);
+      return aba;
+  }
+
 }
 

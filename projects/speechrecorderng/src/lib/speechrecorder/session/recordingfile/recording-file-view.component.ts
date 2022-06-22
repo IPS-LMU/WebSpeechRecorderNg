@@ -290,7 +290,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         let clip = null;
         this.recordingFile = value;
         if (this.recordingFile) {
-          let ab = this.recordingFile.audioBuffer;
+          let ab = this.recordingFile.audioDataHolder;
           if (ab) {
             clip = new AudioClip(ab);
 
@@ -298,7 +298,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             let eeffsr = null;
             let esr = null;
 
-            if (clip.buffer != null) {
+            if (clip.audioDataHolder != null) {
               esr = ab.sampleRate;
               if (esr != null) {
                 esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
@@ -309,8 +309,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
                 if (eeffsr != null) {
                   sel = new Selection(ab.sampleRate, esffsr, eeffsr);
                 } else {
-                  let ch0 = ab.getChannelData(0);
-                  let frameLength = ch0.length;
+                  //let ch0 = ab.getChannelData(0);
+                  let frameLength = ab.frameLen;
                   sel = new Selection(esr, esffsr, frameLength);
                 }
               } else if (eeffsr != null) {

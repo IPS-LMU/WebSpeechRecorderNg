@@ -169,7 +169,7 @@ export class AudioDisplayScrollPane {
     let audioData:AudioBuffer|null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.buffer;
+      audioData=audioClip.audioDataHolder.buffer;
       sel=audioClip.selection;
       audioClip.addSelectionObserver((clip)=>{
         this.zoomSelectedAction.disabled=(clip.selection==null)

@@ -120,8 +120,8 @@ export class RecordingList implements AfterViewInit{
 
   lengthTimeFormatted(rf:RecordingFile){
     let str='--:--:--';
-    if(rf.frames && rf.audioBuffer) {
-      str=MediaUtils.toMediaTime(rf.frames / rf.audioBuffer?.sampleRate);
+    if(rf.frames && rf.audioDataHolder) {
+      str=MediaUtils.toMediaTime(rf.frames / rf.audioDataHolder?.sampleRate);
     }
     return str;
   }

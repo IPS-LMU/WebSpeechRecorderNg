@@ -1,5 +1,6 @@
 import { UUID } from '../utils/utils'
 import {PromptItem} from "./script/script";
+import {AudioDataHolder} from "../audio/audio_data_holder";
 
 export interface RecordingFileDescriptor {
   recording:PromptItem;
@@ -19,16 +20,16 @@ export class RecordingFile {
   _dateAsDateObj:Date|null=null;
   startedDate: string|null=null;
   _startedAsDateObj?:Date|null=null;
-  audioBuffer:AudioBuffer|null=null;
+  audioDataHolder:AudioDataHolder|null=null;
   session:string|number|null=null;
   frames:number|null=null;
   editSampleRate:number|null=null;
   editStartFrame:number|null=null
   editEndFrame:number|null=null
 
-  constructor(uuid:string,sessionId:string|number,audioBuffer:AudioBuffer|null) {
+  constructor(uuid:string,sessionId:string|number,audioDataHolder:AudioDataHolder|null) {
     this.session=sessionId;
-    this.audioBuffer=audioBuffer;
+    this.audioDataHolder=audioDataHolder
     this.uuid=uuid;
   }
 
@@ -50,12 +51,11 @@ export class RecordingFile {
       recording!:PromptItem;
       version!:number;
 
-      constructor(sessionId:string|number,itemcode:string,version:number,audioBuffer:AudioBuffer|null) {
-          super(UUID.generate(),sessionId,audioBuffer);
+      constructor(sessionId:string|number,itemcode:string,version:number,audioDataHolder:AudioDataHolder|null) {
+          super(UUID.generate(),sessionId,audioDataHolder);
           this.session=sessionId;
           this.itemCode=itemcode;
           this.version=version;
-          this.audioBuffer=audioBuffer;
       }
 
       filenameString():string{

@@ -13,7 +13,7 @@ import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
 import {Upload} from "../../net/uploader";
-import {Inject} from "@angular/core";
+import {ChangeDetectorRef, Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
 
@@ -142,7 +142,7 @@ export abstract class BasicRecorder {
   peakLevelInDb:number=MIN_DB_LEVEL;
   displayLevelInfos: LevelInfos | null=null;
   protected _controlAudioPlayer!: AudioPlayer;
-  displayAudioClip: AudioClip | null=null;
+  public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
 
   protected destroyed=false;
@@ -156,7 +156,8 @@ export abstract class BasicRecorder {
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(  public dialog: MatDialog,
+  constructor(  protected changeDetectorRef: ChangeDetectorRef,
+                public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
                 @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
@@ -252,6 +253,36 @@ export abstract class BasicRecorder {
     if(this.ac) {
       this.ac.audioOutStream = outStream;
     }
+  }
+
+  showRecording() {
+    this._controlAudioPlayer.stop();
+
+    if (this.displayAudioClip) {
+      let ab:AudioBuffer|null=this.displayAudioClip.audioDataHolder.buffer;
+      if(ab) {
+        this.levelMeasure.calcBufferLevelInfos(ab, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
+          this.displayLevelInfos = levelInfos;
+          this.changeDetectorRef.detectChanges();
+        });
+      }
+      this.playStartAction.disabled = false;
+
+    } else {
+
+      // TODO
+      // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
+      // The level bar display does not clear, it shows the last captured stream
+      this.displayLevelInfos = null;
+
+      this.playStartAction.disabled = true;
+
+      // Collapse audio signal display if open
+      if (!this.audioSignalCollapsed) {
+        this.audioSignalCollapsed = true;
+      }
+    }
+    this.changeDetectorRef.detectChanges();
   }
 
   start() {

@@ -113,7 +113,7 @@ protected loadedRecfile() {
 
   applySelection(){
     if(this.audioClip) {
-      let ab=this.audioClip.buffer;
+      let ab=this.audioClip.audioDataHolder;
       let s = this.audioClip.selection
       if (ab && this.recordingFile?.recordingFileId) {
 
