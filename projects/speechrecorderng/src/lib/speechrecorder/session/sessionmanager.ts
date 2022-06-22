@@ -130,6 +130,8 @@ export const enum Status {
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 
+  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=true;  // TODO TEST!!!
+
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
@@ -941,7 +943,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let frameLen:number=0;
 
     if(this.ac!=null){
-      if(this.uploadChunkSizeSeconds){
+      if(this.uploadChunkSizeSeconds || SessionManager.FORCE_ARRRAY_AUDIO_BUFFER){
         ada=this.ac.audioBufferArray();
         frameLen = ada.frameLen;
       }else{

@@ -10,21 +10,22 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
   "    BUFFER_QUANTUMS=64;\n" +
   "    QUANTUM_FRAME_LEN=128;\n" +
   "    BUFFER_FRAME_LEN=this.QUANTUM_FRAME_LEN*this.BUFFER_QUANTUMS;\n" +
-  "    buffer=null;\n" +
+  "    //buffer=null;\n" +
   "\n" +
   "    ringBufferPos=0;\n" +
   "    ringBufferFilled=0;\n" +
   "    //ringBufferFree=this.RING_BUFFER_FRAMES;\n" +
-  "    ringBuffers=new Array();\n" +
+  "    ringBuffers=null;\n" +
   "\n" +
   "    constructor() {\n" +
   "        super();\n" +
   "        this.port.onmessage=(msgEv)=>{\n" +
   "          // received audio playback data from application\n" +
-  "          if(msgEv.data.buffer) {\n" +
+  "          console.debug(\"Audio source worklet msg: Received.\");\n" +
+  "          if(msgEv.data['audioData']) {\n" +
   "              let chs = msgEv.data.chs;\n" +
-  "              if(!buffers){\n" +
-  "                this.ringBuffers=new Float32Array[chs];\n" +
+  "              if(!this.ringBuffers){\n" +
+  "                this.ringBuffers=new Array(chs);\n" +
   "                for (let ch = 0; ch < chs; ch++) {\n" +
   "                  this.ringBuffers[ch]=new Float32Array(this.RING_BUFFER_FRAMES);\n" +
   "                  this.ringBufferPos=0;\n" +
@@ -40,6 +41,7 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
   "                  console.error('Not enough space in ring buffer');\n" +
   "                  // TODO\n" +
   "                }else{\n" +
+  "                  console.debug(\"Audio source worklet msg: Fill \"+msgChBufLen+\" frames...\");\n" +
   "                  let copied=0;\n" +
   "                  let free1=this.RING_BUFFER_FRAMES-this.ringBufferPos+this.ringBufferFilled;\n" +
   "                  let toCopy1=msgChBufLen;\n" +
@@ -60,10 +62,12 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
   "                  }\n" +
   "                }\n" +
   "                this.ringBufferFilled+=msgChBufLen;\n" +
-  "\n" +
+  "                console.debug(\"Audio source worklet msg: Ring buffer filled \"+this.ringBufferFilled);\n" +
   "              }\n" +
   "\n" +
-  "            }\n" +
+  "            }else{\n" +
+  "            console.debug(\"Audio source worklet msg: No data !.\");\n" +
+  "          }\n" +
   "        }\n" +
   "    }\n" +
   "\n" +
@@ -72,48 +76,64 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
   "      outputs,\n" +
   "      parameters\n" +
   "  ){\n" +
+  "      //console.debug(\"Audio source worklet: process \"+outputs.length+ \" output buffers.\");\n" +
   "      // copy ring buffer data to outputs\n" +
+  "\n" +
   "      for(let oi=0;oi<outputs.length;oi++){\n" +
   "        let output=outputs[oi];\n" +
-  "          let outCh=output[ch];\n" +
-  "          let outChLen=outCh.length;\n" +
-  "          let copy1=outChLen;\n" +
-  "          let avail1=this.ringBufferFilled;\n" +
-  "          if(this.ringBufferPos+this.ringBufferFilled>this.RING_BUFFER_FRAMES){\n" +
-  "            avail1=this.RING_BUFFER_FRAMES-this.ringBufferPos;\n" +
+  "        let chs=output.length;\n" +
+  "        //console.debug(\"Audio source worklet: Output channels: \"+chs);\n" +
+  "        if(chs>0) {\n" +
+  "          if(!this.ringBuffers){\n" +
+  "            this.ringBuffers=new Array(chs);\n" +
+  "            for (let ch = 0; ch < chs; ch++) {\n" +
+  "              this.ringBuffers[ch]=new Float32Array(this.RING_BUFFER_FRAMES);\n" +
+  "              this.ringBufferPos=0;\n" +
+  "              this.ringBufferFilled=0;\n" +
+  "              this.ringBufferFree=this.RING_BUFFER_FRAMES;\n" +
+  "            }\n" +
+  "            console.debug(\"Audio source worklet: Created ring buffers \");\n" +
   "          }\n" +
-  "          if(copy1>avail1){\n" +
-  "            copy1=avail1;\n" +
+  "          let outCh = output[0];\n" +
+  "          let outChLen = outCh.length;\n" +
+  "          let copy1 = outChLen;\n" +
+  "          let avail1 = this.ringBufferFilled;\n" +
+  "          if (this.ringBufferPos + this.ringBufferFilled > this.RING_BUFFER_FRAMES) {\n" +
+  "            avail1 = this.RING_BUFFER_FRAMES - this.ringBufferPos;\n" +
   "          }\n" +
-  "          let copied=0;\n" +
-  "          for(let ci=0;ci<copy1;ci++){\n" +
-  "            for(let ch=0;ch<output.length;ch++) {\n" +
+  "          if (copy1 > avail1) {\n" +
+  "            copy1 = avail1;\n" +
+  "          }\n" +
+  "          let copied = 0;\n" +
+  "          for (let ci = 0; ci < copy1; ci++) {\n" +
+  "            for (let ch = 0; ch < output.length; ch++) {\n" +
   "              let outCh = output[ch];\n" +
   "              outCh[ci] = this.ringBuffers[ch][this.ringBufferPos + ci];\n" +
   "            }\n" +
   "          }\n" +
-  "          copied+=copy1;\n" +
-  "          let copy2=outChLen-copied;\n" +
-  "          for(let ci=0;ci<copy2;ci++){\n" +
-  "            for(let ch=0;ch<output.length;ch++) {\n" +
+  "          copied += copy1;\n" +
+  "          let copy2 = outChLen - copied;\n" +
+  "          for (let ci = 0; ci < copy2; ci++) {\n" +
+  "            for (let ch = 0; ch < output.length; ch++) {\n" +
   "              let outCh = output[ch];\n" +
   "              outCh[copied + ci] = this.ringBuffers[ch][ci];\n" +
   "            }\n" +
   "          }\n" +
-  "          copied+=copy2;  // Not used, should be equal to outChLen\n" +
-  "        \n" +
-  "          this.ringBufferPos+=outChLen;\n" +
-  "        // Note: Alternative?:  this.ringBufferPos %= this.RING_BUFFER_FRAMES\n" +
-  "          if(this.ringBufferPos>this.RING_BUFFER_FRAMES) {\n" +
+  "          copied += copy2;  // Not used, should be equal to outChLen\n" +
+  "\n" +
+  "          this.ringBufferPos += outChLen;\n" +
+  "          // Note: Alternative?:  this.ringBufferPos %= this.RING_BUFFER_FRAMES\n" +
+  "          if (this.ringBufferPos > this.RING_BUFFER_FRAMES) {\n" +
   "            this.ringBufferPos -= this.RING_BUFFER_FRAMES;\n" +
   "          }\n" +
-  "          this.ringBufferFilled-=outChLen;\n" +
+  "          this.ringBufferFilled -= outChLen;\n" +
+  "        }\n" +
   "      }\n" +
   "     return true;\n" +
   "  }\n" +
   "}\n" +
   "\n" +
-  "registerProcessor('audio-source',AudioSourceProcessor);\n";
+  "registerProcessor('audio-source-worklet',AudioSourceProcessor);\n";
 
     export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED}
 
@@ -156,6 +176,7 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
         _audioBuffer:AudioBuffer | null=null;
         _arrayAudioBuffer:ArrayAudioBuffer|null=null;
         sourceBufferNode:AudioBufferSourceNode|null=null;
+        sourceAudioWorkletNode:AudioWorkletNode|null=null;
         buffPos:number;
         private zeroBufCnt:number;
         n:any;
@@ -302,8 +323,8 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
                   let audioWorkletModuleBlobUrl=window.URL.createObjectURL(audioWorkletModuleBlob);
 
                   this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(()=> {
-                    const awn = new AudioWorkletNode(this.context, 'audio-source-worklet');
-                    awn.onprocessorerror = (ev: Event) => {
+                    this.sourceAudioWorkletNode = new AudioWorkletNode(this.context, 'audio-source-worklet');
+                    this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
                       let msg = 'Unknwon error';
                       if (ev instanceof ErrorEvent) {
                         msg = ev.message;
@@ -315,7 +336,7 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
                         // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
                       }
                     }
-                    let awnPt = awn.port;
+                    let awnPt = this.sourceAudioWorkletNode.port;
                     if (awnPt) {
                       awnPt.onmessage = (ev: MessageEvent<any>) => {
                         let dt = ev.data;
@@ -340,13 +361,14 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
                       }
                     }
 
-                    awn.connect(this.context.destination);
+                    this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
                     // TODO onended event ??
                     //awn.onended = () => this.onended();
 
                     this.playStartTime = this.context.currentTime;
                     this.running = true;
                     // TODO HowTo start the node ??
+
                     //awn.start();
                     this.playStartTime = this.context.currentTime;
                     this._startAction.disabled = true;
@@ -411,12 +433,25 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
                 if (this.sourceBufferNode) {
                     this.sourceBufferNode.stop();
                 }
-                if(this.timerVar!==null) {
+                if(this.sourceAudioWorkletNode){
+                  this.sourceAudioWorkletNode.disconnect();
+                  if(this.timerVar!==null) {
                     window.clearInterval(this.timerVar);
-                }
-                this.running=false;
-                if (this.listener) {
+                  }
+                  this.running=false;
+                  if (this.listener) {
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
+                    // TODO Test only , should be called by the node
+                    this.onended();
+                  }
+                }else {
+                  if (this.timerVar !== null) {
+                    window.clearInterval(this.timerVar);
+                  }
+                  this.running = false;
+                  if (this.listener) {
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
+                  }
                 }
             }
 
@@ -426,7 +461,7 @@ const aswpStr="class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
-            this._startAction.disabled = !(this.audioBuffer);
+            this._startAction.disabled = !(this.audioBuffer || this.arrayAudioBuffer);
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
