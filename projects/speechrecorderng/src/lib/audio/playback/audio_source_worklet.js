@@ -13,71 +13,84 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
     ringBufferFilled=0;
     //ringBufferFree=this.RING_BUFFER_FRAMES;
     ringBuffers=null;
+    running=false;
     ended=false;
+
+
     constructor() {
         super({numberOfInputs:0,numberOfOutputs:1});
         this.port.onmessage=(msgEv)=>{
           // received audio playback data from application
           //console.debug("Audio source worklet msg: Received.");
-          if(msgEv.data['audioData']) {
-            let chs = msgEv.data.chs;
-            //console.debug("Audio source worklet msg: Rec. channels: " + chs);
-            //console.debug("Audio source worklet msg: Rec. data length (channels) " + msgEv.data.audioData.length);
-            if (chs > 0) {
-              if (!this.ringBuffers) {
-                this.ringBuffers = new Array(chs);
-                for (let ch = 0; ch < chs; ch++) {
-                  this.ringBuffers[ch] = new Float32Array(this.RING_BUFFER_FRAMES);
-                  this.ringBufferPos = 0;
-                  this.ringBufferFilled = 0;
-                  this.ringBufferFree = this.RING_BUFFER_FRAMES;
-                }
-                console.debug("Audio source worklet: Created ring buffers in message method.");
-              }
 
-              let audioData = new Array(chs);
-              for (let ch = 0; ch < chs; ch++) {
-                audioData[ch] = new Float32Array(msgEv.data.audioData[ch]);
-              }
-              let msgChBufLen = audioData[0].length;
-              for (let ch = 0; ch < chs; ch++) {
-                let msgChBuf = audioData[ch];
-                //let msgChBufLen = msgChBuf.length;
-                let rbFree = this.RING_BUFFER_FRAMES - this.ringBufferFilled;
-                if (msgChBufLen > this.ringBufferFree) {
-                  console.error('Not enough space in ring buffer');
-                  // TODO
-                } else {
-                  //console.debug("Audio source worklet msg: Fill " + msgChBufLen + " frames...");
-                  let copied = 0;
-                  let rbWritePos=this.ringBufferPos + this.ringBufferFilled;
-                  if(rbWritePos>=this.RING_BUFFER_FRAMES){
-                    rbWritePos-=this.RING_BUFFER_FRAMES;
-                  }
-                  let free1 = this.RING_BUFFER_FRAMES - rbWritePos + this.ringBufferFilled;
-                  let toCopy1 = msgChBufLen;
-                  if (toCopy1 > free1) {
-                    toCopy1 = free1;
-                  }
-                  for (let ci = 0; ci < toCopy1; ci++) {
-                    this.ringBuffers[ch][rbWritePos + ci] = msgChBuf[copied + ci];
-                  }
-                  copied += toCopy1;
+          if(msgEv.data.cmd){
+            if('data'===msgEv.data.cmd) {
+              if (msgEv.data['audioData']) {
+                let chs = msgEv.data.chs;
 
-                  if (copied < msgChBufLen) {
-                    let free2 = this.ringBufferPos;
-                    let toCopy2 = msgChBufLen - copied;
-                    for (let ci = 0; ci < toCopy2; ci++) {
-                      this.ringBuffers[ch][0 + ci] = msgChBuf[copied + ci];
+                //console.debug("Audio source worklet msg: Rec. channels: " + chs);
+                //console.debug("Audio source worklet msg: Rec. data length (channels) " + msgEv.data.audioData.length);
+                if (chs > 0) {
+                  if (!this.ringBuffers) {
+                    this.ringBuffers = new Array(chs);
+                    for (let ch = 0; ch < chs; ch++) {
+                      this.ringBuffers[ch] = new Float32Array(this.RING_BUFFER_FRAMES);
+                      this.ringBufferPos = 0;
+                      this.ringBufferFilled = 0;
+                      //this.ringBufferFree = this.RING_BUFFER_FRAMES;
+                    }
+                    console.debug("Audio source worklet: Created ring buffers in message method.");
+                  }
+
+                  let audioData = new Array(chs);
+                  for (let ch = 0; ch < chs; ch++) {
+                    audioData[ch] = new Float32Array(msgEv.data.audioData[ch]);
+                  }
+                  let msgChBufLen = audioData[0].length;
+                  for (let ch = 0; ch < chs; ch++) {
+                    let msgChBuf = audioData[ch];
+                    //let msgChBufLen = msgChBuf.length;
+                    let rbFree = this.RING_BUFFER_FRAMES - this.ringBufferFilled;
+                    if (msgChBufLen > rbFree) {
+                      console.error('Not enough space in ring buffer');
+                      // TODO
+                    } else {
+                      //console.debug("Audio source worklet msg: Fill " + msgChBufLen + " frames...");
+                      let copied = 0;
+                      let rbWritePos = this.ringBufferPos + this.ringBufferFilled;
+                      if (rbWritePos >= this.RING_BUFFER_FRAMES) {
+                        rbWritePos -= this.RING_BUFFER_FRAMES;
+                      }
+                      let free1 = this.RING_BUFFER_FRAMES - rbWritePos + this.ringBufferFilled;
+                      let toCopy1 = msgChBufLen;
+                      if (toCopy1 > free1) {
+                        toCopy1 = free1;
+                      }
+                      for (let ci = 0; ci < toCopy1; ci++) {
+                        this.ringBuffers[ch][rbWritePos + ci] = msgChBuf[copied + ci];
+                      }
+                      copied += toCopy1;
+
+                      if (copied < msgChBufLen) {
+                        let free2 = this.ringBufferPos;
+                        let toCopy2 = msgChBufLen - copied;
+                        for (let ci = 0; ci < toCopy2; ci++) {
+                          this.ringBuffers[ch][0 + ci] = msgChBuf[copied + ci];
+                        }
+                      }
                     }
                   }
+                  this.ringBufferFilled += msgChBufLen;
+                  //console.debug("Audio source worklet msg: Ring buffer filled " + this.ringBufferFilled);
+
+                } else {
+                  console.debug("Audio source worklet msg: No data !.");
                 }
               }
-              this.ringBufferFilled += msgChBufLen;
-              //console.debug("Audio source worklet msg: Ring buffer filled " + this.ringBufferFilled);
-
-            } else {
-              console.debug("Audio source worklet msg: No data !.");
+            }else if('start'===msgEv.data.cmd){
+              this.running=true;
+            }else if('stop'===msgEv.data.cmd){
+              this.running=false;
             }
           }
         }
@@ -90,6 +103,9 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
   ){
       //console.debug("Audio source worklet: process "+outputs.length+ " output buffers.");
       // copy ring buffer data to outputs
+        if(!this.running){
+          return !this.ended;
+        }
 
         let output=outputs[0];
         let chs=output.length;
@@ -107,14 +123,6 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
           }
           let outCh = output[0];
           let outChLen = outCh.length;
-
-          // Noise test !! (Works)
-          //for(let ch=0;ch<chs;ch++){
-          //    for(let i=0;i<outChLen;i++){
-          //      outCh[i]=Math.random() * 2 - 1;
-          //    }
-          //}
-          //return true;
 
           let copy1 = outChLen;
           let avail1 = this.ringBufferFilled;
@@ -159,10 +167,10 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
           //console.debug("Remaining frames for playback: "+this.ringBufferFilled+ ", ring buffer pos: "+this.ringBufferPos);
           if(this.ringBufferFilled<=0){
             this.ended=true;
+            this.port.postMessage({eventType:'ended'});
             console.debug("Stream ended");
           }
         }
-
      return !this.ended;
   }
 }
