@@ -3,7 +3,7 @@ import {ArrayAudioBuffer} from "../array_audio_buffer";
 // Code from audio_source_worklet.js as string constant to be loaded as module
 // Changes in audio_source_worklet.js must be copied and pasted to this string constant
 
-const aswpStr="\n" +
+const aswpStr = "\n" +
   "// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in array_audio_buffer_source_node.ts\n" +
   "\n" +
   "\n" +
@@ -98,6 +98,7 @@ const aswpStr="\n" +
   "                this.currentAudioBufferFramePos=0;\n" +
   "                this.currentAudioBufferAvail=this.currentAudioBuffer[0].length;\n" +
   "                //console.debug(\"Next buffer with \"+this.currentAudioBufferAvail+ \" frames\");\n" +
+  "                this.port.postMessage({eventType:'bufferNotification',filledFrames:this.filledFrames});\n" +
   "              }else{\n" +
   "                this.ended=true;\n" +
   "                this.port.postMessage({eventType:'ended'});\n" +
@@ -120,8 +121,9 @@ const aswpStr="\n" +
   "            copied+=toCopy;\n" +
   "            this.currentAudioBufferFramePos+=toCopy;\n" +
   "            this.currentAudioBufferAvail-=toCopy;\n" +
-  "\n" +
+  "            \n" +
   "          }while(copied<outChLen);\n" +
+  "          this.filledFrames-=copied;\n" +
   "          //console.debug(\"Copied \"+copied+\" frames.\");\n" +
   "        }\n" +
   "     return !this.ended;\n" +
@@ -131,90 +133,121 @@ const aswpStr="\n" +
   "registerProcessor('audio-source-worklet',AudioSourceProcessor);\n";
 
 
-export class ArrayAudioBufferSourceNode extends AudioWorkletNode{
-    static readonly QUANTUM_FRAME_LEN=128;
-    private static moduleLoaded=false;
-    private _arrayAudioBuffer:ArrayAudioBuffer|null=null;
+export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
 
-    onended: (()=> void)|null=null;
+  static readonly QUANTUM_FRAME_LEN = 128;
+  static readonly DEFAULT_BUFFER_FILL_SECONDS = 10;
+  private _bufferFillSeconds = ArrayAudioBufferSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
+  private bufferFillFrames = 0;
+  private static moduleLoaded = false;
+  private _arrayAudioBuffer: ArrayAudioBuffer | null = null;
+  private sourceArrayPos = 0;
+  private filledFrames = 0;
+  onended: (() => void) | null = null;
 
-    private constructor(context:AudioContext) {
+  private constructor(context: AudioContext) {
 
-        super(context,'audio-source-worklet');
-        this.channelCountMode='explicit';
-        this.port.onmessage=(msgEv:MessageEvent)=>{
-            if(msgEv.data){
-                let evType=msgEv.data.eventType;
-                if(evType){
-                    if('ended'===evType){
-                       let drainTime=0;
-                       if(this._arrayAudioBuffer?.sampleRate){
-                          drainTime= ArrayAudioBufferSourceNode.QUANTUM_FRAME_LEN/this._arrayAudioBuffer.sampleRate;
-                       }
-                       //let dstAny:any=this.context.destination;
-                       //console.debug('Destination node tail-time: '+dstAny['tail-time']);
-                       window.setTimeout(()=>{
-                           this.onended?.call(this);
-                       },drainTime*1000);
-
-                    }
-                }
+    super(context, 'audio-source-worklet');
+    this.channelCountMode = 'explicit';
+    this.port.onmessage = (msgEv: MessageEvent) => {
+      if (msgEv.data) {
+        let evType = msgEv.data.eventType;
+        if (evType) {
+          if ('bufferNotification' === evType) {
+            this.filledFrames = msgEv.data.filledFrames;
+            console.debug("Buffer notification: filled frames: " + this.filledFrames);
+            this.fillBuffer();
+          } else if ('ended' === evType) {
+            let drainTime = 0;
+            if (this._arrayAudioBuffer?.sampleRate) {
+              drainTime = ArrayAudioBufferSourceNode.QUANTUM_FRAME_LEN / this._arrayAudioBuffer.sampleRate;
             }
-        }
-    }
+            //let dstAny:any=this.context.destination;
+            //console.debug('Destination node tail-time: '+dstAny['tail-time']);
+            window.setTimeout(() => {
+              this.onended?.call(this);
+            }, drainTime * 1000);
 
-    static instance(context:AudioContext):Promise<ArrayAudioBufferSourceNode>{
-      let audioWorkletModuleBlob= new Blob([aswpStr], {type: 'text/javascript'});
-      let audioWorkletModuleBlobUrl=window.URL.createObjectURL(audioWorkletModuleBlob);
-      return new Promise((resolve, reject)=>{
-        if(ArrayAudioBufferSourceNode.moduleLoaded){
-          let obj=new ArrayAudioBufferSourceNode(context);
+          }
+        }
+      }
+    }
+  }
+
+  static instance(context: AudioContext): Promise<ArrayAudioBufferSourceNode> {
+    let audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
+    let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
+    return new Promise((resolve, reject) => {
+      if (ArrayAudioBufferSourceNode.moduleLoaded) {
+        let obj = new ArrayAudioBufferSourceNode(context);
+        resolve.call(this, obj);
+      } else {
+        context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
+          ArrayAudioBufferSourceNode.moduleLoaded = true;
+          let obj = new ArrayAudioBufferSourceNode(context);
           resolve.call(this, obj);
-        }else {
-          context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
-            ArrayAudioBufferSourceNode.moduleLoaded = true;
-            let obj=new ArrayAudioBufferSourceNode(context);
-            resolve.call(this, obj);
-          }).catch((reason) => {
-            reject.call(reason);
-          });
+        }).catch((reason) => {
+          reject.call(reason);
+        });
+      }
+    });
+  }
+
+  private fillBuffer() {
+    if (this._arrayAudioBuffer) {
+      let filled = this.filledFrames;
+      let bufLen = 0;
+      while (this.sourceArrayPos < this._arrayAudioBuffer?.chunkCount && filled < this.bufferFillFrames) {
+        let trBuffers = new Array<any>(this.channelCount);
+
+        for (let ch = 0; ch < this.channelCount; ch++) {
+          let adCh = this._arrayAudioBuffer.data[ch][this.sourceArrayPos];
+          let adChCopy = new Float32Array(adCh.length);
+          bufLen = adChCopy.length;
+          adChCopy.set(adCh);
+          trBuffers[ch] = adChCopy.buffer;
         }
-      });
-    }
 
-    get arrayAudioBuffer(): ArrayAudioBuffer | null {
-        return this._arrayAudioBuffer;
-    }
+        this.port.postMessage({
+          cmd: 'data',
+          chs: this.channelCount,
+          audioData: trBuffers
+        }, trBuffers);
 
-    set arrayAudioBuffer(value: ArrayAudioBuffer | null) {
-        this._arrayAudioBuffer = value;
-        if (this._arrayAudioBuffer?.channelCount) {
-            this.channelCount = this._arrayAudioBuffer?.channelCount;
-
-            // TODO fills all buffers for testing now
-            for (let chi = 0; chi < this._arrayAudioBuffer.chunkCount; chi++) {
-                let trBuffers = new Array<any>(this.channelCount);
-                for (let ch = 0; ch < this.channelCount; ch++) {
-                    let adCh = this._arrayAudioBuffer.data[ch][chi];
-                    let adChCopy = new Float32Array(adCh.length);
-                    adChCopy.set(adCh);
-                    trBuffers[ch] = adChCopy.buffer;
-                }
-
-                this.port.postMessage({
-                    cmd:'data',
-                    chs: this.channelCount,
-                    audioData: trBuffers
-                }, trBuffers);
-            }
-        }
+        this.sourceArrayPos++;
+        filled += bufLen;
+      }
     }
+  }
 
-    start(){
-        this.port.postMessage({cmd:'start'});
+  get arrayAudioBuffer(): ArrayAudioBuffer | null {
+    return this._arrayAudioBuffer;
+  }
+
+  set arrayAudioBuffer(value: ArrayAudioBuffer | null) {
+    this._arrayAudioBuffer = value;
+    if (this._arrayAudioBuffer?.channelCount) {
+      this.channelCount = this._arrayAudioBuffer?.channelCount;
+      this.sourceArrayPos = 0;
+      this.bufferFillFrames = this._arrayAudioBuffer.sampleRate * this._bufferFillSeconds;
+      this.fillBuffer();
     }
-    stop(){
-        this.port.postMessage({cmd:'stop'});
-    }
+  }
+
+  get bufferFillSeconds(): number {
+    return this._bufferFillSeconds;
+  }
+
+  set bufferFillSeconds(value: number) {
+    this._bufferFillSeconds = value;
+  }
+
+  start() {
+    this.port.postMessage({cmd: 'start'});
+  }
+
+  stop() {
+    this.port.postMessage({cmd: 'stop'});
+  }
 
 }

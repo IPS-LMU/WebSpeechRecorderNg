@@ -93,6 +93,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
                 this.currentAudioBufferFramePos=0;
                 this.currentAudioBufferAvail=this.currentAudioBuffer[0].length;
                 //console.debug("Next buffer with "+this.currentAudioBufferAvail+ " frames");
+                this.port.postMessage({eventType:'bufferNotification',filledFrames:this.filledFrames});
               }else{
                 this.ended=true;
                 this.port.postMessage({eventType:'ended'});
@@ -117,6 +118,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
             this.currentAudioBufferAvail-=toCopy;
 
           }while(copied<outChLen);
+          this.filledFrames-=copied;
           //console.debug("Copied "+copied+" frames.");
         }
      return !this.ended;
