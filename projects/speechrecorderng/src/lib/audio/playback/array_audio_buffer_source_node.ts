@@ -4,6 +4,9 @@ import {ArrayAudioBuffer} from "../array_audio_buffer";
 // Changes in audio_source_worklet.js must be copied and pasted to this string constant
 
 const aswpStr="\n" +
+  "// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in array_audio_buffer_source_node.ts\n" +
+  "\n" +
+  "\n" +
   "class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
   "\n" +
   "    //MIN_BUFFER_DURATION=30; // 30 seconds\n" +
@@ -15,9 +18,13 @@ const aswpStr="\n" +
   "    //buffer=null;\n" +
   "\n" +
   "    ringBufferPos=0;\n" +
-  "    ringBufferFilled=0;\n" +
+  "    filledFrames=0;\n" +
   "    //ringBufferFree=this.RING_BUFFER_FRAMES;\n" +
   "    ringBuffers=null;\n" +
+  "    audioBuffers=new Array();\n" +
+  "    currentAudioBuffer=null;\n" +
+  "    currentAudioBufferFramePos=0;\n" +
+  "    currentAudioBufferAvail=0;\n" +
   "    running=false;\n" +
   "    ended=false;\n" +
   "\n" +
@@ -30,68 +37,17 @@ const aswpStr="\n" +
   "\n" +
   "          if(msgEv.data.cmd){\n" +
   "            if('data'===msgEv.data.cmd) {\n" +
-  "              if (msgEv.data['audioData']) {\n" +
-  "                let chs = msgEv.data.chs;\n" +
+  "              let chs = msgEv.data.chs;\n" +
   "\n" +
-  "                //console.debug(\"Audio source worklet msg: Rec. channels: \" + chs);\n" +
-  "                //console.debug(\"Audio source worklet msg: Rec. data length (channels) \" + msgEv.data.audioData.length);\n" +
-  "                if (chs > 0) {\n" +
-  "                  if (!this.ringBuffers) {\n" +
-  "                    this.ringBuffers = new Array(chs);\n" +
-  "                    for (let ch = 0; ch < chs; ch++) {\n" +
-  "                      this.ringBuffers[ch] = new Float32Array(this.RING_BUFFER_FRAMES);\n" +
-  "                      this.ringBufferPos = 0;\n" +
-  "                      this.ringBufferFilled = 0;\n" +
-  "                      //this.ringBufferFree = this.RING_BUFFER_FRAMES;\n" +
-  "                    }\n" +
-  "                    console.debug(\"Audio source worklet: Created ring buffers in message method.\");\n" +
-  "                  }\n" +
-  "\n" +
-  "                  let audioData = new Array(chs);\n" +
-  "                  for (let ch = 0; ch < chs; ch++) {\n" +
-  "                    audioData[ch] = new Float32Array(msgEv.data.audioData[ch]);\n" +
-  "                  }\n" +
-  "                  let msgChBufLen = audioData[0].length;\n" +
-  "                  for (let ch = 0; ch < chs; ch++) {\n" +
-  "                    let msgChBuf = audioData[ch];\n" +
-  "                    //let msgChBufLen = msgChBuf.length;\n" +
-  "                    let rbFree = this.RING_BUFFER_FRAMES - this.ringBufferFilled;\n" +
-  "                    if (msgChBufLen > rbFree) {\n" +
-  "                      console.error('Not enough space in ring buffer');\n" +
-  "                      // TODO\n" +
-  "                    } else {\n" +
-  "                      //console.debug(\"Audio source worklet msg: Fill \" + msgChBufLen + \" frames...\");\n" +
-  "                      let copied = 0;\n" +
-  "                      let rbWritePos = this.ringBufferPos + this.ringBufferFilled;\n" +
-  "                      if (rbWritePos >= this.RING_BUFFER_FRAMES) {\n" +
-  "                        rbWritePos -= this.RING_BUFFER_FRAMES;\n" +
-  "                      }\n" +
-  "                      let free1 = this.RING_BUFFER_FRAMES - rbWritePos + this.ringBufferFilled;\n" +
-  "                      let toCopy1 = msgChBufLen;\n" +
-  "                      if (toCopy1 > free1) {\n" +
-  "                        toCopy1 = free1;\n" +
-  "                      }\n" +
-  "                      for (let ci = 0; ci < toCopy1; ci++) {\n" +
-  "                        this.ringBuffers[ch][rbWritePos + ci] = msgChBuf[copied + ci];\n" +
-  "                      }\n" +
-  "                      copied += toCopy1;\n" +
-  "\n" +
-  "                      if (copied < msgChBufLen) {\n" +
-  "                        let free2 = this.ringBufferPos;\n" +
-  "                        let toCopy2 = msgChBufLen - copied;\n" +
-  "                        for (let ci = 0; ci < toCopy2; ci++) {\n" +
-  "                          this.ringBuffers[ch][0 + ci] = msgChBuf[copied + ci];\n" +
-  "                        }\n" +
-  "                      }\n" +
-  "                    }\n" +
-  "                  }\n" +
-  "                  this.ringBufferFilled += msgChBufLen;\n" +
-  "                  //console.debug(\"Audio source worklet msg: Ring buffer filled \" + this.ringBufferFilled);\n" +
-  "\n" +
-  "                } else {\n" +
-  "                  console.debug(\"Audio source worklet msg: No data !.\");\n" +
-  "                }\n" +
+  "              let audioData = new Array(chs);\n" +
+  "              for (let ch = 0; ch < chs; ch++) {\n" +
+  "                audioData[ch] = new Float32Array(msgEv.data.audioData[ch]);\n" +
   "              }\n" +
+  "              let msgChBufLen=audioData[0].length;\n" +
+  "              this.audioBuffers.push(audioData);\n" +
+  "              this.filledFrames += msgChBufLen;\n" +
+  "              //console.debug(\"Audio source worklet msg: Filled \" + this.filledFrames+ \" in \"+this.audioBuffers.length+\" buffers.\");\n" +
+  "\n" +
   "            }else if('start'===msgEv.data.cmd){\n" +
   "              this.running=true;\n" +
   "            }else if('stop'===msgEv.data.cmd){\n" +
@@ -116,65 +72,57 @@ const aswpStr="\n" +
   "        let chs=output.length;\n" +
   "        //console.debug(\"Audio source worklet: Output channels: \"+chs);\n" +
   "        if(chs>0) {\n" +
-  "          if(!this.ringBuffers){\n" +
-  "            this.ringBuffers=new Array(chs);\n" +
-  "            for (let ch = 0; ch < chs; ch++) {\n" +
-  "              this.ringBuffers[ch]=new Float32Array(this.RING_BUFFER_FRAMES);\n" +
-  "              this.ringBufferPos=0;\n" +
-  "              this.ringBufferFilled=0;\n" +
-  "              this.ringBufferFree=this.RING_BUFFER_FRAMES;\n" +
-  "            }\n" +
-  "            console.debug(\"Audio source worklet: Created ring buffers in process method.\");\n" +
-  "          }\n" +
-  "          let outCh = output[0];\n" +
-  "          let outChLen = outCh.length;\n" +
   "\n" +
-  "          let copy1 = outChLen;\n" +
-  "          let avail1 = this.ringBufferFilled;\n" +
-  "          if (this.ringBufferPos + this.ringBufferFilled > this.RING_BUFFER_FRAMES) {\n" +
-  "            avail1 = this.RING_BUFFER_FRAMES - this.ringBufferPos;\n" +
-  "          }\n" +
-  "          if(avail1<=0){\n" +
-  "            return !this.ended;\n" +
-  "          }\n" +
-  "          if (copy1 > avail1) {\n" +
-  "            copy1 = avail1;\n" +
-  "          }\n" +
-  "          let copied = 0;\n" +
-  "          for (let ch = 0; ch < output.length; ch++) {\n" +
-  "            let outCh = output[ch];\n" +
-  "            for (let ci = 0; ci < copy1; ci++) {\n" +
-  "              let posInRb=this.ringBufferPos+ci;\n" +
-  "              let v=this.ringBuffers[ch][posInRb];\n" +
-  "              //console.debug(\"Copy (1) audio amplitude: \"+v+ \" from pos \"+posInRb+\" to \"+ci+\" to channel \"+ch+\" \");\n" +
-  "              outCh[ci] = v;\n" +
-  "            }\n" +
-  "          }\n" +
-  "          copied += copy1;\n" +
-  "          let copy2 = outChLen - copied;\n" +
-  "          for (let ch = 0; ch < output.length; ch++) {\n" +
-  "            let outCh = output[ch];\n" +
-  "            for (let ci = 0; ci < copy2; ci++) {\n" +
-  "              let posInOutCh=copied+ci;\n" +
-  "              let v=this.ringBuffers[ch][ci];\n" +
-  "              outCh[posInOutCh] = v;\n" +
-  "              //console.debug(\"Copy (2) audio amplitude: \"+v+ \" from pos \"+ci+\" to \"+posInOutCh+\" to channel \"+ch+\" \");\n" +
-  "            }\n" +
-  "          }\n" +
-  "          copied += copy2;  // Not used, should be equal to outChLen\n" +
+  "          let outCh0 = output[0];\n" +
+  "          let outChLen = outCh0.length;\n" +
   "\n" +
-  "          this.ringBufferPos += outChLen;\n" +
-  "          // Note: Alternative?:  this.ringBufferPos %= this.RING_BUFFER_FRAMES\n" +
-  "          if (this.ringBufferPos > this.RING_BUFFER_FRAMES) {\n" +
-  "            this.ringBufferPos -= this.RING_BUFFER_FRAMES;\n" +
+  "          if(!this.currentAudioBuffer){\n" +
+  "            // get first buffer\n" +
+  "            let nxtBuff=this.audioBuffers.shift();\n" +
+  "            if(nxtBuff) {\n" +
+  "              this.currentAudioBuffer = nxtBuff;\n" +
+  "              this.currentAudioBufferFramePos=0;\n" +
+  "              this.currentAudioBufferAvail=this.currentAudioBuffer[0].length;\n" +
+  "            }else{\n" +
+  "              return true;\n" +
+  "            }\n" +
   "          }\n" +
-  "          this.ringBufferFilled -= outChLen;\n" +
-  "          //console.debug(\"Remaining frames for playback: \"+this.ringBufferFilled+ \", ring buffer pos: \"+this.ringBufferPos);\n" +
-  "          if(this.ringBufferFilled<=0){\n" +
-  "            this.ended=true;\n" +
-  "            this.port.postMessage({eventType:'ended'});\n" +
-  "            console.debug(\"Stream ended\");\n" +
-  "          }\n" +
+  "\n" +
+  "\n" +
+  "          let copied=0;\n" +
+  "          do{\n" +
+  "            if(this.currentAudioBufferAvail==0){\n" +
+  "              let nxtBuff=this.audioBuffers.shift();\n" +
+  "              if(nxtBuff){\n" +
+  "                this.currentAudioBuffer=nxtBuff;\n" +
+  "                this.currentAudioBufferFramePos=0;\n" +
+  "                this.currentAudioBufferAvail=this.currentAudioBuffer[0].length;\n" +
+  "                //console.debug(\"Next buffer with \"+this.currentAudioBufferAvail+ \" frames\");\n" +
+  "              }else{\n" +
+  "                this.ended=true;\n" +
+  "                this.port.postMessage({eventType:'ended'});\n" +
+  "                console.debug(\"Stream ended\");\n" +
+  "                break;\n" +
+  "              }\n" +
+  "            }\n" +
+  "            //console.debug(\"outChLen: \"+outChLen+\", copied: \"+copied+\", current avail: \"+this.currentAudioBufferAvail);\n" +
+  "            let toCopy=outChLen-copied;\n" +
+  "            if(toCopy>this.currentAudioBufferAvail){\n" +
+  "              toCopy=this.currentAudioBufferAvail;\n" +
+  "            }\n" +
+  "            //console.debug(\"Copy \"+toCopy+\" frames...\");\n" +
+  "            for(let ch=0;ch<chs;ch++) {\n" +
+  "              let outCh=output[ch];\n" +
+  "              for (let i = 0; i < toCopy; i++) {\n" +
+  "                outCh[copied+i]=this.currentAudioBuffer[ch][this.currentAudioBufferFramePos+i];\n" +
+  "              }\n" +
+  "            }\n" +
+  "            copied+=toCopy;\n" +
+  "            this.currentAudioBufferFramePos+=toCopy;\n" +
+  "            this.currentAudioBufferAvail-=toCopy;\n" +
+  "\n" +
+  "          }while(copied<outChLen);\n" +
+  "          //console.debug(\"Copied \"+copied+\" frames.\");\n" +
   "        }\n" +
   "     return !this.ended;\n" +
   "  }\n" +
