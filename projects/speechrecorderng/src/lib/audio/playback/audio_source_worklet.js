@@ -1,4 +1,7 @@
 
+// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in array_audio_buffer_source_node.ts
+
+
 class AudioSourceProcessor extends AudioWorkletProcessor{
 
     //MIN_BUFFER_DURATION=30; // 30 seconds
