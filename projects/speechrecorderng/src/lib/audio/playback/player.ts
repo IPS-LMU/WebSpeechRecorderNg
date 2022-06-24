@@ -191,6 +191,7 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                   if(this._arrayAudioBuffer) {
 
                     ArrayAudioBufferSourceNode.instance(this.context).then((aabsn)=>{
+                      this.sourceAudioWorkletNode=aabsn;
                       aabsn.onprocessorerror = (ev: Event) => {
                         let msg = 'Unknwon error';
                         if (ev instanceof ErrorEvent) {
@@ -275,17 +276,8 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                     this.sourceBufferNode.stop();
                 }
                 if(this.sourceAudioWorkletNode){
-                  this.sourceAudioWorkletNode.disconnect();
-                  if(this.timerVar!==null) {
-                    window.clearInterval(this.timerVar);
-                  }
-                  this.running=false;
-                  if (this.listener) {
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
-                    // TODO Test only , should be called by the node
-                    this.onended();
-                  }
-                }else {
+                  this.sourceAudioWorkletNode.stop();
+                }
                   if (this.timerVar !== null) {
                     window.clearInterval(this.timerVar);
                   }
@@ -294,8 +286,6 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
                   }
                 }
-            }
-
         }
 
         onended() {

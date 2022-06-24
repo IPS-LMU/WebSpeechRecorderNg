@@ -46,7 +46,14 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
             }else if('start'===msgEv.data.cmd){
               this.running=true;
             }else if('stop'===msgEv.data.cmd){
+              console.debug("Stop...");
               this.running=false;
+              // clear buffers
+              this.filledFrames=0;
+              while(this.audioBuffers.length > 0) {
+                this.audioBuffers.pop();
+              }
+              this.currentAudioBuffer=new Float32Array(0);
             }
           }
         }

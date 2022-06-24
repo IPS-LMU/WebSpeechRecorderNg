@@ -51,7 +51,14 @@ const aswpStr = "\n" +
   "            }else if('start'===msgEv.data.cmd){\n" +
   "              this.running=true;\n" +
   "            }else if('stop'===msgEv.data.cmd){\n" +
+  "              console.debug(\"Stop...\");\n" +
   "              this.running=false;\n" +
+  "              // clear buffers\n" +
+  "              this.filledFrames=0;\n" +
+  "              while(this.audioBuffers.length > 0) {\n" +
+  "                this.audioBuffers.pop();\n" +
+  "              }\n" +
+  "              this.currentAudioBuffer=new Float32Array(0);\n" +
   "            }\n" +
   "          }\n" +
   "        }\n" +
@@ -121,7 +128,7 @@ const aswpStr = "\n" +
   "            copied+=toCopy;\n" +
   "            this.currentAudioBufferFramePos+=toCopy;\n" +
   "            this.currentAudioBufferAvail-=toCopy;\n" +
-  "            \n" +
+  "\n" +
   "          }while(copied<outChLen);\n" +
   "          this.filledFrames-=copied;\n" +
   "          //console.debug(\"Copied \"+copied+\" frames.\");\n" +
@@ -243,11 +250,13 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
   }
 
   start() {
+    this.fillBuffer();
     this.port.postMessage({cmd: 'start'});
   }
 
   stop() {
     this.port.postMessage({cmd: 'stop'});
+    this.onended?.call(this);
   }
 
 }
