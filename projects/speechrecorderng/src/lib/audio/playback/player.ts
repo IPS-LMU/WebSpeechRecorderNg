@@ -49,6 +49,9 @@ import { AudioClip } from '../persistor'
 
         private timerVar:number|null=null;
 
+        private normalize=1;
+        private gain=1.0;
+
         constructor(context:AudioContext, listener:AudioPlayerListener) {
            this.context=context;
             this.listener=listener;
@@ -111,7 +114,21 @@ import { AudioClip } from '../persistor'
         set audioBuffer(audioBuffer:AudioBuffer | null) {
             this.stop();
             this._audioBuffer = audioBuffer;
-            if (audioBuffer && this.context) {
+            if (this._audioBuffer && this.context) {
+                if(this.normalize!=0) {
+                    let maxLvl = 0.0;
+                    for (let ch = 0; ch < this._audioBuffer.numberOfChannels; ch++) {
+                        let chData=this._audioBuffer.getChannelData(ch);
+                        for(let si=0;si<chData.length;si++){
+                            let sv=chData[si];
+                            let svAbs=Math.abs(sv);
+                            if(svAbs>maxLvl){
+                                maxLvl=svAbs;
+                            }
+                        }
+                    }
+                    this.gain=1/maxLvl;
+                }
                 this._startAction.disabled = false;
                 this._startSelectionAction.disabled=this.startSelectionDisabled()
                 if(this.listener){
@@ -119,11 +136,13 @@ import { AudioClip } from '../persistor'
                 }
             }else{
                 this._startAction.disabled = true;
-                this._startSelectionAction.disabled=true
+                this._startSelectionAction.disabled=true;
+                this.gain=1.0;
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
                 }
             }
+
         }
         get audioBuffer():AudioBuffer| null{
             return this._audioBuffer;
@@ -133,8 +152,14 @@ import { AudioClip } from '../persistor'
             if(!this._startAction.disabled && !this.running) {
                 this.context.resume();
                 this.sourceBufferNode = this.context.createBufferSource();
+                let lastNode:AudioNode=this.sourceBufferNode;
                 this.sourceBufferNode.buffer = this._audioBuffer;
-                this.sourceBufferNode.connect(this.context.destination);
+                if(this.gain!=1.0){
+                    let gainNode=new GainNode(this.context,{gain:this.gain});
+                    lastNode.connect(gainNode);
+                    lastNode=gainNode;
+                }
+                lastNode.connect(this.context.destination);
                 this.sourceBufferNode.onended = () => this.onended();
 
                 this.playStartTime = this.context.currentTime;
