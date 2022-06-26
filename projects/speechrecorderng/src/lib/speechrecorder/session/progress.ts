@@ -78,7 +78,7 @@ import {Item} from './item';
 
 })
 export class Progress {
-  @Input() items: Array<Item>|null=null;
+  @Input() items: Array<Item>|undefined=undefined;
   @Input() selectedItemIdx = 0;
   @Input() enableDownload: boolean=false;
   @Output() onRowSelect = new EventEmitter<number>();

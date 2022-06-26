@@ -16,6 +16,7 @@ export class RecordingFileDescriptorImpl {
 export class RecordingFile {
   recordingFileId: string | number | null= null;
   uuid:string|null=null;
+  serverPersisted=false;
   date: string|null=null;
   _dateAsDateObj:Date|null=null;
   startedDate: string|null=null;
@@ -31,6 +32,14 @@ export class RecordingFile {
     this.session=sessionId;
     this.audioDataHolder=audioDataHolder
     this.uuid=uuid;
+  }
+
+  sampleCount():number{
+    if(this.audioDataHolder){
+      return this.audioDataHolder.sampleCounts();
+    }else{
+      return 0;
+    }
   }
 
   filenameString():string{
@@ -56,6 +65,12 @@ export class RecordingFile {
           this.session=sessionId;
           this.itemCode=itemcode;
           this.version=version;
+      }
+
+      expireAudioData():AudioDataHolder|null{
+        let rv=this.audioDataHolder;
+        this.audioDataHolder=null;
+        return rv;
       }
 
       filenameString():string{

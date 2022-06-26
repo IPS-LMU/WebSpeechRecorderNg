@@ -43,6 +43,7 @@ import {
 import {UUID} from "../../utils/utils";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {SprItemsCache} from "./recording_file_cache";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -59,7 +60,7 @@ export const enum Status {
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
       <app-sprprompting [projectName]="projectName"
                         [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
-                        [items]="items"
+                        [items]="items?.items"
                         [transportActions]="transportActions"
                         [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
                         [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
@@ -94,7 +95,7 @@ export const enum Status {
       <div fxFlex="1 1 30%" fxLayoutAlign="start center">
         <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
-      <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="items==null || items.length>1"></app-sprtransport>
+      <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
       <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
         <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
@@ -130,7 +131,7 @@ export const enum Status {
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 
-  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=true;  // TODO TEST!!!
+  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=false;  // TODO TEST!!!
 
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
@@ -172,7 +173,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   private autorecording!: boolean;
 
-  items: Array<Item>|null=null;
+  items: SprItemsCache|null=null;
   //selectedItemIdx: number;
   private _displayRecFile: SprRecordingFile | null=null;
   private displayRecFileVersion!: number;
@@ -351,7 +352,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   progressPercentValue():number {
     let v=100;
     if(this.items) {
-      v=this.promptIndex * 100 / (this.items.length - 1);
+      v=this.promptIndex * 100 / (this.items.length() - 1);
     }
     return v;
   }
@@ -479,7 +480,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private loadScript() {
     this.promptItemCount = 0;
 
-    this.items = new Array<Item>();
+    this.items = new SprItemsCache();
     let ln = 0;
 
     //TODO randomize not supported
@@ -497,7 +498,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             let promptAsStr = PromptitemUtil.toPlainTextString(pi);
 
             let it = new Item(promptAsStr, section.training,(!pi.type || pi.type==='recording'));
-            this.items.push(it);
+            this.items.addItem(it);
             ln++;
           }
       }
@@ -656,7 +657,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
       if (this.items) {
-        let it = this.items[this.promptIndex];
+        let it = this.items.getItem(this.promptIndex);
         if (!it.recs) {
           it.recs = new Array<SprRecordingFile>();
         }
@@ -726,7 +727,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private updateNavigationActions(){
     let fwdNxtActionDisabled=true;
     if(this.items){
-      let currRecs=this.items[this._promptIndex].recs;
+      let currRecs=this.items.getItem(this._promptIndex).recs;
       fwdNxtActionDisabled= ! (currRecs!=null && currRecs.length>0);
     }
     this.transportActions.fwdNextAction.disabled = this.navigationDisabled || fwdNxtActionDisabled;
@@ -741,10 +742,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       newPrIdx = 0;
     }
     if(this.items!=null) {
-      let itRecs=this.items[newPrIdx].recs;
+      let itRecs=this.items.getItem(newPrIdx).recs;
       while (itRecs!=null && (itRecs.length > 0) && newPrIdx < this.promptItemCount) {
         newPrIdx++;
-        itRecs=this.items[newPrIdx].recs;
+        itRecs=this.items.getItem(newPrIdx).recs;
       }
       if (!itRecs || itRecs.length == 0) {
         this.promptIndex = newPrIdx;
@@ -906,7 +907,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if(rfd.recording && rfd.recording.itemcode) {
       let prIdx = this.promptIndexByItemcode(rfd.recording.itemcode);
       if (this.items!=null && prIdx !== null) {
-        let it = this.items[prIdx];
+        let it = this.items.getItem(prIdx);
         if (it && this._session) {
           if (!it.recs) {
             it.recs = new Array<SprRecordingFile>();
@@ -958,7 +959,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let sessId: string | number = this._session.sessionId;
       let cpIdx = this.promptIndex;
       if (this.items) {
-        let it=this.items[cpIdx];
+        let it=this.items.getItem(cpIdx);
         if (!it.recs) {
           it.recs = new Array<SprRecordingFile>();
         }
@@ -997,8 +998,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let complete = true;
     if(this.items) {
       // search backwards, to gain faster detection of incomplete state
-      for (let ri = this.items.length - 1; ri >= 0; ri--) {
-        let it = this.items[ri];
+      for (let ri = this.items.length() - 1; ri >= 0; ri--) {
+        let it = this.items.getItem(ri);
         if (it.recording && !it.training && (!it.recs || it.recs.length == 0)) {
           complete = false;
           break;

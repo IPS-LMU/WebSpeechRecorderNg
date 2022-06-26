@@ -37,6 +37,10 @@ export class AudioDataHolder{
     return this._frameLen;
   }
 
+  sampleCounts():number{
+    return this._channelCount*this._frameLen;
+  }
+
   get buffer(): AudioBuffer | null {
     return this._buffer;
   }

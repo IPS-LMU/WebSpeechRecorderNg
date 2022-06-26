@@ -703,7 +703,7 @@ export class Prompting {
   @Input() startStopSignalState!: StartStopSignalState;
   @Input() promptItem: PromptItem | null=null;
   @Input() showPrompt: boolean=false;
-  @Input() items: Array<Item>|null=null;
+  @Input() items: Array<Item>|undefined=undefined;
   @Input() selectedItemIdx!: number;
   @Input() transportActions!: TransportActions;
   @Input() enableDownload: boolean=false;
