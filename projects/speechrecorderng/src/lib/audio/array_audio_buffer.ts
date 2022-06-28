@@ -56,7 +56,7 @@ export class ArrayAudioBufferInputsStream implements Float32ArrayInputStream{
     let toRead=buffers[0].length;
 
       while(read<toRead && !this.eod){
-        console.debug("Chunk "+this.chunkIdx+" of "+this.arrayAudioBuffer.chunkCount+" chunks.")
+        //console.debug("Chunk "+this.chunkIdx+" of "+this.arrayAudioBuffer.chunkCount+" chunks.")
         if(this.chunkIdx>=this.arrayAudioBuffer.chunkCount) {
           this.eod = true;
         }else {

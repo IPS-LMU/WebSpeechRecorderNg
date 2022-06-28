@@ -235,7 +235,7 @@ export class LevelMeasure {
       let read;
       do {
         read=ais.read(audioBuffers);
-        console.debug("Read: "+read);
+        //console.debug("Read: "+read);
         for(let ch=0;ch<chs;ch++){
           let copy=new Float32Array(audioBuffers[ch]);
           trBuffers[ch]=copy.buffer;

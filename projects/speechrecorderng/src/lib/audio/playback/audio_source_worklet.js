@@ -104,7 +104,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
               }else{
                 this.ended=true;
                 this.port.postMessage({eventType:'ended'});
-                console.debug("Stream ended");
+                //console.debug("Stream ended");
                 break;
               }
             }
