@@ -259,7 +259,7 @@ export abstract class BasicRecorder {
     this._controlAudioPlayer.stop();
 
     if (this.displayAudioClip) {
-      let ab:AudioBuffer|null=this.displayAudioClip.audioDataHolder.buffer;
+      let ab=this.displayAudioClip.audioDataHolder;
       if(ab) {
         this.levelMeasure.calcBufferLevelInfos(ab, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
           this.displayLevelInfos = levelInfos;

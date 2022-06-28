@@ -131,7 +131,7 @@ export const enum Status {
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 
-  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=false;  // TODO TEST!!!
+  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=true;  // TODO TEST!!!
 
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;

@@ -1,3 +1,8 @@
+export interface Float32ArrayInputStream{
+  read(buffers: Array<Float32Array>): number;
+  close():void;
+}
+
 export interface Float32ArrayOutStream {
 
   write(buffers: Array<Float32Array>): number;
