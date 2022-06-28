@@ -309,16 +309,22 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
             return ppt;
         }
 
-        get playPositionFrames():number|null {
-            let ppFrs:number|null=null;
-            if(this._audioBuffer ) {
-                let ppTime = this.playPositionTime;
-                if(ppTime!==null) {
-                    ppFrs = this._audioBuffer.sampleRate * ppTime;
-                }
-            }
-            return ppFrs;
+      get playPositionFrames():number|null {
+        let ppFrs:number|null=null;
+        let sr:number|null=null;
+        if(this._audioBuffer ) {
+          sr=this._audioBuffer.sampleRate;
+        }else if(this._arrayAudioBuffer){
+          sr=this._arrayAudioBuffer.sampleRate;
         }
+        if(sr ) {
+          let ppTime = this.playPositionTime;
+          if(ppTime!==null) {
+            ppFrs = sr * ppTime;
+          }
+        }
+        return ppFrs;
+      }
 
     }
 
