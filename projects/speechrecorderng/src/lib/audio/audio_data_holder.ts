@@ -115,6 +115,7 @@ export class AudioBufferInputsStream implements Float32ArrayInputStream{
       }
     }
     read=toRead;
+    this.framePos+=toRead;
     return read;
   }
 
