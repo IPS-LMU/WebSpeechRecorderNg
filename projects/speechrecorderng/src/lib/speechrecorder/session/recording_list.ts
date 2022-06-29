@@ -3,6 +3,8 @@ import {RecordingFile, SprRecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
 import {MatTable, MatTableDataSource} from "@angular/material/table";
 import {Observable, Subject} from "rxjs";
+import {RecFilesCache} from "./recording_file_cache";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 @Component({
 
@@ -63,7 +65,8 @@ import {Observable, Subject} from "rxjs";
 
 })
 export class RecordingList implements AfterViewInit{
-  private recordingList:Array<RecordingFile>=new Array<RecordingFile>();
+  //private recordingList:Array<RecordingFile>=new Array<RecordingFile>();
+  private recordingList:RecFilesCache=new RecFilesCache();
   //recordingListSubject:Subject<Array<RecordingFile>> = new Subject<Array<RecordingFile>>();
   recordingListDataSource:MatTableDataSource<RecordingFile>;
   //cols=['index','length','samples','samplerate','action'];
@@ -81,7 +84,7 @@ export class RecordingList implements AfterViewInit{
   }
 
   private buildDataSource(){
-    this.recordingList.sort((a, b) => {
+    this.recordingList.recFiles.sort((a, b) => {
       let cmp:number=0;
       let aD:Date|null=null;
       let bD:Date|null=null;
@@ -100,12 +103,16 @@ export class RecordingList implements AfterViewInit{
       }
       return cmp;
     });
-    this.recordingListDataSource.data=this.recordingList;
+    this.recordingListDataSource.data=this.recordingList.recFiles;
   }
 
-  push(rf:RecordingFile){
-    this.recordingList.push(rf);
+  addRecFile(rf:RecordingFile){
+    this.recordingList.addRecFile(rf);
     this.buildDataSource();
+  }
+
+  setRecFileAudioData(recFile:RecordingFile, adh:AudioDataHolder|null) {
+    this.recordingList.setRecFileAudioData(recFile,adh);
   }
 
   selectRecordingFile(rf:RecordingFile){
@@ -113,15 +120,21 @@ export class RecordingList implements AfterViewInit{
   }
 
   selectTop() {
-    if (this.recordingList.length > 0) {
-      this.selectRecordingFile(this.recordingList[0]);
+    if (this.recordingList.recFiles.length > 0) {
+      this.selectRecordingFile(this.recordingList.recFiles[0]);
     }
   }
 
   lengthTimeFormatted(rf:RecordingFile){
     let str='--:--:--';
-    if(rf.frames && rf.audioDataHolder) {
-      str=MediaUtils.toMediaTime(rf.frames / rf.audioDataHolder?.sampleRate);
+    let tl=null;
+    if(rf.timeLength){
+      tl=rf.timeLength;
+    }else if(rf.frames && rf.audioDataHolder) {
+      tl=rf.frames / rf.audioDataHolder?.sampleRate
+    }
+    if(tl) {
+      str = MediaUtils.toMediaTime(tl);
     }
     return str;
   }

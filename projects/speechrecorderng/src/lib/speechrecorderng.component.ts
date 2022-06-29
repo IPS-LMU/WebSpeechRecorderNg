@@ -195,6 +195,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
           if (rfs) {
             if (rfs instanceof Array) {
               rfs.forEach((rf) => {
+
                 //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
                 this.sm.addRecordingFileByDescriptor(rf);
               })

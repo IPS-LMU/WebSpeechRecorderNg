@@ -6,7 +6,7 @@ import {HttpClient, HttpErrorResponse, HttpHeaders, HttpResponse} from "@angular
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 import {UUID} from "../../utils/utils";
-import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from "../recording";
+import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile, RecordingFileUtils} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
 import {Observable} from "rxjs";
@@ -123,11 +123,62 @@ export class RecordingService {
     return this.audioRequest(recUrl);
   }
 
+  fetchRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<AudioBuffer|null> {
+
+    let wobs = new Observable<AudioBuffer|null>(observer=>{
+      let recFileId=recordingFile.recordingFileId;
+      if(!recFileId){
+        recFileId=recordingFile.uuid;
+      }
+      if(recordingFile.session && recFileId) {
+
+        let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
+        obs.subscribe({
+          next: resp => {
+
+            // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+            if (resp.body) {
+              aCtx.decodeAudioData(resp.body, ab => {
+                  observer.next(ab);
+                  observer.complete();
+
+              }, error => {
+                observer.error(error);
+                observer.complete();
+              })
+            } else {
+              observer.error('Fetching audio file: response has no body');
+            }
+          },
+          error:(error: HttpErrorResponse) => {
+            if (error.status == 404) {
+              // Interpret not as an error, the file ist not recorded yet
+              observer.next(null);
+              observer.complete()
+            } else {
+              // all other states are errors
+              observer.error(error);
+              observer.complete();
+            }
+          }});
+      }else{
+        observer.error();
+      }
+    });
+
+    return wobs;
+  }
+
   fetchAndApplyRecordingFile(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<RecordingFile|null> {
 
     let wobs = new Observable<RecordingFile|null>(observer=>{
-      if(recordingFile.session && recordingFile.recordingFileId) {
-        let obs = this.fetchAudiofile(projectName, recordingFile.session, recordingFile.recordingFileId);
+      let recFileId=recordingFile.recordingFileId;
+      if(!recFileId){
+        recFileId=recordingFile.uuid;
+      }
+      if(recordingFile.session && recFileId) {
+
+        let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
         obs.subscribe(resp => {
             //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
@@ -135,7 +186,7 @@ export class RecordingService {
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
                 let adh=new AudioDataHolder(ab,null);
-                recordingFile.audioDataHolder=adh;
+                RecordingFileUtils.setAudioData(recordingFile,adh);
                 if (this.debugDelay > 0) {
                   window.setTimeout(() => {
 
@@ -173,6 +224,48 @@ export class RecordingService {
     return wobs;
   }
 
+  fetchSprRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:SprRecordingFile):Observable<AudioBuffer|null> {
+
+    let wobs = new Observable<AudioBuffer|null>(observer=>{
+      if(recordingFile.session) {
+        let obs = this.fetchSprAudiofile(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
+        obs.subscribe({
+          next: resp => {
+            // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+            if (resp.body) {
+              aCtx.decodeAudioData(resp.body, ab => {
+                RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab,null));
+                observer.next(ab);
+                observer.complete();
+
+              }, error => {
+                observer.error(error);
+                observer.complete();
+              })
+            } else {
+              observer.error('Fetching audio file: response has no body');
+            }
+          },
+          error: (error: HttpErrorResponse) => {
+            if (error.status == 404) {
+              // Interpret not as an error, the file ist not recorded yet
+              observer.next(null);
+              observer.complete()
+            } else {
+              // all other states are errors
+              observer.error(error);
+              observer.complete();
+            }
+          }});
+      }else{
+        observer.error();
+      }
+    });
+
+    return wobs;
+  }
+
+
   fetchAndApplySprRecordingFile(aCtx: AudioContext, projectName: string, recordingFile:SprRecordingFile):Observable<SprRecordingFile|null> {
 
     let wobs = new Observable<SprRecordingFile|null>(observer=>{
@@ -184,7 +277,7 @@ export class RecordingService {
               // Do not use Promise version, which does not work with Safari 13 (13.0.5)
               if (resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
-                  recordingFile.audioDataHolder=new AudioDataHolder(ab,null);
+                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab,null));
                   if (this.debugDelay > 0) {
                     window.setTimeout(() => {
 

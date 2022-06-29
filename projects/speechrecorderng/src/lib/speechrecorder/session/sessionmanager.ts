@@ -589,25 +589,27 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         }
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
-          this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
-            let fab = null;
-            if (rf && this._displayRecFile) {
-              fab = this._displayRecFile.audioDataHolder;
+          this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe({
+          next: (ab) => {
+            let fabDh = null;
+            if (ab && this._displayRecFile && this.items) {
+              fabDh = new AudioDataHolder(ab);
+              this.items.setSprRecFileAudioData(this._displayRecFile,fabDh);
             } else {
               this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
             }
-            if (fab){
-              this.displayAudioClip = new AudioClip(fab);
+            if (fabDh){
+              this.displayAudioClip = new AudioClip(fabDh);
             }
             this.controlAudioPlayer.audioClip =this.displayAudioClip
             this.showRecording();
 
-          }, err => {
+          }, error: err => {
             console.error("Could not load recording file from server: " + err)
             this.statusMsg = 'Recording file could not be loaded: ' + err
             this.statusAlertType = 'error'
-          })
+          }})
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
           this.statusAlertType = 'error'
@@ -931,8 +933,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           //   it.recs = new Array<SprRecordingFile>();
           // }
           let rf = new SprRecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
-
-          //it.recs[rfd.version] = rf;
+          rf.serverPersisted=true;
           this.items.addSprRecFile(it,rf);
 
         } else {
@@ -974,9 +975,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       }
       adh=new AudioDataHolder(ad,ada);
     }
-
-    if (this._recordingFile && this._recordingFile instanceof SprRecordingFile) {
-      this.items?.setSprRecFileAudioData(this._recordingFile,adh);
+    // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
+    let rf = this._recordingFile;
+    if (rf && rf instanceof SprRecordingFile) {
+      this.items?.setSprRecFileAudioData(rf,adh);
       if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
@@ -995,9 +997,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             apiEndPoint = apiEndPoint + '/'
           }
           let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-          let recUrl: string = sessionsUrl + '/' + this._recordingFile.session + '/' + RECFILE_API_CTX + '/' + this._recordingFile.itemCode;
+          let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
           ww.writeAsync(ad, (wavFile) => {
-            this.postRecording(wavFile, recUrl);
+            this.postRecording(wavFile, recUrl,rf);
             this.processingRecording = false
             this.updateWakeLock();
           });
@@ -1078,15 +1080,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
     ww.writeAsync(audioBuffer, (wavFile) => {
-      this.postRecording(wavFile, recUrl);
+      this.postRecording(wavFile, recUrl,null);
       this.processingRecording = false
     });
   }
 
 
-  postRecording(wavFile: Uint8Array, recUrl: string) {
+  postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
+    let ul = new Upload(wavBlob, recUrl,rf);
     this.uploader.queueUpload(ul);
   }
 

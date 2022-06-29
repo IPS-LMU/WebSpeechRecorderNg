@@ -24,6 +24,7 @@ export class RecordingFile {
   audioDataHolder:AudioDataHolder|null=null;
   session:string|number|null=null;
   frames:number|null=null;
+  timeLength:number|null=null;
   editSampleRate:number|null=null;
   editStartFrame:number|null=null
   editEndFrame:number|null=null
@@ -31,15 +32,11 @@ export class RecordingFile {
   constructor(uuid:string,sessionId:string|number,audioDataHolder:AudioDataHolder|null) {
     this.session=sessionId;
     this.audioDataHolder=audioDataHolder
-    this.uuid=uuid;
-  }
-
-  sampleCount():number{
-    if(this.audioDataHolder){
-      return this.audioDataHolder.sampleCounts();
-    }else{
-      return 0;
+    if(audioDataHolder){
+      this.frames=audioDataHolder.frameLen;
+      this.timeLength=audioDataHolder.timeLen;
     }
+    this.uuid=uuid;
   }
 
   filenameString():string{
@@ -72,11 +69,7 @@ export class RecordingFile {
           this.version=version;
       }
 
-      expireAudioData():AudioDataHolder|null{
-        let rv=this.audioDataHolder;
-        this.audioDataHolder=null;
-        return rv;
-      }
+
 
       filenameString():string{
         let fns:string='';
@@ -96,6 +89,29 @@ export class RecordingFile {
         return 'Recording file: UUID: '+this.uuid+', session: '+this.session+', itemcode: '+this.itemCode+', version: '+this.version+', UUID: '+this.uuid;
       }
 
-
     }
 
+    export class RecordingFileUtils{
+
+      static setAudioData(rf:RecordingFile,audioDataHolder:AudioDataHolder|null){
+          rf.audioDataHolder=audioDataHolder;
+          if(audioDataHolder) {
+            rf.frames = audioDataHolder.frameLen;
+            rf.timeLength=audioDataHolder.timeLen;
+          }
+      }
+
+      static sampleCount(rf:RecordingFile):number{
+        if(rf.audioDataHolder){
+          return rf.audioDataHolder.sampleCounts();
+        }else{
+          return 0;
+        }
+      }
+      static expireAudioData(rf:RecordingFile):AudioDataHolder|null{
+        let rv=rf.audioDataHolder;
+        rf.audioDataHolder=null;
+        return rv;
+      }
+
+    }

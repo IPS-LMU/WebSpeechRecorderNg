@@ -1,7 +1,7 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {RecordingFile} from '../recording'
+import {RecordingFile, RecordingFileUtils} from '../recording'
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
   AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
@@ -375,13 +375,15 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         if (rfs) {
           if (rfs instanceof Array) {
             rfs.forEach((rf) => {
+              // the list comes from the server, asssuem all recording files as server persisted
+              rf.serverPersisted=true;
               if(rf.startedDate){
                 rf._startedAsDateObj=new Date(rf.startedDate);
               }
               if(rf.date){
                 rf._dateAsDateObj=new Date(rf.date);
               }
-              this.recorderCombiPane.push(rf);
+              this.recorderCombiPane.addRecFile(rf);
             })
           } else {
             console.error('Expected type array for list of already recorded files ')
@@ -591,33 +593,39 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ab: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(ab) {
         this.displayAudioClip = new AudioClip(ab);
+        console.debug(" set recording file: display audio clip set");
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else {
         // clear for now ...
         this.displayAudioClip = null;
+        console.debug("set recording file: display audio clip null");
         this.controlAudioPlayer.audioClip = null;
 
         if (this._controlAudioPlayer && this._session) {
             //... and try to fetch from server
-            this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
-              let fab = null;
-              if (rf && this._displayRecFile) {
-                fab = this._displayRecFile.audioDataHolder;
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe({
+            next: ab => {
+              let fabDh = null;
+              if (this._displayRecFile && ab) {
+                fabDh=new AudioDataHolder(ab);
+                this.recorderCombiPane.setRecFileAudioData(this._displayRecFile,fabDh);
               } else {
+                console.error('Recording file could not be loaded.');
                 this.statusMsg = 'Recording file could not be loaded.'
                 this.statusAlertType = 'error'
               }
-              if (fab){
-                this.displayAudioClip = new AudioClip(fab);
+              if (fabDh){
+                this.displayAudioClip = new AudioClip(fabDh);
+                console.debug("set recording file: display audio clip from fetched audio buffer");
               }
               this.controlAudioPlayer.audioClip =this.displayAudioClip
               this.showRecording();
 
-            }, err => {
+            }, error: err => {
               console.error("Could not load recording file from server: " + err)
               this.statusMsg = 'Recording file could not be loaded: ' + err
               this.statusAlertType = 'error'
-            })
+            }})
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
           this.statusAlertType = 'error'
@@ -625,6 +633,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }
 
     } else {
+      console.debug("recording file null");
       this.displayAudioClip = null;
       this.controlAudioPlayer.audioClip = null;
     }
@@ -691,6 +700,21 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
+    if(!this.rfUuid){
+      this.rfUuid=UUID.generate()
+    }
+    let sessId: string | number = 0;
+    if(this._session){
+      sessId=this._session.sessionId;
+    }
+    let rf = new RecordingFile(this.rfUuid,sessId,null);
+    rf._startedAsDateObj=this.startedDate;
+    if(rf._startedAsDateObj) {
+      rf.startedDate = rf._startedAsDateObj.toString();
+    }
+
+    this._recordingFile=rf;
+
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
@@ -755,46 +779,43 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if(this._session){
         sessId=this._session.sessionId;
       }
-      if(!this.rfUuid){
-        this.rfUuid=UUID.generate()
-      }
-      let rf = new RecordingFile(this.rfUuid,sessId,adh);
-      rf._startedAsDateObj=this.startedDate;
-      if(rf._startedAsDateObj) {
-        rf.startedDate = rf._startedAsDateObj.toString();
-      }
-      rf.frames=frameLen;
-      this.displayRecFile = rf;
-      this.recorderCombiPane.push(rf);
 
-      // Upload if upload enabled and not in chunked upload mode
-      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds && ad!=null) {
-        let apiEndPoint = '';
+      if(this._recordingFile) {
+        // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
+        let rf = this._recordingFile;
+        RecordingFileUtils.setAudioData(rf,adh);
+        this.recorderCombiPane.addRecFile(rf);
 
-        if (this.config && this.config.apiEndPoint) {
-          apiEndPoint = this.config.apiEndPoint;
+        // Upload if upload enabled and not in chunked upload mode
+        if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds && rf != null && ad != null) {
+          let apiEndPoint = '';
+
+          if (this.config && this.config.apiEndPoint) {
+            apiEndPoint = this.config.apiEndPoint;
+          }
+          if (apiEndPoint !== '') {
+            apiEndPoint = apiEndPoint + '/'
+          }
+
+          let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+          let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
+
+          // convert asynchronously to 16-bit integer PCM
+          // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
+          // TODO duplicate conversion for manual download
+
+          this.processingRecording = true
+          let ww = new WavWriter();
+          ww.writeAsync(ad, (wavFile) => {
+            this.postRecordingMultipart(wavFile,recUrl,rf);
+            this.processingRecording = false;
+            this.updateWakeLock();
+            this.changeDetectorRef.detectChanges();
+          });
         }
-        if (apiEndPoint !== '') {
-          apiEndPoint = apiEndPoint + '/'
-        }
-
-        let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-        let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.uuid;
-
-        // convert asynchronously to 16-bit integer PCM
-        // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
-        // TODO duplicate conversion for manual download
-
-        this.processingRecording = true
-        let ww = new WavWriter();
-        ww.writeAsync(ad, (wavFile) => {
-          this.postRecordingMultipart(wavFile, rf.uuid, rf.session, rf._startedAsDateObj, recUrl);
-          this.processingRecording = false;
-          this.updateWakeLock();
-          this.changeDetectorRef.detectChanges();
-        });
       }
     }
+    this.displayRecFile = this._recordingFile;
     this.status = Status.IDLE;
     this.navigationDisabled = false;
     this.updateNavigationActions();
@@ -804,21 +825,21 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
 
 
-  postRecordingMultipart(wavFile: Uint8Array, uuid:string|null,sessionId:string|number|null,startedDate:Date|null|undefined,recUrl: string) {
+  postRecordingMultipart(wavFile: Uint8Array,recUrl: string,rf:RecordingFile) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
 
     let fd=new FormData();
-    if(uuid) {
-      fd.set('uuid', uuid);
+    if(rf.uuid) {
+      fd.set('uuid', rf.uuid);
     }
-    if(sessionId!==null) {
-      fd.set('sessionId', sessionId.toString());
+    if(rf.session!==null) {
+      fd.set('sessionId', rf.session.toString());
     }
-    if(startedDate){
-      fd.set('startedDate',startedDate.toJSON());
+    if(rf._startedAsDateObj){
+      fd.set('startedDate',rf._startedAsDateObj.toJSON());
     }
     fd.set('audio',wavBlob);
-    let ul = new Upload(fd, recUrl);
+    let ul = new Upload(fd, recUrl,rf);
     this.uploader.queueUpload(ul);
   }
 
@@ -835,8 +856,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     }
     let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
+    let rf=this._recordingFile;
     ww.writeAsync(audioBuffer, (wavFile) => {
-      this.postRecording(wavFile, recUrl);
+      this.postRecording(wavFile, recUrl,rf);
       this.processingRecording = false;
     });
   }

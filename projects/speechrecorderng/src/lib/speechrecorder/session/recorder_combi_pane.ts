@@ -7,6 +7,8 @@ import {RecordingList} from "./recording_list";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
+import {RecFilesCache} from "./recording_file_cache";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 @Component({
 
@@ -44,7 +46,7 @@ import {AudioDisplay} from "../../audio/audio_display";
     margin: 0;
     padding: 0;
     background: lightgrey;
-    width: 100%; 
+    width: 100%;
     height: 100%;
     overflow-y: auto;
   }`, `
@@ -91,10 +93,14 @@ export class RecorderCombiPane implements AfterViewInit{
 
   }
 
-  push(rf:RecordingFile){
-    this.recordingListComp.push(rf);
-
+  addRecFile(rf:RecordingFile){
+    this.recordingListComp.addRecFile(rf);
   }
+
+  setRecFileAudioData(recFile:RecordingFile,adh:AudioDataHolder|null) {
+    this.recordingListComp.setRecFileAudioData(recFile, adh);
+  }
+
 
   selectRecordingFile(rf:RecordingFile){
     this.selectedRecordingFileChanged.emit(rf);

@@ -2,10 +2,14 @@ import {ArrayAudioBuffer, ArrayAudioBufferInputsStream} from "./array_audio_buff
 import {Float32ArrayInputStream} from "../io/stream";
 
 export class AudioDataHolder{
+  get timeLen(): number {
+    return this._timeLen;
+  }
 
   private _channelCount:number=0;
   private _sampleRate:number=0;
   private _frameLen:number=0;
+  private _timeLen:number=0;
   private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of either audio buffer or array audio buffer must be set!';
 
   constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null) {
@@ -17,10 +21,12 @@ export class AudioDataHolder{
         this._channelCount = this._buffer.numberOfChannels;
         this._sampleRate = this._buffer.sampleRate;
         this._frameLen=this._buffer.length;
+        this._timeLen=this._frameLen/this._sampleRate;
       } else if (this._arrayBuffer) {
         this._channelCount = this._arrayBuffer.channelCount;
         this._sampleRate = this._arrayBuffer.sampleRate;
         this._frameLen=this._arrayBuffer.frameLen;
+        this._timeLen=this._frameLen/this._sampleRate;
       }
 
     }else{
