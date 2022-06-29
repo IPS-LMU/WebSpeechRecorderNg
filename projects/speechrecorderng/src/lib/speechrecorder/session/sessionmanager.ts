@@ -175,7 +175,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   items: SprItemsCache|null=null;
   //selectedItemIdx: number;
-  private _sprRecordingFile:SprRecordingFile|null=null;
+
   private _displayRecFile: SprRecordingFile | null=null;
   private displayRecFileVersion!: number;
 
@@ -771,6 +771,23 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   started() {
+    let ic = this.promptItem.itemcode;
+    let rf=null;
+    if (this._session && ic) {
+      let sessId: string | number = this._session.sessionId;
+      let cpIdx = this.promptIndex;
+      if (this.items) {
+        let it = this.items.getItem(cpIdx);
+        if (!it.recs) {
+          it.recs = new Array<SprRecordingFile>();
+        }
+        rf = new SprRecordingFile(sessId, ic, it.recs.length,null);
+
+        //it.recs.push(rf);
+        this.items.addSprRecFile(it,rf);
+      }
+    }
+    this._recordingFile = rf;
     this.status = Status.PRE_RECORDING;
     super.started();
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
@@ -910,11 +927,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if (this.items!=null && prIdx !== null) {
         let it = this.items.getItem(prIdx);
         if (it && this._session) {
-          if (!it.recs) {
-            it.recs = new Array<SprRecordingFile>();
-          }
+          // if (!it.recs) {
+          //   it.recs = new Array<SprRecordingFile>();
+          // }
           let rf = new SprRecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
-          it.recs[rfd.version] = rf;
+
+          //it.recs[rfd.version] = rf;
+          this.items.addSprRecFile(it,rf);
 
         } else {
           //console.debug("WARN: No recording item with code: \"" +rfd.recording.itemcode+ "\" found.");
@@ -955,21 +974,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       }
       adh=new AudioDataHolder(ad,ada);
     }
-    let ic = this.promptItem.itemcode;
-    let rf=null;
-    if (this._session && ic) {
-      let sessId: string | number = this._session.sessionId;
-      let cpIdx = this.promptIndex;
-      if (this.items) {
-        let it=this.items.getItem(cpIdx);
-        if (!it.recs) {
-          it.recs = new Array<SprRecordingFile>();
-        }
-        rf = new SprRecordingFile(sessId, ic, it.recs.length, adh);
 
-        it.recs.push(rf);
-      }
-      this._sprRecordingFile=rf;
+    if (this._recordingFile && this._recordingFile instanceof SprRecordingFile) {
+      this.items?.setSprRecFileAudioData(this._recordingFile,adh);
       if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
@@ -977,7 +984,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         // TODO duplicate conversion for manual download
         //console.log("Build wav writer...");
         this.processingRecording=true
-        if(ad && rf) {
+        if(ad) {
           let ww = new WavWriter();
           //new REST API URL
           let apiEndPoint = '';
@@ -988,7 +995,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             apiEndPoint = apiEndPoint + '/'
           }
           let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
-          let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
+          let recUrl: string = sessionsUrl + '/' + this._recordingFile.session + '/' + RECFILE_API_CTX + '/' + this._recordingFile.itemCode;
           ww.writeAsync(ad, (wavFile) => {
             this.postRecording(wavFile, recUrl);
             this.processingRecording = false

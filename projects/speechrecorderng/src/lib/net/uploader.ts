@@ -72,8 +72,12 @@
 
         done(){
             this.status=UploadStatus.DONE;
+          console.debug("Single upload done.");
             if(this.serverPersistable) {
-                this.serverPersistable.serverPersisted = true;
+              this.serverPersistable.serverPersisted = true;
+              console.debug("Single upload set server persisted: "+this.serverPersistable);
+            }else{
+              console.debug("Server persistable not set.");
             }
         }
 

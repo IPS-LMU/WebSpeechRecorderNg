@@ -51,6 +51,11 @@ export class RecordingFile {
     fns+=this.uuid;
     return fns;
   }
+
+  toString():string{
+    return 'Recording file: UUID: '+this.uuid+', session: '+this.session;
+  }
+
 }
 
     export class SprRecordingFile extends RecordingFile implements  RecordingFileDescriptor{
@@ -86,5 +91,11 @@ export class RecordingFile {
         fns+=this.uuid;
         return fns;
       }
+
+      toString():string{
+        return 'Recording file: UUID: '+this.uuid+', session: '+this.session+', itemcode: '+this.itemCode+', version: '+this.version+', UUID: '+this.uuid;
+      }
+
+
     }
 

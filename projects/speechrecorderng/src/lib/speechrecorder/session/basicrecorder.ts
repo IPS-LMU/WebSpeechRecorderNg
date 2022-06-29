@@ -22,7 +22,7 @@ import {
   SequenceAudioFloat32OutStream,
   SequenceAudioFloat32OutStreamMultiplier
 } from "../../audio/io/stream";
-import {SprRecordingFile} from "../recording";
+import {RecordingFile, SprRecordingFile} from "../recording";
 import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
@@ -53,7 +53,6 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   private _rf!:SprRecordingFile;
 
   private chunkIdx:number=0;
-
 
 
   constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
@@ -127,6 +126,7 @@ export abstract class BasicRecorder {
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
 
   _session: Session|null=null;
+  protected _recordingFile:RecordingFile|null=null;
 
   transportActions: TransportActions;
   playStartAction: Action<void>;
@@ -571,8 +571,9 @@ export abstract class BasicRecorder {
       let fd=new FormData();
       fd.set('uuid',this.rfUuid);
       fd.set('chunkCount',chunkCount.toString());
-      let ul = new Upload( fd,recUrl);
+      let ul = new Upload(fd, recUrl,this._recordingFile);
       this.uploader.queueUpload(ul);
+      console.debug("Queued for upload: "+this._recordingFile);
     }else{
       console.error("Recording file UUID not set!")
     }
