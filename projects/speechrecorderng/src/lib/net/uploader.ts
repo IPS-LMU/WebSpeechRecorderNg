@@ -53,9 +53,10 @@
 
         private _data:Blob|FormData;
         private _url:string;
+
         status: UploadStatus;
 
-        constructor(blob:Blob|FormData, url:string) {
+        constructor(blob:Blob|FormData, url:string,private serverPersistable:ServerPersistable|null=null) {
             this._data = blob;
             this._url = url;
             this.status = UploadStatus.IDLE;
@@ -69,6 +70,13 @@
             return this._data;
         }
 
+        done(){
+            this.status=UploadStatus.DONE;
+            if(this.serverPersistable) {
+                this.serverPersistable.serverPersisted = true;
+            }
+        }
+
       public toString = () : string => {
         let s=`Upload: Status: ${this.status}, URL: ${this._url}`;
         if(this._data instanceof Blob){
@@ -78,6 +86,10 @@
         }
         return s;
       }
+    }
+
+    export interface ServerPersistable{
+        serverPersisted:boolean;
     }
 
     export class Uploader {
@@ -121,7 +133,7 @@
 
         private  uploadDone(ul:Upload) {
 
-            ul.status = UploadStatus.DONE;
+            ul.done();
 
             // remove upload from queue
             for (let i = 0; i < this.que.length; i++) {

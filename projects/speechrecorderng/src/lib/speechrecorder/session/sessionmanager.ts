@@ -175,6 +175,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   items: SprItemsCache|null=null;
   //selectedItemIdx: number;
+  private _sprRecordingFile:SprRecordingFile|null=null;
   private _displayRecFile: SprRecordingFile | null=null;
   private displayRecFileVersion!: number;
 
@@ -947,6 +948,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(this.uploadChunkSizeSeconds || SessionManager.FORCE_ARRRAY_AUDIO_BUFFER){
         ada=this.ac.audioBufferArray();
         frameLen = ada.frameLen;
+
       }else{
         ad=this.ac.audioBuffer();
         frameLen=ad.length;
@@ -964,8 +966,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           it.recs = new Array<SprRecordingFile>();
         }
         rf = new SprRecordingFile(sessId, ic, it.recs.length, adh);
+
         it.recs.push(rf);
       }
+      this._sprRecordingFile=rf;
       if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
