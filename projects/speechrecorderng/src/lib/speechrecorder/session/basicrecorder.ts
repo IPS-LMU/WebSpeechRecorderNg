@@ -256,23 +256,17 @@ export abstract class BasicRecorder {
   }
 
   showRecording() {
-    this._controlAudioPlayer.stop();
-    console.debug("showRecording()")
-    if (this.displayAudioClip) {
+    this._controlAudioPlayer.stop();if (this.displayAudioClip) {
       let ab=this.displayAudioClip.audioDataHolder;
       if(ab) {
         this.levelMeasure.calcBufferLevelInfos(ab, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
           this.displayLevelInfos = levelInfos;
-          console.debug("showRecording() set level infos: "+this.displayLevelInfos);
           this.changeDetectorRef.detectChanges();
         });
-      }else{
-        console.debug("showRecording() displayAudioClip has no audio data set");
       }
       this.playStartAction.disabled = false;
 
     } else {
-      console.debug("showRecording() displayAudioClip not set");
       // TODO
       // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
       // The level bar display does not clear, it shows the last captured stream

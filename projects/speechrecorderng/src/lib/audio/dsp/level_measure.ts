@@ -2,6 +2,7 @@ import {DSPUtils} from "../../dsp/utils";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Arrays, WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
+import {ArrayAudioBufferInputsStream} from "../array_audio_buffer";
 
 export const MIN_DB_LEVEL = -40.0;
 
@@ -183,8 +184,8 @@ export class LevelMeasure {
 
   private readonly workerURL: string;
   private worker: Worker|null=null;
-  private bufferLevelInfos=new Array<LevelInfo>();
-  private peakLevelInfo!:LevelInfo;
+  //private bufferLevelInfos=new Array<LevelInfo>();
+  //private peakLevelInfo!:LevelInfo;
 
   constructor() {
     this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
@@ -200,10 +201,13 @@ export class LevelMeasure {
       for (let ch = 0; ch < chs; ch++) {
         audioBuffers[ch]=new Float32Array(bufferFrameLength);
       }
-      this.bufferLevelInfos=new Array<LevelInfo>();
-      this.peakLevelInfo=new LevelInfo(chs);
+      let bufferLevelInfos=new Array<LevelInfo>();
+      let peakLevelInfo=new LevelInfo(chs);
+
+
       this.worker = new Worker(this.workerURL);
       this.worker.onmessage = (me) => {
+
         if(me.data.linLevelBuffers) {
           let linLevelArrs = new Array<Float32Array>(chs);
           for (let ch = 0; ch < chs; ch++) {
@@ -222,26 +226,31 @@ export class LevelMeasure {
               maxLevels[ch] = linLevelArrs[ch][linLvlArrPos + 1];
             }
             let bli = new LevelInfo(chs, framePos, me.data.bufferFrameLength, minLevels, maxLevels);
-            this.bufferLevelInfos.push(bli);
-            this.peakLevelInfo.merge(bli);
+            bufferLevelInfos.push(bli);
+            peakLevelInfo.merge(bli);
           }
+
         }
         if(me.data.eod===true) {
           // end of data, terminate worker and return result
           this.terminateWorker();
-          resolve(new LevelInfos(this.bufferLevelInfos, this.peakLevelInfo));
+          resolve(new LevelInfos(bufferLevelInfos, peakLevelInfo));
+        }else{
+          let read=ais.read(audioBuffers);
+          for(let ch=0;ch<chs;ch++){
+            let copy=new Float32Array(audioBuffers[ch]);
+            trBuffers[ch]=copy.buffer;
+          }
+          this.worker?.postMessage({bufferFrameLength: bufferFrameLength, audioData: trBuffers, chs: chs,len:read}, trBuffers);
         }
       };
-      let read;
-      do {
-        read=ais.read(audioBuffers);
-        //console.debug("Read: "+read);
-        for(let ch=0;ch<chs;ch++){
-          let copy=new Float32Array(audioBuffers[ch]);
-          trBuffers[ch]=copy.buffer;
-        }
-        this.worker.postMessage({bufferFrameLength: bufferFrameLength, audioData: trBuffers, chs: chs,len:read}, trBuffers);
-      }while(read>0)
+
+      let read=ais.read(audioBuffers);
+      for(let ch=0;ch<chs;ch++){
+        let copy=new Float32Array(audioBuffers[ch]);
+        trBuffers[ch]=copy.buffer;
+      }
+      this.worker?.postMessage({bufferFrameLength: bufferFrameLength, audioData: trBuffers, chs: chs,len:read}, trBuffers);
     });
 
   }
@@ -260,6 +269,15 @@ export class LevelMeasure {
 
       let len=msg.data.len;
       let bufferFrameLength = msg.data.bufferFrameLength;
+      if(len==-1){
+        // start
+        postMessage({
+          eod:false,
+          bufferFrameLength: bufferFrameLength,
+          frameLength: len
+        });
+      }
+
       if(len==0) {
         postMessage({
           eod:true,
