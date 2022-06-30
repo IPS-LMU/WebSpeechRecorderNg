@@ -45,6 +45,7 @@ export class ArrayAudioBufferInputsStream implements Float32ArrayInputStream{
   private chunkIdx=0;
   private eod=false;
   constructor(private arrayAudioBuffer:ArrayAudioBuffer) {
+    console.debug("Array audio input stream array audio buffer frames: "+arrayAudioBuffer.frameLen);
   }
 
   close(): void {
@@ -59,6 +60,7 @@ export class ArrayAudioBufferInputsStream implements Float32ArrayInputStream{
         //console.debug("Chunk "+this.chunkIdx+" of "+this.arrayAudioBuffer.chunkCount+" chunks.")
         if(this.chunkIdx>=this.arrayAudioBuffer.chunkCount) {
           this.eod = true;
+          console.debug("Array audio input stream end of data read frames: "+this.framePos);
         }else {
           let chunkBuf0 = this.arrayAudioBuffer.data[0][this.chunkIdx];
           let chunkBufsLen = chunkBuf0.length;
@@ -74,6 +76,7 @@ export class ArrayAudioBufferInputsStream implements Float32ArrayInputStream{
             }
           }
           read += r;
+
           this.chunkFramePos += r;
           if (this.chunkFramePos >= chunkBufsLen) {
             this.chunkIdx++;
@@ -81,6 +84,8 @@ export class ArrayAudioBufferInputsStream implements Float32ArrayInputStream{
           }
         }
       }
+    this.framePos+=read;
+      console.debug("Read: "+read+", frame pos: "+this.framePos)
     return read;
   }
 
