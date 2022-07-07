@@ -15,12 +15,9 @@
         "groups": []
       },
       {
-        "mode": "AUTORECORDING",
         "name": "Recording Session",
         "order": "SEQUENTIAL",
-        "promptphase": "PRERECORDING",
-        "speakerDisplay": true,
-        "training": false,
+        "training": true,
         "groups": [
           {
             "promptItems": [
