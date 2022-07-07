@@ -9,6 +9,7 @@ import {AudioClip, Selection} from './persistor'
 import {ActivatedRoute} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
+import {AudioDataHolder} from "./audio_data_holder";
 
 @Component({
 
@@ -122,12 +123,13 @@ export class AudioDisplay implements OnInit,AfterViewInit {
 
 
   @Input()
-  set audioData(audioBuffer: AudioBuffer){
-      this.audioDisplayScrollPane.audioData = audioBuffer;
+  set audioData(audioData: AudioDataHolder){
+      this.audioDisplayScrollPane.audioData = audioData;
       if(this.playStartAction) {
-          this.playStartAction.disabled = (audioBuffer == null)
+          this.playStartAction.disabled = (audioData == null)
       }
   }
+
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {

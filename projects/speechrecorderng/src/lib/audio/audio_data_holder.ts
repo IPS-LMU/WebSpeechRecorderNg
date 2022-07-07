@@ -1,15 +1,15 @@
-import {ArrayAudioBuffer, ArrayAudioBufferInputsStream} from "./array_audio_buffer";
+import {ArrayAudioBuffer, ArrayAudioBufferInputStream} from "./array_audio_buffer";
 import {Float32ArrayInputStream} from "../io/stream";
 
 export class AudioDataHolder{
-  get timeLen(): number {
-    return this._timeLen;
+  get duration(): number {
+    return this._duration;
   }
 
-  private _channelCount:number=0;
+  private _numberOfChannels:number=0;
   private _sampleRate:number=0;
   private _frameLen:number=0;
-  private _timeLen:number=0;
+  private _duration:number=0;
   private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of either audio buffer or array audio buffer must be set!';
 
   constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null) {
@@ -18,15 +18,15 @@ export class AudioDataHolder{
     }
     if (this._buffer || this._arrayBuffer) {
       if (this._buffer) {
-        this._channelCount = this._buffer.numberOfChannels;
+        this._numberOfChannels = this._buffer.numberOfChannels;
         this._sampleRate = this._buffer.sampleRate;
         this._frameLen=this._buffer.length;
-        this._timeLen=this._frameLen/this._sampleRate;
+        this._duration=this._frameLen/this._sampleRate;
       } else if (this._arrayBuffer) {
-        this._channelCount = this._arrayBuffer.channelCount;
+        this._numberOfChannels = this._arrayBuffer.channelCount;
         this._sampleRate = this._arrayBuffer.sampleRate;
         this._frameLen=this._arrayBuffer.frameLen;
-        this._timeLen=this._frameLen/this._sampleRate;
+        this._duration=this._frameLen/this._sampleRate;
       }
 
     }else{
@@ -37,8 +37,8 @@ export class AudioDataHolder{
   get sampleRate(): number {
     return this._sampleRate;
   }
-  get channelCount(): number {
-    return this._channelCount;
+  get numberOfChannels(): number {
+    return this._numberOfChannels;
   }
 
   get frameLen(): number {
@@ -46,7 +46,7 @@ export class AudioDataHolder{
   }
 
   sampleCounts():number{
-    return this._channelCount*this._frameLen;
+    return this._numberOfChannels*this._frameLen;
   }
 
   audioInputStream():Float32ArrayInputStream{
@@ -54,7 +54,7 @@ export class AudioDataHolder{
       return new AudioBufferInputsStream(this._buffer);
     }
     if(this._arrayBuffer){
-      return new ArrayAudioBufferInputsStream(this._arrayBuffer);
+      return new ArrayAudioBufferInputStream(this._arrayBuffer);
     }
     throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
   }

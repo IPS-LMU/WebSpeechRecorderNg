@@ -10,6 +10,7 @@ import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip,Selection} from "../persistor";
 import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {Element} from "@angular/compiler";
+import {AudioDataHolder} from "../audio_data_holder";
 
 /*
   ResizeObserver not yet available in official Typescript declaration
@@ -324,13 +325,13 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   currentXZoom(): number | null {
     let xz = this._xZoom;
-    if (xz==null && this._audioData) {
+    if (xz==null && this._audioDataHolder) {
       let ow = this.ce.offsetWidth;
       if (ow < 1) {
         // at least one pixel width to avoid x-zoom zero values
         ow = 1;
       }
-      xz = ow / this._audioData.duration;
+      xz = ow / this._audioDataHolder.duration;
     }
     return xz;
   }
@@ -431,7 +432,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
     if(this.ce && this.dc) {
       const clientW=this.ce.clientWidth;
-      if(this._audioData){
+      if(this._audioDataHolder){
         if(this._fixFitToPanel) {
           // Set the virtual canvas width to the visible width
           if(this.ce.style.width!='100%') {
@@ -441,7 +442,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
         }else{
           if (this._xZoom) {
             // Set the virtual canvas width according to the value of the user selected xZoom value
-            const newClW = Math.round( this._xZoom*this._audioData.duration );
+            const newClW = Math.round( this._xZoom*this._audioDataHolder?.duration );
             this.ce.style.width = newClW + 'px';
           } else {
             // Set the virtual canvas width to the visible width only
@@ -454,25 +455,26 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   }
 
   @Input()
-  set audioData(audioData: AudioBuffer | null) {
+  set audioData(audioDataHolder: AudioDataHolder | null) {
     this._audioClip=null
-    this._audioData=audioData;
-    this.as.setData(audioData);
-    this.so.setData(audioData);
+    this._audioDataHolder=audioDataHolder;
+    this.as.setData(audioDataHolder);
+    this.so.setData(audioDataHolder);
     this.layout();
   }
 
-  get audioData():AudioBuffer|null{
-    return this._audioData
+  get audioData():AudioDataHolder|null{
+    return this._audioDataHolder
   }
+
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
-      let audioData:AudioBuffer|null=null;
+      let audioData:AudioDataHolder|null=null;
     let sel:Selection|null=null;
       if(audioClip) {
-        audioData = audioClip.audioDataHolder.buffer;
+        audioData = audioClip.audioDataHolder;
         if (this._audioClip) {
           this._audioClip.addSelectionObserver((clip) => {
             this.selection = clip.selection
@@ -480,9 +482,9 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
         }
         sel=audioClip.selection;
       }
-      this._audioData = audioData;
-      this.as.setData(this._audioData);
-      this.so.setData(this._audioData);
+      this._audioDataHolder = audioData;
+      this.as.setData(this._audioDataHolder);
+      this.so.setData(this._audioDataHolder);
       this.selecting=null
       this.selection=sel
     this.layout();

@@ -93,7 +93,7 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
             let chs = 0;
             if (audioClip && audioClip.audioDataHolder) {
                 let audioDataHolder=audioClip.audioDataHolder;
-                chs = audioDataHolder.channelCount
+                chs = audioDataHolder.numberOfChannels
                 if (chs > 0) {
                     length = audioDataHolder.frameLen;
                     if (chs > this.context.destination.maxChannelCount) {

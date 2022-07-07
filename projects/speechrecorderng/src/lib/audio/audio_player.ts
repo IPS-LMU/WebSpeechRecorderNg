@@ -220,11 +220,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   }
 
   @Input()
-  set audioData(audioBuffer: AudioBuffer){
-      this.audioDisplayScrollPane.audioData = audioBuffer;
-      if(audioBuffer) {
-        let adh=new AudioDataHolder(audioBuffer);
-          let clip = new AudioClip(adh);
+  set audioData(audioData: AudioDataHolder){
+      this.audioDisplayScrollPane.audioData = audioData;
+      if(audioData) {
+          let clip = new AudioClip(audioData);
           if (this.ap){
               this.ap.audioClip = clip;
                 this.playStartAction.disabled = false
@@ -245,10 +244,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   @Input()
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
-    let audioData:AudioBuffer|null=null;
+    let audioData:AudioDataHolder| null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.audioDataHolder.buffer;
+      audioData=audioClip.audioDataHolder;
       sel=audioClip.selection;
       if(this._audioClip) {
         this._audioClip.addSelectionObserver((ac) => {

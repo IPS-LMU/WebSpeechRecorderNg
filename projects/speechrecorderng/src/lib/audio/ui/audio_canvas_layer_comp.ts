@@ -3,6 +3,7 @@ import {Selection} from '../persistor'
 import { ElementRef, EventEmitter, HostListener, Input, Output, ViewChild, Directive } from "@angular/core";
 import {Marker} from "./common";
 import {Dimension, Rectangle} from "../../math/2d/geometry";
+import {AudioDataHolder} from "../audio_data_holder";
 
 
 export class ViewSelection{
@@ -23,32 +24,47 @@ export class ViewSelection{
 
 @Directive()
 export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponent {
-  protected _audioData: AudioBuffer|null=null;
+  //protected _audioData: AudioBuffer|null=null;
+  //protected _arrayAudioData: ArrayAudioBuffer|null=null;
+  protected _audioDataHolder:AudioDataHolder| null=null;
   protected _bgColor:string|null='white';
   protected _selectColor='rgba(0%,0%,100%,25%)';
+
+  private frameLength():number|null{
+    let frameLength = null;
+    // if (this._audioData && this._audioData.numberOfChannels > 0) {
+    //   let ch0 = this._audioData.getChannelData(0);
+    //   frameLength = ch0.length;
+    //
+    // }else if(this._arrayAudioData){
+    //   frameLength=this._arrayAudioData.frameLen;
+    // }
+
+    return frameLength;
+  }
 
   /**
    * Returns pixel position depending on current zoom setting.
    * @param framePos audio frame (sample) position
    */
   frameToXPixelPosition(framePos: number): number | null {
-      let pixelPos=null;
-      if (this._audioData && this._audioData.numberOfChannels > 0) {
-          let ch0 = this._audioData.getChannelData(0);
-          let frameLength = ch0.length;
-          let vw;
-          if(this.bounds) {
-              vw = this.bounds.dimension.width;
-          }
-          if (this.virtualDimension) {
-              vw = this.virtualDimension.width;
-          }
-          if(vw !== undefined) {
-              pixelPos = framePos * vw / frameLength;
-          }
+    let pixelPos=null;
+    let frameLength = this._audioDataHolder?.frameLen;
+
+    if(frameLength!==undefined) {
+      let vw;
+      if (this.bounds) {
+        vw = this.bounds.dimension.width;
       }
+      if (this.virtualDimension) {
+        vw = this.virtualDimension.width;
+      }
+      if (vw !== undefined) {
+        pixelPos = framePos * vw / frameLength;
+      }
+    }
     return pixelPos;
-}
+  }
 
   /**
    * Returns pixel position in view port (visible window of scroll pane).
@@ -64,33 +80,34 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
     }
   }
 
-    viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
-        let vpXramePos=null;
-        if (this._audioData && this._audioData.numberOfChannels > 0) {
-            let ch0 = this._audioData.getChannelData(0);
-            let frameLength = ch0.length;
-            let vw;
-            if (this.bounds) {
-                vw= this.bounds.dimension.width;
-            }
-            if (this.virtualDimension) {
-                vw = this.virtualDimension.width;
-            }
-            if(vw!== undefined) {
-                let xVirtualPixelPos = this.toXVirtualPixelPosition(xViewPortPixelPos)
-                let framesPerPixel = frameLength / vw;
-                let framePos = framesPerPixel * xVirtualPixelPos;
-                if (framePos < 0) {
-                    framePos = 0
-                }
-                if (framePos >= frameLength) {
-                    framePos = frameLength - 1
-                }
-                vpXramePos = Math.round(framePos);
-            }
+  viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
+    let vpXramePos=null;
+
+    let frameLength = this._audioDataHolder?.frameLen;
+
+    if(frameLength!==undefined) {
+      let vw;
+      if (this.bounds) {
+        vw= this.bounds.dimension.width;
+      }
+      if (this.virtualDimension) {
+        vw = this.virtualDimension.width;
+      }
+      if(vw!== undefined) {
+        let xVirtualPixelPos = this.toXVirtualPixelPosition(xViewPortPixelPos)
+        let framesPerPixel = frameLength / vw;
+        let framePos = framesPerPixel * xVirtualPixelPos;
+        if (framePos < 0) {
+          framePos = 0
         }
-        return vpXramePos;
+        if (framePos >= frameLength) {
+          framePos = frameLength - 1
+        }
+        vpXramePos = Math.round(framePos);
+      }
     }
+    return vpXramePos;
+  }
 
     layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
 
@@ -268,8 +285,8 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         if(viewSel) {
             let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
             let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            if(this._audioData && frameStart!=null && frameEnd!=null) {
-                ns = new Selection(this._audioData.sampleRate, frameStart, frameEnd);
+            if(this._audioDataHolder && frameStart!=null && frameEnd!=null) {
+                ns = new Selection(this._audioDataHolder.sampleRate, frameStart, frameEnd);
             }
         }
         this.selectingEventEmitter.emit(ns)
@@ -280,8 +297,8 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         if(viewSel) {
           let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
           let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            if(this._audioData && frameStart!=null && frameEnd!=null) {
-                ns = new Selection(this._audioData.sampleRate, frameStart, frameEnd);
+            if(this._audioDataHolder && frameStart!=null && frameEnd!=null) {
+                ns = new Selection(this._audioDataHolder.sampleRate, frameStart, frameEnd);
             }
         }
         this.selectedEventEmitter.emit(ns)
@@ -369,7 +386,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
 
                             g.stroke();
 
-                            if (this._audioData) {
+                            if (this._audioDataHolder) {
                                 g.font = '14px sans-serif';
                                 g.fillStyle = 'yellow';
                                 g.fillText(framePos.toString(), xViewPortPixelpos + 2, 50);

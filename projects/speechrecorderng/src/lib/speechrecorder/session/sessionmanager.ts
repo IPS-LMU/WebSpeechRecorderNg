@@ -77,7 +77,7 @@ export const enum Status {
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
-                                   [audioLoaded]="displayAudioClip?.audioDataHolder?.buffer!==null"
+                                   [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"

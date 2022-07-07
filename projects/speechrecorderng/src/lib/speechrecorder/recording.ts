@@ -34,7 +34,7 @@ export class RecordingFile {
     this.audioDataHolder=audioDataHolder
     if(audioDataHolder){
       this.frames=audioDataHolder.frameLen;
-      this.timeLength=audioDataHolder.timeLen;
+      this.timeLength=audioDataHolder.duration;
     }
     this.uuid=uuid;
   }
@@ -97,7 +97,7 @@ export class RecordingFile {
           rf.audioDataHolder=audioDataHolder;
           if(audioDataHolder) {
             rf.frames = audioDataHolder.frameLen;
-            rf.timeLength=audioDataHolder.timeLen;
+            rf.timeLength=audioDataHolder.duration;
           }
       }
 

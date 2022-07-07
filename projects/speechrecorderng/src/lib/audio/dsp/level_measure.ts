@@ -2,7 +2,7 @@ import {DSPUtils} from "../../dsp/utils";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Arrays, WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
-import {ArrayAudioBufferInputsStream} from "../array_audio_buffer";
+import {ArrayAudioBufferInputStream} from "../array_audio_buffer";
 
 export const MIN_DB_LEVEL = -40.0;
 
@@ -193,7 +193,7 @@ export class LevelMeasure {
 
   calcBufferLevelInfos(audioDataHolder:AudioDataHolder, bufferTimeLength: number): Promise<LevelInfos> {
     return new Promise<LevelInfos>((resolve)=>{
-      let chs = audioDataHolder.channelCount;
+      let chs = audioDataHolder.numberOfChannels;
       let bufferFrameLength=Math.round(audioDataHolder.sampleRate*bufferTimeLength);
       let ais=audioDataHolder.audioInputStream();
       let audioBuffers = new Array<Float32Array>(chs);

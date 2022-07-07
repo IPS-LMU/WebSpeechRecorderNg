@@ -9,6 +9,8 @@ import {AudioClipUIContainer} from '../ui/container'
 import {Action} from "../../action/action";
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip, Selection} from "../persistor";
+import {ArrayAudioBuffer} from "../array_audio_buffer";
+import {AudioDataHolder} from "../audio_data_holder";
 
 @Component({
 
@@ -157,19 +159,20 @@ export class AudioDisplayScrollPane {
       this.zoomSelectedAction.disabled=(s==null)
     }
 
-  set audioData(audioData: AudioBuffer | null) {
+  set audioData(audioData: AudioDataHolder | null) {
     this.ac.audioData=audioData;
       this.zoomOutAction.disabled=(!audioData)
       this.zoomInAction.disabled=(!audioData)
     }
 
+
   @Input()
   set audioClip(audioClip: AudioClip | null) {
 
-    let audioData:AudioBuffer|null=null;
+    let audioData:AudioDataHolder|null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.audioDataHolder.buffer;
+      audioData=audioClip.audioDataHolder;
       sel=audioClip.selection;
       audioClip.addSelectionObserver((clip)=>{
         this.zoomSelectedAction.disabled=(clip.selection==null)
