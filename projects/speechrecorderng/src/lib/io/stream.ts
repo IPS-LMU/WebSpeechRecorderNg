@@ -1,6 +1,81 @@
 export interface Float32ArrayInputStream{
   read(buffers: Array<Float32Array>): number;
+  skipFrames(n:number):void;
   close():void;
+}
+
+export class EditFloat32ArrayInputStream implements Float32ArrayInputStream{
+  private framePos=0;
+  private readFrames=0;
+  constructor(private _srcInputStream:Float32ArrayInputStream,private offset:number=0,private length?:number|undefined) {
+    if (this.offset<0){
+        throw Error('Parameter offset must be undefined or greater or equal zero.');
+    }
+    if (this.length!==undefined && this.length<0){
+      throw Error('Parameter length must be undefined or greater or equal zero.');
+    }
+  }
+
+  private skipToOffset(){
+    if(this.framePos==0 && this.offset>0){
+      this._srcInputStream.skipFrames(this.offset);
+      this.framePos+=this.offset;
+    }
+  }
+
+  read(buffers: Array<Float32Array>): number{
+    this.skipToOffset();
+    let read=0;
+    if(this.length===undefined){
+      read = this._srcInputStream.read(buffers);
+    }else {
+      if (buffers.length > 0) {
+        let bufsCh0 = buffers[0];
+        let bufsLen = bufsCh0.length;
+        let avail = this.length - this.readFrames;
+        if (avail > 0) {
+          if (avail > bufsLen) {
+            read = this._srcInputStream.read(buffers);
+          } else {
+            // temporary buffers required
+            let tmpBufs = new Array<Float32Array>(buffers.length);
+            for (let ch = 0; ch < buffers.length; ch++) {
+              tmpBufs[ch] = new Float32Array(avail);
+            }
+            read = this._srcInputStream.read(tmpBufs);
+            for (let ch = 0; ch < buffers.length; ch++) {
+              buffers[ch].set(tmpBufs[ch]);
+            }
+          }
+        }
+      }
+    }
+    this.readFrames+=read;
+    this.framePos+=read;
+    return read;
+  }
+
+  skipFrames(n:number):void{
+    this.skipToOffset();
+    if(this.length===undefined){
+      this._srcInputStream.skipFrames(n);
+    }else {
+      let avail = this.length - this.readFrames;
+      if (avail > 0) {
+        if (avail >= n) {
+          this._srcInputStream.skipFrames(n);
+          this.readFrames += n;
+          this.framePos += n;
+        } else {
+          throw Error('Tried to skip out of bounds.')
+        }
+      }
+    }
+  }
+
+  close():void{
+    this._srcInputStream.close();
+  }
 }
 
 export interface Float32ArrayOutStream {

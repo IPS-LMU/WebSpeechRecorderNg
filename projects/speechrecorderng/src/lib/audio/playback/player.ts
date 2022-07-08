@@ -166,6 +166,12 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
       get arrayAudioBuffer():ArrayAudioBuffer| null{
         return this._arrayAudioBuffer;
       }
+
+      _startSourceBuffer(){
+
+      }
+
+
         start() {
             if(!this._startAction.disabled && !this.running) {
                 this.context.resume();
@@ -236,38 +242,89 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
       startSelected() {
         if(!this._startAction.disabled && !this.running) {
           this.context.resume();
-          this.sourceBufferNode = this.context.createBufferSource();
+          if (this._audioBuffer) {
+            this.sourceBufferNode = this.context.createBufferSource();
+            this.sourceBufferNode.buffer = this._audioBuffer;
+            this.sourceBufferNode.connect(this.context.destination);
+            this.sourceBufferNode.onended = () => this.onended();
 
-          this.sourceBufferNode.buffer = this._audioBuffer;
-          this.sourceBufferNode.connect(this.context.destination);
-          this.sourceBufferNode.onended = () => this.onended();
+            this.playStartTime = this.context.currentTime;
+            this.running = true;
+            // unfortunately Web Audio API uses time values not frames
+            let ac = this._audioClip
+            let offset = 0
+            if (ac && ac.selection) {
+              let s = ac.selection;
+              let sr = ac.audioDataHolder.sampleRate;
+              offset = s.leftFrame / sr;
+              let stopPosInsecs = s.rightFrame / sr;
+              let dur = stopPosInsecs - offset
+              // TODO check valid values
+              this.sourceBufferNode.start(0, offset, dur)
 
-          this.playStartTime = this.context.currentTime;
-          this.running=true;
-          // unfortunately Web Audio API uses time values not frames
-          let ac=this._audioClip
-          let offset=0
-          if(ac && ac.selection){
-            let s=ac.selection;
-            let sr=ac.audioDataHolder.sampleRate;
-            offset = s.leftFrame / sr;
-            let stopPosInsecs = s.rightFrame / sr;
-            let dur = stopPosInsecs - offset
-            // TODO check valid values
-            this.sourceBufferNode.start(0, offset, dur)
-
-          }else {
-            this.sourceBufferNode.start();
-          }
-          this.playStartTime = this.context.currentTime-offset;
-          this._startAction.disabled = true;
-          this._startSelectionAction.disabled=true
-                this._stopAction.disabled = false;
-                //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
-                if (this.listener) {
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-                }
+            } else {
+              this.sourceBufferNode.start();
             }
+            this.playStartTime = this.context.currentTime - offset;
+            this._startAction.disabled = true;
+            this._startSelectionAction.disabled = true
+            this._stopAction.disabled = false;
+            //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
+            if (this.listener) {
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+            }
+          }else if(this._arrayAudioBuffer){
+            if(this._arrayAudioBuffer) {
+              ArrayAudioBufferSourceNode.instance(this.context).then((aabsn)=>{
+                this.sourceAudioWorkletNode=aabsn;
+                aabsn.onprocessorerror = (ev: Event) => {
+                  let msg = 'Unknwon error';
+                  if (ev instanceof ErrorEvent) {
+                    msg = ev.message;
+                  }
+                  console.error("Audio source worklet error: " + msg);
+                  if (this.listener) {
+                    // TODO
+                    // this.listener.error(msg);
+                    // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
+                  }
+                };
+                aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
+                aabsn.connect(this.context.destination); // this already starts playing
+                aabsn.onended = () => this.onended();
+
+                this.playStartTime = this.context.currentTime;
+                this.running = true;
+
+                let ac = this._audioClip
+                let offset = 0
+                if (ac && ac.selection) {
+                  let s = ac.selection;
+                  let sr = ac.audioDataHolder.sampleRate;
+                  offset = s.leftFrame / sr;
+                  let stopPosInsecs = s.rightFrame / sr;
+                  let dur = stopPosInsecs - offset
+                  // TODO check valid values
+                  aabsn.start(0, offset, dur)
+
+                } else {
+                  aabsn.start();
+                }
+                this.playStartTime = this.context.currentTime - offset;
+                this._startAction.disabled = true;
+                this._startSelectionAction.disabled=true
+                this._stopAction.disabled = false;
+
+                if (this.listener) {
+                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                }
+
+              }).catch((error: any)=>{
+                console.log('Could not add module '+error);
+              });
+            }
+          }
+        }
         }
 
         stop(){

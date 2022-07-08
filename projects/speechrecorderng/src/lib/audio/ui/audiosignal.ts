@@ -2,8 +2,7 @@ import {Component, ViewChild, ElementRef} from '@angular/core';
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
-import {ArrayAudioBufferInputStream} from "../array_audio_buffer";
-import {Float32ArrayChunkerOutStream, Float32ArrayInputStream} from "../../io/stream";
+import { Float32ArrayInputStream} from "../../io/stream";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -309,8 +308,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               for (let ch = 0; ch < chs; ch++) {
                 arrAbBuf[ch] = new Float32Array(framesPerPixel);
               }
+              let leftFramePos=Math.floor(frameLength*renderPos/w);
               let auOffset=0; // should always be 0
-              let read=arrayAudioBuffer.frames(0,framesPerPixel,arrAbBuf);
+              let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
               let ad=new Float32Array(chs*framesPerPixel);
               for (let ch = 0; ch < chs; ch++) {
                 ad.set(arrAbBuf[ch],ch*framesPerPixel);
