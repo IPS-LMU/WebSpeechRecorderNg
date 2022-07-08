@@ -1,5 +1,6 @@
-import {ArrayAudioBuffer, ArrayAudioBufferInputStream} from "./array_audio_buffer";
+import {ArrayAudioBuffer} from "./array_audio_buffer";
 import {Float32ArrayInputStream} from "../io/stream";
+import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 
 export class AudioDataHolder{
   get duration(): number {
@@ -51,7 +52,7 @@ export class AudioDataHolder{
 
   audioInputStream():Float32ArrayInputStream{
     if(this._buffer){
-      return new AudioBufferInputsStream(this._buffer);
+      return new AudioBufferInputStream(this._buffer);
     }
     if(this._arrayBuffer){
       return new ArrayAudioBufferInputStream(this._arrayBuffer);
@@ -99,14 +100,17 @@ export class AudioDataHolder{
 }
 
 
-export class AudioBufferInputsStream implements Float32ArrayInputStream{
+export class AudioBufferInputStream implements Float32ArrayInputStream{
   private framePos=0;
 
   constructor(private audioBuffer:AudioBuffer) {
-
   }
 
   close(): void {
+  }
+
+  skipFrames(n: number) {
+    this.framePos+=n;
   }
 
   read(buffers: Array<Float32Array>): number {
