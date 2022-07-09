@@ -22,6 +22,19 @@
           {
             "promptItems": [
               {
+                "itemcode": "I0",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
                 "type": "nonrecording",
                 "recinstructions": {
                   "recinstructions": "Please answer:"
