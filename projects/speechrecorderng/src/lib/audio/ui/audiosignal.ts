@@ -116,7 +116,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     addEventListener('message', ({ data }) => {
 
       let audioData = data.audioData; // audio data part required to render view port
-      let auOffset=data.audioDataOffset;
+      let auOffset:number=data.audioDataOffset;
       let l= data.l; // left pixel position of view port
       let w = data.w;  // width of viewport
       let vw = data.vw; //  total width of (virtual) audio view (not viewport width)
@@ -153,7 +153,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               if(bufPos>=0 && bufPos<audioData.length){
                 a=audioData[bufPos];
               }
-              //console.debug("W: pixelFramePos: "+pixelFramePos+", framePos: "+framePos+", bufPos: "+bufPos+", audioData.length: "+audioData.length+", a: "+a);
+              //console.debug("W: pixelFramePos: "+pixelFramePos+", framePos: "+framePos+", auOffset: "+auOffset+", bufPos: "+bufPos+", audioData.length: "+audioData.length+", a: "+a);
               if (a < pMin) {
                 pMin = a;
               }
@@ -255,7 +255,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                 }
               }
               renderPos++;
-              let leftFramePos=Math.floor(frameLength*renderPos/w);
+              let leftFramePos=Math.floor(frameLength*renderPos/vw);
               let read = arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
               //console.debug("First read frame: "+arrAbBuf[0][0]);
               let ad = new Float32Array(chs * me.data.framesPerPixel);
@@ -309,7 +309,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                 arrAbBuf[ch] = new Float32Array(framesPerPixel);
               }
               let leftFramePos=Math.floor(frameLength*renderPos/w);
-              let auOffset=0; // should always be 0
+              let auOffset=leftFramePos; // should always be 0
               let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
               let ad=new Float32Array(chs*framesPerPixel);
               for (let ch = 0; ch < chs; ch++) {
