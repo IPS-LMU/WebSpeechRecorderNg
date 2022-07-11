@@ -1,4 +1,5 @@
 import {Float32ArrayInputStream} from "../io/stream";
+import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 
 export class ArrayAudioBuffer {
 
@@ -15,6 +16,35 @@ export class ArrayAudioBuffer {
       }
     }
   }
+
+  static fromAudioBuffer(audioBuffer:AudioBuffer,chunkFrameSize=8192):ArrayAudioBuffer{
+    let aab:ArrayAudioBuffer;
+    let chs=audioBuffer.numberOfChannels;
+    let frameLength=audioBuffer.length;
+    //let chunksSize=Math.ceil(frameLength/chunkFrameSize);
+    let framePos=0;
+    let data=new Array<Array<Float32Array>>(chs);
+    for(let ch=0;ch<chs;ch++) {
+      data[ch]=new Array<Float32Array>();
+    }
+    let toCopy=frameLength-framePos;
+      while(toCopy>0){
+
+        let toCopyChunk=chunkFrameSize;
+        if(toCopyChunk>toCopy){
+          // last chunk, the rest
+          toCopyChunk=toCopy;
+        }
+        for(let ch=0;ch<chs;ch++) {
+          data[ch].push(audioBuffer.getChannelData(ch).slice(framePos, framePos + toCopyChunk));
+        }
+        framePos+=toCopyChunk;
+        toCopy-=toCopyChunk;
+      }
+    aab=new ArrayAudioBuffer(chs,audioBuffer.sampleRate,data);
+    return aab;
+  }
+
 
   get channelCount(): number {
     return this._channelCount;

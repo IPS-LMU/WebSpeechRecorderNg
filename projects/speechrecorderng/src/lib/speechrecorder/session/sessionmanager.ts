@@ -593,7 +593,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           next: (ab) => {
             let fabDh = null;
             if (ab && this._displayRecFile && this.items) {
-              fabDh = new AudioDataHolder(ab);
+              if(SessionManager.FORCE_ARRRAY_AUDIO_BUFFER){
+                let aab=ArrayAudioBuffer.fromAudioBuffer(ab);
+                fabDh = new AudioDataHolder(null,aab);
+              }else {
+                fabDh = new AudioDataHolder(ab);
+              }
               this.items.setSprRecFileAudioData(this._displayRecFile,fabDh);
             } else {
               this.statusMsg = 'Recording file could not be loaded.'
