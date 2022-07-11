@@ -72,7 +72,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
 
         let output=outputs[0];
         let chs=output.length;
-        //console.debug("Audio source worklet: Output channels: "+chs);
+        console.debug("Audio source worklet: Output channels: "+chs);
         if(chs>0) {
 
           let outCh0 = output[0];
@@ -108,7 +108,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
                 break;
               }
             }
-            //console.debug("outChLen: "+outChLen+", copied: "+copied+", current avail: "+this.currentAudioBufferAvail);
+            console.debug("outChLen: "+outChLen+", copied: "+copied+", current avail: "+this.currentAudioBufferAvail);
             let toCopy=outChLen-copied;
             if(toCopy>this.currentAudioBufferAvail){
               toCopy=this.currentAudioBufferAvail;

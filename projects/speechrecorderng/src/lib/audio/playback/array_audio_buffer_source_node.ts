@@ -192,12 +192,12 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
     return new Promise((resolve, reject) => {
       if (ArrayAudioBufferSourceNode.moduleLoaded) {
         let obj = new ArrayAudioBufferSourceNode(context);
-        resolve.call(this, obj);
+        resolve.call(self, obj);
       } else {
         context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
-          ArrayAudioBufferSourceNode.moduleLoaded = true;
-          let obj = new ArrayAudioBufferSourceNode(context);
-          resolve.call(this, obj);
+            ArrayAudioBufferSourceNode.moduleLoaded = true;
+            let obj = new ArrayAudioBufferSourceNode(context);
+            resolve.call(self, obj);
         }).catch((reason) => {
           reject.call(reason);
         });
