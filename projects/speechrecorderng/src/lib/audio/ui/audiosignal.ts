@@ -121,13 +121,14 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       let w = data.w;  // width of viewport
       let vw = data.vw; //  total width of (virtual) audio view (not viewport width)
       let chs = data.chs; // number of channels
-      let frameLength = data.frameLength;  // frame length auf audio data part required for view port
+      let dataFrameLength = data.audioDataFrameLength;  // frame length of audio data part required for view port
+      let frameLength = data.frameLength;  // total frame length (of audio clip)
 
       //console.debug("W: left: "+l+", w:"+w+", vw: "+vw+", chs: "+chs+", frameLength: "+frameLength);
 
       let psMinMax= new Float32Array(0);
 
-      if(audioData && w>=0 && vw>0) {
+      if(audioData && audioData.length>0 && w>=0 && vw>0) {
 
         let framesPerPixel = frameLength / vw;
 
@@ -136,9 +137,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         let arrLen = pointsLen * 2;
         psMinMax = new Float32Array(arrLen);
         let chFramePos = 0;
+        let chFrameLength=audioData.length/chs;
         for (let ch = 0; ch < chs; ch++) {
 
-          chFramePos = ch * frameLength;
+          chFramePos = ch * chFrameLength;
           for (let pii = 0; pii < w; pii++) {
             let virtPii=l+pii;
             let pMin = Infinity;
@@ -150,15 +152,16 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               let framePos = pixelFramePos + ai;
               let a = 0;
               let bufPos=framePos-auOffset;
+              //let bufPos=framePos;
               if(bufPos>=0 && bufPos<audioData.length){
                 a=audioData[bufPos];
-              }
-              //console.debug("W: ai: "+ai+", pixelFramePos: "+pixelFramePos+", framePos: "+framePos+", auOffset: "+auOffset+", bufPos: "+bufPos+", audioData.length: "+audioData.length+", a: "+a);
-              if (a < pMin) {
-                pMin = a;
-              }
-              if (a > pMax) {
-                pMax = a;
+                //console.debug("W: ch: "+ch+", pixelFramePos: "+pixelFramePos+", framePos: "+framePos+", auOffset: "+auOffset+", bufPos: "+bufPos+", audioData.length: "+audioData.length+", a: "+a);
+                if (a < pMin) {
+                  pMin = a;
+                }
+                if (a > pMax) {
+                  pMax = a;
+                }
               }
             }
 
@@ -244,18 +247,23 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               }
               this.worker = null;
             }else if(arrayAudioBuffer && arrAbBuf){
+              let rw=me.data.w;
+              let rPointsLen=chs*rw;
+              let pointsLen=chs*w;
               for (let ch = 0; ch < chs; ch++) {
                 if(psMinMax){
+                  let rBasePos=ch*rw;
                   let basePos=ch*w;
-                  let pointsLen=chs*w;
+                  let rPosMin =rBasePos;
+                  let rPosMax=rPointsLen+rPosMin;
                   let posMin =basePos+(renderPos-leftPos);
                   let posMax=pointsLen+posMin;
 
-                  psMinMax[posMin]=me.data.psMinMax[basePos];
+                  psMinMax[posMin]=me.data.psMinMax[rPosMin];
                   //console.debug('Min: ('+pos+'): '+me.data.psMinMax[0]);
-                  psMinMax[posMax]=me.data.psMinMax[basePos+1];
+                  psMinMax[posMax]=me.data.psMinMax[rPosMax];
                  // console.debug('Max: ('+(pointsLen+pos)+'): '+me.data.psMinMax[1]);
-                 // console.debug("psMinMax["+posMin+"]="+me.data.psMinMax[basePos]+",psMinMax["+posMax+"]="+me.data.psMinMax[basePos+1]);
+                  //console.debug("psMinMax["+posMin+"]="+me.data.psMinMax[rPosMin]+"  (rPosMin="+rPosMin+"),psMinMax["+posMax+"]="+me.data.psMinMax[rPosMax]);
                 }
               }
               let eod=false;
@@ -279,7 +287,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               if (this.worker) {
                 this.worker.postMessage({
                   l: renderPos,
-                  w: 1,
+                  w: me.data.w,
                   h:h,
                   vw: vw,
                   chs: chs,
@@ -315,6 +323,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
           if(w>0) {
 
             if (framesPerPixel > 0) {
+              let rw=1;
               //ais = new ArrayAudioBufferInputStream(arrayAudioBuffer);
               arrAbBuf = new Array<Float32Array>(chs);
               psMinMax=new Float32Array(chs*w*2);
@@ -331,7 +340,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
               this.worker.postMessage({
                 l: renderPos,
-                w: 1,
+                w: rw,
                 vw: vw,
                 chs: chs,
                 frameLength: frameLength,
