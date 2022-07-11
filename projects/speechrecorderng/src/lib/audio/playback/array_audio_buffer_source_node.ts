@@ -194,6 +194,8 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
         let obj = new ArrayAudioBufferSourceNode(context);
         resolve.call(self, obj);
       } else {
+        let audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
+        let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
         context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
             ArrayAudioBufferSourceNode.moduleLoaded = true;
             let obj = new ArrayAudioBufferSourceNode(context);
@@ -264,6 +266,7 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
   set arrayAudioBuffer(value: ArrayAudioBuffer | null) {
     this._arrayAudioBuffer = value;
     if (this._arrayAudioBuffer?.channelCount) {
+
       this.channelCount = this._arrayAudioBuffer?.channelCount;
       //this.sourceArrayPos = 0;
       this.bufferFillFrames = this._arrayAudioBuffer.sampleRate * this._bufferFillSeconds;
