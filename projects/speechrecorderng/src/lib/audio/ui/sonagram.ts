@@ -450,12 +450,17 @@ export class Sonagram extends AudioCanvasLayerComponent {
         }
 
         self.onmessage = function (msg:MessageEvent) {
-
+            //console.debug("Sonagram render thread");
             let l = msg.data.l;
             let w = msg.data.w;
             let h = msg.data.h;
             let vw = msg.data.vw;
             let chs = msg.data.chs;
+            let audioDataOffset=0;
+            let adOffset=msg.data.audioDataOffset;
+            if(adOffset){
+              audioDataOffset=adOffset;
+            }
             let audioData = new Array(chs);
             for (let ch = 0; ch < chs; ch++) {
                 audioData[ch] = new Float32Array(msg.data['audioData'][ch]);
@@ -474,10 +479,11 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
             let imgData = new Uint8ClampedArray(arrSize);
             //console.log("Render method:");
-            if (audioData && arrSize>0) {
+          console.debug("Created imgData arrSize: "+arrSize+" ", w, "x", h);
+            if (arrSize>0) {
                 let chH = Math.round(h / chs);
                 let framesPerPixel = frameLength / vw;
-                //console.log("Render: ", w, "x", h);
+                console.debug("Render: ", w, "x", h);
 
                 let b = new Float32Array(dftSize);
                 let sona = new Array(chs);
@@ -504,7 +510,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
                             // Set audio sample if available
                             if(samplePos>=0 && samplePos < chDataLen) {
-                              chDat = audioData[ch][samplePos];
+                              chDat = audioData[ch][samplePos-audioDataOffset];
                             }
 
                             // apply Window
@@ -575,7 +581,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     }
                 }
             }
-            postMessage({imgData: imgData, l: l, w: msg.data.w, h: msg.data.h, vw: vw}, [imgData.buffer]);
+            console.debug("Render thread post message imgData: "+imgData.length)
+            postMessage({imgData: imgData, l: l, w: msg.data.w, h: msg.data.h, vw: vw,terminate:msg.data.terminate}, [imgData.buffer]);
         }
     }
 
@@ -618,9 +625,74 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
 
                 let chs = this._audioDataHolder.numberOfChannels;
+              let vw=Math.round(this.virtualDimension.width);
 
                 let frameLength = this._audioDataHolder.frameLen;
+              let framesPerPixel = Math.ceil(frameLength / vw);
+              let leftPos= Math.round(this.bounds.position.left);
+              let renderPos=leftPos;
                 let audioBuffer=this._audioDataHolder.buffer;
+                let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
+              let arrAbBuf:Float32Array[]|null;
+              let imgData:Uint8ClampedArray;
+              if (this.worker) {
+                this.worker.onmessage = (me) => {
+                  if(true===me.data.terminate){
+                    let drawImgData;
+                    if(imgData){
+                      drawImgData=imgData;
+                    }else{
+                      drawImgData=me.data.imgData;
+                    }
+                    this.drawRendered(w, h, drawImgData);
+                    if (this.worker) {
+                      this.worker.terminate();
+                    }
+                    this.worker = null;
+                  }else {
+                    // set rendered vertical values of one pixel of timescale
+                    let dataPos = renderPos * h * 4;
+                    let lastPos=dataPos+me.data.imgData.length;
+                    if(lastPos<imgData.length) {
+                      imgData.set(me.data.imgData, dataPos);
+                    }else{
+                      console.error("Out of range: "+dataPos+"+"+me.data.imgData.length+">="+imgData.length);
+                    }
+                    if(arrayAudioBuffer && arrAbBuf && this.worker) {
+                      // proceed with next pixel
+
+                      renderPos++;
+                      let ada: Float32Array;
+
+                      let leftFramePos = Math.floor(frameLength * renderPos / vw);
+                      let terminate=renderPos >= leftPos + w;
+                      if (!terminate) {
+                        let read = arrayAudioBuffer.frames(leftFramePos, framesPerPixel, arrAbBuf);
+                        //console.debug("First read frame: "+arrAbBuf[0][0]);
+                        ada = new Float32Array(chs * framesPerPixel);
+                        for (let ch = 0; ch < chs; ch++) {
+                          ada.set(arrAbBuf[ch], ch * framesPerPixel);
+                        }
+
+                      } else {
+                        ada = new Float32Array();
+                      }
+                      this.worker.postMessage({
+                        audioData: ada,
+                        l: renderPos,
+                        w: me.data.w,
+                        h: h,
+                        vw: Math.round(this.virtualDimension.width),
+                        chs: chs,
+                        frameLength: frameLength,
+                        dftSize: this.dftSize,
+                        terminate:terminate
+                      }, [ada.buffer]);
+                    }
+
+                  }
+                }
+              }
                 if(audioBuffer) {
                   let ada = new Array<ArrayBuffer>(chs);
                   for (let ch = 0; ch < chs; ch++) {
@@ -628,35 +700,66 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     ada[ch] = audioBuffer.getChannelData(ch).buffer.slice(0);
                   }
                   let start = Date.now();
-                  if (this.worker) {
-                    this.worker.onmessage = (me) => {
-                      this.drawRendered(me);
-                      if (this.worker) {
-                        this.worker.terminate();
-                      }
-                      this.worker = null;
-                    }
-                  }
+
                   if (this.markerCanvas) {
                     let g = this.markerCanvas.getContext("2d");
                     if (g) {
                       g.fillText("Rendering...", 10, 20);
                     }
 
-                  }
-                  this.worker.postMessage({
+                }
+                this.worker.postMessage({
                     audioData: ada,
-                    l: Math.round(this.bounds.position.left),
+                    l: leftPos,
                     w: w,
                     h: h,
                     vw: Math.round(this.virtualDimension.width),
                     chs: chs,
                     frameLength: frameLength,
-                    dftSize: this.dftSize
+                    dftSize: this.dftSize,
+                    terminate:true
                   }, ada);
-                }else{
-                  // TODO Render array audio data
+                }else if(arrayAudioBuffer){
+                  if(w>0) {
+
+                    if (framesPerPixel > 0) {
+                      let arrSize=w*h*4;
+                      if(arrSize<0){
+                        arrSize=0
+                      }
+                      imgData=new Uint8ClampedArray(arrSize);
+
+
+                      let rw=1;
+                      //ais = new ArrayAudioBufferInputStream(arrayAudioBuffer);
+                      arrAbBuf = new Array<Float32Array>(chs);
+
+                      for (let ch = 0; ch < chs; ch++) {
+                        arrAbBuf[ch] = new Float32Array(framesPerPixel);
+                      }
+                      let leftFramePos=Math.floor(frameLength*renderPos/vw);
+                      let auOffset=leftFramePos; // should always be 0
+                      let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
+                      let ad=new Float32Array(chs*framesPerPixel);
+                      for (let ch = 0; ch < chs; ch++) {
+                        ad.set(arrAbBuf[ch],ch*framesPerPixel);
+                      }
+
+                      this.worker.postMessage({
+                        l: renderPos,
+                        w: rw,
+                        h: h,
+                        vw: vw,
+                        chs: chs,
+                        frameLength: frameLength,
+                        audioData: ad,
+                        audioDataOffset:auOffset,
+                        terminate:(renderPos>=leftPos+w)
+                      }, [ad.buffer]);
+                    }
+                  }
                 }
+
             } else {
                 let g = this.sonagramCanvas.getContext("2d");
                 if (g) {
@@ -666,16 +769,16 @@ export class Sonagram extends AudioCanvasLayerComponent {
         }
     }
 
-    drawRendered(me: MessageEvent) {
+    drawRendered(w:number,h:number,imgData:Uint8ClampedArray) {
         if (this.sonagramCanvas) {
 
-            this.sonagramCanvas.width = me.data.w;
-            this.sonagramCanvas.height = me.data.h;
+            this.sonagramCanvas.width = w;
+            this.sonagramCanvas.height = h;
             let g = this.sonagramCanvas.getContext("2d");
             if (g) {
-                let imgDataArr: Uint8ClampedArray = me.data.imgData;
-                if (me.data.w > 0 && me.data.h > 0) {
-                    let imgData = g.createImageData(me.data.w, me.data.h);
+                let imgDataArr: Uint8ClampedArray = imgData;
+                if (w > 0 && h > 0) {
+                    let imgData = g.createImageData(w, h);
                     imgData.data.set(imgDataArr);
                     g.putImageData(imgData, 0, 0);
                 }
@@ -706,6 +809,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
         let framesPerPixel = frameLength / w;
         let y = 0;
         let audioBuffer=this._audioDataHolder.buffer;
+        let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
         if(audioBuffer) {
           let b = new Float32Array(this.dftSize)
 
@@ -785,6 +889,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
           }
           this.drawPlayPosition();
+        }else if(arrayAudioBuffer){
+            throw Error("Redraw with array audio buffer not supported.")
         }
       }
     }
