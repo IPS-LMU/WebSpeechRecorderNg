@@ -461,6 +461,11 @@ export class Sonagram extends AudioCanvasLayerComponent {
             if(adOffset){
               audioDataOffset=adOffset;
             }
+           let maxPsd = null;
+            if(msg.data.maxPsd!==undefined){
+              maxPsd=msg.data.maxPsd;
+            }
+
             let audioData = new Array(chs);
             for (let ch = 0; ch < chs; ch++) {
                 audioData[ch] = new Float32Array(msg.data['audioData'][ch]);
@@ -480,7 +485,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
             let imgData = new Uint8ClampedArray(arrSize);
             //console.log("Render method:");
           console.debug("Created imgData arrSize: "+arrSize+" ", w, "x", h);
+          let calcMaxPsd=-Infinity;
             if (arrSize>0) {
+
                 let chH = Math.round(h / chs);
                 let framesPerPixel = frameLength / vw;
                 console.debug("Render: ", w, "x", h);
@@ -488,7 +495,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 let b = new Float32Array(dftSize);
                 let sona = new Array(chs);
 
-                let maxPsd = -Infinity;
+
                 let p = 0;
                 for (let ch = 0; ch < chs; ch++) {
                     p = ch * frameLength;
@@ -509,8 +516,12 @@ export class Sonagram extends AudioCanvasLayerComponent {
                             let chDat=0;
 
                             // Set audio sample if available
-                            if(samplePos>=0 && samplePos < chDataLen) {
-                              chDat = audioData[ch][samplePos-audioDataOffset];
+                            let adp=samplePos-audioDataOffset;
+                            if(adp>=0 && adp < chDataLen) {
+                              chDat = audioData[ch][adp];
+                              //console.debug("Audio data: "+chDat);
+                            }else{
+                              console.debug("Sample buf pos oob: adp: "+adp+", chDataLen: "+chDataLen+", samplePos: "+samplePos+", i: "+i);
                             }
 
                             // apply Window
@@ -522,67 +533,82 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         // Get maximum value of spectral energy
                         for (let s = 0; s < dftBands; s++) {
                             let psd = (2 * Math.pow(spectr[s], 2)) / dftBands;
-                            if (psd > maxPsd) {
-                                maxPsd = psd;
+                            if (psd > calcMaxPsd) {
+                                calcMaxPsd = psd;
                             }
                         }
                         // Set render model data for this pixel
                         sona[ch][pii] = spectr;
                     }
                 }
-                //maxPsd = (2 * Math.pow(max, 2)) / dftBands;
 
+                if(!msg.data.norender) {
+                  if(!maxPsd){
+                    maxPsd=calcMaxPsd;
+                  }
                 for (let ch = 0; ch < chs; ch++) {
 
-                    for (let pii = 0; pii < w; pii++) {
-                        let allBlack = true;
-                        for (let y = 0; y < chH; y++) {
-                            let freqIdx = Math.round(y * dftBands / chH);
-                            // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
-                            // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
-                            let val = sona[ch][pii][freqIdx];
-                            let psd = (2 * Math.pow(val, 2)) / dftBands;
-                            // Calculate logarithmic value
-                            //let psdLog = ips.dsp.DSPUtils.toLevelInDB(psd / maxPsd);
-                            let linearLevel = psd / maxPsd;
-                            let psdLog = 10 * Math.log(linearLevel) / Math.log(10);
-                            // Fixed dynamic Range value of 70dB for now
-                            let dynRangeInDb = 70;
-                            let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
+                  for (let pii = 0; pii < w; pii++) {
+                    let allBlack = true;
+                    for (let y = 0; y < chH; y++) {
+                      let freqIdx = Math.round(y * dftBands / chH);
+                      // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
+                      // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
+                      let val = sona[ch][pii][freqIdx];
+                      let psd = (2 * Math.pow(val, 2)) / dftBands;
+                      // Calculate logarithmic value
+                      //let psdLog = ips.dsp.DSPUtils.toLevelInDB(psd / maxPsd);
+                      let linearLevel = psd / maxPsd;
+                      let psdLog = 10 * Math.log(linearLevel) / Math.log(10);
+                      // Fixed dynamic Range value of 70dB for now
+                      let dynRangeInDb = 70;
+                      let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
 
-                            // are the following checks necessary for clamped array ?
-                            if (scaledVal > 1.0)
-                                scaledVal = 1;
-                            if (scaledVal < 0.0) {
-                                scaledVal = 0;
-                            }
-                            let rgbVal = Math.round(255 * scaledVal);
-                            if (rgbVal < 0) {
-                                //							System.out.println("Neg RGB val: "+rgbVal);
-                                rgbVal = 0;
-                            }
-                            if (rgbVal > 255) {
-                                rgbVal = 255;
-                            }
-                            rgbVal = 255 - rgbVal;
-                            if (rgbVal > 0) {
-                                allBlack = false;
-                            }
-                            let py = chH - y;
-                            let dataPos = ((((ch * chH) + py) * w) + pii) * 4;
-                            imgData[dataPos + 0] = rgbVal; //R
-                            imgData[dataPos + 1] = rgbVal; //G
-                            imgData[dataPos + 2] = rgbVal; //B
-                            imgData[dataPos + 3] = 255; //A (alpha: fully opaque)
-                        }
-                        // if (allBlack) {
-                        //   console.log("Black: ", pii, " ", ch);
-                        // }
+                      // are the following checks necessary for clamped array ?
+                      if (scaledVal > 1.0)
+                        scaledVal = 1;
+                      if (scaledVal < 0.0) {
+                        scaledVal = 0;
+                      }
+                      let rgbVal = Math.round(255 * scaledVal);
+                      if (rgbVal < 0) {
+                        //							System.out.println("Neg RGB val: "+rgbVal);
+                        rgbVal = 0;
+                      }
+                      if (rgbVal > 255) {
+                        rgbVal = 255;
+                      }
+                      rgbVal = 255 - rgbVal;
+                      if (rgbVal > 0) {
+                        allBlack = false;
+                      }
+                      let py = chH - y;
+                      let dataPos = ((((ch * chH) + py) * w) + pii) * 4;
+                      imgData[dataPos + 0] = rgbVal; //R
+                      imgData[dataPos + 1] = rgbVal; //G
+                      imgData[dataPos + 2] = rgbVal; //B
+                      imgData[dataPos + 3] = 255; //A (alpha: fully opaque)
+                      //console.debug("Rendered: py: "+py+", rgbval: "+rgbVal);
+                      // example 1x1, 2chs
+                      //  ch0x0y0R,ch0x0y0G,ch0x0y0B,ch0x0y0A,
+                      //  ch0x1y0R,ch0x1y0G,ch0x1y0B,ch0x1y0A,
+                      //  ch0x0y0R,ch0x0y0G,ch0x0y0B,ch0x0y0A,
+                      //  ch0x1y1R,ch0x1y1G,ch0x1y1B,ch0x1y1A,
+
+                      //  ch1x0y0R,ch1x0y0G,ch1x0y0B,ch1x0y0A,
+                      //  ch1x1y0R,ch1x1y0G,ch1x1y0B,ch1x1y0A,
+                      //  ch1x0y0R,ch1x0y0G,ch1x0y0B,ch1x0y0A,
+                      //  ch1x1y1R,ch1x1y1G,ch1x1y1B,ch1x1y1A
                     }
+                    // if (allBlack) {
+                    //   console.log("Black: ", pii, " ", ch);
+                    // }
+                  }
+                }
                 }
             }
-            console.debug("Render thread post message imgData: "+imgData.length)
-            postMessage({imgData: imgData, l: l, w: msg.data.w, h: msg.data.h, vw: vw,terminate:msg.data.terminate}, [imgData.buffer]);
+            //console.debug("Render thread post message imgData: "+imgData.length)
+            postMessage({imgData: imgData, l: l, w: msg.data.w, h: msg.data.h, vw: vw,maxPsd:calcMaxPsd,terminate:msg.data.terminate}, [imgData.buffer]);
         }
     }
 
@@ -635,6 +661,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
                 let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
               let arrAbBuf:Float32Array[]|null;
               let imgData:Uint8ClampedArray;
+              let maxPsd=-Infinity;
+              let norender=true;
+
               if (this.worker) {
                 this.worker.onmessage = (me) => {
                   if(true===me.data.terminate){
@@ -650,35 +679,84 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     }
                     this.worker = null;
                   }else {
+
                     // set rendered vertical values of one pixel of timescale
-                    let dataPos = renderPos * h * 4;
-                    let lastPos=dataPos+me.data.imgData.length;
-                    if(lastPos<imgData.length) {
-                      imgData.set(me.data.imgData, dataPos);
+                    //let dataPos = renderPos * h * 4;
+                    if(norender) {
+                      if(me.data.maxPsd>maxPsd){
+                        maxPsd=me.data.maxPsd;
+                      }
                     }else{
-                      console.error("Out of range: "+dataPos+"+"+me.data.imgData.length+">="+imgData.length);
+                      let chH = Math.round(h / chs);
+                      for (let ch = 0; ch < chs; ch++) {
+                        for (let y = 0; y < chH; y++) {
+                          let py = chH - y;
+                          let dataPos = ((((ch * chH) + py) * w) + renderPos) * 4;
+                          let mePos = ((ch * chH) + py) * 4;
+                          //let lastPos = dataPos + me.data.imgData.length;
+                          //if (lastPos < imgData.length) {
+                          // set one pixel
+
+                          imgData[dataPos] = me.data.imgData[mePos];
+                          imgData[dataPos + 1] = me.data.imgData[mePos + 1];
+                          imgData[dataPos + 2] = me.data.imgData[mePos + 2];
+                          imgData[dataPos + 3] = me.data.imgData[mePos + 3];
+                          //} else {
+                          //console.error("Out of range: " + dataPos + "+" + me.data.imgData.length + ">=" + imgData.length);
+                          // }
+                        }
+                      }
                     }
                     if(arrayAudioBuffer && arrAbBuf && this.worker) {
                       // proceed with next pixel
-
                       renderPos++;
-                      let ada: Float32Array;
 
-                      let leftFramePos = Math.floor(frameLength * renderPos / vw);
-                      let terminate=renderPos >= leftPos + w;
+                      let terminate=false;
+                      let windowEnd=renderPos >= leftPos + w;
+                      if(windowEnd){
+                        if(norender) {
+                          // phase two: rendering
+                          norender = false;
+                          // start from beginning
+                          renderPos=leftPos;
+                        }else {
+                          // terminate render phase
+                          terminate=true;
+                        }
+                      }
+
+
+                      let leftFramePos = Math.floor(frameLength * renderPos / vw)-this.dftSize/2;
+                      if(leftFramePos<0){
+                        leftFramePos=0;
+                      }
+                      let ada = new Array<ArrayBuffer>(chs);
+
+
+
                       if (!terminate) {
-                        let read = arrayAudioBuffer.frames(leftFramePos, framesPerPixel, arrAbBuf);
+                        let read = arrayAudioBuffer.frames(leftFramePos, this.dftSize, arrAbBuf);
                         //console.debug("First read frame: "+arrAbBuf[0][0]);
-                        ada = new Float32Array(chs * framesPerPixel);
+                        // ada = new Float32Array(chs * this.dftSize);
+                        // for (let ch = 0; ch < chs; ch++) {
+                        //   ada.set(arrAbBuf[ch], ch * this.dftSize);
+                        // }
+
                         for (let ch = 0; ch < chs; ch++) {
-                          ada.set(arrAbBuf[ch], ch * framesPerPixel);
+                          // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                          ada[ch] = arrAbBuf[ch].buffer.slice(0);
                         }
 
                       } else {
-                        ada = new Float32Array();
+                        for (let ch = 0; ch < chs; ch++) {
+                          ada[ch] = new ArrayBuffer(0);
+                        }
+
                       }
+
                       this.worker.postMessage({
                         audioData: ada,
+                        audioDataOffset:leftFramePos,
                         l: renderPos,
                         w: me.data.w,
                         h: h,
@@ -686,8 +764,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         chs: chs,
                         frameLength: frameLength,
                         dftSize: this.dftSize,
+                        maxPsd:maxPsd,
+                        norender:norender,
                         terminate:terminate
-                      }, [ada.buffer]);
+                      }, ada);
                     }
 
                   }
@@ -735,14 +815,15 @@ export class Sonagram extends AudioCanvasLayerComponent {
                       arrAbBuf = new Array<Float32Array>(chs);
 
                       for (let ch = 0; ch < chs; ch++) {
-                        arrAbBuf[ch] = new Float32Array(framesPerPixel);
+                        arrAbBuf[ch] = new Float32Array(this.dftSize);
                       }
                       let leftFramePos=Math.floor(frameLength*renderPos/vw);
                       let auOffset=leftFramePos; // should always be 0
-                      let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
-                      let ad=new Float32Array(chs*framesPerPixel);
+                      // TODO not shifted to center
+                      let read=arrayAudioBuffer.frames(leftFramePos,this.dftSize,arrAbBuf);
+                      let ad=new Float32Array(chs*this.dftSize);
                       for (let ch = 0; ch < chs; ch++) {
-                        ad.set(arrAbBuf[ch],ch*framesPerPixel);
+                        ad.set(arrAbBuf[ch],ch*this.dftSize);
                       }
 
                       this.worker.postMessage({
@@ -754,6 +835,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         frameLength: frameLength,
                         audioData: ad,
                         audioDataOffset:auOffset,
+                        dftSize: this.dftSize,
+                        norender:norender,
                         terminate:(renderPos>=leftPos+w)
                       }, [ad.buffer]);
                     }
@@ -778,9 +861,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
             if (g) {
                 let imgDataArr: Uint8ClampedArray = imgData;
                 if (w > 0 && h > 0) {
-                    let imgData = g.createImageData(w, h);
-                    imgData.data.set(imgDataArr);
-                    g.putImageData(imgData, 0, 0);
+                    let gImgData = g.createImageData(w, h);
+                    gImgData.data.set(imgDataArr);
+                    g.putImageData(gImgData, 0, 0);
                 }
             }
         }
