@@ -66,25 +66,27 @@ export class ArrayAudioBuffer {
       let ccFrameEndPos=ccFramePos+ccLen;
 
       if(trgFramePos>=ccFramePos && trgFramePos<ccFrameEndPos){
-            let toCp=frameLen-filled;
-            cPos=framePos-ccFramePos;
+        let toCp=frameLen-filled;
+        cPos=trgFramePos-ccFramePos;
         if(cPos+toCp>ccLen){
           toCp=ccLen-cPos;
         }
-            for(let ch=0;ch<bufs.length;ch++){
-              let cc=this.data[ch][ci];
+        for(let ch=0;ch<bufs.length;ch++){
+          let cc=this.data[ch][ci];
 
-              for(let i=0;i<toCp;i++){
-                bufs[ch][filled+i]=cc[cPos+i];
-              }
-            }
-            filled+=toCp;
-            cPos+=toCp;
-            if(cPos>=ccLen){
-              ccFramePos=ccFrameEndPos;
-              cPos=0;
-              ci++;
-            }
+          for(let i=0;i<toCp;i++){
+            bufs[ch][filled+i]=cc[cPos+i];
+          }
+        }
+        filled+=toCp;
+        trgFramePos+=toCp;
+        cPos+=toCp;
+        ccFramePos+=toCp;
+        if(cPos>=ccLen){
+          ccFramePos=ccFrameEndPos;
+          cPos=0;
+          ci++;
+        }
 
       }else{
         // next chunk
