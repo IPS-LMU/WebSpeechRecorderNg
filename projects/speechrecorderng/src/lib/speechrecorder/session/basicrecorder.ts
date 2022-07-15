@@ -96,6 +96,10 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+
+  // Enable only for developemnt/debug purposes of array audio buffers !!
+  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=false;
+
   get uploadChunkSizeSeconds(): number | null {
     return this._uploadChunkSizeSeconds;
   }

@@ -766,7 +766,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     let adh:AudioDataHolder|null=null;
     let frameLen:number=0;
     if(this.ac) {
-      if(this.uploadChunkSizeSeconds){
+      if(this.uploadChunkSizeSeconds || AudioRecorder.FORCE_ARRRAY_AUDIO_BUFFER){
         ada=this.ac.audioBufferArray();
         frameLen = ada.frameLen;
       }else{
