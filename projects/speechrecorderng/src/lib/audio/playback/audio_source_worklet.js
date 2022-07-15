@@ -4,25 +4,13 @@
 
 class AudioSourceProcessor extends AudioWorkletProcessor{
 
-    //MIN_BUFFER_DURATION=30; // 30 seconds
-    RING_BUFFER_FRAMES=500000; // TODO
-
-    BUFFER_QUANTUMS=64;
-    QUANTUM_FRAME_LEN=128;
-    BUFFER_FRAME_LEN=this.QUANTUM_FRAME_LEN*this.BUFFER_QUANTUMS;
-    //buffer=null;
-
-    ringBufferPos=0;
     filledFrames=0;
-    //ringBufferFree=this.RING_BUFFER_FRAMES;
-    ringBuffers=null;
     audioBuffers=new Array();
     currentAudioBuffer=null;
     currentAudioBufferFramePos=0;
     currentAudioBufferAvail=0;
     running=false;
     ended=false;
-
 
     constructor() {
         super({numberOfInputs:0,numberOfOutputs:1});
@@ -46,7 +34,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
             }else if('start'===msgEv.data.cmd){
               this.running=true;
             }else if('stop'===msgEv.data.cmd){
-              console.debug("Stop...");
+              //console.debug("Stop...");
               this.running=false;
               // clear buffers
               this.filledFrames=0;
@@ -72,7 +60,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
 
         let output=outputs[0];
         let chs=output.length;
-        console.debug("Audio source worklet: Output channels: "+chs);
+        //console.debug("Audio source worklet: Output channels: "+chs);
         if(chs>0) {
 
           let outCh0 = output[0];
@@ -89,7 +77,6 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
               return true;
             }
           }
-
 
           let copied=0;
           do{
@@ -108,7 +95,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
                 break;
               }
             }
-            console.debug("outChLen: "+outChLen+", copied: "+copied+", current avail: "+this.currentAudioBufferAvail);
+            //console.debug("outChLen: "+outChLen+", copied: "+copied+", current avail: "+this.currentAudioBufferAvail);
             let toCopy=outChLen-copied;
             if(toCopy>this.currentAudioBufferAvail){
               toCopy=this.currentAudioBufferAvail;

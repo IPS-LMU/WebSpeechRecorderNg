@@ -163,7 +163,7 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
             if(this.listener){
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
             }
-          console.log('Could not add module '+error);
+          console.error('Could not add module '+error);
         });
         }else{
           this._startAction.disabled = true;
@@ -308,9 +308,7 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                   offset = s.leftFrame / sr;
                   let stopPosInsecs = s.rightFrame / sr;
                   let dur = stopPosInsecs - offset
-                  // TODO check valid values
                   aabsn.start(0, offset, dur)
-
                 } else {
                   aabsn.start();
                 }

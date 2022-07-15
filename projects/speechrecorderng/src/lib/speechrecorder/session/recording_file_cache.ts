@@ -4,9 +4,9 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 export class BasicRecFilesCache {
 
-  //public static readonly DEFAULT_MAX_SAMPLES=20*60*48000;  // 20 Minutes mono 48kHz
+  public static readonly DEFAULT_MAX_SAMPLES=20*60*48000;  // 20 Minutes mono 48kHz
   // TODO TEST ONLY!!!
-  public static readonly DEFAULT_MAX_SAMPLES=30*48000;  // TEST 30 seconds
+  //public static readonly DEFAULT_MAX_SAMPLES=30*48000;  // TEST 30 seconds
 
   protected _sampleCount:number=0;
   maxSampleCount:number=SprItemsCache.DEFAULT_MAX_SAMPLES;
@@ -55,10 +55,10 @@ export class SprItemsCache extends BasicRecFilesCache{
               let expiredAudio = RecordingFileUtils.expireAudioData(toBeExpiredRf);
               if (expiredAudio) {
                 this._sampleCount -= expiredAudio.sampleCounts();
-                console.info("Rec. files cache: Expired #"+rfi+". Cache samples: " + this._sampleCount);
+                //console.debug("Rec. files cache: Expired #"+rfi+". Cache samples: " + this._sampleCount);
               }
             }else{
-              console.debug("Rec. files cache: #"+rfi+" not yet server persisted.");
+              //console.debug("Rec. files cache: #"+rfi+" not yet persisted on server.");
             }
           }
         }
@@ -74,7 +74,7 @@ export class SprItemsCache extends BasicRecFilesCache{
         item.recs.push(sprRecFile);
         this._sampleCount += RecordingFileUtils.sampleCount(sprRecFile);
 
-      console.info("Rec. files cache: Added. Cache samples: "+this._sampleCount);
+      //console.debug("Rec. files cache: Added. Cache samples: "+this._sampleCount);
     }
 
     setSprRecFileAudioData(sprRecFile:SprRecordingFile, adh:AudioDataHolder|null){
@@ -86,7 +86,7 @@ export class SprItemsCache extends BasicRecFilesCache{
       if(fl){
         sprRecFile.frames=fl;
       }
-      console.info("Rec. files cache: Set audio data. Cache samples: "+this._sampleCount);
+      //console.debug("Rec. files cache: Set audio data. Cache samples: "+this._sampleCount);
     }
 }
 

@@ -7,7 +7,7 @@ export class ArrayAudioBufferInputStream implements Float32ArrayInputStream{
   private chunkIdx=0;
   private eod=false;
   constructor(private arrayAudioBuffer:ArrayAudioBuffer) {
-    console.debug("Array audio input stream array audio buffer frames: "+arrayAudioBuffer.frameLen);
+    //console.debug("Array audio input stream array audio buffer frames: "+arrayAudioBuffer.frameLen);
   }
 
   close(): void {
