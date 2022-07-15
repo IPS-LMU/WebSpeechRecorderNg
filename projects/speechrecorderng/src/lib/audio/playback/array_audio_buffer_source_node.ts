@@ -157,7 +157,7 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
   private filledFrames = 0;
   onended: (() => void) | null = null;
 
-  private constructor(context: AudioContext) {
+  constructor(context: AudioContext) {
 
     super(context, 'audio-source-worklet');
     this.channelCountMode = 'explicit';
@@ -184,27 +184,6 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
         }
       }
     }
-  }
-
-  static instance(context: AudioContext): Promise<ArrayAudioBufferSourceNode> {
-    let audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
-    let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
-    return new Promise((resolve, reject) => {
-      if (ArrayAudioBufferSourceNode.moduleLoaded) {
-        let obj = new ArrayAudioBufferSourceNode(context);
-        resolve.call(self, obj);
-      } else {
-        let audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
-        let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
-        context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
-            ArrayAudioBufferSourceNode.moduleLoaded = true;
-            let obj = new ArrayAudioBufferSourceNode(context);
-            resolve.call(self, obj);
-        }).catch((reason) => {
-          reject.call(reason);
-        });
-      }
-    });
   }
 
   private fillBuffer(frameOffset?:number) {
@@ -319,4 +298,26 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
     this.onended?.call(this);
   }
 
+}
+
+export class AudioSourceWorkletModuleLoader{
+  private static moduleLoaded=false;
+  static loadModule(context: AudioContext): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (AudioSourceWorkletModuleLoader.moduleLoaded) {
+        resolve.call(self);
+      } else {
+        let audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
+        let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
+        context.resume();
+        context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
+          AudioSourceWorkletModuleLoader.moduleLoaded = true;
+          resolve.call(self);
+        }).catch((reason) => {
+          console.error(reason);
+          reject.call(reason);
+        });
+      }
+    });
+  }
 }

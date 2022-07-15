@@ -1,7 +1,7 @@
 import { Action } from '../../action/action'
 import { AudioClip } from '../persistor'
 import {ArrayAudioBuffer} from "../array_audio_buffer";
-import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
+import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./array_audio_buffer_source_node";
 
 
 
@@ -149,11 +149,22 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
         this._audioBuffer=null;
         this._arrayAudioBuffer=arrayAudioBuffer;
         if (arrayAudioBuffer && this.context) {
+
+          AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
+
           this._startAction.disabled = false;
           this._startSelectionAction.disabled=this.startSelectionDisabled()
           if(this.listener){
             this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
           }
+          }).catch((error: any)=>{
+            this._startAction.disabled = true;
+            this._startSelectionAction.disabled=true
+            if(this.listener){
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+            }
+          console.log('Could not add module '+error);
+        });
         }else{
           this._startAction.disabled = true;
           this._startSelectionAction.disabled=true
@@ -167,9 +178,6 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
         return this._arrayAudioBuffer;
       }
 
-      _startSourceBuffer(){
-
-      }
 
 
         start() {
@@ -195,10 +203,8 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                   }
                 }else if(this._arrayAudioBuffer){
                   if(this._arrayAudioBuffer) {
-
-                    ArrayAudioBufferSourceNode.instance(this.context).then((aabsn)=>{
-                      this.sourceAudioWorkletNode=aabsn;
-                      aabsn.onprocessorerror = (ev: Event) => {
+                      this.sourceAudioWorkletNode=new ArrayAudioBufferSourceNode(this.context);
+                      this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
                         let msg = 'Unknwon error';
                         if (ev instanceof ErrorEvent) {
                           msg = ev.message;
@@ -210,14 +216,14 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                           // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
                         }
                       };
-                      aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
-                      aabsn.connect(this.context.destination); // this already starts playing
-                      aabsn.onended = () => this.onended();
+                      this.sourceAudioWorkletNode.arrayAudioBuffer=this._arrayAudioBuffer;
+                      this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
+                      this.sourceAudioWorkletNode.onended = () => this.onended();
 
                       this.playStartTime = this.context.currentTime;
                       this.running = true;
 
-                      aabsn.start();
+                      this.sourceAudioWorkletNode.start();
                       this.playStartTime = this.context.currentTime;
                       this._startAction.disabled = true;
                       this._startSelectionAction.disabled=true
@@ -227,9 +233,7 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                         this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                       }
 
-                    }).catch((error: any)=>{
-                      console.log('Could not add module '+error);
-                    });
+
                   }
                 }
             }
@@ -275,7 +279,7 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
             }
           }else if(this._arrayAudioBuffer){
             if(this._arrayAudioBuffer) {
-              ArrayAudioBufferSourceNode.instance(this.context).then((aabsn)=>{
+              let aabsn=new ArrayAudioBufferSourceNode(this.context);
                 this.sourceAudioWorkletNode=aabsn;
                 aabsn.onprocessorerror = (ev: Event) => {
                   let msg = 'Unknwon error';
@@ -318,10 +322,6 @@ import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
                 if (this.listener) {
                   this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                 }
-
-              }).catch((error: any)=>{
-                console.log('Could not add module '+error);
-              });
             }
           }
         }
