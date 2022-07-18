@@ -671,6 +671,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
 
     if(isNonrecording){
+      this.displayRecFile = null;
+      this.displayRecFileVersion = 0;
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
       if (this.items) {
@@ -692,12 +694,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.displayRecFileVersion = 0;
         }
       }
-      if (!temporary) {
-        this.showRecording();
-      }
       if(!this.readonly) {
         this.startStopSignalState = StartStopSignalState.IDLE;
       }
+    }
+    if (!temporary) {
+      this.showRecording();
     }
     this.updateStartActionDisableState()
     this.updateNavigationActions()
