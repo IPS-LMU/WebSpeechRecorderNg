@@ -67,7 +67,7 @@ export class Item {
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
          [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()"
-                      [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
+                      [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.buffer!==null"
@@ -640,19 +640,14 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.controlAudioPlayer.stop();
 
     if (this.displayAudioClip) {
-
-      this.levelMeasure.calcBufferLevelInfos(this.displayAudioClip.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
-        this.displayLevelInfos = levelInfos;
-        this.changeDetectorRef.detectChanges();
+      let dap=this.displayAudioClip;
+      this.levelMeasure.calcBufferLevelInfos(dap.buffer, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
+          dap.levelInfos = levelInfos;
+          this.changeDetectorRef.detectChanges();
       });
       this.playStartAction.disabled = false;
 
     } else {
-
-      // TODO
-      // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
-      // The level bar display does not clear, it shows the last captured stream
-      this.displayLevelInfos = null;
 
       this.playStartAction.disabled = true;
 

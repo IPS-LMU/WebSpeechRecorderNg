@@ -140,7 +140,6 @@ export abstract class BasicRecorder {
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
   peakLevelInDb:number=MIN_DB_LEVEL;
-  displayLevelInfos: LevelInfos | null=null;
   protected _controlAudioPlayer!: AudioPlayer;
   displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
