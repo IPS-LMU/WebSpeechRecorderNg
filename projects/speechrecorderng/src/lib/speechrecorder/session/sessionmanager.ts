@@ -74,7 +74,7 @@ export const enum Status {
 
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
@@ -131,7 +131,6 @@ export const enum Status {
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 
-
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
   enableDownloadRecordings: boolean = false;
@@ -174,7 +173,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   items: SprItemsCache|null=null;
   //selectedItemIdx: number;
-
   private _displayRecFile: SprRecordingFile | null=null;
   private displayRecFileVersion!: number;
 
@@ -571,8 +569,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
-
-
   set displayRecFile(displayRecFile: SprRecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
@@ -661,6 +657,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
 
     if(isNonrecording){
+      this.displayRecFile = null;
+      this.displayRecFileVersion = 0;
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
       if (this.items) {
@@ -682,12 +680,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.displayRecFileVersion = 0;
         }
       }
-      if (!temporary) {
-        this.showRecording();
-      }
       if(!this.readonly) {
         this.startStopSignalState = StartStopSignalState.IDLE;
       }
+    }
+    if (!temporary) {
+      this.showRecording();
     }
     this.updateStartActionDisableState()
     this.updateNavigationActions()

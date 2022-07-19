@@ -1,8 +1,9 @@
-import {AudioDataHolder} from "./audio_data_holder";
+import {LevelInfos} from "./dsp/level_measure";
 
 export class AudioClip {
 
   private _selection:Selection|null=null;
+        private _levelInfos:LevelInfos | null=null;
   private selectionObservers:Array<(audioClip:AudioClip)=>void>;
 
   constructor(private _audioDataHolder:AudioDataHolder) {
@@ -28,6 +29,14 @@ export class AudioClip {
     for(let selObs of this.selectionObservers){
       selObs(this)
     }
+  }
+
+  get levelInfos(): LevelInfos | null {
+    return this._levelInfos;
+  }
+
+  set levelInfos(value: LevelInfos | null) {
+    this._levelInfos = value;
   }
 
   addSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void,init=false){

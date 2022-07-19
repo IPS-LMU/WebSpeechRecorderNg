@@ -69,7 +69,7 @@ export class Item {
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
          [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
       <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()"
-                      [displayLevelInfos]="displayLevelInfos"></audio-levelbar>
+                      [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
