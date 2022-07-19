@@ -1,4 +1,5 @@
 import {LevelInfos} from "./dsp/level_measure";
+import {AudioDataHolder} from "./audio_data_holder";
 
 export class AudioClip {
 

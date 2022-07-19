@@ -259,21 +259,19 @@ export abstract class BasicRecorder {
   }
 
   showRecording() {
-    this._controlAudioPlayer.stop();if (this.displayAudioClip) {
-      let ab=this.displayAudioClip.audioDataHolder;
-      if(ab) {
-        this.levelMeasure.calcBufferLevelInfos(ab, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
-          this.displayLevelInfos = levelInfos;
+    this._controlAudioPlayer.stop();
+    if (this.displayAudioClip) {
+      let dap=this.displayAudioClip;
+      let adh=dap.audioDataHolder;
+      if(adh) {
+        this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
+          dap.levelInfos = levelInfos;
           this.changeDetectorRef.detectChanges();
         });
       }
       this.playStartAction.disabled = false;
 
     } else {
-      // TODO
-      // Setting to null does not trigger a change if it was  null before (happens after nextitem() in AUTOPROGRESS mode)
-      // The level bar display does not clear, it shows the last captured stream
-      this.displayLevelInfos = null;
 
       this.playStartAction.disabled = true;
 
