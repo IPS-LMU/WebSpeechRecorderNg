@@ -234,7 +234,7 @@ export class RecordingService {
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
-                RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab,null));
+                //RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab,null));
                 observer.next(ab);
                 observer.complete();
 

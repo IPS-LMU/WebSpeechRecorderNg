@@ -116,6 +116,7 @@ export class RecordingList implements AfterViewInit{
   }
 
   selectRecordingFile(rf:RecordingFile){
+    this.recordingList.currentRecordingFile=rf;
     this.selectedRecordingFileChanged.emit(rf);
   }
 

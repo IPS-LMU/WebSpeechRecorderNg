@@ -17,6 +17,7 @@ export class RecordingFile {
   recordingFileId: string | number | null= null;
   uuid:string|null=null;
   serverPersisted=false;
+  keepAudioDataCache=false;
   date: string|null=null;
   _dateAsDateObj:Date|null=null;
   startedDate: string|null=null;
@@ -47,6 +48,18 @@ export class RecordingFile {
     }
     fns+=this.uuid;
     return fns;
+  }
+
+  equals(otherRecordingFile:RecordingFile|null):boolean{
+    if(otherRecordingFile!==null) {
+      if (otherRecordingFile === this) {
+        return true;
+      }
+      if (otherRecordingFile.uuid === this.uuid) {
+        return true;
+      }
+    }
+    return false;
   }
 
   toString():string{

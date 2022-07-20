@@ -571,7 +571,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   set displayRecFile(displayRecFile: SprRecordingFile | null) {
     this._displayRecFile = displayRecFile;
+
     if (this._displayRecFile) {
+      if(this.items) {
+        this.items.currentRecordingFile = this._displayRecFile;
+      }
       let ab: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(ab) {
         this.displayAudioClip = new AudioClip(ab);
@@ -595,6 +599,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 fabDh = new AudioDataHolder(ab);
               }
               this.items.setSprRecFileAudioData(this._displayRecFile,fabDh);
+
             } else {
               this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
@@ -789,6 +794,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
         //it.recs.push(rf);
         this.items.addSprRecFile(it,rf);
+        this.items.currentRecordingFile=rf;
       }
     }
     this._recordingFile = rf;
