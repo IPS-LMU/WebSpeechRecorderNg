@@ -301,25 +301,27 @@ export class AudioSignal extends AudioCanvasLayerComponent{
           }
         }
 
-        if (audioBuffer) {
-          arrAbBuf=null;
-          psMinMax=null;
-          let ad = new Float32Array(chs * frameLength);
-          for (let ch = 0; ch < chs; ch++) {
-            ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
-          }
-          this.worker.postMessage({
-            l: leftPos,
-            w: w,
-            vw: vw,
-            chs: chs,
-            frameLength: frameLength,
-            audioData: ad,
-            audioDataOffset:0,
-            eod:true
-          }, [ad.buffer]);
+        //TODO Use whole audioBuffer for short clips
 
-        }else if(arrayAudioBuffer){
+        // if (audioBuffer) {
+        //   arrAbBuf=null;
+        //   psMinMax=null;
+        //   let ad = new Float32Array(chs * frameLength);
+        //   for (let ch = 0; ch < chs; ch++) {
+        //     ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
+        //   }
+        //   this.worker.postMessage({
+        //     l: leftPos,
+        //     w: w,
+        //     vw: vw,
+        //     chs: chs,
+        //     frameLength: frameLength,
+        //     audioData: ad,
+        //     audioDataOffset:0,
+        //     eod:true
+        //   }, [ad.buffer]);
+        //
+        // }else if(arrayAudioBuffer){
           if(w>0) {
 
             if (framesPerPixel > 0) {
@@ -332,7 +334,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               }
               let leftFramePos=Math.floor(frameLength*renderPos/vw);
               let auOffset=leftFramePos; // should always be 0
-              let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
+              //let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
+              let read=this._audioDataHolder.frames(leftFramePos,framesPerPixel,arrAbBuf);
               let ad=new Float32Array(chs*framesPerPixel);
               for (let ch = 0; ch < chs; ch++) {
                 ad.set(arrAbBuf[ch],ch*framesPerPixel);
@@ -350,7 +353,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               }, [ad.buffer]);
             }
           }
-        }
+      //  }
 
 
       } else {

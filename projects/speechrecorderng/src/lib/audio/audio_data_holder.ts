@@ -50,6 +50,26 @@ export class AudioDataHolder{
     return this._numberOfChannels*this._frameLen;
   }
 
+  frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
+    let read=0;
+    if(this._buffer){
+      let toRead=frameLen;
+      if(this._buffer.length<framePos+frameLen){
+        toRead=this._buffer.length-framePos;
+      }
+      for(let ch=0;ch<bufs.length;ch++){
+        let chData=this._buffer.getChannelData(ch);
+        for(let i=0;i<toRead;i++){
+          bufs[ch][i]=chData[framePos+i];
+        }
+      }
+      read=toRead;
+    }else if(this._arrayBuffer){
+      read=this._arrayBuffer.frames(framePos,frameLen,bufs);
+    }
+    return read;
+  }
+
   audioInputStream():Float32ArrayInputStream{
     if(this._buffer){
       return new AudioBufferInputStream(this._buffer);
