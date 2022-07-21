@@ -224,7 +224,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         let vw=Math.round(this.virtualDimension.width);
         let frameLength = this._audioDataHolder.frameLen;
         let framesPerPixel = Math.ceil(frameLength / vw);
-        //let audioBuffer=this._audioDataHolder.buffer;
+        let audioBuffer=this._audioDataHolder.buffer;
         //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
         let arrAbBuf:Float32Array[]|null;
 
@@ -262,7 +262,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                   psMinMax[posMin]=me.data.psMinMax[rPosMin];
                   //console.debug('Min: ('+pos+'): '+me.data.psMinMax[0]);
                   psMinMax[posMax]=me.data.psMinMax[rPosMax];
-                 // console.debug('Max: ('+(pointsLen+pos)+'): '+me.data.psMinMax[1]);
+                  // console.debug('Max: ('+(pointsLen+pos)+'): '+me.data.psMinMax[1]);
                   //console.debug("psMinMax["+posMin+"]="+me.data.psMinMax[rPosMin]+"  (rPosMin="+rPosMin+"),psMinMax["+posMax+"]="+me.data.psMinMax[rPosMax]);
                 }
               }
@@ -301,27 +301,29 @@ export class AudioSignal extends AudioCanvasLayerComponent{
           }
         }
 
-        //TODO Use whole audioBuffer for short clips
+        if (audioBuffer && audioBuffer.length*audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
 
-        // if (audioBuffer) {
-        //   arrAbBuf=null;
-        //   psMinMax=null;
-        //   let ad = new Float32Array(chs * frameLength);
-        //   for (let ch = 0; ch < chs; ch++) {
-        //     ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
-        //   }
-        //   this.worker.postMessage({
-        //     l: leftPos,
-        //     w: w,
-        //     vw: vw,
-        //     chs: chs,
-        //     frameLength: frameLength,
-        //     audioData: ad,
-        //     audioDataOffset:0,
-        //     eod:true
-        //   }, [ad.buffer]);
-        //
-        // }else if(arrayAudioBuffer){
+          // Render whole clip at once
+          arrAbBuf=null;
+          psMinMax=null;
+          let ad = new Float32Array(chs * frameLength);
+          for (let ch = 0; ch < chs; ch++) {
+            ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
+          }
+          this.worker.postMessage({
+            l: leftPos,
+            w: w,
+            vw: vw,
+            chs: chs,
+            frameLength: frameLength,
+            audioData: ad,
+            audioDataOffset:0,
+            eod:true
+          }, [ad.buffer]);
+
+        }else{
+
+          // Render pixel by pixel
           if(w>0) {
 
             if (framesPerPixel > 0) {
@@ -353,8 +355,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               }, [ad.buffer]);
             }
           }
-      //  }
-
+        }
 
       } else {
         let g = this.signalCanvas.getContext("2d");

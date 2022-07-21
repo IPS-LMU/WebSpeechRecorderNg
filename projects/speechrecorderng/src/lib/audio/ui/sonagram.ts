@@ -657,7 +657,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
               let framesPerPixel = Math.ceil(frameLength / vw);
               let leftPos= Math.round(this.bounds.position.left);
               let renderPos=leftPos;
-                //let audioBuffer=this._audioDataHolder.buffer;
+              let audioBuffer=this._audioDataHolder.buffer;
                 //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
               let arrAbBuf:Float32Array[]|null;
               let imgData:Uint8ClampedArray;
@@ -773,33 +773,33 @@ export class Sonagram extends AudioCanvasLayerComponent {
                   }
                 }
               }
-                // if(audioBuffer) {
-                //   let ada = new Array<ArrayBuffer>(chs);
-                //   for (let ch = 0; ch < chs; ch++) {
-                //     // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
-                //     ada[ch] = audioBuffer.getChannelData(ch).buffer.slice(0);
-                //   }
-                //   let start = Date.now();
-                //
-                //   if (this.markerCanvas) {
-                //     let g = this.markerCanvas.getContext("2d");
-                //     if (g) {
-                //       g.fillText("Rendering...", 10, 20);
-                //     }
-                //
-                // }
-                // this.worker.postMessage({
-                //     audioData: ada,
-                //     l: leftPos,
-                //     w: w,
-                //     h: h,
-                //     vw: Math.round(this.virtualDimension.width),
-                //     chs: chs,
-                //     frameLength: frameLength,
-                //     dftSize: this.dftSize,
-                //     terminate:true
-                //   }, ada);
-                // }else if(arrayAudioBuffer){
+              if (audioBuffer && audioBuffer.length*audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
+                  let ada = new Array<ArrayBuffer>(chs);
+                  for (let ch = 0; ch < chs; ch++) {
+                    // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                    ada[ch] = audioBuffer.getChannelData(ch).buffer.slice(0);
+                  }
+                  let start = Date.now();
+
+                  if (this.markerCanvas) {
+                    let g = this.markerCanvas.getContext("2d");
+                    if (g) {
+                      g.fillText("Rendering...", 10, 20);
+                    }
+
+                }
+                this.worker.postMessage({
+                    audioData: ada,
+                    l: leftPos,
+                    w: w,
+                    h: h,
+                    vw: Math.round(this.virtualDimension.width),
+                    chs: chs,
+                    frameLength: frameLength,
+                    dftSize: this.dftSize,
+                    terminate:true
+                  }, ada);
+                }else{
                   if(w>0) {
 
                     if (framesPerPixel > 0) {
@@ -845,7 +845,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                       }, [ad.buffer]);
                     }
                   }
-              //  }
+              }
 
             } else {
                 let g = this.sonagramCanvas.getContext("2d");
