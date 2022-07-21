@@ -1,6 +1,6 @@
 
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
-export type PromptPhase = "IDLE" | "PRERECORDING" | "RECORDING";
+export type PromptPhase = "IDLE" | "PRERECORDING" | "PRERECORDINGONLY" | "RECORDING";
 
 export type Order = 'SEQUENTIAL' | 'RANDOM' | 'RANDOMIZED';
 
@@ -50,9 +50,11 @@ export interface Mediaitem {
 export interface PromptItem {
   type?:string;
   itemcode?: string,
-  prerecording: number,
+  prerecdelay?: number,
+  prerecording?: number,
   recduration?: number,
-  postrecording: number,
+  postrecording?: number,
+  postrecdelay?: number,
   recinstructions?: Recinstructions,
   blocked?:boolean,
   mediaitems: Array<Mediaitem>

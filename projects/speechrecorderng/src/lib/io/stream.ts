@@ -36,41 +36,57 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
     this.createBuffers();
   }
 
+  get chunkSize(): number {
+    return this._chunkSize;
+  }
+
   set channels(channels: number) {
     this._channels = channels;
     this.createBuffers();
   }
 
+  get channels(): number {
+    return this._channels;
+  }
+
+
+  available(): number {
+    return this._chunkSize-this.filled;
+  }
+
   write(buffers: Array<Float32Array>): number {
 
     let copied = 0;
-    let buffersLen = buffers[0].length;
-    this.receivedFrames += buffersLen;
-    let avail = buffersLen;
-    // Fill out buffers until all values copied
+    if(buffers.length>0) {
+      let buffersLen = buffers[0].length;
+      this.receivedFrames += buffersLen;
+      let avail = buffersLen;
+      // Fill out buffers until all values copied
 
-    while (avail > 0) {
-      let toFill = this._chunkSize - this.filled;
-      if (toFill > avail) {
-        toFill = avail;
-      }
-      let sliceEnd = copied + toFill;
+      while (avail > 0) {
+        let toFill = this._chunkSize - this.filled;
+        if (toFill > avail) {
+          toFill = avail;
+        }
+        let sliceEnd = copied + toFill;
 
-      for (let ch = 0; ch < this._channels; ch++) {
-        let cpPrt = buffers[ch].slice(copied, sliceEnd);
-        let prtLen = cpPrt.length;
-        let buf = this.bufs[ch];
-        let bufLen = buf.length;
-        buf.set(cpPrt, this.filled);
-      }
-      copied += toFill;
-      avail -= toFill;
-      this.filled += toFill;
-      if (this.filled == this._chunkSize) {
-        this.outStream.write(this.bufs);
-        this.sentFrames += this.filled;
-        this.filled = 0;
+        // Firefox on Android sends only the first channel
+        for (let ch = 0; ch < buffersLen; ch++) {
+          if(buffers[ch]) {
+            let cpPrt = buffers[ch].slice(copied, sliceEnd);
+            let buf = this.bufs[ch];
+            buf.set(cpPrt, this.filled);
+          }
+        }
+        copied += toFill;
+        avail -= toFill;
+        this.filled += toFill;
+        if (this.filled == this._chunkSize) {
+          this.outStream.write(this.bufs);
+          this.sentFrames += this.filled;
+          this.filled = 0;
 
+        }
       }
     }
     return copied;
@@ -93,4 +109,6 @@ export class Float32ArrayChunkerOutStream implements Float32ArrayOutStream {
   close(): void {
     this.outStream.close();
   }
+
+
 }

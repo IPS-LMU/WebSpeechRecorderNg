@@ -18,13 +18,12 @@ import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
     </p>
   `,
   styles: [`:host {
-    flex: 1;
-    /* align-self: flex-start; */
     display: inline;
     text-align: left;
     font-size: smaller;
   }`, `
     p {
+      padding: 4px;
       white-space:nowrap;
       display: inline-block;
     }
@@ -161,7 +160,7 @@ export class TransportActions {
   selector: 'app-sprtransport',
 
   template: `
-    <button id="bwdBtn" (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
+    <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
             mat-raised-button>
       <mat-icon>chevron_left</mat-icon>
     </button>
@@ -169,14 +168,14 @@ export class TransportActions {
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       <span fxShow.xs="false">{{startStopNextName()}}</span>
     </button>
-    <button  (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
       <span fxShow.xs="false">Pause</span>
     </button>
-    <button id="fwdNextBtn" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+    <button id="fwdNextBtn" *ngIf="navigationEnabled" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
       <mat-icon>redo</mat-icon>
     </button>
-    <button id="fwdBtn"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
+    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
       <mat-icon>chevron_right</mat-icon>
     </button>
 
@@ -188,11 +187,15 @@ export class TransportActions {
     text-align: center;
     align-content: center;
     margin: 0;
+
   }`, `
     div {
       display: inline;
       flex: 0;
-    }`
+    }`,`
+     button {
+       touch-action: manipulation;
+     }`
   ]
 
 })
@@ -200,6 +203,8 @@ export class TransportPanel {
 
   @Input() readonly!:boolean;
   @Input() actions!: TransportActions;
+  @Input() navigationEnabled=true;
+  @Input() pausingEnabled=true;
 
   startStopNextButtonName!:string;
   startStopNextButtonIconName!:string;
@@ -213,23 +218,23 @@ export class TransportPanel {
   }
 
   nextDisabled() {
-    return !this.actions || this.actions.nextAction.disabled
+    return !this.actions || this.actions.nextAction.disabled || !this.navigationEnabled;
   }
 
   pauseDisabled() {
-    return !this.actions || this.actions.pauseAction.disabled
+    return !this.actions || this.actions.pauseAction.disabled || !this.pausingEnabled;
   }
 
   fwdDisabled() {
-    return !this.actions || this.actions.fwdAction.disabled
+    return !this.actions || this.actions.fwdAction.disabled || !this.navigationEnabled;
   }
 
   fwdNextDisabled() {
-    return !this.actions || this.actions.fwdNextAction.disabled
+    return !this.actions || this.actions.fwdNextAction.disabled || !this.navigationEnabled;
   }
 
   bwdDisabled() {
-    return !this.actions || this.actions.bwdAction.disabled
+    return !this.actions || this.actions.bwdAction.disabled || !this.navigationEnabled;
   }
 
     startStopNextName():string{
@@ -274,42 +279,86 @@ export class TransportPanel {
 
 }
 
+@Component({
+  selector: 'app-wakelockindicator',
+  template: `
+    <mat-icon *ngIf="_screenLocked">screen_lock_portrait</mat-icon>
+  `,
+  styles: []
+})
+export class WakeLockIndicator {
+  _screenLocked=false;
+
+  constructor() {}
+
+  @Input() set screenLocked(screenLock:boolean){
+    this._screenLocked=screenLock;
+  }
+}
+
+@Component({
+
+  selector: 'app-readystateindicator',
+
+  template: `
+    <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+  `,
+  styles: []
+})
+export class ReadyStateIndicator {
+  _ready=true;
+  hourGlassIconName='hourglass_empty'
+  readyStateToolTip:string=''
+
+  constructor() {}
+
+  @Input() set ready(ready:boolean){
+    this._ready=ready
+    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
+    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
+  }
+
+  get ready():boolean{
+    return this._ready
+  }
+}
 
 @Component({
 
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div fxHide.xs  fxLayout="row" >
+     <app-sprstatusdisplay fxFlex="0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
-
-    <app-sprtransport [readonly]="readonly" [actions]="transportActions"></app-sprtransport>
-
-    <app-uploadstatus fxHide.xs *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <app-sprtransport fxFlex="10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-    <mat-icon fxHide.xs [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
+      <app-readystateindicator [ready]="_ready"></app-readystateindicator>
+    </div>
+    <div fxShow.xs fxHide fxLayout="column">
+      <div fxLayout="row" fxFlexFill>
+       <app-sprstatusdisplay fxFlex="10 0 0" fxFlexAlign="left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+                            class="hidden-xs"></app-sprstatusdisplay>
+       <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+        <app-readystateindicator [ready]="_ready"></app-readystateindicator>
+      </div>
+      <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+
+    </div>
   `,
-  styles: [`:host {
-    flex: 0; /* only required vertical space */
-    /*  width: 100%; */ /* available horizontal sace */
-    /* display: inline; */
-    display: flex; /* Horizontal flex container: Bottom transport panel, above prompting panel */
-    flex-direction: row;
+  styles: [`div {
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`, `
-    div {
-      flex: 0;
-    }
-  `]
+  }`]
 })
 export class ControlPanel {
   @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
   @ViewChild(TransportPanel, { static: true }) transportPanel!: TransportPanel;
-
 
   @Input() readonly!:boolean
   @Input() transportActions!: TransportActions
@@ -321,10 +370,9 @@ export class ControlPanel {
   @Input() uploadProgress!: number;
   @Input() currentRecording: AudioBuffer| null| undefined;
   @Input() enableUploadRecordings!: boolean;
+  @Input() navigationEnabled=true;
 
   _ready=true
-  hourGlassIconName='hourglass_empty'
-  readyStateToolTip:string=''
 
   constructor(public dialog: MatDialog) {
 
@@ -332,8 +380,6 @@ export class ControlPanel {
 
   @Input() set ready(ready:boolean){
     this._ready=ready
-    this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
-    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
   }
 
   get ready():boolean{

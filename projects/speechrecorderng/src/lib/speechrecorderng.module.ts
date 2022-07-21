@@ -23,11 +23,18 @@ import {RouterModule, Routes} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {ProjectService} from "./speechrecorder/project/project.service";
-import {ControlPanel, ProgressDisplay, StatusDisplay, TransportPanel, UploadStatus} from "./speechrecorder/session/controlpanel";
+import {
+  ControlPanel,
+  ProgressDisplay,
+  ReadyStateIndicator,
+  StatusDisplay,
+  TransportPanel,
+  UploadStatus, WakeLockIndicator
+} from "./speechrecorder/session/controlpanel";
 import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionFinishedDialog} from "./speechrecorder/session/session_finished_dialog";
 import {MessageDialog} from "./ui/message_dialog";
-import {LevelBarDisplay} from "./ui/livelevel_display";
+import {RecordingItemControls, RecordingItemDisplay} from "./ui/recordingitem_display";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {ScrollPaneHorizontal} from "./audio/ui/scroll_pane_horizontal";
 import {AudioClipUIContainer} from "./audio/ui/container";
@@ -53,11 +60,16 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatInputModule} from "@angular/material/input";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
 import {VideoPlayer} from "./video/video_el";
+import {AudioRecorder, AudioRecorderComponent} from "./speechrecorder/session/audiorecorder";
+import {RecordingList} from "./speechrecorder/session/recording_list";
+import {RecorderCombiPane} from "./speechrecorder/session/recorder_combi_pane";
 
 
 
 export const SPR_ROUTES: Routes = [
   { path: 'spr/session/:id',      component: SpeechrecorderngComponent },
+  { path: 'recorder/session/:id',      component: AudioRecorderComponent},
+  { path: 'recorder',      component: AudioRecorderComponent},
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view/:recordingFileId',      component: RecordingFileViewComponent },
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_edit/:recordingFileId',      component: RecordingFileUI },
   { path: 'spr/db/project/:project/session/:sessionId/recordingfile/_view',      component: RecordingFileViewComponent },
@@ -75,14 +87,11 @@ export const SPR_ROUTES: Routes = [
 ];
 
 @NgModule({
-    declarations: [AudioSignal,Sonagram,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar,Progress,SimpleTrafficLight,Recinstructions,Prompter,PromptContainer,PromptingContainer,Prompting,StatusDisplay,
-      ProgressDisplay,LevelBarDisplay,UploadStatus,TransportPanel,ControlPanel,WarningBar,SessionManager,MessageDialog,SessionFinishedDialog,SpeechrecorderngComponent,RecordingFileViewComponent,RecordingFileUI,ScrollIntoViewDirective, RecordingFileNaviComponent,RecordingFileMetaComponent,VideoPlayer],
-  entryComponents: [
-    MessageDialog,SessionFinishedDialog
-  ],
-    exports: [MessageDialog,SpeechrecorderngComponent,ScrollPaneHorizontal,AudioClipUIContainer,AudioDisplayScrollPane,AudioDisplay,AudioDisplayPlayer,AudioDisplayControl,LevelBar],
-    imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule,MatInputModule, MatSelectModule,MatSnackBarModule],
-  providers: [SessionService,ProjectService,ScriptService,RecordingService,RecordingFileService,SpeechRecorderUploader]
+    declarations: [AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
+        ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator,ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder,SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent,AudioRecorderComponent, RecordingFileViewComponent, RecordingFileUI, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent,RecordingList,RecorderCombiPane,AudioRecorder],
+    exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar,AudioRecorder],
+    imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule],
+    providers: [SessionService, ProjectService, ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader]
 
 })
 export class SpeechrecorderngModule{

@@ -25,6 +25,7 @@
 !.vscode/extensions.json
 
 # misc
+/.angular/cache
 /.sass-cache
 /connect.lock
 /coverage
@@ -52,3 +53,6 @@ src/environments/environment.prod.ts
 /src/test/project/Demo1/session/2/recfile/VL1/0.webm
 /src/test/recordingfile/big_buck_bunny_trailer_480p_logo.json
 /src/test/recordingfile/big_buck_bunny_trailer_480p_logo.webm
+
+# Angular
+.angular/cache/

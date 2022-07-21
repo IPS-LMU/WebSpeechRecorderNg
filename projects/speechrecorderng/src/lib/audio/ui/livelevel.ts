@@ -105,15 +105,15 @@ export class LevelBar implements LevelListener,AfterViewInit {
   }
 
   @Input()
-  set displayLevelInfos(levelInfos: LevelInfos | null) {
-    this._staticLevelInfos = levelInfos;
+  set displayLevelInfos(levelInfos: LevelInfos | null | undefined) {
     if (levelInfos) {
-
+      this._staticLevelInfos = levelInfos;
       this.dbValues = levelInfos.bufferLevelInfos.map((li) => {
         return li.powerLevelsDB()
       });
     } else {
-      this.dbValues = new Array<Array<number>>();
+      this._staticLevelInfos =null;
+        this.dbValues = new Array<Array<number>>();
     }
     this.layoutStatic();
   }

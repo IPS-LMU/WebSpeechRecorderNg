@@ -21,12 +21,12 @@ import {Selection} from "../../../audio/persistor";
 import {Action, ActionEvent} from "../../../action/action";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
-import {RecordingFile} from "../../recording";
+import {RecordingFile, SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 
 
 export class ItemcodeIndex{
-  [itemcode: string]: Array<RecordingFile>;
+  [itemcode: string]: Array<SprRecordingFile>;
 }
 
 @Component({
@@ -48,7 +48,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFile?recordingFile.version:null" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -83,10 +83,11 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   sessionId: string | number | null= null;
   sessionIdFromRoute:string|null=null;
 
-  availRecFiles!: Array<Array<RecordingFile>>;
+  availRecFiles!: Array<Array<SprRecordingFile>>;
   versions: Array<number>|null=null;
 
-  recordingFile: RecordingFile|null=null;
+  recordingFile: SprRecordingFile|null=null;
+  recordingFileVersion:number|null=null;
   private routedByQueryParam=false;
   posInList: number|null=null;
 
@@ -187,9 +188,11 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
       let cRfs = this.availRecFiles[this.posInList];
       let availVersionCnt = cRfs.length;
       for (let cRf of cRfs) {
-        if (cRf.version === version) {
-          toRfId = cRf.recordingFileId;
-          break;
+        if(cRf.version !=null) {
+          if (cRf.version === version) {
+            toRfId = cRf.recordingFileId;
+            break;
+          }
         }
       }
     }
@@ -214,13 +217,29 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   private positionInList():number | null{
     if (this.availRecFiles && this.recordingFile) {
-      let cic = this.recordingFile.recording.itemcode;
-      let itemCnt = this.availRecFiles.length
-      for (let rfdi = 0; rfdi < itemCnt; rfdi++) {
-        let ar = this.availRecFiles[rfdi][0].recording;
-        if (cic === ar.itemcode) {
-          return rfdi;
+      let cic=this.recordingFile.itemCode;
+      if(!cic && this.recordingFile.recording && this.recordingFile.recording.itemcode){
+        cic=this.recordingFile.recording.itemcode;
+      }
+      if (cic) {
+        let itemCnt = this.availRecFiles.length
+        for (let rfdi = 0; rfdi < itemCnt; rfdi++) {
+          let arRf = this.availRecFiles[rfdi][0];
+          if (arRf.recording) {
+            let ar = arRf.recording;
+            if (cic === ar.itemcode) {
+              return rfdi;
+            }
+          }
         }
+      }else{
+        let itemCnt = this.availRecFiles.length
+        for (let rfdi = 0; rfdi < itemCnt; rfdi++) {
+          let arRf = this.availRecFiles[rfdi][0];
+            if (this.recordingFile.uuid === arRf.uuid) {
+              return rfdi;
+            }
+          }
       }
     }
     return null;
@@ -236,11 +255,24 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         if (arfs) {
           this.versions = new Array<number>();
           for (let arf of arfs) {
-            this.versions.push(arf.version)
+            if(arf.recording?.itemcode) {
+              this.versions.push(arf.version)
+            }
           }
+
           this.toVersionAction.disabled=(this.versions.length<2);
         }
       }
+    }
+
+    if(this.recordingFile){
+      if(this.recordingFile.version){
+        this.recordingFileVersion=this.recordingFile.version;
+      }else{
+        this.recordingFileVersion=0;
+      }
+    }else{
+      this.recordingFileVersion=null;
     }
     this.updateActions()
   }
@@ -253,7 +285,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.updateActions();
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
-      this.recordingFileService.fetchRecordingFile(audioContext, rfId).subscribe(value => {
+      this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(value => {
         this.status = 'Audio file loaded.';
         let clip = null;
         this.recordingFile = value;
@@ -307,6 +339,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.loadSession(sId);
       }
     }
+
     this.updatePos();
     this.ref.detectChanges();
   }
@@ -331,8 +364,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         // received session data
         this.sessionId = s.sessionId;
         // fetch recording file meta data list
-        this.recordingService.recordingFileList(s.project, s.sessionId).subscribe((rfds) => {
-          this.availRecFiles = new Array<Array<RecordingFile>>();
+        this.recordingService.sprRecordingFileList(s.project, s.sessionId).subscribe((rfds) => {
+          this.availRecFiles = new Array<Array<SprRecordingFile>>();
           // build structure indexed by itemcode
           let icIdx = new ItemcodeIndex();
           for (let rfdi = 0; rfdi < rfds.length; rfdi++) {
@@ -342,13 +375,19 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               let rfdd = new Date(rfd.date);
               rfd._dateAsDateObj = rfdd;
             }
-            let r = rfd.recording;
-            let ic = r.itemcode;
-            if(ic) {
+            let ic = rfd.itemCode;
+
+            if (!ic) {
+              let r = rfd.recording;
+              if (r && r.itemcode) {
+                ic = r.itemcode;
+              }
+            }
+            if (ic) {
               let exRfsForIc = icIdx[ic];
               if (exRfsForIc == null) {
                 // itemcode not yet stored
-                let arfd = new Array<RecordingFile>();
+                let arfd = new Array<SprRecordingFile>();
                 arfd.push(rfd);
                 icIdx[ic] = arfd;
                 this.availRecFiles.push(arfd);
@@ -360,9 +399,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
                   return rfd2.version - rfd1.version;
                 })
               }
+
+            } else {
+              let arfd = new Array<SprRecordingFile>();
+              arfd.push(rfd);
+              this.availRecFiles.push(arfd);
             }
           }
-          // have unsorted ietmcode indexed recording files here
+          // have unsorted itemcode indexed recording files here
           // sort them ordered by date of latest version ascending
           this.availRecFiles.sort((rfs1, rfs2) => {
             let d1 = rfs2[0]._dateAsDateObj;
@@ -384,12 +428,21 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               }
             }
           });
+          for(let avRf of this.availRecFiles){
+              if(avRf[0] && avRf[0].recording) {
+                let os = avRf[0].recording.itemcode + ': versions: ';
+                for (let avRfV of avRf) {
+                  os += avRfV.version + '/';
+                }
+                console.debug(os);
+              }
+          }
           this.updatePos()
           this.naviInfoLoading=false;
           this.ref.detectChanges();
         });
       });
-    }
+      }
   }
 }
 

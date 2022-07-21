@@ -13,9 +13,12 @@ export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
 
 export {MessageDialog} from "./lib/ui/message_dialog"
-
+export {ReadyStateProvider} from "./lib/recorder_component"
 export {AudioClip,Selection} from './lib/audio/persistor'
+export {WavWriter} from './lib/audio/impl/wavwriter'
+export {RecorderComponent} from './lib/recorder_component'
 export {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './lib/audio/playback/player'
+export {AudioRecorder,AudioRecorderComponent} from './lib/speechrecorder/session/audiorecorder'
 export {AudioDisplay} from './lib/audio/audio_display'
 export {AudioDisplayPlayer} from './lib/audio/audio_player'
 export {AudioClipUIContainer} from './lib/audio/ui/container'
@@ -31,7 +34,7 @@ export {SessionService} from './lib/speechrecorder/session/session.service'
 export {ScriptService} from './lib/speechrecorder/script/script.service'
 export {Script,Section,Group,PromptItem,Mediaitem,PromptPhase,Mode} from './lib/speechrecorder/script/script'
 export {RecordingService} from './lib/speechrecorder/recordings/recordings.service'
-export {RecordingFile} from './lib/speechrecorder/recording'
+export {SprRecordingFile} from './lib/speechrecorder/recording'
 export {RecordingFileService} from './lib/speechrecorder/session/recordingfile/recordingfile-service'
 export {RecordingFileViewComponent} from './lib/speechrecorder/session/recordingfile/recording-file-view.component'
 export {RecordingFileUI} from './lib/speechrecorder/session/recordingfile/recording-file-u-i.component'
