@@ -18,7 +18,6 @@
         "mode": "AUTORECORDING",
         "name": "Recording Session",
         "order": "SEQUENTIAL",
-        "promptphase": "PRERECORDING",
         "speakerDisplay": true,
         "training": false,
         "groups": [
