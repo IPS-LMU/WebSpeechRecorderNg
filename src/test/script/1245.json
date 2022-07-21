@@ -25,13 +25,6 @@
           {
             "promptItems": [
               {
-                "type": "nonrecording",
-                "recinstructions": {
-                  "recinstructions": "Please answer:"
-                },
-          {
-            "promptItems": [
-              {
                 "itemcode": "I2",
                 "mediaitems": [
                   {

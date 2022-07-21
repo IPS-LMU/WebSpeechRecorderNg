@@ -177,13 +177,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   promptItemCount!: number;
 
-
-  private audioFetchSubscription:Subscription|null=null;
-
   private autoplayStarted=false;
-  private destroyed=false;
-
-  private navigationDisabled=true;
 
   constructor(private changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
