@@ -61,6 +61,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   private _streamingMode = false;
   private _staticLevelInfos: LevelInfos | null = null;
   private _playFramePosition: number|null=null;
+  private _stateLoading=false;
 
   warnDBLevel = DEFAULT_WARN_DB_LEVEL;
 
@@ -115,6 +116,12 @@ export class LevelBar implements LevelListener,AfterViewInit {
       this._staticLevelInfos =null;
         this.dbValues = new Array<Array<number>>();
     }
+    this.layoutStatic();
+  }
+
+  @Input()
+  set stateLoading(loading:boolean){
+    this._stateLoading=loading;
     this.layoutStatic();
   }
 
@@ -326,6 +333,11 @@ export class LevelBar implements LevelListener,AfterViewInit {
               }
 
           }
+        }else if(this._stateLoading){
+          g.strokeStyle = 'white';
+          g.fillStyle = 'white';
+          g.font = '20px sans-serif';
+          g.fillText("Loading...", 10, 25);
         }
 
       }

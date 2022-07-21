@@ -68,7 +68,7 @@ export class Item {
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
          [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()"
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [stateLoading]="audioFetching"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
@@ -440,6 +440,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   selectRecordingFile(rf:RecordingFile){
+    this.audioFetching=false;
     this.displayRecFile=rf;
   }
 
@@ -544,6 +545,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.showRecording();
 
     if (this.ac) {
+      this.audioFetching=false;
       if (!this.ac.opened) {
         if (this._selectedDeviceId) {
           console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
@@ -590,9 +592,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   set displayRecFile(displayRecFile: RecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
-      let ab: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
-      if(ab) {
-        this.displayAudioClip = new AudioClip(ab);
+      let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
+      if(adh) {
+        this.displayAudioClip = new AudioClip(adh);
         console.debug(" set recording file: display audio clip set");
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else {
@@ -602,33 +604,40 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         this.controlAudioPlayer.audioClip = null;
 
         if (this._controlAudioPlayer && this._session) {
-            //... and try to fetch from server
-            this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe({
+          //... and try to fetch from server
+          this.audioFetching=true;
+          let rf=this._displayRecFile;
+          let clip=this.displayAudioClip;
+          this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
             next: ab => {
+              this.audioFetching=false;
               let fabDh = null;
-              if (this._displayRecFile && ab) {
-                fabDh=new AudioDataHolder(ab);
-                this.recorderCombiPane.setRecFileAudioData(this._displayRecFile,fabDh);
+              if(ab) {
+                if (rf) {
+                  fabDh = new AudioDataHolder(ab);
+                  this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                }
               } else {
                 console.error('Recording file could not be loaded.');
-                this.statusMsg = 'Recording file could not be loaded.'
-                this.statusAlertType = 'error'
+                this.statusMsg = 'Recording file could not be loaded.';
+                this.statusAlertType = 'error';
               }
               if (fabDh){
+                // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
                 this.displayAudioClip = new AudioClip(fabDh);
-                console.debug("set recording file: display audio clip from fetched audio buffer");
+                //console.debug("set recording file: display audio clip from fetched audio buffer");
               }
-              this.controlAudioPlayer.audioClip =this.displayAudioClip
+              this.controlAudioPlayer.audioClip =this.displayAudioClip;
               this.showRecording();
-
             }, error: err => {
-              console.error("Could not load recording file from server: " + err)
-              this.statusMsg = 'Recording file could not be loaded: ' + err
-              this.statusAlertType = 'error'
+              console.error("Could not load recording file from server: " + err);
+              this.audioFetching=false;
+              this.statusMsg = 'Recording file could not be loaded: ' + err;
+              this.statusAlertType = 'error';
             }})
         }else{
-          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
-          this.statusAlertType = 'error'
+          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.';
+          this.statusAlertType = 'error';
         }
       }
 

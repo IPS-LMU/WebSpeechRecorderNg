@@ -148,6 +148,8 @@ export abstract class BasicRecorder {
   public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
 
+  audioFetching:boolean=false;
+
   protected destroyed=false;
 
   protected navigationDisabled=true;
