@@ -171,6 +171,9 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
 
 @Directive()
 export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerComponent {
+
+    protected static readonly ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD=10*60*48000;  // Use streaming/chunking if audio clip has more than this number of samples
+
     _pointerPosition:Marker|null=null;
 
     protected selectStartX:number|null=null;
