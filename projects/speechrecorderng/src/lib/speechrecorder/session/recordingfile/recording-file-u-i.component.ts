@@ -27,7 +27,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
-        <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile"></app-recording-file-meta>
+        <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile" [stateLoading]="audioFetching"></app-recording-file-meta>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"

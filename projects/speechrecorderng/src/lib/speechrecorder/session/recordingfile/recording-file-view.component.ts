@@ -37,7 +37,7 @@ export class ItemcodeIndex{
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
-      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"></app-recording-file-meta>
+      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile" [stateLoading]="audioFetching"></app-recording-file-meta>
 
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
@@ -100,6 +100,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   nextAction: Action<void>;
   lastAction: Action<void>;
   toVersionAction: Action<number>;
+  audioFetching=false;
 
   naviInfoLoading=false;
 
@@ -285,7 +286,9 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.updateActions();
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
+      this.audioFetching=true;
       this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(value => {
+        this.audioFetching=false;
         this.status = 'Audio file loaded.';
         let clip = null;
         this.recordingFile = value;
@@ -324,6 +327,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.loadedRecfile();
 
       }, error1 => {
+        this.audioFetching=false;
         this.status = 'Error loading audio file!';
       });
     }
