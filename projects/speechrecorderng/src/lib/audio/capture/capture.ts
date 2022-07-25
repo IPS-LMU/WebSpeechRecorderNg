@@ -3,6 +3,10 @@ import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
 import {AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
 import {ArrayAudioBuffer} from "../array_audio_buffer";
+import {SprDb} from "../../db/inddb";
+import {UUID} from "../../utils/utils";
+import {Observable, Subscriber} from "rxjs";
+
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -112,6 +116,7 @@ export class AudioCapture {
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
+  recUUID?:string;
   mediaStream: any;
   agcStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
@@ -126,12 +131,21 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
+  // TODO Test!!!
+  private persistToIndexedDb=true;
+  db?:IDBDatabase;
+  tr?:IDBTransaction;
+  private indDbChkIdx=0;
+  private persisted=true;
+
   constructor(context: AudioContext) {
     this.context = context;
     this.n = navigator;
   }
 
   private initData() {
+    this.recUUID=UUID.generate();
+    this.indDbChkIdx=0;
     this.data = new Array<Array<Float32Array>>();
     for (let i = 0; i < this.channelCount; i++) {
       this.data.push(new Array<Float32Array>());
@@ -245,14 +259,25 @@ export class AudioCapture {
   }
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
-      this.context.resume().then(()=>{
-        this._open(channelCount,selDeviceId,autoGainControlConfigs);
-      })
+    this.context.resume().then(()=>{
+
+      if(this.persistToIndexedDb){
+        SprDb.prepare().subscribe(db => {
+          this.db = db;
+
+          this._open(channelCount, selDeviceId, autoGainControlConfigs);
+        });
+      }else{
+        this._open(channelCount, selDeviceId, autoGainControlConfigs);
+      }
+    })
   }
 
   _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
+
+
     //var msc = new AudioStreamConstr();
     // var msc={};
     //msc.video = false;
@@ -491,6 +516,9 @@ export class AudioCapture {
                         if (this.audioOutStream) {
                           this.audioOutStream.write(chunk);
                         }
+                        if(this.persistToIndexedDb){
+                          this.store();
+                        }
                       }
                     };
                   }
@@ -590,9 +618,56 @@ export class AudioCapture {
       this.audioOutStream.flush();
     }
     this.capturing = false;
-    if (this.listener) {
+    if (this.listener && this.persisted) {
+      console.debug("Stopped by stop() method call");
       this.listener.stopped();
     }
+  }
+
+
+  store(){
+   if(this.db && this.recUUID){
+      let tr= this.db.transaction(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, 'readwrite');
+      let recFileObjStore = tr.objectStore(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
+
+        try {
+          let ch0Data=this.data[0];
+          let dataChkCnt=ch0Data.length;
+          for (let ch = 0; ch < this.channelCount; ch++) {
+            let pos = 0;
+            for (let chCkIdx = 0; chCkIdx < dataChkCnt; chCkIdx++) {
+              let chChk = this.data[ch][chCkIdx];
+              let bufLen = chChk.length;
+              //let cacheId = uuid + '_' + ch + '_' + chCkIdx;
+              let chkDbId=[this.recUUID,ch,this.indDbChkIdx];
+              let cr = recFileObjStore.add(chChk, chkDbId);
+              this.indDbChkIdx++;
+              pos += bufLen;
+            }
+          }
+          tr.onerror = (err) => {
+            console.error('Failed to cache audio data to indexed db: ' + err)
+          }
+          tr.oncomplete = () => {
+            //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
+
+            /// Audio data saved to index db delete from in memory data array
+            for (let ch = 0; ch < this.channelCount; ch++) {
+             this.data[ch].splice(0);
+            }
+            this.persisted=true;
+            if(this.listener && !this.capturing){
+              console.debug("Stopped by indexed db hook");
+              this.listener.stopped();
+            }
+          }
+          // Commit chunks
+          this.persisted=false;
+          tr.commit();
+        } catch (err) {
+          console.error('Transfer capture audio data error: '+err);
+        }
+      }
   }
 
 
@@ -657,6 +732,8 @@ export class AudioCapture {
       let aba=new ArrayAudioBuffer(this.channelCount,this.currentSampleRate,this.data);
       return aba;
   }
+
+
 
 }
 
