@@ -267,7 +267,7 @@ export class RecordingFileService {
       // append UUID to make request URL unique to avoid localhost server caching
       recUrl = recUrl + '.json?requestUUID='+UUID.generate();
     }
-    console.log("Path request URL: "+recUrl)
+    //console.log("Path request URL: "+recUrl)
     return this.http.patch<SprRecordingFile>(recUrl,{editSampleRate:editSampleRate,editStartFrame:editStartFrame,editEndFrame:editEndFrame},{ withCredentials: this.withCredentials });
   }
 

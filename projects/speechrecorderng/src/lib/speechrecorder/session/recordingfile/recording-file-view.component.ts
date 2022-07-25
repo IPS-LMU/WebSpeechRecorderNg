@@ -438,7 +438,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
                 for (let avRfV of avRf) {
                   os += avRfV.version + '/';
                 }
-                console.debug(os);
+                //console.debug(os);
               }
           }
           this.updatePos()
