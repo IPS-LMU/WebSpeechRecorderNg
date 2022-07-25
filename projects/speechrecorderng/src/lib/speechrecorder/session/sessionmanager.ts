@@ -209,7 +209,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
     ngOnDestroy() {
-      console.debug("Com destroy, disable wake lock.")
+      //console.debug("Com destroy, disable wake lock.")
       this.disableWakeLockCond();
        this.destroyed=true;
        // TODO stop capture /playback

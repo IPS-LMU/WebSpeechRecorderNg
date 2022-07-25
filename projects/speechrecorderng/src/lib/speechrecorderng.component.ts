@@ -245,7 +245,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
           this.uploadUpdate(ue);
         }
         window.addEventListener('beforeunload', (e) => {
-          console.debug("Before page unload event");
+          //console.debug("Before page unload event");
 
           if (this.ready()) {
             return;

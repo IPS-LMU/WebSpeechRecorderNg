@@ -57,6 +57,11 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
 
         constructor(context:AudioContext, listener:AudioPlayerListener) {
            this.context=context;
+          AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
+            console.debug("Audio source worklet module loaded.");
+          }).catch((error: any)=>{
+            console.error('Could not add module '+error);
+          });
             this.listener=listener;
             this.bufSize = AudioPlayer.DEFAULT_BUFSIZE;
             this.n=navigator;

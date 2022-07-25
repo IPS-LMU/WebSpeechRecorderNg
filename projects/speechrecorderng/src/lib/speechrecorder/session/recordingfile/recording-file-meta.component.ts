@@ -64,11 +64,11 @@ export class RecordingFileMetaComponent{
       if (this.itemCode) {
 
         this.uuid = null;
-        console.debug("SprRecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+        //console.debug("SprRecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
       } else {
         this.itemCode = null;
         this.uuid = this._recordingFile?.uuid;
-        console.debug("RecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+        //console.debug("RecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
       }
     }else{
       this.itemCode=null;
