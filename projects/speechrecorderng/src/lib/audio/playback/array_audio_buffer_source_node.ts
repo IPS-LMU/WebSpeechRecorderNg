@@ -193,6 +193,7 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
             chs: this.channelCount,
             audioData: trBuffers
           }, trBuffers);
+          filled+=read;
         }else{
           break;
         }
