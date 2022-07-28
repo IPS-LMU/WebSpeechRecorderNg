@@ -133,15 +133,12 @@ export class RecordingService {
       if(recordingFile.session && recFileId) {
 
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
-        obs.subscribe({
-          next: resp => {
-
+        obs.subscribe(resp => {
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
                   observer.next(ab);
                   observer.complete();
-
               }, error => {
                 observer.error(error);
                 observer.complete();
@@ -149,8 +146,7 @@ export class RecordingService {
             } else {
               observer.error('Fetching audio file: response has no body');
             }
-          },
-          error:(error: HttpErrorResponse) => {
+          }, (error: HttpErrorResponse) => {
             if (error.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
@@ -160,7 +156,7 @@ export class RecordingService {
               observer.error(error);
               observer.complete();
             }
-          }});
+          });
       }else{
         observer.error();
       }
