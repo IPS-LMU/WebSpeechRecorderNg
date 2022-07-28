@@ -106,6 +106,18 @@ export class RecordingFile {
 
     export class RecordingFileUtils{
 
+      static equals(recordinFile:RecordingFile|null,otherRecordingFile:RecordingFile|null):boolean{
+        if(recordinFile && otherRecordingFile){
+          if (otherRecordingFile === recordinFile) {
+            return true;
+          }
+          if (otherRecordingFile.uuid === recordinFile.uuid) {
+            return true;
+          }
+        }
+        return false;
+      }
+
       static setAudioData(rf:RecordingFile,audioDataHolder:AudioDataHolder|null){
           rf.audioDataHolder=audioDataHolder;
           if(audioDataHolder) {

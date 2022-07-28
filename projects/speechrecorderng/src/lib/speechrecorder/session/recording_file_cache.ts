@@ -3,13 +3,13 @@ import {Item} from "./item";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 export class BasicRecFilesCache {
-  public static readonly DEBUG=false;
-  public static readonly DEFAULT_MAX_SAMPLES=10*60*48000;  // 20 Minutes mono 48kHz
+  public static readonly DEBUG=true;
+  //public static readonly DEFAULT_MAX_SAMPLES=10*60*48000;  // 20 Minutes mono 48kHz
 
-  //public static readonly DEFAULT_MAX_SAMPLES=30*48000;  // TEST 30 seconds
+  public static readonly DEFAULT_MAX_SAMPLES=30*48000;  // TEST 30 seconds
 
   protected _sampleCount:number=0;
-  maxSampleCount:number=SprItemsCache.DEFAULT_MAX_SAMPLES;
+  maxSampleCount:number=BasicRecFilesCache.DEFAULT_MAX_SAMPLES;
   public currentRecordingFile:RecordingFile|null=null;
 }
 
@@ -39,7 +39,7 @@ export class SprItemsCache extends BasicRecFilesCache{
 
     private tryExpire(toBeExpiredRf:SprRecordingFile){
       if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: " + toBeExpiredRf.toString()+" try expire:");
-      if(!toBeExpiredRf.equals(this.currentRecordingFile)) {
+      if(!RecordingFileUtils.equals(toBeExpiredRf,this.currentRecordingFile)) {
         if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: " + toBeExpiredRf.toString()+" not current file...");
         if (toBeExpiredRf.serverPersisted) {
           if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: " + toBeExpiredRf.toString()+" is server persisted...");
@@ -156,11 +156,15 @@ export class RecFilesCache extends BasicRecFilesCache{
         }
         let toBeExpiredRf = this._recFiles[rfI];
         if (toBeExpiredRf.serverPersisted) {
-          // expire recording files first stored to the cache
-          let expiredAudio = RecordingFileUtils.expireAudioData(toBeExpiredRf);
-          if (expiredAudio) {
-            this._sampleCount -= expiredAudio.sampleCounts();
-            if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: Expired #"+rfI+". Cache samples: " + this._sampleCount);
+          if(!RecordingFileUtils.equals(toBeExpiredRf,this.currentRecordingFile)) {
+            // expire recording files first stored to the cache
+            let expiredAudio = RecordingFileUtils.expireAudioData(toBeExpiredRf);
+            if (expiredAudio) {
+              this._sampleCount -= expiredAudio.sampleCounts();
+              if (BasicRecFilesCache.DEBUG) console.debug("Rec. files cache: Expired #" + rfI + ". Cache samples: " + this._sampleCount);
+            }
+          }else{
+            if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: #"+rfI+" is current file. (not expiring)");
           }
         }else{
           if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: #"+rfI+" not yet server persisted.");
