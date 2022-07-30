@@ -2,7 +2,8 @@ import {RecordingFile, RecordingFileUtils, SprRecordingFile} from "../recording"
 import {Item} from "./item";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 
-export class BasicRecFilesCache {
+export abstract class BasicRecFilesCache {
+
   public static readonly DEBUG=true;
   //public static readonly DEFAULT_MAX_SAMPLES=10*60*48000;  // 20 Minutes mono 48kHz
 
@@ -10,7 +11,17 @@ export class BasicRecFilesCache {
 
   protected _sampleCount:number=0;
   maxSampleCount:number=BasicRecFilesCache.DEFAULT_MAX_SAMPLES;
-  public currentRecordingFile:RecordingFile|null=null;
+  private _currentRecordingFile:RecordingFile|null=null;
+  protected abstract expire():void;
+
+  get currentRecordingFile(): RecordingFile | null {
+    return this._currentRecordingFile;
+  }
+
+  set currentRecordingFile(value: RecordingFile | null) {
+    this._currentRecordingFile = value;
+    this.expire();
+  }
 }
 
 
@@ -57,7 +68,7 @@ export class SprItemsCache extends BasicRecFilesCache{
       }
     }
 
-  private expire() {
+  protected expire() {
     // expire corrected versions first
     if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: Expire? current: "+this._sampleCount+", max: "+this.maxSampleCount);
     if (this._sampleCount > this.maxSampleCount) {
@@ -147,7 +158,7 @@ export class RecFilesCache extends BasicRecFilesCache{
     return this._recFiles.length;
   }
 
-  private expire() {
+  protected expire() {
     if (this._sampleCount > this.maxSampleCount) {
       // audio recorder list is sorted: lower index is newer
       for (let rfI = this._recFiles.length-1; rfI >=0; rfI--) {
