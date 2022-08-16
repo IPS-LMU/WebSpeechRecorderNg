@@ -35,6 +35,10 @@ import {RecordingFile, SprRecordingFile} from "../../recording";
             <td>Session:</td>
             <td>{{sessionId}}</td>
           </tr>
+          <tr>
+            <td>Length:</td>
+            <td>{{recordingFile?.timeLength}} s</td>
+          </tr>
         </table>
       </mat-card-content>
     </mat-card>
