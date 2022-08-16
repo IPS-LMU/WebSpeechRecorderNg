@@ -18,7 +18,7 @@ import {AudioClip} from "../persistor";
                         [style.color]="playStartAction?.disabled ? 'grey' : 'green'" matTooltip="Play all">
                     <mat-icon>play_arrow</mat-icon>
                 </button>
-                <button (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
+                <button fxHide.lt-md (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
                         [style.color]="playSelectionAction?.disabled ? 'grey' : 'green'" matTooltip="Play selection">
                     <mat-icon>play_circle_outline</mat-icon>
                 </button>
@@ -26,10 +26,10 @@ import {AudioClip} from "../persistor";
                         [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
                     <mat-icon>stop</mat-icon>
                 </button>&nbsp;
-                <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay on select
+                <mat-checkbox fxHide.lt-md #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay on select
                 </mat-checkbox>
             </fieldset>
-            <fieldset>
+            <fieldset fxHide.lt-md>
 
                 <legend>Zoom</legend>
                 <button (click)="zoomFitToPanelAction?.perform()"
@@ -41,7 +41,7 @@ import {AudioClip} from "../persistor";
                 <button (click)="zoomSelectedAction?.perform()"
                         [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
             </fieldset>
-            <fieldset>
+            <fieldset fxHide.lt-md>
                 <legend>Selection</legend>
                 {{audioClip?.selection?.leftFrame}} <span
                     *ngIf="audioClip?.selection">to</span> {{audioClip?.selection?.rightFrame}}

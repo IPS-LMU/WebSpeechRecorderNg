@@ -6,7 +6,7 @@ import {Action} from "../../../action/action";
   template: `
         <div #controlPanel style="display:flex;flex-direction: row;">
           <div #navi style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
-            <fieldset>
+            <fieldset fxHide.lt-sm>
               <legend>Versions</legend>
               <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="15"></mat-progress-spinner>
                 <select *ngIf="!naviInfoLoading" [disabled]="versions==null || versions.length==1" (change)="selectVersionChange($event)">

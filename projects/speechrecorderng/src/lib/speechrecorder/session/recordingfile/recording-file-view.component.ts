@@ -48,7 +48,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+      <app-recording-file-navi fxHide.lt-sm [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
   styles: [
