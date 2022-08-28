@@ -761,12 +761,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       newPrIdx = 0;
     }
     if(this.items!=null) {
-      let itRecs=this.items.getItem(newPrIdx).recs;
-      while (itRecs!=null && (itRecs.length > 0) && newPrIdx < this.promptItemCount) {
+      let it=this.items.getItem(newPrIdx);
+      while (it.itemDone() && newPrIdx < this.promptItemCount) {
         newPrIdx++;
-        itRecs=this.items.getItem(newPrIdx).recs;
+        it=this.items.getItem(newPrIdx);
       }
-      if (!itRecs || itRecs.length == 0) {
+      if (!it.itemDone()) {
         this.promptIndex = newPrIdx;
       }
     }
@@ -1030,7 +1030,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       // search backwards, to gain faster detection of incomplete state
       for (let ri = this.items.length() - 1; ri >= 0; ri--) {
         let it = this.items.getItem(ri);
-        if (it.recording && !it.training && (!it.recs || it.recs.length == 0)) {
+        if (it.recording && !it.training && !it.itemDone()) {
           complete = false;
           break;
         }
