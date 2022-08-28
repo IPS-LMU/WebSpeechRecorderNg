@@ -17,7 +17,6 @@ export class RecordingFile {
   recordingFileId: string | number | null= null;
   uuid:string|null=null;
   serverPersisted=false;
-  keepAudioDataCache=false;
   date: string|null=null;
   _dateAsDateObj:Date|null=null;
   startedDate: string|null=null;
@@ -82,7 +81,9 @@ export class RecordingFile {
           this.version=version;
       }
 
-
+      recordingFileDone():boolean{
+        return (this.serverPersisted===true) || (this.audioDataHolder!=null);
+      }
 
       filenameString():string{
         let fns:string='';
