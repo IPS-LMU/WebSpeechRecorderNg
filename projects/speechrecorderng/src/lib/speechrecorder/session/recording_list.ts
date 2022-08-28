@@ -1,8 +1,7 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output} from "@angular/core";
-import {RecordingFile, SprRecordingFile} from "../recording";
+import {RecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
-import {MatTable, MatTableDataSource} from "@angular/material/table";
-import {Observable, Subject} from "rxjs";
+import {MatTableDataSource} from "@angular/material/table";
 import {RecFilesCache} from "./recording_file_cache";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 
@@ -12,30 +11,45 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
 
   template: `
     <mat-card>
-        <mat-card-header>
-          <h2>Recording list</h2>
-        </mat-card-header>
+      <mat-card-header>
+        <h2>Recording list</h2>
+      </mat-card-header>
       <mat-card-content>
-    <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
-      <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
-      <tr mat-row *matRowDef="let element; columns: cols;" [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid"></tr>
-      <ng-container matColumnDef="index">
-        <th mat-header-cell *matHeaderCellDef mat-header>#</th>
-        <td mat-cell class="monospaced" *matCellDef="let element;let i = index">{{recordingListDataSource.data.length-i}}</td>
-      </ng-container>
-      <ng-container matColumnDef="startedDate">
-        <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
-        <td mat-cell class="monospaced" *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
-      </ng-container>
-      <ng-container matColumnDef="length">
-        <th mat-header-cell *matHeaderCellDef mat-header>Length</th>
-        <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
-      </ng-container>
-      <ng-container matColumnDef="action">
-        <th mat-header-cell *matHeaderCellDef>Action</th>
-        <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
-      </ng-container>
-    </table>
+        <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
+          <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
+          <tr mat-row *matRowDef="let element; columns: cols;"
+              [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid" [class.selected]="element.uuid===selectedRecordingFile?.uuid"></tr>
+          <ng-container matColumnDef="index">
+            <th mat-header-cell *matHeaderCellDef mat-header>#</th>
+            <td mat-cell class="monospaced"
+                *matCellDef="let element;let i = index">{{recordingListDataSource.data.length - i}}</td>
+          </ng-container>
+          <ng-container matColumnDef="startedDate">
+            <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
+            <td mat-cell class="monospaced"
+                *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="length">
+            <th mat-header-cell *matHeaderCellDef mat-header>Length</th>
+            <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
+          </ng-container>
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef>Action</th>
+            <td mat-cell *matCellDef="let element">
+              <!--
+              <mat-icon *ngIf="recordingFileCached(element)===false" style="font-size:0.8em;width:0.8em;height:0.8em">
+                cloud_download
+              </mat-icon>
+              -->
+              <button mat-stroked-button color="primary" (click)="selectRecordingFile(element)"
+                      [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid">
+                <mat-icon>edit_attributes</mat-icon>
+                Select
+              </button>
+
+            </td>
+          </ng-container>
+        </table>
       </mat-card-content>
     </mat-card>
 
@@ -139,4 +153,13 @@ export class RecordingList implements AfterViewInit{
     }
     return str;
   }
+
+  recordingFileCached(rf:RecordingFile):boolean|null{
+    let cached=null;
+    if(rf && rf.serverPersisted) {
+      cached = (rf.audioDataHolder != null);
+    }
+    return cached;
+  }
+
 }
