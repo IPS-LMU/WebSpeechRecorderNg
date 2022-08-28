@@ -5,7 +5,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
 export abstract class BasicRecFilesCache {
 
   public static readonly DEBUG=false;
-  public static readonly DEFAULT_MAX_SAMPLES=10*60*48000;  // 20 Minutes mono 48kHz
+  public static readonly DEFAULT_MAX_SAMPLES=30*60*48000;  // 30 Minutes mono 48kHz
 
   //public static readonly DEFAULT_MAX_SAMPLES=30*48000;  // TEST 30 seconds
 
