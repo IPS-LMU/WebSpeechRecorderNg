@@ -21,11 +21,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Prompting} from "./prompting";
-import {
-  SequenceAudioFloat32ChunkerOutStream,
-  SequenceAudioFloat32OutStream,
-  SequenceAudioFloat32OutStreamMultiplier
-} from "../../audio/io/stream";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
@@ -36,14 +31,13 @@ import {LevelBar} from "../../audio/ui/livelevel";
 import {
   BasicRecorder,
   ChunkAudioBufferReceiver,
-  LEVEL_BAR_INTERVALL_SECONDS,
   MAX_RECORDING_TIME_MS,
   RECFILE_API_CTX
 } from "./basicrecorder";
-import {UUID} from "../../utils/utils";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
+import {State as LiveLevelState} from "../../audio/ui/livelevel"
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -74,7 +68,7 @@ export const enum Status {
 
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayAudioClip?.levelInfos"  [stateLoading]="audioFetching"></audio-levelbar>
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
@@ -462,7 +456,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     if(this.ac!=null) {
       // Hide loading hint on livelevel display
-      this.audioFetching=false;
+      this.liveLevelDisplayState=LiveLevelState.READY;
       if (!this.ac.opened) {
         if (this._selectedDeviceId) {
           console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
@@ -590,11 +584,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         }
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
-          this.audioFetching=true;
+          this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
           this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
             next: (ab) => {
-              this.audioFetching=false;
+              this.liveLevelDisplayState=LiveLevelState.READY;
               let fabDh = null;
               if (ab) {
                 if (rf && this.items) {
@@ -619,7 +613,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               this.showRecording();
             }, error: err => {
               console.error("Could not load recording file from server: " + err);
-              this.audioFetching=false;
+              this.liveLevelDisplayState=LiveLevelState.READY;
               this.statusMsg = 'Recording file could not be loaded: ' + err;
               this.statusAlertType = 'error';
             }})
@@ -660,7 +654,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if(this.audioFetchSubscription){
       this.audioFetchSubscription.unsubscribe();
     }
-    this.audioFetching=false;
+    this.liveLevelDisplayState=LiveLevelState.READY;
 
     this.clearPrompt();
 

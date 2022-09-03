@@ -6,7 +6,7 @@ import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
 import {AudioDevice, AutoGainControlConfig} from "../project/project";
-import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
+import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
@@ -26,6 +26,7 @@ import {RecordingFile, SprRecordingFile} from "../recording";
 import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
+import {State as LiveLevelState} from "../../audio/ui/livelevel"
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -148,7 +149,7 @@ export abstract class BasicRecorder {
   public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
 
-  audioFetching:boolean=false;
+  liveLevelDisplayState:LiveLevelState=LiveLevelState.READY;
 
   protected destroyed=false;
 
@@ -266,8 +267,10 @@ export abstract class BasicRecorder {
       let dap=this.displayAudioClip;
       let adh=dap.audioDataHolder;
       if(adh) {
+        this.liveLevelDisplayState=LiveLevelState.RENDERING;
         this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).then((levelInfos) => {
           dap.levelInfos = levelInfos;
+          this.liveLevelDisplayState=LiveLevelState.READY;
           this.changeDetectorRef.detectChanges();
         });
       }

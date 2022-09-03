@@ -29,7 +29,7 @@ import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
-
+import {State as LiveLevelState} from "../../audio/ui/livelevel"
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -68,7 +68,7 @@ export class Item {
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
          [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [stateLoading]="audioFetching"
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
@@ -440,7 +440,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   selectRecordingFile(rf:RecordingFile){
-    this.audioFetching=false;
+    this.liveLevelDisplayState=LiveLevelState.READY;
     this.displayRecFile=rf;
   }
 
@@ -545,7 +545,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.showRecording();
 
     if (this.ac) {
-      this.audioFetching=false;
+      this.liveLevelDisplayState=LiveLevelState.READY;
       if (!this.ac.opened) {
         if (this._selectedDeviceId) {
           console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
@@ -605,12 +605,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
-          this.audioFetching=true;
+          this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
           let clip=this.displayAudioClip;
           this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
             next: ab => {
-              this.audioFetching=false;
+              this.liveLevelDisplayState=LiveLevelState.READY;
               let fabDh = null;
               if(ab) {
                 if (rf) {
@@ -631,7 +631,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               this.showRecording();
             }, error: err => {
               console.error("Could not load recording file from server: " + err);
-              this.audioFetching=false;
+              this.liveLevelDisplayState=LiveLevelState.READY;
               this.statusMsg = 'Recording file could not be loaded: ' + err;
               this.statusAlertType = 'error';
             }})
