@@ -134,10 +134,13 @@ export class RecordingFile {
           return 0;
         }
       }
-      static expireAudioData(rf:RecordingFile):AudioDataHolder|null{
-        let rv=rf.audioDataHolder;
-        rf.audioDataHolder=null;
-        return rv;
+      static expireAudioData(rf:RecordingFile):number{
+        let expiredSamples=0;
+        if(rf && rf.audioDataHolder){
+          expiredSamples=rf.audioDataHolder.sampleCounts();
+          rf.audioDataHolder=null;
+        }
+        return expiredSamples;
       }
 
     }
