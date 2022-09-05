@@ -586,37 +586,75 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
-          this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
-            next: (ab) => {
-              this.liveLevelDisplayState=LiveLevelState.READY;
-              let fabDh = null;
-              if (ab) {
-                if (rf && this.items) {
-                  if (SessionManager.FORCE_ARRRAY_AUDIO_BUFFER) {
-                    let aab = ArrayAudioBuffer.fromAudioBuffer(ab);
-                    fabDh = new AudioDataHolder(null, aab);
-                  } else {
-                    fabDh = new AudioDataHolder(ab);
+          if(this.uploadChunkSizeSeconds){
+            // Fetch chunked array audio buffer
+            let nextAab:ArrayAudioBuffer|null=null;
+            this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (aab) => {
+                nextAab=aab;
+              },
+              complete:()=>{
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextAab) {
+                  if (rf && this.items) {
+                    fabDh = new AudioDataHolder(null,nextAab);
+                    this.items.setSprRecFileAudioData(rf, fabDh);
                   }
-                  this.items.setSprRecFileAudioData(rf, fabDh);
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
                 }
-              }else {
-                // Should actually be handled by the error resolver
-                this.statusMsg = 'Recording file could not be loaded.'
-                this.statusAlertType = 'error'
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
               }
-              if (fabDh){
-                // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
-                this.displayAudioClip = new AudioClip(fabDh);
+            });
+          }else {
+            // Fetch regular audio buffer
+            this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (ab) => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (ab) {
+                  if (rf && this.items) {
+                    if (SessionManager.FORCE_ARRRAY_AUDIO_BUFFER) {
+                      let aab = ArrayAudioBuffer.fromAudioBuffer(ab);
+                      fabDh = new AudioDataHolder(null, aab);
+                    } else {
+                      fabDh = new AudioDataHolder(ab);
+                    }
+                    this.items.setSprRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              }, error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
               }
-              this.controlAudioPlayer.audioClip =this.displayAudioClip
-              this.showRecording();
-            }, error: err => {
-              console.error("Could not load recording file from server: " + err);
-              this.liveLevelDisplayState=LiveLevelState.READY;
-              this.statusMsg = 'Recording file could not be loaded: ' + err;
-              this.statusAlertType = 'error';
-            }})
+            });
+          }
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
           this.statusAlertType = 'error'

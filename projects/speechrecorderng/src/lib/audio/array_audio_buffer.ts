@@ -10,6 +10,7 @@ export class ArrayAudioBuffer {
 
   private updateFrameLen(){
     this._frameLen=0;
+    this._chunkCount=0;
     if(this._data.length>0) {
       let ch0Data = this.data[0];
       for (let ch0Chk of ch0Data) {
@@ -64,8 +65,11 @@ export class ArrayAudioBuffer {
     if(sr!==this._sampleRate){
       throw new Error('Cannot append audio buffer with samplerate '+sr+' to this array audio buffer with samplerate '+this._sampleRate+'. Samplerates must match.');
     }
+
     for(let ch=0;ch<chs;ch++) {
-      this._data[ch].push(audioBuffer.getChannelData(ch));
+      let chAbSlice=audioBuffer.getChannelData(ch).slice();
+      console.debug("Append audio buffer ch: "+ch+": "+chAbSlice.length);
+      this._data[ch].push(chAbSlice);
     }
     this.updateFrameLen();
   }

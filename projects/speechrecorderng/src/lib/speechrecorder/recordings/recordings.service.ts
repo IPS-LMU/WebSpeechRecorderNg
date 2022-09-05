@@ -125,22 +125,24 @@ export class RecordingService {
       this.audioRequest(audioUrl).subscribe(resp => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
+            console.debug("Audio file bytes: "+resp.body.byteLength);
             aCtx.decodeAudioData(resp.body, ab => {
+                console.debug("Decoded audio chunk frames: "+ab.length);
                 observer.next(ab);
                 observer.complete();
               }
-            , error => {
-              if(error instanceof HttpErrorResponse) {
-                // if (error.status == 404) {
-                //   // Interpret not as an error, the file ist not recorded yet
-                //   observer.next(null);
-                //   observer.complete()
-                // } else {
-                //   // all other states are errors
+              , error => {
+                if(error instanceof HttpErrorResponse) {
+                  // if (error.status == 404) {
+                  //   // Interpret not as an error, the file ist not recorded yet
+                  //   observer.next(null);
+                  //   observer.complete()
+                  // } else {
+                  //   // all other states are errors
                   observer.error(error);
-               // }
-              }
-            })
+                  // }
+                }
+              })
           } else {
             observer.error('Fetching audio file: response has no body');
           }
@@ -158,7 +160,8 @@ export class RecordingService {
   private chunkedAudioRequest(aCtx:AudioContext,baseAudioUrl:string): Observable<ArrayAudioBuffer|null> {
     let obs=new Observable<ArrayAudioBuffer|null>(subscriber => {
       let arrayAudioBuffer: ArrayAudioBuffer | null = null;
-      let frameLength = 8192;
+      let frameLength = 8000000;
+      console.debug("Chunk audio request startFrame 0");
       this.chunkAudioRequest(aCtx, baseAudioUrl, 0, frameLength).pipe(
 
         expand(value => {
@@ -167,7 +170,9 @@ export class RecordingService {
                 if (arrayAudioBuffer?.sealed()) {
                   return EMPTY;
                 } else {
-                  return this.chunkAudioRequest(aCtx, baseAudioUrl, arrayAudioBuffer.frameLen + 1, frameLength);
+                  let nextStartFrame=arrayAudioBuffer.frameLen + 1;
+                  console.debug("Next start frame: "+nextStartFrame);
+                  return this.chunkAudioRequest(aCtx, baseAudioUrl, nextStartFrame, frameLength);
                 }
               } else {
                 return EMPTY;
@@ -184,14 +189,37 @@ export class RecordingService {
         if (arrayAudioBuffer) {
           arrayAudioBuffer.appendAudioBuffer(ab);
         } else {
-          arrayAudioBuffer = ArrayAudioBuffer.fromAudioBuffer(ab);
+          arrayAudioBuffer = ArrayAudioBuffer.fromAudioBuffer(ab,ab.length);
         }
         if (ab.length < frameLength) {
           arrayAudioBuffer.seal();
         }
         return arrayAudioBuffer;
       })
-      );
+      ).subscribe({
+        next: (aab)=>{subscriber.next(aab)},
+        complete: ()=>{subscriber.complete()},
+        error: (err)=>{
+          if(err instanceof HttpErrorResponse){
+            if (err.status == 404) {
+              if(arrayAudioBuffer){
+                arrayAudioBuffer.seal();
+                subscriber.next(arrayAudioBuffer);
+                subscriber.complete();
+              }else {
+                // Interpret not as an error, the file ist not recorded yet
+                subscriber.next(null);
+                subscriber.complete();
+              }
+            //   observer.complete()
+             } else {
+              // all other states are errors
+              subscriber.error(err);
+             }
+
+          }
+        }
+      });
     });
     return obs;
   }
