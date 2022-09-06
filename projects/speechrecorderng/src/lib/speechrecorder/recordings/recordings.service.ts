@@ -9,17 +9,13 @@ import {UUID} from "../../utils/utils";
 import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile, RecordingFileUtils} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
-import {concatMap, EMPTY, expand, map, Observable} from "rxjs";
+import {EMPTY, expand, map, Observable} from "rxjs";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 
 
-export const REC_API_CTX='recfile'
-
-// export class ArrayAudioBufferBuilder{
-//   arrayAudioBuffer
-//
-// }
+export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
+//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 1234567;
 
 @Injectable()
 export class RecordingService {
@@ -125,9 +121,10 @@ export class RecordingService {
       this.audioRequest(audioUrl).subscribe(resp => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
-            console.debug("Audio file bytes: "+resp.body.byteLength);
+            //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
+            //console.debug("Audio file bytes: "+resp.body.byteLength);
             aCtx.decodeAudioData(resp.body, ab => {
-                console.debug("Decoded audio chunk frames: "+ab.length);
+                //console.debug("Decoded audio chunk frames: "+ab.length);
                 observer.next(ab);
                 observer.complete();
               }
@@ -160,19 +157,31 @@ export class RecordingService {
   private chunkedAudioRequest(aCtx:AudioContext,baseAudioUrl:string): Observable<ArrayAudioBuffer|null> {
     let obs=new Observable<ArrayAudioBuffer|null>(subscriber => {
       let arrayAudioBuffer: ArrayAudioBuffer | null = null;
-      let frameLength = 8000000;
-      console.debug("Chunk audio request startFrame 0");
-      this.chunkAudioRequest(aCtx, baseAudioUrl, 0, frameLength).pipe(
+      let startFrame=0;
+      let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
+      //console.debug("Chunk audio request startFrame 0");
+      let subscr=this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength).pipe(
 
         expand(value => {
+          if(subscriber.closed){
+            subscr.unsubscribe();
+          }
             if (value) {
               if (arrayAudioBuffer) {
                 if (arrayAudioBuffer?.sealed()) {
                   return EMPTY;
                 } else {
-                  let nextStartFrame=arrayAudioBuffer.frameLen + 1;
-                  console.debug("Next start frame: "+nextStartFrame);
-                  return this.chunkAudioRequest(aCtx, baseAudioUrl, nextStartFrame, frameLength);
+                  //let nextStartFrame=arrayAudioBuffer.frameLen + 1;
+                  // We cannot use the frame length of the array audio buffer to determine the next start frame because
+                  // AudioContext.decodeAudioData might change the sample rate of the original file. (E.g. Recordings from Mac/iOS with SR 44100 and listen to the on Windows platform will resmaple the audio data to 48000.)
+                  // Frame count then differs on client and server
+
+                  // Simply proceed in steps of frameLength
+                  // More advanced method would be to parse the WAV header to find out the rela frame length of the chunk audio file
+                  startFrame+=frameLength;
+                  //console.debug("Next start frame: "+startFrame);
+                  //console.debug("chunkedAudioRequest: expand() subscriber.closed: "+subscriber.closed);
+                  return this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength);
                 }
               } else {
                 return EMPTY;
@@ -197,8 +206,13 @@ export class RecordingService {
         return arrayAudioBuffer;
       })
       ).subscribe({
-        next: (aab)=>{subscriber.next(aab)},
-        complete: ()=>{subscriber.complete()},
+        next: (aab)=>{
+          //console.debug("chunkedAudioRequest: subscriber.closed: "+subscriber.closed);
+          subscriber.next(aab)
+        },
+        complete: ()=>{
+          subscriber.complete()
+        },
         error: (err)=>{
           if(err instanceof HttpErrorResponse){
             if (err.status == 404) {
@@ -388,8 +402,14 @@ export class RecordingService {
     let wobs = new Observable<ArrayAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let obs = this.fetchSprAudiofileArrayBuffer(aCtx,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
-        obs.subscribe({
-          next: aab => {observer.next(aab)},
+        let subscr=obs.subscribe({
+          next: aab => {
+            //console.debug("fetchSprRecordingFileArrayAudioBuffer: observer.closed: "+observer.closed);
+            if(observer.closed){
+              subscr.unsubscribe()
+            }
+            observer.next(aab)
+          },
           complete: ()=> {observer.complete();},
           error: (error: HttpErrorResponse) => {
             if (error.status == 404) {
