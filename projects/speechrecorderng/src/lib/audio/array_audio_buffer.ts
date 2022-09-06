@@ -68,7 +68,7 @@ export class ArrayAudioBuffer {
 
     for(let ch=0;ch<chs;ch++) {
       let chAbSlice=audioBuffer.getChannelData(ch).slice();
-      console.debug("Append audio buffer ch: "+ch+": "+chAbSlice.length);
+      //console.debug("Append audio buffer ch: "+ch+": "+chAbSlice.length);
       this._data[ch].push(chAbSlice);
     }
     this.updateFrameLen();
