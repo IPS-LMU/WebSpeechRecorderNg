@@ -17,7 +17,6 @@ export class RecordingFile {
   recordingFileId: string | number | null= null;
   uuid:string|null=null;
   serverPersisted=false;
-  keepAudioDataCache=false;
   date: string|null=null;
   _dateAsDateObj:Date|null=null;
   startedDate: string|null=null;
@@ -82,7 +81,9 @@ export class RecordingFile {
           this.version=version;
       }
 
-
+      recordingFileDone():boolean{
+        return (this.serverPersisted===true) || (this.audioDataHolder!=null);
+      }
 
       filenameString():string{
         let fns:string='';
@@ -106,6 +107,18 @@ export class RecordingFile {
 
     export class RecordingFileUtils{
 
+      static equals(recordinFile:RecordingFile|null,otherRecordingFile:RecordingFile|null):boolean{
+        if(recordinFile && otherRecordingFile){
+          if (otherRecordingFile === recordinFile) {
+            return true;
+          }
+          if (otherRecordingFile.uuid === recordinFile.uuid) {
+            return true;
+          }
+        }
+        return false;
+      }
+
       static setAudioData(rf:RecordingFile,audioDataHolder:AudioDataHolder|null){
           rf.audioDataHolder=audioDataHolder;
           if(audioDataHolder) {
@@ -121,10 +134,13 @@ export class RecordingFile {
           return 0;
         }
       }
-      static expireAudioData(rf:RecordingFile):AudioDataHolder|null{
-        let rv=rf.audioDataHolder;
-        rf.audioDataHolder=null;
-        return rv;
+      static expireAudioData(rf:RecordingFile):number{
+        let expiredSamples=0;
+        if(rf && rf.audioDataHolder){
+          expiredSamples=rf.audioDataHolder.sampleCounts();
+          rf.audioDataHolder=null;
+        }
+        return expiredSamples;
       }
 
     }

@@ -25,7 +25,8 @@ import {Item} from './item';
           <td>{{itIdx}}</td>
           <td class="promptDescriptor">{{item.promptAsString}}</td>
           <td>
-            <mat-icon *ngIf="item.recs && item.recs.length>0">done</mat-icon>
+            <mat-icon  *ngIf="item.itemDone()">done</mat-icon>
+            <!--<mat-icon *ngIf="latestRecordingAvail(item)===false" style="font-size:0.6em;width:0.6em;height:0.6em">cloud_download</mat-icon>-->
 
           </td>
         </tr>
@@ -38,7 +39,7 @@ import {Item} from './item';
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 10pt;
-    /*flex: 0.1 0 300px;  
+    /*flex: 0.1 0 300px;
       min-width: 300px; */
     flex: 0.1 0 content;
     background: white;
@@ -55,13 +56,13 @@ import {Item} from './item';
       border-collapse: collapse;
           /* Tables do not have a natural min size */
           /*min-width: 300px; */
-      
+
     }
 
     table, th, td {
       border: 1px solid lightgrey;
       padding: 0.5em;
-     
+
     }
 
     `, `
@@ -69,7 +70,7 @@ import {Item} from './item';
         background: lightblue;
       }
     `,`.promptDescriptor{
-      
+
       max-width: 200px;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -104,4 +105,19 @@ export class Progress {
       this.onDownloadDoneAction.emit(rowIdx);
     }
   }
+
+  latestRecordingAvail(item:Item):boolean|null{
+    let cached=null;
+    if(item && item.recs){
+      let recsLen=item.recs.length;
+      if(recsLen>0){
+        let rf=item.recs[recsLen-1];
+        if(rf && rf.serverPersisted) {
+          cached = (rf.audioDataHolder != null);
+        }
+      }
+    }
+    return cached;
+  }
+
 }

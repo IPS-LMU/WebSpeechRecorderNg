@@ -83,6 +83,8 @@ export class UserAgentBuilder {
 
       let blPos = ua.indexOf(' ', pp);
       let prt: string;
+      // TODO Replace substr with substring (?)
+      // https://stackoverflow.com/questions/52640271/why-is-string-prototype-substr-deprecated
       if (blPos == -1) {
         prt = ua.substr(pp);
         pp += prt.length;

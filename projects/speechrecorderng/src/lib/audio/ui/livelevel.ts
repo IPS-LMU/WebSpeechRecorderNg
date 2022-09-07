@@ -1,5 +1,6 @@
 import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
+import {STATE_DONE} from "ng-packagr/lib/graph/node";
 
 export const DEFAULT_WARN_DB_LEVEL = -2;
 export const MIN_DB_LEVEL = -60.0;
@@ -11,6 +12,7 @@ export const LEVEL_INDICATOR_HEIGHT=3;
 export const OVERFLOW_THRESHOLD = 0.25;
 export const OVERFLOW_INCR_FACTOR = 0.5;
 
+export enum State {LOADING,RENDERING,READY};
 
 @Component({
 
@@ -61,7 +63,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   private _streamingMode = false;
   private _staticLevelInfos: LevelInfos | null = null;
   private _playFramePosition: number|null=null;
-  private _stateLoading=false;
+  private _state:State|null=null;
 
   warnDBLevel = DEFAULT_WARN_DB_LEVEL;
 
@@ -120,9 +122,9 @@ export class LevelBar implements LevelListener,AfterViewInit {
   }
 
   @Input()
-  set stateLoading(loading:boolean){
-    this._stateLoading=loading;
-    this.layoutStatic();
+  set state(state:State){
+   this._state=state;
+   this.layoutStatic();
   }
 
   set channelCount(channelCount: number) {
@@ -333,11 +335,19 @@ export class LevelBar implements LevelListener,AfterViewInit {
               }
 
           }
-        }else if(this._stateLoading){
+        }else if(this._state!==State.READY){
           g.strokeStyle = 'white';
           g.fillStyle = 'white';
           g.font = '20px sans-serif';
-          g.fillText("Loading...", 10, 25);
+
+          let stateTxt='';
+
+          if(this._state===State.LOADING){
+            stateTxt="Loading...";
+          }else if(this._state===State.RENDERING){
+            stateTxt="Rendering...";
+          }
+          g.fillText(stateTxt, 10, 25);
         }
 
       }

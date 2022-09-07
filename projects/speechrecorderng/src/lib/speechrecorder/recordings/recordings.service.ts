@@ -9,13 +9,13 @@ import {UUID} from "../../utils/utils";
 import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile, RecordingFileUtils} from "../recording";
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
-import {Observable} from "rxjs";
+import {EMPTY, expand, map, Observable} from "rxjs";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 
 
-export const REC_API_CTX='recfile'
-
-
+export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
+//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 1234567;
 
 @Injectable()
 export class RecordingService {
@@ -109,6 +109,135 @@ export class RecordingService {
 
   }
 
+
+  private chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
+    let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+    }
+    let obs=new Observable<AudioBuffer|null>(observer=> {
+      this.audioRequest(audioUrl).subscribe(resp => {
+          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+          if (resp.body) {
+            //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
+            //console.debug("Audio file bytes: "+resp.body.byteLength);
+            aCtx.decodeAudioData(resp.body, ab => {
+                //console.debug("Decoded audio chunk frames: "+ab.length);
+                observer.next(ab);
+                observer.complete();
+              }
+              , error => {
+                if(error instanceof HttpErrorResponse) {
+                  // if (error.status == 404) {
+                  //   // Interpret not as an error, the file ist not recorded yet
+                  //   observer.next(null);
+                  //   observer.complete()
+                  // } else {
+                  //   // all other states are errors
+                  observer.error(error);
+                  // }
+                }
+              })
+          } else {
+            observer.error('Fetching audio file: response has no body');
+          }
+        },
+        (error: HttpErrorResponse) => {
+          // all other states are errors
+          observer.error(error);
+          observer.complete();
+
+        });
+    });
+    return obs;
+  }
+
+  private chunkedAudioRequest(aCtx:AudioContext,baseAudioUrl:string): Observable<ArrayAudioBuffer|null> {
+    let obs=new Observable<ArrayAudioBuffer|null>(subscriber => {
+      let arrayAudioBuffer: ArrayAudioBuffer | null = null;
+      let startFrame=0;
+      let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
+      //console.debug("Chunk audio request startFrame 0");
+      let subscr=this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength).pipe(
+
+        expand(value => {
+          if(subscriber.closed){
+            subscr.unsubscribe();
+          }
+            if (value) {
+              if (arrayAudioBuffer) {
+                if (arrayAudioBuffer?.sealed()) {
+                  return EMPTY;
+                } else {
+                  //let nextStartFrame=arrayAudioBuffer.frameLen + 1;
+                  // We cannot use the frame length of the array audio buffer to determine the next start frame because
+                  // AudioContext.decodeAudioData might change the sample rate of the original file. (E.g. Recordings from Mac/iOS with SR 44100 and listen to the on Windows platform will resmaple the audio data to 48000.)
+                  // Frame count then differs on client and server
+
+                  // Simply proceed in steps of frameLength
+                  // More advanced method would be to parse the WAV header to find out the rela frame length of the chunk audio file
+                  startFrame+=frameLength;
+                  //console.debug("Next start frame: "+startFrame);
+                  //console.debug("chunkedAudioRequest: expand() subscriber.closed: "+subscriber.closed);
+                  return this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength);
+                }
+              } else {
+                return EMPTY;
+              }
+            }else{
+              return EMPTY;
+            }
+          }
+        ),
+      map(ab => {
+        if(ab===null){
+          return null;
+        }
+        if (arrayAudioBuffer) {
+          arrayAudioBuffer.appendAudioBuffer(ab);
+        } else {
+          arrayAudioBuffer = ArrayAudioBuffer.fromAudioBuffer(ab,ab.length);
+        }
+        if (ab.length < frameLength) {
+          arrayAudioBuffer.seal();
+        }
+        return arrayAudioBuffer;
+      })
+      ).subscribe({
+        next: (aab)=>{
+          //console.debug("chunkedAudioRequest: subscriber.closed: "+subscriber.closed);
+          subscriber.next(aab)
+        },
+        complete: ()=>{
+          subscriber.complete()
+        },
+        error: (err)=>{
+          if(err instanceof HttpErrorResponse){
+            if (err.status == 404) {
+              if(arrayAudioBuffer){
+                arrayAudioBuffer.seal();
+                subscriber.next(arrayAudioBuffer);
+                subscriber.complete();
+              }else {
+                // Interpret not as an error, the file ist not recorded yet
+                subscriber.next(null);
+                subscriber.complete();
+              }
+            //   observer.complete()
+             } else {
+              // all other states are errors
+              subscriber.error(err);
+             }
+
+          }
+        }
+      });
+    });
+    return obs;
+  }
+
   private fetchAudiofile(projectName: string, sessId: string | number, recFileId: string|number): Observable<HttpResponse<ArrayBuffer>> {
     let recFilesUrl=this.sessionRecordingFilesUrl(projectName,sessId);
     let encRecFileId=encodeURIComponent(recFileId);
@@ -123,6 +252,13 @@ export class RecordingService {
     return this.audioRequest(recUrl);
   }
 
+  private fetchSprAudiofileArrayBuffer(aCtx:AudioContext,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<ArrayAudioBuffer|null>{
+    let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);
+    let encItemcode=encodeURIComponent(itemcode);
+    let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
+    return this.chunkedAudioRequest(aCtx,recUrl);
+  }
+
   fetchRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<AudioBuffer|null> {
 
     let wobs = new Observable<AudioBuffer|null>(observer=>{
@@ -133,15 +269,12 @@ export class RecordingService {
       if(recordingFile.session && recFileId) {
 
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
-        obs.subscribe({
-          next: resp => {
-
+        obs.subscribe(resp => {
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
                   observer.next(ab);
                   observer.complete();
-
               }, error => {
                 observer.error(error);
                 observer.complete();
@@ -149,8 +282,7 @@ export class RecordingService {
             } else {
               observer.error('Fetching audio file: response has no body');
             }
-          },
-          error:(error: HttpErrorResponse) => {
+          }, (error: HttpErrorResponse) => {
             if (error.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
@@ -160,7 +292,7 @@ export class RecordingService {
               observer.error(error);
               observer.complete();
             }
-          }});
+          });
       }else{
         observer.error();
       }
@@ -255,6 +387,38 @@ export class RecordingService {
               // all other states are errors
               observer.error(error);
               observer.complete();
+            }
+          }});
+      }else{
+        observer.error();
+      }
+    });
+
+    return wobs;
+  }
+
+
+  fetchSprRecordingFileArrayAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:SprRecordingFile):Observable<ArrayAudioBuffer|null> {
+    let wobs = new Observable<ArrayAudioBuffer|null>(observer=>{
+      if(recordingFile.session) {
+        let obs = this.fetchSprAudiofileArrayBuffer(aCtx,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
+        let subscr=obs.subscribe({
+          next: aab => {
+            //console.debug("fetchSprRecordingFileArrayAudioBuffer: observer.closed: "+observer.closed);
+            if(observer.closed){
+              subscr.unsubscribe()
+            }
+            observer.next(aab)
+          },
+          complete: ()=> {observer.complete();},
+          error: (error: HttpErrorResponse) => {
+            if (error.status == 404) {
+              // Interpret not as an error, the file ist not recorded yet
+              observer.next(null);
+              observer.complete()
+            } else {
+              // all other states are errors
+              observer.error(error);
             }
           }});
       }else{

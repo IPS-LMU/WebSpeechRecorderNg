@@ -21,11 +21,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Prompting} from "./prompting";
-import {
-  SequenceAudioFloat32ChunkerOutStream,
-  SequenceAudioFloat32OutStream,
-  SequenceAudioFloat32OutStreamMultiplier
-} from "../../audio/io/stream";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
@@ -36,14 +31,13 @@ import {LevelBar} from "../../audio/ui/livelevel";
 import {
   BasicRecorder,
   ChunkAudioBufferReceiver,
-  LEVEL_BAR_INTERVALL_SECONDS,
   MAX_RECORDING_TIME_MS,
   RECFILE_API_CTX
 } from "./basicrecorder";
-import {UUID} from "../../utils/utils";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
+import {State as LiveLevelState} from "../../audio/ui/livelevel"
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -74,7 +68,7 @@ export const enum Status {
 
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayAudioClip?.levelInfos"  [stateLoading]="audioFetching"></audio-levelbar>
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
@@ -462,7 +456,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     if(this.ac!=null) {
       // Hide loading hint on livelevel display
-      this.audioFetching=false;
+      this.liveLevelDisplayState=LiveLevelState.READY;
       if (!this.ac.opened) {
         if (this._selectedDeviceId) {
           console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
@@ -590,39 +584,77 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         }
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
-          this.audioFetching=true;
+          this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
-          this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
-            next: (ab) => {
-              this.audioFetching=false;
-              let fabDh = null;
-              if (ab) {
-                if (rf && this.items) {
-                  if (SessionManager.FORCE_ARRRAY_AUDIO_BUFFER) {
-                    let aab = ArrayAudioBuffer.fromAudioBuffer(ab);
-                    fabDh = new AudioDataHolder(null, aab);
-                  } else {
-                    fabDh = new AudioDataHolder(ab);
+          if(this.uploadChunkSizeSeconds){
+            // Fetch chunked array audio buffer
+            let nextAab:ArrayAudioBuffer|null=null;
+            this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (aab) => {
+                nextAab=aab;
+              },
+              complete:()=>{
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextAab) {
+                  if (rf && this.items) {
+                    fabDh = new AudioDataHolder(null,nextAab);
+                    this.items.setSprRecFileAudioData(rf, fabDh);
                   }
-                  this.items.setSprRecFileAudioData(rf, fabDh);
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
                 }
-              }else {
-                // Should actually be handled by the error resolver
-                this.statusMsg = 'Recording file could not be loaded.'
-                this.statusAlertType = 'error'
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
               }
-              if (fabDh){
-                // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
-                this.displayAudioClip = new AudioClip(fabDh);
+            });
+          }else {
+            // Fetch regular audio buffer
+            this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (ab) => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (ab) {
+                  if (rf && this.items) {
+                    if (SessionManager.FORCE_ARRRAY_AUDIO_BUFFER) {
+                      let aab = ArrayAudioBuffer.fromAudioBuffer(ab);
+                      fabDh = new AudioDataHolder(null, aab);
+                    } else {
+                      fabDh = new AudioDataHolder(ab);
+                    }
+                    this.items.setSprRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              }, error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
               }
-              this.controlAudioPlayer.audioClip =this.displayAudioClip
-              this.showRecording();
-            }, error: err => {
-              console.error("Could not load recording file from server: " + err);
-              this.audioFetching=false;
-              this.statusMsg = 'Recording file could not be loaded: ' + err;
-              this.statusAlertType = 'error';
-            }})
+            });
+          }
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
           this.statusAlertType = 'error'
@@ -658,9 +690,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     //this.selectedItemIdx = this.promptIndex;
 
     if(this.audioFetchSubscription){
+      console.debug("Unsubscribe from audio fetch.");
       this.audioFetchSubscription.unsubscribe();
     }
-    this.audioFetching=false;
+    this.liveLevelDisplayState=LiveLevelState.READY;
 
     this.clearPrompt();
 
@@ -761,12 +794,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       newPrIdx = 0;
     }
     if(this.items!=null) {
-      let itRecs=this.items.getItem(newPrIdx).recs;
-      while (itRecs!=null && (itRecs.length > 0) && newPrIdx < this.promptItemCount) {
+      let it=this.items.getItem(newPrIdx);
+      while (it.itemDone() && newPrIdx < this.promptItemCount) {
         newPrIdx++;
-        itRecs=this.items.getItem(newPrIdx).recs;
+        it=this.items.getItem(newPrIdx);
       }
-      if (!itRecs || itRecs.length == 0) {
+      if (!it.itemDone()) {
         this.promptIndex = newPrIdx;
       }
     }
@@ -1030,7 +1063,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       // search backwards, to gain faster detection of incomplete state
       for (let ri = this.items.length() - 1; ri >= 0; ri--) {
         let it = this.items.getItem(ri);
-        if (it.recording && !it.training && (!it.recs || it.recs.length == 0)) {
+        if (it.recording && !it.training && !it.itemDone()) {
           complete = false;
           break;
         }
