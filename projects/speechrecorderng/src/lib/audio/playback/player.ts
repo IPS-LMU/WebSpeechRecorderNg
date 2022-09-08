@@ -208,6 +208,11 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                   }
                 }else if(this._arrayAudioBuffer){
                   if(this._arrayAudioBuffer) {
+                    if(this.sourceAudioWorkletNode){
+                      this.sourceAudioWorkletNode.disconnect();
+                      this.sourceAudioWorkletNode.release();
+                      this.sourceAudioWorkletNode=null;
+                    }
                       this.sourceAudioWorkletNode=new ArrayAudioBufferSourceNode(this.context);
                       this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
                         let msg = 'Unknwon error';
@@ -284,6 +289,10 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
             }
           }else if(this._arrayAudioBuffer){
             if(this._arrayAudioBuffer) {
+              if(this.sourceAudioWorkletNode){
+                this.sourceAudioWorkletNode.disconnect();
+                this.sourceAudioWorkletNode.release();
+              }
               let aabsn=new ArrayAudioBufferSourceNode(this.context);
                 this.sourceAudioWorkletNode=aabsn;
                 aabsn.onprocessorerror = (ev: Event) => {
@@ -349,13 +358,22 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
         }
 
         onended() {
+          //console.debug("Player onended.");
+
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
+
             this._startAction.disabled = !(this.audioBuffer || this.arrayAudioBuffer);
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
+          if(this.sourceAudioWorkletNode){
+            this.sourceAudioWorkletNode.disconnect();
+            this.sourceAudioWorkletNode.release();
+            this.sourceAudioWorkletNode=null;
+            //console.debug("Destroyed source audio worklet.");
+          }
             if (this.listener) {
                 this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ENDED));
             }

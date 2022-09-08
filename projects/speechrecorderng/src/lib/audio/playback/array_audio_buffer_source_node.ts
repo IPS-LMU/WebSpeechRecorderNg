@@ -147,6 +147,7 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
     super(context, 'audio-source-worklet');
     this.channelCountMode = 'explicit';
     this.port.onmessage = (msgEv: MessageEvent) => {
+      //console.debug("Message from audio source worklet.");
       if (msgEv.data) {
         let evType = msgEv.data.eventType;
         if (evType) {
@@ -256,7 +257,15 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
 
   stop() {
     this.port.postMessage({cmd: 'stop'});
+    this._audioInputStream?.close();
     this.onended?.call(this);
+  }
+
+  release(){
+
+    this.port.close();
+    this.port.onmessage=null;
+    this.port.onmessageerror=null;
   }
 
 }
