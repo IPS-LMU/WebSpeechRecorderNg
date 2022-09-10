@@ -38,6 +38,7 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
+import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -1011,19 +1012,24 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     let ad:AudioBuffer|null = null;
     let ada:ArrayAudioBuffer|null=null;
+    let iab:IndexedDbAudioBuffer|null=null;
     let adh:AudioDataHolder|null=null;
     let frameLen:number=0;
 
     if(this.ac!=null){
-      if(this.uploadChunkSizeSeconds || SessionManager.FORCE_ARRRAY_AUDIO_BUFFER){
-        ada=this.ac.audioBufferArray();
+      if(this.ac.persistToIndexedDb) {
+        iab = this.ac.inddbAudioBufferArray();
+        if (iab) {
+          frameLen = iab.frameLen;
+        }
+      }else if(this.uploadChunkSizeSeconds || SessionManager.FORCE_ARRRAY_AUDIO_BUFFER){
+        ada = this.ac.audioBufferArray();
         frameLen = ada.frameLen;
-
       }else{
         ad=this.ac.audioBuffer();
         frameLen=ad.length;
       }
-      adh=new AudioDataHolder(ad,ada);
+      adh=new AudioDataHolder(ad,ada,iab);
     }
     // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
     let rf = this._recordingFile;

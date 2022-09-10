@@ -740,12 +740,36 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
                       if (!terminate) {
                         if(this._audioDataHolder) {
-                          let read = this._audioDataHolder.frames(leftFramePos, this.dftSize, arrAbBuf);
+                          //let read = this._audioDataHolder.frames(leftFramePos, this.dftSize, arrAbBuf);
+                          this._audioDataHolder.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
+                            {
+                              next:(read)=>{
+                                if(arrAbBuf && this.worker) {
+                                  for (let ch = 0; ch < chs; ch++) {
+                                    // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                                    ada[ch] = arrAbBuf[ch].buffer.slice(0);
+                                  }
+                                  this.worker.postMessage({
+                                    audioData: ada,
+                                    audioDataOffset: leftFramePos,
+                                    l: renderPos,
+                                    w: me.data.w,
+                                    h: h,
+                                    vw: vw,
+                                    chs: chs,
+                                    frameLength: frameLength,
+                                    dftSize: this.dftSize,
+                                    maxPsd: maxPsd,
+                                    norender: norender,
+                                    terminate: terminate
+                                  }, ada);
+                                }
+                              }
+                            }
 
-                          for (let ch = 0; ch < chs; ch++) {
-                            // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
-                            ada[ch] = arrAbBuf[ch].buffer.slice(0);
-                          }
+                          )
+
+
                         }
                       } else {
                         for (let ch = 0; ch < chs; ch++) {
@@ -803,14 +827,14 @@ export class Sonagram extends AudioCanvasLayerComponent {
                   if(w>0) {
 
                     if (framesPerPixel > 0) {
-                      let arrSize=w*h*4;
-                      if(arrSize<0){
-                        arrSize=0
+                      let arrSize = w * h * 4;
+                      if (arrSize < 0) {
+                        arrSize = 0
                       }
-                      imgData=new Uint8ClampedArray(arrSize);
+                      imgData = new Uint8ClampedArray(arrSize);
 
 
-                      let rw=1;
+                      let rw = 1;
                       //ais = new ArrayAudioBufferInputStream(arrayAudioBuffer);
                       arrAbBuf = new Array<Float32Array>(chs);
 
@@ -818,35 +842,42 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         arrAbBuf[ch] = new Float32Array(this.dftSize);
                       }
 
-                      let leftFramePos=Math.floor(frameLength*renderPos/vw)-this.dftSize/2;
-                      let framesToRead=this.dftSize;
-                      if(leftFramePos<0){
+                      let leftFramePos = Math.floor(frameLength * renderPos / vw) - this.dftSize / 2;
+                      let framesToRead = this.dftSize;
+                      if (leftFramePos < 0) {
                         //framesToRead=this.dftSize+leftFramePos;
-                        leftFramePos=0;
+                        leftFramePos = 0;
                       }
-                      let read=this._audioDataHolder.frames(leftFramePos,framesToRead,arrAbBuf);
-                      let ad=new Float32Array(chs*framesToRead);
-                      for (let ch = 0; ch < chs; ch++) {
-                        ad.set(arrAbBuf[ch],ch*framesToRead);
-                      }
+                      //let read=this._audioDataHolder.frames(leftFramePos,framesToRead,arrAbBuf);
+                      this._audioDataHolder.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
+                        {
+                          next: (read) => {
+                            if (arrAbBuf && this.worker) {
+                              let ad = new Float32Array(chs * framesToRead);
+                              for (let ch = 0; ch < chs; ch++) {
+                                ad.set(arrAbBuf[ch], ch * framesToRead);
+                              }
 
-                      this.worker.postMessage({
-                        l: renderPos,
-                        w: rw,
-                        h: h,
-                        vw: vw,
-                        chs: chs,
-                        frameLength: frameLength,
-                        audioData: ad,
-                        audioDataOffset:leftFramePos,
-                        dftSize: this.dftSize,
-                        norender:norender,
-                        terminate:false
-                      }, [ad.buffer]);
+                              this.worker.postMessage({
+                                l: renderPos,
+                                w: rw,
+                                h: h,
+                                vw: vw,
+                                chs: chs,
+                                frameLength: frameLength,
+                                audioData: ad,
+                                audioDataOffset: leftFramePos,
+                                dftSize: this.dftSize,
+                                norender: norender,
+                                terminate: false
+                              }, [ad.buffer]);
+                            }
+                          }
+                        }
+                      );
                     }
                   }
               }
-
             } else {
                 let g = this.sonagramCanvas.getContext("2d");
                 if (g) {

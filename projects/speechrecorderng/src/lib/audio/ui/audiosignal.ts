@@ -272,30 +272,52 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
               let leftFramePos = Math.floor(frameLength * renderPos / vw);
               if(renderPos<leftPos+w) {
-                let read = this._audioDataHolder.frames(leftFramePos, framesPerPixel, arrAbBuf);
-                //console.debug("First read frame: "+arrAbBuf[0][0]);
-                ad = new Float32Array(chs * framesPerPixel);
-                for (let ch = 0; ch < chs; ch++) {
-                  ad.set(arrAbBuf[ch], ch * framesPerPixel);
-                }
-                eod=(read<=0);
+                this._audioDataHolder.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
+                  {
+                    next:(read)=>{
+                      //console.debug("First read frame: "+arrAbBuf[0][0]);
+                      if(arrAbBuf) {
+                        ad = new Float32Array(chs * framesPerPixel);
+                        for (let ch = 0; ch < chs; ch++) {
+                          ad.set(arrAbBuf[ch], ch * framesPerPixel);
+                        }
+                      }
+                      eod = (read <= 0);
+                      let adBuf=ad.buffer;
+                      if (this.worker) {
+                        this.worker.postMessage({
+                          l: renderPos,
+                          w: me.data.w,
+                          h:h,
+                          vw: vw,
+                          chs: chs,
+                          frameLength: frameLength,
+                          audioData: ad,
+                          audioDataOffset: leftFramePos,
+                          eod:eod
+                        }, [adBuf]);
+                      }
+                    }
+                  }
+                )
+
               }else{
                 ad=new Float32Array();
                 eod=true;
-              }
-              let adBuf=ad.buffer;
-              if (this.worker) {
-                this.worker.postMessage({
-                  l: renderPos,
-                  w: me.data.w,
-                  h:h,
-                  vw: vw,
-                  chs: chs,
-                  frameLength: frameLength,
-                  audioData: ad,
-                  audioDataOffset: leftFramePos,
-                  eod:eod
-                }, [adBuf]);
+                let adBuf=ad.buffer;
+                if (this.worker) {
+                  this.worker.postMessage({
+                    l: renderPos,
+                    w: me.data.w,
+                    h:h,
+                    vw: vw,
+                    chs: chs,
+                    frameLength: frameLength,
+                    audioData: ad,
+                    audioDataOffset: leftFramePos,
+                    eod:eod
+                  }, [adBuf]);
+                }
               }
             }
           }
@@ -327,36 +349,42 @@ export class AudioSignal extends AudioCanvasLayerComponent{
           if(w>0) {
 
             if (framesPerPixel > 0) {
-              let rw=1;
+              let rw = 1;
               //ais = new ArrayAudioBufferInputStream(arrayAudioBuffer);
               arrAbBuf = new Array<Float32Array>(chs);
-              psMinMax=new Float32Array(chs*w*2);
+              psMinMax = new Float32Array(chs * w * 2);
               for (let ch = 0; ch < chs; ch++) {
                 arrAbBuf[ch] = new Float32Array(framesPerPixel);
               }
-              let leftFramePos=Math.floor(frameLength*renderPos/vw);
-              let auOffset=leftFramePos; // should always be 0
+              let leftFramePos = Math.floor(frameLength * renderPos / vw);
+              let auOffset = leftFramePos; // should always be 0
               //let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
-              let read=this._audioDataHolder.frames(leftFramePos,framesPerPixel,arrAbBuf);
-              let ad=new Float32Array(chs*framesPerPixel);
-              for (let ch = 0; ch < chs; ch++) {
-                ad.set(arrAbBuf[ch],ch*framesPerPixel);
-              }
+              this._audioDataHolder.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
+                {
+                  next: (read) => {
+                    if (arrAbBuf && this.worker) {
+                      let ad = new Float32Array(chs * framesPerPixel);
+                      for (let ch = 0; ch < chs; ch++) {
+                        ad.set(arrAbBuf[ch], ch * framesPerPixel);
+                      }
 
-              this.worker.postMessage({
-                l: renderPos,
-                w: rw,
-                vw: vw,
-                chs: chs,
-                frameLength: frameLength,
-                audioData: ad,
-                audioDataOffset:auOffset,
-                eod:(read<=0)
-              }, [ad.buffer]);
+                      this.worker.postMessage({
+                        l: renderPos,
+                        w: rw,
+                        vw: vw,
+                        chs: chs,
+                        frameLength: frameLength,
+                        audioData: ad,
+                        audioDataOffset: auOffset,
+                        eod: (read <= 0)
+                      }, [ad.buffer]);
+                    }
+                  }
+                }
+              );
             }
           }
         }
-
       } else {
         let g = this.signalCanvas.getContext("2d");
         if (g) {

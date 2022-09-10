@@ -1,6 +1,8 @@
 import {ArrayAudioBuffer} from "./array_audio_buffer";
 import {Float32ArrayInputStream} from "../io/stream";
 import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
+import {Observable} from "rxjs";
+import {IndexedDbAudioBuffer} from "./inddb_audio_buffer";
 
 export class AudioDataHolder{
   get duration(): number {
@@ -13,11 +15,11 @@ export class AudioDataHolder{
   private _duration:number=0;
   private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of either audio buffer or array audio buffer must be set!';
 
-  constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null) {
+  constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null,private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null) {
     if(this._buffer && this._arrayBuffer){
       throw Error('Only one of either audio buffer or array audio buffer must be set!');
     }
-    if (this._buffer || this._arrayBuffer) {
+    if (this._buffer || this._arrayBuffer || this._inddbAudioBuffer) {
       if (this._buffer) {
         this._numberOfChannels = this._buffer.numberOfChannels;
         this._sampleRate = this._buffer.sampleRate;
@@ -27,6 +29,11 @@ export class AudioDataHolder{
         this._numberOfChannels = this._arrayBuffer.channelCount;
         this._sampleRate = this._arrayBuffer.sampleRate;
         this._frameLen=this._arrayBuffer.frameLen;
+        this._duration=this._frameLen/this._sampleRate;
+      } else if (this._inddbAudioBuffer) {
+        this._numberOfChannels=this._inddbAudioBuffer.channelCount;
+        this._sampleRate=this._inddbAudioBuffer.sampleRate;
+        this._frameLen=this._inddbAudioBuffer.frameLen;
         this._duration=this._frameLen/this._sampleRate;
       }
 
@@ -50,7 +57,22 @@ export class AudioDataHolder{
     return this._numberOfChannels*this._frameLen;
   }
 
-  frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
+  framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
+    return new Observable<number>(subscriber => {
+      if (this._buffer || this._arrayBuffer) {
+        // synchronous
+        let frsRead=this.frames(framePos,frameLen,bufs);
+        subscriber.next(frsRead);
+        subscriber.complete();
+      }else if(this._inddbAudioBuffer){
+        // async
+        this._inddbAudioBuffer.framesObs(framePos,frameLen,bufs).subscribe(subscriber);
+      }
+    });
+
+  }
+
+  private frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
     let read=0;
     if(this._buffer){
       let toRead=frameLen;
@@ -77,6 +99,7 @@ export class AudioDataHolder{
     if(this._arrayBuffer){
       return new ArrayAudioBufferInputStream(this._arrayBuffer);
     }
+
     throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
   }
 

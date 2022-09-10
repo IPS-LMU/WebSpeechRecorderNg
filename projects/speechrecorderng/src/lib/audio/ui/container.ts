@@ -421,7 +421,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     let soR = new Rectangle(new Position(vbLeft, soTop), new Dimension(vbWidth, soH));
 
     // Set sonagram bounds
-    this.so.layoutBounds(soR, virtualDim, redraw, clear);
+    //this.so.layoutBounds(soR, virtualDim, redraw, clear);
   }
 
   layoutScaled() {
@@ -459,7 +459,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     this._audioClip=null
     this._audioDataHolder=audioDataHolder;
     this.as.setData(audioDataHolder);
-    this.so.setData(audioDataHolder);
+    //this.so.setData(audioDataHolder);
     this.layout();
   }
 
@@ -484,7 +484,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       }
       this._audioDataHolder = audioData;
       this.as.setData(this._audioDataHolder);
-      this.so.setData(this._audioDataHolder);
+      //this.so.setData(this._audioDataHolder);
       this.selecting=null
       this.selection=sel
     this.layout();
@@ -497,7 +497,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
   set playFramePosition(playFramePosition: number|null) {
     this._playFramePosition = playFramePosition;
     this.as.playFramePosition = playFramePosition;
-    this.so.playFramePosition = playFramePosition;
+    //this.so.playFramePosition = playFramePosition;
   }
 }
 
