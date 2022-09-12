@@ -1,22 +1,10 @@
 // Straight Jasmine testing without Angular's testing support
-import {ArrayAudioBuffer} from "./array_audio_buffer";
 import {IndexedDbAudioBuffer} from "./inddb_audio_buffer";
 import {UUID} from "../utils/utils";
 
-// describe("A suite is just a function", function() {
-//   var a;
-//
-//   it("and so is a spec", function() {
-//     a = true;
-//
-//     expect(a).toBe(true);
-//   });
-// });
-
-
 describe('IndexedDbAudioBuffer', () => {
   jasmine.DEFAULT_TIMEOUT_INTERVAL=60000;
-      let CHUNK_COUNT = 1;
+      let CHUNK_COUNT = 6;
       let CHUNK_SIZE = 2;
       let NUMBER_OF_CHANNELS = 2;
       let SAMPLE_RATE=44100;
@@ -74,16 +62,39 @@ describe('IndexedDbAudioBuffer', () => {
           let ti = 0;
           let testPos: number;
           let testBufLength: number;
-          if (tt == 0) {
-            // Test type 0 small chunks
-            testBufLength = Math.floor(Math.random() * 128);
-            testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - 128));
-          } else {
-            // Test type 1 large test buffers
-            testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE));
-            testBufLength = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - testPos));
+          // if (tt == 0) {
+          //   // Test type 0 small chunks
+          //   testBufLength = Math.floor(Math.random() * 128);
+          //   if(testBufLength>CHUNK_COUNT*CHUNK_SIZE){
+          //     testBufLength=CHUNK_COUNT*CHUNK_SIZE;
+          //   }
+          //   testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - 128));
+          // } else {
+          //   // Test type 1 large test buffers
+          //   testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE));
+          //   testBufLength = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - testPos));
+          // }
+          // if(testPos<0){
+          //   testPos=0;
+          // }
+          // if(testPos>=CHUNK_SIZE*CHUNK_COUNT){
+          //   testPos=0;
+          // }
+          // if(testBufLength<1){
+          //   testBufLength=1;
+          // }
+          // if(testBufLength>CHUNK_COUNT*CHUNK_SIZE){
+          //   testBufLength=CHUNK_COUNT*CHUNK_SIZE;
+          // }
+          // if(testPos>=testBufLength){
+          //   testPos=0;
+          // }
 
-          }
+          testPos=52;
+          testBufLength=107;
+
+          testPos=2;
+          testBufLength=7;
 
           //let testBufLength=CHUNK_SIZE-12;
           //console.log("Test buffer length: " + testBufLength);
@@ -127,19 +138,20 @@ describe('IndexedDbAudioBuffer', () => {
               console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
               aab = new IndexedDbAudioBuffer(db,RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME,NUMBER_OF_CHANNELS,SAMPLE_RATE,CHUNK_SIZE,CHUNK_COUNT+CHUNK_SIZE,uuid);
               let framesCorrect = true;
-
+              console.debug('Test pos: '+testPos+' test buf len: '+testBufLength);
               aab.framesObs(testPos, testBufLength, testBuf).subscribe(
                   {
                     next: (read) => {
                       for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
                         for (let i = 0; i < testBufLength; i++) {
                           if (testBuf[ch][i] !== testRefData[ch][testPos + i]) {
-                            console.error("Frames at " + testPos + i + " differ: " + testBuf[ch][i] + "!==+" + testRefData[ch][testPos + i]);
+                            console.error("Frames at " + (testPos + i) + " differ: " + testBuf[ch][i] + "!==+" + testRefData[ch][testPos + i]);
                             framesCorrect = false;
                             break;
                           }
                         }
                       }
+                      console.debug('Compared '+NUMBER_OF_CHANNELS+' of '+testBufLength+' samples.');
                       expect(framesCorrect).toBe(true);
                       console.debug('Calling done function');
                       done.call(self);

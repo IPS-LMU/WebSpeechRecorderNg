@@ -1,5 +1,3 @@
-import {Float32ArrayInputStream} from "../io/stream";
-import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 import {Observable} from "rxjs";
 
 export class IndexedDbAudioBuffer {
@@ -30,6 +28,10 @@ export class IndexedDbAudioBuffer {
           let cc=rq.result;
           let cc0;
           let ccChs=cc.length;
+          if(ccChs==0){
+            cb(null);
+            return;
+          }
           if(ccChs!==this.channelCount){
             errCb(new Error('Number of channels of inddb data ('+ccChs+') does not match number of channels ('+this.channelCount+')'));
             return;
@@ -55,24 +57,24 @@ export class IndexedDbAudioBuffer {
   }
 
 
-  private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,resBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccFramePos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
-    this.chunk(os,ci,(bufs)=>{
-        if(bufs){
-          let bufsChs=bufs.length;
-          if(bufsChs>0) {
-            let buf0 = bufs[0];
-            let bufsLen = buf0.length;
-            let ccAvail = bufsLen - ccFramePos;
+  private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
+    this.chunk(os,ci,(ccBufs)=>{
+        if(ccBufs){
+          let ccBufsChs=ccBufs.length;
+          if(ccBufsChs>0) {
+            let ccBuf0 = ccBufs[0];
+            let ccBufsLen = ccBuf0.length;
+            let ccAvail = ccBufsLen - ccPos;
             // Positioning
-            if (framePos >= srcFramePos + ccAvail) {
+            if (framePos >= srcFramePos + ccBufsLen) {
               // target frame position is ahead, seek to next source buffer
               ci++;
-              ccFramePos=0;
-              srcFramePos+=ccAvail;
+              ccPos=0;
+              srcFramePos+=ccBufsLen;
 
             } else {
               // Assuming target frame pos is inside current source buffer
-              let toCopy = bufsLen;
+              let toCopy = ccBufsLen;
 
               if (toCopy > ccAvail) {
                 toCopy = ccAvail;
@@ -80,26 +82,26 @@ export class IndexedDbAudioBuffer {
               if (toCopy > frameLen) {
                 toCopy = frameLen;
               }
-              for (let ch = 0; ch < bufsChs; ch++) {
+              for (let ch = 0; ch < ccBufsChs; ch++) {
                 for (let si = 0; si < toCopy; si++) {
-                  resBufs[ch][framePos + si] = bufs[ch][si];
+                  trgBufs[ch][si] = ccBufs[ch][ccPos+si];
                 }
               }
               filled += toCopy;
               frameLen -= toCopy;
               framePos += toCopy;
-              ccFramePos += toCopy;
-              srcFramePos+=toCopy;
-              if (ccFramePos >= bufsLen) {
+              ccPos += toCopy;
+              if (ccPos >= ccBufsLen) {
                 ci++;
-                ccFramePos = 0;
+                ccPos = 0;
+                srcFramePos+=ccBufsLen;
               }
             }
           }
           if(frameLen===0){
             cbEnd(filled);
           }else {
-            this.fillBufs(os, framePos, frameLen, resBufs,filled, srcFramePos,ci,ccFramePos, cb, cbEnd, cbErr);
+            this.fillBufs(os, framePos, frameLen, trgBufs,filled, srcFramePos,ci,ccPos, cb, cbEnd, cbErr);
           }
         }else{
           cbEnd(filled);
@@ -116,84 +118,6 @@ export class IndexedDbAudioBuffer {
     let obs=new Observable<number>((subscriber)=>{
       let tr=this.inddb.transaction(this.indDbObjStoreNm);
       let os=tr.objectStore(this.indDbObjStoreNm);
-
-      let ccFramePos=0;
-      let trgFramePos=framePos;
-
-      let ch0Data = null;
-
-      let cPos=0
-      let filled=0;
-      let ci=0;
-
-      let firstChkIdx=framePos/this._chunkFrameLen;
-
-      // while(filled<frameLen && ci<this._chunkCount){
-      //   // Current chunk
-      //   //let cc0=ch0Data[ci];
-      //
-      //   let idxExistsReq=os.count([this.uuid,0,ci]);
-      //   idxExistsReq.onsuccess=()=>{
-      //     if(idxExistsReq.result==1){
-      //       this.chunk(os,ci,(bufs)=>{
-      //
-      //       },(err)=>{
-      //
-      //       });
-      //
-      //       let lIdx=[this.uuid,0,ci];
-      //       let hIdx=[this.uuid,this._channelCount,ci];
-      //       let chsKr=IDBKeyRange.bound(lIdx,hIdx);
-      //       let rq=os.getAll(chsKr);
-      //
-      //       rq.onsuccess=()=>{
-      //         let cc=rq.result;
-      //         let cc0;
-      //         if(cc.length>0){
-      //           cc0=cc[0];
-      //         }
-      //         let ccLen=cc0.length;
-      //         let ccFrameEndPos=ccFramePos+ccLen;
-      //
-      //         if(trgFramePos>=ccFramePos && trgFramePos<ccFrameEndPos){
-      //           let toCp=frameLen-filled;
-      //           cPos=trgFramePos-ccFramePos;
-      //           if(cPos+toCp>ccLen){
-      //             toCp=ccLen-cPos;
-      //           }
-      //           for(let ch=0;ch<bufs.length;ch++){
-      //
-      //             //let cc=cc[ch][ci];
-      //
-      //             for(let i=0;i<toCp;i++){
-      //               bufs[ch][filled+i]=cc[cPos+i];
-      //             }
-      //           }
-      //           filled+=toCp;
-      //           trgFramePos+=toCp;
-      //           cPos+=toCp;
-      //           ccFramePos+=toCp;
-      //           if(cPos>=ccLen){
-      //             ccFramePos=ccFrameEndPos;
-      //             cPos=0;
-      //             ci++;
-      //           }
-      //
-      //         }else{
-      //           // next chunk
-      //           ccFramePos=ccFrameEndPos;
-      //           cPos=0;
-      //           ci++;
-      //         }
-      //       }
-      //       //subscriber.next(filled);
-      //
-      //     }else if(idxExistsReq.result==0){
-      //         // end
-      //     }
-      //   };
-      //}
-
       this.fillBufs(os,framePos,frameLen,bufs,0,0,0,0,(val)=>{},(filled:number)=>{
         subscriber.next(filled);
         subscriber.complete();
