@@ -4,7 +4,7 @@ import {UUID} from "../utils/utils";
 
 describe('IndexedDbAudioBuffer', () => {
   jasmine.DEFAULT_TIMEOUT_INTERVAL=60000;
-      let CHUNK_COUNT = 6;
+      let CHUNK_COUNT = 600;
       let CHUNK_SIZE = 2;
       let NUMBER_OF_CHANNELS = 2;
       let SAMPLE_RATE=44100;
@@ -22,8 +22,8 @@ describe('IndexedDbAudioBuffer', () => {
         for (let ci = 0; ci < CHUNK_COUNT; ci++) {
           let cc = new Float32Array(CHUNK_SIZE);
           for (let si = 0; si < CHUNK_SIZE; si++) {
-            //cc[si] = Math.random() * 2 - 1;
-            cc[si]=vals[ch];
+            cc[si] = Math.random() * 2 - 1;
+            //cc[si]=vals[ch];
             vals[ch]+=1.0;
           }
           testData[ch].push(cc);
@@ -31,16 +31,16 @@ describe('IndexedDbAudioBuffer', () => {
           testRefDataPos += CHUNK_SIZE;
         }
       }
-  for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
-      console.debug(JSON.stringify(testData[ch]));
-  }
+  // for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
+  //     console.debug(JSON.stringify(testData[ch]));
+  // }
 
 
       beforeEach(() => {
 
       });
 
-      it('#frames should return correct values', (done) => {
+      it('#framesObs should asynchronously return correct values', (done) => {
         let DB_NAME = 'inddb_audio_buffer_spec_test_db';
         let RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME = 'rec_file_chunks';
 
@@ -71,39 +71,39 @@ describe('IndexedDbAudioBuffer', () => {
           let ti = 0;
           let testPos: number;
           let testBufLength: number;
-          // if (tt == 0) {
-          //   // Test type 0 small chunks
-          //   testBufLength = Math.floor(Math.random() * 128);
-          //   if(testBufLength>CHUNK_COUNT*CHUNK_SIZE){
-          //     testBufLength=CHUNK_COUNT*CHUNK_SIZE;
-          //   }
-          //   testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - 128));
-          // } else {
-          //   // Test type 1 large test buffers
-          //   testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE));
-          //   testBufLength = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - testPos));
-          // }
-          // if(testPos<0){
-          //   testPos=0;
-          // }
-          // if(testPos>=CHUNK_SIZE*CHUNK_COUNT){
-          //   testPos=0;
-          // }
-          // if(testBufLength<1){
-          //   testBufLength=1;
-          // }
-          // if(testBufLength>CHUNK_COUNT*CHUNK_SIZE){
-          //   testBufLength=CHUNK_COUNT*CHUNK_SIZE;
-          // }
-          // if(testPos>=testBufLength){
-          //   testPos=0;
-          // }
+          if (tt == 0) {
+            // Test type 0 small chunks
+            testBufLength = Math.floor(Math.random() * 128);
+            if(testBufLength>CHUNK_COUNT*CHUNK_SIZE){
+              testBufLength=CHUNK_COUNT*CHUNK_SIZE;
+            }
+            testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - 128));
+          } else {
+            // Test type 1 large test buffers
+            testPos = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE));
+            testBufLength = Math.floor(Math.random() * (CHUNK_COUNT * CHUNK_SIZE - testPos));
+          }
+          if(testPos<0){
+            testPos=0;
+          }
+          if(testPos>=CHUNK_SIZE*CHUNK_COUNT){
+            testPos=0;
+          }
+          if(testBufLength<1){
+            testBufLength=1;
+          }
+          if(testBufLength>CHUNK_COUNT*CHUNK_SIZE){
+            testBufLength=CHUNK_COUNT*CHUNK_SIZE;
+          }
+          if(testPos>=testBufLength){
+            testPos=0;
+          }
 
-          testPos=52;
-          testBufLength=107;
+          //testPos=52;
+          //testBufLength=107;
 
-          testPos=2;
-          testBufLength=7;
+          //testPos=2;
+          //testBufLength=7;
 
           //let testBufLength=CHUNK_SIZE-12;
           //console.log("Test buffer length: " + testBufLength);
