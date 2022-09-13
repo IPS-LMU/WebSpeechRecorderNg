@@ -64,8 +64,9 @@ export class IndexedDbAudioBuffer {
           if(ccBufsChs>0) {
             let ccBuf0 = ccBufs[0];
             let ccBufsLen = ccBuf0.length;
-            let ccAvail = ccBufsLen - ccPos;
+
             // Positioning
+
             if (framePos >= srcFramePos + ccBufsLen) {
               // target frame position is ahead, seek to next source buffer
               ci++;
@@ -74,6 +75,8 @@ export class IndexedDbAudioBuffer {
 
             } else {
               // Assuming target frame pos is inside current source buffer
+              ccPos=framePos-srcFramePos;
+              let ccAvail = ccBufsLen - ccPos;
               let toCopy = ccBufsLen;
 
               if (toCopy > ccAvail) {
