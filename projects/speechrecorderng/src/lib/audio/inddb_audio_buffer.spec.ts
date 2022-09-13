@@ -25,6 +25,9 @@ describe('IndexedDbAudioBuffer', () => {
           testRefDataPos += CHUNK_SIZE;
         }
       }
+  for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
+      console.debug(JSON.stringify(testData[ch]));
+  }
 
 
       beforeEach(() => {
