@@ -11,14 +11,20 @@ describe('IndexedDbAudioBuffer', () => {
       let testRefData = new Array<Float32Array>(NUMBER_OF_CHANNELS);
       let testData = new Array<Array<Float32Array>>(NUMBER_OF_CHANNELS);
 
+      let vals=new Array<number>(NUMBER_OF_CHANNELS);
+
       for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
+        vals[ch]=ch*0.1;
         testRefData[ch] = new Float32Array(CHUNK_COUNT * CHUNK_SIZE);
         testData[ch] = new Array<Float32Array>();
         let testRefDataPos = 0;
+
         for (let ci = 0; ci < CHUNK_COUNT; ci++) {
           let cc = new Float32Array(CHUNK_SIZE);
           for (let si = 0; si < CHUNK_SIZE; si++) {
-            cc[si] = Math.random() * 2 - 1;
+            //cc[si] = Math.random() * 2 - 1;
+            cc[si]=vals[ch];
+            vals[ch]+=1.0;
           }
           testData[ch].push(cc);
           testRefData[ch].set(cc, testRefDataPos);
@@ -147,8 +153,10 @@ describe('IndexedDbAudioBuffer', () => {
                     next: (read) => {
                       for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {
                         for (let i = 0; i < testBufLength; i++) {
-                          if (testBuf[ch][i] !== testRefData[ch][testPos + i]) {
-                            console.error("Frames at " + (testPos + i) + " differ: " + testBuf[ch][i] + "!==+" + testRefData[ch][testPos + i]);
+                          let expectedVal=testRefData[ch][testPos + i];
+                          let testVal=testBuf[ch][i];
+                          if (testVal !== expectedVal) {
+                            console.error("Frames at " + (testPos + i) + " differ: " + testVal + "!==+" + expectedVal);
                             framesCorrect = false;
                             break;
                           }

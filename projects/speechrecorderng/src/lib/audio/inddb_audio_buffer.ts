@@ -84,7 +84,7 @@ export class IndexedDbAudioBuffer {
               }
               for (let ch = 0; ch < ccBufsChs; ch++) {
                 for (let si = 0; si < toCopy; si++) {
-                  trgBufs[ch][si] = ccBufs[ch][ccPos+si];
+                  trgBufs[ch][filled+si] = ccBufs[ch][ccPos+si];
                 }
               }
               filled += toCopy;
