@@ -43,12 +43,12 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   //private ais:ArrayAudioBufferInputsStream|null=null;
   //private aisBuf:Float32Array[]|null=null;
   //private psMinMax:Float32Array[]|null=null;
-  private worker: Worker | null;
+  //private worker: Worker | null;
   private workerURL: string;
 
   constructor(private ref: ElementRef) {
     super();
-    this.worker = null;
+    //this.worker = null;
     this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
     this._audioDataHolder = null;
     this._bgColor='black';
@@ -203,10 +203,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
   private startRender() {
 
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
-    }
+    // if (this.worker) {
+    //   this.worker.terminate();
+    //   this.worker = null;
+    // }
     if (this.bounds && this.bounds.dimension) {
 
       let w = Math.round(this.bounds.dimension.width);
@@ -214,7 +214,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
       if (this._audioDataHolder && w>0 && h>0) {
         //this.wo = new Worker('./audiosignal.worker.js',{type: 'module'});
-        this.worker = new Worker(this.workerURL);
+        let worker = new Worker(this.workerURL);
         //this.wo = new Worker('worker/audiosignal.worker.ts');
 
         //let Worker = require('worker!../../../workers/uploader/main');
@@ -232,8 +232,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         //let aisBuf:Float32Array[]|null=null;
         let psMinMax:Float32Array|null=null;
 
-        if (this.worker) {
-          this.worker.onmessage = (me) => {
+        if (worker) {
+          worker.onmessage = (me) => {
             if(me.data.eod===true){
               let psMinMaxTmp;
               if(psMinMax){
@@ -242,10 +242,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                 psMinMaxTmp=me.data.psMinMax;
               }
               this.drawRendered(leftPos,w,h,chs,psMinMaxTmp);
-              if (this.worker) {
-                this.worker.terminate();
+              if (worker) {
+                worker.terminate();
               }
-              this.worker = null;
+              //worker = null;
             }else if(this._audioDataHolder && arrAbBuf){
               let rw=me.data.w;
               let rPointsLen=chs*rw;
@@ -260,9 +260,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                   let posMax=pointsLen+posMin;
 
                   psMinMax[posMin]=me.data.psMinMax[rPosMin];
-                  //console.debug('Min: ('+pos+'): '+me.data.psMinMax[0]);
+                  //console.debug('Min: ('+posMin+'): '+me.data.psMinMax[rPosMin]);
                   psMinMax[posMax]=me.data.psMinMax[rPosMax];
-                  // console.debug('Max: ('+(pointsLen+pos)+'): '+me.data.psMinMax[1]);
+                  //console.debug('Max: ('+(posMax)+'): '+me.data.psMinMax[rPosMax]);
                   //console.debug("psMinMax["+posMin+"]="+me.data.psMinMax[rPosMin]+"  (rPosMin="+rPosMin+"),psMinMax["+posMax+"]="+me.data.psMinMax[rPosMax]);
                 }
               }
@@ -272,6 +272,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
               let leftFramePos = Math.floor(frameLength * renderPos / vw);
               if(renderPos<leftPos+w) {
+                let arrAbBuf:Float32Array[]= new Array<Float32Array>(chs);
+                for (let ch = 0; ch < chs; ch++) {
+                  arrAbBuf[ch] = new Float32Array(framesPerPixel);
+                }
                 this._audioDataHolder.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
                   {
                     next:(read)=>{
@@ -284,8 +288,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                       }
                       eod = (read <= 0);
                       let adBuf=ad.buffer;
-                      if (this.worker) {
-                        this.worker.postMessage({
+                      if (worker) {
+                        worker.postMessage({
                           l: renderPos,
                           w: me.data.w,
                           h:h,
@@ -305,8 +309,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                 ad=new Float32Array();
                 eod=true;
                 let adBuf=ad.buffer;
-                if (this.worker) {
-                  this.worker.postMessage({
+                if (worker) {
+                  worker.postMessage({
                     l: renderPos,
                     w: me.data.w,
                     h:h,
@@ -332,7 +336,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
           for (let ch = 0; ch < chs; ch++) {
             ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
           }
-          this.worker.postMessage({
+          worker.postMessage({
             l: leftPos,
             w: w,
             vw: vw,
@@ -362,13 +366,13 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               this._audioDataHolder.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
                 {
                   next: (read) => {
-                    if (arrAbBuf && this.worker) {
+                    if (arrAbBuf && worker) {
                       let ad = new Float32Array(chs * framesPerPixel);
                       for (let ch = 0; ch < chs; ch++) {
                         ad.set(arrAbBuf[ch], ch * framesPerPixel);
                       }
 
-                      this.worker.postMessage({
+                      worker.postMessage({
                         l: renderPos,
                         w: rw,
                         vw: vw,
