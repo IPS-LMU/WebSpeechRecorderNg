@@ -58,6 +58,11 @@ export class IndexedDbAudioBuffer {
 
 
   private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
+    // Positioning
+    ci=Math.floor(framePos/this._chunkFrameLen);
+    ccPos=0;
+    srcFramePos=ci*this._chunkFrameLen;
+
     this.chunk(os,ci,(ccBufs)=>{
         if(ccBufs){
           let ccBufsChs=ccBufs.length;
@@ -65,7 +70,6 @@ export class IndexedDbAudioBuffer {
             let ccBuf0 = ccBufs[0];
             let ccBufsLen = ccBuf0.length;
 
-            // Positioning
 
             if (framePos >= srcFramePos + ccBufsLen) {
               // target frame position is ahead, seek to next source buffer
