@@ -1,7 +1,3 @@
-import {ArrayAudioBuffer} from "../array_audio_buffer";
-import {ArrayAudioBufferInputStream} from "../array_audio_buffer_input_stream";
-import {EditFloat32ArrayInputStream, Float32ArrayInputStream} from "../../io/stream";
-
 // Code from audio_source_worklet.js as string constant to be loaded as module
 // Changes in audio_source_worklet.js must be copied and pasted to this string constant
 

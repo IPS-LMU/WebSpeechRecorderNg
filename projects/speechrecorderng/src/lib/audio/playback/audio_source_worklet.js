@@ -1,5 +1,5 @@
 
-// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in array_audio_buffer_source_node.ts
+// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in audio_source_worklet_module_loader.ts
 
 
 class AudioSourceProcessor extends AudioWorkletProcessor{

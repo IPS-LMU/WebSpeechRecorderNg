@@ -28,7 +28,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
             //console.debug("Buffer notification: filled frames: " + this.filledFrames);
             this.fillBufferObs();
           } else if ('ended' === evType) {
-            console.debug("Inddb audio source ended playback.");
+            //console.debug("Inddb audio source ended playback.");
             let drainTime = 0;
             if (this._inddbAudioBuffer?.sampleRate) {
               drainTime = ArrayAudioBufferSourceNode.QUANTUM_FRAME_LEN / this._inddbAudioBuffer.sampleRate;
@@ -71,16 +71,16 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                       audioData: trBuffers
                     }, trBuffers);
                     filled += read;
-                    console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
+                    //console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
                     if (this._audioInputStream && filled < this.bufferFillFrames) {
-                      console.debug("Next readObs");
+                      //console.debug("Next readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
-                      console.debug("Return EMPTY");
+                      //console.debug("Return EMPTY");
                       return EMPTY;
                     }
                   } else {
-                    console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
+                    //console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
                     return EMPTY;
                   }
                 }
@@ -114,9 +114,9 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
   }
 
   start(when?: number | undefined,offset?: number | undefined,duration?: number | undefined): void {
-    // if (when) {
-    //   throw Error("when, offest,duration parameters currently not supported by ArrayAudioBufferSourceNode class")
-    // }
+    if (when) {
+      throw Error("when parameter currently not supported by IndexedDbAudioBufferSourceNode class")
+    }
 
     if (this._inddbAudioBuffer) {
       let arrAis=new IndexedDbAudioInputStream(this._inddbAudioBuffer);
@@ -143,7 +143,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
       this.fillBufferObs().subscribe({
         complete: ()=>{
-          console.debug("Async play buffer fill completed. Start...");
+          //console.debug("Async play buffer fill completed. Start...");
           this.port.postMessage({cmd: 'start'});
         }
       })

@@ -96,7 +96,7 @@ export class ArrayAudioBufferSourceNode extends AudioSourceNode {
 
   start(when?: number | undefined,offset?: number | undefined,duration?: number | undefined): void {
     if (when) {
-      throw Error("when, offest,duration parameters currently not supported by ArrayAudioBufferSourceNode class")
+      throw Error("when parameter currently not supported by ArrayAudioBufferSourceNode class")
     }
 
     if (this._arrayAudioBuffer) {

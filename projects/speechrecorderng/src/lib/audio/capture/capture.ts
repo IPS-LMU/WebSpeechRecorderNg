@@ -643,9 +643,9 @@ export class AudioCapture {
                 //let cacheId = uuid + '_' + ch + '_' + chCkIdx;
                 let chkDbId = [this.recUUID, this.indDbChkIdx + chCkIdx, ch];
                 let cr = recFileObjStore.add(chChk, chkDbId);
-                console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
+                //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
                 cr.onsuccess=()=>{
-                  console.debug("Stored audio data to indexed db");
+                  //console.debug("Stored audio data to indexed db");
                 }
                 cr.onerror=()=>{
                   console.error("Error storing audio data to indexed db");
@@ -659,17 +659,17 @@ export class AudioCapture {
             console.error('Failed to cache audio data to indexed db: ' + err)
           }
           tr.oncomplete = () => {
-            console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
+            //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
 
             /// Audio data saved to index db delete from in memory data array
             for (let ch = 0; ch < this.channelCount; ch++) {
              this.data[ch].splice(0);
-              console.debug("Spliced/removed ch: "+ch);
+              //console.debug("Spliced/removed ch: "+ch);
             }
 
             this.persisted=true;
             if(this.listener && !this.capturing){
-              console.debug("Stopped by indexed db hook");
+              //console.debug("Stopped by indexed db hook");
               this.listener.stopped();
             }
           }
