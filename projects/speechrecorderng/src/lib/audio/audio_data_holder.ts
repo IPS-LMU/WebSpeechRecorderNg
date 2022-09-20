@@ -111,6 +111,10 @@ export class AudioDataHolder{
     return this._arrayBuffer;
   }
 
+  get inddbBuffer():IndexedDbAudioBuffer|null{
+    return this._inddbAudioBuffer;
+  }
+
   // getChannelData(channel:number,startFrame:number,length:number):Float32Array|null{
   //   let reqBuf=null;
   //   if(this._buffer){

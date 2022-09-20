@@ -1,7 +1,11 @@
 import { Action } from '../../action/action'
 import { AudioClip } from '../persistor'
 import {ArrayAudioBuffer} from "../array_audio_buffer";
-import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./array_audio_buffer_source_node";
+import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
+import {IndexedDbAudioBuffer} from "../inddb_audio_buffer";
+import {AudioSourceWorkletModuleLoader} from "./audio_source_worklet_module_loader";
+import {IndexedDbAudioBufferSourceNode} from "./inddb_audio_buffer_source_node";
+import {AudioSourceNode} from "./audio_source_node";
 
 
 
@@ -45,8 +49,10 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
         _audioClip:AudioClip|null=null;
         _audioBuffer:AudioBuffer | null=null;
         _arrayAudioBuffer:ArrayAudioBuffer|null=null;
+        _inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
         sourceBufferNode:AudioBufferSourceNode|null=null;
-        sourceAudioWorkletNode:ArrayAudioBufferSourceNode|null=null;
+        sourceArrayAudioWorkletNode:AudioSourceNode|null=null;
+
         buffPos:number;
         private zeroBufCnt:number;
         n:any;
@@ -110,6 +116,8 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                 }
                 if(audioDataHolder.arrayBuffer) {
                   this.arrayAudioBuffer = audioDataHolder.arrayBuffer;
+                }else if(audioDataHolder.inddbBuffer){
+                  this.inddbAudioBuffer=audioDataHolder.inddbBuffer;
                 }
 
                 audioClip.addSelectionObserver((ac)=> {
@@ -131,6 +139,7 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
             this.stop();
             this._audioBuffer = audioBuffer;
             this._arrayAudioBuffer=null;
+          this._inddbAudioBuffer=null;
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
                 this._startSelectionAction.disabled=this.startSelectionDisabled()
@@ -149,27 +158,31 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
             return this._audioBuffer;
         }
 
-      set arrayAudioBuffer(arrayAudioBuffer:ArrayAudioBuffer | null) {
-        this.stop();
-        this._audioBuffer=null;
-        this._arrayAudioBuffer=arrayAudioBuffer;
-        if (arrayAudioBuffer && this.context) {
-
+        private _loadSourceWorkletAndInitStart(){
           AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
-
-          this._startAction.disabled = false;
-          this._startSelectionAction.disabled=this.startSelectionDisabled()
-          if(this.listener){
-            this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
-          }
+            this._startAction.disabled = false;
+            this._startSelectionAction.disabled=this.startSelectionDisabled()
+            if(this.listener){
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+            }
           }).catch((error: any)=>{
             this._startAction.disabled = true;
             this._startSelectionAction.disabled=true
             if(this.listener){
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
             }
-          console.error('Could not add module '+error);
-        });
+            console.error('Could not add module '+error);
+          });
+        }
+
+
+      set arrayAudioBuffer(arrayAudioBuffer:ArrayAudioBuffer | null) {
+        this.stop();
+        this._audioBuffer=null;
+        this._arrayAudioBuffer=arrayAudioBuffer;
+        this._inddbAudioBuffer=null;
+        if (arrayAudioBuffer && this.context) {
+          this._loadSourceWorkletAndInitStart();
         }else{
           this._startAction.disabled = true;
           this._startSelectionAction.disabled=true
@@ -181,6 +194,26 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
 
       get arrayAudioBuffer():ArrayAudioBuffer| null{
         return this._arrayAudioBuffer;
+      }
+
+      set inddbAudioBuffer(inddbAudioBuffer:IndexedDbAudioBuffer | null) {
+        this.stop();
+        this._audioBuffer=null;
+        this._arrayAudioBuffer=null;
+        this._inddbAudioBuffer=inddbAudioBuffer;
+        if (inddbAudioBuffer && this.context) {
+          this._loadSourceWorkletAndInitStart();
+        }else{
+          this._startAction.disabled = true;
+          this._startSelectionAction.disabled=true
+          if(this.listener){
+            this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+          }
+        }
+      }
+
+      get inddbAudioBuffer():IndexedDbAudioBuffer| null{
+        return this._inddbAudioBuffer;
       }
 
 
@@ -207,9 +240,9 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                   }
                 }else if(this._arrayAudioBuffer){
-                  if(this._arrayAudioBuffer) {
-                      this.sourceAudioWorkletNode=new ArrayAudioBufferSourceNode(this.context);
-                      this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
+                    let aabsn=new ArrayAudioBufferSourceNode(this.context);
+                      this.sourceArrayAudioWorkletNode=aabsn;
+                      this.sourceArrayAudioWorkletNode.onprocessorerror = (ev: Event) => {
                         let msg = 'Unknwon error';
                         if (ev instanceof ErrorEvent) {
                           msg = ev.message;
@@ -221,14 +254,14 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                           // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
                         }
                       };
-                      this.sourceAudioWorkletNode.arrayAudioBuffer=this._arrayAudioBuffer;
-                      this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
-                      this.sourceAudioWorkletNode.onended = () => this.onended();
+                      aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
+                      this.sourceArrayAudioWorkletNode.connect(this.context.destination); // this already starts playing
+                      this.sourceArrayAudioWorkletNode.onended = () => this.onended();
 
                       this.playStartTime = this.context.currentTime;
                       this.running = true;
 
-                      this.sourceAudioWorkletNode.start();
+                      this.sourceArrayAudioWorkletNode.start();
                       this.playStartTime = this.context.currentTime;
                       this._startAction.disabled = true;
                       this._startSelectionAction.disabled=true
@@ -238,8 +271,37 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                         this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                       }
 
+                  }else if(this._inddbAudioBuffer){
+                      let idabs =new IndexedDbAudioBufferSourceNode(this.context);
+                      this.sourceArrayAudioWorkletNode=idabs;
+                      this.sourceArrayAudioWorkletNode.onprocessorerror = (ev: Event) => {
+                        let msg = 'Unknwon error';
+                        if (ev instanceof ErrorEvent) {
+                          msg = ev.message;
+                        }
+                        console.error("Audio source worklet error: " + msg);
+                        if (this.listener) {
+                          // TODO
+                          // this.listener.error(msg);
+                          // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
+                        }
+                      };
+                      idabs.inddbAudioBuffer=this._inddbAudioBuffer;
+                      this.sourceArrayAudioWorkletNode.connect(this.context.destination); // this already starts playing
+                      this.sourceArrayAudioWorkletNode.onended = () => this.onended();
 
-                  }
+                      this.playStartTime = this.context.currentTime;
+                      this.running = true;
+
+                      this.sourceArrayAudioWorkletNode.start();
+                      this.playStartTime = this.context.currentTime;
+                      this._startAction.disabled = true;
+                      this._startSelectionAction.disabled=true
+                      this._stopAction.disabled = false;
+
+                      if (this.listener) {
+                        this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                      }
                 }
             }
         }
@@ -285,7 +347,7 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
           }else if(this._arrayAudioBuffer){
             if(this._arrayAudioBuffer) {
               let aabsn=new ArrayAudioBufferSourceNode(this.context);
-                this.sourceAudioWorkletNode=aabsn;
+                this.sourceArrayAudioWorkletNode=aabsn;
                 aabsn.onprocessorerror = (ev: Event) => {
                   let msg = 'Unknwon error';
                   if (ev instanceof ErrorEvent) {
@@ -335,8 +397,8 @@ import {ArrayAudioBufferSourceNode, AudioSourceWorkletModuleLoader} from "./arra
                 if (this.sourceBufferNode) {
                     this.sourceBufferNode.stop();
                 }
-                if(this.sourceAudioWorkletNode){
-                  this.sourceAudioWorkletNode.stop();
+                if(this.sourceArrayAudioWorkletNode){
+                  this.sourceArrayAudioWorkletNode.stop();
                 }
                   if (this.timerVar !== null) {
                     window.clearInterval(this.timerVar);
