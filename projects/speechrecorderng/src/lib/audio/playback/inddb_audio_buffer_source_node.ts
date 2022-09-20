@@ -1,4 +1,4 @@
-import {AsyncFloat32ArrayInputStream} from "../../io/stream";
+import {AsyncEditFloat32ArrayInputStream, AsyncFloat32ArrayInputStream} from "../../io/stream";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream} from "../inddb_audio_buffer";
 import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
 import {EMPTY, expand, map, Observable} from "rxjs";
@@ -71,12 +71,16 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                       audioData: trBuffers
                     }, trBuffers);
                     filled += read;
+                    console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
                     if (this._audioInputStream && filled < this.bufferFillFrames) {
+                      console.debug("Next readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
+                      console.debug("Return EMPTY");
                       return EMPTY;
                     }
                   } else {
+                    console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
                     return EMPTY;
                   }
                 }
@@ -110,9 +114,9 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
   }
 
   start(when?: number | undefined,offset?: number | undefined,duration?: number | undefined): void {
-    if (when) {
-      throw Error("when, offest,duration parameters currently not supported by ArrayAudioBufferSourceNode class")
-    }
+    // if (when) {
+    //   throw Error("when, offest,duration parameters currently not supported by ArrayAudioBufferSourceNode class")
+    // }
 
     if (this._inddbAudioBuffer) {
       let arrAis=new IndexedDbAudioInputStream(this._inddbAudioBuffer);
@@ -127,8 +131,8 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
         if(duration!==undefined){
           durationFrames=Math.floor(duration * this._inddbAudioBuffer.sampleRate);
         }
-        console.error("Playback selection not supported yet!");
-        //this._audioInputStream=new EditFloat32ArrayInputStream(arrAis,offsetFrames,durationFrames);
+        //console.error("Playback selection not supported yet!");
+        this._audioInputStream=new AsyncEditFloat32ArrayInputStream(arrAis,offsetFrames,durationFrames);
       }
 
       let chs=this._inddbAudioBuffer.channelCount;
@@ -139,6 +143,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
       this.fillBufferObs().subscribe({
         complete: ()=>{
+          console.debug("Async play buffer fill completed. Start...");
           this.port.postMessage({cmd: 'start'});
         }
       })

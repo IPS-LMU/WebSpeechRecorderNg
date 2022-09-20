@@ -188,4 +188,9 @@ export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
       return obs;
   }
 
+  skipFrames(n: number):void {
+    this.framePos+=n;
+  }
+
+
 }

@@ -51,7 +51,7 @@ import {AudioSourceNode} from "./audio_source_node";
         _arrayAudioBuffer:ArrayAudioBuffer|null=null;
         _inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
         sourceBufferNode:AudioBufferSourceNode|null=null;
-        sourceArrayAudioWorkletNode:AudioSourceNode|null=null;
+        sourceAudioWorkletNode:AudioSourceNode|null=null;
 
         buffPos:number;
         private zeroBufCnt:number;
@@ -216,7 +216,39 @@ import {AudioSourceNode} from "./audio_source_node";
         return this._inddbAudioBuffer;
       }
 
+  private _startAudioSourceWorkletNode(){
+          if(this.sourceAudioWorkletNode) {
+            this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
+              let msg = 'Unknwon error';
+              if (ev instanceof ErrorEvent) {
+                msg = ev.message;
+              }
+              console.error("Audio source worklet error: " + msg);
+              if (this.listener) {
+                // TODO
+                // this.listener.error(msg);
+                // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
+              }
+            };
 
+            this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
+            this.sourceAudioWorkletNode.onended = () => this.onended();
+
+            this.playStartTime = this.context.currentTime;
+            this.running = true;
+
+            this.sourceAudioWorkletNode.start();
+            this.playStartTime = this.context.currentTime;
+            this._startAction.disabled = true;
+            this._startSelectionAction.disabled = true
+            this._stopAction.disabled = false;
+
+            if (this.listener) {
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+            }
+          }
+
+  }
 
         start() {
             if(!this._startAction.disabled && !this.running) {
@@ -235,73 +267,19 @@ import {AudioSourceNode} from "./audio_source_node";
                   this._startAction.disabled = true;
                   this._startSelectionAction.disabled=true
                   this._stopAction.disabled = false;
-                  //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
                   if (this.listener) {
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                   }
                 }else if(this._arrayAudioBuffer){
                     let aabsn=new ArrayAudioBufferSourceNode(this.context);
-                      this.sourceArrayAudioWorkletNode=aabsn;
-                      this.sourceArrayAudioWorkletNode.onprocessorerror = (ev: Event) => {
-                        let msg = 'Unknwon error';
-                        if (ev instanceof ErrorEvent) {
-                          msg = ev.message;
-                        }
-                        console.error("Audio source worklet error: " + msg);
-                        if (this.listener) {
-                          // TODO
-                          // this.listener.error(msg);
-                          // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
-                        }
-                      };
-                      aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
-                      this.sourceArrayAudioWorkletNode.connect(this.context.destination); // this already starts playing
-                      this.sourceArrayAudioWorkletNode.onended = () => this.onended();
-
-                      this.playStartTime = this.context.currentTime;
-                      this.running = true;
-
-                      this.sourceArrayAudioWorkletNode.start();
-                      this.playStartTime = this.context.currentTime;
-                      this._startAction.disabled = true;
-                      this._startSelectionAction.disabled=true
-                      this._stopAction.disabled = false;
-
-                      if (this.listener) {
-                        this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-                      }
-
+                       aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
+                      this.sourceAudioWorkletNode=aabsn;
+                       this._startAudioSourceWorkletNode();
                   }else if(this._inddbAudioBuffer){
                       let idabs =new IndexedDbAudioBufferSourceNode(this.context);
-                      this.sourceArrayAudioWorkletNode=idabs;
-                      this.sourceArrayAudioWorkletNode.onprocessorerror = (ev: Event) => {
-                        let msg = 'Unknwon error';
-                        if (ev instanceof ErrorEvent) {
-                          msg = ev.message;
-                        }
-                        console.error("Audio source worklet error: " + msg);
-                        if (this.listener) {
-                          // TODO
-                          // this.listener.error(msg);
-                          // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
-                        }
-                      };
                       idabs.inddbAudioBuffer=this._inddbAudioBuffer;
-                      this.sourceArrayAudioWorkletNode.connect(this.context.destination); // this already starts playing
-                      this.sourceArrayAudioWorkletNode.onended = () => this.onended();
-
-                      this.playStartTime = this.context.currentTime;
-                      this.running = true;
-
-                      this.sourceArrayAudioWorkletNode.start();
-                      this.playStartTime = this.context.currentTime;
-                      this._startAction.disabled = true;
-                      this._startSelectionAction.disabled=true
-                      this._stopAction.disabled = false;
-
-                      if (this.listener) {
-                        this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-                      }
+                      this.sourceAudioWorkletNode=idabs;
+                      this._startAudioSourceWorkletNode();
                 }
             }
         }
@@ -344,49 +322,56 @@ import {AudioSourceNode} from "./audio_source_node";
             if (this.listener) {
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
             }
-          }else if(this._arrayAudioBuffer){
-            if(this._arrayAudioBuffer) {
-              let aabsn=new ArrayAudioBufferSourceNode(this.context);
-                this.sourceArrayAudioWorkletNode=aabsn;
-                aabsn.onprocessorerror = (ev: Event) => {
-                  let msg = 'Unknwon error';
-                  if (ev instanceof ErrorEvent) {
-                    msg = ev.message;
-                  }
-                  console.error("Audio source worklet error: " + msg);
-                  if (this.listener) {
-                    // TODO
-                    // this.listener.error(msg);
-                    // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
-                  }
-                };
-                aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
-                aabsn.connect(this.context.destination); // this already starts playing
-                aabsn.onended = () => this.onended();
-
-                this.playStartTime = this.context.currentTime;
-                this.running = true;
-
-                let ac = this._audioClip
-                let offset = 0
-                if (ac && ac.selection) {
-                  let s = ac.selection;
-                  let sr = ac.audioDataHolder.sampleRate;
-                  offset = s.leftFrame / sr;
-                  let stopPosInsecs = s.rightFrame / sr;
-                  let dur = stopPosInsecs - offset
-                  aabsn.start(0, offset, dur)
-                } else {
-                  aabsn.start();
+          }else if(this._arrayAudioBuffer || this._inddbAudioBuffer) {
+            if (this._arrayAudioBuffer) {
+              let aabsn = new ArrayAudioBufferSourceNode(this.context);
+              aabsn.arrayAudioBuffer = this._arrayAudioBuffer;
+              this.sourceAudioWorkletNode = aabsn;
+            } else if (this._inddbAudioBuffer) {
+              let iasn = new IndexedDbAudioBufferSourceNode(this.context);
+              iasn.inddbAudioBuffer = this._inddbAudioBuffer;
+              this.sourceAudioWorkletNode = iasn;
+            }
+            if (this.sourceAudioWorkletNode) {
+              this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
+                let msg = 'Unknwon error';
+                if (ev instanceof ErrorEvent) {
+                  msg = ev.message;
                 }
-                this.playStartTime = this.context.currentTime - offset;
-                this._startAction.disabled = true;
-                this._startSelectionAction.disabled=true
-                this._stopAction.disabled = false;
-
+                console.error("Audio source worklet error: " + msg);
                 if (this.listener) {
-                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                  // TODO
+                  // this.listener.error(msg);
+                  // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
                 }
+              };
+
+              this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
+              this.sourceAudioWorkletNode.onended = () => this.onended();
+
+              this.playStartTime = this.context.currentTime;
+              this.running = true;
+
+              let ac = this._audioClip
+              let offset = 0
+              if (ac && ac.selection) {
+                let s = ac.selection;
+                let sr = ac.audioDataHolder.sampleRate;
+                offset = s.leftFrame / sr;
+                let stopPosInsecs = s.rightFrame / sr;
+                let dur = stopPosInsecs - offset
+                this.sourceAudioWorkletNode.start(0, offset, dur)
+              } else {
+                this.sourceAudioWorkletNode.start();
+              }
+              this.playStartTime = this.context.currentTime - offset;
+              this._startAction.disabled = true;
+              this._startSelectionAction.disabled = true
+              this._stopAction.disabled = false;
+
+              if (this.listener) {
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+              }
             }
           }
         }
@@ -397,8 +382,8 @@ import {AudioSourceNode} from "./audio_source_node";
                 if (this.sourceBufferNode) {
                     this.sourceBufferNode.stop();
                 }
-                if(this.sourceArrayAudioWorkletNode){
-                  this.sourceArrayAudioWorkletNode.stop();
+                if(this.sourceAudioWorkletNode){
+                  this.sourceAudioWorkletNode.stop();
                 }
                   if (this.timerVar !== null) {
                     window.clearInterval(this.timerVar);
@@ -414,7 +399,7 @@ import {AudioSourceNode} from "./audio_source_node";
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
-            this._startAction.disabled = !(this.audioBuffer || this.arrayAudioBuffer || this._inddbAudioBuffer);
+            this._startAction.disabled = !(this._audioBuffer || this._arrayAudioBuffer || this._inddbAudioBuffer);
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
