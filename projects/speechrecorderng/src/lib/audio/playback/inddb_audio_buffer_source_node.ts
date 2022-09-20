@@ -2,10 +2,10 @@ import {AsyncFloat32ArrayInputStream} from "../../io/stream";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream} from "../inddb_audio_buffer";
 import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
 import {EMPTY, expand, map, Observable} from "rxjs";
+import {AudioSourceNode} from "./audio_source_node";
 
-export class IndexedDbAudioBufferSourceNode extends AudioWorkletNode {
+export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
-  static readonly QUANTUM_FRAME_LEN = 128;
   static readonly DEFAULT_BUFFER_FILL_SECONDS = 10;
   private _bufferFillSeconds = ArrayAudioBufferSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
   private bufferFillFrames = 0;
@@ -14,7 +14,6 @@ export class IndexedDbAudioBufferSourceNode extends AudioWorkletNode {
   private _aisBufs:Float32Array[]|null=null;
 
   private filledFrames = 0;
-  onended: (() => void) | null = null;
 
   constructor(context: AudioContext) {
 
@@ -29,6 +28,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioWorkletNode {
             //console.debug("Buffer notification: filled frames: " + this.filledFrames);
             this.fillBufferObs();
           } else if ('ended' === evType) {
+            console.debug("Inddb audio source ended playback.");
             let drainTime = 0;
             if (this._inddbAudioBuffer?.sampleRate) {
               drainTime = ArrayAudioBufferSourceNode.QUANTUM_FRAME_LEN / this._inddbAudioBuffer.sampleRate;
@@ -143,11 +143,6 @@ export class IndexedDbAudioBufferSourceNode extends AudioWorkletNode {
         }
       })
 
-    }else if(this._inddbAudioBuffer){
-      let inddbAis=new IndexedDbAudioInputStream(this._inddbAudioBuffer);
-
-      // TODO
-      console.error('Playback of indexed db buffers not yet supported.');
     }
   }
 

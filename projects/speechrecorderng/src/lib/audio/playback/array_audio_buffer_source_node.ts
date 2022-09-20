@@ -1,10 +1,10 @@
 import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {ArrayAudioBufferInputStream} from "../array_audio_buffer_input_stream";
 import {EditFloat32ArrayInputStream, Float32ArrayInputStream} from "../../io/stream";
+import {AudioSourceNode} from "./audio_source_node";
 
-export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
+export class ArrayAudioBufferSourceNode extends AudioSourceNode {
 
-  static readonly QUANTUM_FRAME_LEN = 128;
   static readonly DEFAULT_BUFFER_FILL_SECONDS = 10;
   private _bufferFillSeconds = ArrayAudioBufferSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
   private bufferFillFrames = 0;
@@ -13,7 +13,6 @@ export class ArrayAudioBufferSourceNode extends AudioWorkletNode {
   private _aisBufs:Float32Array[]|null=null;
 
   private filledFrames = 0;
-  onended: (() => void) | null = null;
 
   constructor(context: AudioContext) {
 
