@@ -414,7 +414,7 @@ import {AudioSourceNode} from "./audio_source_node";
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
-            this._startAction.disabled = !(this.audioBuffer || this.arrayAudioBuffer);
+            this._startAction.disabled = !(this.audioBuffer || this.arrayAudioBuffer || this._inddbAudioBuffer);
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
