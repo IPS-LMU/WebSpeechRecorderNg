@@ -1,6 +1,13 @@
+import {Observable} from "rxjs";
+
 export interface Float32ArrayInputStream{
   read(buffers: Array<Float32Array>): number;
   skipFrames(n:number):void;
+  close():void;
+}
+
+export interface AsyncFloat32ArrayInputStream{
+  readObs(buffers: Array<Float32Array>):Observable<number>;
   close():void;
 }
 

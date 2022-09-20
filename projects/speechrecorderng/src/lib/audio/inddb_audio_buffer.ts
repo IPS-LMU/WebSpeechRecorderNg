@@ -1,4 +1,5 @@
 import {Observable} from "rxjs";
+import {AsyncFloat32ArrayInputStream} from "../io/stream";
 
 export class IndexedDbAudioBuffer {
 
@@ -147,6 +148,44 @@ export class IndexedDbAudioBuffer {
 
   get chunkCount(): number {
     return this._chunkCount;
+  }
+
+}
+
+export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
+
+  private framePos:number=0;
+
+  constructor(private indbAb:IndexedDbAudioBuffer) {
+
+  }
+
+  close(): void {
+    // Nothing to do for now (maybe close indexed db transaction here?)
+  }
+
+  readObs(buffers: Array<Float32Array>): Observable<number> {
+    let obs=new Observable<number>(subscr=> {
+      if (buffers && buffers.length > 0) {
+        let fl = buffers[0].length;
+        this.indbAb.framesObs(this.framePos, fl, buffers).subscribe({
+          next: (read) => {
+            this.framePos += read;
+            subscr.next(read);
+          },
+          complete: () => {
+            subscr.complete();
+          },
+          error: (err) => {
+            subscr.error(err);
+          }
+        })
+      }else{
+        subscr.next(0);
+        subscr.complete();
+      }
+    });
+      return obs;
   }
 
 }
