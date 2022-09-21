@@ -135,9 +135,10 @@ export class AudioCapture {
   // TODO Test!!!
   persistToIndexedDb=true;
   db?:IDBDatabase;
-  tr?:IDBTransaction;
-  private indDbChkIdx=0;
+  //tr?:IDBTransaction;
+  //private indDbChkIdx=0;
   private persisted=true;
+  private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
   constructor(context: AudioContext) {
     this.context = context;
@@ -146,7 +147,7 @@ export class AudioCapture {
 
   private initData() {
     this.recUUID=UUID.generate();
-    this.indDbChkIdx=0;
+    //this.indDbChkIdx=0;
     this.data = new Array<Array<Float32Array>>();
     for (let i = 0; i < this.channelCount; i++) {
       this.data.push(new Array<Float32Array>());
@@ -265,7 +266,6 @@ export class AudioCapture {
       if(this.persistToIndexedDb){
         SprDb.prepare().subscribe(db => {
           this.db = db;
-
           this._open(channelCount, selDeviceId, autoGainControlConfigs);
         });
       }else{
@@ -627,59 +627,84 @@ export class AudioCapture {
 
 
   store(){
-   if(this.db && this.recUUID){
-      let tr= this.db.transaction(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, 'readwrite');
-      let recFileObjStore = tr.objectStore(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
+   // if(this.db && this.recUUID){
+   //    let tr= this.db.transaction(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, 'readwrite');
+   //    let recFileObjStore = tr.objectStore(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
+   //
+   //      try {
+   //        let ch0Data=this.data[0];
+   //        let dataChkCnt=ch0Data.length;
+   //          let pos = 0;
+   //          for (let chCkIdx = 0; chCkIdx < dataChkCnt; chCkIdx++) {
+   //            let bufLen=0;
+   //            for (let ch = 0; ch < this.channelCount; ch++) {
+   //              let chChk = this.data[ch][chCkIdx];
+   //              bufLen = chChk.length;
+   //              //let cacheId = uuid + '_' + ch + '_' + chCkIdx;
+   //              let chkDbId = [this.recUUID, this.indDbChkIdx + chCkIdx, ch];
+   //              let cr = recFileObjStore.add(chChk, chkDbId);
+   //              //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
+   //              cr.onsuccess=()=>{
+   //                //console.debug("Stored audio data to indexed db");
+   //              }
+   //              cr.onerror=()=>{
+   //                console.error("Error storing audio data to indexed db");
+   //              }
+   //            }
+   //            pos += bufLen;
+   //        }
+   //        this.indDbChkIdx+=dataChkCnt;
+   //
+   //        tr.onerror = (err) => {
+   //          console.error('Failed to cache audio data to indexed db: ' + err)
+   //        }
+   //        tr.oncomplete = () => {
+   //          //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
+   //
+   //          /// Audio data saved to index db delete from in memory data array
+   //          for (let ch = 0; ch < this.channelCount; ch++) {
+   //           this.data[ch].splice(0);
+   //            //console.debug("Spliced/removed ch: "+ch);
+   //          }
+   //
+   //          this.persisted=true;
+   //          if(this.listener && !this.capturing){
+   //            //console.debug("Stopped by indexed db hook");
+   //            this.listener.stopped();
+   //          }
+   //        }
+   //        // Commit chunks
+   //        this.persisted=false;
+   //        tr.commit();
+   //      } catch (err) {
+   //        console.error('Transfer capture audio data error: '+err);
+   //      }
+   //    }
 
-        try {
-          let ch0Data=this.data[0];
-          let dataChkCnt=ch0Data.length;
-            let pos = 0;
-            for (let chCkIdx = 0; chCkIdx < dataChkCnt; chCkIdx++) {
-              let bufLen=0;
-              for (let ch = 0; ch < this.channelCount; ch++) {
-                let chChk = this.data[ch][chCkIdx];
-                bufLen = chChk.length;
-                //let cacheId = uuid + '_' + ch + '_' + chCkIdx;
-                let chkDbId = [this.recUUID, this.indDbChkIdx + chCkIdx, ch];
-                let cr = recFileObjStore.add(chChk, chkDbId);
-                //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
-                cr.onsuccess=()=>{
-                  //console.debug("Stored audio data to indexed db");
-                }
-                cr.onerror=()=>{
-                  console.error("Error storing audio data to indexed db");
-                }
-              }
-              pos += bufLen;
+    if(!this.inddbAudioBuffer && this.db && this.recUUID) {
+      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this.db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
+    }
+    if(this.inddbAudioBuffer){
+      this.inddbAudioBuffer.appendRawAudioData(this.data).subscribe({
+        next:()=>{
+
+        },complete:()=>{
+          //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
+
+          /// Audio data saved to index db delete from in memory data array
+          for (let ch = 0; ch < this.channelCount; ch++) {
+            this.data[ch].splice(0);
+            //console.debug("Spliced/removed ch: "+ch);
           }
-          this.indDbChkIdx+=dataChkCnt;
 
-          tr.onerror = (err) => {
-            console.error('Failed to cache audio data to indexed db: ' + err)
+          this.persisted=true;
+          if(this.listener && !this.capturing){
+            //console.debug("Stopped by indexed db hook");
+            this.listener.stopped();
           }
-          tr.oncomplete = () => {
-            //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
-
-            /// Audio data saved to index db delete from in memory data array
-            for (let ch = 0; ch < this.channelCount; ch++) {
-             this.data[ch].splice(0);
-              //console.debug("Spliced/removed ch: "+ch);
-            }
-
-            this.persisted=true;
-            if(this.listener && !this.capturing){
-              //console.debug("Stopped by indexed db hook");
-              this.listener.stopped();
-            }
-          }
-          // Commit chunks
-          this.persisted=false;
-          tr.commit();
-        } catch (err) {
-          console.error('Transfer capture audio data error: '+err);
         }
-      }
+      });
+    }
   }
 
 
@@ -746,11 +771,12 @@ export class AudioCapture {
   }
 
   inddbAudioBufferArray():IndexedDbAudioBuffer|null{
-    let iab:IndexedDbAudioBuffer|null=null;
-    if(this.db && this.recUUID) {
-      iab = new IndexedDbAudioBuffer(this.db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, this.channelCount, this.currentSampleRate, AudioCapture.BUFFER_SIZE,this.framesRecorded,this.recUUID);
-    }
-    return iab;
+    // let iab:IndexedDbAudioBuffer|null=null;
+    // if(this.db && this.recUUID) {
+    //   iab = new IndexedDbAudioBuffer(this.db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, this.channelCount, this.currentSampleRate, AudioCapture.BUFFER_SIZE,this.framesRecorded,this.recUUID);
+    // }
+    // return iab;
+    return this.inddbAudioBuffer;
   }
 
 
