@@ -27,6 +27,7 @@ import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
+import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -97,6 +98,18 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+  get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
+    return this._persistentAudioStorageTarget;
+  }
+
+  set persistentAudioStorageTarget(value: PersistentAudioStorageTarget | null) {
+    let oldValue=this._persistentAudioStorageTarget;
+    this._persistentAudioStorageTarget = value;
+    if(value!==oldValue){
+      this.configureStreamCaptureStream();
+    }
+
+  }
 
   // Enable only for developemnt/debug purposes of array audio buffers !!
   public static readonly FORCE_ARRRAY_AUDIO_BUFFER=false;
@@ -157,6 +170,8 @@ export abstract class BasicRecorder {
 
   // Default: Disabled chunked upload
   private _uploadChunkSizeSeconds:number|null=null;
+
+  protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
   protected _screenLocked=false;
 
@@ -258,6 +273,9 @@ export abstract class BasicRecorder {
     }
     if(this.ac) {
       this.ac.audioOutStream = outStream;
+      if(this._persistentAudioStorageTarget!==null) {
+        this.ac.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
+      }
     }
   }
 

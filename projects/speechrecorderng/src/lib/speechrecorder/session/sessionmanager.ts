@@ -38,7 +38,7 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
-import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
+import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -125,6 +125,16 @@ export const enum Status {
   }`]
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
+  get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
+    return this._persistentAudioStorageTarget;
+  }
+
+  set persistentAudioStorageTarget(value: PersistentAudioStorageTarget | null) {
+    this._persistentAudioStorageTarget = value;
+    if(this.ac) {
+      this.ac.persistentAudioStorageTarget = this.persistentAudioStorageTarget;
+    }
+  }
 
   @Input() projectName:string|undefined;
   enableUploadRecordings: boolean = true;
@@ -172,8 +182,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private displayRecFileVersion!: number;
 
   promptItemCount!: number;
-
-
 
   constructor(changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
@@ -587,19 +595,58 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
-          if(this.uploadChunkSizeSeconds){
+          if(this.uploadChunkSizeSeconds) {
+
+            if(this._persistentAudioStorageTarget){
+              // Fetch chunked indexed db audio buffer
+              let nextAab: IndexedDbAudioBuffer | null = null;
+
+              this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context,this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
+                next: (aab) => {
+                  nextAab = aab;
+                },
+                complete: () => {
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  let fabDh = null;
+                  if (nextAab) {
+                    if (rf && this.items) {
+                      fabDh = new AudioDataHolder(null, null,nextAab);
+                      this.items.setSprRecFileAudioData(rf, fabDh);
+                    }
+                  } else {
+                    // Should actually be handled by the error resolver
+                    this.statusMsg = 'Recording file could not be loaded.'
+                    this.statusAlertType = 'error'
+                  }
+                  if (fabDh) {
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    this.displayAudioClip = new AudioClip(fabDh);
+                  }
+                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  this.showRecording();
+                },
+                error: err => {
+                  console.error("Could not load recording file from server: " + err);
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  this.statusMsg = 'Recording file could not be loaded: ' + err;
+                  this.statusAlertType = 'error';
+                }
+              });
+
+            }else{
             // Fetch chunked array audio buffer
-            let nextAab:ArrayAudioBuffer|null=null;
+            let nextAab: ArrayAudioBuffer | null = null;
+
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (aab) => {
-                nextAab=aab;
+                nextAab = aab;
               },
-              complete:()=>{
+              complete: () => {
                 this.liveLevelDisplayState = LiveLevelState.READY;
                 let fabDh = null;
                 if (nextAab) {
                   if (rf && this.items) {
-                    fabDh = new AudioDataHolder(null,nextAab);
+                    fabDh = new AudioDataHolder(null, nextAab);
                     this.items.setSprRecFileAudioData(rf, fabDh);
                   }
                 } else {
@@ -621,6 +668,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 this.statusAlertType = 'error';
               }
             });
+
+          }
           }else {
             // Fetch regular audio buffer
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
@@ -1017,7 +1066,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let frameLen:number=0;
 
     if(this.ac!=null){
-      if(this.ac.persistToIndexedDb) {
+      if(this.ac.persistentAudioStorageTarget) {
         iab = this.ac.inddbAudioBufferArray();
         if (iab) {
           frameLen = iab.frameLen;

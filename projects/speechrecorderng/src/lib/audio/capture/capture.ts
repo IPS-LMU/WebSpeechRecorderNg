@@ -6,7 +6,7 @@ import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {SprDb} from "../../db/inddb";
 import {UUID} from "../../utils/utils";
 import {Observable, Subscriber} from "rxjs";
-import {IndexedDbAudioBuffer} from "../inddb_audio_buffer";
+import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
 
 
 
@@ -109,6 +109,14 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
+  get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
+    return this._persistentAudioStorageTarget;
+  }
+
+  set persistentAudioStorageTarget(value: PersistentAudioStorageTarget | null) {
+    this._persistentAudioStorageTarget = value;
+  }
+
   get opened(): boolean {
     return this._opened;
   }
@@ -132,11 +140,8 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
-  // TODO Test!!!
-  persistToIndexedDb=true;
-  db?:IDBDatabase;
-  //tr?:IDBTransaction;
-  //private indDbChkIdx=0;
+  private _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
+
   private persisted=true;
   private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
@@ -262,15 +267,7 @@ export class AudioCapture {
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
     this.context.resume().then(()=>{
-
-      if(this.persistToIndexedDb){
-        SprDb.prepare().subscribe(db => {
-          this.db = db;
-          this._open(channelCount, selDeviceId, autoGainControlConfigs);
-        });
-      }else{
-        this._open(channelCount, selDeviceId, autoGainControlConfigs);
-      }
+      this._open(channelCount, selDeviceId, autoGainControlConfigs);
     })
   }
 
@@ -517,7 +514,7 @@ export class AudioCapture {
                         if (this.audioOutStream) {
                           this.audioOutStream.write(chunk);
                         }
-                        if(this.persistToIndexedDb){
+                        if(this._persistentAudioStorageTarget){
                           this.store();
                         }
                       }
@@ -681,14 +678,12 @@ export class AudioCapture {
    //      }
    //    }
 
-    if(!this.inddbAudioBuffer && this.db && this.recUUID) {
-      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this.db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
+    if(!this.inddbAudioBuffer && this._persistentAudioStorageTarget && this.recUUID) {
+      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
     }
     if(this.inddbAudioBuffer){
       this.inddbAudioBuffer.appendRawAudioData(this.data).subscribe({
-        next:()=>{
-
-        },complete:()=>{
+        complete:()=>{
           //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
 
           /// Audio data saved to index db delete from in memory data array
@@ -704,6 +699,7 @@ export class AudioCapture {
           }
         }
       });
+      this.persisted=false;
     }
   }
 

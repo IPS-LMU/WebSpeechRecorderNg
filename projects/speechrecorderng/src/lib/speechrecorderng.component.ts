@@ -20,6 +20,7 @@ import {Arrays} from "./utils/utils";
 import {AudioRecorderComponent} from "./speechrecorder/session/audiorecorder";
 import {RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
+import {SprDb} from "./db/inddb";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -64,6 +65,16 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       super(uploader);
 		}
 
+    handleError(err:any){
+      let errMsg='Unknown error';
+      if(err instanceof Error){
+        errMsg=err.message;
+      }
+      this.sm.statusMsg=errMsg;
+      this.sm.statusAlertType='error';
+      console.error(errMsg)
+    }
+
     ngOnInit() {
 		  try {
         let audioContext = AudioContextProvider.audioContextInstance();
@@ -74,37 +85,30 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
         this.sm.statusAlertType='info';
         this.sm.statusMsg = 'Player initialized.';
       }catch(err){
-        let errMsg='Unknown error';
-        if(err instanceof Error){
-          errMsg=err.message;
-        }
-        this.sm.statusMsg=errMsg;
-        this.sm.statusAlertType='error';
-        console.error(errMsg)
+        this.handleError(err);
       }
     }
        ngAfterViewInit(){
         // let wakeLockSupp=('wakeLock' in navigator);
         // alert('Wake lock API supported: '+wakeLockSupp);
+           if (this.sm.status !== SessionManagerStatus.ERROR) {
+             let initSuccess = this.init();
+             if (initSuccess) {
+               this.route.queryParams.subscribe((params: Params) => {
+                 if (params['sessionId']) {
+                   this.fetchSession(params['sessionId']);
+                 }
+               });
 
+               this.route.params.subscribe((params: Params) => {
+                 let routeParamsId = params['id'];
+                 if (routeParamsId) {
+                   this.fetchSession(routeParamsId);
+                 }
+               })
+             }
+           }
 
-		  if(this.sm.status!== SessionManagerStatus.ERROR) {
-        let initSuccess = this.init();
-        if (initSuccess) {
-          this.route.queryParams.subscribe((params: Params) => {
-            if (params['sessionId']) {
-              this.fetchSession(params['sessionId']);
-            }
-          });
-
-          this.route.params.subscribe((params: Params) => {
-            let routeParamsId = params['id'];
-            if (routeParamsId) {
-              this.fetchSession(routeParamsId);
-            }
-          })
-        }
-      }
     }
 
 
@@ -124,7 +128,17 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
               this.projectService.projectObservable(sess.project).subscribe({
                   next: (project) => {
                     this.project = project;
-                    this.fetchScript(sess);
+                    // TODO get config from project!!!
+                    let persistentAudiStorage=true;
+                    super.prepare(persistentAudiStorage).subscribe({
+                      complete:()=> {
+                        this.sm.persistentAudioStorageTarget=this._persistentAudioStorageTarget;
+                        this.fetchScript(sess);
+                      },
+                      error: (err)=>{
+                        this.handleError(err);
+                      }
+                    });
                   }, error: (reason) => {
                     this.sm.statusMsg = reason;
                     this.sm.statusAlertType = 'error';

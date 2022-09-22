@@ -2,13 +2,34 @@ import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream} from "../io/stream";
 import {UUID} from "../utils/utils";
 
+export class PersistentAudioStorageTarget{
+  get indexedDb(): IDBDatabase {
+    return this._indexedDb;
+  }
+
+  get storeName(): string {
+    return this._storeName;
+  }
+  constructor(private _indexedDb:IDBDatabase,private _storeName:string) {
+  }
+
+  transaction(mode?:IDBTransactionMode):IDBTransaction{
+    //if(mode) {
+      return this._indexedDb.transaction(this.storeName, mode);
+    //}else{
+      //this._indexedDb.transaction(this.storeName);
+    //}
+  }
+}
 
 export class IndexedDbAudioBuffer {
 
+
   private _chunkCount=0;
   private indDbChkIdx: number=0;
+  private _sealed=false;
 
-  constructor(private inddb:IDBDatabase,private indDbObjStoreNm:string ,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private uuid:string) {
+  constructor(private _persistentAudioStorageTarget:PersistentAudioStorageTarget,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private uuid:string) {
 
   }
 
@@ -16,6 +37,13 @@ export class IndexedDbAudioBuffer {
     return this._channelCount;
   }
 
+  sealed(): boolean {
+    return this._sealed;
+  }
+
+  seal():void{
+    this._sealed=true;
+  }
 
   private chunk(os:IDBObjectStore,ci:number,cb:(bufs:Array<Float32Array>|null)=>void,errCb:(err:Error)=>void){
 
@@ -125,8 +153,8 @@ export class IndexedDbAudioBuffer {
   framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
 
     let obs=new Observable<number>((subscriber)=>{
-      let tr=this.inddb.transaction(this.indDbObjStoreNm);
-      let os=tr.objectStore(this.indDbObjStoreNm);
+      let tr=this._persistentAudioStorageTarget.transaction();
+      let os=tr.objectStore(this._persistentAudioStorageTarget.storeName);
       this.fillBufs(os,framePos,frameLen,bufs,0,0,0,0,(val)=>{},(filled:number)=>{
         subscriber.next(filled);
         subscriber.complete();
@@ -155,9 +183,9 @@ export class IndexedDbAudioBuffer {
 
   let obs=new Observable<void>(subscriber => {
 
-    if (this.inddb && this.uuid) {
-      let tr = this.inddb.transaction(this.indDbObjStoreNm, 'readwrite');
-      let recFileObjStore = tr.objectStore(this.indDbObjStoreNm);
+    if (this._persistentAudioStorageTarget && this.uuid) {
+      let tr = this._persistentAudioStorageTarget.indexedDb.transaction(this._persistentAudioStorageTarget.storeName, 'readwrite');
+      let recFileObjStore = tr.objectStore(this._persistentAudioStorageTarget.storeName);
 
       try {
         let ch0Data = data[0];
@@ -186,66 +214,44 @@ export class IndexedDbAudioBuffer {
 
         tr.onerror = (err) => {
           //console.error('Failed to cache audio data to indexed db: ' + err)
-          subscriber.error(new Error('Failed to cache audio data to indexed db: ' + err));
+          subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
         }
         tr.oncomplete = () => {
-          //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
-
-          // /// Audio data saved to index db delete from in memory data array
-          // for (let ch = 0; ch < this.channelCount; ch++) {
-          //   data[ch].splice(0);
-          //   //console.debug("Spliced/removed ch: "+ch);
-          // }
-
-          // this.persisted = true;
-          // if (this.listener && !this.capturing) {
-          //   //console.debug("Stopped by indexed db hook");
-          //   this.listener.stopped();
-          // }
           subscriber.complete();
         }
-        // Commit chunks
-        //this.persisted = false;
         tr.commit();
       } catch (err) {
-        subscriber.error(new Error('Transfer capture audio data error: ' + err));
+        subscriber.error(new Error('Transfer audio data error: ' + err));
       }
     }
   });
   return obs;
   }
 
-  static fromAudioBuffer(indDb:IDBDatabase,indDbObjStoreNm:string ,audioBuffer:AudioBuffer,chunkFrameSize=8192):IndexedDbAudioBuffer{
-    let aab:IndexedDbAudioBuffer;
-    let chs=audioBuffer.numberOfChannels;
-    let sr=audioBuffer.sampleRate;
-    let frameLength=audioBuffer.length;
-    //let chunksSize=Math.ceil(frameLength/chunkFrameSize);
-    let framePos=0;
-    let data=new Array<Array<Float32Array>>(chs);
-    for(let ch=0;ch<chs;ch++) {
-      data[ch]=new Array<Float32Array>();
-    }
-    let toCopy=frameLength-framePos;
-    while(toCopy>0){
+  static fromChunkAudioBuffer(persistentAudioStorageTarget:PersistentAudioStorageTarget ,audioBuffer:AudioBuffer):Observable<IndexedDbAudioBuffer>{
 
-      let toCopyChunk=chunkFrameSize;
-      if(toCopyChunk>toCopy){
-        // last chunk, the rest
-        toCopyChunk=toCopy;
-      }
-      for(let ch=0;ch<chs;ch++) {
-        data[ch].push(audioBuffer.getChannelData(ch).slice(framePos, framePos + toCopyChunk));
-      }
-      framePos+=toCopyChunk;
-      toCopy-=toCopyChunk;
-    }
-    //aab=new ArrayAudioBuffer(chs,audioBuffer.sampleRate,data);
-    aab=new IndexedDbAudioBuffer(indDb,indDbObjStoreNm,chs,sr,chunkFrameSize,frameLength,UUID.generate());
-    return aab;
+    let obs=new Observable<IndexedDbAudioBuffer>(subscriber => {
+
+      let chs = audioBuffer.numberOfChannels;
+      let sr = audioBuffer.sampleRate;
+      let chkFrameLength = audioBuffer.length;
+
+      let iab = new IndexedDbAudioBuffer(persistentAudioStorageTarget, chs, sr, chkFrameLength, 0, UUID.generate());
+      iab.appendChunkAudioBuffer(audioBuffer).subscribe(
+        {
+          next: ()=>{
+            subscriber.next(iab);
+          },
+          complete: () => {
+            subscriber.complete();
+          }
+        }
+      )
+    });
+    return obs;
   }
 
-  appendAudioBuffer(audioBuffer:AudioBuffer){
+  appendChunkAudioBuffer(audioBuffer:AudioBuffer){
     let chs=audioBuffer.numberOfChannels;
     if(this._channelCount!== chs){
       throw new Error('Cannot append audio buffer with '+chs+' channels to this array audio buffer with '+this._channelCount+' channels. Number of channels must match.');
@@ -255,12 +261,47 @@ export class IndexedDbAudioBuffer {
       throw new Error('Cannot append audio buffer with samplerate '+sr+' to this array audio buffer with samplerate '+this._sampleRate+'. Samplerates must match.');
     }
 
-    for(let ch=0;ch<chs;ch++) {
-      let chAbSlice=audioBuffer.getChannelData(ch).slice();
-      //console.debug("Append audio buffer ch: "+ch+": "+chAbSlice.length);
-      //this._data[ch].push(chAbSlice);
+    let abFl=audioBuffer.length;
+    if(abFl!==this._chunkFrameLen){
+      throw new Error('Cannot append audio buffer with fraem length '+abFl+' to this array audio buffer with chunk frame length '+this._chunkFrameLen+'. Chunk lengths must match.');
     }
-    //this.updateFrameLen();
+    let obs=new Observable<void>(subscriber => {
+
+      if (this._persistentAudioStorageTarget && this.uuid) {
+        let tr = this._persistentAudioStorageTarget.transaction('readwrite');
+        let recFileObjStore = tr.objectStore(this._persistentAudioStorageTarget.storeName);
+
+        try {
+
+            for (let ch = 0; ch < this.channelCount; ch++) {
+              let chChk = audioBuffer.getChannelData(ch);
+              let chkDbId = [this.uuid, this.indDbChkIdx++, ch];
+              let cr = recFileObjStore.add(chChk, chkDbId);
+              //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
+              cr.onsuccess = () => {
+                //console.debug("Stored audio data to indexed db");
+              }
+              cr.onerror = () => {
+                console.error("Error storing audio data to indexed db");
+              }
+            }
+            this._frameLen+=abFl;
+
+          tr.onerror = (err) => {
+            //console.error('Failed to cache audio data to indexed db: ' + err)
+            subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
+          }
+          tr.oncomplete = () => {
+            subscriber.complete();
+          }
+          tr.commit();
+        } catch (err) {
+          subscriber.error(new Error('Transfer audio data error: ' + err));
+        }
+      }
+    });
+    return obs;
+
   }
 
 

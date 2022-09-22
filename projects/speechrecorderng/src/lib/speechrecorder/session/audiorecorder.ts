@@ -978,6 +978,9 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   ngAfterViewInit() {
+
+    // TODO call prepare !!
+
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
