@@ -15,8 +15,9 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 
 
-export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
-//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 1234567;
+//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
+// TEST only !!
+export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 123456;
 
 @Injectable()
 export class RecordingService {
@@ -325,13 +326,14 @@ export class RecordingService {
       console.debug("chunkedInddbAudioRequest: Chunk audio request for inddb. startFrame: "+startFrame);
       let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame, frameLength).pipe(
 
-        expand(value => {
-          console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+value);
+        expand(iab => {
+          console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+iab);
             if(subscriber.closed){
               subscr.unsubscribe();
             }
-            if (value) {
-              if (inddbAudioBuffer) {
+            if (iab) {
+              inddbAudioBuffer=iab;
+              //if (inddbAudioBuffer) {
                 if (inddbAudioBuffer?.sealed()) {
                   return EMPTY;
                 } else {
@@ -345,11 +347,11 @@ export class RecordingService {
                   startFrame+=frameLength;
                   console.debug("Next start frame: "+startFrame);
                   console.debug("chunkedInddbAudioRequest: expand() subscriber.closed: "+subscriber.closed);
-                  return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,value, baseAudioUrl, startFrame, frameLength);
+                  return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, frameLength);
                 }
-              } else {
-                return EMPTY;
-              }
+              // } else {
+              //   return EMPTY;
+              // }
             }else{
               return EMPTY;
             }

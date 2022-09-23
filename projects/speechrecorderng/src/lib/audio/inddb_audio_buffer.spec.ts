@@ -1,5 +1,5 @@
 // Straight Jasmine testing without Angular's testing support
-import {IndexedDbAudioBuffer} from "./inddb_audio_buffer";
+import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "./inddb_audio_buffer";
 import {UUID} from "../utils/utils";
 import {expect} from "@angular/flex-layout/_private-utils/testing";
 
@@ -8,8 +8,8 @@ import {expect} from "@angular/flex-layout/_private-utils/testing";
 describe('IndexedDbAudioBuffer',
   () => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
-    let CHUNK_COUNT = 8;
-    let CHUNK_SIZE = 2;
+    let CHUNK_COUNT = 23;
+    let CHUNK_SIZE = 50;
     let NUMBER_OF_CHANNELS = 2;
     let SAMPLE_RATE = 44100;
     let testRefData = new Array<Float32Array>(NUMBER_OF_CHANNELS);
@@ -79,8 +79,8 @@ describe('IndexedDbAudioBuffer',
       testPos = 359;
       testBufLength = 412;
 
-      testPos = 3;
-      testBufLength = 7;
+      //testPos = 3;
+      //testBufLength = 7;
 
       //let testBufLength=CHUNK_SIZE-12;
       //console.log("Test buffer length: " + testBufLength);
@@ -122,7 +122,8 @@ describe('IndexedDbAudioBuffer',
         }
         tr.oncomplete = () => {
           console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
-          aab = new IndexedDbAudioBuffer(db, stNm, NUMBER_OF_CHANNELS, SAMPLE_RATE, CHUNK_SIZE, CHUNK_COUNT + CHUNK_SIZE, uuid);
+          let pt=new PersistentAudioStorageTarget(db,stNm);
+          aab = new IndexedDbAudioBuffer(pt, NUMBER_OF_CHANNELS, SAMPLE_RATE, CHUNK_SIZE, CHUNK_COUNT + CHUNK_SIZE, uuid);
           let framesCorrect = true;
           console.debug('Test pos: ' + testPos + ' test buf len: ' + testBufLength);
           aab.framesObs(testPos, testBufLength, testBuf).subscribe(

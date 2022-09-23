@@ -256,6 +256,9 @@ export class IndexedDbAudioBuffer {
   }
 
   appendChunkAudioBuffer(audioBuffer:AudioBuffer){
+    if(this._sealed){
+      throw new Error('Cannot append audio buffer to already sealed audio buffer.');
+    }
     let chs=audioBuffer.numberOfChannels;
     if(this._channelCount!== chs){
       throw new Error('Cannot append audio buffer with '+chs+' channels to this array audio buffer with '+this._channelCount+' channels. Number of channels must match.');
@@ -266,8 +269,8 @@ export class IndexedDbAudioBuffer {
     }
 
     let abFl=audioBuffer.length;
-    if(abFl!==this._chunkFrameLen){
-      throw new Error('Cannot append audio buffer with fraem length '+abFl+' to this array audio buffer with chunk frame length '+this._chunkFrameLen+'. Chunk lengths must match.');
+    if(abFl>this._chunkFrameLen){
+      throw new Error('Cannot append audio buffer with fraem length '+abFl+' to this array audio buffer with chunk frame length '+this._chunkFrameLen+'. Chunk length must be equal or less if last chunk.');
     }
     let obs=new Observable<void>(subscriber => {
 
@@ -296,6 +299,10 @@ export class IndexedDbAudioBuffer {
             subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
           }
           tr.oncomplete = () => {
+            if(abFl<this._chunkFrameLen){
+              // last chunk
+              this.seal();
+            }
             subscriber.next();
             subscriber.complete();
           }
