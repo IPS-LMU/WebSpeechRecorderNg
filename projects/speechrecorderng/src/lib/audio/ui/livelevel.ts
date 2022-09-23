@@ -1,6 +1,5 @@
 import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
-import {STATE_DONE} from "ng-packagr/lib/graph/node";
 
 export const DEFAULT_WARN_DB_LEVEL = -2;
 export const MIN_DB_LEVEL = -60.0;

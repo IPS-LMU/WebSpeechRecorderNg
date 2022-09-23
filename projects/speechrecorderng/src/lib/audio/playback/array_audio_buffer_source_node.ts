@@ -5,8 +5,7 @@ import {AudioSourceNode} from "./audio_source_node";
 
 export class ArrayAudioBufferSourceNode extends AudioSourceNode {
 
-  static readonly DEFAULT_BUFFER_FILL_SECONDS = 10;
-  private _bufferFillSeconds = ArrayAudioBufferSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
+  private _bufferFillSeconds = AudioSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
   private bufferFillFrames = 0;
   private _arrayAudioBuffer: ArrayAudioBuffer | null = null;
   private _audioInputStream:Float32ArrayInputStream|null=null;
@@ -118,7 +117,7 @@ export class ArrayAudioBufferSourceNode extends AudioSourceNode {
     let chs=this._arrayAudioBuffer.channelCount;
     this._aisBufs=new Array<Float32Array>(chs);
     for(let ch=0;ch<chs;ch++){
-      this._aisBufs[ch]=new Float32Array(1024);
+      this._aisBufs[ch]=new Float32Array(ArrayAudioBufferSourceNode.DEFAULT_STREAM_READ_FRAME_LEN);
     }
 
     this.fillBuffer();

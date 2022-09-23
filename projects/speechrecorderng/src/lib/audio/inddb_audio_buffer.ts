@@ -1,6 +1,7 @@
 import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream} from "../io/stream";
 import {UUID} from "../utils/utils";
+import {AudioSourceNode} from "./playback/audio_source_node";
 
 export class PersistentAudioStorageTarget{
   get indexedDb(): IDBDatabase {
@@ -28,6 +29,7 @@ export class IndexedDbAudioBuffer {
   private _chunkCount=0;
   private indDbChkIdx: number=0;
   private _sealed=false;
+
 
   constructor(private _persistentAudioStorageTarget:PersistentAudioStorageTarget,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private uuid:string) {
 
@@ -88,11 +90,13 @@ export class IndexedDbAudioBuffer {
 
 
   private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
+    console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     // Positioning
     ci=Math.floor(framePos/this._chunkFrameLen);
     ccPos=0;
     srcFramePos=ci*this._chunkFrameLen;
 
+    console.debug('IndexedDbAudioBuffer::fillBufs (after positioning): srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     this.chunk(os,ci,(ccBufs)=>{
         if(ccBufs){
           let ccBufsChs=ccBufs.length;
@@ -292,6 +296,7 @@ export class IndexedDbAudioBuffer {
             subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
           }
           tr.oncomplete = () => {
+            subscriber.next();
             subscriber.complete();
           }
           tr.commit();
@@ -304,6 +309,9 @@ export class IndexedDbAudioBuffer {
 
   }
 
+  toString():string{
+    return "Indexed db audio buffer. Channels: "+this.channelCount+", sample rate: "+this.sampleRate+", chunk frame length: "+this._chunkFrameLen+", number of chunks: "+this.chunkCount+", frame length: "+this.frameLen+", sealed: "+this.sealed();
+  }
 
 }
 

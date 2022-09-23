@@ -6,9 +6,9 @@ import {AudioSourceNode} from "./audio_source_node";
 
 export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
-  static readonly DEFAULT_BUFFER_FILL_SECONDS = 10;
-  private _bufferFillSeconds = ArrayAudioBufferSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
+  private _bufferFillSeconds = AudioSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
   private bufferFillFrames = 0;
+  private _streamReadFrameLen=AudioSourceNode.DEFAULT_STREAM_READ_FRAME_LEN * 8;  // Much overhead fetching small buffers from indexed db, use larger buffer (8192).
   private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
   private _audioInputStream:AsyncFloat32ArrayInputStream|null=null;
   private _aisBufs:Float32Array[]|null=null;
@@ -25,8 +25,8 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
         if (evType) {
           if ('bufferNotification' === evType) {
             this.filledFrames = msgEv.data.filledFrames;
-            //console.debug("Buffer notification: filled frames: " + this.filledFrames);
-            this.fillBufferObs();
+            console.debug("IndexedDbAudioBufferSourceNode: Buffer notification: filled frames: " + this.filledFrames);
+            this.fillBufferObs().subscribe();
           } else if ('ended' === evType) {
             //console.debug("Inddb audio source ended playback.");
             let drainTime = 0;
@@ -71,16 +71,16 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                       audioData: trBuffers
                     }, trBuffers);
                     filled += read;
-                    //console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
+                    console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Sent "+read+" frames to audio source worklet. Filled: "+filled+", to fill: "+this.bufferFillFrames);
                     if (this._audioInputStream && filled < this.bufferFillFrames) {
-                      //console.debug("Next readObs");
+                      console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
                       //console.debug("Return EMPTY");
                       return EMPTY;
                     }
                   } else {
-                    //console.debug("Sent "+read+" frames to audio source worklet. Filled: "+filled);
+                    console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
                     return EMPTY;
                   }
                 }
@@ -138,12 +138,12 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
       let chs=this._inddbAudioBuffer.channelCount;
       this._aisBufs=new Array<Float32Array>(chs);
       for(let ch=0;ch<chs;ch++){
-        this._aisBufs[ch]=new Float32Array(1024);
+        this._aisBufs[ch]=new Float32Array(this._streamReadFrameLen);
       }
 
       this.fillBufferObs().subscribe({
         complete: ()=>{
-          //console.debug("Async play buffer fill completed. Start...");
+          console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
           this.port.postMessage({cmd: 'start'});
         }
       })

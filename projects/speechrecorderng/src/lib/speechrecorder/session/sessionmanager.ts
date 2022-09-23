@@ -599,18 +599,19 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
             if(this._persistentAudioStorageTarget){
               // Fetch chunked indexed db audio buffer
-              let nextAab: IndexedDbAudioBuffer | null = null;
+              let nextIab: IndexedDbAudioBuffer | null = null;
 
               this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context,this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
-                next: (aab) => {
-                  nextAab = aab;
+                next: (iab) => {
+                  console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
+                  nextIab = iab;
                 },
                 complete: () => {
                   this.liveLevelDisplayState = LiveLevelState.READY;
                   let fabDh = null;
-                  if (nextAab) {
+                  if (nextIab) {
                     if (rf && this.items) {
-                      fabDh = new AudioDataHolder(null, null,nextAab);
+                      fabDh = new AudioDataHolder(null, null,nextIab);
                       this.items.setSprRecFileAudioData(rf, fabDh);
                     }
                   } else {

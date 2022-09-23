@@ -5,6 +5,7 @@
     "audioFormat" : {
       "channels": 1
     },
+    "chunkedRecording" : true,
     "speakerWindowShowStopRecordAction": true,
     "recordingDeviceWakeLock": true
 
