@@ -8,8 +8,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
   private _bufferFillSeconds = AudioSourceNode.DEFAULT_BUFFER_FILL_SECONDS;
   private bufferFillFrames = 0;
-  private _streamReadFrameLen=AudioSourceNode.DEFAULT_STREAM_READ_FRAME_LEN * 4;  // Much overhead fetching small buffers from indexed db, use larger buffer (8192).
-  //private _streamReadFrameLen=1234;
+  private _streamReadFrameLen=AudioSourceNode.DEFAULT_STREAM_READ_FRAME_LEN * 8;  // Much overhead fetching small buffers from indexed db, use larger buffer (8192).
   private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
   private _audioInputStream:AsyncFloat32ArrayInputStream|null=null;
   private _aisBufs:Float32Array[]|null=null;

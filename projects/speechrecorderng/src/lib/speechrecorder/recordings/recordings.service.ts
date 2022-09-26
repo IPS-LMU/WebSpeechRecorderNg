@@ -19,6 +19,7 @@ export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
 // TEST only !!
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 123456;
 
+
 @Injectable()
 export class RecordingService {
 
@@ -94,8 +95,8 @@ export class RecordingService {
     return wobs;
   }
 
-  private audioRequest(audioUrl:string,appendFileReq=true): Observable<HttpResponse<ArrayBuffer>> {
-    if (appendFileReq && this.config && this.config.apiType === ApiType.FILES) {
+  private audioRequest(audioUrl:string): Observable<HttpResponse<ArrayBuffer>> {
+    if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
       audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
@@ -113,16 +114,14 @@ export class RecordingService {
 
 
   private chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
-    let audioUrl=baseAudioUrl;
+    let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate()+'&startFrame='+startFrame+'&frameLength='+frameLength;
-    }else {
-      audioUrl = audioUrl + '?startFrame=' + startFrame + '&frameLength=' + frameLength;
+      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
     }
     let obs=new Observable<AudioBuffer|null>(observer=> {
-      this.audioRequest(audioUrl,false).subscribe(resp => {
+      this.audioRequest(audioUrl).subscribe(resp => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
             //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
@@ -159,16 +158,14 @@ export class RecordingService {
   }
 
   private chunkAudioRequestToIndDb(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,inddbAudioBuffer:IndexedDbAudioBuffer|null,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<IndexedDbAudioBuffer|null> {
-    let audioUrl=baseAudioUrl;
+    let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate()+'&startFrame='+startFrame+'&frameLength='+frameLength;
-    }else{
-      audioUrl = audioUrl + '?startFrame='+startFrame+'&frameLength='+frameLength;
+      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
     }
     let obs=new Observable<IndexedDbAudioBuffer|null>(subscriber=> {
-      this.audioRequest(audioUrl,false).subscribe({next:(resp) => {
+      this.audioRequest(audioUrl).subscribe({next:(resp) => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
             console.debug("chunkAudioRequestToIndDb: subscriber.closed: "+subscriber.closed);
