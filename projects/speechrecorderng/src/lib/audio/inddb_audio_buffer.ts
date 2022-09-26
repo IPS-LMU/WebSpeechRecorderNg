@@ -90,13 +90,7 @@ export class IndexedDbAudioBuffer {
 
 
   private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
-    console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
-    // // Positioning
-    // ci=Math.floor(framePos/this._chunkFrameLen);
-    // ccPos=0;
-    // srcFramePos=ci*this._chunkFrameLen;
-
-    console.debug('IndexedDbAudioBuffer::fillBufs (after positioning): srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
+    //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     this.chunk(os,ci,(ccBufs)=>{
         if(ccBufs){
           let ccBufsChs=ccBufs.length;
@@ -104,10 +98,10 @@ export class IndexedDbAudioBuffer {
             let ccBuf0 = ccBufs[0];
             let ccBufsLen = ccBuf0.length;
 
-            console.debug('IndexedDbAudioBuffer::fillBufs framePos: '+framePos+', srcFramePos: '+srcFramePos+', ccBufsLen: '+ccBufsLen);
+            //console.debug('IndexedDbAudioBuffer::fillBufs framePos: '+framePos+', srcFramePos: '+srcFramePos+', ccBufsLen: '+ccBufsLen);
             if (framePos >= srcFramePos + ccBufsLen) {
               // target frame position is ahead, seek to next source buffer
-              console.debug('IndexedDbAudioBuffer::fillBufs seek to next inddb buffer');
+              //console.debug('IndexedDbAudioBuffer::fillBufs seek to next inddb buffer');
               ci++;
               ccPos=0;
               srcFramePos+=ccBufsLen;
@@ -140,15 +134,15 @@ export class IndexedDbAudioBuffer {
               }
             }
           }
-          console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
+          //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
           if(frameLen===0){
-            console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
+            //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
             cbEnd(filled);
           }else {
             this.fillBufs(os, framePos, frameLen, trgBufs,filled, srcFramePos,ci,ccPos, cb, cbEnd, cbErr);
           }
         }else{
-          console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
+          //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
           cbEnd(filled);
         }
     },(err)=>{

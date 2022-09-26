@@ -25,7 +25,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
         if (evType) {
           if ('bufferNotification' === evType) {
             this.filledFrames = msgEv.data.filledFrames;
-            console.debug("IndexedDbAudioBufferSourceNode: Buffer notification: filled frames: " + this.filledFrames);
+            //console.debug("IndexedDbAudioBufferSourceNode: Buffer notification: filled frames: " + this.filledFrames);
             this.fillBufferObs().subscribe();
           } else if ('ended' === evType) {
             //console.debug("Inddb audio source ended playback.");
@@ -71,16 +71,16 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                       audioData: trBuffers
                     }, trBuffers);
                     filled += read;
-                    console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Sent "+read+" frames to audio source worklet. Filled: "+filled+", to fill: "+this.bufferFillFrames);
+                    //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Sent "+read+" frames to audio source worklet. Filled: "+filled+", to fill: "+this.bufferFillFrames);
                     if (this._audioInputStream && filled < this.bufferFillFrames) {
-                      console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
+                      //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
                       //console.debug("Return EMPTY");
                       return EMPTY;
                     }
                   } else {
-                    console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
+                    //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
                     return EMPTY;
                   }
                 }
@@ -143,7 +143,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
       this.fillBufferObs().subscribe({
         complete: ()=>{
-          console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
+          //console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
           this.port.postMessage({cmd: 'start'});
         }
       })

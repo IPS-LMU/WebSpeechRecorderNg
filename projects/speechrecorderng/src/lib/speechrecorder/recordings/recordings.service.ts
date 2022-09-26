@@ -168,25 +168,25 @@ export class RecordingService {
       this.audioRequest(audioUrl).subscribe({next:(resp) => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
-            console.debug("chunkAudioRequestToIndDb: subscriber.closed: "+subscriber.closed);
-            console.debug("chunkAudioRequestToIndDb: Audio file bytes: "+resp.body.byteLength);
+            //console.debug("chunkAudioRequestToIndDb: subscriber.closed: "+subscriber.closed);
+            //console.debug("chunkAudioRequestToIndDb: Audio file bytes: "+resp.body.byteLength);
             aCtx.decodeAudioData(resp.body, ab => {
-                console.debug("chunkAudioRequestToIndDb: Decoded audio chunk frames for inddb: "+ab.length);
+                //console.debug("chunkAudioRequestToIndDb: Decoded audio chunk frames for inddb: "+ab.length);
 
                 if(!inddbAudioBuffer){
-                  console.debug("chunkAudioRequestToIndDb: Create inddb ab from chunk ab...");
+                  //console.debug("chunkAudioRequestToIndDb: Create inddb ab from chunk ab...");
                  IndexedDbAudioBuffer.fromChunkAudioBuffer(persistentAudioStorageTarget,ab).subscribe({
                     next:(iab)=>{
-                      console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: "+iab);
+                      //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: "+iab);
                       inddbAudioBuffer=iab;
                       if(inddbAudioBuffer.frameLen<frameLength){
-                        console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: First chunk shorter tha frameLength ("+inddbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing inddb ab.");
+                        //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: First chunk shorter tha frameLength ("+inddbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing inddb ab.");
                         inddbAudioBuffer.seal();
                       }
                       subscriber.next(iab);
                     },
                    complete:()=>{
-                     console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab complete.");
+                     //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab complete.");
                      subscriber.complete();
                    },
                    error:(err)=>{
@@ -195,14 +195,14 @@ export class RecordingService {
                    }
                   })
                 }else {
-                  console.debug("chunkAudioRequestToIndDb: Append audio chunk to inddb ab...");
+                  //console.debug("chunkAudioRequestToIndDb: Append audio chunk to inddb ab...");
                   inddbAudioBuffer.appendChunkAudioBuffer(ab).subscribe({
                     next:(iab)=>{
-                      if(inddbAudioBuffer) {
-                        console.debug("chunkAudioRequestToIndDb: Appended audio chunk to inddb audio buffer: "+inddbAudioBuffer);
-                      }else{
-                        console.debug("chunkAudioRequestToIndDb: Append audio chunk returned null");
-                      }
+                      // if(inddbAudioBuffer) {
+                      //   console.debug("chunkAudioRequestToIndDb: Appended audio chunk to inddb audio buffer: "+inddbAudioBuffer);
+                      // }else{
+                      //   console.debug("chunkAudioRequestToIndDb: Append audio chunk returned null");
+                      // }
                       subscriber.next(inddbAudioBuffer);
                     },
                     complete:()=>{
@@ -324,7 +324,7 @@ export class RecordingService {
       let inddbAudioBuffer: IndexedDbAudioBuffer | null = null;
       let startFrame=0;
       let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
-      console.debug("chunkedInddbAudioRequest: Chunk audio request for inddb. startFrame: "+startFrame);
+      //console.debug("chunkedInddbAudioRequest: Chunk audio request for inddb. startFrame: "+startFrame);
       let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame, frameLength).pipe(
 
         expand(iab => {
@@ -346,8 +346,8 @@ export class RecordingService {
                   // Simply proceed in steps of frameLength
                   // More advanced method would be to parse the WAV header to find out the rela frame length of the chunk audio file
                   startFrame+=frameLength;
-                  console.debug("Next start frame: "+startFrame);
-                  console.debug("chunkedInddbAudioRequest: expand() subscriber.closed: "+subscriber.closed);
+                  //console.debug("Next start frame: "+startFrame);
+                  //console.debug("chunkedInddbAudioRequest: expand() subscriber.closed: "+subscriber.closed);
                   return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, frameLength);
                 }
               // } else {
@@ -360,7 +360,7 @@ export class RecordingService {
         )
       ).subscribe({
         next: (aab)=>{
-          console.debug("chunkedInddbAudioRequest: subscriber.closed: "+subscriber.closed);
+          //console.debug("chunkedInddbAudioRequest: subscriber.closed: "+subscriber.closed);
           subscriber.next(aab)
         },
         complete: ()=>{
@@ -369,15 +369,15 @@ export class RecordingService {
         error: (err)=>{
           if(err instanceof HttpErrorResponse){
             if (err.status == 404) {
-              console.debug("chunkedInddbAudioRequest: Received HTTP 404 not found.");
+              //console.debug("chunkedInddbAudioRequest: Received HTTP 404 not found.");
               if(inddbAudioBuffer){
                 inddbAudioBuffer.seal();
-                console.debug("chunkedInddbAudioRequest: Sealed inddb audio buffer.");
+                //console.debug("chunkedInddbAudioRequest: Sealed inddb audio buffer.");
                 subscriber.next(inddbAudioBuffer);
                 subscriber.complete();
               }else {
                 // Interpret not as an error, the file ist not recorded yet
-                console.debug("chunkedInddbAudioRequest: Interpret HTTP 404 as not recorded yet.");
+                //console.debug("chunkedInddbAudioRequest: Interpret HTTP 404 as not recorded yet.");
                 subscriber.next(null);
                 subscriber.complete();
               }
@@ -598,7 +598,7 @@ export class RecordingService {
         let obs = this.fetchSprAudiofileInddbBuffer(aCtx,persistentAudioStorageTarget,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
         let subscr=obs.subscribe({
           next: aab => {
-            console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
+            //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
             if(observer.closed){
               subscr.unsubscribe()
             }
