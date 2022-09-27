@@ -2,7 +2,13 @@ import {ArrayAudioBuffer} from "./array_audio_buffer";
 import {Float32ArrayInputStream} from "../io/stream";
 import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 import {Observable} from "rxjs";
-import {IndexedDbAudioBuffer} from "./inddb_audio_buffer";
+import {IndexedDbAudioBuffer, IndexedDbRandomAccessStream} from "./inddb_audio_buffer";
+import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
+
+export interface RandomAccessAudioStream{
+  framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>;
+  close():void;
+}
 
 export class AudioDataHolder{
   get duration(): number {
@@ -57,20 +63,34 @@ export class AudioDataHolder{
     return this._numberOfChannels*this._frameLen;
   }
 
-  framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
-    return new Observable<number>(subscriber => {
-      if (this._buffer || this._arrayBuffer) {
-        // synchronous
-        let frsRead=this.frames(framePos,frameLen,bufs);
-        subscriber.next(frsRead);
-        subscriber.complete();
-      }else if(this._inddbAudioBuffer){
-        // async
-        this._inddbAudioBuffer.framesObs(framePos,frameLen,bufs).subscribe(subscriber);
-      }
-    });
+  // framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
+  //   return new Observable<number>(subscriber => {
+  //     if (this._buffer || this._arrayBuffer) {
+  //       // synchronous
+  //       let frsRead=this.frames(framePos,frameLen,bufs);
+  //       subscriber.next(frsRead);
+  //       subscriber.complete();
+  //     }else if(this._inddbAudioBuffer){
+  //       // async
+  //       //this._inddbAudioBuffer.framesObs(framePos,frameLen,bufs).subscribe(subscriber);
+  //       throw Error('Indexed audio buffer not supported.Please use randomAccessAudioStream()');
+  //     }
+  //   });
+  //
+  // }
 
+  randomAccessAudioStream():RandomAccessAudioStream{
+      if(this._buffer){
+        return new RandomAccessAudioBufferStream(this._buffer);
+      }else if(this._arrayBuffer){
+        return new ArrayAudioBufferRandomAccessStream(this._arrayBuffer);
+      }else if(this._inddbAudioBuffer){
+        return new IndexedDbRandomAccessStream(this._inddbAudioBuffer);
+      }else {
+        throw Error('No audio buffer implementation set');
+      }
   }
+
 
   private frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
     let read=0;
@@ -146,6 +166,35 @@ export class AudioDataHolder{
 
 }
 
+export class RandomAccessAudioBufferStream implements RandomAccessAudioStream{
+
+  constructor(private _buffer:AudioBuffer) {
+  }
+
+  close(): void {
+  }
+
+  framesObs(framePos: number, frameLen: number, bufs: Float32Array[]): Observable<number> {
+
+    return new Observable<number>(subscriber => {
+      let read=0;
+        let toRead=frameLen;
+        if(this._buffer.length<framePos+frameLen){
+          toRead=this._buffer.length-framePos;
+        }
+        for(let ch=0;ch<bufs.length;ch++){
+          let chData=this._buffer.getChannelData(ch);
+          for(let i=0;i<toRead;i++){
+            bufs[ch][i]=chData[framePos+i];
+          }
+        }
+        read=toRead;
+
+        subscriber.next(read);
+        subscriber.complete();
+    });
+  }
+}
 
 export class AudioBufferInputStream implements Float32ArrayInputStream{
   private framePos=0;

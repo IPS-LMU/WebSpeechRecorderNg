@@ -657,6 +657,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
               let framesPerPixel = Math.ceil(frameLength / vw);
               let leftPos= Math.round(this.bounds.position.left);
               let renderPos=leftPos;
+              let raAs=this._audioDataHolder.randomAccessAudioStream();
               let audioBuffer=this._audioDataHolder.buffer;
                 //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
               let arrAbBuf:Float32Array[]|null;
@@ -741,7 +742,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                       if (!terminate) {
                         if(this._audioDataHolder) {
                           //let read = this._audioDataHolder.frames(leftFramePos, this.dftSize, arrAbBuf);
-                          this._audioDataHolder.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
+                          raAs.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
                             {
                               next:(read)=>{
                                 if(arrAbBuf && this.worker) {
@@ -849,7 +850,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         leftFramePos = 0;
                       }
                       //let read=this._audioDataHolder.frames(leftFramePos,framesToRead,arrAbBuf);
-                      this._audioDataHolder.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
+                      raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
                         {
                           next: (read) => {
                             if (arrAbBuf && this.worker) {

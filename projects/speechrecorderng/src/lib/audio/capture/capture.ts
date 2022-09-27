@@ -152,7 +152,9 @@ export class AudioCapture {
 
   private initData() {
     this.recUUID=UUID.generate();
-    //this.indDbChkIdx=0;
+    if(this._persistentAudioStorageTarget && this.recUUID) {
+      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
+    }
     this.data = new Array<Array<Float32Array>>();
     for (let i = 0; i < this.channelCount; i++) {
       this.data.push(new Array<Float32Array>());
@@ -678,9 +680,9 @@ export class AudioCapture {
    //      }
    //    }
 
-    if(!this.inddbAudioBuffer && this._persistentAudioStorageTarget && this.recUUID) {
-      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
-    }
+    // if(!this.inddbAudioBuffer && this._persistentAudioStorageTarget && this.recUUID) {
+    //   this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
+    // }
     if(this.inddbAudioBuffer){
       this.inddbAudioBuffer.appendRawAudioData(this.data).subscribe({
         complete:()=>{

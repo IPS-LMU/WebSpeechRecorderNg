@@ -1,5 +1,5 @@
 // Straight Jasmine testing without Angular's testing support
-import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "./inddb_audio_buffer";
+import {IndexedDbAudioBuffer, IndexedDbRandomAccessStream, PersistentAudioStorageTarget} from "./inddb_audio_buffer";
 import {UUID} from "../utils/utils";
 import {expect} from "@angular/flex-layout/_private-utils/testing";
 
@@ -126,7 +126,8 @@ describe('IndexedDbAudioBuffer',
           aab = new IndexedDbAudioBuffer(pt, NUMBER_OF_CHANNELS, SAMPLE_RATE, CHUNK_SIZE, CHUNK_COUNT + CHUNK_SIZE, uuid);
           let framesCorrect = true;
           console.debug('Test pos: ' + testPos + ' test buf len: ' + testBufLength);
-          aab.framesObs(testPos, testBufLength, testBuf).subscribe(
+          let iabStr=new IndexedDbRandomAccessStream(aab);
+          iabStr.framesObs(testPos, testBufLength, testBuf).subscribe(
             {
               next: (read) => {
                 for (let ch = 0; ch < NUMBER_OF_CHANNELS; ch++) {

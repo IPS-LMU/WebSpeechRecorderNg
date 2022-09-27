@@ -224,6 +224,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         let vw=Math.round(this.virtualDimension.width);
         let frameLength = this._audioDataHolder.frameLen;
         let framesPerPixel = Math.ceil(frameLength / vw);
+        let raAs=this._audioDataHolder.randomAccessAudioStream();
         let audioBuffer=this._audioDataHolder.buffer;
         //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
         let arrAbBuf:Float32Array[]|null;
@@ -276,7 +277,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                 for (let ch = 0; ch < chs; ch++) {
                   arrAbBuf[ch] = new Float32Array(framesPerPixel);
                 }
-                this._audioDataHolder.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
+
+                raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
                   {
                     next:(read)=>{
                       //console.debug("First read frame: "+arrAbBuf[0][0]);
@@ -362,8 +364,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               }
               let leftFramePos = Math.floor(frameLength * renderPos / vw);
               let auOffset = leftFramePos; // should always be 0
-              //let read=arrayAudioBuffer.frames(leftFramePos,framesPerPixel,arrAbBuf);
-              this._audioDataHolder.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
+
+              raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf).subscribe(
                 {
                   next: (read) => {
                     if (arrAbBuf && worker) {

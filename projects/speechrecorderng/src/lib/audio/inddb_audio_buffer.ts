@@ -2,6 +2,7 @@ import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream} from "../io/stream";
 import {UUID} from "../utils/utils";
 import {AudioSourceNode} from "./playback/audio_source_node";
+import {RandomAccessAudioStream} from "./audio_data_holder";
 
 export class PersistentAudioStorageTarget{
   get indexedDb(): IDBDatabase {
@@ -24,6 +25,15 @@ export class PersistentAudioStorageTarget{
 }
 
 export class IndexedDbAudioBuffer {
+  get chunkFrameLen(): number {
+    return this._chunkFrameLen;
+  }
+  get persistentAudioStorageTarget(): PersistentAudioStorageTarget {
+    return this._persistentAudioStorageTarget;
+  }
+  get uuid(): string {
+    return this._uuid;
+  }
 
 
   private _chunkCount=0;
@@ -31,7 +41,7 @@ export class IndexedDbAudioBuffer {
   private _sealed=false;
 
 
-  constructor(private _persistentAudioStorageTarget:PersistentAudioStorageTarget,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private uuid:string) {
+  constructor(private _persistentAudioStorageTarget:PersistentAudioStorageTarget,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private _uuid:string) {
 
   }
 
@@ -50,8 +60,8 @@ export class IndexedDbAudioBuffer {
   private chunk(os:IDBObjectStore,ci:number,cb:(bufs:Array<Float32Array>|null)=>void,errCb:(err:Error)=>void){
 
         // Build bounds for channels
-        let lIdx=[this.uuid,ci,0];
-        let hIdx=[this.uuid,ci,this._channelCount];
+        let lIdx=[this._uuid,ci,0];
+        let hIdx=[this._uuid,ci,this._channelCount];
         let chsKr=IDBKeyRange.bound(lIdx,hIdx);
 
         let rq=os.getAll(chsKr);
@@ -152,25 +162,25 @@ export class IndexedDbAudioBuffer {
   }
 
 
-  framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
-
-    let obs=new Observable<number>((subscriber)=>{
-      let tr=this._persistentAudioStorageTarget.transaction();
-      let os=tr.objectStore(this._persistentAudioStorageTarget.storeName);
-      // Positioning
-      let ci=Math.floor(framePos/this._chunkFrameLen);
-      let srcFramePos=ci*this._chunkFrameLen;
-      this.fillBufs(os,framePos,frameLen,bufs,0,srcFramePos,ci,0,(val)=>{},(filled:number)=>{
-        subscriber.next(filled);
-        subscriber.complete();
-      },err => {
-        subscriber.error(err);
-      })
-
-    })
-
-    return obs;
-  }
+  // framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
+  //
+  //   let obs=new Observable<number>((subscriber)=>{
+  //     let tr=this._persistentAudioStorageTarget.transaction();
+  //     let os=tr.objectStore(this._persistentAudioStorageTarget.storeName);
+  //     // Positioning
+  //     let ci=Math.floor(framePos/this._chunkFrameLen);
+  //     let srcFramePos=ci*this._chunkFrameLen;
+  //     this.fillBufs(os,framePos,frameLen,bufs,0,srcFramePos,ci,0,(val)=>{},(filled:number)=>{
+  //       subscriber.next(filled);
+  //       subscriber.complete();
+  //     },err => {
+  //       subscriber.error(err);
+  //     })
+  //
+  //   })
+  //
+  //   return obs;
+  // }
 
   get sampleRate(): number {
     return this._sampleRate;
@@ -188,7 +198,7 @@ export class IndexedDbAudioBuffer {
 
   let obs=new Observable<void>(subscriber => {
 
-    if (this._persistentAudioStorageTarget && this.uuid) {
+    if (this._persistentAudioStorageTarget && this._uuid) {
       let tr = this._persistentAudioStorageTarget.indexedDb.transaction(this._persistentAudioStorageTarget.storeName, 'readwrite');
       let recFileObjStore = tr.objectStore(this._persistentAudioStorageTarget.storeName);
 
@@ -202,7 +212,7 @@ export class IndexedDbAudioBuffer {
             let chChk = data[ch][chCkIdx];
             bufLen = chChk.length;
             //let cacheId = uuid + '_' + ch + '_' + chCkIdx;
-            let chkDbId = [this.uuid, this.indDbChkIdx + chCkIdx, ch];
+            let chkDbId = [this._uuid, this.indDbChkIdx + chCkIdx, ch];
             let cr = recFileObjStore.add(chChk, chkDbId);
             //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
             cr.onsuccess = () => {
@@ -275,7 +285,7 @@ export class IndexedDbAudioBuffer {
     }
     let obs=new Observable<void>(subscriber => {
 
-      if (this._persistentAudioStorageTarget && this.uuid) {
+      if (this._persistentAudioStorageTarget && this._uuid) {
         let tr = this._persistentAudioStorageTarget.transaction('readwrite');
         let recFileObjStore = tr.objectStore(this._persistentAudioStorageTarget.storeName);
 
@@ -283,7 +293,7 @@ export class IndexedDbAudioBuffer {
 
             for (let ch = 0; ch < this.channelCount; ch++) {
               let chChk = audioBuffer.getChannelData(ch);
-              let chkDbId = [this.uuid, this.indDbChkIdx++, ch];
+              let chkDbId = [this._uuid, this.indDbChkIdx++, ch];
               let cr = recFileObjStore.add(chChk, chkDbId);
               //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
               cr.onsuccess = () => {
@@ -323,12 +333,180 @@ export class IndexedDbAudioBuffer {
 
 }
 
+
+export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
+
+  private _currCi=0;
+  private _ccCache:Float32Array[]|null=null;
+
+  constructor(private _inddbAb:IndexedDbAudioBuffer) {
+  }
+
+  private chunk(os:IDBObjectStore,ci:number,cb:(bufs:Array<Float32Array>|null)=>void,errCb:(err:Error)=>void){
+
+    // Build bounds for channels
+    let lIdx=[this._inddbAb.uuid,ci,0];
+    let hIdx=[this._inddbAb.uuid,ci,this._inddbAb.channelCount];
+    let chsKr=IDBKeyRange.bound(lIdx,hIdx);
+
+    let rq=os.getAll(chsKr);
+
+    rq.onsuccess=()=>{
+      let cc=rq.result;
+      let cc0;
+      let ccChs=cc.length;
+      if(ccChs==0){
+        cb(null);
+        return;
+      }
+      if(ccChs!==this._inddbAb.channelCount){
+        errCb(new Error('Number of channels of inddb data ('+ccChs+') does not match number of channels ('+this._inddbAb.channelCount+')'));
+        return;
+        ;         }
+      if(cc.length>0){
+        cc0=cc[0];
+      }
+      let arrBuf=new Array<Float32Array>();
+      let ccLen=cc0.length;
+      for(let ch=0;ch<ccChs;ch++){
+        let chArr=new Float32Array(ccLen);
+        for(let si=0;si<ccLen;si++){
+          chArr[si]=cc[ch][si];
+        }
+        arrBuf.push(chArr);
+      }
+      cb(arrBuf);
+    }
+    rq.onerror=(errEv)=>{
+      errCb(new Error(errEv.toString()));
+    }
+
+  }
+
+  //private _fillBufs(ccBufs:Float32Array[],framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number):number{
+  private _fillBufs(ccBufs:Float32Array[],trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number}){
+    let ccCache:Float32Array[]|null=ccBufs;
+    let ccBufsChs=ccBufs.length;
+    if(ccBufsChs>0) {
+      let ccBuf0 = ccBufs[0];
+      let ccBufsLen = ccBuf0.length;
+
+      //console.debug('IndexedDbAudioBuffer::fillBufs framePos: '+framePos+', srcFramePos: '+srcFramePos+', ccBufsLen: '+ccBufsLen);
+      if (trgState.framePos >= srcState.srcFramePos + ccBufsLen) {
+        // target frame position is ahead, seek to next source buffer
+        //console.debug('IndexedDbAudioBuffer::fillBufs seek to next inddb buffer');
+        srcState.ci++;
+        srcState.ccPos=0;
+        srcState.srcFramePos+=ccBufsLen;
+        ccCache=null;
+
+      } else {
+        // Assuming target frame pos is inside current source buffer
+        srcState.ccPos=trgState.framePos-srcState.srcFramePos;
+        let ccAvail = ccBufsLen - srcState.ccPos;
+        let toCopy = ccBufsLen;
+
+        if (toCopy > ccAvail) {
+          toCopy = ccAvail;
+        }
+        if (toCopy > trgState.frameLen) {
+          toCopy = trgState.frameLen;
+        }
+        for (let ch = 0; ch < ccBufsChs; ch++) {
+          for (let si = 0; si < toCopy; si++) {
+            trgState.trgBufs[ch][trgState.filled+si] = ccBufs[ch][srcState.ccPos+si];
+          }
+        }
+        trgState.filled += toCopy;
+        trgState.frameLen -= toCopy;
+        trgState.framePos += toCopy;
+        srcState.ccPos += toCopy;
+        if (srcState.ccPos >= ccBufsLen) {
+          // Inavalidate cache
+          this._ccCache=null;
+          srcState.ci++;
+          this._currCi=srcState.ci;
+          srcState.ccPos = 0;
+          srcState.srcFramePos+=ccBufsLen;
+        }
+      }
+    }
+
+  }
+
+  private fillBufs(os:IDBObjectStore,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
+    //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
+    if(this._ccCache){
+
+      this._fillBufs(this._ccCache,trgState,srcState);
+      //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
+      if(trgState.frameLen===0){
+        //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
+        cbEnd(trgState.filled);
+      }else {
+        this.fillBufs(os, trgState, srcState, cb, cbEnd, cbErr);
+      }
+    }else {
+      this.chunk(os, srcState.ci, (ccBufs) => {
+        if (ccBufs) {
+          this._currCi = srcState.ci;
+          this._ccCache = ccBufs;
+
+          this._fillBufs(ccBufs, trgState, srcState);
+          //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
+          if (trgState.frameLen === 0) {
+            //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
+            cbEnd(trgState.filled);
+          } else {
+            this.fillBufs(os,trgState, srcState, cb, cbEnd, cbErr);
+          }
+        } else {
+          //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
+          cbEnd(trgState.filled);
+        }
+      }, (err) => {
+        cbErr(err);
+      });
+    }
+  }
+
+
+  framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
+
+    let obs=new Observable<number>((subscriber)=>{
+      let tr=this._inddbAb.persistentAudioStorageTarget.transaction();
+      let os=tr.objectStore(this._inddbAb.persistentAudioStorageTarget.storeName);
+      // Positioning
+      let newCi=Math.floor(framePos/this._inddbAb.chunkFrameLen);
+      if(newCi!==this._currCi){
+        this._currCi=newCi;
+        this._ccCache=null;
+      }
+      let srcFramePos=newCi*this._inddbAb.chunkFrameLen;
+      let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
+      let srcState={srcFramePos:srcFramePos,ci:newCi,ccPos:0};
+      this.fillBufs(os,trgState,srcState,(val)=>{},(filled:number)=>{
+        subscriber.next(filled);
+        subscriber.complete();
+      },err => {
+        subscriber.error(err);
+      })
+
+    })
+
+    return obs;
+  }
+
+  close(): void {
+  }
+}
+
 export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
 
   private framePos:number=0;
-
-  constructor(private indbAb:IndexedDbAudioBuffer) {
-
+  private inddbAbStr:IndexedDbRandomAccessStream;
+  constructor(private inddbAb:IndexedDbAudioBuffer) {
+      this.inddbAbStr=new IndexedDbRandomAccessStream(inddbAb);
   }
 
   close(): void {
@@ -339,7 +517,8 @@ export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
     let obs=new Observable<number>(subscr=> {
       if (buffers && buffers.length > 0) {
         let fl = buffers[0].length;
-        this.indbAb.framesObs(this.framePos, fl, buffers).subscribe({
+
+        this.inddbAbStr.framesObs(this.framePos, fl, buffers).subscribe({
           next: (read) => {
             this.framePos += read;
             subscr.next(read);
