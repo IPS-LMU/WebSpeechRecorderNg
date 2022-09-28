@@ -328,7 +328,7 @@ export class RecordingService {
       let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame, frameLength).pipe(
 
         expand(iab => {
-          console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+iab);
+         // console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+iab);
             if(subscriber.closed){
               subscr.unsubscribe();
             }

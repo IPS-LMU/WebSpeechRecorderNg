@@ -603,7 +603,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
               this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context,this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
                 next: (iab) => {
-                  console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
+                  //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
                   nextIab = iab;
                 },
                 complete: () => {
