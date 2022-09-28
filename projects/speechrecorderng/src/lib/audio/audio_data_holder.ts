@@ -1,8 +1,8 @@
 import {ArrayAudioBuffer} from "./array_audio_buffer";
-import {Float32ArrayInputStream} from "../io/stream";
+import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 import {Observable} from "rxjs";
-import {IndexedDbAudioBuffer, IndexedDbRandomAccessStream} from "./inddb_audio_buffer";
+import {IndexedDbAudioBuffer, IndexedDbAudioInputStream, IndexedDbRandomAccessStream} from "./inddb_audio_buffer";
 import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
 
 export interface RandomAccessAudioStream{
@@ -112,15 +112,21 @@ export class AudioDataHolder{
     return read;
   }
 
-  audioInputStream():Float32ArrayInputStream{
+  audioInputStream():Float32ArrayInputStream|null{
     if(this._buffer){
       return new AudioBufferInputStream(this._buffer);
     }
     if(this._arrayBuffer){
       return new ArrayAudioBufferInputStream(this._arrayBuffer);
     }
+    return null;
+  }
 
-    throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream|null{
+    if(this._inddbAudioBuffer){
+      return new IndexedDbAudioInputStream(this._inddbAudioBuffer);
+    }
+    return null;
   }
 
   get buffer(): AudioBuffer | null {
