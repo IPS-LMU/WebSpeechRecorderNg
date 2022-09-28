@@ -14,8 +14,9 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 
-
-export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
+// iPad Out of memory RangeError
+//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
+export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 500000;
 // TEST only !!
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 123456;
 
