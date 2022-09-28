@@ -2,7 +2,7 @@ import {DSPUtils} from "../../dsp/utils";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Arrays, WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
-import {observable} from "rxjs";
+import {Observable, observable} from "rxjs";
 
 export const MIN_DB_LEVEL = -40.0;
 
@@ -183,32 +183,33 @@ declare function postMessage(message: any, transfer?: Array<any>): void;
 export class LevelMeasure {
 
   private readonly workerURL: string;
-  private worker: Worker|null=null;
+  //private worker: Worker|null=null;
   //private bufferLevelInfos=new Array<LevelInfo>();
   //private peakLevelInfo!:LevelInfo;
 
   constructor() {
-    this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
+    this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction);
   }
 
-  calcBufferLevelInfos(audioDataHolder:AudioDataHolder, bufferTimeLength: number): Promise<LevelInfos> {
-    return new Promise<LevelInfos>((resolve)=>{
+  calcBufferLevelInfos(audioDataHolder:AudioDataHolder, bufferTimeLength: number): Observable<LevelInfos> {
+    let obs = new Observable<LevelInfos>(subscriber => {
+
       let chs = audioDataHolder.numberOfChannels;
-      let bufferFrameLength=Math.round(audioDataHolder.sampleRate*bufferTimeLength);
-      let ais=audioDataHolder.audioInputStream();
-      if(ais){
+      let bufferFrameLength = Math.round(audioDataHolder.sampleRate * bufferTimeLength);
+      let ais = audioDataHolder.audioInputStream();
+      if (ais) {
         let audioBuffers = new Array<Float32Array>(chs);
-        let trBuffers=new Array<any>(chs);
+        let trBuffers = new Array<any>(chs);
         for (let ch = 0; ch < chs; ch++) {
-          audioBuffers[ch]=new Float32Array(bufferFrameLength);
+          audioBuffers[ch] = new Float32Array(bufferFrameLength);
         }
-        let bufferLevelInfos=new Array<LevelInfo>();
-        let peakLevelInfo=new LevelInfo(chs);
+        let bufferLevelInfos = new Array<LevelInfo>();
+        let peakLevelInfo = new LevelInfo(chs);
 
-        this.worker = new Worker(this.workerURL);
-        this.worker.onmessage = (me) => {
+        let worker = new Worker(this.workerURL);
+        worker.onmessage = (me) => {
 
-          if(me.data.linLevelBuffers) {
+          if (me.data.linLevelBuffers) {
             let linLevelArrs = new Array<Float32Array>(chs);
             for (let ch = 0; ch < chs; ch++) {
               linLevelArrs[ch] = new Float32Array(me.data.linLevelBuffers[ch]);
@@ -231,18 +232,20 @@ export class LevelMeasure {
             }
 
           }
-          if(me.data.eod===true) {
+          if (me.data.eod === true) {
             // end of data, terminate worker and return result
-            this.terminateWorker();
-            resolve(new LevelInfos(bufferLevelInfos, peakLevelInfo));
-          }else{
-            if(ais) {
+            //this.terminateWorker();
+            worker.terminate();
+            subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));
+            subscriber.complete();
+          } else {
+            if (ais) {
               let read = ais.read(audioBuffers);
               for (let ch = 0; ch < chs; ch++) {
                 let copy = new Float32Array(audioBuffers[ch]);
                 trBuffers[ch] = copy.buffer;
               }
-              this.worker?.postMessage({
+              worker.postMessage({
                 bufferFrameLength: bufferFrameLength,
                 audioData: trBuffers,
                 chs: chs,
@@ -252,26 +255,31 @@ export class LevelMeasure {
           }
         };
 
-        let read=ais.read(audioBuffers);
-        for(let ch=0;ch<chs;ch++){
-          let copy=new Float32Array(audioBuffers[ch]);
-          trBuffers[ch]=copy.buffer;
-        }
-        this.worker?.postMessage({bufferFrameLength: bufferFrameLength, audioData: trBuffers, chs: chs,len:read}, trBuffers);
-      }else{
-        let aAis=audioDataHolder.asyncAudioInputStream();
-        let audioBuffers = new Array<Float32Array>(chs);
-        let trBuffers=new Array<any>(chs);
+        let read = ais.read(audioBuffers);
         for (let ch = 0; ch < chs; ch++) {
-          audioBuffers[ch]=new Float32Array(bufferFrameLength);
+          let copy = new Float32Array(audioBuffers[ch]);
+          trBuffers[ch] = copy.buffer;
         }
-        let bufferLevelInfos=new Array<LevelInfo>();
-        let peakLevelInfo=new LevelInfo(chs);
+        worker.postMessage({
+          bufferFrameLength: bufferFrameLength,
+          audioData: trBuffers,
+          chs: chs,
+          len: read
+        }, trBuffers);
+      } else {
+        let aAis = audioDataHolder.asyncAudioInputStream();
+        let audioBuffers = new Array<Float32Array>(chs);
+        let trBuffers = new Array<any>(chs);
+        for (let ch = 0; ch < chs; ch++) {
+          audioBuffers[ch] = new Float32Array(bufferFrameLength);
+        }
+        let bufferLevelInfos = new Array<LevelInfo>();
+        let peakLevelInfo = new LevelInfo(chs);
 
-        this.worker = new Worker(this.workerURL);
-        this.worker.onmessage = (me) => {
+        let worker = new Worker(this.workerURL);
+        worker.onmessage = (me) => {
 
-          if(me.data.linLevelBuffers) {
+          if (me.data.linLevelBuffers) {
             let linLevelArrs = new Array<Float32Array>(chs);
             for (let ch = 0; ch < chs; ch++) {
               linLevelArrs[ch] = new Float32Array(me.data.linLevelBuffers[ch]);
@@ -294,55 +302,52 @@ export class LevelMeasure {
             }
 
           }
-          if(me.data.eod===true) {
+          if (me.data.eod === true) {
             // end of data, terminate worker and return result
-            this.terminateWorker();
-            resolve(new LevelInfos(bufferLevelInfos, peakLevelInfo));
-          }else{
-            if(aAis) {
-              let aAisSubscr=aAis?.readObs(audioBuffers).subscribe({
-                next:(read)=> {
-                  for (let ch = 0; ch < chs; ch++) {
-                    let copy = new Float32Array(audioBuffers[ch]);
-                    trBuffers[ch] = copy.buffer;
+            //this.terminateWorker();
+            worker.terminate();
+            subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));
+            subscriber.complete();
+          } else {
+
+            if (aAis) {
+              let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
+                  next: (read) => {
+                    for (let ch = 0; ch < chs; ch++) {
+                      let copy = new Float32Array(audioBuffers[ch]);
+                      trBuffers[ch] = copy.buffer;
+                    }
+                    worker.postMessage({
+                      bufferFrameLength: bufferFrameLength,
+                      audioData: trBuffers,
+                      chs: chs,
+                      len: read
+                    }, trBuffers);
                   }
-                  this.worker?.postMessage({
-                    bufferFrameLength: bufferFrameLength,
-                    audioData: trBuffers,
-                    chs: chs,
-                    len: read
-                  }, trBuffers);
                 }
-              }
               );
             }
           }
         };
 
-        let aAisSubscr=aAis?.readObs(audioBuffers).subscribe({
-          next:(read)=> {
-            for (let ch = 0; ch < chs; ch++) {
-              let copy = new Float32Array(audioBuffers[ch]);
-              trBuffers[ch] = copy.buffer;
+        let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
+            next: (read) => {
+              for (let ch = 0; ch < chs; ch++) {
+                let copy = new Float32Array(audioBuffers[ch]);
+                trBuffers[ch] = copy.buffer;
+              }
+              worker.postMessage({
+                bufferFrameLength: bufferFrameLength,
+                audioData: trBuffers,
+                chs: chs,
+                len: read
+              }, trBuffers);
             }
-            this.worker?.postMessage({
-              bufferFrameLength: bufferFrameLength,
-              audioData: trBuffers,
-              chs: chs,
-              len: read
-            }, trBuffers);
           }
-        }
-      );
+        );
       }
     });
-
-  }
-
-
-  private terminateWorker() {
-    this.worker?.terminate();
-
+  return obs;
   }
 
   /*
