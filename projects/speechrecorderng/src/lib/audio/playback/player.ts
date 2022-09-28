@@ -423,6 +423,8 @@ import {AudioSourceNode} from "./audio_source_node";
           sr=this._audioBuffer.sampleRate;
         }else if(this._arrayAudioBuffer){
           sr=this._arrayAudioBuffer.sampleRate;
+        }else if(this._inddbAudioBuffer){
+          sr=this._inddbAudioBuffer.sampleRate;
         }
         if(sr ) {
           let ppTime = this.playPositionTime;

@@ -22,6 +22,39 @@ export class PersistentAudioStorageTarget{
       //this._indexedDb.transaction(this.storeName);
     //}
   }
+
+  objectStore(mode?:IDBTransactionMode ){
+    let tr=this.transaction(mode);
+    return tr.objectStore(this._storeName);
+  }
+
+  deleteAll():Observable<void>{
+    return new Observable<void>(subscriber => {
+      let os = this.objectStore('readwrite');
+      let allKeysReq = os.getAllKeys();
+      allKeysReq.onsuccess = () => {
+        //allKeysReq.result.forEach((key) => {
+
+        for(let key of allKeysReq.result ){
+          console.debug('Delete '+key);
+          let delReq = os.delete(key);
+          delReq.onsuccess=()=>{
+            subscriber.next();
+          }
+        }
+        os.transaction.commit();
+      //);
+      }
+      os.transaction.oncomplete = () => {
+          subscriber.complete();
+      }
+      os.transaction.onerror = (err) => {
+          subscriber.error(err);
+      }
+
+    });
+  }
+
 }
 
 export class IndexedDbAudioBuffer {
@@ -325,6 +358,11 @@ export class IndexedDbAudioBuffer {
     });
     return obs;
 
+  }
+
+  release(){
+    // TODO
+    // Delete from indexed db
   }
 
   toString():string{

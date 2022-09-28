@@ -24,11 +24,10 @@ export abstract class RecorderComponent implements ReadyStateProvider{
         if (persistentAudioStorage) {
           SprDb.prepare().subscribe({
             next: (db) => {
-              this._persistentAudioStorageTarget=new PersistentAudioStorageTarget(db,SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
-              subscriber.next();
-            }, complete: () => {
-              subscriber.complete();
-            }, error: (err)=>{
+              this._persistentAudioStorageTarget = new PersistentAudioStorageTarget(db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
+              this._persistentAudioStorageTarget.deleteAll().subscribe(subscriber);
+            },
+            error:(err)=>{
               subscriber.error(err);
             }
           });
