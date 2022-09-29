@@ -741,7 +741,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     //this.selectedItemIdx = this.promptIndex;
 
     if(this.audioFetchSubscription){
-      console.debug("Unsubscribe from audio fetch.");
+      //console.debug("Unsubscribe from audio fetch.");
       this.audioFetchSubscription.unsubscribe();
     }
     this.liveLevelDisplayState=LiveLevelState.READY;
