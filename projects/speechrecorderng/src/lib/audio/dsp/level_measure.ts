@@ -236,6 +236,7 @@ export class LevelMeasure {
             // end of data, terminate worker and return result
             //this.terminateWorker();
             worker.terminate();
+            ais?.close();
             subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));
             subscriber.complete();
           } else {
@@ -306,6 +307,8 @@ export class LevelMeasure {
             // end of data, terminate worker and return result
             //this.terminateWorker();
             worker.terminate();
+            ais?.close();
+            aAis?.close();
             subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));
             subscriber.complete();
           } else {

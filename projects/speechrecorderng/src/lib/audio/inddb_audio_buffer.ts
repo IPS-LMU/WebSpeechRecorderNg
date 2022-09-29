@@ -33,17 +33,13 @@ export class PersistentAudioStorageTarget{
       let os = this.objectStore('readwrite');
       let allKeysReq = os.getAllKeys();
       allKeysReq.onsuccess = () => {
-        //allKeysReq.result.forEach((key) => {
-
         for(let key of allKeysReq.result ){
-          console.debug('Delete '+key);
           let delReq = os.delete(key);
           delReq.onsuccess=()=>{
             subscriber.next();
           }
         }
         os.transaction.commit();
-      //);
       }
       os.transaction.oncomplete = () => {
           subscriber.complete();
@@ -51,7 +47,6 @@ export class PersistentAudioStorageTarget{
       os.transaction.onerror = (err) => {
           subscriber.error(err);
       }
-
     });
   }
 
@@ -536,6 +531,8 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
   }
 
   close(): void {
+    this._currCi=0;
+    this._ccCache=null;
   }
 }
 
@@ -548,7 +545,7 @@ export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
   }
 
   close(): void {
-    // Nothing to do for now (maybe close indexed db transaction here?)
+    this.inddbAbStr.close();
   }
 
   readObs(buffers: Array<Float32Array>): Observable<number> {

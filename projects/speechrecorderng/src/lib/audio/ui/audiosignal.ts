@@ -252,7 +252,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               if (this.worker) {
                 this.worker.terminate();
               }
-              //worker = null;
+              raAs.close();
             }else if(this._audioDataHolder && arrAbBuf){
               let rw=me.data.w;
               let rPointsLen=chs*rw;
@@ -564,7 +564,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
             g.stroke();
             y += chH;
           }
-
+        ais?.close();
       }
     }
   }

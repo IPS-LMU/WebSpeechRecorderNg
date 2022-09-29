@@ -684,6 +684,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                       this.worker.terminate();
                     }
                     this.worker = null;
+                    raAs.close();
                   }else {
 
                     // set rendered vertical values of one pixel of timescale
