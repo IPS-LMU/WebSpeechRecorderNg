@@ -60,6 +60,16 @@ export class RecordingService {
     return recFilesUrl;
   }
 
+  // private sessionRecordingFilesUrl(projectName: string, sessId: string | number):URL{
+  //   let encPrjName=encodeURIComponent(projectName);
+  //   let encSessId=encodeURIComponent(sessId);
+  //
+  //   let recFilesUrlStr = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
+  //     SessionService.SESSION_API_CTX + '/' + encSessId + '/' + RecordingService.RECORDING_API_CTX;
+  //   let recFilesUrl=new URL(recFilesUrlStr);
+  //   return recFilesUrl;
+  // }
+
   private sessionRecFilesUrl(projectName: string, sessId: string | number):string{
     let encPrjName=encodeURIComponent(projectName);
     let encSessId=encodeURIComponent(sessId);
@@ -102,6 +112,29 @@ export class RecordingService {
       // append UUID to make request URL unique to avoid localhost server caching
       audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
     }
+    let headers = new HttpHeaders();
+    headers = headers.set('Accept', 'audio/wav');
+    return this.http.get(audioUrl, {
+      headers: headers,
+      observe: 'response',
+      responseType: 'arraybuffer',
+      withCredentials: this.withCredentials
+    });
+
+  }
+
+  private audioRequestByURL(audioBaseUrl:string,audioURLSearchParams:URLSearchParams): Observable<HttpResponse<ArrayBuffer>> {
+    let audioUrl=audioBaseUrl;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      audioUrl=audioUrl+'.wav';
+      // append UUID to make request URL unique to avoid localhost server caching
+      audioURLSearchParams.set('requestUUID',UUID.generate());
+      //audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+    }
+
+    audioUrl=audioUrl+'?'+audioURLSearchParams.toString();
+
     let headers = new HttpHeaders();
     headers = headers.set('Accept', 'audio/wav');
     return this.http.get(audioUrl, {
@@ -159,14 +192,19 @@ export class RecordingService {
   }
 
   private chunkAudioRequestToIndDb(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,inddbAudioBuffer:IndexedDbAudioBuffer|null,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<IndexedDbAudioBuffer|null> {
-    let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
+    //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
+    //let audioUrl=new URL(baseAudioUrl);
+    let ausps=new URLSearchParams();
+    ausps.set('startFrame',startFrame.toString());
+    ausps.set('frameLength',frameLength.toString());
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+      //audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+      ausps.set('requestUUID',UUID.generate());
     }
     let obs=new Observable<IndexedDbAudioBuffer|null>(subscriber=> {
-      this.audioRequest(audioUrl).subscribe({next:(resp) => {
+      this.audioRequestByURL(baseAudioUrl,ausps).subscribe({next:(resp) => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
             //console.debug("chunkAudioRequestToIndDb: subscriber.closed: "+subscriber.closed);
@@ -417,10 +455,11 @@ export class RecordingService {
   }
 
   private fetchSprAudiofileInddbBuffer(aCtx:AudioContext, persistentAudioStorageTarget:PersistentAudioStorageTarget,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<IndexedDbAudioBuffer|null>{
-    let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);
+    let recFilesUrlStr=this.sessionRecFilesUrl(projectName,sessId);
     let encItemcode=encodeURIComponent(itemcode);
-    let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
-    return this.chunkedInddbAudioRequest(aCtx,persistentAudioStorageTarget,recUrl);
+    let recUrlStr = recFilesUrlStr + '/' + encItemcode +'/'+version;
+    //let recUrl=new URL(recUrlStr);
+    return this.chunkedInddbAudioRequest(aCtx,persistentAudioStorageTarget,recUrlStr);
   }
 
   fetchRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<AudioBuffer|null> {
