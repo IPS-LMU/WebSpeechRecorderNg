@@ -16,13 +16,17 @@ export abstract class RecorderComponent implements ReadyStateProvider{
 
     protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
     constructor(protected uploader:SpeechRecorderUploader) {
-        if(navigator.storage) {
-            navigator.storage.estimate().then((se) => {
-                console.info("Estimated storage usage: " + se.usage + ", quota: " + se.quota);
-            }).catch((err) => "Could not get get storage infos: " + err.message);
-        }else{
-            console.info("User agent has not storage manager.");
-        }
+       this.printStorageInfos();
+    }
+
+    printStorageInfos(){
+      if(navigator.storage) {
+        navigator.storage.estimate().then((se) => {
+          console.info("Estimated storage usage: " + se.usage + ", quota: " + se.quota);
+        }).catch((err) => "Could not get get storage infos: " + err.message);
+      }else{
+        console.info("User agent has not storage manager.");
+      }
     }
 
     prepare(persistentAudioStorage=false):Observable<void>{
@@ -32,7 +36,21 @@ export abstract class RecorderComponent implements ReadyStateProvider{
           SprDb.prepare().subscribe({
             next: (db) => {
               this._persistentAudioStorageTarget = new PersistentAudioStorageTarget(db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
-              this._persistentAudioStorageTarget.deleteAll().subscribe(subscriber);
+              this._persistentAudioStorageTarget.deleteAll().subscribe({
+                next:()=>{
+                  subscriber.next();
+                },
+                complete:()=>{
+                  console.info('Storage info after delete all:');
+                  this.printStorageInfos();
+                  subscriber.complete();
+                },
+                error:(err)=>{
+                  subscriber.error(err);
+                }
+
+              });
+
             },
             error:(err)=>{
               subscriber.error(err);
