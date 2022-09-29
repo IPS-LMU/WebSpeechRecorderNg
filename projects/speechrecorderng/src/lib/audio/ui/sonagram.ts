@@ -6,6 +6,7 @@ import {Component, ElementRef, ViewChild} from "@angular/core";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
+import {Subscription} from "rxjs";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -49,6 +50,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
     private worker: Worker | null;
     private workerURL: string;
+    private raAsSubsc:Subscription|null=null;
+
     private dftSize = DEFAULT_DFT_SIZE;
 
     constructor(private ref: ElementRef) {
@@ -638,8 +641,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
         if (this.worker) {
             this.worker.terminate();
             this.worker = null;
-
         }
+      if(this.raAsSubsc){
+        this.raAsSubsc.unsubscribe();
+      }
         if (this.bounds) {
             let w = Math.round(this.bounds.dimension.width);
             let h = Math.round(this.bounds.dimension.height);
@@ -742,10 +747,12 @@ export class Sonagram extends AudioCanvasLayerComponent {
                       if (!terminate) {
                         if(this._audioDataHolder) {
                           //let read = this._audioDataHolder.frames(leftFramePos, this.dftSize, arrAbBuf);
-                          raAs.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
+                          this.raAsSubsc=raAs.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
                             {
                               next:(read)=>{
                                 if(arrAbBuf && this.worker) {
+
+                                  // TODO use read value
                                   for (let ch = 0; ch < chs; ch++) {
                                     // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
                                     ada[ch] = arrAbBuf[ch].buffer.slice(0);
@@ -776,23 +783,23 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         for (let ch = 0; ch < chs; ch++) {
                           ada[ch] = new ArrayBuffer(0);
                         }
-
+                        this.worker.postMessage({
+                          audioData: ada,
+                          audioDataOffset:leftFramePos,
+                          l: renderPos,
+                          w: me.data.w,
+                          h: h,
+                          vw: vw,
+                          chs: chs,
+                          frameLength: frameLength,
+                          dftSize: this.dftSize,
+                          maxPsd:maxPsd,
+                          norender:norender,
+                          terminate:terminate
+                        }, ada);
                       }
 
-                      this.worker.postMessage({
-                        audioData: ada,
-                        audioDataOffset:leftFramePos,
-                        l: renderPos,
-                        w: me.data.w,
-                        h: h,
-                        vw: vw,
-                        chs: chs,
-                        frameLength: frameLength,
-                        dftSize: this.dftSize,
-                        maxPsd:maxPsd,
-                        norender:norender,
-                        terminate:terminate
-                      }, ada);
+
                     }
 
                   }
@@ -850,7 +857,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         leftFramePos = 0;
                       }
                       //let read=this._audioDataHolder.frames(leftFramePos,framesToRead,arrAbBuf);
-                      raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
+                      this.raAsSubsc=raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
                         {
                           next: (read) => {
                             if (arrAbBuf && this.worker) {
