@@ -138,6 +138,7 @@ export class RecordingFile {
         let expiredSamples=0;
         if(rf && rf.audioDataHolder){
           expiredSamples=rf.audioDataHolder.sampleCounts();
+          rf.audioDataHolder.releaseAudioData()
           rf.audioDataHolder=null;
         }
         return expiredSamples;

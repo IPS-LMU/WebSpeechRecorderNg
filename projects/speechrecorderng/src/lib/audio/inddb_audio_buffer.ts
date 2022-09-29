@@ -126,6 +126,34 @@ export class IndexedDbAudioBuffer {
 
   }
 
+  private deleteChunk(os:IDBObjectStore,ci:number,cb:(keys:IDBValidKey[])=>void,errCb:(err:Error)=>void){
+
+    // Build bounds for channels
+    let lIdx=[this._uuid,ci,0];
+    let hIdx=[this._uuid,ci,this._channelCount];
+    let chsKr=IDBKeyRange.bound(lIdx,hIdx);
+
+    let exRq=os.getAllKeys(chsKr);
+
+    exRq.onsuccess=()=>{
+      let cc=exRq.result;
+      if(cc && cc.length>0) {
+        let rq = os.delete(chsKr);
+        rq.onerror=(errEv)=>{
+          errCb(new Error(errEv.toString()));
+        }
+        os.transaction.oncomplete=()=>{
+          cb(cc);
+        }
+        os.transaction.commit();
+      }
+    }
+    exRq.onerror=(errEv)=>{
+      errCb(new Error(errEv.toString()));
+    }
+
+  }
+
 
   private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
     //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
@@ -188,6 +216,24 @@ export class IndexedDbAudioBuffer {
     });
 
   }
+
+  private deleteAllBufs(os:IDBObjectStore,ci:number,cbEnd:()=>void,cbErr:(err:Error)=>void){
+    //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
+    this.deleteChunk(os,ci,(ccKeys)=>{
+      if(ccKeys && ccKeys.length>0){
+        //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
+        ci++;
+        this.deleteAllBufs(os,ci,cbEnd, cbErr);
+      }else{
+        //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
+        cbEnd();
+      }
+    },(err)=>{
+      cbErr(err);
+    });
+
+  }
+
 
 
   // framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
@@ -355,9 +401,16 @@ export class IndexedDbAudioBuffer {
 
   }
 
-  release(){
-    // TODO
-    // Delete from indexed db
+  releaseAudioData():Observable<void>{
+    return new Observable<void>((subscriber)=>{
+      let os=this._persistentAudioStorageTarget.objectStore('readwrite');
+      this.deleteAllBufs(os,0,()=>{
+        subscriber.next();
+        subscriber.complete();
+      },(err)=>{
+        subscriber.error(err);
+      })
+    });
   }
 
   toString():string{

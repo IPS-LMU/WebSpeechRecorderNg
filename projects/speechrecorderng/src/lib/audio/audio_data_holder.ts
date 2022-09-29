@@ -141,6 +141,30 @@ export class AudioDataHolder{
     return this._inddbAudioBuffer;
   }
 
+  releaseAudioData():Observable<void>{
+    return new Observable<void>(subscriber => {
+      if (this._inddbAudioBuffer) {
+        this._inddbAudioBuffer.releaseAudioData().subscribe({
+          next:()=>{
+            subscriber.next();
+          },
+          complete:()=>{
+            this._inddbAudioBuffer=null;
+            subscriber.complete();
+          },error:(err)=>{
+            subscriber.error(err);
+          }
+        });
+      }else{
+        // Others have no persistent respectively async deletable storage, they should be finally removed by the GC
+        this._buffer=null;
+        this._arrayBuffer=null;
+        subscriber.next();
+        subscriber.complete();
+      }
+    });
+  }
+
   // getChannelData(channel:number,startFrame:number,length:number):Float32Array|null{
   //   let reqBuf=null;
   //   if(this._buffer){
