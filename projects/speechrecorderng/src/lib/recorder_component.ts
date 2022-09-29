@@ -20,12 +20,13 @@ export abstract class RecorderComponent implements ReadyStateProvider{
     }
 
     printStorageInfos(){
-      if(navigator.storage) {
+      // Safari seems not to support the estimate function.
+      if(navigator.storage && navigator.storage.estimate instanceof Function) {
         navigator.storage.estimate().then((se) => {
           console.info("Estimated storage usage: " + se.usage + ", quota: " + se.quota);
         }).catch((err) => "Could not get get storage infos: " + err.message);
       }else{
-        console.info("User agent has not storage manager.");
+        console.info("User agent does not support storage manager estimate function.");
       }
     }
 
