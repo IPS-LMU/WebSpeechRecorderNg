@@ -32,16 +32,26 @@ export class PersistentAudioStorageTarget{
     return new Observable<void>(subscriber => {
       let os = this.objectStore('readwrite');
       let allKeysReq = os.getAllKeys();
-      allKeysReq.onsuccess = () => {
-        for(let key of allKeysReq.result ){
-          let delReq = os.delete(key);
-          delReq.onsuccess=()=>{
-            subscriber.next();
-          }
-        }
+      // allKeysReq.onsuccess = () => {
+      //   for(let key of allKeysReq.result ){
+      //     let delReq = os.delete(key);
+      //     delReq.onsuccess=()=>{
+      //       subscriber.next();
+      //     }
+      //   }
+      //   os.transaction.commit();
+      // }
+      let clearReq=os.clear();
+      clearReq.onsuccess=()=>{
+        console.debug("Cleared audio storage object store.");
         os.transaction.commit();
       }
+      clearReq.onerror=()=>{
+        os.transaction.abort();
+        console.error("Could not clear object store: "+clearReq.error);
+      }
       os.transaction.oncomplete = () => {
+        console.debug("Transcation complete: Clear audio storage object store.");
           subscriber.complete();
       }
       os.transaction.onerror = (err) => {
@@ -333,6 +343,9 @@ export class IndexedDbAudioBuffer {
           },
           complete: () => {
             subscriber.complete();
+          },
+          error: (err)=>{
+            subscriber.error(err);
           }
         }
       )
@@ -368,19 +381,27 @@ export class IndexedDbAudioBuffer {
             for (let ch = 0; ch < this.channelCount; ch++) {
               let chChk = audioBuffer.getChannelData(ch);
               let chkDbId = [this._uuid, this.indDbChkIdx++, ch];
-              let cr = recFileObjStore.add(chChk, chkDbId);
-              //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
-              cr.onsuccess = () => {
-                //console.debug("Stored audio data to indexed db");
-              }
-              cr.onerror = () => {
-                console.error("Error storing audio data to indexed db");
+              try {
+                let cr = recFileObjStore.add(chChk, chkDbId);
+                //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
+                cr.onsuccess = () => {
+                  //console.debug("Stored audio data to indexed db");
+                }
+                cr.onerror = () => {
+                  // iPad may throw QuotaExceededError here
+                  // iPad asks for more storage and if denied, the error is thrown here
+                  console.error("Error storing audio data to indexed db: "+cr.error);
+                  subscriber.error(cr.error);
+                }
+              }catch(err1){
+                console.error("Error adding audio data to indexed db store: "+err1);
+                subscriber.error(err1);
               }
             }
             this._frameLen+=abFl;
 
           tr.onerror = (err) => {
-            //console.error('Failed to cache audio data to indexed db: ' + err)
+            console.error('Transaction error: Failed to cache audio data to indexed db: ' + err)
             subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
           }
           tr.oncomplete = () => {
