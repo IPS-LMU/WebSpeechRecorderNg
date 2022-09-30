@@ -229,6 +229,7 @@ export class RecordingService {
                      subscriber.complete();
                    },
                    error:(err)=>{
+                      // iPad may throw QuotaExceededError here
                      console.error("chunkAudioRequestToIndDb: Built inddb ab from chunk ab error: "+err);
                       subscriber.error(err);
                    }
