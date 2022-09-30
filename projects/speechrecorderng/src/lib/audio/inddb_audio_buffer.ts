@@ -318,7 +318,7 @@ export class IndexedDbAudioBuffer {
         }
         this.indDbChkIdx += dataChkCnt;
 
-        tr.onerror = (err) => {
+        tr.onerror = (ev) => {
           if(!this._storeError) {
             // Only log the first error
             console.error("Failed to store audio data to indexed db, transaction error: "+tr.error);
@@ -335,7 +335,7 @@ export class IndexedDbAudioBuffer {
           }
           subscriber.error(tr.error);
         }
-        tr.oncomplete = () => {
+        tr.oncomplete = (ev) => {
           subscriber.complete();
         }
         tr.commit();
@@ -404,13 +404,13 @@ export class IndexedDbAudioBuffer {
               try {
                 let cr = recFileObjStore.add(chChk, chkDbId);
                 //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
-                cr.onsuccess = () => {
+                cr.onsuccess = (ev) => {
                   //console.debug("Stored audio data to indexed db");
                   // if(ch>=this.channelCount-1){
                   //   tr.commit();
                   // }
                 }
-                cr.onerror = () => {
+                cr.onerror = (ev) => {
                   // iPad may throw QuotaExceededError here
                   // iPad asks for more storage and if denied, the error is thrown here
                   if(!this._storeError) {
@@ -429,7 +429,7 @@ export class IndexedDbAudioBuffer {
             }
             this._frameLen+=abFl;
 
-          tr.onerror = (err) => {
+          tr.onerror = (ev) => {
             if(!this._storeError) {
               // Only log the first error
               console.error("Failed to store audio data to indexed db, transaction error: "+tr.error);
@@ -446,7 +446,7 @@ export class IndexedDbAudioBuffer {
             }
             subscriber.error(tr.error);
           }
-          tr.oncomplete = () => {
+          tr.oncomplete = (ev) => {
             //console.debug("Transaction complete");
             if(abFl<this._chunkFrameLen){
               // last chunk

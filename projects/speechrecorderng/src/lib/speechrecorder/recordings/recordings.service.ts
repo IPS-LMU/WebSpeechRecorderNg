@@ -169,7 +169,7 @@ export class RecordingService {
                 observer.complete();
               }
               , error => {
-                if(error instanceof HttpErrorResponse) {
+                //if(error instanceof HttpErrorResponse) {
                   // if (error.status == 404) {
                   //   // Interpret not as an error, the file ist not recorded yet
                   //   observer.next(null);
@@ -178,13 +178,13 @@ export class RecordingService {
                   //   // all other states are errors
                   observer.error(error);
                   // }
-                }
+               // }
               })
           } else {
             observer.error('Fetching audio file: response has no body');
           }
         },
-        (error: HttpErrorResponse) => {
+        (error) => {
           // all other states are errors
           observer.error(error);
           observer.complete();
@@ -258,20 +258,20 @@ export class RecordingService {
                 }
               }
               , error => {
-                console.error('chunkAudioRequestToIndDb: error: '+error.message);
-                if(error instanceof HttpErrorResponse) {
+                console.error('chunkAudioRequestToIndDb: error: '+error);
+                //if(error instanceof HttpErrorResponse) {
                   subscriber.error(error);
-                }
+                //}
               })
           } else {
             console.error('chunkAudioRequestToIndDb: Fetching audio file: response has no body');
             subscriber.error('chunkAudioRequestToIndDb: Fetching audio file: response has no body');
           }
         },
-        error:(error: HttpErrorResponse) => {
-          console.error('chunkAudioRequestToIndDb: error: '+error.message);
+        error:(error) => {
+          console.error('chunkAudioRequestToIndDb: error: '+error);
           subscriber.error(error);
-          subscriber.complete();
+          //subscriber.complete();
         }
       });
     });
@@ -355,6 +355,8 @@ export class RecordingService {
               // all other states are errors
               subscriber.error(err);
              }
+          }else{
+            subscriber.error(err);
           }
         }
       });
@@ -432,7 +434,7 @@ export class RecordingService {
             }
           }else {
             // all other errors are (real) errors
-            console.error("chunkedInddbAudioRequest: Error: "+err.message);
+            console.error("chunkedInddbAudioRequest: Error: "+err);
             subscriber.error(err);
           }
         }
@@ -493,16 +495,20 @@ export class RecordingService {
             } else {
               observer.error('Fetching audio file: response has no body');
             }
-          }, (error: HttpErrorResponse) => {
-            if (error.status == 404) {
+          }, (err) => {
+          if(err instanceof HttpErrorResponse) {
+            if (err.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
               observer.complete()
             } else {
               // all other states are errors
-              observer.error(error);
+              observer.error(err);
               observer.complete();
             }
+          }else{
+            observer.error(err);
+          }
           });
       }else{
         observer.error();
@@ -548,16 +554,20 @@ export class RecordingService {
               observer.error('Fetching audio file: response has no body');
             }
           },
-          (error: HttpErrorResponse) => {
-            if (error.status == 404) {
+          (err) => {
+          if(err instanceof HttpErrorResponse) {
+            if (err.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
               observer.complete()
             } else {
               // all other states are errors
-              observer.error(error);
+              observer.error(err);
               observer.complete();
             }
+          }else{
+            observer.error(err);
+          }
           });
       }else{
         observer.error();
@@ -589,15 +599,14 @@ export class RecordingService {
               observer.error('Fetching audio file: response has no body');
             }
           },
-          error: (error: HttpErrorResponse) => {
-            if (error.status == 404) {
+          error: (err) => {
+            if (err instanceof HttpErrorResponse && err.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
               observer.complete()
             } else {
               // all other states are errors
-              observer.error(error);
-              observer.complete();
+              observer.error(err);
             }
           }});
       }else{
@@ -622,18 +631,18 @@ export class RecordingService {
             observer.next(aab)
           },
           complete: ()=> {observer.complete();},
-          error: (error: HttpErrorResponse) => {
-            if (error.status == 404) {
+          error: (err) => {
+            if (err instanceof  HttpErrorResponse && err.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
               observer.complete()
             } else {
               // all other states are errors
-              observer.error(error);
+              observer.error(err);
             }
           }});
       }else{
-        observer.error();
+        observer.error(new Error('Could not get session ID of recording file'));
       }
     });
 
@@ -653,15 +662,15 @@ export class RecordingService {
             observer.next(aab)
           },
           complete: ()=> {observer.complete();},
-          error: (error: HttpErrorResponse) => {
-            if (error.status == 404) {
-              // Interpret not as an error, the file ist not recorded yet
-              observer.next(null);
-              observer.complete()
-            } else {
-              // all other states are errors
-              observer.error(error);
-            }
+          error: (err) => {
+            if(err instanceof HttpErrorResponse && err.status == 404) {
+                // Interpret not as an error, the file ist not recorded yet
+                observer.next(null);
+                observer.complete()
+              } else {
+                // all other errors are real errors
+                observer.error(err);
+              }
           }});
       }else{
         observer.error();
@@ -702,15 +711,14 @@ export class RecordingService {
                 observer.error('Fetching audio file: response has no body');
               }
             },
-            (error: HttpErrorResponse) => {
-              if (error.status == 404) {
+            (err) => {
+              if (err instanceof HttpErrorResponse && err.status == 404) {
                 // Interpret not as an error, the file ist not recorded yet
                 observer.next(null);
                 observer.complete()
               } else {
                 // all other states are errors
-                observer.error(error);
-                observer.complete();
+                observer.error(err);
               }
             });
       }else{
@@ -748,15 +756,14 @@ export class RecordingService {
             observer.error();
           }
         },
-        (error: HttpErrorResponse) => {
-          if (error.status == 404) {
+        (err) => {
+          if (err instanceof HttpErrorResponse && err.status == 404) {
             // Interpret not as an error, the file ist not recorded yet
             observer.next(null);
             observer.complete()
           }else{
-            // all other states are errors
-            observer.error(error);
-            observer.complete();
+            // all other errors are real errors
+            observer.error(err);
           }
         });
     });

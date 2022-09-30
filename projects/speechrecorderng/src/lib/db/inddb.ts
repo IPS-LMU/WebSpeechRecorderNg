@@ -96,16 +96,36 @@ export class SprDb {
                             console.info("Created indexed database " + SprDb.dbName + " schema version " + ev.newVersion)
                         }
                     }
-                    or.onsuccess = () => {
+                    or.onsuccess = (ev) => {
                         console.info("Opened indexed database")
-                            //this._store = or.result
-                            //subscriber.next(this._store)
-                            subscriber.next(or.result);
-                            subscriber.complete();
+
+                      let db=or.result;
+                      //   // iPad WEbKit workaround
+                      // does not help!
+                      //   db.onclose=(ev)=>{
+                      //     console.debug("DB closed...");
+                      //
+                      //   }
+                      // console.debug("Close db.");
+                      //   db.close();
+                      // let opaRq=indexedDB.open(SprDb.dbName, SprDb.dbVersion);
+                      // opaRq.onupgradeneeded=(ev)=>{}
+                      //
+                      // opaRq.onsuccess=(ev)=>{
+                      //   console.debug("and opened again");
+                      //   subscriber.next(opaRq.result);
+                      //   subscriber.complete();
+                      // }
+                      // opaRq.onerror = (err) => {
+                      //   console.error("Could not open indexed database: " + SprDb.dbName + ": " + err)
+                      //   subscriber.error(err)
+                      // }
+
+                      subscriber.next(db);
+                      subscriber.complete();
                     }
 
                     or.onerror = (err) => {
-
                         console.error("Could not open indexed database: " + SprDb.dbName + ": " + err)
                         subscriber.error(err)
                     }
