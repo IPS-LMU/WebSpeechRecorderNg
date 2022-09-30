@@ -17,6 +17,9 @@ import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/in
 // iPad Out of memory RangeError
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
 export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 500000;
+
+// Test debug
+//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 250000;
 // TEST only !!
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 123456;
 
@@ -427,6 +430,10 @@ export class RecordingService {
               console.error("chunkedInddbAudioRequest: Error: "+err.message);
               subscriber.error(err);
             }
+          }else {
+            // all other errors are (real) errors
+            console.error("chunkedInddbAudioRequest: Error: "+err.message);
+            subscriber.error(err);
           }
         }
       });

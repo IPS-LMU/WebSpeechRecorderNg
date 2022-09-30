@@ -143,6 +143,7 @@ export class AudioCapture {
   private _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
   private persisted=true;
+  private persistError:Error|null=null;
   private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
   constructor(context: AudioContext) {
@@ -152,6 +153,7 @@ export class AudioCapture {
 
   private initData() {
     this.recUUID=UUID.generate();
+    this.persistError=null;
     if(this._persistentAudioStorageTarget && this.recUUID) {
       this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
     }
@@ -618,7 +620,12 @@ export class AudioCapture {
       this.audioOutStream.flush();
     }
     this.capturing = false;
-    if (this.listener && this.persisted) {
+    if(this.inddbAudioBuffer && this.persistError){
+      // Delete invalid persistent audio data and hope that it will be completely uploaded to the server
+      this.inddbAudioBuffer.releaseAudioData();
+      this.inddbAudioBuffer=null;
+    }
+    if (this.listener && (this.persistError || this.persisted)) {
       console.debug("Stopped by stop() method call");
       this.listener.stopped();
     }
@@ -684,8 +691,10 @@ export class AudioCapture {
     //   this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
     // }
     if(this.inddbAudioBuffer){
+
+      // Try to append to
       this.inddbAudioBuffer.appendRawAudioData(this.data).subscribe({
-        complete:()=>{
+        complete: () => {
           //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
 
           /// Audio data saved to index db delete from in memory data array
@@ -694,10 +703,16 @@ export class AudioCapture {
             //console.debug("Spliced/removed ch: "+ch);
           }
 
-          this.persisted=true;
-          if(this.listener && !this.capturing){
+          this.persisted = true;
+          if (this.listener && !this.capturing) {
             //console.debug("Stopped by indexed db hook");
             this.listener.stopped();
+          }
+        },error:(err)=>{
+          // Only log the first error
+          if(!this.persistError) {
+            this.persistError = err;
+            console.error("Error persisting audio data: " + err);
           }
         }
       });
@@ -774,7 +789,11 @@ export class AudioCapture {
     //   iab = new IndexedDbAudioBuffer(this.db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, this.channelCount, this.currentSampleRate, AudioCapture.BUFFER_SIZE,this.framesRecorded,this.recUUID);
     // }
     // return iab;
-    return this.inddbAudioBuffer;
+    if(this.persistError){
+      return null;
+    }else {
+      return this.inddbAudioBuffer;
+    }
   }
 
 

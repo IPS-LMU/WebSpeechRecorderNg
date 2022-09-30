@@ -77,6 +77,7 @@ export class IndexedDbAudioBuffer {
   private _chunkCount=0;
   private indDbChkIdx: number=0;
   private _sealed=false;
+  private _storeError:Error|null=null;
 
 
   constructor(private _persistentAudioStorageTarget:PersistentAudioStorageTarget,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private _uuid:string) {
@@ -301,9 +302,15 @@ export class IndexedDbAudioBuffer {
             //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
             cr.onsuccess = () => {
               //console.debug("Stored audio data to indexed db");
+              // if(chCkIdx>= dataChkCnt-1 && ch>=this.channelCount-1){
+              //   tr.commit();
+              // }
             }
             cr.onerror = () => {
-              console.error("Error storing audio data to indexed db");
+              if(!this._storeError) {
+                // Only log the first error
+                console.error("Error storing audio data of " + chChk.byteLength + " bytes to indexed db: " + cr.error);
+              }
             }
           }
           pos += bufLen;
@@ -312,8 +319,21 @@ export class IndexedDbAudioBuffer {
         this.indDbChkIdx += dataChkCnt;
 
         tr.onerror = (err) => {
-          //console.error('Failed to cache audio data to indexed db: ' + err)
-          subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
+          if(!this._storeError) {
+            // Only log the first error
+            console.error("Failed to store audio data to indexed db, transaction error: "+tr.error);
+            this._storeError = tr.error;
+          }
+          subscriber.error(tr.error);
+        }
+        tr.onabort=(ev)=>{
+          // If Chrome reaches quota it aborts the transaction
+          if(!this._storeError) {
+            // Only log the first error
+            console.error("Failed to store audio data to indexed db, transaction aborted: "+tr.error);
+            this._storeError = tr.error;
+          }
+          subscriber.error(tr.error);
         }
         tr.oncomplete = () => {
           subscriber.complete();
@@ -386,25 +406,48 @@ export class IndexedDbAudioBuffer {
                 //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
                 cr.onsuccess = () => {
                   //console.debug("Stored audio data to indexed db");
+                  // if(ch>=this.channelCount-1){
+                  //   tr.commit();
+                  // }
                 }
                 cr.onerror = () => {
                   // iPad may throw QuotaExceededError here
                   // iPad asks for more storage and if denied, the error is thrown here
-                  console.error("Error storing audio data to indexed db: "+cr.error);
-                  subscriber.error(cr.error);
+                  if(!this._storeError) {
+                    // Only log the first error
+                    console.error("Error storing audio data of " + chChk.byteLength + " bytes to indexed db: " + cr.error);
+                  }
+                  //subscriber.error(cr.error);
                 }
-              }catch(err1){
-                console.error("Error adding audio data to indexed db store: "+err1);
+              }catch(err1:any){
+                if(!this._storeError) {
+                  console.error("Error adding audio data to indexed db store: " + err1);
+                  this._storeError=(err1 instanceof Error)?err1:new Error(err1);
+                }
                 subscriber.error(err1);
               }
             }
             this._frameLen+=abFl;
 
           tr.onerror = (err) => {
-            console.error('Transaction error: Failed to cache audio data to indexed db: ' + err)
-            subscriber.error(new Error('Failed to store audio data to indexed db: ' + err));
+            if(!this._storeError) {
+              // Only log the first error
+              console.error("Failed to store audio data to indexed db, transaction error: "+tr.error);
+              this._storeError = tr.error;
+            }
+            subscriber.error(tr.error);
+          }
+          tr.onabort=(ev)=>{
+            // If Chrome reaches quota it aborts the transaction
+            if(!this._storeError) {
+              // Only log the first error
+              console.error("Failed to store audio data to indexed db, transaction aborted: "+tr.error);
+              this._storeError = tr.error;
+            }
+            subscriber.error(tr.error);
           }
           tr.oncomplete = () => {
+            //console.debug("Transaction complete");
             if(abFl<this._chunkFrameLen){
               // last chunk
               this.seal();
@@ -414,6 +457,7 @@ export class IndexedDbAudioBuffer {
           }
           tr.commit();
         } catch (err) {
+          console.error('Catched error: '+err);
           subscriber.error(new Error('Transfer audio data error: ' + err));
         }
       }
@@ -541,7 +585,7 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
 
   }
 
-  private fillBufs(os:IDBObjectStore,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
+  private fillBufs(os:IDBObjectStore,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number,ccFilled:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
     //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     if(this._ccCache){
 
@@ -591,7 +635,7 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
       }
       let srcFramePos=newCi*this._inddbAb.chunkFrameLen;
       let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
-      let srcState={srcFramePos:srcFramePos,ci:newCi,ccPos:0};
+      let srcState={srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
       this.fillBufs(os,trgState,srcState,(val)=>{},(filled:number)=>{
         subscriber.next(filled);
         subscriber.complete();

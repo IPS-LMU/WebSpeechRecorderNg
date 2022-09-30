@@ -631,6 +631,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   this.liveLevelDisplayState = LiveLevelState.READY;
                   this.statusMsg = 'Recording file could not be loaded: ' + err;
                   this.statusAlertType = 'error';
+                  this.changeDetectorRef.detectChanges();
                 }
               });
 
@@ -1079,7 +1080,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         ad=this.ac.audioBuffer();
         frameLen=ad.length;
       }
-      adh=new AudioDataHolder(ad,ada,iab);
+      if(ad || ada || iab) {
+        adh = new AudioDataHolder(ad, ada, iab);
+      }
     }
     // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
     let rf = this._recordingFile;
