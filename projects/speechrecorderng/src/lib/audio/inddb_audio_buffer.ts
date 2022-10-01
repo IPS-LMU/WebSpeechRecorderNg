@@ -534,9 +534,7 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
 
   }
 
-  //private _fillBufs(ccBufs:Float32Array[],framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number):number{
   private _fillBufs(ccBufs:Float32Array[],trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number}){
-    let ccCache:Float32Array[]|null=ccBufs;
     let ccBufsChs=ccBufs.length;
     if(ccBufsChs>0) {
       let ccBuf0 = ccBufs[0];
@@ -546,11 +544,10 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
       if (trgState.framePos >= srcState.srcFramePos + ccBufsLen) {
         // target frame position is ahead, seek to next source buffer
         //console.debug('IndexedDbAudioBuffer::fillBufs seek to next inddb buffer');
+        this._ccCache=null;
         srcState.ci++;
         srcState.ccPos=0;
         srcState.srcFramePos+=ccBufsLen;
-        ccCache=null;
-
       } else {
         // Assuming target frame pos is inside current source buffer
         srcState.ccPos=trgState.framePos-srcState.srcFramePos;
@@ -573,7 +570,7 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
         trgState.framePos += toCopy;
         srcState.ccPos += toCopy;
         if (srcState.ccPos >= ccBufsLen) {
-          // Inavalidate cache
+          // Invalidate cache
           this._ccCache=null;
           srcState.ci++;
           this._currCi=srcState.ci;
@@ -588,7 +585,6 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
   private fillBufs(os:IDBObjectStore,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number,ccFilled:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
     //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     if(this._ccCache){
-
       this._fillBufs(this._ccCache,trgState,srcState);
       //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
       if(trgState.frameLen===0){
@@ -670,7 +666,6 @@ export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
     let obs=new Observable<number>(subscr=> {
       if (buffers && buffers.length > 0) {
         let fl = buffers[0].length;
-
         this.inddbAbStr.framesObs(this.framePos, fl, buffers).subscribe({
           next: (read) => {
             this.framePos += read;
