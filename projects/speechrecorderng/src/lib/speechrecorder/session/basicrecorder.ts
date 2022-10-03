@@ -5,7 +5,7 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
-import {AudioDevice, AutoGainControlConfig} from "../project/project";
+import {AudioDevice, AutoGainControlConfig, ClientAudioStorageType} from "../project/project";
 import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
@@ -98,6 +98,18 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+  get clientAudioStorageType(): ClientAudioStorageType {
+    return this._clientAudioStorageType;
+  }
+
+  set clientAudioStorageType(value: ClientAudioStorageType) {
+
+    let oldValue=this._clientAudioStorageType;
+    this._clientAudioStorageType = value;
+    if(value!==oldValue){
+      this.configureStreamCaptureStream();
+    }
+  }
   get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
     return this._persistentAudioStorageTarget;
   }
@@ -172,6 +184,9 @@ export abstract class BasicRecorder {
 
   // Default: Disabled chunked upload
   private _uploadChunkSizeSeconds:number|null=null;
+
+  // Default: HTML5 Audio AI AudioBuffer
+  private _clientAudioStorageType:ClientAudioStorageType=ClientAudioStorageType.AudioBuffer;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
@@ -275,7 +290,7 @@ export abstract class BasicRecorder {
     }
     if(this.ac) {
       this.ac.audioOutStream = outStream;
-      if(this._persistentAudioStorageTarget!==null) {
+      if(ClientAudioStorageType.IDBAudioBuffer===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
         this.ac.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
       }
     }
