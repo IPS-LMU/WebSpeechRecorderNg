@@ -186,7 +186,7 @@ export abstract class BasicRecorder {
   private _uploadChunkSizeSeconds:number|null=null;
 
   // Default: HTML5 Audio AI AudioBuffer
-  private _clientAudioStorageType:AudioStorageType=AudioStorageType.Continuous;
+  protected _clientAudioStorageType:AudioStorageType=AudioStorageType.Continuous;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
@@ -290,10 +290,7 @@ export abstract class BasicRecorder {
     }
     if(this.ac) {
       this.ac.audioOutStream = outStream;
-      if(this._clientAudioStorageType){
-        this.ac.audioStorageType=this._clientAudioStorageType;
-      }
-      if(this._persistentAudioStorageTarget!==null) {
+      if(AudioStorageType.PersistToDb===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
         this.ac.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
       }
     }

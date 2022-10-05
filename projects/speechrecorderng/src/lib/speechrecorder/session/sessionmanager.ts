@@ -596,13 +596,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
-          if(this.uploadChunkSizeSeconds) {
 
-            if(this._persistentAudioStorageTarget){
-              // Fetch chunked indexed db audio buffer
-              let nextIab: IndexedDbAudioBuffer | null = null;
-
-              this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context,this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
+          if(AudioStorageType.PersistToDb===this._clientAudioStorageType){
+            // Fetch chunked indexed db audio buffer
+            let nextIab: IndexedDbAudioBuffer | null = null;
+            if(!this._persistentAudioStorageTarget){
+              throw Error('Error: Persistent storage target not set.');
+            }else {
+              this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
                 next: (iab) => {
                   //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
                   nextIab = iab;
@@ -612,7 +613,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   let fabDh = null;
                   if (nextIab) {
                     if (rf && this.items) {
-                      fabDh = new AudioDataHolder(null, null,nextIab);
+                      fabDh = new AudioDataHolder(null, null, nextIab);
                       this.items.setSprRecFileAudioData(rf, fabDh);
                     }
                   } else {
@@ -635,8 +636,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   this.changeDetectorRef.detectChanges();
                 }
               });
-
-            }else{
+            }
+          }else if(AudioStorageType.Chunked===this._clientAudioStorageType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
 
@@ -672,8 +673,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               }
             });
 
-          }
-          }else {
+          } else {
             // Fetch regular audio buffer
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (ab) => {
