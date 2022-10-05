@@ -1,4 +1,6 @@
-export class ArrayAudioBuffer {
+
+
+export class ArrayAudioBuffer{
 
   private _chunkCount=0;
   private _frameLen:number=0;

@@ -352,6 +352,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       if(project.recordingDeviceWakeLock===true){
         this.sm.wakeLock=true;
       }
+      if(project.clientAudioStorageType) {
+        this.sm.clientAudioStorageType = project.clientAudioStorageType;
+      }
       this.sm.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);

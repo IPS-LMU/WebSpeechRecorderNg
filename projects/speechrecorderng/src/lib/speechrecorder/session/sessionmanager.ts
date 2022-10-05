@@ -39,6 +39,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
+import {AudioStorageType} from "../project/project";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -1068,12 +1069,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let frameLen:number=0;
 
     if(this.ac!=null){
-      if(this.ac.persistentAudioStorageTarget) {
+      if(AudioStorageType.PersistToDb===this.ac.audioStorageType) {
         iab = this.ac.inddbAudioBufferArray();
         if (iab) {
           frameLen = iab.frameLen;
         }
-      }else if(this.uploadChunkSizeSeconds || SessionManager.FORCE_ARRRAY_AUDIO_BUFFER){
+      }else if(AudioStorageType.Chunked===this.ac.audioStorageType){
         ada = this.ac.audioBufferArray();
         frameLen = ada.frameLen;
       }else{

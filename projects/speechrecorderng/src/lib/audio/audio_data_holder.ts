@@ -4,6 +4,22 @@ import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 import {Observable} from "rxjs";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream, IndexedDbRandomAccessStream} from "./inddb_audio_buffer";
 import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
+import {AudioStorageType} from "../speechrecorder/project/project";
+
+// TODO Ler all types implement an interface.
+// Question: Use JS protoype to extend HTML5 Audio API AudioBuffer or use a class wrapper?
+// export interface AudioBufferI{
+//   readonly type:AudioStorageType;
+//   readonly readAsync:boolean;
+//   readonly numberOfChannels:number;
+//   readonly sampleRate:number;
+//
+// }
+
+// export abstract class AudioStorage{
+//   abstract type:AudioStorageType;
+//   abstract persistent:boolean;
+// }
 
 export interface RandomAccessAudioStream{
   framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>;

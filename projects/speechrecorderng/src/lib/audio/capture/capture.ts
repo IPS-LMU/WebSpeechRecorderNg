@@ -1,13 +1,10 @@
-import {SequenceAudioFloat32OutStream, SequenceAudioFloat32OutStreamMultiplier} from "../io/stream";
+import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
-import {AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
+import {AudioStorageType, AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
 import {ArrayAudioBuffer} from "../array_audio_buffer";
-import {SprDb} from "../../db/inddb";
 import {UUID} from "../../utils/utils";
-import {Observable, Subscriber} from "rxjs";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
-
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -109,6 +106,13 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
+  get audioStorageType(): AudioStorageType {
+    return this._audioStorageType;
+  }
+
+  set audioStorageType(value: AudioStorageType) {
+    this._audioStorageType = value;
+  }
   get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
     return this._persistentAudioStorageTarget;
   }
@@ -140,6 +144,7 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
+  private _audioStorageType:AudioStorageType=AudioStorageType.Continuous;
   private _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
   private persisted=true;
@@ -154,7 +159,9 @@ export class AudioCapture {
   private initData() {
     this.recUUID=UUID.generate();
     this.persistError=null;
-    if(this._persistentAudioStorageTarget && this.recUUID) {
+    console.info("Audio capture initialize storage for type: "+this._audioStorageType);
+    if(AudioStorageType.PersistToDb === this._audioStorageType && this._persistentAudioStorageTarget && this.recUUID) {
+      console.debug("Create indexed db audio buffer.");
       this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
     }
     this.data = new Array<Array<Float32Array>>();
@@ -518,7 +525,7 @@ export class AudioCapture {
                         if (this.audioOutStream) {
                           this.audioOutStream.write(chunk);
                         }
-                        if(this._persistentAudioStorageTarget){
+                        if(AudioStorageType.PersistToDb===this._audioStorageType && this._persistentAudioStorageTarget){
                           this.store();
                         }
                       }

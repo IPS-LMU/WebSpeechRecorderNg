@@ -20,7 +20,13 @@ export enum Platform {Linux='LINUX',macOS='MACOS',Windows='WINDOWS',Android='AND
 export enum BrowserBase {Chromium='CHROMIUM'};
 export enum Browser {Firefox='FIREFOX',Chromium='CHROMIUM',Chrome='CHROME',Edge='EDGE',Opera='OPERA'}
 
-export enum ClientAudioStorageType {AudioBuffer='AudioBuffer',ArrayAudioBuffer='ArrayAudioBuffer',IDBAudioBuffer='IDBAudioBuffer'}
+
+
+export enum AudioStorageType {
+  Continuous='Continuous',
+  Chunked='Chunked',
+  PersistToDb='PersistToDb'
+}
 
 export interface AutoGainControlConfig {
   value: boolean,
@@ -38,7 +44,7 @@ export interface Project {
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
   audioDevices?: Array<AudioDevice>,
   chunkedRecording?: boolean,
-  clientAudioStorageType?:ClientAudioStorageType
+  clientAudioStorageType?:AudioStorageType
 }
 
 
