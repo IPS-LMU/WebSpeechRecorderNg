@@ -23,9 +23,9 @@ export enum Browser {Firefox='FIREFOX',Chromium='CHROMIUM',Chrome='CHROME',Edge=
 
 
 export enum AudioStorageType {
-  Continuous='Continuous',
-  Chunked='Chunked',
-  PersistToDb='PersistToDb'
+  CONTINUOUS='CONTINUOUS',
+  CHUNKED='CHUNKED',
+  PERSISTTODB='PERSISTTODB'
 }
 
 export interface AutoGainControlConfig {

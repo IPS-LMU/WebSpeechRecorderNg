@@ -144,7 +144,7 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
-  private _audioStorageType:AudioStorageType=AudioStorageType.Continuous;
+  private _audioStorageType:AudioStorageType=AudioStorageType.CONTINUOUS;
   private _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
   private persisted=true;
@@ -160,7 +160,7 @@ export class AudioCapture {
     this.recUUID=UUID.generate();
     this.persistError=null;
     console.info("Audio capture initialize storage for type: "+this._audioStorageType);
-    if(AudioStorageType.PersistToDb === this._audioStorageType && this._persistentAudioStorageTarget && this.recUUID) {
+    if(AudioStorageType.PERSISTTODB === this._audioStorageType && this._persistentAudioStorageTarget && this.recUUID) {
       console.debug("Create indexed db audio buffer.");
       this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
     }
@@ -525,7 +525,7 @@ export class AudioCapture {
                         if (this.audioOutStream) {
                           this.audioOutStream.write(chunk);
                         }
-                        if(AudioStorageType.PersistToDb===this._audioStorageType && this._persistentAudioStorageTarget){
+                        if(AudioStorageType.PERSISTTODB===this._audioStorageType && this._persistentAudioStorageTarget){
                           this.store();
                         }
                       }

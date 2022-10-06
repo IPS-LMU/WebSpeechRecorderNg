@@ -416,17 +416,20 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     if (project) {
       console.info("Project name: " + project.name)
-      if(project.recordingDeviceWakeLock===true){
-        this.wakeLock=true;
+      if (project.recordingDeviceWakeLock === true) {
+        this.wakeLock = true;
       }
       this.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
-      this.autoGainControlConfigs=project.autoGainControlConfigs;
-      if(project.chunkedRecording===true){
-        this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
-      }else{
-        this.uploadChunkSizeSeconds=null;
+      this.autoGainControlConfigs = project.autoGainControlConfigs;
+      if (project.chunkedRecording === true) {
+        this.uploadChunkSizeSeconds = BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      } else {
+        this.uploadChunkSizeSeconds = null;
+      }
+      if (project.clientAudioStorageType) {
+        this._clientAudioStorageType = project.clientAudioStorageType;
       }
     } else {
       console.error("Empty project configuration!")
@@ -775,14 +778,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     let adh:AudioDataHolder|null=null;
     let frameLen:number=0;
     if(this.ac) {
-      if(this.uploadChunkSizeSeconds || AudioRecorder.FORCE_ARRRAY_AUDIO_BUFFER){
-        ada=this.ac.audioBufferArray();
-        frameLen = ada.frameLen;
-      }else{
-        ad=this.ac.audioBuffer();
-        frameLen=ad.length;
+      let ad:AudioBuffer|null = null;
+
+      let adh:AudioDataHolder|null=this.capturedAudiodataHolder();
+
+      if(adh){
+        ad=adh.buffer;
       }
-      adh=new AudioDataHolder(ad,ada);
 
       let sessId: string | number = 0;
       if(this._session){

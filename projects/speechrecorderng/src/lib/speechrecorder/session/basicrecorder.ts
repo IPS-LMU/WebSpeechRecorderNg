@@ -27,7 +27,9 @@ import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
-import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
+import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -98,6 +100,9 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+
+  public static readonly DEFAULT_CHUNK_SIZE_SECONDS=30;
+
   get clientAudioStorageType(): AudioStorageType {
     return this._clientAudioStorageType;
   }
@@ -126,18 +131,18 @@ export abstract class BasicRecorder {
   // Enable only for developemnt/debug purposes of array audio buffers !!
   public static readonly FORCE_ARRRAY_AUDIO_BUFFER=false;
 
-  get uploadChunkSizeSeconds(): number | null {
+  get uploadChunkSizeSeconds(): number|null {
     return this._uploadChunkSizeSeconds;
   }
 
-  set uploadChunkSizeSeconds(value: number | null) {
+  set uploadChunkSizeSeconds(value: number|null) {
     let oldValue=this.uploadChunkSizeSeconds;
     this._uploadChunkSizeSeconds = value;
     if(value!==oldValue){
       this.configureStreamCaptureStream();
     }
   }
-  public static readonly DEFAULT_CHUNK_SIZE_SECONDS=30;
+
   protected userAgent:UserAgent;
   statusMsg: string='';
   statusAlertType!: string;
@@ -182,11 +187,11 @@ export abstract class BasicRecorder {
 
   protected navigationDisabled=true;
 
-  // Default: Disabled chunked upload
   private _uploadChunkSizeSeconds:number|null=null;
+  //=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
 
-  // Default: HTML5 Audio AI AudioBuffer
-  protected _clientAudioStorageType:AudioStorageType=AudioStorageType.Continuous;
+  // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
+  protected _clientAudioStorageType:AudioStorageType=AudioStorageType.CONTINUOUS;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
@@ -271,7 +276,11 @@ export abstract class BasicRecorder {
 
   configureStreamCaptureStream() {
     let outStream;
-    if (this.uploadChunkSizeSeconds) {
+
+    if (AudioStorageType.CONTINUOUS!==this._clientAudioStorageType || this.uploadChunkSizeSeconds) {
+      if(!this.uploadChunkSizeSeconds){
+        this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      }
       // Multiply the capture stream to...
       let sasm = new SequenceAudioFloat32OutStreamMultiplier();
 
@@ -289,8 +298,9 @@ export abstract class BasicRecorder {
       outStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
     }
     if(this.ac) {
+      this.ac.audioStorageType=this._clientAudioStorageType;
       this.ac.audioOutStream = outStream;
-      if(AudioStorageType.PersistToDb===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
+      if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
         this.ac.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
       }
     }
@@ -620,8 +630,26 @@ export abstract class BasicRecorder {
     }
   }
 
-
-
+  // TODO: Move to AudioCapture?
+  capturedAudiodataHolder():AudioDataHolder|null {
+    let adh:AudioDataHolder|null=null;
+    let iab:IndexedDbAudioBuffer|null=null;
+    let ada:ArrayAudioBuffer|null=null;
+    let ad:AudioBuffer|null=null;
+    if(this.ac) {
+      if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
+        iab = this.ac.inddbAudioBufferArray();
+      } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
+        ada = this.ac.audioBufferArray();
+      } else {
+        ad = this.ac.audioBuffer();
+      }
+      if (ad || ada || iab) {
+        adh = new AudioDataHolder(ad, ada, iab);
+      }
+    }
+    return adh;
+  }
   closed() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Session closed.';

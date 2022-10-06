@@ -3,7 +3,7 @@ import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
 } from './audio/playback/player';
-import {Group, Order, PromptItem, Script} from './speechrecorder/script/script'
+import {Group, PromptItem, Script} from './speechrecorder/script/script'
 import { SessionManager,Status as SessionManagerStatus} from './speechrecorder/session/sessionmanager';
 import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
@@ -11,16 +11,14 @@ import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {Session} from "./speechrecorder/session/session";
-import {Project, ProjectUtil} from "./speechrecorder/project/project";
+import {AudioStorageType, Project, ProjectUtil} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays} from "./utils/utils";
-import {AudioRecorderComponent} from "./speechrecorder/session/audiorecorder";
 import {RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
-import {SprDb} from "./db/inddb";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -352,9 +350,11 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       if(project.recordingDeviceWakeLock===true){
         this.sm.wakeLock=true;
       }
+      console.info("Audio storage type: "+project.clientAudioStorageType);
       if(project.clientAudioStorageType) {
         this.sm.clientAudioStorageType = project.clientAudioStorageType;
       }
+
       this.sm.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);

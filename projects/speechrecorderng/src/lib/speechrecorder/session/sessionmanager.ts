@@ -597,12 +597,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
 
-          if(AudioStorageType.PersistToDb===this._clientAudioStorageType){
+          if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType){
             // Fetch chunked indexed db audio buffer
             let nextIab: IndexedDbAudioBuffer | null = null;
             if(!this._persistentAudioStorageTarget){
               throw Error('Error: Persistent storage target not set.');
             }else {
+              console.debug("Fetch audio and store to indexed db...");
               this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
                 next: (iab) => {
                   //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
@@ -637,10 +638,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 }
               });
             }
-          }else if(AudioStorageType.Chunked===this._clientAudioStorageType){
+          }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
-
+            console.debug("Fetch audio and store to (chunked) array buffer...");
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (aab) => {
                 nextAab = aab;
@@ -675,6 +676,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
           } else {
             // Fetch regular audio buffer
+            console.debug("Fetch audio and store to audio buffer...");
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (ab) => {
                 this.liveLevelDisplayState = LiveLevelState.READY;
@@ -1063,33 +1065,18 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.startStopSignalState = StartStopSignalState.IDLE;
 
     let ad:AudioBuffer|null = null;
-    let ada:ArrayAudioBuffer|null=null;
-    let iab:IndexedDbAudioBuffer|null=null;
-    let adh:AudioDataHolder|null=null;
-    let frameLen:number=0;
 
-    if(this.ac!=null){
-      if(AudioStorageType.PersistToDb===this.ac.audioStorageType) {
-        iab = this.ac.inddbAudioBufferArray();
-        if (iab) {
-          frameLen = iab.frameLen;
-        }
-      }else if(AudioStorageType.Chunked===this.ac.audioStorageType){
-        ada = this.ac.audioBufferArray();
-        frameLen = ada.frameLen;
-      }else{
-        ad=this.ac.audioBuffer();
-        frameLen=ad.length;
-      }
-      if(ad || ada || iab) {
-        adh = new AudioDataHolder(ad, ada, iab);
-      }
+    let adh:AudioDataHolder|null=this.capturedAudiodataHolder();
+
+    if(adh){
+      ad=adh.buffer;
     }
+
     // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
     let rf = this._recordingFile;
     if (rf && rf instanceof SprRecordingFile) {
       this.items?.setSprRecFileAudioData(rf,adh);
-      if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds) {
+      if (this.enableUploadRecordings && AudioStorageType.CONTINUOUS===this._clientAudioStorageType) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
         // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?

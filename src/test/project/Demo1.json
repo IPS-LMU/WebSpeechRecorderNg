@@ -5,7 +5,8 @@
     "audioFormat" : {
       "channels": 1
     },
-    "chunkedRecording" : true,
+    "chunkedRecording" : false,
+  "clientAudioStorageType": "CONTINUOUS",
     "speakerWindowShowStopRecordAction": true,
     "recordingDeviceWakeLock": true
 

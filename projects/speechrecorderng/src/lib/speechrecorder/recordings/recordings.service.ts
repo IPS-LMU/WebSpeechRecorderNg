@@ -151,14 +151,18 @@ export class RecordingService {
 
 
   private chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
-    let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
+    let ausps=new URLSearchParams();
+    ausps.set('startFrame',startFrame.toString());
+    ausps.set('frameLength',frameLength.toString());
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
       // append UUID to make request URL unique to avoid localhost server caching
-      audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+      //audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+      ausps.set('requestUUID',UUID.generate());
     }
+
     let obs=new Observable<AudioBuffer|null>(observer=> {
-      this.audioRequest(audioUrl).subscribe(resp => {
+      this.audioRequestByURL(baseAudioUrl,ausps).subscribe(resp => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
             //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
@@ -284,6 +288,7 @@ export class RecordingService {
       let arrayAudioBuffer: ArrayAudioBuffer | null = null;
       let startFrame=0;
       let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
+
       //console.debug("Chunk audio request startFrame 0");
       let subscr=this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength).pipe(
 
