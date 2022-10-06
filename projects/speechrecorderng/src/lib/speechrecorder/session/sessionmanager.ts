@@ -40,6 +40,7 @@ import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {AudioStorageType} from "../project/project";
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -1064,9 +1065,34 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.statusMsg = 'Recorded.';
     this.startStopSignalState = StartStopSignalState.IDLE;
 
-    let ad:AudioBuffer|null = null;
+      let adh:AudioDataHolder|null=null;
 
-    let adh:AudioDataHolder|null=this.capturedAudiodataHolder();
+      let nab:NetAudioBuffer|null=null;
+      let iab:IndexedDbAudioBuffer|null=null;
+      let ada:ArrayAudioBuffer|null=null;
+      let ad:AudioBuffer|null=null;
+      if(this.ac) {
+        if (AudioStorageType.NET === this.ac.audioStorageType) {
+          if(this._session&& this._displayRecFile) {
+            let rf=this._displayRecFile;
+            let burl=this.recFileService.sprAudioFileUrl(this._session?.project, rf);
+            if(burl) {
+              //nab = this.ac.netAudioBuffer(this.recFileService,burl);
+              let rUUID=this.ac.recUUID;
+              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+            }
+          }
+        } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
+          iab = this.ac.inddbAudioBufferArray();
+        } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
+          ada = this.ac.audioBufferArray();
+        } else {
+          ad = this.ac.audioBuffer();
+        }
+        if (ad || ada || iab || nab) {
+          adh = new AudioDataHolder(ad, ada, iab,nab);
+        }
+      }
 
     if(adh){
       ad=adh.buffer;
@@ -1166,15 +1192,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
     let ww = new WavWriter();
-    //new REST API URL
-    let apiEndPoint = '';
-    if (this.config && this.config.apiEndPoint) {
-      apiEndPoint = this.config.apiEndPoint;
-    }
-    if (apiEndPoint !== '') {
-      apiEndPoint = apiEndPoint + '/'
-    }
-    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
     ww.writeAsync(audioBuffer, (wavFile) => {
       this.postRecording(wavFile, recUrl,null);

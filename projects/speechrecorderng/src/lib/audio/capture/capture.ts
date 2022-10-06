@@ -5,6 +5,7 @@ import {AudioStorageType, AutoGainControlConfig, Platform as CfgPlatform} from "
 import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
+import {NetAudioBuffer} from "../net_audio_buffer";
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -106,6 +107,9 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
+  get recUUID(): string |undefined{
+    return this._recUUID;
+  }
   get audioStorageType(): AudioStorageType {
     return this._audioStorageType;
   }
@@ -129,7 +133,7 @@ export class AudioCapture {
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
-  recUUID?:string;
+  private _recUUID?:string;
   mediaStream: any;
   agcStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
@@ -157,12 +161,12 @@ export class AudioCapture {
   }
 
   private initData() {
-    this.recUUID=UUID.generate();
+    this._recUUID=UUID.generate();
     this.persistError=null;
     console.info("Audio capture initialize storage for type: "+this._audioStorageType);
-    if(AudioStorageType.PERSISTTODB === this._audioStorageType && this._persistentAudioStorageTarget && this.recUUID) {
+    if(AudioStorageType.PERSISTTODB === this._audioStorageType && this._persistentAudioStorageTarget && this._recUUID) {
       console.debug("Create indexed db audio buffer.");
-      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
+      this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this._recUUID)
     }
     this.data = new Array<Array<Float32Array>>();
     for (let i = 0; i < this.channelCount; i++) {
@@ -509,7 +513,10 @@ export class AudioCapture {
                             let adaPos = ch * chunkLen;
                             if(dt.data[ch]) {
                               let fa = new Float32Array(dt.data[ch]);
-                              this.data[ch].push(fa);
+                              if(AudioStorageType.NET!==this._audioStorageType) {
+                                // Do not store!!
+                                this.data[ch].push(fa);
+                              }
                               chunk[ch] = fa;
                               // Use samples of channel 0 to count frames (samples)
                               if (ch == 0) {
@@ -789,6 +796,14 @@ export class AudioCapture {
       let aba=new ArrayAudioBuffer(this.channelCount,this.currentSampleRate,this.data);
       return aba;
   }
+
+ // netAudioBuffer(baseUrl:string):NetAudioBuffer|null{
+ //    if(this._recUUID) {
+ //      return new NetAudioBuffer(this.context, baseUrl, this.channelCount, this.currentSampleRate, AudioCapture.BUFFER_SIZE, this.framesRecorded, this._recUUID);
+ //    }else{
+ //      return null;
+ //    }
+ // }
 
   inddbAudioBufferArray():IndexedDbAudioBuffer|null{
     // let iab:IndexedDbAudioBuffer|null=null;

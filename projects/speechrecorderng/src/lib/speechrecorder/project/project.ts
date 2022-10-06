@@ -25,6 +25,7 @@ export enum Browser {Firefox='FIREFOX',Chromium='CHROMIUM',Chrome='CHROME',Edge=
 export enum AudioStorageType {
   CONTINUOUS='CONTINUOUS',
   CHUNKED='CHUNKED',
+  NET='NET',
   PERSISTTODB='PERSISTTODB'
 }
 

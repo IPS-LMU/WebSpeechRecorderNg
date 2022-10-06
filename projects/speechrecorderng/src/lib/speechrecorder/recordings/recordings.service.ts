@@ -150,7 +150,7 @@ export class RecordingService {
   }
 
 
-  private chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
+  public chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
     let ausps=new URLSearchParams();
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
@@ -448,11 +448,27 @@ export class RecordingService {
     return obs;
   }
 
-  private fetchAudiofile(projectName: string, sessId: string | number, recFileId: string|number): Observable<HttpResponse<ArrayBuffer>> {
+  audioFileUrlById(projectName: string, sessId: string | number, recFileId: string|number){
     let recFilesUrl=this.sessionRecordingFilesUrl(projectName,sessId);
     let encRecFileId=encodeURIComponent(recFileId);
-    let recUrl = recFilesUrl + '/' + encRecFileId;
+    return recFilesUrl + '/' + encRecFileId;
+  }
+
+  private fetchAudiofile(projectName: string, sessId: string | number, recFileId: string|number): Observable<HttpResponse<ArrayBuffer>> {
+    let recUrl = this.audioFileUrlById(projectName,sessId,recFileId);
     return this.audioRequest(recUrl);
+  }
+
+  audioFileUrl(projectName: string, recordingFile:RecordingFile):string|null {
+    let url:string|null = null;
+    let recFileId = recordingFile.recordingFileId;
+    if (!recFileId) {
+      recFileId = recordingFile.uuid;
+    }
+    if (recordingFile.session && recFileId) {
+      url = this.audioFileUrlById(projectName, recordingFile.session, recFileId);
+    }
+    return url;
   }
 
   private fetchSprAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
@@ -461,6 +477,23 @@ export class RecordingService {
     let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
     return this.audioRequest(recUrl);
   }
+
+  public sprAudioFileUrlByItemcode(projectName: string, sessId: string | number, itemcode: string,version:number){
+    let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);
+    let encItemcode=encodeURIComponent(itemcode);
+    let recUrl = recFilesUrl + '/' + encItemcode +'/'+version;
+    return recUrl;
+  }
+
+  sprAudioFileUrl(projectName: string, recordingFile:SprRecordingFile):string|null{
+    let url=null;
+    if(recordingFile.session) {
+      url = this.sprAudioFileUrlByItemcode(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
+    }
+    return url;
+  }
+
+
 
   private fetchSprAudiofileArrayBuffer(aCtx:AudioContext,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<ArrayAudioBuffer|null>{
     let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);

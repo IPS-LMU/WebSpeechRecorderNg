@@ -30,6 +30,7 @@ import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -605,19 +606,24 @@ export abstract class BasicRecorder {
     }
   }
 
+protected sessionsBaseUrl():string {
+  let apiEndPoint = '';
+  if (this.config && this.config.apiEndPoint) {
+    apiEndPoint = this.config.apiEndPoint;
+  }
+  if (apiEndPoint !== '') {
+    apiEndPoint = apiEndPoint + '/'
+  }
+  return  apiEndPoint + SessionService.SESSION_API_CTX;
+}
+
   abstract postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void;
 
   postAudioStreamEnd(chunkCount: number): void {
 
     if(this.rfUuid) {
-      let apiEndPoint = '';
-      if (this.config && this.config.apiEndPoint) {
-        apiEndPoint = this.config.apiEndPoint;
-      }
-      if (apiEndPoint !== '') {
-        apiEndPoint = apiEndPoint + '/'
-      }
-      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+
+      let sessionsUrl = this.sessionsBaseUrl();
       let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
       let fd=new FormData();
       fd.set('uuid',this.rfUuid);
@@ -630,26 +636,6 @@ export abstract class BasicRecorder {
     }
   }
 
-  // TODO: Move to AudioCapture?
-  capturedAudiodataHolder():AudioDataHolder|null {
-    let adh:AudioDataHolder|null=null;
-    let iab:IndexedDbAudioBuffer|null=null;
-    let ada:ArrayAudioBuffer|null=null;
-    let ad:AudioBuffer|null=null;
-    if(this.ac) {
-      if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
-        iab = this.ac.inddbAudioBufferArray();
-      } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
-        ada = this.ac.audioBufferArray();
-      } else {
-        ad = this.ac.audioBuffer();
-      }
-      if (ad || ada || iab) {
-        adh = new AudioDataHolder(ad, ada, iab);
-      }
-    }
-    return adh;
-  }
   closed() {
     this.statusAlertType = 'info';
     this.statusMsg = 'Session closed.';

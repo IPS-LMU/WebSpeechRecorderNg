@@ -11,7 +11,7 @@ import { MatDialog } from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import { Project, ProjectUtil} from "../project/project";
+import {AudioStorageType, Project, ProjectUtil} from "../project/project";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 
@@ -30,6 +30,8 @@ import {Mode} from "../../speechrecorderng.component";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -778,12 +780,33 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     let adh:AudioDataHolder|null=null;
     let frameLen:number=0;
     if(this.ac) {
-      let ad:AudioBuffer|null = null;
+      let adh:AudioDataHolder|null=null;
 
-      let adh:AudioDataHolder|null=this.capturedAudiodataHolder();
-
-      if(adh){
-        ad=adh.buffer;
+      let nab:NetAudioBuffer|null=null;
+      let iab:IndexedDbAudioBuffer|null=null;
+      let ada:ArrayAudioBuffer|null=null;
+      let ad:AudioBuffer|null=null;
+      if(this.ac) {
+        if (AudioStorageType.NET === this.ac.audioStorageType) {
+          if(this._session&& this._displayRecFile) {
+            let rf=this._displayRecFile;
+            let burl=this.recFileService.audioFileUrl(this._session?.project, rf);
+            if(burl) {
+              //nab = this.ac.netAudioBuffer(burl);
+              let rUUID=this.ac.recUUID;
+              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+            }
+          }
+        } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
+          iab = this.ac.inddbAudioBufferArray();
+        } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
+          ada = this.ac.audioBufferArray();
+        } else {
+          ad = this.ac.audioBuffer();
+        }
+        if (ad || ada || iab || nab) {
+          adh = new AudioDataHolder(ad, ada, iab,nab,this.recFileService);
+        }
       }
 
       let sessId: string | number = 0;
@@ -857,15 +880,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
     let ww = new WavWriter();
-    //new REST API URL
-    let apiEndPoint = '';
-    if (this.config && this.config.apiEndPoint) {
-      apiEndPoint = this.config.apiEndPoint;
-    }
-    if (apiEndPoint !== '') {
-      apiEndPoint = apiEndPoint + '/'
-    }
-    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     let rf=this._recordingFile;
     ww.writeAsync(audioBuffer, (wavFile) => {

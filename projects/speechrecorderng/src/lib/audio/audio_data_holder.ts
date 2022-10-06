@@ -5,6 +5,8 @@ import {Observable} from "rxjs";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream, IndexedDbRandomAccessStream} from "./inddb_audio_buffer";
 import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
 import {AudioStorageType} from "../speechrecorder/project/project";
+import {NetAudioBuffer, NetAudioInputStream, NetRandomAccessAudioStream} from "./net_audio_buffer";
+import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 
 // TODO Ler all types implement an interface.
 // Question: Use JS protoype to extend HTML5 Audio API AudioBuffer or use a class wrapper?
@@ -37,7 +39,7 @@ export class AudioDataHolder{
   private _duration:number=0;
   private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of either audio buffer or array audio buffer must be set!';
 
-  constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null,private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null) {
+  constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null,private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null,private _netAudioBuffer:NetAudioBuffer|null=null,private recordingsService:RecordingService|null=null) {
     if(this._buffer && this._arrayBuffer){
       throw Error('Only one of either audio buffer or array audio buffer must be set!');
     }
@@ -56,6 +58,11 @@ export class AudioDataHolder{
         this._numberOfChannels=this._inddbAudioBuffer.channelCount;
         this._sampleRate=this._inddbAudioBuffer.sampleRate;
         this._frameLen=this._inddbAudioBuffer.frameLen;
+        this._duration=this._frameLen/this._sampleRate;
+      }else if (this._netAudioBuffer) {
+        this._numberOfChannels=this._netAudioBuffer.channelCount;
+        this._sampleRate=this._netAudioBuffer.sampleRate;
+        this._frameLen=this._netAudioBuffer.frameLen;
         this._duration=this._frameLen/this._sampleRate;
       }
 
@@ -102,6 +109,8 @@ export class AudioDataHolder{
         return new ArrayAudioBufferRandomAccessStream(this._arrayBuffer);
       }else if(this._inddbAudioBuffer){
         return new IndexedDbRandomAccessStream(this._inddbAudioBuffer);
+      }else if(this._netAudioBuffer){
+        return new NetRandomAccessAudioStream(this._netAudioBuffer);
       }else {
         throw Error('No audio buffer implementation set');
       }
@@ -141,6 +150,8 @@ export class AudioDataHolder{
   asyncAudioInputStream(): AsyncFloat32ArrayInputStream|null{
     if(this._inddbAudioBuffer){
       return new IndexedDbAudioInputStream(this._inddbAudioBuffer);
+    }else if(this._netAudioBuffer){
+      return new NetAudioInputStream(this._netAudioBuffer);
     }
     return null;
   }
@@ -155,6 +166,10 @@ export class AudioDataHolder{
 
   get inddbBuffer():IndexedDbAudioBuffer|null{
     return this._inddbAudioBuffer;
+  }
+
+  get netBuffer():NetAudioBuffer|null{
+    return this._netAudioBuffer;
   }
 
   releaseAudioData():Observable<void>{
