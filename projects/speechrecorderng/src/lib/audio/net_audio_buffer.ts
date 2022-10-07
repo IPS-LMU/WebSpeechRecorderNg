@@ -65,6 +65,10 @@ export class NetAudioBuffer {
     return "Indexed db audio buffer. Channels: "+this.channelCount+", sample rate: "+this.sampleRate+", chunk frame length: "+this._chunkFrameLen+", number of chunks: "+this.chunkCount+", frame length: "+this.frameLen+", sealed: "+this.sealed();
   }
 
+    static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,ab: AudioBuffer,frameLen:number):NetAudioBuffer {
+    // TODO calculate frameLen from RecordingFile object. (Audio buffer might have different sample rate !!)
+      return new NetAudioBuffer(aCtx,recordingsService,'',ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null);
+    }
 }
 
 
@@ -79,7 +83,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
     let startFrame=ci*this._netAb.chunkFrameLen;
 
-    this._netAb.recFileService.chunkAudioRequest(this._netAb.audioContext,baseUrl,startFrame,this._netAb.frameLen).subscribe(
+    this._netAb.recFileService.chunkAudioRequest(this._netAb.audioContext,baseUrl,startFrame,this._netAb.chunkFrameLen).subscribe(
       {
 
         next: (ab)=>{

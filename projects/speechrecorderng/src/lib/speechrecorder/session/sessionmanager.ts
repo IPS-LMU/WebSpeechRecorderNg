@@ -639,6 +639,45 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 }
               });
             }
+          }else if(AudioStorageType.NET===this._clientAudioStorageType){
+            // Fetch chunked audio buffer from network
+            let nextNetAb: NetAudioBuffer | null = null;
+
+              console.debug("Fetch chunked audio from network");
+              this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+                next: (netAb) => {
+                  //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
+                  nextNetAb = netAb;
+                },
+                complete: () => {
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  let fabDh = null;
+                  if (nextNetAb) {
+                    if (rf && this.items) {
+                      fabDh = new AudioDataHolder(null, null, null,nextNetAb);
+                      this.items.setSprRecFileAudioData(rf, fabDh);
+                    }
+                  } else {
+                    // Should actually be handled by the error resolver
+                    this.statusMsg = 'Recording file could not be loaded.'
+                    this.statusAlertType = 'error'
+                  }
+                  if (fabDh) {
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    this.displayAudioClip = new AudioClip(fabDh);
+                  }
+                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  this.showRecording();
+                },
+                error: err => {
+                  console.error("Could not load recording file from server: " + err);
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  this.statusMsg = 'Recording file could not be loaded: ' + err;
+                  this.statusAlertType = 'error';
+                  this.changeDetectorRef.detectChanges();
+                }
+              });
+
           }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;

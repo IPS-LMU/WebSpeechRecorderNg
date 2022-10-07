@@ -13,6 +13,8 @@ import {EMPTY, expand, map, Observable} from "rxjs";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {AudioCapture} from "../../audio/capture/capture";
 
 // iPad Out of memory RangeError
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
@@ -282,6 +284,67 @@ export class RecordingService {
     return obs;
   }
 
+  private chunkAudioRequestToNetAudioBuffer(aCtx: AudioContext, baseAudioUrl: string, startFrame: number = 0, frameLength: number, sampleRate: number | null, frames: number | null): Observable<NetAudioBuffer | null> {
+    //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
+    //let audioUrl=new URL(baseAudioUrl);
+    let ausps=new URLSearchParams();
+    ausps.set('startFrame',startFrame.toString());
+    ausps.set('frameLength',frameLength.toString());
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      //audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
+      ausps.set('requestUUID',UUID.generate());
+    }
+    let obs=new Observable<NetAudioBuffer|null>(subscriber=> {
+      this.audioRequestByURL(baseAudioUrl,ausps).subscribe({next:(resp) => {
+          // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+          if (resp.body) {
+            //console.debug("chunkAudioRequestTonetAb: subscriber.closed: "+subscriber.closed);
+            //console.debug("chunkAudioRequestTonetAb: Audio file bytes: "+resp.body.byteLength);
+            aCtx.decodeAudioData(resp.body, ab => {
+                  //console.debug("chunkAudioRequestTonetAb: Decoded audio chunk frames for netAb: "+ab.length);
+                  //console.debug("chunkAudioRequestTonetAb: Create netAb ab from chunk ab...");
+                  if(frames===null){
+                    subscriber.error(new Error('Could not get frame length from recording file object'));
+                  }else {
+                    let fl = frames;
+                    if (ab.sampleRate !== sampleRate) {
+                      if (sampleRate && frames) {
+                        fl = Math.round(ab.sampleRate * frames / sampleRate);
+                      }
+                    }
+                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this, ab, fl);
+                    if (nab.frameLen < frameLength) {
+                      //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
+                      nab.seal();
+                    }
+                    subscriber.next(nab);
+
+                    subscriber.complete();
+                  }
+                }
+                , error => {
+                  console.error('chunkAudioRequestToNetAb: error: '+error);
+                  //if(error instanceof HttpErrorResponse) {
+                  subscriber.error(error);
+                  //}
+                })
+          } else {
+            console.error('chunkAudioRequestToNetAb: Fetching audio file: response has no body');
+            subscriber.error('chunkAudioRequestToNetAb: Fetching audio file: response has no body');
+          }
+        },
+        error:(error) => {
+          console.error('chunkAudioRequestToNetAb: error: '+error);
+          subscriber.error(error);
+          //subscriber.complete();
+        }
+      });
+    });
+    return obs;
+  }
+
 
   private chunkedAudioRequest(aCtx:AudioContext,baseAudioUrl:string): Observable<ArrayAudioBuffer|null> {
     let obs=new Observable<ArrayAudioBuffer|null>(subscriber => {
@@ -448,6 +511,86 @@ export class RecordingService {
     return obs;
   }
 
+
+  // private chunkedNetAudioRequest(aCtx:AudioContext,baseAudioUrl:string): Observable<NetAudioBuffer|null> {
+  //   let obs=new Observable<NetAudioBuffer|null>(subscriber => {
+  //     let inddbAudioBuffer: NetAudioBuffer | null = null;
+  //     let startFrame=0;
+  //     let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
+  //     //console.debug("chunkedInddbAudioRequest: Chunk audio request for inddb. startFrame: "+startFrame);
+  //     let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame, frameLength).pipe(
+  //
+  //         expand(iab => {
+  //               // console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+iab);
+  //               if(subscriber.closed){
+  //                 subscr.unsubscribe();
+  //               }
+  //               if (iab) {
+  //                 inddbAudioBuffer=iab;
+  //                 //if (inddbAudioBuffer) {
+  //                 if (inddbAudioBuffer?.sealed()) {
+  //                   return EMPTY;
+  //                 } else {
+  //                   //let nextStartFrame=inddbAudioBuffer.frameLen + 1;
+  //                   // We cannot use the frame length of the array audio buffer to determine the next start frame because
+  //                   // AudioContext.decodeAudioData might change the sample rate of the original file. (E.g. Recordings from Mac/iOS with SR 44100 and listen to the on Windows platform will resmaple the audio data to 48000.)
+  //                   // Frame count then differs on client and server
+  //
+  //                   // Simply proceed in steps of frameLength
+  //                   // More advanced method would be to parse the WAV header to find out the rela frame length of the chunk audio file
+  //                   startFrame+=frameLength;
+  //                   //console.debug("Next start frame: "+startFrame);
+  //                   //console.debug("chunkedInddbAudioRequest: expand() subscriber.closed: "+subscriber.closed);
+  //                   return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, frameLength);
+  //                 }
+  //                 // } else {
+  //                 //   return EMPTY;
+  //                 // }
+  //               }else{
+  //                 return EMPTY;
+  //               }
+  //             }
+  //         )
+  //     ).subscribe({
+  //       next: (aab)=>{
+  //         //console.debug("chunkedInddbAudioRequest: subscriber.closed: "+subscriber.closed);
+  //         subscriber.next(aab)
+  //       },
+  //       complete: ()=>{
+  //         subscriber.complete()
+  //       },
+  //       error: (err)=>{
+  //         if(err instanceof HttpErrorResponse){
+  //           if (err.status == 404) {
+  //             //console.debug("chunkedInddbAudioRequest: Received HTTP 404 not found.");
+  //             if(inddbAudioBuffer){
+  //               inddbAudioBuffer.seal();
+  //               //console.debug("chunkedInddbAudioRequest: Sealed inddb audio buffer.");
+  //               subscriber.next(inddbAudioBuffer);
+  //               subscriber.complete();
+  //             }else {
+  //               // Interpret not as an error, the file ist not recorded yet
+  //               //console.debug("chunkedInddbAudioRequest: Interpret HTTP 404 as not recorded yet.");
+  //               subscriber.next(null);
+  //               subscriber.complete();
+  //             }
+  //             //   observer.complete()
+  //           } else {
+  //             // all other states are (real) errors
+  //             console.error("chunkedInddbAudioRequest: Error: "+err.message);
+  //             subscriber.error(err);
+  //           }
+  //         }else {
+  //           // all other errors are (real) errors
+  //           console.error("chunkedInddbAudioRequest: Error: "+err);
+  //           subscriber.error(err);
+  //         }
+  //       }
+  //     });
+  //   });
+  //   return obs;
+  // }
+
   audioFileUrlById(projectName: string, sessId: string | number, recFileId: string|number){
     let recFilesUrl=this.sessionRecordingFilesUrl(projectName,sessId);
     let encRecFileId=encodeURIComponent(recFileId);
@@ -509,6 +652,14 @@ export class RecordingService {
     //let recUrl=new URL(recUrlStr);
     return this.chunkedInddbAudioRequest(aCtx,persistentAudioStorageTarget,recUrlStr);
   }
+
+  // private sprNetAudiofileBuffer(aCtx:AudioContext,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<IndexedDbAudioBuffer|null>{
+  //   let recFilesUrlStr=this.sessionRecFilesUrl(projectName,sessId);
+  //   let encItemcode=encodeURIComponent(itemcode);
+  //   let recUrlStr = recFilesUrlStr + '/' + encItemcode +'/'+version;
+  //   //let recUrl=new URL(recUrlStr);
+  //   return this.chunkedInddbAudioRequest(aCtx,recUrlStr);
+  // }
 
   fetchRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<AudioBuffer|null> {
 
@@ -710,6 +861,47 @@ export class RecordingService {
                 observer.error(err);
               }
           }});
+      }else{
+        observer.error();
+      }
+    });
+
+    return wobs;
+  }
+
+
+  fetchSprRecordingFileNetAudioBuffer(aCtx: AudioContext,projectName: string, recordingFile:SprRecordingFile):Observable<NetAudioBuffer|null> {
+    let wobs = new Observable<NetAudioBuffer|null>(observer=>{
+      if(recordingFile.session) {
+        let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
+        //let obs = this.fetchSprNetAudiofileBuffer(aCtx,baseUrl,recordingFile.sampleRate,recordingFile.frames);
+        if(baseUrl) {
+          let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, AudioCapture.BUFFER_SIZE,recordingFile.sampleRate,recordingFile.frames);
+          let subscr = obs.subscribe({
+            next: aab => {
+              //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
+              if (observer.closed) {
+                subscr.unsubscribe()
+              }
+              observer.next(aab)
+            },
+            complete: () => {
+              observer.complete();
+            },
+            error: (err) => {
+              if (err instanceof HttpErrorResponse && err.status == 404) {
+                // Interpret not as an error, the file ist not recorded yet
+                observer.next(null);
+                observer.complete()
+              } else {
+                // all other errors are real errors
+                observer.error(err);
+              }
+            }
+          });
+        }else{
+          observer.error();
+        }
       }else{
         observer.error();
       }
