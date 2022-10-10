@@ -65,9 +65,9 @@ export class NetAudioBuffer {
     return "Indexed db audio buffer. Channels: "+this.channelCount+", sample rate: "+this.sampleRate+", chunk frame length: "+this._chunkFrameLen+", number of chunks: "+this.chunkCount+", frame length: "+this.frameLen+", sealed: "+this.sealed();
   }
 
-    static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,ab: AudioBuffer,frameLen:number):NetAudioBuffer {
+    static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number):NetAudioBuffer {
     // TODO calculate frameLen from RecordingFile object. (Audio buffer might have different sample rate !!)
-      return new NetAudioBuffer(aCtx,recordingsService,'',ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null);
+      return new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null);
     }
 }
 
