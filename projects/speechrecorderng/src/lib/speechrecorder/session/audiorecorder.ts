@@ -788,7 +788,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
-          if(this._session&& this._displayRecFile) {
+          if(this._session && this._displayRecFile) {
             let rf=this._displayRecFile;
             let burl=this.recFileService.audioFileUrl(this._session?.project, rf);
             if(burl) {

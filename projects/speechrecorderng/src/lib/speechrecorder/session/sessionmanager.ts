@@ -1079,8 +1079,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           // }
           let rf = new SprRecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
           rf.serverPersisted=true;
-          if(rfd.sampleRate && rfd.frames){
-            rf.sampleRate=rfd.sampleRate;
+          console.debug("addRecordingFileByDescriptor(): sr: "+rfd.samplerate+", frames: "+rfd.frames);
+          if(rfd.samplerate && rfd.frames){
+            rf.sampleRate=rfd.samplerate;
             rf.frames=rfd.frames;
           }
           this.items.addSprRecFile(it,rf);

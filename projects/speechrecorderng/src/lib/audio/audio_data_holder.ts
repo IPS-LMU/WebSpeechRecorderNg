@@ -37,13 +37,29 @@ export class AudioDataHolder{
   private _sampleRate:number=0;
   private _frameLen:number=0;
   private _duration:number=0;
-  private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of either audio buffer or array audio buffer must be set!';
+  private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of the audio buffer types must be set!';
 
   constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null,private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null,private _netAudioBuffer:NetAudioBuffer|null=null,private recordingsService:RecordingService|null=null) {
-    if(this._buffer && this._arrayBuffer){
-      throw Error('Only one of either audio buffer or array audio buffer must be set!');
+    let absSet=0;
+    if(this._buffer){
+      absSet++;
     }
-    if (this._buffer || this._arrayBuffer || this._inddbAudioBuffer) {
+    if(this._arrayBuffer){
+      absSet++;
+    }
+    if(this._inddbAudioBuffer){
+      absSet++;
+    }
+    if(this._netAudioBuffer){
+      absSet++;
+    }
+
+    if(absSet===0) {
+      throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
+    }else if(absSet>1){
+      throw Error('Only one of the audio buffer types must be set!');
+    }
+
       if (this._buffer) {
         this._numberOfChannels = this._buffer.numberOfChannels;
         this._sampleRate = this._buffer.sampleRate;
@@ -66,9 +82,6 @@ export class AudioDataHolder{
         this._duration=this._frameLen/this._sampleRate;
       }
 
-    }else{
-      throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
-    }
   }
 
   get sampleRate(): number {

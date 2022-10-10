@@ -17,7 +17,7 @@ export class RecordingFileDescriptorImpl {
   recording!:PromptItem;
   version!:number;
   frames?:number;
-  sampleRate?:number;
+  samplerate?:number;
   constructor() {}
 }
 
