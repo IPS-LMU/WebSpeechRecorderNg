@@ -2,6 +2,12 @@ import { UUID } from '../utils/utils'
 import {PromptItem} from "./script/script";
 import {AudioDataHolder} from "../audio/audio_data_holder";
 
+// TODO I think the interface/class structure needs some refactoring
+// The question in general is how to fetch an object of a class (with member methods)
+// https://stackoverflow.com/questions/50452431/angular-6-httpclient-return-instance-of-class
+// Angular HTTPClient seems to simply
+// https://stackoverflow.com/questions/47499324/angular-5-models-httpclient-type-casting
+
 export interface RecordingFileDescriptor {
   recording:PromptItem;
   version:number;
@@ -10,6 +16,8 @@ export interface RecordingFileDescriptor {
 export class RecordingFileDescriptorImpl {
   recording!:PromptItem;
   version!:number;
+  frames?:number;
+  sampleRate?:number;
   constructor() {}
 }
 
