@@ -2,6 +2,7 @@ import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream} from "../io/stream";
 import {RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
+import {HttpErrorResponse} from "@angular/common/http";
 
 
 export class NetAudioBuffer {
@@ -101,7 +102,15 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
           }
         },
         error:(errEv)=>{
-          errCb(new Error(errEv.toString()));
+          if(errEv instanceof HttpErrorResponse){
+           if(errEv.status===404){
+             cb(null);
+           } else{
+             errCb(new Error(errEv.toString()));
+           }
+          }else {
+            errCb(new Error(errEv.toString()));
+          }
         }
       }
     );
