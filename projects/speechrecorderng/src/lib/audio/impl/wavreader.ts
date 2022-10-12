@@ -1,10 +1,8 @@
 import { WavFileFormat } from './wavformat'
-import { AudioClip } from '../persistor'
 import { PCMAudioFormat } from '../format'
 import { BinaryByteReader } from '../../io/BinaryReader'
 
     export class WavReader {
-
 
         private br:BinaryByteReader;
         private format:PCMAudioFormat | null=null;
@@ -14,37 +12,59 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             this.br = new BinaryByteReader(data);
         }
 
-        read():AudioClip | null{
-
-
-            var rh = this.br.readAscii(4);
+        private readHeader(){
+            let rh = this.br.readAscii(4);
             if (rh !== WavFileFormat.RIFF_KEY) {
-                console.error("Error ! Expected RIFF header not: ", rh);
+                let errMsg="Expected RIFF header, not: ", rh;
+                throw new Error(errMsg);
             }
-            var cl = this.br.readUint32LE();
+            let cl = this.br.readUint32LE();
             if (this.br.pos + cl !== this.br.length()) {
-                console.error("Wrong chunksize in RIFF header: ", cl, " (expected: ", this.br.length() - this.br.pos, " )");
+                throw new Error("Wrong chunksize in RIFF header: "+cl+" (expected: "+(this.br.length() - this.br.pos)+ " )");
             }
             this.dataLength = cl;
-            var rt = this.br.readAscii(4);
+            let rt = this.br.readAscii(4);
             if (rt !== WavFileFormat.WAV_KEY) {
-                //console.debug(rt)
+                let errMsg="Expected "+WavFileFormat.WAV_KEY+" not: ", rt;
+                throw new Error(errMsg);
             }
-            var s = this.navigateToChunk('fmt ');
-            if (!s) {
-
-            }
-            this.format = this.parseFmtChunk();
-            var chsArr = this.readData();
-            //console.debug("Content length: ", cl);
-
-            //var ac=new ips.audio.AudioClip(this.format,chsArr);
-            //TODO use AudioContext.AudioBuffer
-            //var ab=
-            return null;
         }
 
-        navigateToChunk(chunkString:string):number {
+        readFormat():PCMAudioFormat|null{
+            this.br.pos=0;
+            this.readHeader();
+            this.format = this.parseFmtChunk();
+            return this.format;
+        }
+
+        // Not tested yet!!!
+        read():AudioBuffer | null{
+            this.br.pos=0;
+            let ab:AudioBuffer|null=null;
+            this.readHeader();
+            let s = this.navigateToChunk('fmt ');
+            if (!s) {
+                let errMsg="WAV file does not contain a fmt chunk";
+                throw new Error(errMsg);
+            }
+            this.format = this.parseFmtChunk();
+            let chsArr = this.readData();
+            let sr=this.format?.sampleRate;
+            let nChs=this.format?.channelCount;
+            if(sr && chsArr && nChs && nChs>0 && nChs==chsArr?.length) {
+                ab = new AudioBuffer({
+                    length: chsArr[0].length,
+                    numberOfChannels: this.format?.channelCount,
+                    sampleRate: sr
+                });
+                for(let ch=0;ch<nChs;ch++) {
+                    ab.copyToChannel(chsArr[ch], ch);
+                }
+            }
+            return ab;
+        }
+
+        private navigateToChunk(chunkString:string):number {
             // position after RIFF header
             this.br.pos = 12;
             var chkStr = null;
@@ -61,7 +81,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             return chkLen;
         }
 
-        parseFmtChunk():PCMAudioFormat | null {
+        private parseFmtChunk():PCMAudioFormat | null {
             var fmt = this.br.readUint16LE();
             if (fmt === WavFileFormat.PCM) {
                 var channels = this.br.readUint16LE();
@@ -82,32 +102,28 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             return null;
         }
 
-        readData():Array<Float32Array> | null{
-            var chkLen = this.navigateToChunk('data');
-            var chsArr=null;
+        private readData():Array<Float32Array> | null{
+            let chkLen = this.navigateToChunk('data');
+            let chsArr=null;
             if(this.format) {
               chsArr = new Array<Float32Array>(this.format.channelCount);
-              var sampleCount = this.dataLength / this.format.channelCount / this.format.sampleSize;
-              for (var ch = 0; ch < this.format.channelCount; ch++) {
+              let sampleCount = this.dataLength / this.format.channelCount / this.format.sampleSize;
+              for (let ch = 0; ch < this.format.channelCount; ch++) {
                 chsArr[ch] = new Float32Array(sampleCount);
               }
               if (this.format.sampleSize == 2) {
-
-
-                for (var i = 0; i < this.dataLength / 2; i++) {
+                for (let i = 0; i < this.dataLength / 2; i++) {
                   for (var ch = 0; ch < this.format.channelCount; ch++) {
-                    var s16Ampl = this.br.readInt16LE();
-                    var floatAmpl = s16Ampl / 32768;
+                    let s16Ampl = this.br.readInt16LE();
+                    let floatAmpl = s16Ampl / 32768;
                     //console.log("Ampl: ",s16Ampl,floatAmpl);
                     chsArr[ch][i] = floatAmpl;
                   }
                 }
-
               }
             }
             return chsArr;
         }
-
     }
 
 
