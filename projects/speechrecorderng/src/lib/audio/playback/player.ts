@@ -6,6 +6,8 @@ import {IndexedDbAudioBuffer} from "../inddb_audio_buffer";
 import {AudioSourceWorkletModuleLoader} from "./audio_source_worklet_module_loader";
 import {IndexedDbAudioBufferSourceNode} from "./inddb_audio_buffer_source_node";
 import {AudioSourceNode} from "./audio_source_node";
+import {NetAudioBuffer} from "../net_audio_buffer";
+import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
 
 
 
@@ -50,6 +52,7 @@ import {AudioSourceNode} from "./audio_source_node";
         _audioBuffer:AudioBuffer | null=null;
         _arrayAudioBuffer:ArrayAudioBuffer|null=null;
         _inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
+        _netAudioBuffer:NetAudioBuffer|null=null;
         sourceBufferNode:AudioBufferSourceNode|null=null;
         sourceAudioWorkletNode:AudioSourceNode|null=null;
 
@@ -118,6 +121,8 @@ import {AudioSourceNode} from "./audio_source_node";
                   this.arrayAudioBuffer = audioDataHolder.arrayBuffer;
                 }else if(audioDataHolder.inddbBuffer){
                   this.inddbAudioBuffer=audioDataHolder.inddbBuffer;
+                }else if(audioDataHolder.netBuffer){
+                  this.netAudioBuffer=audioDataHolder.netBuffer;
                 }
 
                 audioClip.addSelectionObserver((ac)=> {
@@ -139,7 +144,8 @@ import {AudioSourceNode} from "./audio_source_node";
             this.stop();
             this._audioBuffer = audioBuffer;
             this._arrayAudioBuffer=null;
-          this._inddbAudioBuffer=null;
+           this._inddbAudioBuffer=null;
+           this._netAudioBuffer=null;
             if (audioBuffer && this.context) {
                 this._startAction.disabled = false;
                 this._startSelectionAction.disabled=this.startSelectionDisabled()
@@ -181,6 +187,7 @@ import {AudioSourceNode} from "./audio_source_node";
         this._audioBuffer=null;
         this._arrayAudioBuffer=arrayAudioBuffer;
         this._inddbAudioBuffer=null;
+        this._netAudioBuffer=null;
         if (arrayAudioBuffer && this.context) {
           this._loadSourceWorkletAndInitStart();
         }else{
@@ -201,6 +208,7 @@ import {AudioSourceNode} from "./audio_source_node";
         this._audioBuffer=null;
         this._arrayAudioBuffer=null;
         this._inddbAudioBuffer=inddbAudioBuffer;
+        this._netAudioBuffer=null;
         if (inddbAudioBuffer && this.context) {
           this._loadSourceWorkletAndInitStart();
         }else{
@@ -214,6 +222,27 @@ import {AudioSourceNode} from "./audio_source_node";
 
       get inddbAudioBuffer():IndexedDbAudioBuffer| null{
         return this._inddbAudioBuffer;
+      }
+
+      set netAudioBuffer(netAudioBuffer:NetAudioBuffer | null) {
+        this.stop();
+        this._audioBuffer=null;
+        this._arrayAudioBuffer=null;
+        this._inddbAudioBuffer=null;
+        this._netAudioBuffer=netAudioBuffer;
+        if (netAudioBuffer && this.context) {
+          this._loadSourceWorkletAndInitStart();
+        }else{
+          this._startAction.disabled = true;
+          this._startSelectionAction.disabled=true
+          if(this.listener){
+            this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+          }
+        }
+      }
+
+      get netAudioBuffer():NetAudioBuffer| null{
+        return this._netAudioBuffer;
       }
 
   private _startAudioSourceWorkletNode(){
@@ -275,11 +304,16 @@ import {AudioSourceNode} from "./audio_source_node";
                        aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
                       this.sourceAudioWorkletNode=aabsn;
                        this._startAudioSourceWorkletNode();
-                  }else if(this._inddbAudioBuffer){
+                }else if(this._inddbAudioBuffer){
                       let idabs =new IndexedDbAudioBufferSourceNode(this.context);
                       idabs.inddbAudioBuffer=this._inddbAudioBuffer;
                       this.sourceAudioWorkletNode=idabs;
                       this._startAudioSourceWorkletNode();
+                }else if(this._netAudioBuffer){
+                  let nabs =new NetAudioBufferSourceNode(this.context);
+                  nabs.netAudioBuffer=this._netAudioBuffer;
+                  this.sourceAudioWorkletNode=nabs;
+                  this._startAudioSourceWorkletNode();
                 }
             }
         }
@@ -322,7 +356,7 @@ import {AudioSourceNode} from "./audio_source_node";
             if (this.listener) {
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
             }
-          }else if(this._arrayAudioBuffer || this._inddbAudioBuffer) {
+          }else if(this._arrayAudioBuffer || this._inddbAudioBuffer || this._netAudioBuffer) {
             if (this._arrayAudioBuffer) {
               let aabsn = new ArrayAudioBufferSourceNode(this.context);
               aabsn.arrayAudioBuffer = this._arrayAudioBuffer;
@@ -331,6 +365,10 @@ import {AudioSourceNode} from "./audio_source_node";
               let iasn = new IndexedDbAudioBufferSourceNode(this.context);
               iasn.inddbAudioBuffer = this._inddbAudioBuffer;
               this.sourceAudioWorkletNode = iasn;
+            }else if (this._netAudioBuffer) {
+              let nabsn = new NetAudioBufferSourceNode(this.context);
+              nabsn.netAudioBuffer = this._netAudioBuffer;
+              this.sourceAudioWorkletNode = nabsn;
             }
             if (this.sourceAudioWorkletNode) {
               this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
@@ -399,7 +437,7 @@ import {AudioSourceNode} from "./audio_source_node";
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
-            this._startAction.disabled = !(this._audioBuffer || this._arrayAudioBuffer || this._inddbAudioBuffer);
+            this._startAction.disabled = !(this._audioBuffer || this._arrayAudioBuffer || this._inddbAudioBuffer || this._netAudioBuffer);
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
@@ -425,6 +463,8 @@ import {AudioSourceNode} from "./audio_source_node";
           sr=this._arrayAudioBuffer.sampleRate;
         }else if(this._inddbAudioBuffer){
           sr=this._inddbAudioBuffer.sampleRate;
+        }else if(this._netAudioBuffer){
+          sr=this._netAudioBuffer.sampleRate;
         }
         if(sr ) {
           let ppTime = this.playPositionTime;

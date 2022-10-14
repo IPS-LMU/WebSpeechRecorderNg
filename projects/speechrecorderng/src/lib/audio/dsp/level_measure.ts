@@ -3,6 +3,7 @@ import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Arrays, WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
 import {Observable, observable} from "rxjs";
+import {crc32} from "crc";
 
 export const MIN_DB_LEVEL = -40.0;
 
@@ -196,8 +197,13 @@ export class LevelMeasure {
 
       let chs = audioDataHolder.numberOfChannels;
       let bufferFrameLength = Math.round(audioDataHolder.sampleRate * bufferTimeLength);
+
       let ais = audioDataHolder.audioInputStream();
+      // Test: Check CRC
+      let crcVal:number=0;
+      let crclen:number=0;
       if (ais) {
+
         let audioBuffers = new Array<Float32Array>(chs);
         let trBuffers = new Array<any>(chs);
         for (let ch = 0; ch < chs; ch++) {
@@ -237,15 +243,25 @@ export class LevelMeasure {
             //this.terminateWorker();
             worker.terminate();
             ais?.close();
+            console.debug("Audio input stream CRC hex: "+crcVal.toString(16)+", crcLen: "+crclen+", buffer frame len: "+bufferFrameLength);
             subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));
             subscriber.complete();
           } else {
             if (ais) {
               let read = ais.read(audioBuffers);
+              // TEST:
+              if(audioBuffers && audioBuffers.length>0) {
+                crcVal = crc32(audioBuffers[0].buffer, crcVal);
+                crclen += audioBuffers[0].buffer.byteLength;
+                //console.debug("trBuffers.length: "+trBuffers[0].length+", CRC len: "+crclen);
+              }else{
+                console.debug("audioBufres not avail!");
+              }
               for (let ch = 0; ch < chs; ch++) {
                 let copy = new Float32Array(audioBuffers[ch]);
                 trBuffers[ch] = copy.buffer;
               }
+
               worker.postMessage({
                 bufferFrameLength: bufferFrameLength,
                 audioData: trBuffers,
@@ -257,10 +273,19 @@ export class LevelMeasure {
         };
 
         let read = ais.read(audioBuffers);
+        // TEST:
+        if(audioBuffers && audioBuffers.length>0) {
+          crcVal = crc32(audioBuffers[0].buffer, crcVal);
+          crclen += audioBuffers[0].buffer.byteLength;
+          //console.debug("trBuffers.length: "+trBuffers[0].length+", CRC len: "+crclen);
+        }else{
+          console.debug("audioBufres not avail!");
+        }
         for (let ch = 0; ch < chs; ch++) {
           let copy = new Float32Array(audioBuffers[ch]);
           trBuffers[ch] = copy.buffer;
         }
+
         worker.postMessage({
           bufferFrameLength: bufferFrameLength,
           audioData: trBuffers,
@@ -268,6 +293,7 @@ export class LevelMeasure {
           len: read
         }, trBuffers);
       } else {
+
         let aAis = audioDataHolder.asyncAudioInputStream();
         let audioBuffers = new Array<Float32Array>(chs);
         let trBuffers = new Array<any>(chs);
@@ -309,6 +335,7 @@ export class LevelMeasure {
             worker.terminate();
             ais?.close();
             aAis?.close();
+            console.debug("Audio input stream CRC hex: "+crcVal.toString(16)+", crcLen: "+crclen+", buffer frame len: "+bufferFrameLength);
             subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));
             subscriber.complete();
           } else {
@@ -316,10 +343,19 @@ export class LevelMeasure {
             if (aAis) {
               let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
                   next: (read) => {
+                    // TEST:
+                    if(audioBuffers && audioBuffers.length>0) {
+                      crcVal = crc32(audioBuffers[0].buffer, crcVal);
+                      crclen += audioBuffers[0].buffer.byteLength;
+                      //console.debug("trBuffers.length: "+trBuffers[0].length+", CRC len: "+crclen);
+                    }else{
+                      console.debug("audioBufres not avail!");
+                    }
                     for (let ch = 0; ch < chs; ch++) {
                       let copy = new Float32Array(audioBuffers[ch]);
                       trBuffers[ch] = copy.buffer;
                     }
+
                     worker.postMessage({
                       bufferFrameLength: bufferFrameLength,
                       audioData: trBuffers,
@@ -335,6 +371,14 @@ export class LevelMeasure {
 
         let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
             next: (read) => {
+              // TEST:
+              if(audioBuffers && audioBuffers.length>0) {
+                crcVal = crc32(audioBuffers[0].buffer, crcVal);
+                crclen += audioBuffers[0].buffer.byteLength;
+                //console.debug("trBuffers.length: "+trBuffers[0].length+", CRC len: "+crclen);
+              }else{
+                console.debug("audioBufres not avail!");
+              }
               for (let ch = 0; ch < chs; ch++) {
                 let copy = new Float32Array(audioBuffers[ch]);
                 trBuffers[ch] = copy.buffer;

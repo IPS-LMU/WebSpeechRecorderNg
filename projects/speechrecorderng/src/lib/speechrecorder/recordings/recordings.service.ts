@@ -15,6 +15,8 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {AudioCapture} from "../../audio/capture/capture";
+import {WavReader} from "../../audio/impl/wavreader";
+import {PCMAudioFormat} from "../../audio/format";
 
 // iPad Out of memory RangeError
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
@@ -25,6 +27,21 @@ export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 500000;
 // TEST only !!
 //export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 123456;
 
+
+export class ChunkDownload{
+  get orgPCMAudioFormat(): PCMAudioFormat {
+    return this._orgPCMAudioFormat;
+  }
+
+  get orgFrameLength(): number {
+    return this._orgFrameLength;
+  }
+
+  get decodedAudioBuffer(): AudioBuffer {
+    return this._decodedAudioBuffer;
+  }
+  constructor(private _orgPCMAudioFormat:PCMAudioFormat,private _orgFrameLength:number,private _decodedAudioBuffer:AudioBuffer){}
+}
 
 @Injectable()
 export class RecordingService {
@@ -152,7 +169,7 @@ export class RecordingService {
   }
 
 
-  public chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
+  public chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<ChunkDownload|null> {
     let ausps=new URLSearchParams();
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
@@ -163,19 +180,37 @@ export class RecordingService {
       ausps.set('requestUUID',UUID.generate());
     }
 
-    let obs=new Observable<AudioBuffer|null>(observer=> {
+    let obs=new Observable<ChunkDownload|null>(observer=> {
       this.audioRequestByURL(baseAudioUrl,ausps).subscribe(resp => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
             //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
             //console.debug("Audio file bytes: "+resp.body.byteLength);
-            aCtx.decodeAudioData(resp.body, ab => {
-                //console.debug("Decoded audio chunk frames: "+ab.length);
-                observer.next(ab);
-                observer.complete();
-              }
-              , error => {
-                //if(error instanceof HttpErrorResponse) {
+
+            // Check original audio format
+            let wr=new WavReader(resp.body);
+            const pcmFmt=wr.readFormat();
+            const orgFl=wr.frameLength();
+            if(pcmFmt){
+              console.debug("Original WAVE format of download chunk: "+pcmFmt);
+            }else{
+              console.error("Could not read WAVE format of original download chunk!");
+            }
+            if(orgFl){
+              console.debug("Original frame length of download chunk: "+orgFl);
+            }else{
+              console.error("Could not read WAVE format of original download chunk!");
+            }
+
+            if(pcmFmt && orgFl) {
+              aCtx.decodeAudioData(resp.body, ab => {
+                  //console.debug("Decoded audio chunk frames: "+ab.length);
+                  let chDl = new ChunkDownload(pcmFmt, orgFl, ab);
+                  observer.next(chDl);
+                  observer.complete();
+                }
+                , error => {
+                  //if(error instanceof HttpErrorResponse) {
                   // if (error.status == 404) {
                   //   // Interpret not as an error, the file ist not recorded yet
                   //   observer.next(null);
@@ -184,8 +219,11 @@ export class RecordingService {
                   //   // all other states are errors
                   observer.error(error);
                   // }
-               // }
-              })
+                  // }
+                });
+            }else{
+              observer.error('Could not parse audio header for format and/or frame length of download.');
+            }
           } else {
             observer.error('Fetching audio file: response has no body');
           }
@@ -312,9 +350,10 @@ export class RecordingService {
                     if (ab.sampleRate !== sampleRate) {
                       if (sampleRate && frames) {
                         fl = Math.round(ab.sampleRate * frames / sampleRate);
+                        console.debug("Platform sr: "+sampleRate+", file sr: "+ab.sampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
                       }
                     }
-                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, fl);
+                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, frameLength);
                     if (nab.frameLen < frameLength) {
                       //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
                       nab.seal();
@@ -384,9 +423,12 @@ export class RecordingService {
             }
           }
         ),
-      map(ab => {
-        if(ab===null){
+      map(chDl => {
+        let ab:AudioBuffer|null=null;
+        if(chDl===null){
           return null;
+        }else{
+          ab=chDl.decodedAudioBuffer;
         }
         if (arrayAudioBuffer) {
           arrayAudioBuffer.appendAudioBuffer(ab);
