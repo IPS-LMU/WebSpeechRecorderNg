@@ -154,6 +154,7 @@ export class RecordingService {
 
   public chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<AudioBuffer|null> {
     let ausps=new URLSearchParams();
+    //console.debug("Fetch org file from "+startFrame+", frames: "+frameLength);
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
     if (this.config && this.config.apiType === ApiType.FILES) {

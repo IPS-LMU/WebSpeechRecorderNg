@@ -77,6 +77,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
   private _currCi=0;
   private _ccCache:Float32Array[]|null=null;
+  private _closed=false;
 
   constructor(private _netAb:NetAudioBuffer) {}
 
@@ -165,37 +166,41 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
   }
 
   private fillBufs(baseUrl:string,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number,ccFilled:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
-    //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
-    if(this._ccCache){
-      this._fillBufs(this._ccCache,trgState,srcState);
-      //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
-      if(trgState.frameLen===0){
-        //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
-        cbEnd(trgState.filled);
-      }else {
-        this.fillBufs(baseUrl, trgState, srcState, cb, cbEnd, cbErr);
-      }
-    }else {
-      this.chunk(baseUrl, srcState.ci, (ccBufs) => {
-        if (ccBufs) {
-          this._currCi = srcState.ci;
-          this._ccCache = ccBufs;
-
-          this._fillBufs(ccBufs, trgState, srcState);
-          //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
-          if (trgState.frameLen === 0) {
-            //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
-            cbEnd(trgState.filled);
-          } else {
-            this.fillBufs(baseUrl,trgState, srcState, cb, cbEnd, cbErr);
-          }
-        } else {
-          //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
+    if(!this._closed) {
+      //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
+      if (this._ccCache) {
+        this._fillBufs(this._ccCache, trgState, srcState);
+        //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
+        if (trgState.frameLen === 0) {
+          //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
           cbEnd(trgState.filled);
+        } else {
+          this.fillBufs(baseUrl, trgState, srcState, cb, cbEnd, cbErr);
         }
-      }, (err) => {
-        cbErr(err);
-      });
+      } else {
+        this.chunk(baseUrl, srcState.ci, (ccBufs) => {
+          if (!this._closed) {
+            if (ccBufs) {
+              this._currCi = srcState.ci;
+              this._ccCache = ccBufs;
+
+              this._fillBufs(ccBufs, trgState, srcState);
+              //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
+              if (trgState.frameLen === 0) {
+                //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
+                cbEnd(trgState.filled);
+              } else {
+                this.fillBufs(baseUrl, trgState, srcState, cb, cbEnd, cbErr);
+              }
+            } else {
+              //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
+              cbEnd(trgState.filled);
+            }
+          }
+        }, (err) => {
+          cbErr(err);
+        });
+      }
     }
   }
 
@@ -214,8 +219,10 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
       let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
       let srcState={srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
       this.fillBufs(this._netAb.baseUrl,trgState,srcState,(val)=>{},(filled:number)=>{
-        subscriber.next(filled);
-        subscriber.complete();
+        if(!this._closed) {
+          subscriber.next(filled);
+          subscriber.complete();
+        }
       },err => {
         subscriber.error(err);
       })
@@ -228,6 +235,8 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
   close(): void {
     this._currCi=0;
     this._ccCache=null;
+    this._closed;
+    console.debug("Net audio random access stream closed.");
   }
 }
 
@@ -241,14 +250,17 @@ export class NetAudioInputStream implements AsyncFloat32ArrayInputStream{
 
   close(): void {
     this.netAbStr.close();
+    console.debug("Net audio stream closed.");
   }
 
   readObs(buffers: Array<Float32Array>): Observable<number> {
     let obs=new Observable<number>(subscr=> {
+
       if (buffers && buffers.length > 0) {
         let fl = buffers[0].length;
         this.netAbStr.framesObs(this.framePos, fl, buffers).subscribe({
           next: (read) => {
+            //console.debug("Net audio input stream: "+this.framePos+", read: "+read);
             this.framePos += read;
             subscr.next(read);
           },
