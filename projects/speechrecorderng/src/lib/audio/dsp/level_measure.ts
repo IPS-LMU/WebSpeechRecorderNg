@@ -208,7 +208,10 @@ export class LevelMeasure {
 
         let worker = new Worker(this.workerURL);
         worker.onmessage = (me) => {
-
+          if (subscriber.closed) {
+            worker.terminate();
+            console.debug("Level measure: Subscr. closed, worker terminated.");
+          }else{
           if (me.data.linLevelBuffers) {
             let linLevelArrs = new Array<Float32Array>(chs);
             for (let ch = 0; ch < chs; ch++) {
@@ -254,6 +257,7 @@ export class LevelMeasure {
               }, trBuffers);
             }
           }
+        }
         };
 
         let read = ais.read(audioBuffers);
@@ -279,7 +283,10 @@ export class LevelMeasure {
 
         let worker = new Worker(this.workerURL);
         worker.onmessage = (me) => {
-
+          if (subscriber.closed) {
+            worker.terminate();
+            console.debug("Level measure: Subscr. closed, worker terminated.");
+          }else{
           if (me.data.linLevelBuffers) {
             let linLevelArrs = new Array<Float32Array>(chs);
             for (let ch = 0; ch < chs; ch++) {
@@ -331,6 +338,7 @@ export class LevelMeasure {
               );
             }
           }
+        }
         };
 
         let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
