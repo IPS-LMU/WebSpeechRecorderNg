@@ -312,7 +312,9 @@ export abstract class BasicRecorder {
     if (this.displayAudioClip) {
       let dap=this.displayAudioClip;
       let adh=dap.audioDataHolder;
-      if(adh) {
+      // TODO TEST only!!
+      let calcBisEnabled=false;
+      if(adh && calcBisEnabled) {
 
         this.liveLevelDisplayState=LiveLevelState.RENDERING;
         this.calcBufferInfosSubscr=this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
