@@ -33,8 +33,30 @@ import { BinaryByteReader } from '../../io/BinaryReader'
         readFormat():PCMAudioFormat|null{
             this.br.pos=0;
             this.readHeader();
+          let s = this.navigateToChunk('fmt ');
+          if (!s) {
+            let errMsg="WAV file does not contain a fmt chunk";
+            throw new Error(errMsg);
+          }
             this.format = this.parseFmtChunk();
             return this.format;
+        }
+
+        private _frameLength():number|null{
+          let fl:number|null=null;
+          if(this.format) {
+            fl = this.dataLength / this.format.channelCount / this.format.sampleSize;
+          }
+          return fl;
+        }
+
+        frameLength():number|null {
+          let fl:number|null=this._frameLength();
+          if(fl===null){
+            this.readFormat();
+            fl=this._frameLength();
+          }
+          return fl;
         }
 
         // Not tested yet!!!
@@ -82,7 +104,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
         }
 
         private parseFmtChunk():PCMAudioFormat | null {
-            var fmt = this.br.readUint16LE();
+            let fmt = this.br.readUint16LE();
             if (fmt === WavFileFormat.PCM) {
                 var channels = this.br.readUint16LE();
                 //console.log("Channels: ",channels);
