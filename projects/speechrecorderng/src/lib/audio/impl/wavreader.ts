@@ -6,7 +6,8 @@ import { BinaryByteReader } from '../../io/BinaryReader'
 
         private br:BinaryByteReader;
         private format:PCMAudioFormat | null=null;
-        private dataLength:number=0;
+        private totalLength:number=0;
+        private dataChunkLength:number|null=null;
 
         constructor(data:ArrayBuffer) {
             this.br = new BinaryByteReader(data);
@@ -22,7 +23,8 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             if (this.br.pos + cl !== this.br.length()) {
                 throw new Error("Wrong chunksize in RIFF header: "+cl+" (expected: "+(this.br.length() - this.br.pos)+ " )");
             }
-            this.dataLength = cl;
+            this.totalLength = cl;
+
             let rt = this.br.readAscii(4);
             if (rt !== WavFileFormat.WAV_KEY) {
                 let errMsg="Expected "+WavFileFormat.WAV_KEY+" not: ", rt;
@@ -42,10 +44,14 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             return this.format;
         }
 
+        readDataChunkHeader(){
+
+        }
+
         private _frameLength():number|null{
           let fl:number|null=null;
-          if(this.format) {
-            fl = this.dataLength / this.format.channelCount / this.format.sampleSize;
+          if(this.format && this.dataChunkLength!=null) {
+            fl = this.dataChunkLength / this.format.channelCount / this.format.sampleSize;
           }
           return fl;
         }
@@ -54,6 +60,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
           let fl:number|null=this._frameLength();
           if(fl===null){
             this.readFormat();
+            this.dataChunkLength=this.navigateToChunk('data');
             fl=this._frameLength();
           }
           return fl;
@@ -70,6 +77,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
                 throw new Error(errMsg);
             }
             this.format = this.parseFmtChunk();
+            this.dataChunkLength = this.navigateToChunk('data');
             let chsArr = this.readData();
             let sr=this.format?.sampleRate;
             let nChs=this.format?.channelCount;
@@ -88,6 +96,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
 
         private navigateToChunk(chunkString:string):number {
             // position after RIFF header
+          // TODO assumes no other chunks except 'data'
             this.br.pos = 12;
             var chkStr = null;
             var chkLen = -1;
@@ -125,16 +134,15 @@ import { BinaryByteReader } from '../../io/BinaryReader'
         }
 
         private readData():Array<Float32Array> | null{
-            let chkLen = this.navigateToChunk('data');
             let chsArr=null;
             if(this.format) {
               chsArr = new Array<Float32Array>(this.format.channelCount);
-              let sampleCount = this.dataLength / this.format.channelCount / this.format.sampleSize;
+              let sampleCount = this.totalLength / this.format.channelCount / this.format.sampleSize;
               for (let ch = 0; ch < this.format.channelCount; ch++) {
                 chsArr[ch] = new Float32Array(sampleCount);
               }
               if (this.format.sampleSize == 2) {
-                for (let i = 0; i < this.dataLength / 2; i++) {
+                for (let i = 0; i < this.totalLength / 2; i++) {
                   for (var ch = 0; ch < this.format.channelCount; ch++) {
                     let s16Ampl = this.br.readInt16LE();
                     let floatAmpl = s16Ampl / 32768;
