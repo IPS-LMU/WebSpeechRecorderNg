@@ -353,7 +353,7 @@ export class RecordingService {
                         console.debug("Platform sr: "+sampleRate+", file sr: "+ab.sampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
                       }
                     }
-                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, frameLength);
+                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, frameLength,frameLength);
                     if (nab.frameLen < frameLength) {
                       //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
                       nab.seal();

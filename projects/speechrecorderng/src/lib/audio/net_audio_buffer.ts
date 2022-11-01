@@ -187,7 +187,11 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
           srcState.ci++;
           this._currCi=srcState.ci;
           srcState.ccPos = 0;
-          srcState.orgSrcFramePos+=orgFrameLen;
+          if(orgFrameLen===null){
+            srcState.orgSrcFramePos+=ccBufsLen;
+          }else{
+            srcState.orgSrcFramePos+=orgFrameLen;
+          }
           srcState.srcFramePos+=ccBufsLen;
         }
       }
@@ -195,16 +199,16 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
   }
 
-  private fillBufs(baseUrl:string,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{orgSrcFramePos:number,srcFramePos:number,ci:number,ccPos:number,ccFilled:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
+  private fillBufs(baseUrl:string,orgFrameLen:number|null,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{orgSrcFramePos:number,srcFramePos:number,ci:number,ccPos:number,ccFilled:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
     //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     if(this._ccCache){
-      this._fillBufs(this._ccCache,trgState,srcState);
+      this._fillBufs(this._ccCache,orgFrameLen,trgState,srcState);
       //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
       if(trgState.frameLen===0){
         //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
         cbEnd(trgState.filled);
       }else {
-        this.fillBufs(baseUrl, trgState, srcState, cb, cbEnd, cbErr);
+        this.fillBufs(baseUrl, orgFrameLen,trgState, srcState, cb, cbEnd, cbErr);
       }
     }else {
       this.chunk(baseUrl, srcState.ci, (ccBufs,orgFrameLength) => {
@@ -218,7 +222,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
             //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
             cbEnd(trgState.filled);
           } else {
-            this.fillBufs(baseUrl,trgState, srcState, cb, cbEnd, cbErr);
+            this.fillBufs(baseUrl,orgFrameLen,trgState, srcState, cb, cbEnd, cbErr);
           }
         } else {
           //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
@@ -245,7 +249,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
       let orgSrcFramePos=newCi*this._netAb.orgFetchChunkFrameLen;
       let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
       let srcState={orgSrcFramePos:0,srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
-      this.fillBufs(this._netAb.baseUrl,trgState,srcState,(val)=>{},(filled:number)=>{
+      this.fillBufs(this._netAb.baseUrl,this._netAb.orgFetchChunkFrameLen,trgState,srcState,(val)=>{},(filled:number)=>{
         subscriber.next(filled);
         subscriber.complete();
       },err => {
