@@ -2,7 +2,7 @@
 // Changes in audio_source_worklet.js must be copied and pasted to this string constant
 
 const aswpStr = "\n" +
-  "// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in array_audio_buffer_source_node.ts\n" +
+  "// Important note: Changes in audio_source_worklet.js must be copied and pasted to the string constant aswpStr in audio_source_worklet_module_loader.ts\n" +
   "\n" +
   "\n" +
   "class AudioSourceProcessor extends AudioWorkletProcessor{\n" +
@@ -13,6 +13,7 @@ const aswpStr = "\n" +
   "    currentAudioBufferFramePos=0;\n" +
   "    currentAudioBufferAvail=0;\n" +
   "    running=false;\n" +
+  "    endOfStream=false;\n" +
   "    ended=false;\n" +
   "\n" +
   "    constructor() {\n" +
@@ -45,6 +46,8 @@ const aswpStr = "\n" +
   "                this.audioBuffers.pop();\n" +
   "              }\n" +
   "              this.currentAudioBuffer=new Float32Array(0);\n" +
+  "            }else if('endOfStream'===msgEv.data.cmd){\n" +
+  "              this.endOfStream=true;\n" +
   "            }\n" +
   "          }\n" +
   "        }\n" +
@@ -92,9 +95,13 @@ const aswpStr = "\n" +
   "                //console.debug(\"Next buffer with \"+this.currentAudioBufferAvail+ \" frames\");\n" +
   "                this.port.postMessage({eventType:'bufferNotification',filledFrames:this.filledFrames});\n" +
   "              }else{\n" +
-  "                this.ended=true;\n" +
-  "                this.port.postMessage({eventType:'ended'});\n" +
-  "                //console.debug(\"Stream ended\");\n" +
+  "                if(this.endOfStream) {\n" +
+  "                  this.ended = true;\n" +
+  "                  this.port.postMessage({eventType: 'ended'});\n" +
+  "                  //console.debug(\"Stream ended\");\n" +
+  "                }else{\n" +
+  "                  this.port.postMessage({eventType: 'stalled'});\n" +
+  "                }\n" +
   "                break;\n" +
   "              }\n" +
   "            }\n" +

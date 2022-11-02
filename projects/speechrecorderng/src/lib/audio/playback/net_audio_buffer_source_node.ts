@@ -1,7 +1,7 @@
 import {AsyncEditFloat32ArrayInputStream, AsyncFloat32ArrayInputStream} from "../../io/stream";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream} from "../inddb_audio_buffer";
 import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
-import {EMPTY, expand, map, Observable} from "rxjs";
+import {EMPTY, expand, map, Observable, Subscription} from "rxjs";
 import {AudioSourceNode} from "./audio_source_node";
 import {NetAudioBuffer, NetAudioInputStream} from "../net_audio_buffer";
 
@@ -13,7 +13,8 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
   private _netAudioBuffer:NetAudioBuffer|null=null;
   private _audioInputStream:AsyncFloat32ArrayInputStream|null=null;
   private _aisBufs:Float32Array[]|null=null;
-
+  private _endOfStream=false;
+  private readDataSubscription:Subscription|null=null;
   private filledFrames = 0;
 
   constructor(context: AudioContext) {
@@ -27,7 +28,9 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
           if ('bufferNotification' === evType) {
             this.filledFrames = msgEv.data.filledFrames;
             //console.debug("IndexedDbAudioBufferSourceNode: Buffer notification: filled frames: " + this.filledFrames);
-            this.fillBufferObs().subscribe();
+            if(!this._endOfStream) {
+              this.fillBufferObs().subscribe();
+            }
           } else if ('ended' === evType) {
             //console.debug("Inddb audio source ended playback.");
             let drainTime = 0;
@@ -40,6 +43,8 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
               this.onended?.call(this);
             }, drainTime * 1000);
 
+          }else if ('stalled' === evType) {
+            console.debug('Playback stalled...');
           }
         }
       }
@@ -54,8 +59,8 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
         }else {
           let filled = this.filledFrames;
           let bufLen = 0;
-          if (this._audioInputStream && this._aisBufs) {
-            this._audioInputStream.readObs(this._aisBufs).pipe(
+          if (this._audioInputStream && this._aisBufs && (this.readDataSubscription==null || this.readDataSubscription?.closed)) {
+            this.readDataSubscription=this._audioInputStream.readObs(this._aisBufs).pipe(
               expand((read) => {
                   if (read && this._aisBufs) {
                     let trBuffers = new Array<any>(this.channelCount);
@@ -82,6 +87,10 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
                     }
                   } else {
                     //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
+                    this._endOfStream=true;
+                    this.port.postMessage({
+                      cmd: 'endOfStream'
+                    });
                     return EMPTY;
                   }
                 }

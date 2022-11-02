@@ -10,6 +10,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
     currentAudioBufferFramePos=0;
     currentAudioBufferAvail=0;
     running=false;
+    endOfStream=false;
     ended=false;
 
     constructor() {
@@ -42,6 +43,8 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
                 this.audioBuffers.pop();
               }
               this.currentAudioBuffer=new Float32Array(0);
+            }else if('endOfStream'===msgEv.data.cmd){
+              this.endOfStream=true;
             }
           }
         }
@@ -89,9 +92,13 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
                 //console.debug("Next buffer with "+this.currentAudioBufferAvail+ " frames");
                 this.port.postMessage({eventType:'bufferNotification',filledFrames:this.filledFrames});
               }else{
-                this.ended=true;
-                this.port.postMessage({eventType:'ended'});
-                //console.debug("Stream ended");
+                if(this.endOfStream) {
+                  this.ended = true;
+                  this.port.postMessage({eventType: 'ended'});
+                  //console.debug("Stream ended");
+                }else{
+                  this.port.postMessage({eventType: 'stalled'});
+                }
                 break;
               }
             }

@@ -81,6 +81,9 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                     }
                   } else {
                     //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
+                    this.port.postMessage({
+                      cmd: 'endOfStream'
+                    });
                     return EMPTY;
                   }
                 }
