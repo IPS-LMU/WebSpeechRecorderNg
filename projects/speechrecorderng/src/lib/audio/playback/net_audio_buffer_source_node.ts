@@ -13,6 +13,7 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
   private _netAudioBuffer:NetAudioBuffer|null=null;
   private _audioInputStream:AsyncFloat32ArrayInputStream|null=null;
   private _aisBufs:Float32Array[]|null=null;
+  private stalled=false;
   private _endOfStream=false;
   private readDataSubscription:Subscription|null=null;
   private filledFrames = 0;
@@ -45,6 +46,10 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
 
           }else if ('stalled' === evType) {
             console.debug('Playback stalled...');
+            this.stalled=true;
+          }else if ('resumed' === evType) {
+            console.debug('Playback resumed after stall.');
+            this.stalled=false;
           }
         }
       }
@@ -82,7 +87,11 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
                       //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
-                      //console.debug("Return EMPTY");
+                      if(this.stalled){
+                        this.port.postMessage({
+                          cmd: 'continue'
+                        });
+                      }
                       return EMPTY;
                     }
                   } else {

@@ -13,6 +13,7 @@ const aswpStr = "\n" +
   "    currentAudioBufferFramePos=0;\n" +
   "    currentAudioBufferAvail=0;\n" +
   "    running=false;\n" +
+  "    stalled=false;\n" +
   "    endOfStream=false;\n" +
   "    ended=false;\n" +
   "\n" +
@@ -48,6 +49,10 @@ const aswpStr = "\n" +
   "              this.currentAudioBuffer=new Float32Array(0);\n" +
   "            }else if('endOfStream'===msgEv.data.cmd){\n" +
   "              this.endOfStream=true;\n" +
+  "            }else if('continue'===msgEv.data.cmd){\n" +
+  "              console.debug(\"Continue after stalled...\");\n" +
+  "              this.stalled=false;\n" +
+  "              this.port.postMessage({eventType: 'resumed'});\n" +
   "            }\n" +
   "          }\n" +
   "        }\n" +
@@ -60,7 +65,7 @@ const aswpStr = "\n" +
   "  ){\n" +
   "      //console.debug(\"Audio source worklet: process \"+outputs.length+ \" output buffers.\");\n" +
   "      // copy ring buffer data to outputs\n" +
-  "        if(!this.running){\n" +
+  "        if(!this.running || this.stalled){\n" +
   "          return !this.ended;\n" +
   "        }\n" +
   "\n" +
@@ -100,7 +105,10 @@ const aswpStr = "\n" +
   "                  this.port.postMessage({eventType: 'ended'});\n" +
   "                  //console.debug(\"Stream ended\");\n" +
   "                }else{\n" +
-  "                  this.port.postMessage({eventType: 'stalled'});\n" +
+  "                  if(!this.stalled) {\n" +
+  "                    this.stalled = true;\n" +
+  "                    this.port.postMessage({eventType: 'stalled'});\n" +
+  "                  }\n" +
   "                }\n" +
   "                break;\n" +
   "              }\n" +
