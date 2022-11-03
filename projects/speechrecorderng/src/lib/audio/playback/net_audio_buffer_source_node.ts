@@ -13,6 +13,7 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
   private _netAudioBuffer:NetAudioBuffer|null=null;
   private _audioInputStream:AsyncFloat32ArrayInputStream|null=null;
   private _aisBufs:Float32Array[]|null=null;
+  private _active=false;
   private stalled=false;
   private _endOfStream=false;
   private readDataSubscription:Subscription|null=null;
@@ -163,14 +164,18 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
       this.fillBufferObs().subscribe({
         complete: ()=>{
           //console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
-          this.port.postMessage({cmd: 'start'});
+          if(this._active) {
+            this.port.postMessage({cmd: 'start'});
+          }
         }
       })
+      this._active=true;
 
     }
   }
 
   stop() {
+    this._active=false;
     this.port.postMessage({cmd: 'stop'});
     this.onended?.call(this);
   }
