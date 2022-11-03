@@ -350,7 +350,7 @@ export class RecordingService {
                     if (ab.sampleRate !== sampleRate) {
                       if (sampleRate && frames) {
                         fl = Math.round(ab.sampleRate * frames / sampleRate);
-                        console.debug("Platform sr: "+sampleRate+", file sr: "+ab.sampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
+                        console.debug("Platform sr: "+ab.sampleRate+", file sr: "+sampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
                       }
                     }
                     let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, frameLength,frameLength);
@@ -918,7 +918,11 @@ export class RecordingService {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         //let obs = this.fetchSprNetAudiofileBuffer(aCtx,baseUrl,recordingFile.sampleRate,recordingFile.frames);
         if(baseUrl) {
-          let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, AudioCapture.BUFFER_SIZE,recordingFile.sampleRate,recordingFile.frames);
+          let bufFl=AudioCapture.BUFFER_SIZE;
+          if(recordingFile.sampleRate){
+            bufFl=recordingFile.sampleRate;
+          }
+          let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, bufFl,recordingFile.sampleRate,recordingFile.frames);
           let subscr = obs.subscribe({
             next: aab => {
               //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
