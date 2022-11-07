@@ -191,16 +191,16 @@ export class RecordingService {
             let wr=new WavReader(resp.body);
             const pcmFmt=wr.readFormat();
             const orgFl=wr.frameLength();
-            if(pcmFmt){
-              console.debug("Original WAVE format of download chunk: "+pcmFmt);
-            }else{
-              console.error("Could not read WAVE format of original download chunk!");
-            }
-            if(orgFl){
-              console.debug("Original frame length of download chunk: "+orgFl);
-            }else{
-              console.error("Could not read WAVE format of original download chunk!");
-            }
+            // if(pcmFmt){
+            //   console.debug("Original WAVE format of download chunk: "+pcmFmt);
+            // }else{
+            //   console.error("Could not read WAVE format of original download chunk!");
+            // }
+            // if(orgFl){
+            //   console.debug("Original frame length of download chunk: "+orgFl);
+            // }else{
+            //   console.error("Could not read WAVE format of original download chunk!");
+            // }
 
             if(pcmFmt && orgFl) {
               aCtx.decodeAudioData(resp.body, ab => {
@@ -322,9 +322,14 @@ export class RecordingService {
     return obs;
   }
 
-  private chunkAudioRequestToNetAudioBuffer(aCtx: AudioContext, baseAudioUrl: string, startFrame: number = 0, frameLength: number, sampleRate: number | null, frames: number | null): Observable<NetAudioBuffer | null> {
+  private chunkAudioRequestToNetAudioBuffer(aCtx: AudioContext, baseAudioUrl: string, startFrame: number = 0, frameLength: number, orgSampleRate: number | null, frames: number | null): Observable<NetAudioBuffer | null> {
     //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
     //let audioUrl=new URL(baseAudioUrl);
+    if(orgSampleRate!=null && frameLength%orgSampleRate>0){
+      const errMsg='frameLength must be equal or multiple of original samplerate.';
+      console.error(errMsg+' ('+frameLength+'%'+orgSampleRate+'=='+(frameLength%orgSampleRate)+')');
+      throw Error(errMsg)
+    }
     let ausps=new URLSearchParams();
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
@@ -347,10 +352,10 @@ export class RecordingService {
                     subscriber.error(new Error('Could not get frame length from recording file object'));
                   }else {
                     let fl = frames;
-                    if (ab.sampleRate !== sampleRate) {
-                      if (sampleRate && frames) {
-                        fl = Math.round(ab.sampleRate * frames / sampleRate);
-                        console.debug("Platform sr: "+ab.sampleRate+", file sr: "+sampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
+                    if (ab.sampleRate !== orgSampleRate) {
+                      if (orgSampleRate && frames) {
+                        fl = Math.round(ab.sampleRate * frames / orgSampleRate);
+                        //console.debug("Platform sr: "+ab.sampleRate+", file sr: "+orgSampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
                       }
                     }
 
