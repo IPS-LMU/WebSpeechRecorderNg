@@ -14,6 +14,7 @@ const aswpStr = "\n" +
   "    currentAudioBufferAvail=0;\n" +
   "    running=false;\n" +
   "    stalled=false;\n" +
+  "    stopped=false;\n" +
   "    endOfStream=false;\n" +
   "    ended=false;\n" +
   "\n" +
@@ -41,6 +42,7 @@ const aswpStr = "\n" +
   "            }else if('stop'===msgEv.data.cmd){\n" +
   "              //console.debug(\"Stop...\");\n" +
   "              this.running=false;\n" +
+  "              this.stopped=true;\n" +
   "              // clear buffers\n" +
   "              this.filledFrames=0;\n" +
   "              while(this.audioBuffers.length > 0) {\n" +
@@ -66,7 +68,7 @@ const aswpStr = "\n" +
   "      //console.debug(\"Audio source worklet: process \"+outputs.length+ \" output buffers.\");\n" +
   "      // copy ring buffer data to outputs\n" +
   "        if(!this.running || this.stalled){\n" +
-  "          return !this.ended;\n" +
+  "          return !this.ended && !this.stopped;\n" +
   "        }\n" +
   "\n" +
   "        let output=outputs[0];\n" +

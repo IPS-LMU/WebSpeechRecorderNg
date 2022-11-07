@@ -11,12 +11,12 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
     currentAudioBufferAvail=0;
     running=false;
     stalled=false;
+    stopped=false;
     endOfStream=false;
     ended=false;
 
     constructor() {
         super({numberOfInputs:0,numberOfOutputs:1});
-        console.debug("New instance of AudioSourceProcessor created.");
         this.port.onmessage=(msgEv)=>{
           // received audio playback data from application
           //console.debug("Audio source worklet msg: Received.");
@@ -39,6 +39,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
             }else if('stop'===msgEv.data.cmd){
               //console.debug("Stop...");
               this.running=false;
+              this.stopped=true;
               // clear buffers
               this.filledFrames=0;
               while(this.audioBuffers.length > 0) {
@@ -64,7 +65,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
       //console.debug("Audio source worklet: process "+outputs.length+ " output buffers.");
       // copy ring buffer data to outputs
         if(!this.running || this.stalled){
-          return !this.ended && this.running;
+          return !this.ended && !this.stopped;
         }
 
         let output=outputs[0];
