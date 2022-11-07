@@ -643,7 +643,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             // Fetch chunked audio buffer from network
             let nextNetAb: NetAudioBuffer | null = null;
 
-              console.debug("Fetch chunked audio from network");
+              //console.debug("Fetch chunked audio from network");
               this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
                 next: (netAb) => {
                   //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
@@ -1079,7 +1079,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           // }
           let rf = new SprRecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
           rf.serverPersisted=true;
-          console.debug("addRecordingFileByDescriptor(): sr: "+rfd.samplerate+", frames: "+rfd.frames);
+          //console.debug("addRecordingFileByDescriptor(): sr: "+rfd.samplerate+", frames: "+rfd.frames);
           if(rfd.samplerate && rfd.frames){
             rf.sampleRate=rfd.samplerate;
             rf.frames=rfd.frames;
