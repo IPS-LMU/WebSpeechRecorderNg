@@ -309,13 +309,13 @@ export abstract class BasicRecorder {
 
   showRecording() {
     this._controlAudioPlayer.stop();
+    if(this.calcBufferInfosSubscr){
+      this.calcBufferInfosSubscr.unsubscribe();
+    }
     if (this.displayAudioClip) {
       let dap=this.displayAudioClip;
       let adh=dap.audioDataHolder;
       if(adh) {
-        if(this.calcBufferInfosSubscr){
-          this.calcBufferInfosSubscr.unsubscribe();
-        }
         this.liveLevelDisplayState=LiveLevelState.RENDERING;
         this.calcBufferInfosSubscr=this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
           dap.levelInfos = levelInfos;
