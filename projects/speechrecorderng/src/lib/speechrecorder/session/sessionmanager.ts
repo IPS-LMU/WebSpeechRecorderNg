@@ -1117,13 +1117,23 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
-          if(this._session&& this._displayRecFile) {
-            let rf=this._displayRecFile;
-            let burl=this.recFileService.sprAudioFileUrl(this._session?.project, rf);
-            if(burl) {
-              //nab = this.ac.netAudioBuffer(this.recFileService,burl);
-              let rUUID=this.ac.recUUID;
-              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+          let burl:string|null=null;
+          if(this._session) {
+            if (this._displayRecFile) {
+              // TODO is this branch ever called ?
+              let rf = this._displayRecFile;
+              rf.frames = this.ac.framesRecorded;
+              burl = this.recFileService.sprAudioFileUrl(this._session?.project, rf);
+            } else if (this.session?.project && this._recordingFile && this._recordingFile instanceof SprRecordingFile) {
+              burl = this.recFileService.sprAudioFileUrlByItemcode(this.session?.project, this.session?.sessionId, this._recordingFile.itemCode, this._recordingFile.version);
+            }else{
+              console.error("Could not create net audio buffer.");
+            }
+            if (burl) {
+              let rUUID = this.ac.recUUID;
+              let sr = this.ac.currentSampleRate;
+              console.debug("stopped(): net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
             }
           }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
