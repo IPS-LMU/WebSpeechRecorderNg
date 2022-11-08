@@ -1123,6 +1123,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               // TODO is this branch ever called ?
               let rf = this._displayRecFile;
               rf.frames = this.ac.framesRecorded;
+              //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
               burl = this.recFileService.sprAudioFileUrl(this._session?.project, rf);
             } else if (this.session?.project && this._recordingFile && this._recordingFile instanceof SprRecordingFile) {
               burl = this.recFileService.sprAudioFileUrlByItemcode(this.session?.project, this.session?.sessionId, this._recordingFile.itemCode, this._recordingFile.version);
@@ -1132,7 +1133,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             if (burl) {
               let rUUID = this.ac.recUUID;
               let sr = this.ac.currentSampleRate;
-              console.debug("stopped(): net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+              //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
               nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
             }
           }
