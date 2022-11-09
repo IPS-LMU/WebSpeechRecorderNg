@@ -84,9 +84,16 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
                     let trBuffers = new Array<any>(this.channelCount);
                     for (let ch = 0; ch < this.channelCount; ch++) {
                       let adCh = this._aisBufs[ch];
-                      let adChCopy = new Float32Array(adCh.length);
+                      let adChCopy = new Float32Array(read);
                       bufLen = adChCopy.length;
-                      adChCopy.set(adCh);
+                      if(read===adCh.length) {
+                        adChCopy.set(adCh);
+                      }else{
+                        // Note: slice() does not work here, since it returns a shallow copy.
+                        for(let i=0;i<read;i++){
+                          adChCopy[i]=adCh[i];
+                        }
+                      }
                       trBuffers[ch] = adChCopy.buffer;
                     }
                     this.port.postMessage({

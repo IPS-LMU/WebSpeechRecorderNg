@@ -246,7 +246,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
         this._ccCache=null;
       }
       let srcFramePos=newCi*this._netAb.chunkFrameLen;
-      let orgSrcFramePos=newCi*this._netAb.orgFetchChunkFrameLen;
+      //let orgSrcFramePos=newCi*this._netAb.orgFetchChunkFrameLen;
       let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
       let srcState={orgSrcFramePos:0,srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
       this.fillBufs(this._netAb.baseUrl,this._netAb.orgFetchChunkFrameLen,trgState,srcState,(val)=>{},(filled:number)=>{
