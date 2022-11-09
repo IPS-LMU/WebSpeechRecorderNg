@@ -924,33 +924,36 @@ export class RecordingService {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         //let obs = this.fetchSprNetAudiofileBuffer(aCtx,baseUrl,recordingFile.sampleRate,recordingFile.frames);
         if(baseUrl) {
-          let bufFl=AudioCapture.BUFFER_SIZE;
-          if(recordingFile.sampleRate){
-            bufFl=recordingFile.sampleRate;
+          //let bufFl=AudioCapture.BUFFER_SIZE;
+          if(recordingFile.sampleRate) {
+            //   bufFl=recordingFile.sampleRate;
+            // }
+            let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.sampleRate, recordingFile.sampleRate, recordingFile.frames);
+            let subscr = obs.subscribe({
+              next: aab => {
+                //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
+                if (observer.closed) {
+                  subscr.unsubscribe()
+                }
+                observer.next(aab)
+              },
+              complete: () => {
+                observer.complete();
+              },
+              error: (err) => {
+                if (err instanceof HttpErrorResponse && err.status == 404) {
+                  // Interpret not as an error, the file ist not recorded yet
+                  observer.next(null);
+                  observer.complete()
+                } else {
+                  // all other errors are real errors
+                  observer.error(err);
+                }
+              }
+            });
+          }else{
+            observer.error(new Error('Unknown sample rate of recording file ID: '+recordingFile.recordingFileId));
           }
-          let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, bufFl,recordingFile.sampleRate,recordingFile.frames);
-          let subscr = obs.subscribe({
-            next: aab => {
-              //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
-              if (observer.closed) {
-                subscr.unsubscribe()
-              }
-              observer.next(aab)
-            },
-            complete: () => {
-              observer.complete();
-            },
-            error: (err) => {
-              if (err instanceof HttpErrorResponse && err.status == 404) {
-                // Interpret not as an error, the file ist not recorded yet
-                observer.next(null);
-                observer.complete()
-              } else {
-                // all other errors are real errors
-                observer.error(err);
-              }
-            }
-          });
         }else{
           observer.error();
         }
