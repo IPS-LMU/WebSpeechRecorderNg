@@ -19,6 +19,11 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
   private readDataSubscription:Subscription|null=null;
   private filledFrames = 0;
 
+  private stalledStartTime:number|null=null;
+  private stalledTime:number=0;
+
+  private stopEndTime:number|null=null;
+
   constructor(context: AudioContext) {
 
     super(context, 'audio-source-worklet');
@@ -42,15 +47,22 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
             //let dstAny:any=this.context.destination;
             //console.debug('Destination node tail-time: '+dstAny['tail-time']);
             window.setTimeout(() => {
+              this.stopEndTime=this.context.currentTime;
+              this._active=false;
               this.onended?.call(this);
             }, drainTime * 1000);
 
           }else if ('stalled' === evType) {
             console.debug('Playback stalled...');
             this.stalled=true;
+            this.stalledStartTime=this.context.currentTime;
           }else if ('resumed' === evType) {
             console.debug('Playback resumed after stall.');
             this.stalled=false;
+            if(this.stalledStartTime!=null) {
+              this.stalledTime += this.context.currentTime - this.stalledStartTime;
+              this.stalledStartTime = null;
+            }
           }
         }
       }
@@ -92,6 +104,7 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
                         this.port.postMessage({
                           cmd: 'continue'
                         });
+
                       }
                       return EMPTY;
                     }
@@ -137,6 +150,10 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
     if (when) {
       throw Error("when parameter currently not supported by IndexedDbAudioBufferSourceNode class")
     }
+    this._playStartTime=null;
+    this.stopEndTime=null;
+    this.stalledTime=0;
+    this.stalledStartTime=null;
 
     if (this._netAudioBuffer) {
       let arrAis=new NetAudioInputStream(this._netAudioBuffer);
@@ -166,6 +183,11 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
           //console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
           if(this._active) {
             this.port.postMessage({cmd: 'start'});
+            if(offset) {
+              this._playStartTime = this.context.currentTime - offset;
+            }else{
+              this._playStartTime = this.context.currentTime;
+            }
           }
         }
       })
@@ -178,6 +200,28 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
     this._active=false;
     this.port.postMessage({cmd: 'stop'});
     this.onended?.call(this);
+  }
+
+  get playPositionTime():number|null {
+    let ppt:number|null=null;
+    if(this._playStartTime!==null) {
+      if(this._active) {
+        if (this.stalledStartTime == null) {
+          ppt = this.context.currentTime - this._playStartTime - this.stalledTime;
+        } else {
+          ppt = this.stalledStartTime - this._playStartTime - this.stalledTime;
+        }
+      }else{
+        if(this.stopEndTime!=null){
+          // if(this._netAudioBuffer?.frameLen !=null && this._netAudioBuffer.sampleRate) {
+          //   ppt = this._netAudioBuffer?.frameLen / this._netAudioBuffer?.sampleRate;
+          // }else{
+            ppt = this.stopEndTime - this._playStartTime - this.stalledTime;
+          //}
+        }
+      }
+    }
+    return ppt;
   }
 
 }

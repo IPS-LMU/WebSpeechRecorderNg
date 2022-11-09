@@ -122,6 +122,11 @@ export class ArrayAudioBufferSourceNode extends AudioSourceNode {
 
     this.fillBuffer();
     this.port.postMessage({cmd: 'start'});
+      if(offset) {
+        this._playStartTime = this.context.currentTime - offset;
+      }else{
+        this._playStartTime = this.context.currentTime;
+      }
   }
   }
 
