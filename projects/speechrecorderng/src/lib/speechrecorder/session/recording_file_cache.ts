@@ -118,7 +118,7 @@ export class SprItemsCache extends BasicRecFilesCache{
     if(!item.recs) {
       item.recs=new Array<SprRecordingFile>();
     }
-    item.recs.push(sprRecFile);
+    item.recs[sprRecFile.version]=sprRecFile;
     this._sampleCount += RecordingFileUtils.sampleCount(sprRecFile);
     if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: Added. Cache samples: "+this._sampleCount);
   }
