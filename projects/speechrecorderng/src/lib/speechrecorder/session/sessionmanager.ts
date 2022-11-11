@@ -587,6 +587,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(adh) {
         this.displayAudioClip = new AudioClip(adh);
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        this.showRecording();
       }else {
         // clear for now ...
         this.displayAudioClip = null;
@@ -831,11 +832,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.startStopSignalState = StartStopSignalState.IDLE;
       }
     }
-    console.debug("applyItem(): temporary: "+temporary);
-    if (!temporary) {
-      console.debug("applyItem(): Call showRecording(): displayAudioClip: "+this.displayAudioClip);
-      this.showRecording();
-    }
+    // console.debug("applyItem(): temporary: "+temporary);
+    // if (!temporary) {
+    //   console.debug("applyItem(): Call showRecording(): displayAudioClip: "+this.displayAudioClip);
+    //   this.showRecording();
+    // }
     this.updateStartActionDisableState()
     this.updateNavigationActions()
   }
