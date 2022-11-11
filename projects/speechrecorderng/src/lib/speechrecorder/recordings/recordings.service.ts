@@ -933,9 +933,10 @@ export class RecordingService {
               next: aab => {
                 //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
                 if (observer.closed) {
-                  subscr.unsubscribe()
+                  subscr.unsubscribe();
+                }else {
+                  observer.next(aab)
                 }
-                observer.next(aab)
               },
               complete: () => {
                 observer.complete();
