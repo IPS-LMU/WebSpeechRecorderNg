@@ -583,9 +583,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(this.items) {
         this.items.currentRecordingFile = this._displayRecFile;
       }
-      let ab: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
-      if(ab) {
-        this.displayAudioClip = new AudioClip(ab);
+      let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
+      if(adh) {
+        this.displayAudioClip = new AudioClip(adh);
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
       }else {
         // clear for now ...
@@ -664,6 +664,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   }
                   if (fabDh) {
                     // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
                   this.controlAudioPlayer.audioClip = this.displayAudioClip
@@ -788,6 +789,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       //console.debug("Unsubscribe from audio fetch.");
       this.audioFetchSubscription.unsubscribe();
     }
+    if (!temporary) {
+      this.displayAudioClip=null;
+      this.showRecording();
+    }
     this.liveLevelDisplayState=LiveLevelState.READY;
 
     this.clearPrompt();
@@ -826,7 +831,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.startStopSignalState = StartStopSignalState.IDLE;
       }
     }
+    console.debug("applyItem(): temporary: "+temporary);
     if (!temporary) {
+      console.debug("applyItem(): Call showRecording(): displayAudioClip: "+this.displayAudioClip);
       this.showRecording();
     }
     this.updateStartActionDisableState()
