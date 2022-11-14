@@ -238,9 +238,10 @@ export class RecordingService {
     return obs;
   }
 
-  private chunkAudioRequestToIndDb(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,inddbAudioBuffer:IndexedDbAudioBuffer|null,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<IndexedDbAudioBuffer|null> {
+  private chunkAudioRequestToIndDb(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,inddbAudioBuffer:IndexedDbAudioBuffer|null,baseAudioUrl:string,startFrame:number=0,orgSampleRate: number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
     //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
     //let audioUrl=new URL(baseAudioUrl);
+    let frameLength=orgSampleRate * Math.round(seconds); // Important: multiple of original sample rate to prevent numeric rounding errors on resampling. 10 seconds is a good value for ind db storage.
     let ausps=new URLSearchParams();
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
@@ -480,13 +481,14 @@ export class RecordingService {
     return obs;
   }
 
-  private chunkedInddbAudioRequest(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,baseAudioUrl:string): Observable<IndexedDbAudioBuffer|null> {
+  private chunkedInddbAudioRequest(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
     let obs=new Observable<IndexedDbAudioBuffer|null>(subscriber => {
       let inddbAudioBuffer: IndexedDbAudioBuffer | null = null;
       let startFrame=0;
-      let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
+      //let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
+      let frameLength=orgSampleRate*Math.round(seconds);
       //console.debug("chunkedInddbAudioRequest: Chunk audio request for inddb. startFrame: "+startFrame);
-      let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame, frameLength).pipe(
+      let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame,orgSampleRate,seconds).pipe(
 
         expand(iab => {
          // console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+iab);
@@ -505,11 +507,11 @@ export class RecordingService {
                   // Frame count then differs on client and server
 
                   // Simply proceed in steps of frameLength
-                  // More advanced method would be to parse the WAV header to find out the rela frame length of the chunk audio file
+                  // More advanced method would be to parse the WAV header to find out the real frame length of the chunk audio file
                   startFrame+=frameLength;
                   //console.debug("Next start frame: "+startFrame);
                   //console.debug("chunkedInddbAudioRequest: expand() subscriber.closed: "+subscriber.closed);
-                  return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, frameLength);
+                  return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, orgSampleRate,seconds);
                 }
               // } else {
               //   return EMPTY;
@@ -693,13 +695,13 @@ export class RecordingService {
     return this.chunkedAudioRequest(aCtx,recUrl);
   }
 
-  private fetchSprAudiofileInddbBuffer(aCtx:AudioContext, persistentAudioStorageTarget:PersistentAudioStorageTarget,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<IndexedDbAudioBuffer|null>{
-    let recFilesUrlStr=this.sessionRecFilesUrl(projectName,sessId);
-    let encItemcode=encodeURIComponent(itemcode);
-    let recUrlStr = recFilesUrlStr + '/' + encItemcode +'/'+version;
-    //let recUrl=new URL(recUrlStr);
-    return this.chunkedInddbAudioRequest(aCtx,persistentAudioStorageTarget,recUrlStr);
-  }
+  // private fetchSprAudiofileInddbBuffer(aCtx:AudioContext, persistentAudioStorageTarget:PersistentAudioStorageTarget,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<IndexedDbAudioBuffer|null>{
+  //   let recFilesUrlStr=this.sessionRecFilesUrl(projectName,sessId);
+  //   let encItemcode=encodeURIComponent(itemcode);
+  //   let recUrlStr = recFilesUrlStr + '/' + encItemcode +'/'+version;
+  //   //let recUrl=new URL(recUrlStr);
+  //   return this.chunkedInddbAudioRequest(aCtx,persistentAudioStorageTarget,recUrlStr);
+  // }
 
   // private sprNetAudiofileBuffer(aCtx:AudioContext,projectName: string, sessId: string | number, itemcode: string,version:number): Observable<IndexedDbAudioBuffer|null>{
   //   let recFilesUrlStr=this.sessionRecFilesUrl(projectName,sessId);
@@ -889,26 +891,37 @@ export class RecordingService {
   fetchSprRecordingFileIndDbAudioBuffer(aCtx: AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget, projectName: string, recordingFile:SprRecordingFile):Observable<IndexedDbAudioBuffer|null> {
     let wobs = new Observable<IndexedDbAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
-        let obs = this.fetchSprAudiofileInddbBuffer(aCtx,persistentAudioStorageTarget,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
-        let subscr=obs.subscribe({
-          next: aab => {
-            //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
-            if(observer.closed){
-              subscr.unsubscribe()
-            }
-            observer.next(aab)
-          },
-          complete: ()=> {observer.complete();},
-          error: (err) => {
-            if(err instanceof HttpErrorResponse && err.status == 404) {
-                // Interpret not as an error, the file ist not recorded yet
-                observer.next(null);
-                observer.complete()
-              } else {
-                // all other errors are real errors
-                observer.error(err);
+        let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
+        if(baseUrl) {
+          if(recordingFile.sampleRate) {
+            let lengthInSeconds=10;
+            let obs = this.chunkedInddbAudioRequest(aCtx, persistentAudioStorageTarget,baseUrl,recordingFile.sampleRate,lengthInSeconds);
+            let subscr = obs.subscribe({
+              next: aab => {
+                //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
+                if (observer.closed) {
+                  subscr.unsubscribe()
+                }
+                observer.next(aab)
+              },
+              complete: () => {
+                observer.complete();
+              },
+              error: (err) => {
+                if (err instanceof HttpErrorResponse && err.status == 404) {
+                  // Interpret not as an error, the file ist not recorded yet
+                  observer.next(null);
+                  observer.complete()
+                } else {
+                  // all other errors are real errors
+                  observer.error(err);
+                }
               }
-          }});
+            });
+          }else{
+            observer.error(new Error('Unknown sample rate of recording file ID: '+recordingFile.recordingFileId));
+          }
+        }
       }else{
         observer.error();
       }
@@ -922,12 +935,8 @@ export class RecordingService {
     let wobs = new Observable<NetAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
-        //let obs = this.fetchSprNetAudiofileBuffer(aCtx,baseUrl,recordingFile.sampleRate,recordingFile.frames);
         if(baseUrl) {
-          //let bufFl=AudioCapture.BUFFER_SIZE;
           if(recordingFile.sampleRate) {
-            //   bufFl=recordingFile.sampleRate;
-            // }
             let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.sampleRate, recordingFile.sampleRate, recordingFile.frames);
             let subscr = obs.subscribe({
               next: aab => {
