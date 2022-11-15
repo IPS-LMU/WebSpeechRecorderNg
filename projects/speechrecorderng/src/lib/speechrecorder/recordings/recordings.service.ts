@@ -170,6 +170,7 @@ export class RecordingService {
 
 
   public chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<ChunkDownload|null> {
+
     let ausps=new URLSearchParams();
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
@@ -323,7 +324,7 @@ export class RecordingService {
     return obs;
   }
 
-  private chunkAudioRequestToNetAudioBuffer(aCtx: AudioContext, baseAudioUrl: string, startFrame: number = 0, orgSampleRate: number, frames: number | null): Observable<NetAudioBuffer | null> {
+  private chunkAudioRequestToNetAudioBuffer(aCtx: AudioContext, baseAudioUrl: string, startFrame: number = 0, orgSampleRate: number, seconds:number,frames: number | null): Observable<NetAudioBuffer | null> {
     //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
     //let audioUrl=new URL(baseAudioUrl);
     // if(orgSampleRate!=null && frameLength%orgSampleRate>0){
@@ -331,7 +332,7 @@ export class RecordingService {
     //   console.error(errMsg+' ('+frameLength+'%'+orgSampleRate+'=='+(frameLength%orgSampleRate)+')');
     //   throw Error(errMsg)
     // }
-    let frameLength:number=orgSampleRate;
+    let frameLength:number=orgSampleRate*Math.round(seconds);
     let ausps=new URLSearchParams();
     ausps.set('startFrame',startFrame.toString());
     ausps.set('frameLength',frameLength.toString());
@@ -949,8 +950,9 @@ export class RecordingService {
       if(recordingFile.session) {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
+          let seconds=10;
           if(recordingFile.sampleRate) {
-            let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.sampleRate, recordingFile.frames);
+            let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.sampleRate,seconds, recordingFile.frames);
             let subscr = obs.subscribe({
               next: aab => {
                 //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
