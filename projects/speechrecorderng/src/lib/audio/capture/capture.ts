@@ -494,6 +494,12 @@ export class AudioCapture {
                       }
                     };
                   }
+                  // Tried to fix that Safari does not record the second channel
+                  // Does not help
+                  //awn.channelCount=this.channelCount;
+                  //awn.channelCountMode='explicit';
+                  //console.debug('Channel count explicitly set to '+this.channelCount);
+
                   this.bufferingNode = awn;
                   this._opened = true;
                   if (this.listener) {
