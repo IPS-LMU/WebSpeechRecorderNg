@@ -583,10 +583,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(this.items) {
         this.items.currentRecordingFile = this._displayRecFile;
       }
-      let ab: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
-      if(ab) {
-        this.displayAudioClip = new AudioClip(ab);
+      let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
+      if(adh) {
+        this.displayAudioClip = new AudioClip(adh);
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        this.showRecording();
       }else {
         // clear for now ...
         this.displayAudioClip = null;
@@ -643,7 +644,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             // Fetch chunked audio buffer from network
             let nextNetAb: NetAudioBuffer | null = null;
 
-              console.debug("Fetch chunked audio from network");
+              //console.debug("Fetch chunked audio from network");
               this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
                 next: (netAb) => {
                   //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
@@ -664,6 +665,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   }
                   if (fabDh) {
                     // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
                   this.controlAudioPlayer.audioClip = this.displayAudioClip
@@ -791,6 +793,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       console.debug("Unsubscribe from audio fetch.");
       this.audioFetchSubscription.unsubscribe();
     }
+    if (!temporary) {
+      this.displayAudioClip=null;
+      this.showRecording();
+    }
     this.liveLevelDisplayState=LiveLevelState.READY;
 
     this.clearPrompt();
@@ -829,9 +835,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.startStopSignalState = StartStopSignalState.IDLE;
       }
     }
-    if (!temporary) {
-      this.showRecording();
-    }
+    // console.debug("applyItem(): temporary: "+temporary);
+    // if (!temporary) {
+    //   console.debug("applyItem(): Call showRecording(): displayAudioClip: "+this.displayAudioClip);
+    //   this.showRecording();
+    // }
     this.updateStartActionDisableState()
     this.updateNavigationActions()
   }
@@ -1082,7 +1090,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           // }
           let rf = new SprRecordingFile(this._session.sessionId, rfd.recording.itemcode, rfd.version, null);
           rf.serverPersisted=true;
-          console.debug("addRecordingFileByDescriptor(): sr: "+rfd.samplerate+", frames: "+rfd.frames);
+          //console.debug("addRecordingFileByDescriptor(): sr: "+rfd.samplerate+", frames: "+rfd.frames);
           if(rfd.samplerate && rfd.frames){
             rf.sampleRate=rfd.samplerate;
             rf.frames=rfd.frames;
@@ -1120,13 +1128,24 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
-          if(this._session&& this._displayRecFile) {
-            let rf=this._displayRecFile;
-            let burl=this.recFileService.sprAudioFileUrl(this._session?.project, rf);
-            if(burl) {
-              //nab = this.ac.netAudioBuffer(this.recFileService,burl);
-              let rUUID=this.ac.recUUID;
-              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+          let burl:string|null=null;
+          if(this._session) {
+            if (this._displayRecFile) {
+              // TODO is this branch ever called ?
+              let rf = this._displayRecFile;
+              rf.frames = this.ac.framesRecorded;
+              //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
+              burl = this.recFileService.sprAudioFileUrl(this._session?.project, rf);
+            } else if (this.session?.project && this._recordingFile && this._recordingFile instanceof SprRecordingFile) {
+              burl = this.recFileService.sprAudioFileUrlByItemcode(this.session?.project, this.session?.sessionId, this._recordingFile.itemCode, this._recordingFile.version);
+            }else{
+              console.error("Could not create net audio buffer.");
+            }
+            if (burl) {
+              let rUUID = this.ac.recUUID;
+              let sr = this.ac.currentSampleRate;
+              //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
             }
           }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {

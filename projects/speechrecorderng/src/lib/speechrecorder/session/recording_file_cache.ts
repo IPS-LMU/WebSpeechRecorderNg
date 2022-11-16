@@ -118,7 +118,7 @@ export class SprItemsCache extends BasicRecFilesCache{
     if(!item.recs) {
       item.recs=new Array<SprRecordingFile>();
     }
-    item.recs.push(sprRecFile);
+    item.recs[sprRecFile.version]=sprRecFile;
     this._sampleCount += RecordingFileUtils.sampleCount(sprRecFile);
     if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: Added. Cache samples: "+this._sampleCount);
   }
@@ -134,7 +134,7 @@ export class SprItemsCache extends BasicRecFilesCache{
     this._sampleCount+=newSampleCnt;
     if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: Set audio data added new sample count: "+newSampleCnt+". Cache samples: "+this._sampleCount);
     let fl=adh?.frameLen;
-    if(fl){
+    if(sprRecFile.frames==null && fl){
       sprRecFile.frames=fl;
     }
     if(BasicRecFilesCache.DEBUG)console.debug("Rec. files cache: Set audio data. Cache samples: "+this._sampleCount);

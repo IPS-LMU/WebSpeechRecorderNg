@@ -10,6 +10,9 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
     currentAudioBufferFramePos=0;
     currentAudioBufferAvail=0;
     running=false;
+    stalled=false;
+    stopped=false;
+    endOfStream=false;
     ended=false;
 
     constructor() {
@@ -36,12 +39,19 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
             }else if('stop'===msgEv.data.cmd){
               //console.debug("Stop...");
               this.running=false;
+              this.stopped=true;
               // clear buffers
               this.filledFrames=0;
               while(this.audioBuffers.length > 0) {
                 this.audioBuffers.pop();
               }
               this.currentAudioBuffer=new Float32Array(0);
+            }else if('endOfStream'===msgEv.data.cmd){
+              this.endOfStream=true;
+            }else if('continue'===msgEv.data.cmd){
+              console.debug("Continue after stalled...");
+              this.stalled=false;
+              this.port.postMessage({eventType: 'resumed'});
             }
           }
         }
@@ -54,8 +64,8 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
   ){
       //console.debug("Audio source worklet: process "+outputs.length+ " output buffers.");
       // copy ring buffer data to outputs
-        if(!this.running){
-          return !this.ended;
+        if(!this.running || this.stalled){
+          return !this.ended && !this.stopped;
         }
 
         let output=outputs[0];
@@ -89,9 +99,16 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
                 //console.debug("Next buffer with "+this.currentAudioBufferAvail+ " frames");
                 this.port.postMessage({eventType:'bufferNotification',filledFrames:this.filledFrames});
               }else{
-                this.ended=true;
-                this.port.postMessage({eventType:'ended'});
-                //console.debug("Stream ended");
+                if(this.endOfStream) {
+                  this.ended = true;
+                  this.port.postMessage({eventType: 'ended'});
+                  //console.debug("Stream ended");
+                }else{
+                  if(!this.stalled) {
+                    this.stalled = true;
+                    this.port.postMessage({eventType: 'stalled'});
+                  }
+                }
                 break;
               }
             }

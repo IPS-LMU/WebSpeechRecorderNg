@@ -262,12 +262,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
 
             this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
             this.sourceAudioWorkletNode.onended = () => this.onended();
-
-            this.playStartTime = this.context.currentTime;
             this.running = true;
-
             this.sourceAudioWorkletNode.start();
-            this.playStartTime = this.context.currentTime;
             this._startAction.disabled = true;
             this._startSelectionAction.disabled = true
             this._stopAction.disabled = false;
@@ -330,7 +326,6 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             this.sourceBufferNode.buffer = this._audioBuffer;
             this.sourceBufferNode.connect(this.context.destination);
             this.sourceBufferNode.onended = () => this.onended();
-
             this.playStartTime = this.context.currentTime;
             this.running = true;
             // unfortunately Web Audio API uses time values not frames
@@ -387,7 +382,6 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
               this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
               this.sourceAudioWorkletNode.onended = () => this.onended();
 
-              this.playStartTime = this.context.currentTime;
               this.running = true;
 
               let ac = this._audioClip
@@ -402,7 +396,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
               } else {
                 this.sourceAudioWorkletNode.start();
               }
-              this.playStartTime = this.context.currentTime - offset;
+
+              //this.playStartTime = this.context.currentTime - offset;
               this._startAction.disabled = true;
               this._startSelectionAction.disabled = true
               this._stopAction.disabled = false;
@@ -450,6 +445,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             let ppt=null;
             if(this.playStartTime!==null) {
                 ppt= this.context.currentTime - this.playStartTime;
+            }else if(this.sourceAudioWorkletNode){
+              ppt=this.sourceAudioWorkletNode.playPositionTime;
             }
             return ppt;
         }

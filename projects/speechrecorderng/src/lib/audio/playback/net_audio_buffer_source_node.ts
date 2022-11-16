@@ -1,7 +1,7 @@
 import {AsyncEditFloat32ArrayInputStream, AsyncFloat32ArrayInputStream} from "../../io/stream";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream} from "../inddb_audio_buffer";
 import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
-import {EMPTY, expand, map, Observable} from "rxjs";
+import {EMPTY, expand, map, Observable, Subscription} from "rxjs";
 import {AudioSourceNode} from "./audio_source_node";
 import {NetAudioBuffer, NetAudioInputStream} from "../net_audio_buffer";
 
@@ -13,8 +13,16 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
   private _netAudioBuffer:NetAudioBuffer|null=null;
   private _audioInputStream:AsyncFloat32ArrayInputStream|null=null;
   private _aisBufs:Float32Array[]|null=null;
-
+  private _active=false;
+  private stalled=false;
+  private _endOfStream=false;
+  private readDataSubscription:Subscription|null=null;
   private filledFrames = 0;
+
+  private stalledStartTime:number|null=null;
+  private stalledTime:number=0;
+
+  private stopEndTime:number|null=null;
 
   constructor(context: AudioContext) {
 
@@ -27,7 +35,9 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
           if ('bufferNotification' === evType) {
             this.filledFrames = msgEv.data.filledFrames;
             //console.debug("IndexedDbAudioBufferSourceNode: Buffer notification: filled frames: " + this.filledFrames);
-            this.fillBufferObs().subscribe();
+            if(!this._endOfStream) {
+              this.fillBufferObs().subscribe();
+            }
           } else if ('ended' === evType) {
             //console.debug("Inddb audio source ended playback.");
             let drainTime = 0;
@@ -37,9 +47,22 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
             //let dstAny:any=this.context.destination;
             //console.debug('Destination node tail-time: '+dstAny['tail-time']);
             window.setTimeout(() => {
+              this.stopEndTime=this.context.currentTime;
+              this._active=false;
               this.onended?.call(this);
             }, drainTime * 1000);
 
+          }else if ('stalled' === evType) {
+            console.debug('Playback stalled...');
+            this.stalled=true;
+            this.stalledStartTime=this.context.currentTime;
+          }else if ('resumed' === evType) {
+            console.debug('Playback resumed after stall.');
+            this.stalled=false;
+            if(this.stalledStartTime!=null) {
+              this.stalledTime += this.context.currentTime - this.stalledStartTime;
+              this.stalledStartTime = null;
+            }
           }
         }
       }
@@ -54,16 +77,23 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
         }else {
           let filled = this.filledFrames;
           let bufLen = 0;
-          if (this._audioInputStream && this._aisBufs) {
-            this._audioInputStream.readObs(this._aisBufs).pipe(
+          if (this._audioInputStream && this._aisBufs && (this.readDataSubscription==null || this.readDataSubscription?.closed)) {
+            this.readDataSubscription=this._audioInputStream.readObs(this._aisBufs).pipe(
               expand((read) => {
                   if (read && this._aisBufs) {
                     let trBuffers = new Array<any>(this.channelCount);
                     for (let ch = 0; ch < this.channelCount; ch++) {
                       let adCh = this._aisBufs[ch];
-                      let adChCopy = new Float32Array(adCh.length);
+                      let adChCopy = new Float32Array(read);
                       bufLen = adChCopy.length;
-                      adChCopy.set(adCh);
+                      if(read===adCh.length) {
+                        adChCopy.set(adCh);
+                      }else{
+                        // Note: slice() does not work here, since it returns a shallow copy.
+                        for(let i=0;i<read;i++){
+                          adChCopy[i]=adCh[i];
+                        }
+                      }
                       trBuffers[ch] = adChCopy.buffer;
                     }
                     this.port.postMessage({
@@ -77,11 +107,20 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
                       //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
-                      //console.debug("Return EMPTY");
+                      if(this.stalled){
+                        this.port.postMessage({
+                          cmd: 'continue'
+                        });
+
+                      }
                       return EMPTY;
                     }
                   } else {
                     //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
+                    this._endOfStream=true;
+                    this.port.postMessage({
+                      cmd: 'endOfStream'
+                    });
                     return EMPTY;
                   }
                 }
@@ -118,6 +157,10 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
     if (when) {
       throw Error("when parameter currently not supported by IndexedDbAudioBufferSourceNode class")
     }
+    this._playStartTime=null;
+    this.stopEndTime=null;
+    this.stalledTime=0;
+    this.stalledStartTime=null;
 
     if (this._netAudioBuffer) {
       let arrAis=new NetAudioInputStream(this._netAudioBuffer);
@@ -145,16 +188,47 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
       this.fillBufferObs().subscribe({
         complete: ()=>{
           //console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
-          this.port.postMessage({cmd: 'start'});
+          if(this._active) {
+            this.port.postMessage({cmd: 'start'});
+            if(offset) {
+              this._playStartTime = this.context.currentTime - offset;
+            }else{
+              this._playStartTime = this.context.currentTime;
+            }
+          }
         }
       })
+      this._active=true;
 
     }
   }
 
   stop() {
+    this._active=false;
     this.port.postMessage({cmd: 'stop'});
     this.onended?.call(this);
+  }
+
+  get playPositionTime():number|null {
+    let ppt:number|null=null;
+    if(this._playStartTime!==null) {
+      if(this._active) {
+        if (this.stalledStartTime == null) {
+          ppt = this.context.currentTime - this._playStartTime - this.stalledTime;
+        } else {
+          ppt = this.stalledStartTime - this._playStartTime - this.stalledTime;
+        }
+      }else{
+        if(this.stopEndTime!=null){
+          // if(this._netAudioBuffer?.frameLen !=null && this._netAudioBuffer.sampleRate) {
+          //   ppt = this._netAudioBuffer?.frameLen / this._netAudioBuffer?.sampleRate;
+          // }else{
+            ppt = this.stopEndTime - this._playStartTime - this.stalledTime;
+          //}
+        }
+      }
+    }
+    return ppt;
   }
 
 }

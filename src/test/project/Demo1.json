@@ -6,7 +6,7 @@
       "channels": 1
     },
     "chunkedRecording" : false,
-  "clientAudioStorageType": "CONTINUOUS",
+  "clientAudioStorageType": "NET",
     "speakerWindowShowStopRecordAction": true,
     "recordingDeviceWakeLock": true
 

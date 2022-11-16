@@ -81,6 +81,9 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                     }
                   } else {
                     //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
+                    this.port.postMessage({
+                      cmd: 'endOfStream'
+                    });
                     return EMPTY;
                   }
                 }
@@ -145,6 +148,11 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
         complete: ()=>{
           //console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
           this.port.postMessage({cmd: 'start'});
+          if(offset) {
+            this._playStartTime = this.context.currentTime - offset;
+          }else{
+            this._playStartTime = this.context.currentTime;
+          }
         }
       })
 
