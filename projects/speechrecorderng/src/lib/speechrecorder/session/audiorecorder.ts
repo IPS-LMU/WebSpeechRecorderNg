@@ -431,7 +431,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         this.uploadChunkSizeSeconds = null;
       }
       if (project.clientAudioStorageType) {
-        this._clientAudioStorageType = project.clientAudioStorageType;
+        this.clientAudioStorageType = project.clientAudioStorageType;
       }
     } else {
       console.error("Empty project configuration!")
@@ -602,6 +602,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         this.displayAudioClip = new AudioClip(adh);
         console.debug(" set recording file: display audio clip set");
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        this.showRecording();
       }else {
         // clear for now ...
         this.displayAudioClip = null;
@@ -612,34 +613,153 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
-          let clip=this.displayAudioClip;
-          this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
-            next: ab => {
-              this.liveLevelDisplayState=LiveLevelState.READY;
-              let fabDh = null;
-              if(ab) {
-                if (rf) {
-                  fabDh = new AudioDataHolder(ab);
-                  this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+          if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType){
+            // Fetch chunked indexed db audio buffer
+            let nextIab: IndexedDbAudioBuffer | null = null;
+            if(!this._persistentAudioStorageTarget){
+              throw Error('Error: Persistent storage target not set.');
+            }else {
+              console.debug("Fetch audio and store to indexed db...");
+              this.audioFetchSubscription = this.recFileService.fetchRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
+                next: (iab) => {
+                  //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
+                  nextIab = iab;
+                },
+                complete: () => {
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  let fabDh = null;
+                  if (nextIab) {
+                    if (rf ) {
+                      fabDh = new AudioDataHolder(null, null, nextIab);
+                      this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                    }
+                  } else {
+                    // Should actually be handled by the error resolver
+                    this.statusMsg = 'Recording file could not be loaded.'
+                    this.statusAlertType = 'error'
+                  }
+                  if (fabDh) {
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    this.displayAudioClip = new AudioClip(fabDh);
+                  }
+                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  this.showRecording();
+                },
+                error: err => {
+                  console.error("Could not load recording file from server: " + err);
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  this.statusMsg = 'Recording file could not be loaded: ' + err;
+                  this.statusAlertType = 'error';
+                  this.changeDetectorRef.detectChanges();
                 }
-              } else {
-                console.error('Recording file could not be loaded.');
-                this.statusMsg = 'Recording file could not be loaded.';
+              });
+            }
+          }else if(AudioStorageType.NET===this._clientAudioStorageType){
+            // Fetch chunked audio buffer from network
+            let nextNetAb: NetAudioBuffer | null = null;
+
+            //console.debug("Fetch chunked audio from network");
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (netAb) => {
+                //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
+                nextNetAb = netAb;
+              },
+              complete: () => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextNetAb) {
+                  if (rf) {
+                    fabDh = new AudioDataHolder(null, null, null,nextNetAb);
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
+                  this.displayAudioClip = new AudioClip(fabDh);
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
+                this.changeDetectorRef.detectChanges();
+              }
+            });
+
+          }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
+            // Fetch chunked array audio buffer
+            let nextAab: ArrayAudioBuffer | null = null;
+            console.debug("Fetch audio and store to (chunked) array buffer...");
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (aab) => {
+                nextAab = aab;
+              },
+              complete: () => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextAab) {
+                  if (rf ) {
+                    fabDh = new AudioDataHolder(null, nextAab);
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
                 this.statusAlertType = 'error';
               }
-              if (fabDh){
-                // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
-                this.displayAudioClip = new AudioClip(fabDh);
-                //console.debug("set recording file: display audio clip from fetched audio buffer");
+            });
+
+          } else {
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: ab => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (ab) {
+                  if (rf) {
+                    fabDh = new AudioDataHolder(ab);
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  console.error('Recording file could not be loaded.');
+                  this.statusMsg = 'Recording file could not be loaded.';
+                  this.statusAlertType = 'error';
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                  //console.debug("set recording file: display audio clip from fetched audio buffer");
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip;
+                this.showRecording();
+              }, error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
               }
-              this.controlAudioPlayer.audioClip =this.displayAudioClip;
-              this.showRecording();
-            }, error: err => {
-              console.error("Could not load recording file from server: " + err);
-              this.liveLevelDisplayState=LiveLevelState.READY;
-              this.statusMsg = 'Recording file could not be loaded: ' + err;
-              this.statusAlertType = 'error';
-            }})
+            })
+          }
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.';
           this.statusAlertType = 'error';
@@ -794,7 +914,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             if(burl) {
               //nab = this.ac.netAudioBuffer(burl);
               let rUUID=this.ac.recUUID;
-              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+              //nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+
+              let sr = this.ac.currentSampleRate;
+              //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+
             }
           }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
@@ -815,6 +940,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }
 
       if(this._recordingFile) {
+        //this._recordingFile.samplerate=this.ac.currentSampleRate;
         // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
         let rf = this._recordingFile;
         RecordingFileUtils.setAudioData(rf,adh);
