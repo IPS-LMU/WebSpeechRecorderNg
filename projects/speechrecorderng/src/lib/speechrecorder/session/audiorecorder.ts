@@ -70,7 +70,7 @@ export class Item {
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
          [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [state]="liveLevelDisplayState"
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
@@ -446,6 +446,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   selectRecordingFile(rf:RecordingFile){
     this.liveLevelDisplayState=LiveLevelState.READY;
+    this.keepLiveLevel=false;
     this.displayRecFile=rf;
   }
 
@@ -908,6 +909,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
+          this.keepLiveLevel=true;
           if(this._session && this._displayRecFile) {
             let rf=this._displayRecFile;
             let burl=this.recFileService.audioFileUrl(this._session?.project, rf);
