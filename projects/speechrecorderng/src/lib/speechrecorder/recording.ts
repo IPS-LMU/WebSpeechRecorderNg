@@ -32,7 +32,7 @@ export class RecordingFile {
   audioDataHolder:AudioDataHolder|null=null;
   session:string|number|null=null;
   frames:number|null=null;
-  sampleRate:number|null=null;
+  samplerate:number|null=null;
   timeLength:number|null=null;
   editSampleRate:number|null=null;
   editStartFrame:number|null=null

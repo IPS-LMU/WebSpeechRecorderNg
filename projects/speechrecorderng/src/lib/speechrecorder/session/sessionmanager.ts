@@ -1089,7 +1089,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           rf.serverPersisted=true;
           //console.debug("addRecordingFileByDescriptor(): sr: "+rfd.samplerate+", frames: "+rfd.frames);
           if(rfd.samplerate && rfd.frames){
-            rf.sampleRate=rfd.samplerate;
+            rf.samplerate=rfd.samplerate;
             rf.frames=rfd.frames;
           }
           this.items.addSprRecFile(it,rf);
