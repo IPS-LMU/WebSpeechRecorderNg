@@ -181,7 +181,7 @@ export abstract class BasicRecorder {
   protected audioFetchSubscription:Subscription|null=null;
 
   liveLevelDisplayState:LiveLevelState=LiveLevelState.READY;
-
+  keepLiveLevel:boolean=false;
   private calcBufferInfosSubscr:Subscription|null=null;
 
   protected destroyed=false;
@@ -315,13 +315,15 @@ export abstract class BasicRecorder {
     if (this.displayAudioClip) {
       let dap=this.displayAudioClip;
       let adh=dap.audioDataHolder;
-      if(adh) {
-        this.liveLevelDisplayState=LiveLevelState.RENDERING;
-        this.calcBufferInfosSubscr=this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
-          dap.levelInfos = levelInfos;
-          this.liveLevelDisplayState=LiveLevelState.READY;
-          this.changeDetectorRef.detectChanges();
-        });
+      if(adh){
+        if(!this.keepLiveLevel) {
+          this.liveLevelDisplayState = LiveLevelState.RENDERING;
+          this.calcBufferInfosSubscr = this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
+            dap.levelInfos = levelInfos;
+            this.liveLevelDisplayState = LiveLevelState.READY;
+            this.changeDetectorRef.detectChanges();
+          });
+        }
       }
       this.playStartAction.disabled = false;
 

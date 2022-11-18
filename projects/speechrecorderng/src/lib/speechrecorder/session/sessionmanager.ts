@@ -71,7 +71,7 @@ export const enum Status {
 
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
@@ -435,6 +435,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }else{
       throw new Error("Internal error: Prompt index not found")
     }
+    this.keepLiveLevel=false;
     this.applyItem();
   }
 
@@ -833,10 +834,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       }
     }
     // console.debug("applyItem(): temporary: "+temporary);
-    // if (!temporary) {
+    //if (!temporary) {
     //   console.debug("applyItem(): Call showRecording(): displayAudioClip: "+this.displayAudioClip);
-    //   this.showRecording();
-    // }
+      //this.showRecording();
+    //}
     this.updateStartActionDisableState()
     this.updateNavigationActions()
   }
@@ -851,7 +852,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   isRecording(): boolean {
-    return (this.status === Status.PRE_RECORDING || this.status === Status.RECORDING);
+    return (this.status === Status.PRE_RECORDING || this.status === Status.RECORDING || this.status === Status.POST_REC_STOP || this.status === Status.POST_REC_PAUSE || this.status===Status.STOPPING_STOP);
   }
 
   isActive(): boolean{
@@ -1125,6 +1126,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
+          this.keepLiveLevel=true;
           let burl:string|null=null;
           if(this._session) {
             if (this._displayRecFile) {
