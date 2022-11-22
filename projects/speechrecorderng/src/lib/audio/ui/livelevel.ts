@@ -60,6 +60,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   dbValues: Array<Array<number>>;
   peakDbLvl = MIN_DB_LEVEL;
   private _streamingMode = false;
+  private _streamingFrameLength=0;
   private _staticLevelInfos: LevelInfos | null = null;
   private _playFramePosition: number|null=null;
   private _state:State|null=null;
@@ -162,6 +163,8 @@ export class LevelBar implements LevelListener,AfterViewInit {
     if (this._streamingMode) {
       let dbVals = levelInfos.powerLevelsDB();
       let peakDBVal = levelInfos.powerLevelDB();
+      this._streamingFrameLength+=levelInfos.frameLength;
+      //console.debug("Update level info frameLength: "+levelInfos.frameLength);
       if (this.peakDbLvl < peakDBVal) {
         this.peakDbLvl = peakDBVal;
         this.changeDetectorRef.detectChanges();
@@ -205,6 +208,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   reset() {
     this.peakDbLvl = MIN_DB_LEVEL;
     this.dbValues = new Array<Array<number>>();
+    this._streamingFrameLength=0;
     this.layout();
     this.drawAll();
     this.drawPlayPosition();
@@ -361,6 +365,12 @@ export class LevelBar implements LevelListener,AfterViewInit {
       let pixelsPerBuffer = LINE_DISTANCE + LINE_WIDTH;
 
       return framesPerBuffer / pixelsPerBuffer;
+    }else{
+      if(this.dbValues && this.dbValues.length>0) {
+        return this._streamingFrameLength / this.dbValues.length;
+      }else{
+        return null;
+      }
     }
     return null;
   }

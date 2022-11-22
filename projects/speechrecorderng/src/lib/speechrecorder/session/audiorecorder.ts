@@ -1,7 +1,7 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {RecordingFile, RecordingFileUtils} from '../recording'
+import {RecordingFile, RecordingFileUtils, SprRecordingFile} from '../recording'
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
   AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
@@ -601,13 +601,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(adh) {
         this.displayAudioClip = new AudioClip(adh);
-        console.debug(" set recording file: display audio clip set");
+        //console.debug(" set recording file: display audio clip set");
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
         this.showRecording();
       }else {
         // clear for now ...
         this.displayAudioClip = null;
-        console.debug("set recording file: display audio clip null");
+        //console.debug("set recording file: display audio clip null");
         this.controlAudioPlayer.audioClip = null;
 
         if (this._controlAudioPlayer && this._session) {
@@ -792,7 +792,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   isRecording(): boolean {
-    return (this.status === Status.RECORDING);
+    return (this.status === Status.RECORDING || this.status===Status.STOPPING_STOP);
   }
 
   isActive(): boolean{
@@ -823,40 +823,30 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.updateNavigationActions();
   }
 
-  opened() {
-    if(this.ac) {
-      this.ac.start();
-    }
-  }
-
   started() {
     this.status = Status.RECORDING;
     super.started();
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
-    if(!this.rfUuid){
-      this.rfUuid=UUID.generate()
-    }
     let sessId: string | number = 0;
     if(this._session){
       sessId=this._session.sessionId;
     }
-    let rf = new RecordingFile(this.rfUuid,sessId,null);
-    rf._startedAsDateObj=this.startedDate;
-    if(rf._startedAsDateObj) {
-      rf.startedDate = rf._startedAsDateObj.toString();
+
+    if(this.rfUuid) {
+      let rf = new RecordingFile(this.rfUuid, sessId, null);
+      rf._startedAsDateObj = this.startedDate;
+      if (rf._startedAsDateObj) {
+        rf.startedDate = rf._startedAsDateObj.toString();
+      }
+      this._recordingFile = rf;
     }
-
-    this._recordingFile=rf;
-
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
-
-
     this.transportActions.stopAction.disabled = false;
   }
 
@@ -909,21 +899,33 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
+
           this.keepLiveLevel=true;
-          if(this._session && this._displayRecFile) {
-            let rf=this._displayRecFile;
-            let burl=this.recFileService.audioFileUrl(this._session?.project, rf);
-            if(burl) {
-              //nab = this.ac.netAudioBuffer(burl);
-              let rUUID=this.ac.recUUID;
-              //nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, this.ac.currentSampleRate, AudioCapture.BUFFER_SIZE, this.ac.framesRecorded,rUUID);
+          let rUUID:string|null=null;
+            let burl:string|null=null;
+            if(this._session) {
+              if (this._recordingFile) {
 
-              let sr = this.ac.currentSampleRate;
-              //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
-
+                let rf = this._recordingFile;
+                rf.frames=this.ac.framesRecorded;
+                rUUID=rf.uuid;
+                //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
+                burl = this.recFileService.audioFileUrl(this._session?.project, rf);
+              } else if (this.session?.project) {
+                if(this.ac.recUUID) {
+                  rUUID=this.ac.recUUID;
+                  burl = this.recFileService.audioFileUrlByUUID(this.session.project, this.session.sessionId, rUUID);
+                }
+              }else{
+                console.error("Could not create net audio buffer.");
+              }
+              if (burl) {
+                let sr = this.ac.currentSampleRate;
+                //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+                nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+              }
             }
-          }
+
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
           iab = this.ac.inddbAudioBufferArray();
         } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {

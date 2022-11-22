@@ -131,6 +131,9 @@ export class RecordingFile {
       static setAudioData(rf:RecordingFile,audioDataHolder:AudioDataHolder|null){
           rf.audioDataHolder=audioDataHolder;
           if(audioDataHolder) {
+            if(rf.samplerate==null){
+              rf.samplerate=audioDataHolder.sampleRate;
+            }
             if(rf.frames==null) {
               rf.frames = audioDataHolder.frameLen;
             }

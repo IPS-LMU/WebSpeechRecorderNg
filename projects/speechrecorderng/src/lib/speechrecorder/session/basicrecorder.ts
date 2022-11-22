@@ -561,15 +561,25 @@ export abstract class BasicRecorder {
   }
 
   startItem() {
+    this.rfUuid = UUID.generate();
+    if(this.ac) {
+      this.ac.recUUID = this.rfUuid;
+    }
     this.startedDate=null;
     this.enableWakeLockCond();
-    this.rfUuid=UUID.generate();
+    //this.rfUuid=UUID.generate();
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
   }
 
+  opened() {
+    if(this.ac) {
+      this.ac.start();
+    }
+  }
+
   started() {
-    //this.enableWakeLockCond();
+
     if(!this.startedDate) {
       this.startedDate=new Date();
     }

@@ -665,6 +665,11 @@ export class RecordingService {
     return url;
   }
 
+  audioFileUrlByUUID(projectName: string, session:string|number,uuid:string):string|null {
+    let url = this.audioFileUrlById(projectName, session, uuid);
+    return url;
+  }
+
   private fetchSprAudiofile(projectName: string, sessId: string | number, itemcode: string,version:number): Observable<HttpResponse<ArrayBuffer>> {
     let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);
     let encItemcode=encodeURIComponent(itemcode);

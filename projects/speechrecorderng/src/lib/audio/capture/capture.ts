@@ -107,7 +107,10 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
-  get recUUID(): string |undefined{
+  set recUUID(value: string|null) {
+    this._recUUID = value;
+  }
+  get recUUID(): string |null{
     return this._recUUID;
   }
   get audioStorageType(): AudioStorageType {
@@ -133,7 +136,7 @@ export class AudioCapture {
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
-  private _recUUID?:string;
+  private _recUUID:string|null=null;
   mediaStream: any;
   agcStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
@@ -161,7 +164,9 @@ export class AudioCapture {
   }
 
   private initData() {
-    this._recUUID=UUID.generate();
+    if(!this._recUUID) {
+      this._recUUID = UUID.generate();
+    }
     this.persistError=null;
     console.info("Audio capture initialize storage for type: "+this._audioStorageType);
     if(AudioStorageType.PERSISTTODB === this._audioStorageType && this._persistentAudioStorageTarget && this._recUUID) {
@@ -640,7 +645,7 @@ export class AudioCapture {
       this.inddbAudioBuffer=null;
     }
     if (this.listener && (this.persistError || this.persisted)) {
-      console.debug("Stopped by stop() method call");
+      //console.debug("Stopped by stop() method call");
       this.listener.stopped();
     }
   }

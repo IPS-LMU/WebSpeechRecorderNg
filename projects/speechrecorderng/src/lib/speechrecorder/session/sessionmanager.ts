@@ -919,15 +919,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.updateNavigationActions();
   }
 
-  opened() {
-    if(this.ac) {
-      this.ac.start();
-    }
-  }
-
   started() {
     let ic = this.promptItem.itemcode;
     let rf=null;
+
     if (this._session && ic) {
       let sessId: string | number = this._session.sessionId;
       let cpIdx = this.promptIndex;
@@ -937,7 +932,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           it.recs = new Array<SprRecordingFile>();
         }
         rf = new SprRecordingFile(sessId, ic, it.recs.length,null);
-
+        rf.uuid=this.rfUuid;
         //it.recs.push(rf);
         this.items.addSprRecFile(it,rf);
         this.items.currentRecordingFile=rf;
@@ -946,6 +941,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this._recordingFile = rf;
     this.status = Status.PRE_RECORDING;
     super.started();
+
     this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session) {
       if (this._session.status === "LOADED") {
