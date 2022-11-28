@@ -47,6 +47,7 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         private _stopAction:Action<void>;
         bufSize:number;
         context:AudioContext;
+        ready=false;
         listener:AudioPlayerListener;
         _audioClip:AudioClip|null=null;
         _audioBuffer:AudioBuffer | null=null;
@@ -147,14 +148,14 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
            this._inddbAudioBuffer=null;
            this._netAudioBuffer=null;
             if (audioBuffer && this.context) {
-                this._startAction.disabled = false;
-                this._startSelectionAction.disabled=this.startSelectionDisabled()
+              this.ready=true;
+              this.updateStartActions();
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
             }else{
-                this._startAction.disabled = true;
-                this._startSelectionAction.disabled=true
+              this.ready=false;
+              this.updateStartActions();
                 if(this.listener){
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
                 }
@@ -166,14 +167,15 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
 
         private _loadSourceWorkletAndInitStart(){
           AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
-            this._startAction.disabled = false;
-            this._startSelectionAction.disabled=this.startSelectionDisabled()
+            console.debug("Player ready. ( by Player::_loadSourceWorkletAndInitStart()");
+            this.ready=true;
+            this.updateStartActions();
             if(this.listener){
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
             }
           }).catch((error: any)=>{
-            this._startAction.disabled = true;
-            this._startSelectionAction.disabled=true
+            this.ready=false;
+             this.updateStartActions();
             if(this.listener){
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
             }
@@ -191,8 +193,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         if (arrayAudioBuffer && this.context) {
           this._loadSourceWorkletAndInitStart();
         }else{
-          this._startAction.disabled = true;
-          this._startSelectionAction.disabled=true
+          this.ready=false;
+          this.updateStartActions();
           if(this.listener){
             this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
           }
@@ -212,8 +214,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         if (inddbAudioBuffer && this.context) {
           this._loadSourceWorkletAndInitStart();
         }else{
-          this._startAction.disabled = true;
-          this._startSelectionAction.disabled=true
+          this.ready=false;
+          this.updateStartActions();
           if(this.listener){
             this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
           }
@@ -233,8 +235,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         if (netAudioBuffer && this.context) {
           this._loadSourceWorkletAndInitStart();
         }else{
-          this._startAction.disabled = true;
-          this._startSelectionAction.disabled=true
+          this.ready=false;
+          this.updateStartActions();
           if(this.listener){
             this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
           }
@@ -264,6 +266,7 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             this.sourceAudioWorkletNode.onended = () => this.onended();
             this.running = true;
             this.sourceAudioWorkletNode.start();
+            console.debug("Playback start action enabled. ( by Player::_startAudioSourceWorkletNode()");
             this._startAction.disabled = true;
             this._startSelectionAction.disabled = true
             this._stopAction.disabled = false;
@@ -312,6 +315,29 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
                   this._startAudioSourceWorkletNode();
                 }
             }
+        }
+
+        updateStartActions(){
+
+          if(this.ready){
+            if(this._audioBuffer || this._arrayAudioBuffer || this._inddbAudioBuffer){
+              this._startAction.disabled=false;
+              this._startSelectionAction.disabled=this.startSelectionDisabled();
+            }else{
+              if(this._netAudioBuffer){
+                this._netAudioBuffer.onReady=()=>{
+                  this._startAction.disabled=false;
+                  this._startSelectionAction.disabled=this.startSelectionDisabled();
+                }
+              }
+            }
+          }else{
+            this._startAction.disabled=true;
+            this._startSelectionAction.disabled=true;
+            if(this._netAudioBuffer) {
+              this._netAudioBuffer.onReady = null;
+            }
+          }
         }
 
         startSelectionDisabled(){

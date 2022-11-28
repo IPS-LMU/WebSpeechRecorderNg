@@ -18,19 +18,25 @@ import {RecordingService} from "../recordings/recordings.service";
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 
-import {Upload, UploaderStatus, UploaderStatusChangeEvent} from "../../net/uploader";
+import {Upload, UploaderStatus, UploaderStatusChangeEvent, UploadHolder} from "../../net/uploader";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {ProjectService} from "../project/project.service";
 import {UUID} from "../../utils/utils";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
-import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
+import {
+  BasicRecorder,
+  ChunkAudioBufferReceiver,
+  LEVEL_BAR_INTERVALL_SECONDS,
+  MAX_RECORDING_TIME_MS,
+  RECFILE_API_CTX
+} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
-import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 
 export const enum Status {
@@ -150,7 +156,7 @@ export class Item {
   }`
    ]
 })
-export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
+export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider,ChunkAudioBufferReceiver {
 
   _project:Project|undefined| null=null;
   @Input() projectName:string|undefined|null=null;
@@ -487,7 +493,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }, 50);
     } else if (e.type == EventType.STOPPED || e.type == EventType.ENDED) {
       window.clearInterval(this.updateTimerId);
-      // this.audioSignal.playFramePosition = this.ap.playPositionFrames;
+      console.debug("Enable play start action (by player events stopped or ended): "+(!(this.displayRecFile)));
       this.playStartAction.disabled = (!(this.displayRecFile));
 
     }
@@ -899,7 +905,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
-
+          this.playStartAction.disabled = true;
           this.keepLiveLevel=true;
           let rUUID:string|null=null;
             let burl:string|null=null;
@@ -923,6 +929,16 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 let sr = this.ac.currentSampleRate;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
                 nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+
+                if(this.uploadSet){
+                  let rp=new ReadyProvider();
+                  nab.readyProvider=rp;
+                  this.uploadSet.onDone=(uploadSet)=>{
+                    console.debug("upload set on done: Call ready provider.ready");
+                    rp.ready();
+                  }
+                }
+
               }
             }
 
@@ -1013,8 +1029,14 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     let rf=this._recordingFile;
+
+    // The upload holder is required to add the upload now to the upload set. The real upload is created async in postrecording and the upload set is already complete at that time.
+    let ulh=new UploadHolder();
+    if(this.uploadSet){
+      this.uploadSet.add(ulh);
+    }
     ww.writeAsync(audioBuffer, (wavFile) => {
-      this.postRecording(wavFile, recUrl,rf);
+      this.postRecording(wavFile, recUrl,rf,ulh);
       this.processingRecording = false;
     });
   }

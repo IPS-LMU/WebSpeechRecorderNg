@@ -261,6 +261,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       }
     }
     if(audioData) {
+      console.debug("Play start action (by AudioDisplayPlayer::set audioClip) disabled: "+(!this.ap));
       this.playStartAction.disabled =(!this.ap)
       this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{

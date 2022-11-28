@@ -12,7 +12,7 @@ import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
-import {Upload} from "../../net/uploader";
+import {Upload, UploadHolder, UploadSet} from "../../net/uploader";
 import {ChangeDetectorRef, Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
@@ -171,6 +171,8 @@ export abstract class BasicRecorder {
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
+  protected uploadSet:UploadSet|null=null;
+
   audioSignalCollapsed = true;
 
   protected streamLevelMeasure: StreamLevelMeasure;
@@ -324,9 +326,12 @@ export abstract class BasicRecorder {
             this.changeDetectorRef.detectChanges();
           });
         }
+        adh.onReady=()=>{
+          console.debug("Audio data holder ready. Enable playback.")
+          this.playStartAction.disabled = false;
+        }
       }
-      this.playStartAction.disabled = false;
-
+      //this.playStartAction.disabled = false;
     } else {
 
       this.playStartAction.disabled = true;
@@ -568,6 +573,7 @@ export abstract class BasicRecorder {
     this.startedDate=null;
     this.enableWakeLockCond();
     //this.rfUuid=UUID.generate();
+    this.uploadSet=null;
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
   }
@@ -586,14 +592,18 @@ export abstract class BasicRecorder {
     this.transportActions.startAction.disabled = true;
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null) {
+  postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null,uploadHolder?:UploadHolder) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
     let ul = new Upload(wavBlob, recUrl,rf);
+    if(uploadHolder){
+      uploadHolder.upload=ul;
+    }
     this.uploader.queueUpload(ul);
   }
 
   postAudioStreamStart(): void {
     if(this.rfUuid) {
+      this.uploadSet=new UploadSet();
       let apiEndPoint = '';
       if (this.config && this.config.apiEndPoint) {
         apiEndPoint = this.config.apiEndPoint;
@@ -612,6 +622,7 @@ export abstract class BasicRecorder {
       fd.set('startedDate',this.startedDate.toJSON());
 
       let ul = new Upload(fd, recUrl);
+      this.uploadSet.add(ul);
       this.uploader.queueUpload(ul);
     }else{
       console.error("Recording file UUID not set!")
@@ -641,6 +652,13 @@ protected sessionsBaseUrl():string {
       fd.set('uuid',this.rfUuid);
       fd.set('chunkCount',chunkCount.toString());
       let ul = new Upload(fd, recUrl,this._recordingFile);
+      if(this.uploadSet){
+        this.uploadSet.onDone=(uplSet:UploadSet)=>{
+          console.debug("Upload set done.");
+        }
+        this.uploadSet.add(ul);
+        this.uploadSet.complete();
+      }
       this.uploader.queueUpload(ul);
       console.debug("Queued for upload: "+this._recordingFile);
     }else{

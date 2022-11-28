@@ -126,6 +126,7 @@ export class AudioDisplay implements OnInit,AfterViewInit {
   set audioData(audioData: AudioDataHolder){
       this.audioDisplayScrollPane.audioData = audioData;
       if(this.playStartAction) {
+        console.debug("Play start action (by AudioDisplay::set audioData) disabled: "+(audioData==null));
           this.playStartAction.disabled = (audioData == null)
       }
   }

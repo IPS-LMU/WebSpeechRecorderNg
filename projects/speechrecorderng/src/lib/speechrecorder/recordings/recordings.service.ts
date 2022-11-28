@@ -13,7 +13,7 @@ import {EMPTY, expand, map, Observable} from "rxjs";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
-import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
 import {AudioCapture} from "../../audio/capture/capture";
 import {WavReader} from "../../audio/impl/wavreader";
 import {PCMAudioFormat} from "../../audio/format";
@@ -363,6 +363,9 @@ export class RecordingService {
                     }
 
                     let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, fl,frameLength);
+                    let rp=new ReadyProvider();
+                    nab.readyProvider=rp;
+                    rp.ready();
                     if (nab.frameLen < frameLength) {
                       //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
                       nab.seal();

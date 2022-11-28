@@ -3,7 +3,7 @@ import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/pla
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
 import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from '../recording'
-import {Upload} from '../../net/uploader';
+import {Upload, UploadHolder} from '../../net/uploader';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -40,7 +40,7 @@ import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {AudioStorageType} from "../project/project";
-import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -1122,6 +1122,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let ad:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
+          this.playStartAction.disabled = true;
           this.keepLiveLevel=true;
           let burl:string|null=null;
           if(this._session) {
@@ -1141,6 +1142,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               let sr = this.ac.currentSampleRate;
               //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
               nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+              if(this.uploadSet){
+                let rp=new ReadyProvider();
+                nab.readyProvider=rp;
+                this.uploadSet.onDone=(uploadSet)=>{
+                  console.debug("upload set on done: Call ready provider.ready");
+                  rp.ready();
+                }
+              }
             }
           }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
@@ -1255,18 +1264,24 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let ww = new WavWriter();
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
+    // The upload holder is required to add the upload now to the upload set. The real upload is created async in postrecording and the upload set is already complete at that time.
+    let ulh=new UploadHolder();
+    if(this.uploadSet){
+      this.uploadSet.add(ulh);
+    }
+
     ww.writeAsync(audioBuffer, (wavFile) => {
-      this.postRecording(wavFile, recUrl,null);
+      this.postRecording(wavFile, recUrl,null,ulh);
       this.processingRecording = false
     });
   }
 
 
-  postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null) {
-    let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl,rf);
-    this.uploader.queueUpload(ul);
-  }
+  // postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null) {
+  //   let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
+  //   let ul = new Upload(wavBlob, recUrl,rf);
+  //   this.uploader.queueUpload(ul);
+  // }
 
   stop() {
     if(this.ac!=null){

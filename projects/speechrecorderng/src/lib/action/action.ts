@@ -58,6 +58,7 @@
         }
 
         set disabled(disabled:boolean) {
+          console.debug("Action: "+this._name+" disabled: "+disabled)
             this._disabled = disabled;
             for (let c of this.controls) {
                 c.disabled = this._disabled;

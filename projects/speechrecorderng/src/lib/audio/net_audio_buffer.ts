@@ -4,8 +4,39 @@ import {RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
 
+export class ReadyProvider{
+  set onReady(value: (() => void) | null) {
+    console.debug("ReadyProvider.set onReady(): "+value);
+    this._onReady = value;
+    if(this._onReady && this._ready){
+      console.debug("Ready provider: Call onReady() by set onReady() method");
+      this._onReady();
+    }
+  }
+  private _onReady:(()=>void)|null=null;
+  private _ready=false;
+
+  ready(){
+    console.debug("ReadyProvider.ready()");
+    if(!this._ready && this._onReady){
+      console.debug("Ready provider: Call onReady() by ready() method");
+      this._onReady();
+    }
+    this._ready=true;
+   }
+}
 
 export class NetAudioBuffer {
+  get readyProvider(): ReadyProvider | null {
+    return this._readyProvider;
+  }
+
+  set readyProvider(value: ReadyProvider | null) {
+    this._readyProvider = value;
+    if(this._readyProvider){
+      this._readyProvider.onReady=this._onReady;
+    }
+  }
   get orgFetchChunkFrameLen(): number {
     return this._orgFetchChunkFrameLen;
   }
@@ -28,6 +59,9 @@ export class NetAudioBuffer {
 
   private _chunkCount=0;
   private _sealed=false;
+
+  private _onReady:(()=>void)|null=null;
+  private _readyProvider:ReadyProvider|null=null;
 
 
   constructor(protected _audioContext:AudioContext,
@@ -66,6 +100,14 @@ export class NetAudioBuffer {
     return this._chunkCount;
   }
 
+  set onReady(onReady:(()=>void)|null){
+    this._onReady=onReady;
+    console.debug("Nab: Set onReady")
+    if(this._readyProvider){
+      this._readyProvider.onReady=onReady;
+    }
+  }
+
   releaseAudioData():Observable<void>{
     return new Observable<void>((subscriber)=>{
         // nothing to remove
@@ -80,8 +122,12 @@ export class NetAudioBuffer {
 
     static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
     // TODO calculate frameLen from RecordingFile object. (Audio buffer might have different sample rate !!)
-      return new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
-    }
+      let nab=new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
+      let rp=new ReadyProvider();
+      nab.readyProvider=rp;
+      rp.ready();
+      return nab;
+  }
 }
 
 export class NetAudioChunk{

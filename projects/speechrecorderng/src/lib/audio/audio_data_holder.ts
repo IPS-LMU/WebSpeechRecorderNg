@@ -84,6 +84,16 @@ export class AudioDataHolder{
 
   }
 
+  set onReady(onReady:(()=>void)|null){
+    if(this._netAudioBuffer){
+      this._netAudioBuffer.onReady=onReady;
+    }else{
+      if(onReady){
+        onReady();
+      }
+    }
+  }
+
   get sampleRate(): number {
     return this._sampleRate;
   }

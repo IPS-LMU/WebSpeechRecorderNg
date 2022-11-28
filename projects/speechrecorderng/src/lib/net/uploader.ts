@@ -51,12 +51,17 @@
 
     export class Upload {
 
+      get serverPersistable(): ServerPersistable | null {
+        return this._serverPersistable;
+      }
+
         private _data:Blob|FormData;
         private _url:string;
 
         status: UploadStatus;
+        onDone:((upload:Upload)=>void) | null=null;
 
-        constructor(blob:Blob|FormData, url:string,private serverPersistable:ServerPersistable|null=null) {
+        constructor(blob:Blob|FormData, url:string,private _serverPersistable:ServerPersistable|null=null) {
             this._data = blob;
             this._url = url;
             this.status = UploadStatus.IDLE;
@@ -73,13 +78,18 @@
         done(){
             this.status=UploadStatus.DONE;
             //console.debug("Single upload done.");
-            if(this.serverPersistable) {
-              this.serverPersistable.serverPersisted = true;
+            if(this._serverPersistable) {
+              this._serverPersistable.serverPersisted = true;
               //console.debug("Single upload set server persisted: "+this.serverPersistable);
             }else{
               //console.debug("Server persistable not set.");
             }
+            if(this.onDone){
+              this.onDone(this);
+            }
         }
+
+
 
       public toString = () : string => {
         let s=`Upload: Status: ${this.status}, URL: ${this._url}`;
@@ -89,6 +99,110 @@
            // TODO (iterate through parts ??)
         }
         return s;
+      }
+    }
+
+    export class UploadHolder{
+
+      onUploadSet:((upload:Upload)=>void)|null=null;
+
+      get upload(): Upload | null {
+        return this._upload;
+      }
+
+      set upload(value: Upload | null) {
+        this._upload = value;
+        if(this._upload && this.onUploadSet){
+          this.onUploadSet(this._upload);
+        }
+      }
+      private _upload:Upload|null=null;
+    }
+
+    export class UploadSet{
+
+      private uploads: Array<Upload|UploadHolder>=new Array<Upload|UploadHolder>();
+      private _complete=false;
+
+      private _onDone:((uploadSet:UploadSet)=>void)|null=null;
+
+      add(upload:Upload|UploadHolder){
+        if(this._complete) {
+          throw new Error('Cannot add upload to upload set. Upload set already complete.')
+        }
+        if(upload instanceof UploadHolder){
+          upload.onUploadSet=(upl)=>{
+            upl.onDone=()=>{
+              this.checkUploadStates();
+            }
+            this.checkUploadStates();
+          }
+        }
+        this.uploads.push(upload);
+
+      }
+
+      complete(){
+        // Mark set as complete
+        this._complete=true;
+
+        // add listeners to each upload
+        for(let upl of this.uploads){
+          if(upl instanceof Upload) {
+            upl.onDone = (upl: Upload) => {
+              this.checkUploadStates();
+            }
+          }else if(upl instanceof UploadHolder){
+            if(upl.upload){
+              upl.upload.onDone = (upl: Upload) => {
+                this.checkUploadStates();
+              }
+            }
+          }
+        }
+
+        // check immediately if already done
+        this.checkUploadStates();
+      }
+
+      set onDone(value: ((uploadSet: UploadSet) => void) | null) {
+        this._onDone = value;
+        this.checkUploadStates();
+      }
+
+      private checkUploadStates(){
+        console.debug("Check upload state...")
+        if(this._complete){
+
+          if(this._onDone) {
+            for(let upl of this.uploads){
+              if(upl instanceof Upload) {
+                if (UploadStatus.DONE !== upl.status) {
+                  // At least this upload is not yet done
+                  // Do nothing
+                  console.debug("Check upload state: Upload not done.")
+                  return;
+                }
+              }else if(upl instanceof UploadHolder){
+                if(upl.upload){
+                  if (UploadStatus.DONE !== upl.upload.status) {
+                    // At least this upload is not yet done
+                    // Do nothing
+                    console.debug("Check upload state: Upload (holder) not done.")
+                    return;
+                  }
+                }else{
+                  // The actual upload is not yet set
+                  console.debug("Check upload state: Upload (holder): upload not yet set.")
+                  return;
+                }
+              }
+            }
+            // set is complete and all upload parts are done, call done callback
+            console.debug("Check upload state: All done.")
+            this._onDone(this);
+          }
+        }
       }
     }
 
