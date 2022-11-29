@@ -8,6 +8,16 @@ import {AudioStorageType} from "../speechrecorder/project/project";
 import {NetAudioBuffer, NetAudioInputStream, NetRandomAccessAudioStream} from "./net_audio_buffer";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 
+export interface AudioSource {
+  get sampleRate(): number;
+  get numberOfChannels(): number;
+  get frameLen(): number;
+  sampleCounts(): number;
+  audioInputStream(): Float32ArrayInputStream | null;
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
+  releaseAudioData(): Observable<void>;
+}
+
 // TODO Ler all types implement an interface.
 // Question: Use JS protoype to extend HTML5 Audio API AudioBuffer or use a class wrapper?
 // export interface AudioBufferI{
