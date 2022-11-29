@@ -6,10 +6,10 @@ import {HttpErrorResponse} from "@angular/common/http";
 
 export class ReadyProvider{
   set onReady(value: (() => void) | null) {
-    console.debug("ReadyProvider.set onReady(): "+value);
+    //console.debug("ReadyProvider.set onReady(): "+value);
     this._onReady = value;
     if(this._onReady && this._ready){
-      console.debug("Ready provider: Call onReady() by set onReady() method");
+      //console.debug("Ready provider: Call onReady() by set onReady() method");
       this._onReady();
     }
   }
@@ -17,9 +17,9 @@ export class ReadyProvider{
   private _ready=false;
 
   ready(){
-    console.debug("ReadyProvider.ready()");
+    //console.debug("ReadyProvider.ready()");
     if(!this._ready && this._onReady){
-      console.debug("Ready provider: Call onReady() by ready() method");
+      //console.debug("Ready provider: Call onReady() by ready() method");
       this._onReady();
     }
     this._ready=true;
@@ -102,7 +102,7 @@ export class NetAudioBuffer {
 
   set onReady(onReady:(()=>void)|null){
     this._onReady=onReady;
-    console.debug("Nab: Set onReady")
+    //console.debug("Nab: Set onReady")
     if(this._readyProvider){
       this._readyProvider.onReady=onReady;
     }
@@ -121,7 +121,6 @@ export class NetAudioBuffer {
   }
 
     static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
-    // TODO calculate frameLen from RecordingFile object. (Audio buffer might have different sample rate !!)
       let nab=new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
       let rp=new ReadyProvider();
       nab.readyProvider=rp;

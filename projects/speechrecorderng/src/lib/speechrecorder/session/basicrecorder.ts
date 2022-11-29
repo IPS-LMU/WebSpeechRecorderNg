@@ -327,7 +327,7 @@ export abstract class BasicRecorder {
           });
         }
         adh.onReady=()=>{
-          console.debug("Audio data holder ready. Enable playback.")
+          //console.debug("Audio data holder ready. Enable playback.")
           this.playStartAction.disabled = false;
         }
       }
@@ -653,14 +653,11 @@ protected sessionsBaseUrl():string {
       fd.set('chunkCount',chunkCount.toString());
       let ul = new Upload(fd, recUrl,this._recordingFile);
       if(this.uploadSet){
-        this.uploadSet.onDone=(uplSet:UploadSet)=>{
-          console.debug("Upload set done.");
-        }
         this.uploadSet.add(ul);
         this.uploadSet.complete();
       }
       this.uploader.queueUpload(ul);
-      console.debug("Queued for upload: "+this._recordingFile);
+      //console.debug("Queued for upload: "+this._recordingFile);
     }else{
       console.error("Recording file UUID not set!")
     }

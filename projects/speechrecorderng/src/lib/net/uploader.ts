@@ -171,7 +171,7 @@
       }
 
       private checkUploadStates(){
-        console.debug("Check upload state...")
+        //console.debug("Check upload state...")
         if(this._complete){
 
           if(this._onDone) {
@@ -180,7 +180,7 @@
                 if (UploadStatus.DONE !== upl.status) {
                   // At least this upload is not yet done
                   // Do nothing
-                  console.debug("Check upload state: Upload not done.")
+                  //console.debug("Check upload state: Upload not done.")
                   return;
                 }
               }else if(upl instanceof UploadHolder){
@@ -188,18 +188,18 @@
                   if (UploadStatus.DONE !== upl.upload.status) {
                     // At least this upload is not yet done
                     // Do nothing
-                    console.debug("Check upload state: Upload (holder) not done.")
+                    //console.debug("Check upload state: Upload (holder) not done.")
                     return;
                   }
                 }else{
                   // The actual upload is not yet set
-                  console.debug("Check upload state: Upload (holder): upload not yet set.")
+                  //console.debug("Check upload state: Upload (holder): upload not yet set.")
                   return;
                 }
               }
             }
             // set is complete and all upload parts are done, call done callback
-            console.debug("Check upload state: All done.")
+            //console.debug("Check upload state: All done.")
             this._onDone(this);
           }
         }

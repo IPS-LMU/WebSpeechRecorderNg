@@ -1146,7 +1146,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 let rp=new ReadyProvider();
                 nab.readyProvider=rp;
                 this.uploadSet.onDone=(uploadSet)=>{
-                  console.debug("upload set on done: Call ready provider.ready");
+                  //console.debug("upload set on done: Call ready provider.ready");
                   rp.ready();
                 }
               }

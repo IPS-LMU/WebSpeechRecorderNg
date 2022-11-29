@@ -167,7 +167,7 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
 
         private _loadSourceWorkletAndInitStart(){
           AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
-            console.debug("Player ready. ( by Player::_loadSourceWorkletAndInitStart()");
+            //console.debug("Player ready. ( by Player::_loadSourceWorkletAndInitStart()");
             this.ready=true;
             this.updateStartActions();
             if(this.listener){
@@ -266,7 +266,7 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             this.sourceAudioWorkletNode.onended = () => this.onended();
             this.running = true;
             this.sourceAudioWorkletNode.start();
-            console.debug("Playback start action enabled. ( by Player::_startAudioSourceWorkletNode()");
+            //console.debug("Playback start action enabled. ( by Player::_startAudioSourceWorkletNode()");
             this._startAction.disabled = true;
             this._startSelectionAction.disabled = true
             this._stopAction.disabled = false;
