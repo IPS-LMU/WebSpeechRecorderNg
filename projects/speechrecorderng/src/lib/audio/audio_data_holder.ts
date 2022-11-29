@@ -9,6 +9,7 @@ import {NetAudioBuffer, NetAudioInputStream, NetRandomAccessAudioStream} from ".
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 
 export interface AudioSource {
+  get duration():number;
   get sampleRate(): number;
   get numberOfChannels(): number;
   get frameLen(): number;
@@ -16,6 +17,46 @@ export interface AudioSource {
   audioInputStream(): Float32ArrayInputStream | null;
   asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
   releaseAudioData(): Observable<void>;
+  set onReady(onReady:(()=>void)|null);
+}
+
+export class AudioBufferSource implements AudioSource{
+  private _duration:number;
+  constructor(private _audioBuffer:AudioBuffer) {
+    this._duration=this._audioBuffer.length/this._audioBuffer.sampleRate;
+  }
+
+  get audioBuffer(): AudioBuffer {
+    return this._audioBuffer;
+  }
+
+  get duration(): number {
+      return this._duration;
+    }
+    get sampleRate(): number {
+        return this.sampleRate;
+    }
+    get numberOfChannels(): number {
+        return this._audioBuffer.numberOfChannels;
+    }
+    get frameLen(): number {
+        return this._audioBuffer.length;
+    }
+    sampleCounts(): number {
+      return this._audioBuffer.numberOfChannels*this._audioBuffer.length;
+    }
+    audioInputStream(): Float32ArrayInputStream | null {
+        throw new Error("Method not implemented.");
+    }
+    asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
+        throw new Error("Method not implemented.");
+    }
+    releaseAudioData(): Observable<void> {
+        throw new Error("Method not implemented.");
+    }
+    set onReady(onReady: (() => void) | null) {
+        throw new Error("Method not implemented.");
+    }
 }
 
 // TODO Ler all types implement an interface.
@@ -39,6 +80,9 @@ export interface RandomAccessAudioStream{
 }
 
 export class AudioDataHolder{
+  get audioSource(): AudioSource | null {
+    return this._audioSource;
+  }
   get duration(): number {
     return this._duration;
   }
@@ -47,56 +91,19 @@ export class AudioDataHolder{
   private _sampleRate:number=0;
   private _frameLen:number=0;
   private _duration:number=0;
-  private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of the audio buffer types must be set!';
 
-  constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null,private _inddbAudioBuffer:IndexedDbAudioBuffer|null=null,private _netAudioBuffer:NetAudioBuffer|null=null,private recordingsService:RecordingService|null=null) {
-    let absSet=0;
-    if(this._buffer){
-      absSet++;
+  constructor(private _audioSource:AudioSource|null,private recordingsService:RecordingService|null=null) {
+    if(this._audioSource) {
+      this._numberOfChannels = this._audioSource.numberOfChannels;
+      this._sampleRate = this._audioSource.sampleRate;
+      this._frameLen = this._audioSource.frameLen;
+      this._duration = this._frameLen / this._sampleRate;
     }
-    if(this._arrayBuffer){
-      absSet++;
-    }
-    if(this._inddbAudioBuffer){
-      absSet++;
-    }
-    if(this._netAudioBuffer){
-      absSet++;
-    }
-
-    if(absSet===0) {
-      throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
-    }else if(absSet>1){
-      throw Error('Only one of the audio buffer types must be set!');
-    }
-
-      if (this._buffer) {
-        this._numberOfChannels = this._buffer.numberOfChannels;
-        this._sampleRate = this._buffer.sampleRate;
-        this._frameLen=this._buffer.length;
-        this._duration=this._frameLen/this._sampleRate;
-      } else if (this._arrayBuffer) {
-        this._numberOfChannels = this._arrayBuffer.channelCount;
-        this._sampleRate = this._arrayBuffer.sampleRate;
-        this._frameLen=this._arrayBuffer.frameLen;
-        this._duration=this._frameLen/this._sampleRate;
-      } else if (this._inddbAudioBuffer) {
-        this._numberOfChannels=this._inddbAudioBuffer.channelCount;
-        this._sampleRate=this._inddbAudioBuffer.sampleRate;
-        this._frameLen=this._inddbAudioBuffer.frameLen;
-        this._duration=this._frameLen/this._sampleRate;
-      }else if (this._netAudioBuffer) {
-        this._numberOfChannels=this._netAudioBuffer.channelCount;
-        this._sampleRate=this._netAudioBuffer.sampleRate;
-        this._frameLen=this._netAudioBuffer.frameLen;
-        this._duration=this._frameLen/this._sampleRate;
-      }
-
   }
 
   set onReady(onReady:(()=>void)|null){
-    if(this._netAudioBuffer){
-      this._netAudioBuffer.onReady=onReady;
+    if(this._audioSource instanceof  NetAudioBuffer){
+      this._audioSource.onReady=onReady;
     }else{
       if(onReady){
         onReady();
@@ -119,101 +126,96 @@ export class AudioDataHolder{
     return this._numberOfChannels*this._frameLen;
   }
 
-  // framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
-  //   return new Observable<number>(subscriber => {
-  //     if (this._buffer || this._arrayBuffer) {
-  //       // synchronous
-  //       let frsRead=this.frames(framePos,frameLen,bufs);
-  //       subscriber.next(frsRead);
-  //       subscriber.complete();
+  // randomAccessAudioStream():RandomAccessAudioStream{
+  //     if(this._buffer){
+  //       return new RandomAccessAudioBufferStream(this._buffer);
+  //     }else if(this._arrayBuffer){
+  //       return new ArrayAudioBufferRandomAccessStream(this._arrayBuffer);
   //     }else if(this._inddbAudioBuffer){
-  //       // async
-  //       //this._inddbAudioBuffer.framesObs(framePos,frameLen,bufs).subscribe(subscriber);
-  //       throw Error('Indexed audio buffer not supported.Please use randomAccessAudioStream()');
+  //       return new IndexedDbRandomAccessStream(this._inddbAudioBuffer);
+  //     }else if(this._netAudioBuffer){
+  //       return new NetRandomAccessAudioStream(this._netAudioBuffer);
+  //     }else {
+  //       throw Error('No audio buffer implementation set');
   //     }
-  //   });
-  //
   // }
 
-  randomAccessAudioStream():RandomAccessAudioStream{
-      if(this._buffer){
-        return new RandomAccessAudioBufferStream(this._buffer);
-      }else if(this._arrayBuffer){
-        return new ArrayAudioBufferRandomAccessStream(this._arrayBuffer);
-      }else if(this._inddbAudioBuffer){
-        return new IndexedDbRandomAccessStream(this._inddbAudioBuffer);
-      }else if(this._netAudioBuffer){
-        return new NetRandomAccessAudioStream(this._netAudioBuffer);
-      }else {
-        throw Error('No audio buffer implementation set');
-      }
-  }
 
-
-  private frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
-    let read=0;
-    if(this._buffer){
-      let toRead=frameLen;
-      if(this._buffer.length<framePos+frameLen){
-        toRead=this._buffer.length-framePos;
-      }
-      for(let ch=0;ch<bufs.length;ch++){
-        let chData=this._buffer.getChannelData(ch);
-        for(let i=0;i<toRead;i++){
-          bufs[ch][i]=chData[framePos+i];
-        }
-      }
-      read=toRead;
-    }else if(this._arrayBuffer){
-      read=this._arrayBuffer.frames(framePos,frameLen,bufs);
-    }
-    return read;
-  }
+  // private frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
+  //   let read=0;
+  //   if(this._buffer){
+  //     let toRead=frameLen;
+  //     if(this._buffer.length<framePos+frameLen){
+  //       toRead=this._buffer.length-framePos;
+  //     }
+  //     for(let ch=0;ch<bufs.length;ch++){
+  //       let chData=this._buffer.getChannelData(ch);
+  //       for(let i=0;i<toRead;i++){
+  //         bufs[ch][i]=chData[framePos+i];
+  //       }
+  //     }
+  //     read=toRead;
+  //   }else if(this._arrayBuffer){
+  //     read=this._arrayBuffer.frames(framePos,frameLen,bufs);
+  //   }
+  //   return read;
+  // }
 
   audioInputStream():Float32ArrayInputStream|null{
-    if(this._buffer){
-      return new AudioBufferInputStream(this._buffer);
+    // if(this._buffer){
+    //   return new AudioBufferInputStream(this._buffer);
+    // }
+    // if(this._arrayBuffer){
+    //   return new ArrayAudioBufferInputStream(this._arrayBuffer);
+    // }
+    // return null;
+    if(this._audioSource) {
+      return this._audioSource.audioInputStream();
+    }else{
+      return null;
     }
-    if(this._arrayBuffer){
-      return new ArrayAudioBufferInputStream(this._arrayBuffer);
-    }
-    return null;
   }
 
   asyncAudioInputStream(): AsyncFloat32ArrayInputStream|null{
-    if(this._inddbAudioBuffer){
-      return new IndexedDbAudioInputStream(this._inddbAudioBuffer);
-    }else if(this._netAudioBuffer){
-      return new NetAudioInputStream(this._netAudioBuffer);
+    // if(this._inddbAudioBuffer){
+    //   return new IndexedDbAudioInputStream(this._inddbAudioBuffer);
+    // }else if(this._netAudioBuffer){
+    //   return new NetAudioInputStream(this._netAudioBuffer);
+    // }
+    // return null;
+
+    if(this._audioSource) {
+      return this._audioSource.asyncAudioInputStream();
+    }else{
+      return null;
     }
-    return null;
   }
 
-  get buffer(): AudioBuffer | null {
-    return this._buffer;
-  }
-
-  get arrayBuffer(): ArrayAudioBuffer | null {
-    return this._arrayBuffer;
-  }
-
-  get inddbBuffer():IndexedDbAudioBuffer|null{
-    return this._inddbAudioBuffer;
-  }
-
-  get netBuffer():NetAudioBuffer|null{
-    return this._netAudioBuffer;
-  }
+  // get buffer(): AudioBuffer | null {
+  //   return this._buffer;
+  // }
+  //
+  // get arrayBuffer(): ArrayAudioBuffer | null {
+  //   return this._arrayBuffer;
+  // }
+  //
+  // get inddbBuffer():IndexedDbAudioBuffer|null{
+  //   return this._inddbAudioBuffer;
+  // }
+  //
+  // get netBuffer():NetAudioBuffer|null{
+  //   return this._netAudioBuffer;
+  // }
 
   releaseAudioData():Observable<void>{
     return new Observable<void>(subscriber => {
-      if (this._inddbAudioBuffer) {
-        this._inddbAudioBuffer.releaseAudioData().subscribe({
+      if (this._audioSource instanceof  IndexedDbAudioBuffer) {
+        this._audioSource.releaseAudioData().subscribe({
           next:()=>{
             subscriber.next();
           },
           complete:()=>{
-            this._inddbAudioBuffer=null;
+            this._audioSource=null;
             subscriber.complete();
           },error:(err)=>{
             subscriber.error(err);
@@ -221,42 +223,14 @@ export class AudioDataHolder{
         });
       }else{
         // Others have no persistent respectively async deletable storage, they should be finally removed by the GC
-        this._buffer=null;
-        this._arrayBuffer=null;
+        //this._buffer=null;
+        //this._arrayBuffer=null;
+        this._audioSource=null;
         subscriber.next();
         subscriber.complete();
       }
     });
   }
-
-  // getChannelData(channel:number,startFrame:number,length:number):Float32Array|null{
-  //   let reqBuf=null;
-  //   if(this._buffer){
-  //     let chData=this._buffer.getChannelData(channel);
-  //     reqBuf= chData.slice(startFrame,startFrame+length);
-  //   } else if(this._arrayBuffer){
-  //     reqBuf=new Float32Array(length);
-  //     let chunkCnt=this._arrayBuffer.chunkCount;
-  //     let ci=0;
-  //     let framePos=0;
-  //     while(ci<chunkCnt){
-  //       let chunkBuf=this._arrayBuffer.data[channel][ci];
-  //       let chunkBuflen=chunkBuf.length;
-  //       let offset=startFrame-framePos;
-  //       if(offset>=0){
-  //         let chunkBufEndPos=framePos+chunkBuflen;
-  //         let reqEndPos=startFrame+length;
-  //         if(framePos>reqEndPos){
-  //           break;
-  //         }else{
-  //           // TODO
-  //           let toCopy=length;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return  reqBuf;
-  // }
 
 }
 

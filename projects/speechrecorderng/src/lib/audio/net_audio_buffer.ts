@@ -1,6 +1,6 @@
 import {Observable} from "rxjs";
-import {AsyncFloat32ArrayInputStream} from "../io/stream";
-import {RandomAccessAudioStream} from "./audio_data_holder";
+import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
+import {AudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
 
@@ -26,7 +26,7 @@ export class ReadyProvider{
    }
 }
 
-export class NetAudioBuffer {
+export class NetAudioBuffer implements AudioSource{
   get readyProvider(): ReadyProvider | null {
     return this._readyProvider;
   }
@@ -126,6 +126,26 @@ export class NetAudioBuffer {
       nab.readyProvider=rp;
       rp.ready();
       return nab;
+  }
+
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
+    return new NetAudioInputStream(this);
+  }
+
+  audioInputStream(): Float32ArrayInputStream | null {
+    return null;
+  }
+
+  get duration(): number {
+    return this._frameLen/this._sampleRate;
+  }
+
+  get numberOfChannels(): number {
+    return this._channelCount;
+  }
+
+  sampleCounts(): number {
+    return this._channelCount*this._frameLen;
   }
 }
 

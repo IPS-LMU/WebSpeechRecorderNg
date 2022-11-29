@@ -33,7 +33,7 @@ import {
 } from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
-import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
@@ -576,27 +576,28 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     if (this.displayRecFile) {
       let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
       let ww = new WavWriter();
-      if (ab?.buffer) {
-        let wavFile = ww.writeAsync(ab.buffer, (wavFile) => {
-          let blob = new Blob([wavFile], {type: 'audio/wav'});
-          let rfUrl = URL.createObjectURL(blob);
+      let as=ab?.audioSource;
+      if(as instanceof AudioBufferSource) {
+          let wavFile = ww.writeAsync(as.audioBuffer, (wavFile) => {
+            let blob = new Blob([wavFile], {type: 'audio/wav'});
+            let rfUrl = URL.createObjectURL(blob);
 
-          let dataDnlLnk = this.renderer.createElement('a');
-          //dataDnlLnk.name = 'Recording';
-          dataDnlLnk.href = rfUrl;
+            let dataDnlLnk = this.renderer.createElement('a');
+            //dataDnlLnk.name = 'Recording';
+            dataDnlLnk.href = rfUrl;
 
-          this.renderer.appendChild(document.body, dataDnlLnk);
+            this.renderer.appendChild(document.body, dataDnlLnk);
 
-          // download property not yet in TS def
-          if (this.displayRecFile) {
-            let fn = this.displayRecFile.filenameString();
-            fn += '_' + this.displayRecFileVersion;
-            fn += '.wav';
-            dataDnlLnk.download = fn;
-            dataDnlLnk.click();
-          }
-          this.renderer.removeChild(document.body, dataDnlLnk);
-        });
+            // download property not yet in TS def
+            if (this.displayRecFile) {
+              let fn = this.displayRecFile.filenameString();
+              fn += '_' + this.displayRecFileVersion;
+              fn += '.wav';
+              dataDnlLnk.download = fn;
+              dataDnlLnk.click();
+            }
+            this.renderer.removeChild(document.body, dataDnlLnk);
+          });
       }
     }
   }
@@ -637,7 +638,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   let fabDh = null;
                   if (nextIab) {
                     if (rf ) {
-                      fabDh = new AudioDataHolder(null, null, nextIab);
+                      fabDh = new AudioDataHolder(nextIab);
                       this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
                     }
                   } else {
@@ -676,7 +677,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 let fabDh = null;
                 if (nextNetAb) {
                   if (rf) {
-                    fabDh = new AudioDataHolder(null, null, null,nextNetAb);
+                    fabDh = new AudioDataHolder(nextNetAb);
                     this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
                   }
                 } else {
@@ -714,7 +715,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 let fabDh = null;
                 if (nextAab) {
                   if (rf ) {
-                    fabDh = new AudioDataHolder(null, nextAab);
+                    fabDh = new AudioDataHolder(nextAab);
                     this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
                   }
                 } else {
@@ -743,8 +744,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 this.liveLevelDisplayState = LiveLevelState.READY;
                 let fabDh = null;
                 if (ab) {
+                  let abSrc=new AudioBufferSource(ab);
                   if (rf) {
-                    fabDh = new AudioDataHolder(ab);
+                    fabDh = new AudioDataHolder(abSrc);
                     this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
                   }
                 } else {
@@ -899,10 +901,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     if(this.ac) {
       let adh:AudioDataHolder|null=null;
 
-      let nab:NetAudioBuffer|null=null;
-      let iab:IndexedDbAudioBuffer|null=null;
-      let ada:ArrayAudioBuffer|null=null;
-      let ad:AudioBuffer|null=null;
+      // let nab:NetAudioBuffer|null=null;
+      // let iab:IndexedDbAudioBuffer|null=null;
+      // let ada:ArrayAudioBuffer|null=null;
+      // let ad:AudioBuffer|null=null;
+      let as:AudioSource|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
           this.playStartAction.disabled = true;
@@ -928,11 +931,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               if (burl) {
                 let sr = this.ac.currentSampleRate;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
-
+                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+                as=netAs;
                 if(this.uploadSet){
                   let rp=new ReadyProvider();
-                  nab.readyProvider=rp;
+                  netAs.readyProvider=rp;
                   this.uploadSet.onDone=(uploadSet)=>{
                     //console.debug("upload set on done: Call ready provider.ready");
                     rp.ready();
@@ -943,14 +946,15 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             }
 
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
-          iab = this.ac.inddbAudioBufferArray();
+          as = this.ac.inddbAudioBufferArray();
         } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
-          ada = this.ac.audioBufferArray();
+          as = this.ac.audioBufferArray();
         } else {
-          ad = this.ac.audioBuffer();
+          let ab = this.ac.audioBuffer();
+          as=new AudioBufferSource(ab);
         }
-        if (ad || ada || iab || nab) {
-          adh = new AudioDataHolder(ad, ada, iab,nab,this.recFileService);
+        if (as) {
+          adh = new AudioDataHolder(as,this.recFileService);
         }
       }
 

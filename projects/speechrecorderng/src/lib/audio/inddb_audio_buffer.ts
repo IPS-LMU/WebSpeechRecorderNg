@@ -1,8 +1,8 @@
 import {Observable} from "rxjs";
-import {AsyncFloat32ArrayInputStream} from "../io/stream";
+import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {UUID} from "../utils/utils";
 import {AudioSourceNode} from "./playback/audio_source_node";
-import {RandomAccessAudioStream} from "./audio_data_holder";
+import {AudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 
 export class PersistentAudioStorageTarget{
   get indexedDb(): IDBDatabase {
@@ -62,7 +62,7 @@ export class PersistentAudioStorageTarget{
 
 }
 
-export class IndexedDbAudioBuffer {
+export class IndexedDbAudioBuffer implements AudioSource{
   get chunkFrameLen(): number {
     return this._chunkFrameLen;
   }
@@ -480,6 +480,33 @@ export class IndexedDbAudioBuffer {
 
   toString():string{
     return "Indexed db audio buffer. Channels: "+this.channelCount+", sample rate: "+this.sampleRate+", chunk frame length: "+this._chunkFrameLen+", number of chunks: "+this.chunkCount+", frame length: "+this.frameLen+", sealed: "+this.sealed();
+  }
+
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
+    return new IndexedDbAudioInputStream(this);
+  }
+
+  audioInputStream(): Float32ArrayInputStream | null {
+    // Synchronous sream not supported
+    return null;
+  }
+
+  get duration(): number {
+    return this._chunkFrameLen/this._sampleRate;
+  }
+
+  get numberOfChannels(): number {
+    return this._channelCount;
+  }
+
+  set onReady(onReady: (() => void) | null) {
+    if(onReady) {
+      onReady();
+    }
+  }
+
+  sampleCounts(): number {
+    return this._channelCount*this._frameLen;
   }
 
 }

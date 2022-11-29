@@ -1,9 +1,13 @@
+import {AudioSource} from "./audio_data_holder";
+import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
+import {Observable} from "rxjs";
 
 
-export class ArrayAudioBuffer{
+export class ArrayAudioBuffer implements AudioSource{
 
   private _chunkCount=0;
   private _frameLen:number=0;
+  private _duration:number=0;
   private _sealed=false;
 
   constructor(private _channelCount: number, private _sampleRate: number, private _data: Array<Array<Float32Array>>) {
@@ -20,6 +24,7 @@ export class ArrayAudioBuffer{
         this._frameLen += ch0Chk.length;
       }
     }
+    this._duration=this._frameLen/this._sampleRate;
   }
 
   seal(){
@@ -143,6 +148,41 @@ export class ArrayAudioBuffer{
 
   get data(): Array<Array<Float32Array>> {
     return this._data;
+  }
+
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
+    return null;
+  }
+
+  audioInputStream(): Float32ArrayInputStream | null {
+    return null;
+  }
+
+  get duration(): number {
+    return this._duration;
+  }
+
+  get numberOfChannels(): number {
+    return this._channelCount;
+  }
+
+  set onReady(onReady: (() => void) | null) {
+  }
+
+  releaseAudioData(): Observable<void> {
+        return new Observable<void>(subscriber => {
+        // No persistent respectively async deletable storage, they should be finally removed by the GC
+        //this._audioBuffer=null;
+        //this._arrayBuffer=null;
+        subscriber.next();
+        subscriber.complete();
+
+    });
+
+  }
+
+  sampleCounts(): number {
+    return this._channelCount*this._frameLen;
   }
 
 }
