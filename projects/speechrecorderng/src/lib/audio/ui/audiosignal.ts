@@ -1,7 +1,7 @@
 import {Component, ViewChild, ElementRef} from '@angular/core';
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
-import {AudioDataHolder} from "../audio_data_holder";
+import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
 import { Float32ArrayInputStream} from "../../io/stream";
 import {Observable, Subscription} from "rxjs";
 
@@ -231,7 +231,11 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         let frameLength = this._audioDataHolder.frameLen;
         let framesPerPixel = Math.ceil(frameLength / vw);
         let raAs=this._audioDataHolder.randomAccessAudioStream();
-        let audioBuffer=this._audioDataHolder.buffer;
+        let audioBuffer:AudioBuffer|null=null;
+        let audioSource=this._audioDataHolder.audioSource;
+        if(audioSource instanceof AudioBufferSource){
+          audioBuffer=audioSource.audioBuffer;
+        }
         //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
         let arrAbBuf:Float32Array[]|null;
 
@@ -491,7 +495,11 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         let framesPerPixel = frameLength / w;
         let y = 0;
         let ais:Float32ArrayInputStream|null=null;
-        let audioBuffer=this._audioDataHolder.buffer;
+        let audioSource=this._audioDataHolder.audioSource;
+        let audioBuffer:AudioBuffer|null=null;
+        if(audioSource instanceof AudioBufferSource){
+          audioBuffer=audioSource.audioBuffer;
+        }
         let aisBuffer:Array<Float32Array>|null=null;
         if(!audioBuffer) {
           ais=this._audioDataHolder.audioInputStream();

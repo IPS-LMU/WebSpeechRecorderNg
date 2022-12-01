@@ -8,6 +8,7 @@ import {IndexedDbAudioBufferSourceNode} from "./inddb_audio_buffer_source_node";
 import {AudioSourceNode} from "./audio_source_node";
 import {NetAudioBuffer} from "../net_audio_buffer";
 import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
+import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
 
 
@@ -36,6 +37,7 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
     }
 
     export class AudioPlayer {
+
         get autoPlayOnSelectToggleAction(): Action<boolean> {
             return this._autoPlayOnSelectToggleAction;
         }
@@ -50,10 +52,11 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         ready=false;
         listener:AudioPlayerListener;
         _audioClip:AudioClip|null=null;
-        _audioBuffer:AudioBuffer | null=null;
-        _arrayAudioBuffer:ArrayAudioBuffer|null=null;
-        _inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
-        _netAudioBuffer:NetAudioBuffer|null=null;
+        private _audioSource:AudioSource|null=null;
+        //_audioBuffer:AudioBuffer | null=null;
+        //_arrayAudioBuffer:ArrayAudioBuffer|null=null;
+        //_inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
+        //_netAudioBuffer:NetAudioBuffer|null=null;
         sourceBufferNode:AudioBufferSourceNode|null=null;
         sourceAudioWorkletNode:AudioSourceNode|null=null;
 
@@ -115,16 +118,18 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
                         // TODO exception
                     }
                 }
-                if(audioDataHolder.buffer){
-                  this.audioBuffer = audioDataHolder.buffer;
-                }
-                if(audioDataHolder.arrayBuffer) {
-                  this.arrayAudioBuffer = audioDataHolder.arrayBuffer;
-                }else if(audioDataHolder.inddbBuffer){
-                  this.inddbAudioBuffer=audioDataHolder.inddbBuffer;
-                }else if(audioDataHolder.netBuffer){
-                  this.netAudioBuffer=audioDataHolder.netBuffer;
-                }
+                // if(audioDataHolder.buffer){
+                //   this.audioBuffer = audioDataHolder.buffer;
+                // }
+                // if(audioDataHolder.arrayBuffer) {
+                //   this.arrayAudioBuffer = audioDataHolder.arrayBuffer;
+                // }else if(audioDataHolder.inddbBuffer){
+                //   this.inddbAudioBuffer=audioDataHolder.inddbBuffer;
+                // }else if(audioDataHolder.netBuffer){
+                //   this.netAudioBuffer=audioDataHolder.netBuffer;
+                // }
+
+                this.audioSource=audioDataHolder.audioSource;
 
                 audioClip.addSelectionObserver((ac)=> {
                     this._startSelectionAction.disabled = this.startSelectionDisabled()
@@ -134,36 +139,62 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
                   }
                 )
             }else{
-                this.audioBuffer=null;
+                this.audioSource=null;
                 //this.arrayAudioBuffer=null;
             }
           this._audioClip=audioClip
 
         }
 
-        set audioBuffer(audioBuffer:AudioBuffer | null) {
-            this.stop();
-            this._audioBuffer = audioBuffer;
-            this._arrayAudioBuffer=null;
-           this._inddbAudioBuffer=null;
-           this._netAudioBuffer=null;
-            if (audioBuffer && this.context) {
-              this.ready=true;
-              this.updateStartActions();
-                if(this.listener){
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+        // set audioBuffer(audioBuffer:AudioBuffer | null) {
+        //     this.stop();
+        //     this._audioBuffer = audioBuffer;
+        //     this._arrayAudioBuffer=null;
+        //    this._inddbAudioBuffer=null;
+        //    this._netAudioBuffer=null;
+        //     if (audioBuffer && this.context) {
+        //       this.ready=true;
+        //       this.updateStartActions();
+        //         if(this.listener){
+        //             this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+        //         }
+        //     }else{
+        //       this.ready=false;
+        //       this.updateStartActions();
+        //         if(this.listener){
+        //             this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+        //         }
+        //     }
+        // }
+        // get audioBuffer():AudioBuffer| null{
+        //     return this._audioBuffer;
+        // }
+
+      get audioSource(): AudioSource | null {
+        return this._audioSource;
+      }
+
+      set audioSource(value: AudioSource | null) {
+        this.stop();
+        this._audioSource = value;
+            if (this._audioSource && this.context) {
+              if (this._audioSource instanceof AudioBufferSource) {
+                this.ready = true;
+                this.updateStartActions();
+                if (this.listener) {
+                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
-            }else{
-              this.ready=false;
+              } else {
+                this._loadSourceWorkletAndInitStart();
+              }
+            }else {
+              this.ready = false;
               this.updateStartActions();
-                if(this.listener){
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-                }
+              if (this.listener) {
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+              }
             }
-        }
-        get audioBuffer():AudioBuffer| null{
-            return this._audioBuffer;
-        }
+      }
 
         private _loadSourceWorkletAndInitStart(){
           AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
@@ -184,68 +215,68 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         }
 
 
-      set arrayAudioBuffer(arrayAudioBuffer:ArrayAudioBuffer | null) {
-        this.stop();
-        this._audioBuffer=null;
-        this._arrayAudioBuffer=arrayAudioBuffer;
-        this._inddbAudioBuffer=null;
-        this._netAudioBuffer=null;
-        if (arrayAudioBuffer && this.context) {
-          this._loadSourceWorkletAndInitStart();
-        }else{
-          this.ready=false;
-          this.updateStartActions();
-          if(this.listener){
-            this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-          }
-        }
-      }
-
-      get arrayAudioBuffer():ArrayAudioBuffer| null{
-        return this._arrayAudioBuffer;
-      }
-
-      set inddbAudioBuffer(inddbAudioBuffer:IndexedDbAudioBuffer | null) {
-        this.stop();
-        this._audioBuffer=null;
-        this._arrayAudioBuffer=null;
-        this._inddbAudioBuffer=inddbAudioBuffer;
-        this._netAudioBuffer=null;
-        if (inddbAudioBuffer && this.context) {
-          this._loadSourceWorkletAndInitStart();
-        }else{
-          this.ready=false;
-          this.updateStartActions();
-          if(this.listener){
-            this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-          }
-        }
-      }
-
-      get inddbAudioBuffer():IndexedDbAudioBuffer| null{
-        return this._inddbAudioBuffer;
-      }
-
-      set netAudioBuffer(netAudioBuffer:NetAudioBuffer | null) {
-        this.stop();
-        this._audioBuffer=null;
-        this._arrayAudioBuffer=null;
-        this._inddbAudioBuffer=null;
-        this._netAudioBuffer=netAudioBuffer;
-        if (netAudioBuffer && this.context) {
-          this._loadSourceWorkletAndInitStart();
-        }else{
-          this.ready=false;
-          this.updateStartActions();
-          if(this.listener){
-            this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-          }
-        }
-      }
-
-      get netAudioBuffer():NetAudioBuffer| null{
-        return this._netAudioBuffer;
-      }
+      // set arrayAudioBuffer(arrayAudioBuffer:ArrayAudioBuffer | null) {
+      //   this.stop();
+      //   this._audioBuffer=null;
+      //   this._arrayAudioBuffer=arrayAudioBuffer;
+      //   this._inddbAudioBuffer=null;
+      //   this._netAudioBuffer=null;
+      //   if (arrayAudioBuffer && this.context) {
+      //     this._loadSourceWorkletAndInitStart();
+      //   }else{
+      //     this.ready=false;
+      //     this.updateStartActions();
+      //     if(this.listener){
+      //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+      //     }
+      //   }
+      // }
+      //
+      // get arrayAudioBuffer():ArrayAudioBuffer| null{
+      //   return this._arrayAudioBuffer;
+      // }
+      //
+      // set inddbAudioBuffer(inddbAudioBuffer:IndexedDbAudioBuffer | null) {
+      //   this.stop();
+      //   this._audioBuffer=null;
+      //   this._arrayAudioBuffer=null;
+      //   this._inddbAudioBuffer=inddbAudioBuffer;
+      //   this._netAudioBuffer=null;
+      //   if (inddbAudioBuffer && this.context) {
+      //     this._loadSourceWorkletAndInitStart();
+      //   }else{
+      //     this.ready=false;
+      //     this.updateStartActions();
+      //     if(this.listener){
+      //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+      //     }
+      //   }
+      // }
+      //
+      // get inddbAudioBuffer():IndexedDbAudioBuffer| null{
+      //   return this._inddbAudioBuffer;
+      // }
+      //
+      // set netAudioBuffer(netAudioBuffer:NetAudioBuffer | null) {
+      //   this.stop();
+      //   this._audioBuffer=null;
+      //   this._arrayAudioBuffer=null;
+      //   this._inddbAudioBuffer=null;
+      //   this._netAudioBuffer=netAudioBuffer;
+      //   if (netAudioBuffer && this.context) {
+      //     this._loadSourceWorkletAndInitStart();
+      //   }else{
+      //     this.ready=false;
+      //     this.updateStartActions();
+      //     if(this.listener){
+      //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+      //     }
+      //   }
+      // }
+      //
+      // get netAudioBuffer():NetAudioBuffer| null{
+      //   return this._netAudioBuffer;
+      // }
 
   private _startAudioSourceWorkletNode(){
           if(this.sourceAudioWorkletNode) {
@@ -282,9 +313,9 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             if(!this._startAction.disabled && !this.running) {
                 this.context.resume();
 
-                if(this._audioBuffer) {
+                if(this._audioSource instanceof AudioBufferSource) {
                   this.sourceBufferNode = this.context.createBufferSource();
-                  this.sourceBufferNode.buffer = this._audioBuffer;
+                  this.sourceBufferNode.buffer = this._audioSource.audioBuffer;
                   this.sourceBufferNode.connect(this.context.destination);
                   this.sourceBufferNode.onended = () => this.onended();
 
@@ -298,19 +329,19 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
                   if (this.listener) {
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
                   }
-                }else if(this._arrayAudioBuffer){
+                }else if(this._audioSource instanceof ArrayAudioBuffer) {
                     let aabsn=new ArrayAudioBufferSourceNode(this.context);
-                       aabsn.arrayAudioBuffer=this._arrayAudioBuffer;
+                       aabsn.arrayAudioBuffer=this._audioSource;
                       this.sourceAudioWorkletNode=aabsn;
                        this._startAudioSourceWorkletNode();
-                }else if(this._inddbAudioBuffer){
+                }else if(this._audioSource instanceof IndexedDbAudioBuffer){
                       let idabs =new IndexedDbAudioBufferSourceNode(this.context);
-                      idabs.inddbAudioBuffer=this._inddbAudioBuffer;
+                      idabs.inddbAudioBuffer=this._audioSource;
                       this.sourceAudioWorkletNode=idabs;
                       this._startAudioSourceWorkletNode();
-                }else if(this._netAudioBuffer){
+                }else if(this._audioSource instanceof NetAudioBuffer){
                   let nabs =new NetAudioBufferSourceNode(this.context);
-                  nabs.netAudioBuffer=this._netAudioBuffer;
+                  nabs.netAudioBuffer=this._audioSource;
                   this.sourceAudioWorkletNode=nabs;
                   this._startAudioSourceWorkletNode();
                 }
@@ -320,12 +351,12 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
         updateStartActions(){
 
           if(this.ready){
-            if(this._audioBuffer || this._arrayAudioBuffer || this._inddbAudioBuffer){
+            if(this._audioSource instanceof AudioBufferSource || this._audioSource instanceof ArrayAudioBuffer || this._audioSource instanceof IndexedDbAudioBuffer){
               this._startAction.disabled=false;
               this._startSelectionAction.disabled=this.startSelectionDisabled();
             }else{
-              if(this._netAudioBuffer){
-                this._netAudioBuffer.onReady=()=>{
+              if(this._audioSource instanceof NetAudioBuffer){
+                this._audioSource.onReady=()=>{
                   this._startAction.disabled=false;
                   this._startSelectionAction.disabled=this.startSelectionDisabled();
                 }
@@ -334,8 +365,8 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
           }else{
             this._startAction.disabled=true;
             this._startSelectionAction.disabled=true;
-            if(this._netAudioBuffer) {
-              this._netAudioBuffer.onReady = null;
+            if(this._audioSource instanceof NetAudioBuffer){
+              this._audioSource.onReady = null;
             }
           }
         }
@@ -347,9 +378,9 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
       startSelected() {
         if(!this._startAction.disabled && !this.running) {
           this.context.resume();
-          if (this._audioBuffer) {
+          if (this._audioSource instanceof AudioBufferSource) {
             this.sourceBufferNode = this.context.createBufferSource();
-            this.sourceBufferNode.buffer = this._audioBuffer;
+            this.sourceBufferNode.buffer = this._audioSource.audioBuffer;
             this.sourceBufferNode.connect(this.context.destination);
             this.sourceBufferNode.onended = () => this.onended();
             this.playStartTime = this.context.currentTime;
@@ -377,18 +408,18 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             if (this.listener) {
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
             }
-          }else if(this._arrayAudioBuffer || this._inddbAudioBuffer || this._netAudioBuffer) {
-            if (this._arrayAudioBuffer) {
+          }else if(this._audioSource instanceof ArrayAudioBuffer || this._audioSource instanceof IndexedDbAudioBuffer || this._audioSource instanceof NetAudioBuffer) {
+            if (this._audioSource instanceof ArrayAudioBuffer) {
               let aabsn = new ArrayAudioBufferSourceNode(this.context);
-              aabsn.arrayAudioBuffer = this._arrayAudioBuffer;
+              aabsn.arrayAudioBuffer = this._audioSource;
               this.sourceAudioWorkletNode = aabsn;
-            } else if (this._inddbAudioBuffer) {
+            } else if (this._audioSource instanceof IndexedDbAudioBuffer) {
               let iasn = new IndexedDbAudioBufferSourceNode(this.context);
-              iasn.inddbAudioBuffer = this._inddbAudioBuffer;
+              iasn.inddbAudioBuffer = this._audioSource;
               this.sourceAudioWorkletNode = iasn;
-            }else if (this._netAudioBuffer) {
+            }else if (this._audioSource instanceof NetAudioBuffer) {
               let nabsn = new NetAudioBufferSourceNode(this.context);
-              nabsn.netAudioBuffer = this._netAudioBuffer;
+              nabsn.netAudioBuffer = this._audioSource;
               this.sourceAudioWorkletNode = nabsn;
             }
             if (this.sourceAudioWorkletNode) {
@@ -458,7 +489,7 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
-            this._startAction.disabled = !(this._audioBuffer || this._arrayAudioBuffer || this._inddbAudioBuffer || this._netAudioBuffer);
+            this._startAction.disabled = !this._audioSource;
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
@@ -480,15 +511,6 @@ import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
       get playPositionFrames():number|null {
         let ppFrs:number|null=null;
         let sr:number|null=null;
-        if(this._audioBuffer ) {
-          sr=this._audioBuffer.sampleRate;
-        }else if(this._arrayAudioBuffer){
-          sr=this._arrayAudioBuffer.sampleRate;
-        }else if(this._inddbAudioBuffer){
-          sr=this._inddbAudioBuffer.sampleRate;
-        }else if(this._netAudioBuffer){
-          sr=this._netAudioBuffer.sampleRate;
-        }
         if(sr ) {
           let ppTime = this.playPositionTime;
           if(ppTime!==null) {

@@ -147,6 +147,10 @@ export class NetAudioBuffer implements AudioSource{
   sampleCounts(): number {
     return this._channelCount*this._frameLen;
   }
+
+  randomAccessAudioStream(): RandomAccessAudioStream {
+    return new NetRandomAccessAudioStream(this);
+  }
 }
 
 export class NetAudioChunk{

@@ -5,8 +5,9 @@ import {Marker, Point} from './common';
 import {Component, ElementRef, ViewChild} from "@angular/core";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
-import {AudioDataHolder} from "../audio_data_holder";
+import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
 import {Subscription} from "rxjs";
+import {ArrayAudioBuffer} from "../array_audio_buffer";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -663,7 +664,12 @@ export class Sonagram extends AudioCanvasLayerComponent {
               let leftPos= Math.round(this.bounds.position.left);
               let renderPos=leftPos;
               let raAs=this._audioDataHolder.randomAccessAudioStream();
-              let audioBuffer=this._audioDataHolder.buffer;
+
+              let audioBuffer:AudioBuffer|null=null;
+              let audioSource=this._audioDataHolder.audioSource;
+              if(audioSource instanceof AudioBufferSource){
+                audioBuffer=audioSource.audioBuffer;
+              }
                 //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
               let arrAbBuf:Float32Array[]|null;
               let imgData:Uint8ClampedArray;
@@ -935,8 +941,12 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
         let framesPerPixel = frameLength / w;
         let y = 0;
-        let audioBuffer=this._audioDataHolder.buffer;
-        let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
+        let audioBuffer:AudioBuffer|null=null;
+        let audioSource=this._audioDataHolder.audioSource;
+        if(audioSource instanceof AudioBufferSource){
+          audioBuffer=audioSource.audioBuffer;
+        }
+
         if(audioBuffer) {
           let b = new Float32Array(this.dftSize)
 
@@ -1016,8 +1026,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
           }
           this.drawPlayPosition();
-        }else if(arrayAudioBuffer){
-            throw Error("Redraw with array audio buffer not supported.")
+        }else{
+          throw Error("Redraw only supported with audio buffer.")
         }
       }
     }

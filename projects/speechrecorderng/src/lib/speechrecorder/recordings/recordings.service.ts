@@ -10,7 +10,7 @@ import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile, RecordingF
 import {ProjectService} from "../project/project.service";
 import {SessionService} from "../session/session.service";
 import {EMPTY, expand, map, Observable} from "rxjs";
-import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {AudioBufferSource, AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
@@ -782,7 +782,8 @@ export class RecordingService {
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
-                let adh=new AudioDataHolder(ab,null);
+                let abs=new AudioBufferSource(ab);
+                let adh=new AudioDataHolder(abs,null);
                 RecordingFileUtils.setAudioData(recordingFile,adh);
                 if (this.debugDelay > 0) {
                   window.setTimeout(() => {
@@ -1141,7 +1142,8 @@ export class RecordingService {
               // Do not use Promise version, which does not work with Safari 13 (13.0.5)
               if (resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
-                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab,null));
+                  let abs=new AudioBufferSource(ab);
+                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(abs,null));
                   if (this.debugDelay > 0) {
                     window.setTimeout(() => {
 
@@ -1188,7 +1190,8 @@ export class RecordingService {
             // Do not use Promise version, which does not work with Safari 13
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
-              let adh=new AudioDataHolder(ab,null);
+              let abs=new AudioBufferSource(ab);
+              let adh=new AudioDataHolder(abs,null);
               let rf = new SprRecordingFile(sessId, itemcode, version, adh);
               if (this.debugDelay > 0) {
                 window.setTimeout(() => {

@@ -1,6 +1,7 @@
-import {AudioSource} from "./audio_data_holder";
+import {AudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {Observable} from "rxjs";
+import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
 
 
 export class ArrayAudioBuffer implements AudioSource{
@@ -183,6 +184,10 @@ export class ArrayAudioBuffer implements AudioSource{
 
   sampleCounts(): number {
     return this._channelCount*this._frameLen;
+  }
+
+  randomAccessAudioStream(): RandomAccessAudioStream {
+   return new ArrayAudioBufferRandomAccessStream(this);
   }
 
 }

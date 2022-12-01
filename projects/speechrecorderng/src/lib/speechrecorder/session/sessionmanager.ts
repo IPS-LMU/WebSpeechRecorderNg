@@ -35,7 +35,7 @@ import {
   RECFILE_API_CTX
 } from "./basicrecorder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
-import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
@@ -550,10 +550,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   downloadRecording() {
     if (this.displayRecFile) {
-      let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
+      let adh: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
+      let as: AudioSource|null=null;
+      if(adh){
+        as=adh.audioSource;
+      }
       let ww = new WavWriter();
-      if(ab?.buffer) {
-        let wavFile = ww.writeAsync(ab.buffer, (wavFile) => {
+      if(as instanceof AudioBufferSource) {
+        let wavFile = ww.writeAsync(as.audioBuffer, (wavFile) => {
           let blob = new Blob([wavFile], {type: 'audio/wav'});
           let rfUrl = URL.createObjectURL(blob);
 
@@ -617,7 +621,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   let fabDh = null;
                   if (nextIab) {
                     if (rf && this.items) {
-                      fabDh = new AudioDataHolder(null, null, nextIab);
+
+                      fabDh = new AudioDataHolder(nextIab, null);
                       this.items.setSprRecFileAudioData(rf, fabDh);
                     }
                   } else {
@@ -656,7 +661,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   let fabDh = null;
                   if (nextNetAb) {
                     if (rf && this.items) {
-                      fabDh = new AudioDataHolder(null, null, null,nextNetAb);
+                      fabDh = new AudioDataHolder(nextNetAb, null);
                       this.items.setSprRecFileAudioData(rf, fabDh);
                     }
                   } else {
@@ -694,7 +699,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 let fabDh = null;
                 if (nextAab) {
                   if (rf && this.items) {
-                    fabDh = new AudioDataHolder(null, nextAab);
+                    fabDh = new AudioDataHolder(nextAab);
                     this.items.setSprRecFileAudioData(rf, fabDh);
                   }
                 } else {
@@ -728,9 +733,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   if (rf && this.items) {
                     if (SessionManager.FORCE_ARRRAY_AUDIO_BUFFER) {
                       let aab = ArrayAudioBuffer.fromAudioBuffer(ab);
-                      fabDh = new AudioDataHolder(null, aab);
+                      fabDh = new AudioDataHolder(aab);
                     } else {
-                      fabDh = new AudioDataHolder(ab);
+                      fabDh = new AudioDataHolder(new AudioBufferSource(ab));
                     }
                     this.items.setSprRecFileAudioData(rf, fabDh);
                   }
@@ -1115,11 +1120,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.startStopSignalState = StartStopSignalState.IDLE;
 
       let adh:AudioDataHolder|null=null;
-
-      let nab:NetAudioBuffer|null=null;
-      let iab:IndexedDbAudioBuffer|null=null;
-      let ada:ArrayAudioBuffer|null=null;
-      let ad:AudioBuffer|null=null;
+      let as:AudioSource|null=null;
+     let ab:AudioBuffer|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
           this.playStartAction.disabled = true;
@@ -1141,10 +1143,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               let rUUID = this.ac.recUUID;
               let sr = this.ac.currentSampleRate;
               //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-              nab = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+              let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+              as=netAb;
               if(this.uploadSet){
                 let rp=new ReadyProvider();
-                nab.readyProvider=rp;
+                netAb.readyProvider=rp;
                 this.uploadSet.onDone=(uploadSet)=>{
                   //console.debug("upload set on done: Call ready provider.ready");
                   rp.ready();
@@ -1153,20 +1156,17 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             }
           }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
-          iab = this.ac.inddbAudioBufferArray();
+          as = this.ac.inddbAudioBufferArray();
         } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
-          ada = this.ac.audioBufferArray();
+          as = this.ac.audioBufferArray();
         } else {
-          ad = this.ac.audioBuffer();
+          ab = this.ac.audioBuffer();
+          as=new AudioBufferSource(ab);
         }
-        if (ad || ada || iab || nab) {
-          adh = new AudioDataHolder(ad, ada, iab,nab);
+        if (as) {
+          adh = new AudioDataHolder(as);
         }
       }
-
-    if(adh){
-      ad=adh.buffer;
-    }
 
     // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
     let rf = this._recordingFile;
@@ -1179,7 +1179,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         // TODO duplicate conversion for manual download
         //console.log("Build wav writer...");
         this.processingRecording=true
-        if(ad) {
+        if(ab) {
           let ww = new WavWriter();
           //new REST API URL
           let apiEndPoint = '';
@@ -1191,7 +1191,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           }
           let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
           let recUrl: string = sessionsUrl + '/' + rf.session + '/' + RECFILE_API_CTX + '/' + rf.itemCode;
-          ww.writeAsync(ad, (wavFile) => {
+          ww.writeAsync(ab, (wavFile) => {
             this.postRecording(wavFile, recUrl,rf);
             this.processingRecording = false
             this.updateWakeLock();

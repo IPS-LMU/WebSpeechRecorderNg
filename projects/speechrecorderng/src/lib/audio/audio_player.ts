@@ -11,7 +11,7 @@ import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
-import {AudioDataHolder} from "./audio_data_holder";
+import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
 
 @Component({
 
@@ -213,7 +213,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     if(this.aCtx) {
       this.aCtx.decodeAudioData(data, (audioBuffer) => {
         //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
-        let adh=new AudioDataHolder(audioBuffer,null);
+        let as=new AudioBufferSource(audioBuffer);
+        let adh=new AudioDataHolder(as,null);
         this.audioClip = new AudioClip(adh);
       });
     }

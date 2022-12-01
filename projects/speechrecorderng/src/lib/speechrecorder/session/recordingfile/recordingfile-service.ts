@@ -8,7 +8,7 @@ import {Observable} from "rxjs";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr.config";
 import {UUID} from "../../../utils/utils";
 import {RecordingFile, RecordingFileUtils, SprRecordingFile} from "../../recording";
-import {AudioDataHolder} from "../../../audio/audio_data_holder";
+import {AudioBufferSource, AudioDataHolder} from "../../../audio/audio_data_holder";
 
 
 @Injectable()
@@ -120,7 +120,8 @@ export class RecordingFileService {
               // Do not use Promise version, which does not work with Safari 13
               if(resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
-                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab));
+                  let as=new AudioBufferSource(ab);
+                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(as));
                   if (this.debugDelay > 0) {
                     window.setTimeout(() => {
 
@@ -171,7 +172,8 @@ export class RecordingFileService {
             if(resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
                 if(rf) {
-                  RecordingFileUtils.setAudioData(rf,new AudioDataHolder(ab));
+                  let as=new AudioBufferSource(ab);
+                  RecordingFileUtils.setAudioData(rf,new AudioDataHolder(as));
                 }else{
                   observer.error('Recording file object null');
                 }
@@ -223,7 +225,8 @@ export class RecordingFileService {
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
               if(rf) {
-                let adh=new AudioDataHolder(ab);
+                let as=new AudioBufferSource(ab);
+                let adh=new AudioDataHolder(as);
                 RecordingFileUtils.setAudioData(rf,adh);
               }else{
                 observer.error('Recording file object null');

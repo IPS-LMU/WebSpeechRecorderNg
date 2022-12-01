@@ -16,6 +16,7 @@ export interface AudioSource {
   sampleCounts(): number;
   audioInputStream(): Float32ArrayInputStream | null;
   asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
+  randomAccessAudioStream():RandomAccessAudioStream;
   releaseAudioData(): Observable<void>;
   set onReady(onReady:(()=>void)|null);
 }
@@ -57,6 +58,10 @@ export class AudioBufferSource implements AudioSource{
     set onReady(onReady: (() => void) | null) {
         throw new Error("Method not implemented.");
     }
+
+  randomAccessAudioStream(): RandomAccessAudioStream {
+    return new RandomAccessAudioBufferStream(this._audioBuffer);
+  }
 }
 
 // TODO Ler all types implement an interface.
@@ -126,19 +131,14 @@ export class AudioDataHolder{
     return this._numberOfChannels*this._frameLen;
   }
 
-  // randomAccessAudioStream():RandomAccessAudioStream{
-  //     if(this._buffer){
-  //       return new RandomAccessAudioBufferStream(this._buffer);
-  //     }else if(this._arrayBuffer){
-  //       return new ArrayAudioBufferRandomAccessStream(this._arrayBuffer);
-  //     }else if(this._inddbAudioBuffer){
-  //       return new IndexedDbRandomAccessStream(this._inddbAudioBuffer);
-  //     }else if(this._netAudioBuffer){
-  //       return new NetRandomAccessAudioStream(this._netAudioBuffer);
-  //     }else {
-  //       throw Error('No audio buffer implementation set');
-  //     }
-  // }
+  randomAccessAudioStream():RandomAccessAudioStream{
+
+      if(this._audioSource){
+        return this._audioSource.randomAccessAudioStream();
+      }else {
+        throw Error('No audio source set');
+      }
+  }
 
 
   // private frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{

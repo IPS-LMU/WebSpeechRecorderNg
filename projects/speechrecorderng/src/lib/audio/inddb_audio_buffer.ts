@@ -509,6 +509,10 @@ export class IndexedDbAudioBuffer implements AudioSource{
     return this._channelCount*this._frameLen;
   }
 
+  randomAccessAudioStream(): RandomAccessAudioStream {
+    return new IndexedDbRandomAccessStream(this);
+  }
+
 }
 
 
