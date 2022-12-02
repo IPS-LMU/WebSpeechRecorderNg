@@ -66,6 +66,9 @@ export class ArrayAudioBufferSourceNode extends AudioSourceNode {
           }, trBuffers);
           filled+=read;
         }else{
+          this.port.postMessage({
+            cmd: 'endOfStream'
+          });
           break;
         }
       }
