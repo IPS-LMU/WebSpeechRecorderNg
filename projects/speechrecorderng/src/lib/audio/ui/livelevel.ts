@@ -58,6 +58,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   markerCanvas!: HTMLCanvasElement;
   ce!: HTMLDivElement;
   dbValues: Array<Array<number>>;
+  private pixelsPerValue:number=LINE_DISTANCE+LINE_WIDTH;
   peakDbLvl = MIN_DB_LEVEL;
   private _streamingMode = false;
   private _streamingFrameLength=0;
@@ -164,14 +165,14 @@ export class LevelBar implements LevelListener,AfterViewInit {
       let dbVals = levelInfos.powerLevelsDB();
       let peakDBVal = levelInfos.powerLevelDB();
       this._streamingFrameLength+=levelInfos.frameLength;
-      //console.debug("Update level info frameLength: "+levelInfos.frameLength);
+      //console.debug("Update level info frameLength: "+levelInfos.frameLength+", total streaming frame length: "+this._streamingFrameLength);
       if (this.peakDbLvl < peakDBVal) {
         this.peakDbLvl = peakDBVal;
         this.changeDetectorRef.detectChanges();
       }
       this.dbValues.push(dbVals);
       let i = this.dbValues.length - 1;
-      let x = i * (LINE_DISTANCE + LINE_WIDTH);
+      let x = i * this.pixelsPerValue;
       this.drawPushValue(x, dbVals);
       this.checkWidth();
     }
@@ -183,7 +184,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
 
   private layoutStatic() {
 
-    let requiredWidth = Math.round(this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH));
+    let requiredWidth = Math.round(this.dbValues.length * this.pixelsPerValue);
     if (this.virtualCanvas && this.ce) {
 
       this.virtualCanvas.style.width = requiredWidth + 'px';
@@ -194,7 +195,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   }
 
   private checkWidth() {
-    let requiredWidth = this.dbValues.length * (LINE_DISTANCE + LINE_WIDTH);
+    let requiredWidth = this.dbValues.length*this.pixelsPerValue;
     if (this.virtualCanvas.offsetWidth - requiredWidth < this.ce.offsetWidth * OVERFLOW_THRESHOLD) {
       let newWidth = Math.floor(this.virtualCanvas.offsetWidth + (this.ce.offsetWidth * OVERFLOW_INCR_FACTOR));
       this.virtualCanvas.style.width = newWidth + 'px';
@@ -217,7 +218,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
   private drawLevelBackground(g: CanvasRenderingContext2D, x: number, h: number){
     g.strokeStyle = 'black';
     g.fillStyle = 'black';
-    g.fillRect(x,0,LINE_WIDTH+LINE_DISTANCE,h)
+    g.fillRect(x,0,this.pixelsPerValue,h)
   }
 
   // private drawLevelLine(g: CanvasRenderingContext2D, x: number, h: number, dbVal: number) {
@@ -315,8 +316,8 @@ export class LevelBar implements LevelListener,AfterViewInit {
           let x2 = x1 + this.ce.offsetWidth;
 
           // corresponds to this level values:
-          let i1 = Math.floor(x1 / (LINE_DISTANCE + LINE_WIDTH));
-          let i2 = Math.ceil(x2 / (LINE_DISTANCE + LINE_WIDTH));
+          let i1 = Math.floor(x1 / this.pixelsPerValue);
+          let i2 = Math.ceil(x2 /this.pixelsPerValue);
           // some values around
           i1 -= 2;
           i2 += 2;
@@ -330,7 +331,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
 
           var c=0;
           for (let i = i1; i < i2; i++) {
-              let x = i * (LINE_DISTANCE + LINE_WIDTH);
+              let x = i * this.pixelsPerValue;
               let dbVals = this.dbValues[i];
               if (dbVals) {
                   this.drawLevelLines(g, x, h, dbVals);
@@ -359,20 +360,17 @@ export class LevelBar implements LevelListener,AfterViewInit {
 
 
   private framesPerPixel(): number | null {
+    let fpp:number|null=null;
     // one buffer
     if (this._staticLevelInfos) {
       let framesPerBuffer = this._staticLevelInfos.framesPerBuffer();
-      let pixelsPerBuffer = LINE_DISTANCE + LINE_WIDTH;
-
-      return framesPerBuffer / pixelsPerBuffer;
+      fpp=framesPerBuffer / this.pixelsPerValue;
     }else{
       if(this.dbValues && this.dbValues.length>0) {
-        return this._streamingFrameLength / this.dbValues.length;
-      }else{
-        return null;
+        fpp=this._streamingFrameLength / (this.dbValues.length*this.pixelsPerValue);
       }
     }
-    return null;
+    return fpp;
   }
 
 
