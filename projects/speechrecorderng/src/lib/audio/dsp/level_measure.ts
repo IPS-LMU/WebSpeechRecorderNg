@@ -518,7 +518,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
           minLevels[ch] = fls[0];
           maxLevels[ch] = fls[1];
         }
-        let bi = new LevelInfo(this.channelCount, this.frameCount, me.data.fraemLength, minLevels, maxLevels);
+        let bi = new LevelInfo(this.channelCount, this.frameCount, me.data.frameLength, minLevels, maxLevels);
         this.updateLevels(bi);
       }
     }
