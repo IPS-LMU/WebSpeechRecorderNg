@@ -35,7 +35,7 @@ export class AudioBufferSource implements AudioSource{
       return this._duration;
     }
     get sampleRate(): number {
-        return this.sampleRate;
+        return this._audioBuffer.sampleRate;
     }
     get numberOfChannels(): number {
         return this._audioBuffer.numberOfChannels;
@@ -47,13 +47,16 @@ export class AudioBufferSource implements AudioSource{
       return this._audioBuffer.numberOfChannels*this._audioBuffer.length;
     }
     audioInputStream(): Float32ArrayInputStream | null {
-        throw new Error("Method not implemented.");
+        return new AudioBufferInputStream(this._audioBuffer);
     }
     asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
-        throw new Error("Method not implemented.");
+        return null;
     }
     releaseAudioData(): Observable<void> {
-        throw new Error("Method not implemented.");
+       return new Observable(subscriber => {
+          subscriber.next();
+          subscriber.complete();
+       });
     }
     set onReady(onReady: (() => void) | null) {
         throw new Error("Method not implemented.");
@@ -209,26 +212,31 @@ export class AudioDataHolder{
 
   releaseAudioData():Observable<void>{
     return new Observable<void>(subscriber => {
-      if (this._audioSource instanceof  IndexedDbAudioBuffer) {
+      //if (this._audioSource instanceof  IndexedDbAudioBuffer) {
+      if(this._audioSource) {
         this._audioSource.releaseAudioData().subscribe({
-          next:()=>{
+          next: () => {
             subscriber.next();
           },
-          complete:()=>{
-            this._audioSource=null;
+          complete: () => {
+            this._audioSource = null;
             subscriber.complete();
-          },error:(err)=>{
+          }, error: (err) => {
             subscriber.error(err);
           }
         });
       }else{
-        // Others have no persistent respectively async deletable storage, they should be finally removed by the GC
-        //this._buffer=null;
-        //this._arrayBuffer=null;
-        this._audioSource=null;
         subscriber.next();
         subscriber.complete();
       }
+      // }else{
+      //   // Others have no persistent respectively async deletable storage, they should be finally removed by the GC
+      //   //this._buffer=null;
+      //   //this._arrayBuffer=null;
+      //   this._audioSource=null;
+      //   subscriber.next();
+      //   subscriber.complete();
+      // }
     });
   }
 
