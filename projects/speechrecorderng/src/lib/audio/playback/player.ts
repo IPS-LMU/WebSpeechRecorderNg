@@ -319,7 +319,6 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
                   this.sourceBufferNode.connect(this.context.destination);
                   this.sourceBufferNode.onended = () => this.onended();
 
-                  this.playStartTime = this.context.currentTime;
                   this.running = true;
                   this.sourceBufferNode.start();
                   this.playStartTime = this.context.currentTime;
@@ -510,13 +509,15 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
       get playPositionFrames():number|null {
         let ppFrs:number|null=null;
-        let sr:number|null=null;
-        if(sr ) {
-          let ppTime = this.playPositionTime;
-          if(ppTime!==null) {
-            ppFrs = sr * ppTime;
-          }
-        }
+       if(this._audioSource) {
+         let sr=this._audioSource.sampleRate;
+         if (sr) {
+           let ppTime = this.playPositionTime;
+           if (ppTime !== null) {
+             ppFrs = sr * ppTime;
+           }
+         }
+       }
         return ppFrs;
       }
 
