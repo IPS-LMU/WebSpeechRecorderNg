@@ -610,7 +610,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             if(!this._persistentAudioStorageTarget){
               throw Error('Error: Persistent storage target not set.');
             }else {
-              console.debug("Fetch audio and store to indexed db...");
+              //console.debug("Fetch audio and store to indexed db...");
               this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
                 next: (iab) => {
                   //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
@@ -689,7 +689,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
-            console.debug("Fetch audio and store to (chunked) array buffer...");
+            //console.debug("Fetch audio and store to (chunked) array buffer...");
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (aab) => {
                 nextAab = aab;
@@ -724,7 +724,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
           } else {
             // Fetch regular audio buffer
-            console.debug("Fetch audio and store to audio buffer...");
+            //console.debug("Fetch audio and store to audio buffer...");
             this.audioFetchSubscription = this.recFileService.fetchSprRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (ab) => {
                 this.liveLevelDisplayState = LiveLevelState.READY;

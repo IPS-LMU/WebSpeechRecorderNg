@@ -493,7 +493,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }, 50);
     } else if (e.type == EventType.STOPPED || e.type == EventType.ENDED) {
       window.clearInterval(this.updateTimerId);
-      console.debug("Enable play start action (by player events stopped or ended): "+(!(this.displayRecFile)));
+      //console.debug("Enable play start action (by player events stopped or ended): "+(!(this.displayRecFile)));
       this.playStartAction.disabled = (!(this.displayRecFile));
 
     }
@@ -627,7 +627,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             if(!this._persistentAudioStorageTarget){
               throw Error('Error: Persistent storage target not set.');
             }else {
-              console.debug("Fetch audio and store to indexed db...");
+              //console.debug("Fetch audio and store to indexed db...");
               this.audioFetchSubscription = this.recFileService.fetchRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
                 next: (iab) => {
                   //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
@@ -705,7 +705,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
-            console.debug("Fetch audio and store to (chunked) array buffer...");
+            //console.debug("Fetch audio and store to (chunked) array buffer...");
             this.audioFetchSubscription = this.recFileService.fetchRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
               next: (aab) => {
                 nextAab = aab;
@@ -776,7 +776,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }
 
     } else {
-      console.debug("recording file null");
+      //console.debug("recording file null");
       this.displayAudioClip = null;
       this.controlAudioPlayer.audioClip = null;
     }
