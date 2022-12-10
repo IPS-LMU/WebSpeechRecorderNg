@@ -102,7 +102,8 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 
 export abstract class BasicRecorder {
 
-  public static readonly DEFAULT_CHUNK_SIZE_SECONDS=30;
+
+  public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=30;
 
   get clientAudioStorageType(): AudioStorageType {
     return this._clientAudioStorageType;
@@ -321,6 +322,7 @@ export abstract class BasicRecorder {
         if(!this.keepLiveLevel) {
           this.liveLevelDisplayState = LiveLevelState.RENDERING;
           this.calcBufferInfosSubscr = this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
+            console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
             dap.levelInfos = levelInfos;
             this.liveLevelDisplayState = LiveLevelState.READY;
             this.changeDetectorRef.detectChanges();
