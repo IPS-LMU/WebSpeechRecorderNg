@@ -14,18 +14,10 @@ import {AudioBufferSource, AudioDataHolder} from "../../audio/audio_data_holder"
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
-import {AudioCapture} from "../../audio/capture/capture";
 import {WavReader} from "../../audio/impl/wavreader";
 import {PCMAudioFormat} from "../../audio/format";
 
-// iPad Out of memory RangeError
-//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 5000000;
-export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 500000;
 
-// Test debug
-//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 250000;
-// TEST only !!
-//export const DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH = 123456;
 
 
 export class ChunkDownload{
@@ -45,6 +37,11 @@ export class ChunkDownload{
 
 @Injectable()
 export class RecordingService {
+
+  // iPad 9th generation, iOS 15.7.1, sometimes:
+  // Failed to load resource: WebKit hat einen internen Fehler festgestellt
+  //public static readonly DEFAULT_CHUNKED_DOWNLOAD_SECONDS:number=10;
+  public static readonly DEFAULT_CHUNKED_DOWNLOAD_SECONDS:number=4;
 
   public static readonly REC_API_CTX = 'recfile'
   public static readonly RECORDING_API_CTX='recordingfile'
@@ -873,7 +870,7 @@ export class RecordingService {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
-            let lengthInSeconds = 10;
+            let lengthInSeconds = RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
             let obs = this.chunkedAudioRequestToArrayBuffer(aCtx, baseUrl, recordingFile.samplerate, lengthInSeconds);
 
             //let obs = this.fetchSprAudiofileArrayBuffer(aCtx,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
@@ -917,7 +914,7 @@ export class RecordingService {
         let baseUrl=this.audioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
-            let lengthInSeconds = 10;
+            let lengthInSeconds = RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
             let obs = this.chunkedAudioRequestToArrayBuffer(aCtx, baseUrl, recordingFile.samplerate, lengthInSeconds);
 
             //let obs = this.fetchSprAudiofileArrayBuffer(aCtx,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
@@ -961,7 +958,7 @@ export class RecordingService {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
-            let lengthInSeconds=10;
+            let lengthInSeconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
             let obs = this.chunkedInddbAudioRequest(aCtx, persistentAudioStorageTarget,baseUrl,recordingFile.samplerate,lengthInSeconds);
             let subscr = obs.subscribe({
               next: aab => {
@@ -1003,7 +1000,7 @@ export class RecordingService {
         let baseUrl=this.audioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
-            let lengthInSeconds=10;
+            let lengthInSeconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
             let obs = this.chunkedInddbAudioRequest(aCtx, persistentAudioStorageTarget,baseUrl,recordingFile.samplerate,lengthInSeconds);
             let subscr = obs.subscribe({
               next: aab => {
@@ -1045,7 +1042,7 @@ export class RecordingService {
       if(recordingFile.session) {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
-          let seconds=10;
+          let seconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
           if(recordingFile.samplerate) {
             let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.samplerate,seconds, recordingFile.frames);
             let subscr = obs.subscribe({
@@ -1090,7 +1087,7 @@ export class RecordingService {
       if(recordingFile.session) {
         let baseUrl=this.audioFileUrl(projectName,recordingFile);
         if(baseUrl) {
-          let seconds=10;
+          let seconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
           if(recordingFile.samplerate) {
             let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.samplerate,seconds, recordingFile.frames);
             let subscr = obs.subscribe({
