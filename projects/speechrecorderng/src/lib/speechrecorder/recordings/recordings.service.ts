@@ -232,7 +232,7 @@ export class RecordingService {
         (error) => {
           // all other states are errors
           observer.error(error);
-          observer.complete();
+          //observer.complete();
 
         });
     });

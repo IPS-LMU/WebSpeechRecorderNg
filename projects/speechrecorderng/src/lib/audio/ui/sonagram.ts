@@ -779,7 +779,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
                                     terminate: terminate
                                   }, ada);
                                 }
-                              }
+                              },
+                                error:(err)=>{
+                                    console.error("Sonagram: Error reading audio data: "+err);
+                                }
                             }
 
                           )
@@ -887,7 +890,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
                                 terminate: false
                               }, [ad.buffer]);
                             }
-                          }
+                          },
+                            error:(err)=>{
+                                console.error("Sonagram: Error reading audio data: "+err);
+                            }
                         }
                       );
                     }
