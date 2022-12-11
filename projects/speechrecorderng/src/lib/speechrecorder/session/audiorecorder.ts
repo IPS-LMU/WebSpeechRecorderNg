@@ -80,7 +80,7 @@ export class Item {
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
-                                   [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
+                                   [audioLoaded]="audioLoaded"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
@@ -238,6 +238,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
+
+    this.audioLoaded=false;
 
     let context:AudioContext|null=null;
     try {
@@ -603,11 +605,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   set displayRecFile(displayRecFile: RecordingFile | null) {
+    //this.audioLoaded=false;
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
       let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(adh) {
         this.displayAudioClip = new AudioClip(adh);
+        //this.audioLoaded=true;
         //console.debug(" set recording file: display audio clip set");
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
         this.showRecording();
@@ -639,6 +643,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   if (nextIab) {
                     if (rf ) {
                       fabDh = new AudioDataHolder(nextIab);
+                      //this.audioLoaded=true;
                       this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
                     }
                   } else {
@@ -678,6 +683,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 if (nextNetAb) {
                   if (rf) {
                     fabDh = new AudioDataHolder(nextNetAb);
+
                     this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
                   }
                 } else {
@@ -689,6 +695,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
                   //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
                   this.displayAudioClip = new AudioClip(fabDh);
+                  // fabDh.onReady=()=>{
+                  //   this.audioLoaded=true;
+                  // }
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
                 this.showRecording();
@@ -726,6 +735,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 if (fabDh) {
                   // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
+                  this.audioLoaded=true;
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
                 this.showRecording();
@@ -757,6 +767,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 if (fabDh) {
                   // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
+                  //this.audioLoaded=true;
                   //console.debug("set recording file: display audio clip from fetched audio buffer");
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip;
@@ -909,6 +920,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
           this.playStartAction.disabled = true;
+          this.audioLoaded=false;
           this.keepLiveLevel=true;
           let rUUID:string|null=null;
             let burl:string|null=null;

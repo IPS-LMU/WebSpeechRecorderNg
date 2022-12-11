@@ -206,6 +206,7 @@ export abstract class BasicRecorder {
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
   peakLevelInDb:number=MIN_DB_LEVEL;
+  audioLoaded:boolean=false;
   protected _controlAudioPlayer!: AudioPlayer;
   public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
@@ -357,13 +358,14 @@ export abstract class BasicRecorder {
         adh.onReady=()=>{
           //console.debug("Audio data holder ready. Enable playback.")
           this.playStartAction.disabled = false;
+          this.audioLoaded=true;
         }
       }
       //this.playStartAction.disabled = false;
     } else {
 
       this.playStartAction.disabled = true;
-
+      this.audioLoaded=false;
       // Collapse audio signal display if open
       if (!this.audioSignalCollapsed) {
         this.audioSignalCollapsed = true;
