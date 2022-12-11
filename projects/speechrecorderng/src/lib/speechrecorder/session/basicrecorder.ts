@@ -88,12 +88,40 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
     let frameLen=0;
     if(aCtx && bChs>0) {
       frameLen=buffers[0].length;
-      let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
-      for (let ch = 0; ch < this.channels; ch++) {
-        ad.copyToChannel(buffers[ch],ch);
+      try {
+        let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
+        for (let ch = 0; ch < this.channels; ch++) {
+          ad.copyToChannel(buffers[ch],ch);
+        }
+        this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
+        this.chunkIdx++;
+      }catch(err){
+        // TODO Handle errors
+        // iOS Safari sometimes throws NotSupportedError
+        console.error("Could not create audio buffer for chunked upload.");
+        console.error("Nr. of chs: "+this.channels,", frame length: "+frameLen+", sample rate: "+this.sampleRate);
+        if(err instanceof DOMException){
+          console.error("DOM exception: Name: "+err.name+", Msg: "+err.message);
+          if(err.name==='NotSupportedError'){
+            if(frameLen==0){
+              // Empty buffers are not supported by Chromium
+             // No data to transfer, but this case should never happen
+              return frameLen;
+            }else{
+              throw err;
+            }
+          }else{
+            throw err;
+          }
+        }else if (err instanceof RangeError){
+          console.error("RangeError: Name: "+err.name+", Msg: "+err.message);
+          // Out of memory
+          // TODO What to do ??
+          throw err;
+        }else{
+          throw err;
+        }
       }
-      this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
-      this.chunkIdx++;
     }
     return frameLen;
   }
@@ -179,6 +207,7 @@ export abstract class BasicRecorder {
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
   peakLevelInDb:number=MIN_DB_LEVEL;
+  audioLoaded:boolean=false;
   protected _controlAudioPlayer!: AudioPlayer;
   public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
@@ -331,13 +360,14 @@ export abstract class BasicRecorder {
         adh.onReady=()=>{
           //console.debug("Audio data holder ready. Enable playback.")
           this.playStartAction.disabled = false;
+          this.audioLoaded=true;
         }
       }
       //this.playStartAction.disabled = false;
     } else {
 
       this.playStartAction.disabled = true;
-
+      this.audioLoaded=false;
       // Collapse audio signal display if open
       if (!this.audioSignalCollapsed) {
         this.audioSignalCollapsed = true;

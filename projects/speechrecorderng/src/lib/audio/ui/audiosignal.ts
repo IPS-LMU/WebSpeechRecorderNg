@@ -315,6 +315,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                           eod:eod
                         }, [adBuf]);
                       }
+                    },
+                    error:(err)=>{
+                      console.error("AudioSignal: Error reading audio data: "+err);
                     }
                   }
                 )
@@ -400,6 +403,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                         eod: (read <= 0)
                       }, [ad.buffer]);
                     }
+                  },
+                  error:(err)=>{
+                      console.error("AudioSignal: Error reading audio data: "+err);
                   }
                 }
               );
