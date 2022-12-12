@@ -946,11 +946,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
                 as=netAs;
                 if(this.uploadSet){
-                  let rp=new ReadyProvider();
-                  netAs.readyProvider=rp;
+                  //let rp=new ReadyProvider();
+                  //netAs.readyProvider=rp;
                   this.uploadSet.onDone=(uploadSet)=>{
                     //console.debug("upload set on done: Call ready provider.ready");
-                    rp.ready();
+                    //rp.ready();
+                    netAs.ready();
                   }
                 }
 

@@ -351,17 +351,19 @@ export abstract class BasicRecorder {
         if(!this.keepLiveLevel) {
           this.liveLevelDisplayState = LiveLevelState.RENDERING;
           this.calcBufferInfosSubscr = this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
-            console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
+            //console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
             dap.levelInfos = levelInfos;
             this.liveLevelDisplayState = LiveLevelState.READY;
             this.changeDetectorRef.detectChanges();
           });
         }
-        adh.onReady=()=>{
-          //console.debug("Audio data holder ready. Enable playback.")
+        adh.addOnReadyListener(()=>{
+          console.debug("Audio data holder ready. Enable playback. Audio loaded true.")
           this.playStartAction.disabled = false;
           this.audioLoaded=true;
-        }
+          this.changeDetectorRef.detectChanges();
+        });
+        console.debug("Audio data holder added onReady.")
       }
       //this.playStartAction.disabled = false;
     } else {

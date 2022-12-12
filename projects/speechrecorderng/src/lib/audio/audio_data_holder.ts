@@ -18,13 +18,72 @@ export interface AudioSource {
   asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
   randomAccessAudioStream():RandomAccessAudioStream;
   releaseAudioData(): Observable<void>;
-  set onReady(onReady:(()=>void)|null);
+  addOnReadyListener(onReady:(()=>void)|null):void;
+  removeOnReadyListener(onReady:(()=>void)|null):void;
+  ready():void;
 }
 
-export class AudioBufferSource implements AudioSource{
+export abstract class BasicAudioSource implements AudioSource{
+  protected _ready:boolean=false;
+  protected onReadyListeners:Array<(() => void)>=new Array<() => void>();
+
+  addOnReadyListener(onReady: (() => void)): void {
+    // let alreadyAdded=false;
+    // for(let or of this.onReadyListeners){
+    //   if(or===onReady){
+    //     alreadyAdded=true;
+    //     break;
+    //   }
+    // }
+    // if(!alreadyAdded) {
+    //   this.onReadyListeners.push(onReady);
+    // }
+
+    if(! (this.onReadyListeners.find((or)=>or===onReady))){
+      this.onReadyListeners.push(onReady);
+    }
+
+    if(this._ready){
+      onReady();
+    }
+  }
+
+  removeOnReadyListener(onReady: (() => void)):void {
+    this.onReadyListeners=this.onReadyListeners.filter((or)=>or!==onReady);
+  }
+
+  ready():void{
+    this._ready=true;
+    for(let onReady of this.onReadyListeners){
+      onReady.call(this);
+    }
+  }
+
+  abstract asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
+
+  abstract audioInputStream(): Float32ArrayInputStream | null;
+
+  abstract  get duration(): number;
+
+  abstract get frameLen(): number;
+
+  abstract get numberOfChannels(): number;
+
+  abstract randomAccessAudioStream(): RandomAccessAudioStream ;
+
+  abstract releaseAudioData(): Observable<void> ;
+
+  abstract sampleCounts(): number;
+
+  abstract get sampleRate(): number;
+}
+
+export class AudioBufferSource extends BasicAudioSource{
   private _duration:number;
   constructor(private _audioBuffer:AudioBuffer) {
+    super();
     this._duration=this._audioBuffer.length/this._audioBuffer.sampleRate;
+    this.ready();
   }
 
   get audioBuffer(): AudioBuffer {
@@ -58,29 +117,11 @@ export class AudioBufferSource implements AudioSource{
           subscriber.complete();
        });
     }
-    set onReady(onReady: (() => void) | null) {
-        throw new Error("Method not implemented.");
-    }
 
   randomAccessAudioStream(): RandomAccessAudioStream {
     return new RandomAccessAudioBufferStream(this._audioBuffer);
   }
 }
-
-// TODO Ler all types implement an interface.
-// Question: Use JS protoype to extend HTML5 Audio API AudioBuffer or use a class wrapper?
-// export interface AudioBufferI{
-//   readonly type:AudioStorageType;
-//   readonly readAsync:boolean;
-//   readonly numberOfChannels:number;
-//   readonly sampleRate:number;
-//
-// }
-
-// export abstract class AudioStorage{
-//   abstract type:AudioStorageType;
-//   abstract persistent:boolean;
-// }
 
 export interface RandomAccessAudioStream{
   framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>;
@@ -109,14 +150,18 @@ export class AudioDataHolder{
     }
   }
 
-  set onReady(onReady:(()=>void)|null){
-    if(this._audioSource instanceof  NetAudioBuffer){
-      this._audioSource.onReady=onReady;
-    }else{
-      if(onReady){
-        onReady();
-      }
-    }
+  // set onReady(onReady:(()=>void)|null){
+  //   if(this._audioSource instanceof  NetAudioBuffer){
+  //     this._audioSource.onReady=onReady;
+  //   }else{
+  //     if(onReady){
+  //       onReady();
+  //     }
+  //   }
+  // }
+
+  addOnReadyListener(onReady:(()=>void)|null):void{
+    this._audioSource?.addOnReadyListener(onReady);
   }
 
   get sampleRate(): number {

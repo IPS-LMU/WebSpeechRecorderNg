@@ -2,7 +2,7 @@ import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {UUID} from "../utils/utils";
 import {AudioSourceNode} from "./playback/audio_source_node";
-import {AudioSource, RandomAccessAudioStream} from "./audio_data_holder";
+import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 
 export class PersistentAudioStorageTarget{
   get indexedDb(): IDBDatabase {
@@ -62,7 +62,7 @@ export class PersistentAudioStorageTarget{
 
 }
 
-export class IndexedDbAudioBuffer implements AudioSource{
+export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSource{
   get chunkFrameLen(): number {
     return this._chunkFrameLen;
   }
@@ -81,7 +81,8 @@ export class IndexedDbAudioBuffer implements AudioSource{
 
 
   constructor(private _persistentAudioStorageTarget:PersistentAudioStorageTarget,private _channelCount: number, private _sampleRate: number,private _chunkFrameLen:number,private _frameLen:number, private _uuid:string) {
-
+    super();
+    this.ready();
   }
 
   get channelCount(): number {

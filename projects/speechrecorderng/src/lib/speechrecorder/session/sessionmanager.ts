@@ -1146,11 +1146,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
               as=netAb;
               if(this.uploadSet){
-                let rp=new ReadyProvider();
-                netAb.readyProvider=rp;
+                //let rp=new ReadyProvider();
+                //netAb.readyProvider=rp;
                 this.uploadSet.onDone=(uploadSet)=>{
-                  //console.debug("upload set on done: Call ready provider.ready");
-                  rp.ready();
+                  console.debug("upload set on done: Call ready provider.ready");
+                  //rp.ready();
+                  netAb.ready();
                 }
               }
             }

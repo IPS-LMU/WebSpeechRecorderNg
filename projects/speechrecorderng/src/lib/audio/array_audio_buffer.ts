@@ -1,11 +1,11 @@
-import {AudioSource, RandomAccessAudioStream} from "./audio_data_holder";
+import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {Observable} from "rxjs";
 import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
 import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 
 
-export class ArrayAudioBuffer implements AudioSource{
+export class ArrayAudioBuffer extends BasicAudioSource{
 
   private _chunkCount=0;
   private _frameLen:number=0;
@@ -13,7 +13,9 @@ export class ArrayAudioBuffer implements AudioSource{
   private _sealed=false;
 
   constructor(private _channelCount: number, private _sampleRate: number, private _data: Array<Array<Float32Array>>) {
+    super();
     this.updateFrameLen();
+    this.ready();
   }
 
   private updateFrameLen(){

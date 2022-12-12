@@ -360,9 +360,10 @@ export class RecordingService {
                     }
 
                     let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, fl,frameLength);
-                    let rp=new ReadyProvider();
-                    nab.readyProvider=rp;
-                    rp.ready();
+                    //let rp=new ReadyProvider();
+                    //nab.readyProvider=rp;
+                    //rp.ready();
+                    nab.ready();
                     if (nab.frameLen < frameLength) {
                       //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
                       nab.seal();

@@ -1,6 +1,6 @@
 import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
-import {AudioSource, RandomAccessAudioStream} from "./audio_data_holder";
+import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
 
@@ -17,26 +17,26 @@ export class ReadyProvider{
   private _ready=false;
 
   ready(){
-    //console.debug("ReadyProvider.ready()");
+    console.debug("ReadyProvider.ready()");
     if(!this._ready && this._onReady){
-      //console.debug("Ready provider: Call onReady() by ready() method");
+      console.debug("Ready provider: Call onReady() by ready() method");
       this._onReady();
     }
     this._ready=true;
    }
 }
 
-export class NetAudioBuffer implements AudioSource{
-  get readyProvider(): ReadyProvider | null {
-    return this._readyProvider;
-  }
-
-  set readyProvider(value: ReadyProvider | null) {
-    this._readyProvider = value;
-    if(this._readyProvider){
-      this._readyProvider.onReady=this._onReady;
-    }
-  }
+export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
+  // get readyProvider(): ReadyProvider | null {
+  //   return this._readyProvider;
+  // }
+  //
+  // set readyProvider(value: ReadyProvider | null) {
+  //   this._readyProvider = value;
+  //   if(this._readyProvider){
+  //     this._readyProvider.onReady=this._onReady;
+  //   }
+  // }
   get orgFetchChunkFrameLen(): number {
     return this._orgFetchChunkFrameLen;
   }
@@ -73,6 +73,7 @@ export class NetAudioBuffer implements AudioSource{
               private _frameLen:number,
               private _uuid:string|null=null,
               private _orgFetchChunkFrameLen=_chunkFrameLen) {
+    super();
 
   }
 
@@ -100,13 +101,13 @@ export class NetAudioBuffer implements AudioSource{
     return this._chunkCount;
   }
 
-  set onReady(onReady:(()=>void)|null){
-    this._onReady=onReady;
-    //console.debug("Nab: Set onReady")
-    if(this._readyProvider){
-      this._readyProvider.onReady=onReady;
-    }
-  }
+  // set onReady(onReady:(()=>void)|null){
+  //   this._onReady=onReady;
+  //   console.debug("Nab: Set onReady")
+  //   if(this._readyProvider){
+  //     this._readyProvider.onReady=onReady;
+  //   }
+  // }
 
   releaseAudioData():Observable<void>{
     return new Observable<void>((subscriber)=>{
@@ -122,9 +123,10 @@ export class NetAudioBuffer implements AudioSource{
 
     static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
       let nab=new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
-      let rp=new ReadyProvider();
-      nab.readyProvider=rp;
-      rp.ready();
+      //let rp=new ReadyProvider();
+      //nab.readyProvider=rp;
+      //rp.ready();
+      nab.ready();
       return nab;
   }
 

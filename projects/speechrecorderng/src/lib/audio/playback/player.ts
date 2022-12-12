@@ -355,18 +355,20 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
               this._startSelectionAction.disabled=this.startSelectionDisabled();
             }else{
               if(this._audioSource instanceof NetAudioBuffer){
-                this._audioSource.onReady=()=>{
+               // this._audioSource.onReady=()=>{
+                this._audioSource.addOnReadyListener(()=>{
                   this._startAction.disabled=false;
                   this._startSelectionAction.disabled=this.startSelectionDisabled();
-                }
+                });
               }
             }
           }else{
             this._startAction.disabled=true;
             this._startSelectionAction.disabled=true;
-            if(this._audioSource instanceof NetAudioBuffer){
-              this._audioSource.onReady = null;
-            }
+            // if(this._audioSource instanceof NetAudioBuffer){
+            //   this._audioSource.onReady = null;
+            // }
+
           }
         }
 
