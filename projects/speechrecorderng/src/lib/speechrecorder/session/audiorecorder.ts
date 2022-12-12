@@ -556,7 +556,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
     this.displayAudioClip = null;
-    this.liveLevelDisplay.reset();
+    this.liveLevelDisplay.reset(true);
     this.liveLevelDisplayState=LiveLevelState.READY;
     this.showRecording();
 

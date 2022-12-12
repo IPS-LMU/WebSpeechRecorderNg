@@ -461,7 +461,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
     this.displayAudioClip = null;
-    this.liveLevelDisplay.reset();
+    this.liveLevelDisplay.reset(true);
     // Hide loading hint on livelevel display
     this.liveLevelDisplayState=LiveLevelState.READY;
     this.showRecording();

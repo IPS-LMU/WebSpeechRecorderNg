@@ -206,14 +206,19 @@ export class LevelBar implements LevelListener,AfterViewInit {
     }
   }
 
-  reset() {
+  reset(stat=false) {
     this.peakDbLvl = MIN_DB_LEVEL;
     this.dbValues = new Array<Array<number>>();
     this._streamingFrameLength=0;
-    this.layout();
+    if(stat){
+      this.layoutStatic();
+    }else {
+      this.layout();
+    }
     this.drawAll();
     this.drawPlayPosition();
   }
+
 
   private drawLevelBackground(g: CanvasRenderingContext2D, x: number, h: number){
     g.strokeStyle = 'black';
