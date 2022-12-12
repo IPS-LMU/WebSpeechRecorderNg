@@ -556,10 +556,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
     this.displayAudioClip = null;
+    this.liveLevelDisplay.reset();
+    this.liveLevelDisplayState=LiveLevelState.READY;
     this.showRecording();
 
     if (this.ac) {
-      this.liveLevelDisplayState=LiveLevelState.READY;
       if (!this.ac.opened) {
         if (this._selectedDeviceId) {
           console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");

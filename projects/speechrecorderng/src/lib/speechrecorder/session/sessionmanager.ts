@@ -461,14 +461,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
     this.displayAudioClip = null;
+    this.liveLevelDisplay.reset();
+    // Hide loading hint on livelevel display
+    this.liveLevelDisplayState=LiveLevelState.READY;
     this.showRecording();
     if (this.section.mode === 'AUTORECORDING') {
       this.autorecording = true;
     }
 
     if(this.ac!=null) {
-      // Hide loading hint on livelevel display
-      this.liveLevelDisplayState=LiveLevelState.READY;
       if (!this.ac.opened) {
         if (this._selectedDeviceId) {
           console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
