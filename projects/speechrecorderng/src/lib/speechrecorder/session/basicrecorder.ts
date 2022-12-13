@@ -99,7 +99,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
         // TODO Handle errors
         // iOS Safari sometimes throws NotSupportedError
         console.error("Could not create audio buffer for chunked upload.");
-        console.error("Nr. of chs: "+this.channels,", frame length: "+frameLen+", sample rate: "+this.sampleRate);
+        console.error("Nr. of chs: "+this.channels+", frame length: "+frameLen+", sample rate: "+this.sampleRate);
         if(err instanceof DOMException){
           console.error("DOM exception: Name: "+err.name+", Msg: "+err.message);
           if(err.name==='NotSupportedError'){
@@ -110,7 +110,13 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
             }else{
               throw err;
             }
+          }else if(err.name==='RangeError'){
+            console.error("DOM RangeError");
+            // Out of memory
+            // TODO What to do ??
+            throw err;
           }else{
+            console.error("DOM Exception unknown");
             throw err;
           }
         }else if (err instanceof RangeError){

@@ -1112,6 +1112,24 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
   stopped() {
+    if(this.preRecTimerRunning){
+      if(this.preRecTimerId) {
+        window.clearTimeout(this.preRecTimerId);
+      }
+      this.preRecTimerRunning=false;
+    }
+    if(this.postRecTimerRunning){
+      if(this.postRecTimerId) {
+        window.clearTimeout(this.postRecTimerId);
+      }
+      this.postRecTimerRunning=false;
+    }
+    if(this.maxRecTimerRunning){
+      if(this.maxRecTimerId) {
+        window.clearTimeout(this.maxRecTimerId);
+      }
+      this.maxRecTimerRunning=false;
+    }
     this.updateStartActionDisableState()
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;

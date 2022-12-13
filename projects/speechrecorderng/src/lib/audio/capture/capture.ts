@@ -535,7 +535,29 @@ export class AudioCapture {
                           }
                         }
                         if (this.audioOutStream) {
-                          this.audioOutStream.write(chunk);
+                          try {
+                            this.audioOutStream.write(chunk);
+                            //throw new Error('Test');
+                          }catch(err){
+                            if(err instanceof Error){
+                              this.persistError=err;
+                            }else{
+                              this.persistError=new Error('Error handling recorded audio data');
+                            }
+
+                            console.error("Capture error: "+err);
+                            this.stop();
+
+                            if(this.listener){
+                              let errExpl='';
+                              if(err instanceof DOMException){
+                                errExpl=': '+err.name+': '+err.message;
+                              }
+                              this.listener.error("Could not handle recorded audio data"+errExpl,"Please try to record again.");
+                           }else{
+                              this.close();
+                            }
+                          }
                         }
                         if(AudioStorageType.PERSISTTODB===this._audioStorageType && this._persistentAudioStorageTarget){
                           this.store();
