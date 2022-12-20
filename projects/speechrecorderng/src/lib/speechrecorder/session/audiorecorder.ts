@@ -1,7 +1,7 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {RecordingFile, RecordingFileUtils, SprRecordingFile} from '../recording'
+import {RecordingFile, RecordingFileUtils} from '../recording'
 import {
   Component, ViewChild, ChangeDetectorRef, Inject,
   AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
@@ -21,13 +21,11 @@ import {AudioClip} from "../../audio/persistor";
 import {Upload, UploaderStatus, UploaderStatusChangeEvent, UploadHolder} from "../../net/uploader";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {ProjectService} from "../project/project.service";
-import {UUID} from "../../utils/utils";
 import {LevelBar} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
 import {
   BasicRecorder,
   ChunkAudioBufferReceiver,
-  LEVEL_BAR_INTERVALL_SECONDS,
   MAX_RECORDING_TIME_MS,
   RECFILE_API_CTX
 } from "./basicrecorder";
@@ -36,24 +34,24 @@ import {Mode} from "../../speechrecorderng.component";
 import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
-import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
 }
 
-export class Item {
-  promptAsString: string;
-  training: boolean;
-  recs: Array<RecordingFile> | null;
-
-  constructor(promptAsString: string, training: boolean) {
-    this.promptAsString = promptAsString;
-    this.training = training;
-    this.recs = null;
-  }
-}
+// export class Item {
+//   promptAsString: string;
+//   training: boolean;
+//   recs: Array<RecordingFile> | null;
+//
+//   constructor(promptAsString: string, training: boolean) {
+//     this.promptAsString = promptAsString;
+//     this.training = training;
+//     this.recs = null;
+//   }
+// }
 
 
 @Component({
@@ -179,7 +177,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   audio: any;
 
-  private _promptIndex:number|null=null;
+  //private _promptIndex:number|null=null;
 
   //items: Array<Item>|null=null;
   //selectedItemIdx: number;
@@ -375,7 +373,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusAlertType='info';
     this.statusMsg = 'Fetching infos of recordings...';
     this.statusWaiting=true;
-    let prNm:string|null=null;
+    //let prNm:string|null=null;
     if(this.project) {
       let rfsObs = this.recFileService.recordingFileList(this.project.name, sess.sessionId);
       rfsObs.subscribe({next:(rfs: Array<RecordingFile>) => {
@@ -581,7 +579,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ww = new WavWriter();
       let as=ab?.audioSource;
       if(as instanceof AudioBufferSource) {
-          let wavFile = ww.writeAsync(as.audioBuffer, (wavFile) => {
+          ww.writeAsync(as.audioBuffer, (wavFile) => {
             let blob = new Blob([wavFile], {type: 'audio/wav'});
             let rfUrl = URL.createObjectURL(blob);
 
@@ -653,7 +651,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                     this.statusAlertType = 'error'
                   }
                   if (fabDh) {
-                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
                   this.controlAudioPlayer.audioClip = this.displayAudioClip
@@ -693,7 +691,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   this.statusAlertType = 'error'
                 }
                 if (fabDh) {
-                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
                   //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
                   this.displayAudioClip = new AudioClip(fabDh);
                   // fabDh.onReady=()=>{
@@ -734,9 +732,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   this.statusAlertType = 'error'
                 }
                 if (fabDh) {
-                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
                   this.audioLoaded=true;
+
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
                 this.showRecording();
@@ -766,7 +765,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   this.statusAlertType = 'error';
                 }
                 if (fabDh) {
-                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
                   //this.audioLoaded=true;
                   //console.debug("set recording file: display audio clip from fetched audio buffer");
@@ -907,16 +906,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusMsg = 'Recorded.';
 
     let ad:AudioBuffer|null=null;
-    let ada:ArrayAudioBuffer|null=null;
-    let adh:AudioDataHolder|null=null;
-    let frameLen:number=0;
+
     if(this.ac) {
       let adh:AudioDataHolder|null=null;
-
-      // let nab:NetAudioBuffer|null=null;
-      // let iab:IndexedDbAudioBuffer|null=null;
-      // let ada:ArrayAudioBuffer|null=null;
-      // let ad:AudioBuffer|null=null;
       let as:AudioSource|null=null;
       if(this.ac) {
         if (AudioStorageType.NET === this.ac.audioStorageType) {
@@ -947,11 +939,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
                 as=netAs;
                 if(this.uploadSet){
-                  //let rp=new ReadyProvider();
-                  //netAs.readyProvider=rp;
                   this.uploadSet.onDone=(uploadSet)=>{
                     //console.debug("upload set on done: Call ready provider.ready");
-                    //rp.ready();
                     netAs.ready();
                   }
                 }
@@ -1118,7 +1107,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
 
-  constructor(protected injector:Injector,private route: ActivatedRoute,
+  constructor(private route: ActivatedRoute,
               private router: Router,
               private changeDetectorRef: ChangeDetectorRef,
               private sessionService:SessionService,

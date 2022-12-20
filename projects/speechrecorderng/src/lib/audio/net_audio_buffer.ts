@@ -4,39 +4,10 @@ import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_da
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
 
-export class ReadyProvider{
-  set onReady(value: (() => void) | null) {
-    //console.debug("ReadyProvider.set onReady(): "+value);
-    this._onReady = value;
-    if(this._onReady && this._ready){
-      //console.debug("Ready provider: Call onReady() by set onReady() method");
-      this._onReady();
-    }
-  }
-  private _onReady:(()=>void)|null=null;
-  private _ready=false;
 
-  ready(){
-    console.debug("ReadyProvider.ready()");
-    if(!this._ready && this._onReady){
-      console.debug("Ready provider: Call onReady() by ready() method");
-      this._onReady();
-    }
-    this._ready=true;
-   }
-}
 
 export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
-  // get readyProvider(): ReadyProvider | null {
-  //   return this._readyProvider;
-  // }
-  //
-  // set readyProvider(value: ReadyProvider | null) {
-  //   this._readyProvider = value;
-  //   if(this._readyProvider){
-  //     this._readyProvider.onReady=this._onReady;
-  //   }
-  // }
+
   get orgFetchChunkFrameLen(): number {
     return this._orgFetchChunkFrameLen;
   }
@@ -59,10 +30,6 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
 
   private _chunkCount=0;
   private _sealed=false;
-
-  private _onReady:(()=>void)|null=null;
-  private _readyProvider:ReadyProvider|null=null;
-
 
   constructor(protected _audioContext:AudioContext,
               private _recFileService:RecordingService,
@@ -101,14 +68,6 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
     return this._chunkCount;
   }
 
-  // set onReady(onReady:(()=>void)|null){
-  //   this._onReady=onReady;
-  //   console.debug("Nab: Set onReady")
-  //   if(this._readyProvider){
-  //     this._readyProvider.onReady=onReady;
-  //   }
-  // }
-
   releaseAudioData():Observable<void>{
     return new Observable<void>((subscriber)=>{
         // nothing to remove
@@ -123,9 +82,6 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
 
     static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
       let nab=new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
-      //let rp=new ReadyProvider();
-      //nab.readyProvider=rp;
-      //rp.ready();
       nab.ready();
       return nab;
   }
@@ -184,15 +140,24 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
         next: (chDl)=>{
           if(chDl){
-            const ab=chDl.decodedAudioBuffer;
-            let ccChs=ab.numberOfChannels;
-            let ccLen=ab.length;
-            let arrBuf=new Array<Float32Array>();
+            let ab=chDl.decodedAudioBuffer;
+            if(ab) {
+              let ccChs = ab.numberOfChannels;
+              let ccLen = ab.length;
+              let arrBuf = new Array<Float32Array>();
 
-            for(let ch=0;ch<ccChs;ch++){
-              arrBuf.push(ab.getChannelData(ch).slice());
+              for (let ch = 0; ch < ccChs; ch++) {
+                let chD = ab.getChannelData(ch);
+                let chDLen = chD.length;
+                let fa = new Float32Array(chDLen);
+                //fa.set(chD);
+                ab.copyFromChannel(fa,ch);
+                arrBuf.push(fa);
+              }
+              // Test memory leak WebKit
+              chDl.decodedAudioBuffer=null;
+              cb(arrBuf, chDl.orgFrameLength);
             }
-            cb(arrBuf,chDl.orgFrameLength);
           }else{
             cb(null,null);
           }

@@ -5,7 +5,6 @@ import {AudioStorageType, AutoGainControlConfig, Platform as CfgPlatform} from "
 import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
-import {NetAudioBuffer} from "../net_audio_buffer";
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -527,6 +526,9 @@ export class AudioCapture {
                               if (ch == 0) {
                                 this.framesRecorded += fa.length;
                               }
+                              if(DEBUG_TRACE_LEVEL>8) {
+                                console.debug('Capture ch0 data length: '+this.data[0].length);
+                              }
                             }else{
                               if(DEBUG_TRACE_LEVEL>8) {
                                 console.debug('Channel '+ch+' data not set!!');
@@ -537,25 +539,32 @@ export class AudioCapture {
                         if (this.audioOutStream) {
                           try {
                             this.audioOutStream.write(chunk);
-                            //throw new Error('Test');
+                            // // Random test error:
+                            // if(Math.random()>0.98) {
+                            //   throw new Error('Test');
+                            // }
                           }catch(err){
-                            if(err instanceof Error){
-                              this.persistError=err;
-                            }else{
-                              this.persistError=new Error('Error handling recorded audio data');
-                            }
+                            // if(err instanceof Error){
+                            //   this.persistError=err;
+                            // }else{
+                            //   this.persistError=new Error('Error handling recorded audio data');
+                            // }
 
                             console.error("Capture error: "+err);
-                            this.stop();
-
-                            if(this.listener){
-                              let errExpl='';
-                              if(err instanceof DOMException){
-                                errExpl=': '+err.name+': '+err.message;
+                            try {
+                              this.stop();
+                            }catch(err2){
+                              console.error("Capture next error (ignored): "+err2);
+                            }finally {
+                              if (this.listener) {
+                                let errExpl = '';
+                                if (err instanceof DOMException) {
+                                  errExpl = ': ' + err.name + ': ' + err.message;
+                                }
+                                this.listener.error("Could not handle recorded audio data" + errExpl, "Please try to record again.");
+                              } else {
+                                this.close();
                               }
-                              this.listener.error("Could not handle recorded audio data"+errExpl,"Please try to record again.");
-                           }else{
-                              this.close();
                             }
                           }
                         }
@@ -657,18 +666,24 @@ export class AudioCapture {
       this.bufferingNode.disconnect(this.context.destination);
     }
 
-    if (this.audioOutStream) {
-      this.audioOutStream.flush();
-    }
-    this.capturing = false;
-    if(this.inddbAudioBuffer && this.persistError){
-      // Delete invalid persistent audio data and hope that it will be completely uploaded to the server
-      this.inddbAudioBuffer.releaseAudioData();
-      this.inddbAudioBuffer=null;
-    }
-    if (this.listener && (this.persistError || this.persisted)) {
-      //console.debug("Stopped by stop() method call");
-      this.listener.stopped();
+    try {
+      if (this.audioOutStream) {
+        this.audioOutStream.flush();
+      }
+    }catch(err){
+      console.error("Could not flush capture stream.");
+     throw err;
+    }finally {
+      this.capturing = false;
+      if (this.inddbAudioBuffer && this.persistError) {
+        // Delete invalid persistent audio data and hope that it will be completely uploaded to the server
+        this.inddbAudioBuffer.releaseAudioData();
+        this.inddbAudioBuffer = null;
+      }
+      if (this.listener && (this.persistError || this.persisted)) {
+        //console.debug("Stopped by stop() method call");
+        this.listener.stopped();
+      }
     }
   }
 

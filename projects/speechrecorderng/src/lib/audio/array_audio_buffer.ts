@@ -1,4 +1,4 @@
-import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
+import {BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {Observable} from "rxjs";
 import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
@@ -168,12 +168,6 @@ export class ArrayAudioBuffer extends BasicAudioSource{
 
   get numberOfChannels(): number {
     return this._channelCount;
-  }
-
-  set onReady(onReady: (() => void) | null) {
-    if(onReady){
-      onReady();
-    }
   }
 
   releaseAudioData(): Observable<void> {

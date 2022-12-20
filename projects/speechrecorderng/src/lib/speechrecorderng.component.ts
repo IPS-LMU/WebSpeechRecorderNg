@@ -16,7 +16,7 @@ import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
-import {Arrays} from "./utils/utils";
+import {Arrays, DataSize} from "./utils/utils";
 import {RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
 
@@ -288,6 +288,8 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
     let upStatus = ue.status;
     this.dataSaved = (UploaderStatus.DONE === upStatus);
     let percentUpl = ue.percentDone();
+    let sizeInQueue=ue.sizeInQueue();
+    console.debug("Uploader: status: "+upStatus+", "+percentUpl+"%, Bytes in queue: "+sizeInQueue+' ('+DataSize.formatBytesToBinaryUnits(sizeInQueue)+')');
     if (UploaderStatus.ERR === upStatus) {
       this.sm.uploadStatus = 'warn'
     } else {

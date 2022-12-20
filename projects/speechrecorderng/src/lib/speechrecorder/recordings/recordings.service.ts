@@ -13,7 +13,7 @@ import {EMPTY, expand, map, Observable} from "rxjs";
 import {AudioBufferSource, AudioDataHolder} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
-import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {WavReader} from "../../audio/impl/wavreader";
 import {PCMAudioFormat} from "../../audio/format";
 
@@ -21,6 +21,9 @@ import {PCMAudioFormat} from "../../audio/format";
 
 
 export class ChunkDownload{
+  set decodedAudioBuffer(value: AudioBuffer | null) {
+    this._decodedAudioBuffer = value;
+  }
   get orgPCMAudioFormat(): PCMAudioFormat {
     return this._orgPCMAudioFormat;
   }
@@ -29,10 +32,10 @@ export class ChunkDownload{
     return this._orgFrameLength;
   }
 
-  get decodedAudioBuffer(): AudioBuffer {
+  get decodedAudioBuffer(): AudioBuffer |null{
     return this._decodedAudioBuffer;
   }
-  constructor(private _orgPCMAudioFormat:PCMAudioFormat,private _orgFrameLength:number,private _decodedAudioBuffer:AudioBuffer){}
+  constructor(private _orgPCMAudioFormat:PCMAudioFormat,private _orgFrameLength:number,private _decodedAudioBuffer:AudioBuffer|null){}
 }
 
 @Injectable()
@@ -188,6 +191,8 @@ export class RecordingService {
             // Check original audio format
             let wr=new WavReader(resp.body);
             const pcmFmt=wr.readFormat();
+            const nrChs=pcmFmt?.channelCount;
+            const sr=pcmFmt?.sampleRate;
             const orgFl=wr.frameLength();
             // if(pcmFmt){
             //   console.debug("Original WAVE format of download chunk: "+pcmFmt);
@@ -201,24 +206,33 @@ export class RecordingService {
             // }
 
             if(pcmFmt && orgFl) {
-              aCtx.decodeAudioData(resp.body, ab => {
+
+              if(sr===aCtx.sampleRate){
+                //console.debug("Read to ab impl");
+                let ab=wr.readToAudioBufferImpl();
+                let chDl = new ChunkDownload(pcmFmt, orgFl, ab);
+                observer.next(chDl);
+                observer.complete();
+              }else {
+
+                const decSuccCb: DecodeSuccessCallback = ab => {
                   //console.debug("Decoded audio chunk frames: "+ab.length);
                   let chDl = new ChunkDownload(pcmFmt, orgFl, ab);
                   observer.next(chDl);
                   observer.complete();
-                }
-                , error => {
-                  //if(error instanceof HttpErrorResponse) {
-                  // if (error.status == 404) {
-                  //   // Interpret not as an error, the file ist not recorded yet
-                  //   observer.next(null);
-                  //   observer.complete()
-                  // } else {
-                  //   // all other states are errors
+                };
+                const decErrCb: DecodeErrorCallback = error => {
                   observer.error(error);
-                  // }
-                  // }
-                });
+                };
+
+                // if(nrChs && sr){
+                //   const decOfflACtx=new OfflineAudioContext(nrChs,sr,sr);
+                //   decOfflACtx.decodeAudioData(resp.body,decSuccCb,decErrCb);
+                // }else {
+                //console.debug("Decode audio chunk");
+                aCtx.decodeAudioData(resp.body, decSuccCb, decErrCb);
+                // }
+              }
             }else{
               observer.error('Could not parse audio header for format and/or frame length of download.');
             }
@@ -345,40 +359,101 @@ export class RecordingService {
           if (resp.body) {
             //console.debug("chunkAudioRequestTonetAb: subscriber.closed: "+subscriber.closed);
             //console.debug("chunkAudioRequestTonetAb: Audio file bytes: "+resp.body.byteLength);
-            aCtx.decodeAudioData(resp.body, ab => {
-                  //console.debug("chunkAudioRequestTonetAb: Decoded audio chunk frames for netAb: "+ab.length);
-                  //console.debug("chunkAudioRequestTonetAb: Create netAb ab from chunk ab...");
-                  if(frames===null){
-                    subscriber.error(new Error('Could not get frame length from recording file object'));
-                  }else {
-                    let fl = frames;
-                    if (ab.sampleRate !== orgSampleRate) {
-                      if (orgSampleRate && frames) {
-                        fl = Math.round(ab.sampleRate * frames / orgSampleRate);
-                        //console.debug("Platform sr: "+ab.sampleRate+", file sr: "+orgSampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
-                      }
-                    }
 
-                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, fl,frameLength);
-                    //let rp=new ReadyProvider();
-                    //nab.readyProvider=rp;
-                    //rp.ready();
-                    nab.ready();
-                    if (nab.frameLen < frameLength) {
-                      //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
-                      nab.seal();
-                    }
-                    subscriber.next(nab);
-
-                    subscriber.complete();
-                  }
+            let wr=new WavReader(resp.body);
+            const wFmt=wr.readFormat();
+            if(wFmt?.sampleRate===aCtx.sampleRate){
+              const ab=wr.readToAudioBufferImpl();
+              if(ab && frames!==null) {
+                let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this, baseAudioUrl, ab, frames, frameLength);
+                nab.ready();
+                if (nab.frameLen < frameLength) {
+                  //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
+                  nab.seal();
                 }
-                , error => {
-                  console.error('chunkAudioRequestToNetAb: error: '+error);
-                  //if(error instanceof HttpErrorResponse) {
-                  subscriber.error(error);
-                  //}
-                })
+                subscriber.next(nab);
+                subscriber.complete();
+
+              }
+            }else {
+
+              const decSuccCb: DecodeSuccessCallback = ab => {
+                //console.debug("chunkAudioRequestTonetAb: Decoded audio chunk frames for netAb: "+ab.length);
+                //console.debug("chunkAudioRequestTonetAb: Create netAb ab from chunk ab...");
+                if (frames === null) {
+                  subscriber.error(new Error('Could not get frame length from recording file object'));
+                } else {
+                  let fl = frames;
+                  if (ab.sampleRate !== orgSampleRate) {
+                    if (orgSampleRate && frames) {
+                      fl = Math.round(ab.sampleRate * frames / orgSampleRate);
+                      //console.debug("Platform sr: "+ab.sampleRate+", file sr: "+orgSampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
+                    }
+                  }
+
+                  let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this, baseAudioUrl, ab, fl, frameLength);
+                  //let rp=new ReadyProvider();
+                  //nab.readyProvider=rp;
+                  //rp.ready();
+                  nab.ready();
+                  if (nab.frameLen < frameLength) {
+                    //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
+                    nab.seal();
+                  }
+                  subscriber.next(nab);
+
+                  subscriber.complete();
+                }
+              };
+
+              // if(orgSampleRate && orgChannels){
+              //
+              // }
+
+              const decErrCb: DecodeErrorCallback = error => {
+                console.error('chunkAudioRequestToNetAb: error: ' + error);
+                //if(error instanceof HttpErrorResponse) {
+                subscriber.error(error);
+                //}
+              };
+
+              aCtx.decodeAudioData(resp.body, decSuccCb, decErrCb);
+
+              // aCtx.decodeAudioData(resp.body, ab => {
+              //       //console.debug("chunkAudioRequestTonetAb: Decoded audio chunk frames for netAb: "+ab.length);
+              //       //console.debug("chunkAudioRequestTonetAb: Create netAb ab from chunk ab...");
+              //       if(frames===null){
+              //         subscriber.error(new Error('Could not get frame length from recording file object'));
+              //       }else {
+              //         let fl = frames;
+              //         if (ab.sampleRate !== orgSampleRate) {
+              //           if (orgSampleRate && frames) {
+              //             fl = Math.round(ab.sampleRate * frames / orgSampleRate);
+              //             //console.debug("Platform sr: "+ab.sampleRate+", file sr: "+orgSampleRate+", decoded/org frame length: "+fl+"/"+frames+", ab.length: "+ab.length);
+              //           }
+              //         }
+              //
+              //         let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, fl,frameLength);
+              //         //let rp=new ReadyProvider();
+              //         //nab.readyProvider=rp;
+              //         //rp.ready();
+              //         nab.ready();
+              //         if (nab.frameLen < frameLength) {
+              //           //console.debug("chunkAudioRequestTonetAb: Built netAb ab from chunk ab: First chunk shorter tha frameLength ("+netAbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing netAb ab.");
+              //           nab.seal();
+              //         }
+              //         subscriber.next(nab);
+              //
+              //         subscriber.complete();
+              //       }
+              //     }
+              //     , error => {
+              //       console.error('chunkAudioRequestToNetAb: error: '+error);
+              //       //if(error instanceof HttpErrorResponse) {
+              //       subscriber.error(error);
+              //       //}
+              //     })
+            }
           } else {
             console.error('chunkAudioRequestToNetAb: Fetching audio file: response has no body');
             subscriber.error('chunkAudioRequestToNetAb: Fetching audio file: response has no body');
@@ -439,13 +514,15 @@ export class RecordingService {
         }else{
           ab=chDl.decodedAudioBuffer;
         }
-        if (arrayAudioBuffer) {
-          arrayAudioBuffer.appendAudioBuffer(ab);
-        } else {
-          arrayAudioBuffer = ArrayAudioBuffer.fromAudioBuffer(ab,ab.length);
-        }
-        if (ab.length < frameLength) {
-          arrayAudioBuffer.seal();
+        if(ab) {
+          if (arrayAudioBuffer) {
+            arrayAudioBuffer.appendAudioBuffer(ab);
+          } else {
+            arrayAudioBuffer = ArrayAudioBuffer.fromAudioBuffer(ab, ab.length);
+          }
+          if (ab.length < frameLength) {
+            arrayAudioBuffer.seal();
+          }
         }
         return arrayAudioBuffer;
       })

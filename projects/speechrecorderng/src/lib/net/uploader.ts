@@ -29,6 +29,10 @@
             return this._sizeDone;
         }
 
+        sizeInQueue(){
+          return this._sizeQueued-this._sizeDone;
+        }
+
         get status(): UploaderStatus {
             return this._status;
         }

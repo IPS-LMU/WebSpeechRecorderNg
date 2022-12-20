@@ -13,6 +13,38 @@
   }
   }
 
+  export class DataSize{
+    private static BINARY_UNITS=['B','KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB','RiB','QiB'];
+    private static BINARY_UNIT_FACTOR:number=1024;
+    private static BINARY_UNIT_FACTOR_LOG:number=Math.log(DataSize.BINARY_UNIT_FACTOR);
+
+    static formatBytesToBinaryUnits(bytes:number,decimals:number=2):string{
+
+      let binaryUnitIdx=0;
+      let divisor=1;
+      if(bytes>0) {
+        const bytesLog = Math.log(bytes);
+        binaryUnitIdx = Math.floor(bytesLog / this.BINARY_UNIT_FACTOR_LOG);
+        if (binaryUnitIdx >= this.BINARY_UNITS.length) {
+          // fallback to bytes
+          binaryUnitIdx = 0;
+        }
+        divisor = Math.pow(this.BINARY_UNIT_FACTOR, binaryUnitIdx);
+      }
+      let decimalsUnitValue:string;
+      if(binaryUnitIdx===0){
+        decimalsUnitValue=bytes.toString();
+      }else {
+        const unitValue = bytes / divisor;
+        decimalsUnitValue=unitValue.toFixed(decimals);
+      }
+      const binaryUnitStr = decimalsUnitValue + ' ' + this.BINARY_UNITS[binaryUnitIdx];
+
+      return binaryUnitStr;
+    }
+
+  }
+
   export class Arrays {
 
     static cloneNumberArray(numberArray: Array<number>): Array<number> {

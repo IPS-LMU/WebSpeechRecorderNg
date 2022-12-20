@@ -1,6 +1,7 @@
 import { WavFileFormat } from './wavformat'
 import { PCMAudioFormat } from '../format'
 import { BinaryByteReader } from '../../io/BinaryReader'
+import {AudioBufferImpl} from "../audio_buffer_impl";
 
     export class WavReader {
 
@@ -93,6 +94,30 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             }
             return ab;
         }
+
+      readToAudioBufferImpl():AudioBuffer | null{
+        this.br.pos=0;
+        let ab:AudioBuffer|null=null;
+        this.readHeader();
+        let s = this.navigateToChunk('fmt ');
+        if (!s) {
+          let errMsg="WAV file does not contain a fmt chunk";
+          throw new Error(errMsg);
+        }
+        this.format = this.parseFmtChunk();
+        this.dataChunkLength = this.navigateToChunk('data');
+        let chsArr = this.readData();
+        let sr=this.format?.sampleRate;
+        let nChs=this.format?.channelCount;
+        if(sr && chsArr && nChs && nChs>0 && nChs==chsArr?.length) {
+          const length=chsArr[0].length;
+          ab = new AudioBufferImpl(nChs,sr,length);
+          for(let ch=0;ch<nChs;ch++) {
+            ab.copyToChannel(chsArr[ch], ch);
+          }
+        }
+        return ab;
+      }
 
         private navigateToChunk(chunkString:string):number {
             // position after RIFF header

@@ -3,7 +3,7 @@ import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/pla
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
 import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from '../recording'
-import {Upload, UploadHolder} from '../../net/uploader';
+import {UploadHolder} from '../../net/uploader';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -40,7 +40,7 @@ import {SprItemsCache} from "./recording_file_cache";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {AudioStorageType} from "../project/project";
-import {NetAudioBuffer, ReadyProvider} from "../../audio/net_audio_buffer";
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -75,6 +75,7 @@ export const enum Status {
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
                                    [audioLoaded]="audioLoaded"
+                                   [disableAudioDetails]="disableAudioDetails"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
@@ -446,7 +447,32 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   }
 
+  private clearPreRecTimer() {
+    if (this.preRecTimerRunning) {
+      if (this.preRecTimerId) {
+        window.clearTimeout(this.preRecTimerId);
+      }
+      this.preRecTimerRunning = false;
+    }
+  }
 
+  private clearPostRecTimer(){
+    if (this.postRecTimerRunning) {
+      if (this.postRecTimerId) {
+        window.clearTimeout(this.postRecTimerId);
+      }
+      this.postRecTimerRunning = false;
+    }
+  }
+
+  private clearMaxRecTimer(){
+    if (this.maxRecTimerRunning) {
+      if (this.maxRecTimerId) {
+        window.clearTimeout(this.maxRecTimerId);
+      }
+      this.maxRecTimerRunning = false;
+    }
+  }
 
   startItem() {
     this.status=Status.STARTING;
@@ -1028,7 +1054,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.startStopSignalState = StartStopSignalState.POSTRECORDING;
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
-
+    this.clearPreRecTimer();
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_STOP;
@@ -1044,7 +1070,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
-
+    this.clearPreRecTimer();
     this.postRecTimerId = window.setTimeout(() => {
       this.postRecTimerRunning = false;
       this.status = Status.STOPPING_PAUSE;
@@ -1054,24 +1080,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   stopRecording() {
-    if (this.maxRecTimerRunning) {
-      if(this.maxRecTimerId) {
-        window.clearTimeout(this.maxRecTimerId);
-      }
-      this.maxRecTimerRunning = false;
-    }
+    this.clearMaxRecTimer();
     if(this.ac) {
       this.ac.stop();
     }
   }
 
   stopRecordingMaxRec(){
-    if(this.postRecTimerRunning){
-      if(this.postRecTimerId) {
-        window.clearTimeout(this.postRecTimerId);
-      }
-      this.postRecTimerRunning=false;
-    }
+    this.clearPreRecTimer();
+    this.clearPostRecTimer();
     this.maxRecTimerRunning = false;
     this.status = Status.STOPPING_STOP;
     if(this.ac) {
@@ -1112,24 +1129,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
 
   stopped() {
-    if(this.preRecTimerRunning){
-      if(this.preRecTimerId) {
-        window.clearTimeout(this.preRecTimerId);
-      }
-      this.preRecTimerRunning=false;
-    }
-    if(this.postRecTimerRunning){
-      if(this.postRecTimerId) {
-        window.clearTimeout(this.postRecTimerId);
-      }
-      this.postRecTimerRunning=false;
-    }
-    if(this.maxRecTimerRunning){
-      if(this.maxRecTimerId) {
-        window.clearTimeout(this.maxRecTimerId);
-      }
-      this.maxRecTimerRunning=false;
-    }
+    this.clearPreRecTimer();
+    this.clearPostRecTimer();
+    this.clearMaxRecTimer();
     this.updateStartActionDisableState()
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
