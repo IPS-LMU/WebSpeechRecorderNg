@@ -23,6 +23,7 @@ import {
   SequenceAudioFloat32OutStreamMultiplier
 } from "../../audio/io/stream";
 import {RecordingFile, SprRecordingFile} from "../recording";
+import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
@@ -54,11 +55,9 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   private _rf!:SprRecordingFile;
 
   private chunkIdx:number=0;
-  //private offlineAudioContext:OfflineAudioContext|null=null;
 
 
   constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
-
   }
 
   close(): void {
@@ -78,20 +77,16 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   setFormat(channels: number, sampleRate: number): void {
     this.channels=channels;
     this.sampleRate=sampleRate;
-    //this.offlineAudioContext=new OfflineAudioContext(this.channels,this.sampleRate,sampleRate);
-
   }
 
   write(buffers: Array<Float32Array>): number {
-    //let aCtx=AudioContextProvider.audioContextInstance();
+    let aCtx=AudioContextProvider.audioContextInstance();
     let bChs=buffers.length;
     let frameLen=0;
-    //if(this.offlineAudioContext&&bChs>0) {
-    if(bChs>0){
+    if(aCtx && bChs>0) {
       frameLen=buffers[0].length;
       try {
-        //let ad = this.offlineAudioContext.createBuffer(this.channels, frameLen, this.sampleRate);
-        let ad=new AudioBuffer({numberOfChannels:this.channels,length:frameLen,sampleRate:this.sampleRate});
+        let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
         for (let ch = 0; ch < this.channels; ch++) {
           ad.copyToChannel(buffers[ch],ch);
         }
@@ -139,8 +134,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 export abstract class BasicRecorder {
 
 
-  //public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=30;
-  public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=10;
+  public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=30;
 
   get clientAudioStorageType(): AudioStorageType {
     return this._clientAudioStorageType;
@@ -150,7 +144,6 @@ export abstract class BasicRecorder {
 
     let oldValue=this._clientAudioStorageType;
     this._clientAudioStorageType = value;
-//    this.disableAudioDetails=(this._clientAudioStorageType===AudioStorageType.NET);
     if(value!==oldValue){
       this.configureStreamCaptureStream();
     }
@@ -377,12 +370,12 @@ export abstract class BasicRecorder {
           });
         }
         adh.addOnReadyListener(()=>{
-          console.debug("Audio data holder ready. Enable playback. Audio loaded true.")
+          //console.debug("Audio data holder ready. Enable playback. Audio loaded true.")
           this.playStartAction.disabled = false;
           this.audioLoaded=true;
           this.changeDetectorRef.detectChanges();
         });
-        console.debug("Audio data holder added onReady.")
+        //console.debug("Audio data holder added onReady.")
       }
       //this.playStartAction.disabled = false;
     } else {

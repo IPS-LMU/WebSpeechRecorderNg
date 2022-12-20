@@ -735,7 +735,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
                   this.audioLoaded=true;
-
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
                 this.showRecording();

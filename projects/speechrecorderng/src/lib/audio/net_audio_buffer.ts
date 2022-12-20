@@ -140,24 +140,15 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
         next: (chDl)=>{
           if(chDl){
-            let ab=chDl.decodedAudioBuffer;
-            if(ab) {
-              let ccChs = ab.numberOfChannels;
-              let ccLen = ab.length;
-              let arrBuf = new Array<Float32Array>();
+            const ab=chDl.decodedAudioBuffer;
+            let ccChs=ab.numberOfChannels;
+            let ccLen=ab.length;
+            let arrBuf=new Array<Float32Array>();
 
-              for (let ch = 0; ch < ccChs; ch++) {
-                let chD = ab.getChannelData(ch);
-                let chDLen = chD.length;
-                let fa = new Float32Array(chDLen);
-                //fa.set(chD);
-                ab.copyFromChannel(fa,ch);
-                arrBuf.push(fa);
-              }
-              // Test memory leak WebKit
-              chDl.decodedAudioBuffer=null;
-              cb(arrBuf, chDl.orgFrameLength);
+            for(let ch=0;ch<ccChs;ch++){
+              arrBuf.push(ab.getChannelData(ch).slice());
             }
+            cb(arrBuf,chDl.orgFrameLength);
           }else{
             cb(null,null);
           }

@@ -1,5 +1,6 @@
-
-
+/**
+Simple implementation of the AudioBuffer interface. It is recommended to use standard implementation of Web Audio API.
+*/
 export class AudioBufferImpl implements AudioBuffer{
   readonly duration: number=0;
   readonly length: number=0;

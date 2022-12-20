@@ -544,11 +544,11 @@ export class AudioCapture {
                             //   throw new Error('Test');
                             // }
                           }catch(err){
-                            // if(err instanceof Error){
-                            //   this.persistError=err;
-                            // }else{
-                            //   this.persistError=new Error('Error handling recorded audio data');
-                            // }
+                            if(err instanceof Error){
+                              this.persistError=err;
+                            }else{
+                              this.persistError=new Error('Error handling recorded audio data');
+                            }
 
                             console.error("Capture error: "+err);
                             try {

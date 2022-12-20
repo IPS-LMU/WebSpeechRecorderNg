@@ -132,7 +132,6 @@ export class UserAgentBuilder {
 
 
   let detBr:Browser|null=null;
-
     if(this.matchesBrowser(Browser.Firefox)){
       detBr=Browser.Firefox;
     }else if(this.matchesBrowser(Browser.Chrome)){
