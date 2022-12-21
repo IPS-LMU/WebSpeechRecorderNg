@@ -205,7 +205,7 @@ export class LevelMeasure {
       if (ais) {
 
         let audioBuffers = new Array<Float32Array>(chs);
-        let trBuffers = new Array<any>(chs);
+        let trBuffers = new Array<ArrayBuffer>(chs);
         for (let ch = 0; ch < chs; ch++) {
           audioBuffers[ch] = new Float32Array(bufferFrameLength);
         }
@@ -258,8 +258,15 @@ export class LevelMeasure {
               //   console.debug("audioBuffers not avail!");
               // }
               for (let ch = 0; ch < chs; ch++) {
-                let copy = new Float32Array(audioBuffers[ch]);
-                trBuffers[ch] = copy.buffer;
+                // let copy = new Float32Array(audioBuffers[ch]);
+                // trBuffers[ch] = copy.buffer;
+                const arrAbBufCh=audioBuffers[ch];
+                const adLen = arrAbBufCh.buffer.byteLength;
+                if (!trBuffers[ch] || trBuffers[ch].byteLength !==  adLen) {
+                  trBuffers[ch] = new ArrayBuffer(adLen);
+                }
+                let fAdaCh=new Float32Array(trBuffers[ch]);
+                fAdaCh.set(audioBuffers[ch]);
               }
 
               worker.postMessage({
@@ -282,8 +289,15 @@ export class LevelMeasure {
         //   console.debug("audioBuffers not avail!");
         // }
         for (let ch = 0; ch < chs; ch++) {
-          let copy = new Float32Array(audioBuffers[ch]);
-          trBuffers[ch] = copy.buffer;
+          // let copy = new Float32Array(audioBuffers[ch]);
+          // trBuffers[ch] = copy.buffer;
+          const arrAbBufCh=audioBuffers[ch];
+          const adLen = arrAbBufCh.buffer.byteLength;
+          if (!trBuffers[ch] || trBuffers[ch].byteLength !==  adLen) {
+            trBuffers[ch] = new ArrayBuffer(adLen);
+          }
+          let fAdaCh=new Float32Array(trBuffers[ch]);
+          fAdaCh.set(audioBuffers[ch]);
         }
 
         worker.postMessage({
@@ -359,8 +373,16 @@ export class LevelMeasure {
                       //   console.debug("audioBuffers not avail!");
                       // }
                       for (let ch = 0; ch < chs; ch++) {
-                        let copy = new Float32Array(audioBuffers[ch]);
-                        trBuffers[ch] = copy.buffer;
+
+                        // let copy = new Float32Array(audioBuffers[ch]);
+                        // trBuffers[ch] = copy.buffer;
+                        const arrAbBufCh=audioBuffers[ch];
+                        const adLen = arrAbBufCh.buffer.byteLength;
+                        if (!trBuffers[ch] || trBuffers[ch].byteLength !==  adLen) {
+                          trBuffers[ch] = new ArrayBuffer(adLen);
+                        }
+                        let fAdaCh=new Float32Array(trBuffers[ch]);
+                        fAdaCh.set(audioBuffers[ch]);
                       }
 
                       worker.postMessage({
@@ -388,8 +410,16 @@ export class LevelMeasure {
               //   console.debug("audioBuffers not avail!");
               // }
               for (let ch = 0; ch < chs; ch++) {
-                let copy = new Float32Array(audioBuffers[ch]);
-                trBuffers[ch] = copy.buffer;
+                // let copy = new Float32Array(audioBuffers[ch]);
+                // trBuffers[ch] = copy.buffer;
+
+                const arrAbBufCh=audioBuffers[ch];
+                const adLen = arrAbBufCh.buffer.byteLength;
+                if (!trBuffers[ch] || trBuffers[ch].byteLength !==  adLen) {
+                  trBuffers[ch] = new ArrayBuffer(adLen);
+                }
+                let fAdaCh=new Float32Array(trBuffers[ch]);
+                fAdaCh.set(audioBuffers[ch]);
               }
               worker.postMessage({
                 bufferFrameLength: bufferFrameLength,

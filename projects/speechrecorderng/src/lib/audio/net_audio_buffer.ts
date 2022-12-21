@@ -3,6 +3,7 @@ import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/strea
 import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
+import {error} from "ng-packagr/lib/utils/log";
 
 
 
@@ -128,6 +129,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
   private _currCi=0;
   private _ccCache:Float32Array[]|null=null;
+  //private static _runningRequests=0;
 
   constructor(private _netAb:NetAudioBuffer) {}
 
@@ -146,26 +148,36 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
             let arrBuf=new Array<Float32Array>();
 
             for(let ch=0;ch<ccChs;ch++){
-              arrBuf.push(ab.getChannelData(ch).slice());
+              //arrBuf.push(ab.getChannelData(ch).slice());
+              arrBuf.push(ab.getChannelData(ch));
             }
             cb(arrBuf,chDl.orgFrameLength);
           }else{
             cb(null,null);
           }
         },
+        complete: ()=>{
+          //NetRandomAccessAudioStream._runningRequests--;
+        },
         error:(errEv)=>{
+          //NetRandomAccessAudioStream._runningRequests--;
           if(errEv instanceof HttpErrorResponse){
            if(errEv.status===404){
              cb(null,null);
            } else{
+             console.error("Net audio buffer chunk audio request Http error event: "+errEv.status+", "+errEv.name+", "+errEv.message);
              errCb(new Error(errEv.toString()));
            }
           }else {
+            console.error("Net audio buffer chunk audio request error event: "+errEv.message);
             errCb(new Error(errEv.toString()));
           }
         }
       }
     );
+
+    //NetRandomAccessAudioStream._runningRequests++;
+    //console.debug("Running et audio buffer HTTP requests: "+NetRandomAccessAudioStream._runningRequests);
   }
 
   private _fillBufs(ccBufs:Float32Array[],orgFrameLen:number|null,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{orgSrcFramePos:number,srcFramePos:number,ci:number,ccPos:number}){

@@ -218,19 +218,26 @@ export class RecordingService {
                   //   observer.complete()
                   // } else {
                   //   // all other states are errors
+                  console.error("Recordings service chunkAudioRequest error decoding audio data: "+error.name+": "+error.message);
                   observer.error(error);
                   // }
                   // }
                 });
             }else{
-              observer.error('Could not parse audio header for format and/or frame length of download.');
+              const errMsg='Could not parse audio header for format and/or frame length of download.';
+              console.error(errMsg);
+              observer.error(errMsg);
             }
           } else {
-            observer.error('Fetching audio file: response has no body');
+            const errMsg='Fetching audio file: response has no body';
+            console.error(errMsg);
+            observer.error(errMsg);
           }
         },
         (error) => {
           // all other states are errors
+          //const errMsg='Fetching audio file HTTP error: '+error;
+          //console.error(errMsg);
           observer.error(error);
           //observer.complete();
 

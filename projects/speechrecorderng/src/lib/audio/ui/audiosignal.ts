@@ -213,6 +213,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     if(this.raAsSubsc){
       this.raAsSubsc.unsubscribe();
     }
+
     if (this.bounds && this.bounds.dimension) {
 
       let w = Math.round(this.bounds.dimension.width);
@@ -230,6 +231,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         let vw=Math.round(this.virtualDimension.width);
         let frameLength = this._audioDataHolder.frameLen;
         let framesPerPixel = Math.ceil(frameLength / vw);
+        let ad:Float32Array=new Float32Array(chs*framesPerPixel);
         let raAs=this._audioDataHolder.randomAccessAudioStream();
         let audioBuffer:AudioBuffer|null=null;
         let audioSource=this._audioDataHolder.audioSource;
@@ -279,14 +281,14 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               }
               let eod=false;
               renderPos++;
-              let ad:Float32Array;
+              //let ad:Float32Array;
 
               let leftFramePos = Math.floor(frameLength * renderPos / vw);
               if(renderPos<leftPos+w) {
-                let arrAbBuf:Float32Array[]= new Array<Float32Array>(chs);
-                for (let ch = 0; ch < chs; ch++) {
-                  arrAbBuf[ch] = new Float32Array(framesPerPixel);
-                }
+                // let arrAbBuf:Float32Array[]= new Array<Float32Array>(chs);
+                // for (let ch = 0; ch < chs; ch++) {
+                //   arrAbBuf[ch] = new Float32Array(framesPerPixel);
+                // }
 
                 let raAsObs=raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf)
 
@@ -295,7 +297,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                     next:(read)=>{
                       //console.debug("First read frame: "+arrAbBuf[0][0]);
                       if(arrAbBuf) {
-                        ad = new Float32Array(chs * framesPerPixel);
+                        const adLen=chs * framesPerPixel;
+                        if(!ad || ad.length !==adLen) {
+                          ad = new Float32Array(adLen);
+                        }
                         for (let ch = 0; ch < chs; ch++) {
                           ad.set(arrAbBuf[ch], ch * framesPerPixel);
                         }
@@ -374,6 +379,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               //ais = new ArrayAudioBufferInputStream(arrayAudioBuffer);
               arrAbBuf = new Array<Float32Array>(chs);
               psMinMax = new Float32Array(chs * w * 2);
+              //console.debug("Audiosignal: Allocating buffers: "+framesPerPixel);
               for (let ch = 0; ch < chs; ch++) {
                 arrAbBuf[ch] = new Float32Array(framesPerPixel);
               }
@@ -387,7 +393,10 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                   next: (read) => {
 
                     if (arrAbBuf && this.worker) {
-                      let ad = new Float32Array(chs * framesPerPixel);
+                      const adLen=chs * framesPerPixel;
+                      if(!ad || ad.length !==adLen) {
+                        ad = new Float32Array(adLen);
+                      }
                       for (let ch = 0; ch < chs; ch++) {
                         ad.set(arrAbBuf[ch], ch * framesPerPixel);
                       }
@@ -482,106 +491,106 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     }
   }
 
-  redraw() {
-    this.drawBg()
-    let g = this.signalCanvas.getContext("2d");
-    if (g) {
-      let w = this.signalCanvas.width;
-      let h = this.signalCanvas.height;
-      g.clearRect(0, 0, w, h);
-      //g.fillStyle = "black";
-      //g.fillRect(0, 0, w, h);
-      if (this._audioDataHolder) {
-        let std = Date.now();
-        let chs = this._audioDataHolder.numberOfChannels;
-        let chH = h / chs;
-
-        let frameLength = this._audioDataHolder.frameLen;
-
-        let framesPerPixel = frameLength / w;
-        let y = 0;
-        let ais:Float32ArrayInputStream|null=null;
-        let audioSource=this._audioDataHolder.audioSource;
-        let audioBuffer:AudioBuffer|null=null;
-        if(audioSource instanceof AudioBufferSource){
-          audioBuffer=audioSource.audioBuffer;
-        }
-        let aisBuffer:Array<Float32Array>|null=null;
-        if(!audioBuffer) {
-          ais=this._audioDataHolder.audioInputStream();
-          aisBuffer=new Array<Float32Array>(chs);
-          for(let ch=0;ch<chs;ch++) {
-            aisBuffer[ch] = new Float32Array(framesPerPixel);
-          }
-        }
-          for (let ch = 0; ch < chs; ch++) {
-            let x = 0;
-            let psMin = new Float32Array(w);
-            let psMax = new Float32Array(w);
-            let framePos = 0;
-            for (let pii = 0; pii < w; pii++) {
-              let pMin = 0;
-              let pMax = 0;
-
-              if (audioBuffer){
-                // calculate pixel min/max amplitude
-                for (let ai = 0; ai < framesPerPixel; ai++) {
-                  //let framePos=(pii*framesPerPixel)+ai;
-                  let a = audioBuffer.getChannelData(ch)[framePos++];
-
-                  if (a < pMin) {
-                    pMin = a;
-                  }
-                  if (a > pMax) {
-                    pMax = a;
-                  }
-                }
-            }else if(ais && aisBuffer) {
-                let r = ais.read(aisBuffer);
-                for (let ai = 0; ai < r; ai++) {
-
-                  let a = aisBuffer[ch][ai];
-
-                  if (a < pMin) {
-                    pMin = a;
-                  }
-                  if (a > pMax) {
-                    pMax = a;
-                  }
-                }
-              }
-              psMin[pii] = pMin;
-              psMax[pii] = pMax;
-            }
-            g.fillStyle = 'green';
-            g.strokeStyle = 'green';
-
-            // draw audio signal as single polygon
-            g.beginPath();
-            g.moveTo(0, y + (chH / 2) + psMin[0] * chH / 2);
-
-            for (let pii = 0; pii < w; pii++) {
-              let pv = psMin[pii] * chH / 2;
-              //console.log("Min: ",pv);
-              g.lineTo(pii, y + (chH / 2) + pv);
-            }
-            for (let pii = w; pii >= 0; pii--) {
-              let pv = psMax[pii] * chH / 2;
-              //console.log("Max: ",pv);
-              g.lineTo(pii, y + (chH / 2) + pv);
-            }
-            g.closePath();
-            //g.lineTo()
-            g.fill();
-            g.stroke();
-            g.fillStyle = "yellow";
-            g.stroke();
-            y += chH;
-          }
-        ais?.close();
-      }
-    }
-  }
+  // redraw() {
+  //   this.drawBg()
+  //   let g = this.signalCanvas.getContext("2d");
+  //   if (g) {
+  //     let w = this.signalCanvas.width;
+  //     let h = this.signalCanvas.height;
+  //     g.clearRect(0, 0, w, h);
+  //     //g.fillStyle = "black";
+  //     //g.fillRect(0, 0, w, h);
+  //     if (this._audioDataHolder) {
+  //       let std = Date.now();
+  //       let chs = this._audioDataHolder.numberOfChannels;
+  //       let chH = h / chs;
+  //
+  //       let frameLength = this._audioDataHolder.frameLen;
+  //
+  //       let framesPerPixel = frameLength / w;
+  //       let y = 0;
+  //       let ais:Float32ArrayInputStream|null=null;
+  //       let audioSource=this._audioDataHolder.audioSource;
+  //       let audioBuffer:AudioBuffer|null=null;
+  //       if(audioSource instanceof AudioBufferSource){
+  //         audioBuffer=audioSource.audioBuffer;
+  //       }
+  //       let aisBuffer:Array<Float32Array>|null=null;
+  //       if(!audioBuffer) {
+  //         ais=this._audioDataHolder.audioInputStream();
+  //         aisBuffer=new Array<Float32Array>(chs);
+  //         for(let ch=0;ch<chs;ch++) {
+  //           aisBuffer[ch] = new Float32Array(framesPerPixel);
+  //         }
+  //       }
+  //         for (let ch = 0; ch < chs; ch++) {
+  //           let x = 0;
+  //           let psMin = new Float32Array(w);
+  //           let psMax = new Float32Array(w);
+  //           let framePos = 0;
+  //           for (let pii = 0; pii < w; pii++) {
+  //             let pMin = 0;
+  //             let pMax = 0;
+  //
+  //             if (audioBuffer){
+  //               // calculate pixel min/max amplitude
+  //               for (let ai = 0; ai < framesPerPixel; ai++) {
+  //                 //let framePos=(pii*framesPerPixel)+ai;
+  //                 let a = audioBuffer.getChannelData(ch)[framePos++];
+  //
+  //                 if (a < pMin) {
+  //                   pMin = a;
+  //                 }
+  //                 if (a > pMax) {
+  //                   pMax = a;
+  //                 }
+  //               }
+  //           }else if(ais && aisBuffer) {
+  //               let r = ais.read(aisBuffer);
+  //               for (let ai = 0; ai < r; ai++) {
+  //
+  //                 let a = aisBuffer[ch][ai];
+  //
+  //                 if (a < pMin) {
+  //                   pMin = a;
+  //                 }
+  //                 if (a > pMax) {
+  //                   pMax = a;
+  //                 }
+  //               }
+  //             }
+  //             psMin[pii] = pMin;
+  //             psMax[pii] = pMax;
+  //           }
+  //           g.fillStyle = 'green';
+  //           g.strokeStyle = 'green';
+  //
+  //           // draw audio signal as single polygon
+  //           g.beginPath();
+  //           g.moveTo(0, y + (chH / 2) + psMin[0] * chH / 2);
+  //
+  //           for (let pii = 0; pii < w; pii++) {
+  //             let pv = psMin[pii] * chH / 2;
+  //             //console.log("Min: ",pv);
+  //             g.lineTo(pii, y + (chH / 2) + pv);
+  //           }
+  //           for (let pii = w; pii >= 0; pii--) {
+  //             let pv = psMax[pii] * chH / 2;
+  //             //console.log("Max: ",pv);
+  //             g.lineTo(pii, y + (chH / 2) + pv);
+  //           }
+  //           g.closePath();
+  //           //g.lineTo()
+  //           g.fill();
+  //           g.stroke();
+  //           g.fillStyle = "yellow";
+  //           g.stroke();
+  //           y += chH;
+  //         }
+  //       ais?.close();
+  //     }
+  //   }
+  // }
 
   setData(audioData: AudioDataHolder | null) {
     this._audioDataHolder = audioData;
