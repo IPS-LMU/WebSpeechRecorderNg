@@ -649,7 +649,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   if (nextIab) {
                     if (rf && this.items) {
 
-                      fabDh = new AudioDataHolder(nextIab, null);
+                      fabDh = new AudioDataHolder(nextIab);
                       this.items.setSprRecFileAudioData(rf, fabDh);
                     }
                   } else {
@@ -688,7 +688,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   let fabDh = null;
                   if (nextNetAb) {
                     if (rf && this.items) {
-                      fabDh = new AudioDataHolder(nextNetAb, null);
+                      fabDh = new AudioDataHolder(nextNetAb);
                       this.items.setSprRecFileAudioData(rf, fabDh);
                     }
                   } else {
