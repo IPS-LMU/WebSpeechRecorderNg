@@ -78,6 +78,7 @@ export const enum Status {
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
+                                   [disableAudioDetails]="disableAudioDetails"
                                    [audioLoaded]="audioLoaded"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
@@ -956,7 +957,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           as=new AudioBufferSource(ab);
         }
         if (as) {
-          adh = new AudioDataHolder(as,this.recFileService);
+          adh = new AudioDataHolder(as);
         }
       }
 
