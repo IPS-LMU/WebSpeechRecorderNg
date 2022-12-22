@@ -3,6 +3,7 @@ import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
 import {Subscription} from "rxjs";
+import {State} from "./livelevel";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -377,6 +378,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
               const raAsObs=raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf);
 
+              this.drawStateText("Loading/Rendering...");
+
               this.raAsSubsc=raAsObs.subscribe(
                 {
                   next: (read) => {
@@ -419,7 +422,15 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     }
   }
 
-
+drawStateText(stateText:string) {
+  const g = this.signalCanvas.getContext("2d");
+  if (g) {
+    g.strokeStyle = 'white';
+    g.fillStyle = 'white';
+    g.font = '20px sans-serif';
+    g.fillText(stateText, 10, 25);
+  }
+}
   drawRendered(left:number,w:number,h:number,chs:number,psMinMax:Float32Array) {
     this.drawBg();
     this.signalCanvas.style.left=left.toString()+'px';

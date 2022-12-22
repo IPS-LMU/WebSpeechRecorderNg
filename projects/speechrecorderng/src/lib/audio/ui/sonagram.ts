@@ -101,6 +101,16 @@ export class Sonagram extends AudioCanvasLayerComponent {
         return new Point(x,y);
     }
 
+  drawStateText(stateText:string) {
+    const g = this.sonagramCanvas.getContext("2d");
+    if (g) {
+      g.strokeStyle = 'black';
+      g.fillStyle = 'black';
+      g.font = '20px sans-serif';
+      g.fillText(stateText, 10, 25);
+    }
+  }
+
   drawCursorPosition(e: MouseEvent, show: boolean) {
 
     if (this.cursorCanvas) {
@@ -822,6 +832,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                       if (leftFramePos < 0) {
                         leftFramePos = 0;
                       }
+                      this.drawStateText('Loading/Rendering...');
                       this.raAsSubsc=raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
                         {
                           next: (read) => {
