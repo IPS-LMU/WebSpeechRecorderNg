@@ -24,24 +24,9 @@ export class ViewSelection{
 
 @Directive()
 export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponent {
-  //protected _audioData: AudioBuffer|null=null;
-  //protected _arrayAudioData: ArrayAudioBuffer|null=null;
   protected _audioDataHolder:AudioDataHolder| null=null;
   protected _bgColor:string|null='white';
   protected _selectColor='rgba(0%,0%,100%,25%)';
-
-  private frameLength():number|null{
-    let frameLength = null;
-    // if (this._audioData && this._audioData.numberOfChannels > 0) {
-    //   let ch0 = this._audioData.getChannelData(0);
-    //   frameLength = ch0.length;
-    //
-    // }else if(this._arrayAudioData){
-    //   frameLength=this._arrayAudioData.frameLen;
-    // }
-
-    return frameLength;
-  }
 
   /**
    * Returns pixel position depending on current zoom setting.
@@ -73,20 +58,17 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
   frameToViewPortXPixelPosition(framePos: number): number | null {
     let pixelPos=this.frameToXPixelPosition(framePos);
     if(pixelPos!=null){
-      let vPixelPos = this.toXViewPortPixelPosition(pixelPos);
-      return vPixelPos;
+      return this.toXViewPortPixelPosition(pixelPos);
     } else {
       return null;
     }
   }
 
   viewPortXPixelToFramePosition(xViewPortPixelPos: number): number | null {
-    let vpXramePos=null;
-
-    let frameLength = this._audioDataHolder?.frameLen;
-
+    let vpXframePos=null;
+    const frameLength = this._audioDataHolder?.frameLen;
     if(frameLength!==undefined) {
-      let vw;
+      let vw:number|undefined=undefined;
       if (this.bounds) {
         vw= this.bounds.dimension.width;
       }
@@ -94,8 +76,8 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
         vw = this.virtualDimension.width;
       }
       if(vw!== undefined) {
-        let xVirtualPixelPos = this.toXVirtualPixelPosition(xViewPortPixelPos)
-        let framesPerPixel = frameLength / vw;
+        const xVirtualPixelPos = this.toXVirtualPixelPosition(xViewPortPixelPos)
+        const framesPerPixel = frameLength / vw;
         let framePos = framesPerPixel * xVirtualPixelPos;
         if (framePos < 0) {
           framePos = 0
@@ -103,19 +85,17 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
         if (framePos >= frameLength) {
           framePos = frameLength - 1
         }
-        vpXramePos = Math.round(framePos);
+        vpXframePos = Math.round(framePos);
       }
     }
-    return vpXramePos;
+    return vpXframePos;
   }
 
     layoutBounds(bounds:Rectangle, virtualDimension:Dimension,redraw: boolean) {
-
         this.bounds=bounds;
         this.virtualDimension=virtualDimension;
-        //this.canvasLayers.forEach(cl=>{
         for(let ci=0;ci<this.canvasLayers.length;ci++) {
-            let cl = this.canvasLayers[ci];
+            const cl = this.canvasLayers[ci];
             const leftStyle=bounds.position.left+ 'px';
             if(cl.style.left!=leftStyle) {
               cl.style.left = leftStyle;
@@ -126,7 +106,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
             }
         }
         if (bounds.dimension.width) {
-            let intW=Math.floor(bounds.dimension.width);
+            const intW=Math.floor(bounds.dimension.width);
             if (redraw) {
                 // Do not set width of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
@@ -136,7 +116,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
                     }
                 }
             }
-            let wStr = intW.toString() + 'px';
+            const wStr = intW.toString() + 'px';
             for(let ci=0;ci<this.canvasLayers.length;ci++) {
                 let cl = this.canvasLayers[ci];
                 if(cl.style.width!=wStr) {
@@ -145,7 +125,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
             }
         }
         if (bounds.dimension.height) {
-            let intH=Math.floor(bounds.dimension.height)
+            const intH=Math.floor(bounds.dimension.height)
             if (redraw) {
                 // Do not set height of background canvas (causes flicker on start render)
                 for(let ci=1;ci<this.canvasLayers.length;ci++) {
@@ -155,7 +135,7 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
                     }
                 }
             }
-            let hStr = intH + 'px';
+            const hStr = intH + 'px';
             for(let ci=0;ci<this.canvasLayers.length;ci++) {
                 let cl = this.canvasLayers[ci];
                 if(cl.style.height!=hStr){
@@ -163,9 +143,6 @@ export abstract class BasicAudioCanvasLayerComponent extends CanvasLayerComponen
                 }
             }
         }
-        //});
-
-
     }
 }
 
@@ -240,17 +217,7 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
     abstract startDraw(clear:boolean):void;
 
     updateCursorCanvas(me:MouseEvent,showCursorPosition=true){
-
         if (this.cursorCanvas) {
-
-            let w = this.cursorCanvas.width;
-            let h = this.cursorCanvas.height;
-            let g = this.cursorCanvas.getContext("2d");
-
-            // if (!showCursorPosition) {
-            //     this.selectStartX = null
-            //     this.selectingChange(null)
-            // }
             if (me) {
                 if (this.selectStartX) {
                     this.pointerPositionChanged(null)
@@ -283,27 +250,25 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         this.pointerPositionEventEmitter.emit(pointerPosition);
     }
 
-    selectingChange(viewSel:ViewSelection| null){
-        let ns:Selection|undefined=undefined;
-        if(viewSel) {
-            let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
-            let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            if(this._audioDataHolder && frameStart!=null && frameEnd!=null) {
-                ns = new Selection(this._audioDataHolder.sampleRate, frameStart, frameEnd);
-            }
+    private _selectingChange(viewSel:ViewSelection| null):Selection|undefined {
+      let ns: Selection | undefined = undefined;
+      if (viewSel) {
+        let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
+        let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
+        if (this._audioDataHolder && frameStart != null && frameEnd != null) {
+          ns = new Selection(this._audioDataHolder.sampleRate, frameStart, frameEnd);
         }
+      }
+      return ns;
+    }
+
+    selectingChange(viewSel:ViewSelection| null){
+        const ns=this._selectingChange(viewSel);
         this.selectingEventEmitter.emit(ns)
     }
 
     select(viewSel:ViewSelection| null){
-        let ns:Selection|undefined=undefined;
-        if(viewSel) {
-          let frameStart = this.viewPortXPixelToFramePosition(viewSel.startX)
-          let frameEnd = this.viewPortXPixelToFramePosition(viewSel.endX)
-            if(this._audioDataHolder && frameStart!=null && frameEnd!=null) {
-                ns = new Selection(this._audioDataHolder.sampleRate, frameStart, frameEnd);
-            }
-        }
+        const ns=this._selectingChange(viewSel);
         this.selectedEventEmitter.emit(ns)
     }
 
@@ -316,10 +281,10 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
         s=this._selection
       }
       if(s){
-        let sf=s.startFrame;
-        let ef=s.endFrame;
-        let xs=this.frameToViewPortXPixelPosition(sf)
-        let xe=this.frameToViewPortXPixelPosition(ef)
+        const sf=s.startFrame;
+        const ef=s.endFrame;
+        const xs=this.frameToViewPortXPixelPosition(sf)
+        const xe=this.frameToViewPortXPixelPosition(ef)
           if(xs!=null && xe!=null) {
               vs = new ViewSelection(xs, xe)
           }
@@ -335,8 +300,8 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
           this.bgCanvas.height = Math.round(this.bounds.dimension.height);
         let g1 = this.bgCanvas.getContext("2d");
         if (g1) {
-          let w = this.bgCanvas.width;
-          let h = this.bgCanvas.height;
+          const w = this.bgCanvas.width;
+          const h = this.bgCanvas.height;
           g1.clearRect(0, 0, w, h);
           if(this._bgColor) {
             g1.fillStyle = this._bgColor;
@@ -352,29 +317,12 @@ export abstract class AudioCanvasLayerComponent extends BasicAudioCanvasLayerCom
   }
     drawCursorLayer(){
         if (this.cursorCanvas) {
-            let w = this.cursorCanvas.width;
-            let h = this.cursorCanvas.height;
-            let g = this.cursorCanvas.getContext("2d");
+            const w = this.cursorCanvas.width;
+            const h = this.cursorCanvas.height;
+            const g = this.cursorCanvas.getContext("2d");
             if(g) {
                 g.clearRect(0, 0, w, h);
-                // let s:Selection=null;
-                // if(this._selecting){
-                //     s=this._selecting
-                // }else if(this._selection){
-                //     s=this._selection
-                // }
-                // if(s){
-                //     let sf=s.startFrame
-                //     let ef=s.endFrame
-                //     let xs=this.frameToViewPortXPixelPosition(sf)
-                //     let xe=this.frameToViewPortXPixelPosition(ef)
-                //     let sw=xe-xs
-                //     g.fillStyle = 'rgba(0%,0%,100%,25%)';
-                //     g.fillRect(xs,0,sw,h);
-                // }
-
                 if(this._pointerPosition){
-
                     let framePos=this._pointerPosition.framePosition
                     if(framePos) {
                         let xViewPortPixelpos = this.frameToViewPortXPixelPosition(framePos)

@@ -1,7 +1,6 @@
 import {AsyncEditFloat32ArrayInputStream, AsyncFloat32ArrayInputStream} from "../../io/stream";
-import {IndexedDbAudioBuffer, IndexedDbAudioInputStream} from "../inddb_audio_buffer";
 import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
-import {EMPTY, expand, map, Observable, Subscription} from "rxjs";
+import {EMPTY, expand, Observable, Subscription} from "rxjs";
 import {AudioSourceNode} from "./audio_source_node";
 import {NetAudioBuffer, NetAudioInputStream} from "../net_audio_buffer";
 
@@ -71,7 +70,7 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
 
   private fillBufferObs(frameOffset?:number):Observable<number|null> {
 
-      let obs = new Observable<number | null>(subscriber => {
+      return new Observable<number | null>(subscriber => {
         if(frameOffset){
           subscriber.error(new Error("Starting playback from position not equal zero not supported yet."));
         }else {
@@ -129,7 +128,6 @@ export class NetAudioBufferSourceNode extends AudioSourceNode {
           }
         }
       });
-      return obs;
   }
 
 

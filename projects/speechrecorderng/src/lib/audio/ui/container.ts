@@ -9,7 +9,6 @@ import {Component, ViewChild} from '@angular/core';
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip,Selection} from "../persistor";
 import {BasicAudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
-import {Element} from "@angular/compiler";
 import {AudioDataHolder} from "../audio_data_holder";
 
 /*
@@ -20,26 +19,26 @@ import {AudioDataHolder} from "../audio_data_holder";
 
  */
 
-interface ResizeObserverSize {
-  readonly inlineSize:number;
-  readonly blockSize:number;
-};
-
-declare interface ResizeObserverEntry{
-  readonly target: Element;
-  readonly contentRect: DOMRectReadOnly ;
-  readonly borderBoxSize: Array<ResizeObserverSize> ;
-  readonly contentBoxSize: Array<ResizeObserverSize> ;
-  readonly devicePixelContentBoxSize: Array<ResizeObserverSize> ;
-}
-
-declare interface ResizeObserverCallback {
-  (entries: Array<ResizeObserverEntry>, observer: ResizeObserver):void;
-}
-
-declare enum ResizeObserverBoxOptions {
-  "border-box", "content-box", "device-pixel-content-box"
-};
+// interface ResizeObserverSize {
+//   readonly inlineSize:number;
+//   readonly blockSize:number;
+// }
+//
+// declare interface ResizeObserverEntry{
+//   readonly target: Element;
+//   readonly contentRect: DOMRectReadOnly ;
+//   readonly borderBoxSize: Array<ResizeObserverSize> ;
+//   readonly contentBoxSize: Array<ResizeObserverSize> ;
+//   readonly devicePixelContentBoxSize: Array<ResizeObserverSize> ;
+// }
+//
+// declare interface ResizeObserverCallback {
+//   (entries: Array<ResizeObserverEntry>, observer: ResizeObserver):void;
+// }
+//
+// declare enum ResizeObserverBoxOptions {
+//   "border-box", "content-box", "device-pixel-content-box"
+// };
 
 // // Declare Resizeobserver
 // declare class ResizeObserver{
@@ -54,7 +53,7 @@ declare enum ResizeObserverBoxOptions {
  * The display elements are children of a virtual canvas. The virtual canvas makes it possible to have high zoom factors with very wide virtual audio displays.
  * Only the visible part of the virtual canvas is implemented as a browser canvas and therefore consuming memory.
  * The visible part has the same width as the viewport of the scroll pane parent.
- * The virtual canvas itself is implemented as a HTML div element.
+ * The virtual canvas itself is implemented as an HTML div element.
  * The layout of the component is updated on resize of the parent or changes of the zoom factor.
  */
 @Component({
@@ -69,7 +68,6 @@ declare enum ResizeObserverBoxOptions {
     </div>
   `,
   styles: [`div {
-
     margin: 0;
     padding: 0;
     top: 0;
@@ -174,7 +172,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   ngAfterViewInit() {
     this.layout();
-    let heightListener = new MutationObserver((mrs: Array<MutationRecord>, mo: MutationObserver) => {
+    const heightListener = new MutationObserver((mrs: Array<MutationRecord>, mo: MutationObserver) => {
 
       let layout=false;
       mrs.forEach((mr: MutationRecord) => {
@@ -191,7 +189,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
     heightListener.observe(this.ce, {attributes: true, childList: true, characterData: true});
     heightListener.observe(this.dc, {attributes: true, childList: true, characterData: true});
 
-    let resizeObserver = new ResizeObserver((entries,obs) => {
+    const resizeObserver = new ResizeObserver((entries,obs) => {
       //console.log("Resize observed:");
       entries.forEach((e)=>{
         //console.log(e.contentRect.width+"x"+e.contentRect.height);
@@ -268,15 +266,7 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
 
   dividerCursorPosition(e: MouseEvent, show: boolean) {
     if (this.dc) {
-
-      const w = this.dc.width;
-      const h = this.dc.height;
-      const g = this.dc.getContext('2d');
-
-      const pp = this.canvasMousePos(this.dc, e);
-      const offX = e.offsetX - this.dc.offsetLeft;
-      const offY = e.offsetY - this.dc.offsetTop;
-
+      this.canvasMousePos(this.dc, e);
     }
   }
 
@@ -376,8 +366,8 @@ export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent impleme
       this.dc.style.left = vbLeftStyl;
     }
     // top position
-    const dTop = asH;
-    const dTopStr = dTop + 'px';
+    //const dTop = asH;
+    const dTopStr = asH + 'px';
     if (this.dc.style.top != dTopStr) {
       this.dc.style.top = dTopStr;
     }

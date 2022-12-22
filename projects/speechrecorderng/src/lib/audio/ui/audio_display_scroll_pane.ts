@@ -5,11 +5,10 @@ import {
 } from '@angular/core'
 
 
-import {AudioClipUIContainer} from '../ui/container'
+import {AudioClipUIContainer} from './container'
 import {Action} from "../../action/action";
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip, Selection} from "../persistor";
-import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {AudioDataHolder} from "../audio_data_holder";
 
 @Component({
@@ -67,27 +66,25 @@ export class AudioDisplayScrollPane {
 
       this.zoomInAction.onAction = (e) => {
           this.ac.fixFitToPanel = false
-          let oldXZoom = this.ac.currentXZoom()
+          const oldXZoom = this.ac.currentXZoom()
           if(oldXZoom === null){
               return;
           }
-          let newXzoom = oldXZoom * 2;
-          this.ac.xZoom = newXzoom;
 
+          this.ac.xZoom = oldXZoom * 2;
           let cbr = new Rectangle(new Position(this.spEl.scrollLeft, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
           this.ac.clipBounds(cbr);
           this.zoomFitToPanelAction.disabled=false
       }
       this.zoomOutAction.onAction = (e) => {
           this.ac.fixFitToPanel = false
-          let cbr1 = new Rectangle(new Position((this.spEl.scrollLeft / 2) - this.spEl.clientWidth, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
+          const cbr1 = new Rectangle(new Position((this.spEl.scrollLeft / 2) - this.spEl.clientWidth, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
           this.ac.clipBounds(cbr1);
           let oldXZoom = this.ac.currentXZoom()
           if(oldXZoom === null){
               return;
           }
-          let newXzoom = oldXZoom / 2;
-          this.ac.xZoom = newXzoom;
+          this.ac.xZoom = oldXZoom / 2;
 
           let cbr = new Rectangle(new Position(this.spEl.scrollLeft, this.spEl.scrollTop), new Dimension(this.spEl.clientWidth, this.spEl.clientHeight));
           this.ac.clipBounds(cbr);
@@ -117,10 +114,8 @@ export class AudioDisplayScrollPane {
                   let sr = this.ac.audioData.sampleRate;
                   let selFrLen = s.endFrame - s.startFrame;
                   let selLenInSecs = selFrLen / sr;
-                  // calculate corresponding xZoom value
-                  let newXZoom = this.spEl.clientWidth / selLenInSecs
-                  // apply xZoom
-                  this.ac.xZoom = newXZoom
+                  // calculate corresponding xZoom value and apply
+                  this.ac.xZoom = this.spEl.clientWidth / selLenInSecs;
 
                   // Move viewport to show selection
                   let x1 = this.ac.frameToXPixelPosition(s.startFrame);

@@ -56,7 +56,7 @@ export class ArrayAudioBufferInputStream implements Float32ArrayInputStream{
         }else {
           let chunkBuf0 = this.arrayAudioBuffer.data[0][this.chunkIdx];
           let chunkBufsLen = chunkBuf0.length;
-          let chunkBufAvail = chunkBufsLen - this.chunkFramePos;
+          const chunkBufAvail = chunkBufsLen - this.chunkFramePos;
           let r = chunkBufAvail;
           if (r > toRead - read) {
             r = toRead - read;

@@ -1,12 +1,5 @@
-import {ArrayAudioBuffer} from "./array_audio_buffer";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
-import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 import {Observable} from "rxjs";
-import {IndexedDbAudioBuffer, IndexedDbAudioInputStream, IndexedDbRandomAccessStream} from "./inddb_audio_buffer";
-import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
-import {AudioStorageType} from "../speechrecorder/project/project";
-import {NetAudioBuffer, NetAudioInputStream, NetRandomAccessAudioStream} from "./net_audio_buffer";
-import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 
 export interface AudioSource {
   get duration():number;
@@ -79,7 +72,7 @@ export abstract class BasicAudioSource implements AudioSource{
 }
 
 export class AudioBufferSource extends BasicAudioSource{
-  private _duration:number;
+  private readonly _duration:number;
   constructor(private _audioBuffer:AudioBuffer) {
     super();
     this._duration=this._audioBuffer.length/this._audioBuffer.sampleRate;
@@ -136,12 +129,12 @@ export class AudioDataHolder{
     return this._duration;
   }
 
-  private _numberOfChannels:number=0;
-  private _sampleRate:number=0;
-  private _frameLen:number=0;
-  private _duration:number=0;
+  private readonly _numberOfChannels:number=0;
+  private readonly _sampleRate:number=0;
+  private readonly _frameLen:number=0;
+  private readonly _duration:number=0;
 
-  constructor(private _audioSource:AudioSource|null,private recordingsService:RecordingService|null=null) {
+  constructor(private _audioSource:AudioSource|null) {
     if(this._audioSource) {
       this._numberOfChannels = this._audioSource.numberOfChannels;
       this._sampleRate = this._audioSource.sampleRate;
@@ -149,16 +142,6 @@ export class AudioDataHolder{
       this._duration = this._frameLen / this._sampleRate;
     }
   }
-
-  // set onReady(onReady:(()=>void)|null){
-  //   if(this._audioSource instanceof  NetAudioBuffer){
-  //     this._audioSource.onReady=onReady;
-  //   }else{
-  //     if(onReady){
-  //       onReady();
-  //     }
-  //   }
-  // }
 
   addOnReadyListener(onReady:(()=>void)|null):void{
     this._audioSource?.addOnReadyListener(onReady);

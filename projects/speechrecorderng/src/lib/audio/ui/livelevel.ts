@@ -11,7 +11,7 @@ export const LEVEL_INDICATOR_HEIGHT=3;
 export const OVERFLOW_THRESHOLD = 0.25;
 export const OVERFLOW_INCR_FACTOR = 0.5;
 
-export enum State {LOADING,RENDERING,READY};
+export enum State {LOADING,RENDERING,READY}
 
 @Component({
 
@@ -334,7 +334,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
             i2 = this.dbValues.length;
           }
 
-          var c=0;
+          let c=0;
           for (let i = i1; i < i2; i++) {
               let x = i * this.pixelsPerValue;
               let dbVals = this.dbValues[i];

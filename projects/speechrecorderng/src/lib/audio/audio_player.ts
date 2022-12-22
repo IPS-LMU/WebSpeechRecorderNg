@@ -5,7 +5,7 @@ import {
     AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
-import {AudioClip, Selection} from './persistor'
+import {AudioClip} from './persistor'
 import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
@@ -144,12 +144,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     //console.log("AfterViewChecked: "+this.ac);
   }
 
-
-  init() {
-
-
-  }
-
   layout(){
     this.audioDisplayScrollPane.layout();
   }
@@ -214,7 +208,7 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.aCtx.decodeAudioData(data, (audioBuffer) => {
         //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
         let as=new AudioBufferSource(audioBuffer);
-        let adh=new AudioDataHolder(as,null);
+        let adh=new AudioDataHolder(as);
         this.audioClip = new AudioClip(adh);
       });
     }
@@ -246,10 +240,10 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
     let audioData:AudioDataHolder| null=null;
-    let sel:Selection|null=null;
+    //let sel:Selection|null=null;
     if(audioClip){
       audioData=audioClip.audioDataHolder;
-      sel=audioClip.selection;
+      //sel=audioClip.selection;
       if(this._audioClip) {
         this._audioClip.addSelectionObserver((ac) => {
 

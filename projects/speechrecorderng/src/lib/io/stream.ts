@@ -107,9 +107,8 @@ export class AsyncEditFloat32ArrayInputStream implements AsyncFloat32ArrayInputS
   }
 
   readObs(buffers: Array<Float32Array>): Observable<number> {
-    let obs=new Observable<number>(subscriber=>{
+    return new Observable<number>(subscriber=>{
       this.skipToOffset();
-      let read=0;
       if(this.length===undefined){
         this._srcInputStream.readObs(buffers).subscribe(subscriber);
       }else {
@@ -159,7 +158,6 @@ export class AsyncEditFloat32ArrayInputStream implements AsyncFloat32ArrayInputS
         }
       }
     });
-    return obs;
   }
 
   skipFrames(n:number):void{

@@ -15,11 +15,7 @@ export class PersistentAudioStorageTarget{
   }
 
   transaction(mode?:IDBTransactionMode):IDBTransaction{
-    //if(mode) {
-      return this._indexedDb.transaction(this.storeName, mode);
-    //}else{
-      //this._indexedDb.transaction(this.storeName);
-    //}
+    return this._indexedDb.transaction(this.storeName, mode);
   }
 
   objectStore(mode?:IDBTransactionMode ){
@@ -86,47 +82,6 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
     this._sealed=true;
   }
 
-  // private chunk(os:IDBObjectStore,ci:number,cb:(bufs:Array<Float32Array>|null)=>void,errCb:(err:Error)=>void){
-  //
-  //       // Build bounds for channels
-  //       let lIdx=[this._uuid,ci,0];
-  //       let hIdx=[this._uuid,ci,this._channelCount];
-  //       let chsKr=IDBKeyRange.bound(lIdx,hIdx);
-  //
-  //       let rq=os.getAll(chsKr);
-  //
-  //       rq.onsuccess=()=>{
-  //         let cc=rq.result;
-  //         let cc0;
-  //         let ccChs=cc.length;
-  //         if(ccChs==0){
-  //           cb(null);
-  //           return;
-  //         }
-  //         if(ccChs!==this.channelCount){
-  //           errCb(new Error('Number of channels of inddb data ('+ccChs+') does not match number of channels ('+this.channelCount+')'));
-  //           return;
-  //        }
-  //         if(cc.length>0){
-  //           cc0=cc[0];
-  //         }
-  //         let arrBuf=new Array<Float32Array>();
-  //         let ccLen=cc0.length;
-  //         for(let ch=0;ch<ccChs;ch++){
-  //           let chArr=new Float32Array(ccLen);
-  //           for(let si=0;si<ccLen;si++){
-  //             chArr[si]=cc[ch][si];
-  //           }
-  //           arrBuf.push(chArr);
-  //         }
-  //         cb(arrBuf);
-  //       }
-  //      rq.onerror=(errEv)=>{
-  //         errCb(new Error(errEv.toString()));
-  //       }
-  //
-  // }
-
   private deleteChunk(os:IDBObjectStore,ci:number,cb:(keys:IDBValidKey[])=>void,errCb:(err:Error)=>void){
 
     // Build bounds for channels
@@ -155,69 +110,6 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
 
   }
 
-
-  // private fillBufs(os:IDBObjectStore,framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number,srcFramePos:number,ci:number,ccPos:number,cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
-  //   //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
-  //   this.chunk(os,ci,(ccBufs)=>{
-  //       if(ccBufs){
-  //         let ccBufsChs=ccBufs.length;
-  //         if(ccBufsChs>0) {
-  //           let ccBuf0 = ccBufs[0];
-  //           let ccBufsLen = ccBuf0.length;
-  //
-  //           //console.debug('IndexedDbAudioBuffer::fillBufs framePos: '+framePos+', srcFramePos: '+srcFramePos+', ccBufsLen: '+ccBufsLen);
-  //           if (framePos >= srcFramePos + ccBufsLen) {
-  //             // target frame position is ahead, seek to next source buffer
-  //             //console.debug('IndexedDbAudioBuffer::fillBufs seek to next inddb buffer');
-  //             ci++;
-  //             ccPos=0;
-  //             srcFramePos+=ccBufsLen;
-  //
-  //           } else {
-  //             // Assuming target frame pos is inside current source buffer
-  //             ccPos=framePos-srcFramePos;
-  //             let ccAvail = ccBufsLen - ccPos;
-  //             let toCopy = ccBufsLen;
-  //
-  //             if (toCopy > ccAvail) {
-  //               toCopy = ccAvail;
-  //             }
-  //             if (toCopy > frameLen) {
-  //               toCopy = frameLen;
-  //             }
-  //             for (let ch = 0; ch < ccBufsChs; ch++) {
-  //               for (let si = 0; si < toCopy; si++) {
-  //                 trgBufs[ch][filled+si] = ccBufs[ch][ccPos+si];
-  //               }
-  //             }
-  //             filled += toCopy;
-  //             frameLen -= toCopy;
-  //             framePos += toCopy;
-  //             ccPos += toCopy;
-  //             if (ccPos >= ccBufsLen) {
-  //               ci++;
-  //               ccPos = 0;
-  //               srcFramePos+=ccBufsLen;
-  //             }
-  //           }
-  //         }
-  //         //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+frameLen);
-  //         if(frameLen===0){
-  //           //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+filled);
-  //           cbEnd(filled);
-  //         }else {
-  //           this.fillBufs(os, framePos, frameLen, trgBufs,filled, srcFramePos,ci,ccPos, cb, cbEnd, cbErr);
-  //         }
-  //       }else{
-  //         //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+filled);
-  //         cbEnd(filled);
-  //       }
-  //   },(err)=>{
-  //       cbErr(err);
-  //   });
-  //
-  // }
-
   private deleteAllBufs(os:IDBObjectStore,ci:number,cbEnd:()=>void,cbErr:(err:Error)=>void){
     //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+framePos+', frameLen: '+frameLen+', filled: '+filled+', srcFramePos: '+srcFramePos+',ci: '+ci+', ccPos: '+ccPos);
     this.deleteChunk(os,ci,(ccKeys)=>{
@@ -234,28 +126,6 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
     });
 
   }
-
-
-
-  // framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
-  //
-  //   let obs=new Observable<number>((subscriber)=>{
-  //     let tr=this._persistentAudioStorageTarget.transaction();
-  //     let os=tr.objectStore(this._persistentAudioStorageTarget.storeName);
-  //     // Positioning
-  //     let ci=Math.floor(framePos/this._chunkFrameLen);
-  //     let srcFramePos=ci*this._chunkFrameLen;
-  //     this.fillBufs(os,framePos,frameLen,bufs,0,srcFramePos,ci,0,(val)=>{},(filled:number)=>{
-  //       subscriber.next(filled);
-  //       subscriber.complete();
-  //     },err => {
-  //       subscriber.error(err);
-  //     })
-  //
-  //   })
-  //
-  //   return obs;
-  // }
 
   get sampleRate(): number {
     return this._sampleRate;
@@ -338,8 +208,7 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
 
   static fromChunkAudioBuffer(persistentAudioStorageTarget:PersistentAudioStorageTarget ,audioBuffer:AudioBuffer):Observable<IndexedDbAudioBuffer>{
 
-    let obs=new Observable<IndexedDbAudioBuffer>(subscriber => {
-
+    return new Observable<IndexedDbAudioBuffer>(subscriber => {
       let chs = audioBuffer.numberOfChannels;
       let sr = audioBuffer.sampleRate;
       let chkFrameLength = audioBuffer.length;
@@ -359,7 +228,6 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
         }
       )
     });
-    return obs;
   }
 
   appendChunkAudioBuffer(audioBuffer:AudioBuffer){
@@ -379,12 +247,10 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
     if(abFl>this._chunkFrameLen){
       throw new Error('Cannot append audio buffer with frame length '+abFl+' to this array audio buffer with chunk frame length '+this._chunkFrameLen+'. Chunk length must be equal or less if last chunk.');
     }
-    let obs=new Observable<void>(subscriber => {
-
+    return new Observable<void>(subscriber => {
       if (this._persistentAudioStorageTarget && this._uuid) {
         let tr = this._persistentAudioStorageTarget.transaction('readwrite');
         let recFileObjStore = tr.objectStore(this._persistentAudioStorageTarget.storeName);
-
         try {
 
             for (let ch = 0; ch < this.channelCount; ch++) {
@@ -392,13 +258,7 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
               let chkDbId = [this._uuid, this.indDbChkIdx++, ch];
               try {
                 let cr = recFileObjStore.add(chChk, chkDbId);
-                //console.debug("Added: "+ch+" "+(this.indDbChkIdx+chCkIdx));
-                cr.onsuccess = (ev) => {
-                  //console.debug("Stored audio data to indexed db");
-                  // if(ch>=this.channelCount-1){
-                  //   tr.commit();
-                  // }
-                }
+                cr.onsuccess = (ev) => {}
                 cr.onerror = (ev) => {
                   // iPad may throw QuotaExceededError here
                   // iPad asks for more storage and if denied, the error is thrown here
@@ -451,8 +311,6 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
         }
       }
     });
-    return obs;
-
   }
 
   releaseAudioData():Observable<void>{
@@ -476,7 +334,7 @@ export class IndexedDbAudioBuffer extends BasicAudioSource implements AudioSourc
   }
 
   audioInputStream(): Float32ArrayInputStream | null {
-    // Synchronous sream not supported
+    // Synchronous stream not supported
     return null;
   }
 
@@ -633,8 +491,7 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
 
 
   framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
-
-    let obs=new Observable<number>((subscriber)=>{
+    return new Observable<number>((subscriber)=>{
       let tr=this._inddbAb.persistentAudioStorageTarget.transaction();
       let os=tr.objectStore(this._inddbAb.persistentAudioStorageTarget.storeName);
       // Positioning
@@ -652,10 +509,7 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
       },err => {
         subscriber.error(err);
       })
-
-    })
-
-    return obs;
+    });
   }
 
   close(): void {
@@ -677,7 +531,7 @@ export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
   }
 
   readObs(buffers: Array<Float32Array>): Observable<number> {
-    let obs=new Observable<number>(subscr=> {
+    return new Observable<number>(subscr=> {
       if (buffers && buffers.length > 0) {
         let fl = buffers[0].length;
         this.inddbAbStr.framesObs(this.framePos, fl, buffers).subscribe({
@@ -697,12 +551,10 @@ export class IndexedDbAudioInputStream implements AsyncFloat32ArrayInputStream{
         subscr.complete();
       }
     });
-      return obs;
   }
 
   skipFrames(n: number):void {
     this.framePos+=n;
   }
-
 
 }

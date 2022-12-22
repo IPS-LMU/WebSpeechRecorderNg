@@ -7,7 +7,7 @@ export class AudioBufferImpl implements AudioBuffer{
   readonly numberOfChannels: number=0;
   readonly sampleRate: number=0;
 
-  private _audioData:Array<Float32Array>;
+  private readonly _audioData:Array<Float32Array>;
 
   constructor(numberOfChannels:number,sampleRate:number,length:number) {
     this.sampleRate=sampleRate;

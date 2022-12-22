@@ -3,8 +3,6 @@ import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/strea
 import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
-import {error} from "ng-packagr/lib/utils/log";
-
 
 
 export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
@@ -112,24 +110,23 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
   }
 }
 
-export class NetAudioChunk{
-
-  get orgSampleRate(): number {
-    return this._orgSampleRate;
-  }
-
-  get orgFrameLen(): number {
-    return this._orgFrameLen;
-  }
-  constructor(private _decodedBuffers:Float32Array[],private _orgSampleRate:number,private _orgFrameLen:number) {
-  }
-}
+// export class NetAudioChunk{
+//
+//   get orgSampleRate(): number {
+//     return this._orgSampleRate;
+//   }
+//
+//   get orgFrameLen(): number {
+//     return this._orgFrameLen;
+//   }
+//   constructor(private _decodedBuffers:Float32Array[],private _orgSampleRate:number,private _orgFrameLen:number) {
+//   }
+// }
 
 export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
   private _currCi=0;
   private _ccCache:Float32Array[]|null=null;
-  //private static _runningRequests=0;
 
   constructor(private _netAb:NetAudioBuffer) {}
 
@@ -143,12 +140,9 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
         next: (chDl)=>{
           if(chDl){
             const ab=chDl.decodedAudioBuffer;
-            let ccChs=ab.numberOfChannels;
-            let ccLen=ab.length;
+            const ccChs=ab.numberOfChannels;
             let arrBuf=new Array<Float32Array>();
-
             for(let ch=0;ch<ccChs;ch++){
-              //arrBuf.push(ab.getChannelData(ch).slice());
               arrBuf.push(ab.getChannelData(ch));
             }
             cb(arrBuf,chDl.orgFrameLength);
@@ -156,9 +150,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
             cb(null,null);
           }
         },
-        complete: ()=>{
-          //NetRandomAccessAudioStream._runningRequests--;
-        },
+        complete: ()=>{},
         error:(errEv)=>{
           //NetRandomAccessAudioStream._runningRequests--;
           if(errEv instanceof HttpErrorResponse){
@@ -175,9 +167,6 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
         }
       }
     );
-
-    //NetRandomAccessAudioStream._runningRequests++;
-    //console.debug("Running et audio buffer HTTP requests: "+NetRandomAccessAudioStream._runningRequests);
   }
 
   private _fillBufs(ccBufs:Float32Array[],orgFrameLen:number|null,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{orgSrcFramePos:number,srcFramePos:number,ci:number,ccPos:number}){
@@ -276,8 +265,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
   framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>{
 
-    let obs=new Observable<number>((subscriber)=>{
-
+    return new Observable<number>((subscriber)=>{
       // Positioning
       let newCi=Math.floor(framePos/this._netAb.chunkFrameLen);
       if(newCi!==this._currCi){
@@ -285,7 +273,6 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
         this._ccCache=null;
       }
       let srcFramePos=newCi*this._netAb.chunkFrameLen;
-      //let orgSrcFramePos=newCi*this._netAb.orgFetchChunkFrameLen;
       let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
       let srcState={orgSrcFramePos:0,srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
       this.fillBufs(this._netAb.baseUrl,this._netAb.orgFetchChunkFrameLen,trgState,srcState,(val)=>{},(filled:number)=>{
@@ -294,10 +281,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
       },err => {
         subscriber.error(err);
       })
-
-    })
-
-    return obs;
+    });
   }
 
   close(): void {
@@ -319,7 +303,7 @@ export class NetAudioInputStream implements AsyncFloat32ArrayInputStream{
   }
 
   readObs(buffers: Array<Float32Array>): Observable<number> {
-    let obs=new Observable<number>(subscr=> {
+    return new Observable<number>(subscr=> {
       if (buffers && buffers.length > 0) {
         let fl = buffers[0].length;
         this.netAbStr.framesObs(this.framePos, fl, buffers).subscribe({
@@ -339,7 +323,6 @@ export class NetAudioInputStream implements AsyncFloat32ArrayInputStream{
         subscr.complete();
       }
     });
-      return obs;
   }
 
   skipFrames(n: number):void {

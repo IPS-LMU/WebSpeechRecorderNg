@@ -2,12 +2,9 @@ import {DSPUtils} from "../../dsp/utils";
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Arrays, WorkerHelper} from "../../utils/utils";
 import {AudioDataHolder} from "../audio_data_holder";
-import {Observable, observable} from "rxjs";
-import {crc32} from "crc";
+import {Observable} from "rxjs";
 
 export const MIN_DB_LEVEL = -40.0;
-
-
 
 export class LevelInfo {
 
@@ -121,79 +118,18 @@ export interface LevelListener {
   reset(): void;
 }
 
-export interface PeakLevelListener {
-  update(peakLevel:number): void;
-}
-
-export interface PeakLevelListener {
-
-  update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo): void;
-
-  streamFinished(): void;
-
-  reset(): void;
-}
-
-export class PeakLevelInterceptor implements LevelListener{
-  get peakDbLvl(): number {
-    return this._peakDbLvl;
-  }
-  get channelCount(): number {
-    return this._channelCount;
-  }
-
-  set channelCount(value: number) {
-    this._channelCount = value;
-    if(this.levelListener){
-      this.levelListener.channelCount=value;
-    }
-  }
-
-  private _channelCount: number=0;
-
-  private _peakDbLvl = MIN_DB_LEVEL;
-
-
-
-  constructor(private levelListener?:LevelListener) {}
-
-  update(levelInfo: LevelInfo, peakLevelInfo: LevelInfo): void{
-    let peakDBVal = levelInfo.powerLevelDB();
-    if (this.peakDbLvl < peakDBVal) {
-      this._peakDbLvl = peakDBVal;
-    }
-  }
-
-  streamFinished(): void{
-    if(this.levelListener){
-      this.levelListener.streamFinished();
-    }
-  }
-
-  reset(): void{
-    this._peakDbLvl = MIN_DB_LEVEL;
-    if(this.levelListener){
-      this.levelListener.reset();
-    }
-  }
-}
-
 declare function postMessage(message: any, transfer?: Array<any>): void;
-
 
 export class LevelMeasure {
 
   private readonly workerURL: string;
-  //private worker: Worker|null=null;
-  //private bufferLevelInfos=new Array<LevelInfo>();
-  //private peakLevelInfo!:LevelInfo;
 
   constructor() {
     this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction);
   }
 
   calcBufferLevelInfos(audioDataHolder:AudioDataHolder, bufferTimeLength: number): Observable<LevelInfos> {
-    let obs = new Observable<LevelInfos>(subscriber => {
+    return new Observable<LevelInfos>(subscriber => {
 
       let chs = audioDataHolder.numberOfChannels;
       let bufferFrameLength = Math.round(audioDataHolder.sampleRate * bufferTimeLength);
@@ -362,7 +298,7 @@ export class LevelMeasure {
             } else {
 
               if (aAis) {
-                let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
+                aAis?.readObs(audioBuffers).subscribe({
                     next: (read) => {
                       // TEST:
                       // if(audioBuffers && audioBuffers.length>0) {
@@ -399,7 +335,7 @@ export class LevelMeasure {
           }
         };
 
-        let aAisSubscr = aAis?.readObs(audioBuffers).subscribe({
+        aAis?.readObs(audioBuffers).subscribe({
             next: (read) => {
               // TEST:
               // if(audioBuffers && audioBuffers.length>0) {
@@ -432,7 +368,6 @@ export class LevelMeasure {
         );
       }
     });
-  return obs;
   }
 
   /*
@@ -654,17 +589,15 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
         let peakDBVal = bufferLevelInfo.powerLevelDB();
         if (this.peakLevelInDb < peakDBVal) {
           this.peakLevelInDb = peakDBVal;
-          // the event comes from outside of an Angular zone
+          // the event comes from outside an Angular zone
           this.peakLevelListener(this.peakLevelInDb);
         }
       }
     }
   }
 
-
   stop() {
     this.worker?.terminate();
   }
-
 
 }
