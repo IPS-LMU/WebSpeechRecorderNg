@@ -793,7 +793,7 @@ export class RecordingService {
             if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
                 let abs=new AudioBufferSource(ab);
-                let adh=new AudioDataHolder(abs,null);
+                let adh=new AudioDataHolder(abs);
                 RecordingFileUtils.setAudioData(recordingFile,adh);
                 if (this.debugDelay > 0) {
                   window.setTimeout(() => {
@@ -1153,7 +1153,7 @@ export class RecordingService {
               if (resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
                   let abs=new AudioBufferSource(ab);
-                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(abs,null));
+                  RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(abs));
                   if (this.debugDelay > 0) {
                     window.setTimeout(() => {
 
@@ -1201,7 +1201,7 @@ export class RecordingService {
           if(resp.body) {
             aCtx.decodeAudioData(resp.body, ab => {
               let abs=new AudioBufferSource(ab);
-              let adh=new AudioDataHolder(abs,null);
+              let adh=new AudioDataHolder(abs);
               let rf = new SprRecordingFile(sessId, itemcode, version, adh);
               if (this.debugDelay > 0) {
                 window.setTimeout(() => {
