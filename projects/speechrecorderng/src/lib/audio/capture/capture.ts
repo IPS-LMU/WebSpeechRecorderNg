@@ -13,7 +13,7 @@ const DEBUG_TRACE_LEVEL=0;
 
 const ENABLE_AUDIO_WORKLET=true;
 
-// Super dirty way to load this module
+// Dirty way to load this module
 // Copy content of interceptor_worklet.js to this string
 const awpStr="class AudioCaptureInterceptorProcessor extends AudioWorkletProcessor{\n" +
     "\n" +
@@ -276,18 +276,22 @@ export class AudioCapture {
 
 
   printDevices(l: MediaDeviceInfo[]): void {
-    let selDeviceId = '___dummy___';
+    //let selDeviceId = '___dummy___';
     for (let i = 0; i < l.length; i++) {
       let di = l[i];
-
       console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
   }
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
-    this.context.resume().then(()=>{
+    if(this.context.state==='suspended'){
+      this.context.resume().then(()=>{
+        this._open(channelCount, selDeviceId, autoGainControlConfigs);
+      })
+    }else{
       this._open(channelCount, selDeviceId, autoGainControlConfigs);
-    })
+    }
+
   }
 
   _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
@@ -501,7 +505,7 @@ export class AudioCapture {
                   }
                   let awnPt = awn.port;
                   if (awnPt) {
-                    awnPt.onmessage = (ev: MessageEvent<any>) => {
+                    awnPt.onmessage = (ev: MessageEvent) => {
                       if (this.capturing) {
                         let dt=ev.data;
                         let chs = dt.chs;
@@ -509,12 +513,9 @@ export class AudioCapture {
                         if(DEBUG_TRACE_LEVEL>8) {
                           console.debug('Received data from worklet: ' +chs + ' ' + dt.len +' Data chs: '+adaLen);
                         }
-                        //let chunkLen = adaLen / chs;
-                        let chunkLen = adaLen;
                         let chunk = new Array<Float32Array>(chs);
                         for (let ch = 0; ch < chs; ch++) {
                           if (this.data && this.data[ch]) {
-                            let adaPos = ch * chunkLen;
                             if(dt.data[ch]) {
                               let fa = new Float32Array(dt.data[ch]);
                               if(AudioStorageType.NET!==this._audioStorageType) {
@@ -595,7 +596,6 @@ export class AudioCapture {
 
                 if (this.capturing) {
                   let inBuffer = e.inputBuffer;
-                  let duration = inBuffer.duration;
                   // only process requested count of channels
                   let currentBuffers = new Array<Float32Array>(channelCount);
                   for (let ch: number = 0; ch < channelCount; ch++) {
@@ -780,11 +780,8 @@ export class AudioCapture {
   close() {
     this.mediaStream.disconnect();
     if (this.stream) {
-      //this.stream.stop();
-      //'MediaStream.stop()' is deprecated and will be removed in M47, around November 2015. Please use 'MediaStream.active' instead.
-      //this.stream.active=false;
-      var mts = this.stream.getTracks();
-      for (var i = 0; i < mts.length; i++) {
+      const mts = this.stream.getTracks();
+      for (let i = 0; i < mts.length; i++) {
         mts[i].stop();
       }
     }
@@ -835,24 +832,10 @@ export class AudioCapture {
   }
 
   audioBufferArray():ArrayAudioBuffer{
-      let aba=new ArrayAudioBuffer(this.channelCount,this.currentSampleRate,this.data);
-      return aba;
+      return new ArrayAudioBuffer(this.channelCount,this.currentSampleRate,this.data);
   }
 
- // netAudioBuffer(baseUrl:string):NetAudioBuffer|null{
- //    if(this._recUUID) {
- //      return new NetAudioBuffer(this.context, baseUrl, this.channelCount, this.currentSampleRate, AudioCapture.BUFFER_SIZE, this.framesRecorded, this._recUUID);
- //    }else{
- //      return null;
- //    }
- // }
-
   inddbAudioBufferArray():IndexedDbAudioBuffer|null{
-    // let iab:IndexedDbAudioBuffer|null=null;
-    // if(this.db && this.recUUID) {
-    //   iab = new IndexedDbAudioBuffer(this.db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, this.channelCount, this.currentSampleRate, AudioCapture.BUFFER_SIZE,this.framesRecorded,this.recUUID);
-    // }
-    // return iab;
     if(this.persistError){
       return null;
     }else {
