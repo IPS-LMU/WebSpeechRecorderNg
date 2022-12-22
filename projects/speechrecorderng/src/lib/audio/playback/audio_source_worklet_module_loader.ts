@@ -142,15 +142,16 @@ const aswpStr = "\n" +
   "registerProcessor('audio-source-worklet',AudioSourceProcessor);\n";
 
 export class AudioSourceWorkletModuleLoader{
+
   private static moduleLoaded=false;
+
   static loadModule(context: AudioContext): Promise<void> {
     return new Promise((resolve, reject) => {
       if (AudioSourceWorkletModuleLoader.moduleLoaded) {
         resolve.call(self);
       } else {
-        let audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
-        let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
-        context.resume();
+        const audioWorkletModuleBlob = new Blob([aswpStr], {type: 'text/javascript'});
+        const audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
         context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
           AudioSourceWorkletModuleLoader.moduleLoaded = true;
           resolve.call(self);
@@ -158,6 +159,7 @@ export class AudioSourceWorkletModuleLoader{
           console.error(reason);
           reject.call(reason);
         });
+
       }
     });
   }
