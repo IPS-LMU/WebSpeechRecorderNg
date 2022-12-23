@@ -598,48 +598,50 @@ export class Sonagram extends AudioCanvasLayerComponent {
       if(this.raAsSubsc){
         this.raAsSubsc.unsubscribe();
       }
-        if (this.bounds) {
+      if (this._audioDataHolder) {
+        this._audioDataHolder.addOnReadyListener(()=> {
+          if (this._audioDataHolder && this.bounds && this.bounds.dimension) {
             let w = Math.round(this.bounds.dimension.width);
             let h = Math.round(this.bounds.dimension.height);
+            let vw = Math.round(this.virtualDimension.width);
 
+            if (w > 0 && h > 0 && vw > 0) {
 
-            if (this._audioDataHolder && w>0 && h>0) {
+              this.worker = new Worker(this.workerURL);
+              //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
 
-                this.worker = new Worker(this.workerURL);
-                //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
+              let chs = this._audioDataHolder.numberOfChannels;
+              let vw = Math.round(this.virtualDimension.width);
 
-                let chs = this._audioDataHolder.numberOfChannels;
-              let vw=Math.round(this.virtualDimension.width);
-
-                let frameLength = this._audioDataHolder.frameLen;
+              let frameLength = this._audioDataHolder.frameLen;
               let framesPerPixel = Math.ceil(frameLength / vw);
-              let leftPos= Math.round(this.bounds.position.left);
-              let renderPos=leftPos;
-              let raAs=this._audioDataHolder.randomAccessAudioStream();
+              let leftPos = Math.round(this.bounds.position.left);
+              let renderPos = leftPos;
+              let raAs = this._audioDataHolder.randomAccessAudioStream();
 
-              let audioBuffer:AudioBuffer|null=null;
-              let audioSource=this._audioDataHolder.audioSource;
-              if(audioSource instanceof AudioBufferSource){
-                audioBuffer=audioSource.audioBuffer;
+              let audioBuffer: AudioBuffer | null = null;
+              let audioSource = this._audioDataHolder.audioSource;
+              if (audioSource instanceof AudioBufferSource) {
+                audioBuffer = audioSource.audioBuffer;
               }
-                //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
-              let arrAbBuf:Float32Array[]|null;
+              //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
+              let arrAbBuf: Float32Array[] | null;
               let ada = new Array<ArrayBuffer>(chs);
               // for(let ch=0;ch<chs;ch++) {
               //   ada[ch] = new Float32Array(this.dftSize);
               // }
-              let imgData:Uint8ClampedArray;
-              let maxPsd=-Infinity;
-              let norender=true;
+              let imgData: Uint8ClampedArray;
+              let maxPsd = -Infinity;
+              let norender = true;
 
               if (this.worker) {
                 this.worker.onmessage = (me) => {
-                  if(true===me.data.terminate){
+                  if (true === me.data.terminate) {
                     let drawImgData;
-                    if(imgData){
-                      drawImgData=imgData;
-                    }else{
-                      drawImgData=me.data.imgData;
+                    if (imgData) {
+                      drawImgData = imgData;
+                    } else {
+                      drawImgData = me.data.imgData;
                     }
                     this.drawRendered(w, h, drawImgData);
                     if (this.worker) {
@@ -647,18 +649,18 @@ export class Sonagram extends AudioCanvasLayerComponent {
                     }
                     this.worker = null;
                     raAs.close();
-                  }else {
+                  } else {
 
                     // set rendered vertical values of one pixel of timescale
                     //let dataPos = renderPos * h * 4;
-                    if(norender) {
-                      if(me.data.maxPsd>maxPsd){
-                        maxPsd=me.data.maxPsd;
+                    if (norender) {
+                      if (me.data.maxPsd > maxPsd) {
+                        maxPsd = me.data.maxPsd;
                         //console.debug("new maxPsd: "+maxPsd);
                       }
-                    }else{
+                    } else {
                       let chH = Math.round(h / chs);
-                      let idp=me.data.l-leftPos;
+                      let idp = me.data.l - leftPos;
                       for (let ch = 0; ch < chs; ch++) {
                         for (let y = 0; y < chH; y++) {
                           let py = chH - y;
@@ -678,59 +680,59 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         }
                       }
                     }
-                    if(this._audioDataHolder && arrAbBuf && this.worker) {
+                    if (this._audioDataHolder && arrAbBuf && this.worker) {
                       // proceed with next pixel
                       renderPos++;
                       //console.debug("Render pos: "+renderPos);
 
-                      let terminate=false;
-                      let windowEnd= renderPos >= leftPos + w;
+                      let terminate = false;
+                      let windowEnd = renderPos >= leftPos + w;
 
-                      if(windowEnd){
-                        if(norender) {
+                      if (windowEnd) {
+                        if (norender) {
                           // phase two: rendering
                           norender = false;
                           // start from beginning
-                          renderPos=leftPos;
+                          renderPos = leftPos;
                           //console.debug("now rendering: maxPsd: "+maxPsd);
-                        }else {
+                        } else {
                           // terminate render phase
-                          terminate=true;
+                          terminate = true;
                         }
                       }
 
-                      let leftFramePos = Math.floor(frameLength * renderPos / vw)-this.dftSize/2;
-                      if(leftFramePos<0){
-                        leftFramePos=0;
+                      let leftFramePos = Math.floor(frameLength * renderPos / vw) - this.dftSize / 2;
+                      if (leftFramePos < 0) {
+                        leftFramePos = 0;
                       }
                       //let ada = new Array<ArrayBuffer>(chs);
 
                       //console.debug("Render pos: "+renderPos+" leftFramePos: "+leftFramePos);
 
                       if (!terminate) {
-                        if(this._audioDataHolder) {
+                        if (this._audioDataHolder) {
                           //let read = this._audioDataHolder.frames(leftFramePos, this.dftSize, arrAbBuf);
-                          this.raAsSubsc=raAs.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
+                          this.raAsSubsc = raAs.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
                             {
-                              next:(read)=>{
-                                if(arrAbBuf && this.worker) {
-                                  if(read<this.dftSize){
+                              next: (read) => {
+                                if (arrAbBuf && this.worker) {
+                                  if (read < this.dftSize) {
                                     // zero padding
                                     for (let ch = 0; ch < chs; ch++) {
-                                      for(let zp=read;zp<this.dftSize;zp++){
-                                        arrAbBuf[ch][zp]=0;
+                                      for (let zp = read; zp < this.dftSize; zp++) {
+                                        arrAbBuf[ch][zp] = 0;
                                       }
                                     }
                                   }
                                   for (let ch = 0; ch < chs; ch++) {
                                     // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
                                     //ada[ch] = arrAbBuf[ch].buffer.slice(0);
-                                    const arrAbBufCh=arrAbBuf[ch];
+                                    const arrAbBufCh = arrAbBuf[ch];
                                     const adLen = arrAbBufCh.buffer.byteLength;
-                                    if (!ada[ch] || ada[ch].byteLength !==  adLen) {
+                                    if (!ada[ch] || ada[ch].byteLength !== adLen) {
                                       ada[ch] = new ArrayBuffer(adLen);
                                     }
-                                    let fAdaCh=new Float32Array(ada[ch]);
+                                    let fAdaCh = new Float32Array(ada[ch]);
                                     fAdaCh.set(arrAbBuf[ch]);
                                   }
 
@@ -750,11 +752,10 @@ export class Sonagram extends AudioCanvasLayerComponent {
                                   }, ada);
                                 }
                               },
-                                error:(err)=>{
-                                    console.error("Sonagram: Error reading audio data: "+err);
-                                }
+                              error: (err) => {
+                                console.error("Sonagram: Error reading audio data: " + err);
+                              }
                             }
-
                           )
 
 
@@ -765,7 +766,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         }
                         this.worker.postMessage({
                           audioData: ada,
-                          audioDataOffset:leftFramePos,
+                          audioDataOffset: leftFramePos,
                           l: renderPos,
                           w: me.data.w,
                           h: h,
@@ -773,9 +774,9 @@ export class Sonagram extends AudioCanvasLayerComponent {
                           chs: chs,
                           frameLength: frameLength,
                           dftSize: this.dftSize,
-                          maxPsd:maxPsd,
-                          norender:norender,
-                          terminate:terminate
+                          maxPsd: maxPsd,
+                          norender: norender,
+                          terminate: terminate
                         }, ada);
                       }
 
@@ -785,106 +786,112 @@ export class Sonagram extends AudioCanvasLayerComponent {
                   }
                 }
               }
-              if (audioBuffer && audioBuffer.length*audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
-                  let ada = new Array<ArrayBuffer>(chs);
-                  for (let ch = 0; ch < chs; ch++) {
-                    // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
-                    ada[ch] = audioBuffer.getChannelData(ch).buffer.slice(0);
-                  }
-                  //let start = Date.now();
+              if (audioBuffer && audioBuffer.length * audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
+                let ada = new Array<ArrayBuffer>(chs);
+                for (let ch = 0; ch < chs; ch++) {
+                  // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                  ada[ch] = audioBuffer.getChannelData(ch).buffer.slice(0);
+                }
+                //let start = Date.now();
 
-                  if (this.markerCanvas) {
-                    let g = this.markerCanvas.getContext("2d");
-                    if (g) {
-                      g.fillText("Rendering...", 10, 20);
-                    }
+                if (this.markerCanvas) {
+                  let g = this.markerCanvas.getContext("2d");
+                  if (g) {
+                    g.fillText("Rendering...", 10, 20);
+                  }
 
                 }
                 this.worker.postMessage({
-                    audioData: ada,
-                    l: leftPos,
-                    w: w,
-                    h: h,
-                    vw: Math.round(this.virtualDimension.width),
-                    chs: chs,
-                    frameLength: frameLength,
-                    dftSize: this.dftSize,
-                    terminate:true
-                  }, ada);
-                }else{
-                  if(w>0) {
+                  audioData: ada,
+                  l: leftPos,
+                  w: w,
+                  h: h,
+                  vw: Math.round(this.virtualDimension.width),
+                  chs: chs,
+                  frameLength: frameLength,
+                  dftSize: this.dftSize,
+                  terminate: true
+                }, ada);
+              } else {
+                if (w > 0) {
 
-                    if (framesPerPixel > 0) {
-                      let arrSize = w * h * 4;
-                      if (arrSize < 0) {
-                        arrSize = 0
-                      }
-                      imgData = new Uint8ClampedArray(arrSize);
-                      let rw = 1;
-                      arrAbBuf = new Array<Float32Array>(chs);
-
-                      for (let ch = 0; ch < chs; ch++) {
-                        arrAbBuf[ch] = new Float32Array(this.dftSize);
-                      }
-
-                      let leftFramePos = Math.floor(frameLength * renderPos / vw) - this.dftSize / 2;
-                      let framesToRead = this.dftSize;
-                      if (leftFramePos < 0) {
-                        leftFramePos = 0;
-                      }
-                      this.drawStateText('Loading/Rendering...');
-                      this.raAsSubsc=raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
-                        {
-                          next: (read) => {
-                            if (arrAbBuf && this.worker) {
-                              if(read<this.dftSize){
-                                // zero padding
-                                for (let ch = 0; ch < chs; ch++) {
-                                  for(let zp=read;zp<this.dftSize;zp++){
-                                    arrAbBuf[ch][zp]=0;
-                                  }
-                                }
-                              }
-                              for (let ch = 0; ch < chs; ch++) {
-                                const arrAbBufCh=arrAbBuf[ch];
-                                const adLen = arrAbBufCh.buffer.byteLength;
-                                if (!ada[ch] || ada[ch].byteLength !==  adLen) {
-                                  ada[ch] = new ArrayBuffer(adLen);
-                                }
-                                let fAdaCh=new Float32Array(ada[ch]);
-                                fAdaCh.set(arrAbBuf[ch]);
-                              }
-
-                              this.worker.postMessage({
-                                l: renderPos,
-                                w: rw,
-                                h: h,
-                                vw: vw,
-                                chs: chs,
-                                frameLength: frameLength,
-                                audioData: ada,
-                                audioDataOffset: leftFramePos,
-                                dftSize: this.dftSize,
-                                norender: norender,
-                                terminate: false
-                              }, ada);
-                            }
-                          },
-                            error:(err)=>{
-                                console.error("Sonagram: Error reading audio data: "+err);
-                            }
-                        }
-                      );
+                  if (framesPerPixel > 0) {
+                    let arrSize = w * h * 4;
+                    if (arrSize < 0) {
+                      arrSize = 0
                     }
+                    imgData = new Uint8ClampedArray(arrSize);
+                    let rw = 1;
+                    arrAbBuf = new Array<Float32Array>(chs);
+
+                    for (let ch = 0; ch < chs; ch++) {
+                      arrAbBuf[ch] = new Float32Array(this.dftSize);
+                    }
+
+                    let leftFramePos = Math.floor(frameLength * renderPos / vw) - this.dftSize / 2;
+                    let framesToRead = this.dftSize;
+                    if (leftFramePos < 0) {
+                      leftFramePos = 0;
+                    }
+                    this.drawStateText('Loading/Rendering...');
+                    this.raAsSubsc = raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
+                      {
+                        next: (read) => {
+                          if (arrAbBuf && this.worker) {
+                            if (read < this.dftSize) {
+                              // zero padding
+                              for (let ch = 0; ch < chs; ch++) {
+                                for (let zp = read; zp < this.dftSize; zp++) {
+                                  arrAbBuf[ch][zp] = 0;
+                                }
+                              }
+                            }
+                            for (let ch = 0; ch < chs; ch++) {
+                              const arrAbBufCh = arrAbBuf[ch];
+                              const adLen = arrAbBufCh.buffer.byteLength;
+                              if (!ada[ch] || ada[ch].byteLength !== adLen) {
+                                ada[ch] = new ArrayBuffer(adLen);
+                              }
+                              let fAdaCh = new Float32Array(ada[ch]);
+                              fAdaCh.set(arrAbBuf[ch]);
+                            }
+
+                            this.worker.postMessage({
+                              l: renderPos,
+                              w: rw,
+                              h: h,
+                              vw: vw,
+                              chs: chs,
+                              frameLength: frameLength,
+                              audioData: ada,
+                              audioDataOffset: leftFramePos,
+                              dftSize: this.dftSize,
+                              norender: norender,
+                              terminate: false
+                            }, ada);
+                          }
+                        },
+                        error: (err) => {
+                          console.error("Sonagram: Error reading audio data: " + err);
+                        }
+                      }
+                    );
                   }
-              }
-            } else {
-                let g = this.sonagramCanvas.getContext("2d");
-                if (g) {
-                    g.clearRect(0, 0, w, h);
                 }
+              }
             }
+          }
+        });
+            } else {
+        if (this.bounds && this.bounds.dimension) {
+          let w = Math.round(this.bounds.dimension.width);
+          let h = Math.round(this.bounds.dimension.height);
+          let g = this.sonagramCanvas.getContext("2d");
+          if (g) {
+            g.clearRect(0, 0, w, h);
+          }
         }
+      }
     }
 
     drawRendered(w:number,h:number,imgData:Uint8ClampedArray) {

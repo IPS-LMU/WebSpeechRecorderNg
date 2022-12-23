@@ -132,6 +132,7 @@ export class AudioCapture {
   }
 
   static BUFFER_SIZE: number = 8192;
+  static readonly MAX_NET_AUTO_MEM_STORE_SAMPLES=2880000; //  1 minute at 48kHz
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
@@ -140,7 +141,7 @@ export class AudioCapture {
   agcStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
   listener!: AudioCaptureListener;
-  data!: Array<Array<Float32Array>>;
+  data: Array<Array<Float32Array>>|null=null;
   currentSampleRate!: number;
   n: Navigator;
   audioOutStream: SequenceAudioFloat32OutStream | null=null;
@@ -172,9 +173,12 @@ export class AudioCapture {
       console.debug("Create indexed db audio buffer.");
       this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this._recUUID)
     }
-    this.data = new Array<Array<Float32Array>>();
-    for (let i = 0; i < this.channelCount; i++) {
-      this.data.push(new Array<Float32Array>());
+    if(!(AudioStorageType.NET === this._audioStorageType)) {
+      // Initialize audio data array except for net audio buffer mode
+      this.data = new Array<Array<Float32Array>>();
+      for (let i = 0; i < this.channelCount; i++) {
+        this.data.push(new Array<Float32Array>());
+      }
     }
     this.framesRecorded = 0;
   }
@@ -514,26 +518,20 @@ export class AudioCapture {
                           console.debug('Received data from worklet: ' +chs + ' ' + dt.len +' Data chs: '+adaLen);
                         }
                         let chunk = new Array<Float32Array>(chs);
+                        const samples=this.framesRecorded*chs;
+                        if(AudioStorageType.NET_AUTO===this.audioStorageType && this.data && samples>AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES){
+                          this.data=null;
+                        }
                         for (let ch = 0; ch < chs; ch++) {
-                          if (this.data && this.data[ch]) {
-                            if(dt.data[ch]) {
-                              let fa = new Float32Array(dt.data[ch]);
-                              if(AudioStorageType.NET!==this._audioStorageType) {
-                                // Do not store!!
-                                this.data[ch].push(fa);
-                              }
-                              chunk[ch] = fa;
-                              // Use samples of channel 0 to count frames (samples)
-                              if (ch == 0) {
-                                this.framesRecorded += fa.length;
-                              }
-                              if(DEBUG_TRACE_LEVEL>8) {
-                                console.debug('Capture ch0 data length: '+this.data[0].length);
-                              }
-                            }else{
-                              if(DEBUG_TRACE_LEVEL>8) {
-                                console.debug('Channel '+ch+' data not set!!');
-                              }
+                          if(dt.data[ch]) {
+                            let fa = new Float32Array(dt.data[ch]);
+                            if (this.data && this.data[ch]) {
+                              this.data[ch].push(fa);
+                            }
+                            chunk[ch] = fa;
+                            // Use samples of channel 0 to count frames (samples)
+                            if (ch == 0) {
+                              this.framesRecorded += fa.length;
                             }
                           }
                         }
@@ -602,7 +600,9 @@ export class AudioCapture {
                     let chSamples = inBuffer.getChannelData(ch);
                     let chSamplesCopy = chSamples.slice(0);
                     currentBuffers[ch] = chSamplesCopy.slice(0);
-                    this.data[ch].push(chSamplesCopy);
+                    if(this.data) {
+                      this.data[ch].push(chSamplesCopy);
+                    }
                     if(DEBUG_TRACE_LEVEL>8){
                       console.debug("Process "+chSamplesCopy.length+" samples.");
                     }
@@ -746,7 +746,7 @@ export class AudioCapture {
     // if(!this.inddbAudioBuffer && this._persistentAudioStorageTarget && this.recUUID) {
     //   this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this.recUUID)
     // }
-    if(this.inddbAudioBuffer){
+    if(this.inddbAudioBuffer && this.data){
 
       // Try to append to
       this.inddbAudioBuffer.appendRawAudioData(this.data).subscribe({
@@ -754,11 +754,12 @@ export class AudioCapture {
           //console.debug('Transferred capture audio data to indexed db, deleting original data from memory...');
 
           /// Audio data saved to index db delete from in memory data array
-          for (let ch = 0; ch < this.channelCount; ch++) {
-            this.data[ch].splice(0);
-            //console.debug("Spliced/removed ch: "+ch);
+          if(this.data) {
+            for (let ch = 0; ch < this.channelCount; ch++) {
+              this.data[ch].splice(0);
+              //console.debug("Spliced/removed ch: "+ch);
+            }
           }
-
           this.persisted = true;
           if (this.listener && !this.capturing) {
             //console.debug("Stopped by indexed db hook");
@@ -788,34 +789,37 @@ export class AudioCapture {
     this._opened=false;
   }
 
-  audioBuffer(): AudioBuffer {
-    let frameLen: number = 0;
-    let ch0Data = this.data[0];
+  audioBuffer(): AudioBuffer |null{
+    let ab: AudioBuffer|null=null;
+    if(this.data) {
+      let frameLen: number = 0;
 
-    for (let ch0Chk of ch0Data) {
-      frameLen += ch0Chk.length;
-    }
-    let ab:AudioBuffer;
+      let ch0Data = this.data[0];
+
+      for (let ch0Chk of ch0Data) {
+        frameLen += ch0Chk.length;
+      }
+
       try {
         ab = this.context.createBuffer(this.channelCount, frameLen, this.context.sampleRate);
-      }catch(err){
-        if(err instanceof DOMException){
-          if(err.name==='NotSupportedError'){
-            if(frameLen==0){
+      } catch (err) {
+        if (err instanceof DOMException) {
+          if (err.name === 'NotSupportedError') {
+            if (frameLen == 0) {
               // Empty buffers are not supported by Chromium
               // Create dummy buffer with one sample
               ab = this.context.createBuffer(this.channelCount, 1, this.context.sampleRate);
-            }else{
+            } else {
               throw err;
             }
-          }else{
+          } else {
             throw err;
           }
-        }else if (err instanceof RangeError){
+        } else if (err instanceof RangeError) {
           // Out of memory
           // TODO What to do ??
           throw err;
-        }else{
+        } else {
           throw err;
         }
       }
@@ -828,11 +832,16 @@ export class AudioCapture {
           pos += bufLen;
         }
       }
+    }
     return ab;
   }
 
-  audioBufferArray():ArrayAudioBuffer{
-      return new ArrayAudioBuffer(this.channelCount,this.currentSampleRate,this.data);
+  audioBufferArray():ArrayAudioBuffer|null{
+      let arrAb:ArrayAudioBuffer|null=null;
+      if(this.data) {
+        arrAb=new ArrayAudioBuffer(this.channelCount, this.currentSampleRate, this.data);
+      }
+      return arrAb;
   }
 
   inddbAudioBufferArray():IndexedDbAudioBuffer|null{

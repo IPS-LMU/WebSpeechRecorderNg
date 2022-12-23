@@ -26,6 +26,7 @@ export enum AudioStorageType {
   CONTINUOUS='CONTINUOUS',
   CHUNKED='CHUNKED',
   NET='NET',
+  NET_AUTO='NET_AUTO',
   PERSISTTODB='PERSISTTODB'
 }
 

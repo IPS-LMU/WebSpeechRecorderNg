@@ -711,6 +711,52 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               }
             });
 
+          }else if(AudioStorageType.NET_AUTO===this._clientAudioStorageType){
+            // TODO Always fetching a net audio buffer for now
+
+            // Fetch chunked audio buffer from network
+            let nextNetAb: NetAudioBuffer | null = null;
+
+            //console.debug("Fetch chunked audio from network");
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (netAb) => {
+                //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
+                nextNetAb = netAb;
+              },
+              complete: () => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextNetAb) {
+                  if (rf) {
+                    fabDh = new AudioDataHolder(nextNetAb);
+
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
+                  //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
+                  this.displayAudioClip = new AudioClip(fabDh);
+                  // fabDh.onReady=()=>{
+                  //   this.audioLoaded=true;
+                  // }
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
+                this.changeDetectorRef.detectChanges();
+              }
+            });
+
           }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
@@ -948,13 +994,52 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               }
             }
 
+        }else if (AudioStorageType.NET_AUTO === this.ac.audioStorageType) {
+          as = this.ac.audioBufferArray();
+          if(!as){
+            this.playStartAction.disabled = true;
+            this.audioLoaded=false;
+            this.keepLiveLevel=true;
+            let rUUID:string|null=null;
+            let burl:string|null=null;
+            if(this._session) {
+              if (this._recordingFile) {
+                let rf = this._recordingFile;
+                rf.frames=this.ac.framesRecorded;
+                rUUID=rf.uuid;
+                //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
+                burl = this.recFileService.audioFileUrl(this._session?.project, rf);
+              } else if (this.session?.project) {
+                if(this.ac.recUUID) {
+                  rUUID=this.ac.recUUID;
+                  burl = this.recFileService.audioFileUrlByUUID(this.session.project, this.session.sessionId, rUUID);
+                }
+              }else{
+                console.error("Could not create net audio buffer.");
+              }
+              if (burl) {
+                let sr = this.ac.currentSampleRate;
+                //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+                as = netAs;
+                if (this.uploadSet) {
+                  this.uploadSet.onDone = (uploadSet) => {
+                    //console.debug("upload set on done: Call ready provider.ready");
+                    netAs.ready();
+                  }
+                }
+              }
+            }
+          }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
           as = this.ac.inddbAudioBufferArray();
         } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
           as = this.ac.audioBufferArray();
         } else {
           let ab = this.ac.audioBuffer();
-          as=new AudioBufferSource(ab);
+          if(ab) {
+            as = new AudioBufferSource(ab);
+          }
         }
         if (as) {
           adh = new AudioDataHolder(as);

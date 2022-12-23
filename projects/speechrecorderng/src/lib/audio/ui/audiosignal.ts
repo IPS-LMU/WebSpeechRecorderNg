@@ -208,218 +208,228 @@ export class AudioSignal extends AudioCanvasLayerComponent{
     if(this.raAsSubsc){
       this.raAsSubsc.unsubscribe();
     }
+      if (this._audioDataHolder) {
+        this._audioDataHolder.addOnReadyListener(()=>{
+          if(this._audioDataHolder && this.bounds && this.bounds.dimension) {
+            let w = Math.round(this.bounds.dimension.width);
+            let h = Math.round(this.bounds.dimension.height);
+            let vw = Math.round(this.virtualDimension.width);
 
-    if (this.bounds && this.bounds.dimension) {
+            if (w > 0 && h > 0 && vw > 0) {
 
-      let w = Math.round(this.bounds.dimension.width);
-      let h = Math.round(this.bounds.dimension.height);
+              //this.wo = new Worker('./audiosignal.worker.js',{type: 'module'});
+              this.worker = new Worker(this.workerURL);
+              //this.wo = new Worker('worker/audiosignal.worker.ts');
 
-      if (this._audioDataHolder && w>0 && h>0) {
-        //this.wo = new Worker('./audiosignal.worker.js',{type: 'module'});
-        this.worker = new Worker(this.workerURL);
-        //this.wo = new Worker('worker/audiosignal.worker.ts');
+              //let Worker = require('worker!../../../workers/uploader/main');
+              let chs = this._audioDataHolder.numberOfChannels;
+              let leftPos = Math.round(this.bounds.position.left);
+              let renderPos = leftPos;
 
-        //let Worker = require('worker!../../../workers/uploader/main');
-        let chs = this._audioDataHolder.numberOfChannels;
-        let leftPos= Math.round(this.bounds.position.left);
-        let renderPos=leftPos;
-        let vw=Math.round(this.virtualDimension.width);
-        let frameLength = this._audioDataHolder.frameLen;
-        let framesPerPixel = Math.ceil(frameLength / vw);
-        let ad:Float32Array=new Float32Array(chs*framesPerPixel);
-        let raAs=this._audioDataHolder.randomAccessAudioStream();
-        let audioBuffer:AudioBuffer|null=null;
-        let audioSource=this._audioDataHolder.audioSource;
-        if(audioSource instanceof AudioBufferSource){
-          audioBuffer=audioSource.audioBuffer;
-        }
-        //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
-        let arrAbBuf:Float32Array[]|null;
-
-        //let ais:ArrayAudioBufferInputStream|null=null;
-        //let aisBuf:Float32Array[]|null=null;
-        let psMinMax:Float32Array|null=null;
-
-        if (this.worker) {
-          this.worker.onmessage = (me) => {
-            if(me.data.eod===true){
-              let psMinMaxTmp;
-              if(psMinMax){
-                psMinMaxTmp=psMinMax;
-              }else{
-                psMinMaxTmp=me.data.psMinMax;
+              let frameLength = this._audioDataHolder.frameLen;
+              let framesPerPixel = Math.ceil(frameLength / vw);
+              console.debug("Chs: " + chs + ", vw: " + vw + ", frameLength: " + frameLength + ", fraemPerPixel: " + framesPerPixel);
+              let ad: Float32Array = new Float32Array(chs * framesPerPixel);
+              let raAs = this._audioDataHolder.randomAccessAudioStream();
+              let audioBuffer: AudioBuffer | null = null;
+              let audioSource = this._audioDataHolder.audioSource;
+              if (audioSource instanceof AudioBufferSource) {
+                audioBuffer = audioSource.audioBuffer;
               }
-              this.drawRendered(leftPos,w,h,chs,psMinMaxTmp);
+              //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
+              let arrAbBuf: Float32Array[] | null;
+
+              //let ais:ArrayAudioBufferInputStream|null=null;
+              //let aisBuf:Float32Array[]|null=null;
+              let psMinMax: Float32Array | null = null;
+
               if (this.worker) {
-                this.worker.terminate();
-              }
-              raAs.close();
-            }else if(this._audioDataHolder && arrAbBuf){
-              const rw=me.data.w;
-              const rPointsLen=chs*rw;
-              const pointsLen=chs*w;
-              for (let ch = 0; ch < chs; ch++) {
-                if(psMinMax){
-                  let rBasePos=ch*rw;
-                  let basePos=ch*w;
-                  let rPosMin =rBasePos;
-                  let rPosMax=rPointsLen+rPosMin;
-                  let posMin =basePos+(renderPos-leftPos);
-                  let posMax=pointsLen+posMin;
+                this.worker.onmessage = (me) => {
+                  if (me.data.eod === true) {
+                    let psMinMaxTmp;
+                    if (psMinMax) {
+                      psMinMaxTmp = psMinMax;
+                    } else {
+                      psMinMaxTmp = me.data.psMinMax;
+                    }
+                    this.drawRendered(leftPos, w, h, chs, psMinMaxTmp);
+                    if (this.worker) {
+                      this.worker.terminate();
+                    }
+                    raAs.close();
+                  } else if (this._audioDataHolder && arrAbBuf) {
+                    const rw = me.data.w;
+                    const rPointsLen = chs * rw;
+                    const pointsLen = chs * w;
+                    for (let ch = 0; ch < chs; ch++) {
+                      if (psMinMax) {
+                        let rBasePos = ch * rw;
+                        let basePos = ch * w;
+                        let rPosMin = rBasePos;
+                        let rPosMax = rPointsLen + rPosMin;
+                        let posMin = basePos + (renderPos - leftPos);
+                        let posMax = pointsLen + posMin;
 
-                  psMinMax[posMin]=me.data.psMinMax[rPosMin];
-                  //console.debug('Min: ('+posMin+'): '+me.data.psMinMax[rPosMin]);
-                  psMinMax[posMax]=me.data.psMinMax[rPosMax];
-                  //console.debug('Max: ('+(posMax)+'): '+me.data.psMinMax[rPosMax]);
-                  //console.debug("psMinMax["+posMin+"]="+me.data.psMinMax[rPosMin]+"  (rPosMin="+rPosMin+"),psMinMax["+posMax+"]="+me.data.psMinMax[rPosMax]);
-                }
-              }
-              let eod=false;
-              renderPos++;
-              //let ad:Float32Array;
-
-              const leftFramePos = Math.floor(frameLength * renderPos / vw);
-              if(renderPos<leftPos+w) {
-
-                const raAsObs=raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf)
-
-                  this.raAsSubsc=raAsObs.subscribe(
-                  {
-                    next:(read)=>{
-                      //console.debug("First read frame: "+arrAbBuf[0][0]);
-                      if(arrAbBuf) {
-                        const adLen=chs * framesPerPixel;
-                        if(!ad || ad.length !==adLen) {
-                          ad = new Float32Array(adLen);
-                        }
-                        for (let ch = 0; ch < chs; ch++) {
-                          ad.set(arrAbBuf[ch], ch * framesPerPixel);
-                        }
+                        psMinMax[posMin] = me.data.psMinMax[rPosMin];
+                        //console.debug('Min: ('+posMin+'): '+me.data.psMinMax[rPosMin]);
+                        psMinMax[posMax] = me.data.psMinMax[rPosMax];
+                        //console.debug('Max: ('+(posMax)+'): '+me.data.psMinMax[rPosMax]);
+                        //console.debug("psMinMax["+posMin+"]="+me.data.psMinMax[rPosMin]+"  (rPosMin="+rPosMin+"),psMinMax["+posMax+"]="+me.data.psMinMax[rPosMax]);
                       }
-                      eod = (read <= 0);
-                      let adBuf=ad.buffer;
+                    }
+                    let eod = false;
+                    renderPos++;
+                    //let ad:Float32Array;
+
+                    const leftFramePos = Math.floor(frameLength * renderPos / vw);
+                    if (renderPos < leftPos + w) {
+
+                      const raAsObs = raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf)
+
+                      this.raAsSubsc = raAsObs.subscribe(
+                        {
+                          next: (read) => {
+                            //console.debug("First read frame: "+arrAbBuf[0][0]);
+                            if (arrAbBuf) {
+                              const adLen = chs * framesPerPixel;
+                              if (!ad || ad.length !== adLen) {
+                                ad = new Float32Array(adLen);
+                              }
+                              for (let ch = 0; ch < chs; ch++) {
+                                ad.set(arrAbBuf[ch], ch * framesPerPixel);
+                              }
+                            }
+                            eod = (read <= 0);
+                            let adBuf = ad.buffer;
+                            if (this.worker) {
+                              this.worker.postMessage({
+                                l: renderPos,
+                                w: me.data.w,
+                                h: h,
+                                vw: vw,
+                                chs: chs,
+                                frameLength: frameLength,
+                                audioData: ad,
+                                audioDataOffset: leftFramePos,
+                                eod: eod
+                              }, [adBuf]);
+                            }
+                          },
+                          error: (err) => {
+                            console.error("AudioSignal: Error reading audio data: " + err);
+                          }
+                        }
+                      )
+
+                    } else {
+                      ad = new Float32Array();
+                      eod = true;
+                      const adBuf = ad.buffer;
                       if (this.worker) {
                         this.worker.postMessage({
                           l: renderPos,
                           w: me.data.w,
-                          h:h,
+                          h: h,
                           vw: vw,
                           chs: chs,
                           frameLength: frameLength,
                           audioData: ad,
                           audioDataOffset: leftFramePos,
-                          eod:eod
+                          eod: eod
                         }, [adBuf]);
                       }
-                    },
-                    error:(err)=>{
-                      console.error("AudioSignal: Error reading audio data: "+err);
                     }
                   }
-                )
+                }
+              }
 
-              }else{
-                ad=new Float32Array();
-                eod=true;
-                const adBuf=ad.buffer;
-                if (this.worker) {
-                  this.worker.postMessage({
-                    l: renderPos,
-                    w: me.data.w,
-                    h:h,
-                    vw: vw,
-                    chs: chs,
-                    frameLength: frameLength,
-                    audioData: ad,
-                    audioDataOffset: leftFramePos,
-                    eod:eod
-                  }, [adBuf]);
+              if (audioBuffer && audioBuffer.length * audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
+
+                // Render whole clip at once
+                arrAbBuf = null;
+                psMinMax = null;
+                const ad = new Float32Array(chs * frameLength);
+                for (let ch = 0; ch < chs; ch++) {
+                  ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
+                }
+                this.worker.postMessage({
+                  l: leftPos,
+                  w: w,
+                  vw: vw,
+                  chs: chs,
+                  frameLength: frameLength,
+                  audioData: ad,
+                  audioDataOffset: 0,
+                  eod: true
+                }, [ad.buffer]);
+
+              } else {
+
+                // Render pixel by pixel
+                if (w > 0) {
+
+                  if (framesPerPixel > 0) {
+                    let rw = 1;
+                    arrAbBuf = new Array<Float32Array>(chs);
+                    psMinMax = new Float32Array(chs * w * 2);
+                    //console.debug("Audiosignal: Allocating buffers: "+framesPerPixel);
+                    for (let ch = 0; ch < chs; ch++) {
+                      arrAbBuf[ch] = new Float32Array(framesPerPixel);
+                    }
+                    const leftFramePos = Math.floor(frameLength * renderPos / vw);
+                    const auOffset = leftFramePos; // should always be 0
+
+                    const raAsObs = raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf);
+
+                    this.drawStateText("Loading/Rendering...");
+
+                    this.raAsSubsc = raAsObs.subscribe(
+                      {
+                        next: (read) => {
+
+                          if (arrAbBuf && this.worker) {
+                            const adLen = chs * framesPerPixel;
+                            if (!ad || ad.length !== adLen) {
+                              ad = new Float32Array(adLen);
+                            }
+                            for (let ch = 0; ch < chs; ch++) {
+                              ad.set(arrAbBuf[ch], ch * framesPerPixel);
+                            }
+
+                            this.worker.postMessage({
+                              l: renderPos,
+                              w: rw,
+                              vw: vw,
+                              chs: chs,
+                              frameLength: frameLength,
+                              audioData: ad,
+                              audioDataOffset: auOffset,
+                              eod: (read <= 0)
+                            }, [ad.buffer]);
+                          }
+                        },
+                        error: (err) => {
+                          console.error("AudioSignal: Error reading audio data: " + err);
+                        }
+                      }
+                    );
+                  }
                 }
               }
             }
           }
-        }
-
-        if (audioBuffer && audioBuffer.length*audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
-
-          // Render whole clip at once
-          arrAbBuf=null;
-          psMinMax=null;
-          const ad = new Float32Array(chs * frameLength);
-          for (let ch = 0; ch < chs; ch++) {
-            ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
-          }
-          this.worker.postMessage({
-            l: leftPos,
-            w: w,
-            vw: vw,
-            chs: chs,
-            frameLength: frameLength,
-            audioData: ad,
-            audioDataOffset:0,
-            eod:true
-          }, [ad.buffer]);
-
-        }else{
-
-          // Render pixel by pixel
-          if(w>0) {
-
-            if (framesPerPixel > 0) {
-              let rw = 1;
-              arrAbBuf = new Array<Float32Array>(chs);
-              psMinMax = new Float32Array(chs * w * 2);
-              //console.debug("Audiosignal: Allocating buffers: "+framesPerPixel);
-              for (let ch = 0; ch < chs; ch++) {
-                arrAbBuf[ch] = new Float32Array(framesPerPixel);
-              }
-              const leftFramePos = Math.floor(frameLength * renderPos / vw);
-              const auOffset = leftFramePos; // should always be 0
-
-              const raAsObs=raAs.framesObs(leftFramePos, framesPerPixel, arrAbBuf);
-
-              this.drawStateText("Loading/Rendering...");
-
-              this.raAsSubsc=raAsObs.subscribe(
-                {
-                  next: (read) => {
-
-                    if (arrAbBuf && this.worker) {
-                      const adLen=chs * framesPerPixel;
-                      if(!ad || ad.length !==adLen) {
-                        ad = new Float32Array(adLen);
-                      }
-                      for (let ch = 0; ch < chs; ch++) {
-                        ad.set(arrAbBuf[ch], ch * framesPerPixel);
-                      }
-
-                      this.worker.postMessage({
-                        l: renderPos,
-                        w: rw,
-                        vw: vw,
-                        chs: chs,
-                        frameLength: frameLength,
-                        audioData: ad,
-                        audioDataOffset: auOffset,
-                        eod: (read <= 0)
-                      }, [ad.buffer]);
-                    }
-                  },
-                  error:(err)=>{
-                      console.error("AudioSignal: Error reading audio data: "+err);
-                  }
-                }
-              );
-            }
-          }
-        }
+        });
       } else {
-        let g = this.signalCanvas.getContext("2d");
-        if (g) {
-          g.clearRect(0, 0, w, h);
+        if (this.bounds && this.bounds.dimension) {
+          let w = Math.round(this.bounds.dimension.width);
+          let h = Math.round(this.bounds.dimension.height);
+          let g = this.signalCanvas.getContext("2d");
+          if (g) {
+            g.clearRect(0, 0, w, h);
+          }
         }
       }
-    }
+
   }
 
 drawStateText(stateText:string) {

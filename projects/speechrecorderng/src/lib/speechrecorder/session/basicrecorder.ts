@@ -361,16 +361,19 @@ export abstract class BasicRecorder {
       let adh=dap.audioDataHolder;
       if(adh){
         if(!this.keepLiveLevel) {
-          this.liveLevelDisplayState = LiveLevelState.RENDERING;
-          this.calcBufferInfosSubscr = this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
-            //console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
-            dap.levelInfos = levelInfos;
-            this.liveLevelDisplayState = LiveLevelState.READY;
-            this.changeDetectorRef.detectChanges();
-          });
+          this.liveLevelDisplayState = LiveLevelState.LOADING;
         }
         adh.addOnReadyListener(()=>{
           //console.debug("Audio data holder ready. Enable playback. Audio loaded true.")
+          if(!this.keepLiveLevel) {
+            this.liveLevelDisplayState = LiveLevelState.RENDERING;
+            this.calcBufferInfosSubscr = this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
+              //console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
+              dap.levelInfos = levelInfos;
+              this.liveLevelDisplayState = LiveLevelState.READY;
+              this.changeDetectorRef.detectChanges();
+            });
+          }
           this.playStartAction.disabled = false;
           this.audioLoaded=true;
           this.changeDetectorRef.detectChanges();

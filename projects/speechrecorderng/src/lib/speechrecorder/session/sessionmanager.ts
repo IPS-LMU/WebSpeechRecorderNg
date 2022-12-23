@@ -1177,13 +1177,51 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               }
             }
           }
+        }else if (AudioStorageType.NET_AUTO === this.ac.audioStorageType) {
+          as=this.ac.audioBufferArray();
+          if(!as){
+            this.playStartAction.disabled = true;
+            this.keepLiveLevel=true;
+            let burl:string|null=null;
+            if(this._session) {
+              if (this._displayRecFile) {
+                // TODO is this branch ever called ?
+                let rf = this._displayRecFile;
+                rf.frames = this.ac.framesRecorded;
+                //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
+                burl = this.recFileService.sprAudioFileUrl(this._session?.project, rf);
+              } else if (this.session?.project && this._recordingFile && this._recordingFile instanceof SprRecordingFile) {
+                burl = this.recFileService.sprAudioFileUrlByItemcode(this.session?.project, this.session?.sessionId, this._recordingFile.itemCode, this._recordingFile.version);
+              }else{
+                console.error("Could not create net audio buffer.");
+              }
+              if (burl) {
+                let rUUID = this.ac.recUUID;
+                let sr = this.ac.currentSampleRate;
+                //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+                let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+                as = netAb;
+                if (this.uploadSet) {
+                  //let rp=new ReadyProvider();
+                  //netAb.readyProvider=rp;
+                  this.uploadSet.onDone = (uploadSet) => {
+                    console.debug("upload set on done: Call ready provider.ready");
+                    //rp.ready();
+                    netAb.ready();
+                  }
+                }
+              }
+            }
+          }
         } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
           as = this.ac.inddbAudioBufferArray();
         } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
           as = this.ac.audioBufferArray();
         } else {
           ab = this.ac.audioBuffer();
-          as=new AudioBufferSource(ab);
+          if(ab) {
+            as = new AudioBufferSource(ab);
+          }
         }
         if (as) {
           adh = new AudioDataHolder(as);
