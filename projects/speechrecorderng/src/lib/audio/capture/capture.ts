@@ -288,9 +288,14 @@ export class AudioCapture {
   }
 
   open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
-    if(this.context.state==='suspended'){
+    //console.debug("Capture open: ctx state: "+this.context.state);
+    if(this.context.state!=='running'){
+      //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
-        this._open(channelCount, selDeviceId, autoGainControlConfigs);
+        //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
+        //window.setTimeout(()=>{
+          this._open(channelCount, selDeviceId, autoGainControlConfigs);
+        //});
       })
     }else{
       this._open(channelCount, selDeviceId, autoGainControlConfigs);
@@ -574,6 +579,7 @@ export class AudioCapture {
                     };
                   }
                   this.bufferingNode = awn;
+                  //this.bufferingNode.channelCount=this.channelCount;
                   this._opened = true;
                   if (this.listener) {
                     this.listener.opened();

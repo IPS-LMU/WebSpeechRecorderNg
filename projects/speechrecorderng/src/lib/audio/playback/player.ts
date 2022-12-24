@@ -299,7 +299,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
         start() {
             if(!this._startAction.disabled && !this.running) {
-              if(this.context.state==='suspended') {
+              if(this.context.state!=='running') {
                 this.context.resume().then(() => {
                   this._start();
                 }).catch((reason) => {
@@ -431,7 +431,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
       startSelected() {
         if(!this._startAction.disabled && !this.running) {
-          if (this.context.state === 'suspended') {
+          if (this.context.state !== 'running') {
             this.context.resume().then(() => {
               this._start(true);
             }).catch((reason) => {
