@@ -527,16 +527,21 @@ export class AudioCapture {
                         if(AudioStorageType.NET_AUTO===this.audioStorageType && this.data && samples>AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES){
                           this.data=null;
                         }
+
+                        //console.debug("Data initialized: "+(this.data!=null));
                         for (let ch = 0; ch < chs; ch++) {
-                          if(dt.data[ch]) {
-                            let fa = new Float32Array(dt.data[ch]);
-                            if (this.data && this.data[ch]) {
-                              this.data[ch].push(fa);
-                            }
-                            chunk[ch] = fa;
-                            // Use samples of channel 0 to count frames (samples)
-                            if (ch == 0) {
-                              this.framesRecorded += fa.length;
+                          //console.debug("Data ch initialized: "+(this.data !=null && this.data[ch] !=null));
+                          if (ch<this.channelCount) {
+                            if (dt.data[ch]) {
+                              let fa = new Float32Array(dt.data[ch]);
+                              if (this.data && this.data[ch]) {
+                                this.data[ch].push(fa);
+                              }
+                              chunk[ch] = fa;
+                              // Use samples of channel 0 to count frames (samples)
+                              if (ch == 0) {
+                                this.framesRecorded += fa.length;
+                              }
                             }
                           }
                         }
