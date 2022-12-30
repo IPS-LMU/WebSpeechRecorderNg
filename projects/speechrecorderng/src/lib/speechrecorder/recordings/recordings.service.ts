@@ -455,9 +455,13 @@ export class RecordingService {
           } else {
             arrayAudioBuffer = ArrayAudioBuffer.fromAudioBuffer(ab, ab.length);
           }
-          if (ab.length < frameLength) {
-            arrayAudioBuffer.seal();
-          }
+          // Following code is wrong if original samplerate is less-then platform samplerate
+          // E.g. Loading 44100Hz file on Safari
+          // console.debug("Array ab seal?: "+ab.length+" < "+frameLength);
+          // if (ab.length < frameLength) {
+          //   arrayAudioBuffer.seal();
+          //   console.debug("Array ab sealed.");
+          // }
         }
         return arrayAudioBuffer;
       })
