@@ -3,11 +3,19 @@ import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/pla
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {RecordingFile, RecordingFileUtils} from '../recording'
 import {
-  Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  Inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+  ViewChild
 } from "@angular/core";
 import {SessionService} from "./session.service";
-import { MatDialog } from "@angular/material/dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
@@ -21,19 +29,13 @@ import {AudioClip} from "../../audio/persistor";
 import {Upload, UploaderStatus, UploaderStatusChangeEvent, UploadHolder} from "../../net/uploader";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {ProjectService} from "../project/project.service";
-import {LevelBar} from "../../audio/ui/livelevel";
+import {LevelBar, State as LiveLevelState} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
-import {
-  BasicRecorder,
-  ChunkAudioBufferReceiver,
-  MAX_RECORDING_TIME_MS,
-  RECFILE_API_CTX
-} from "./basicrecorder";
+import {BasicRecorder, ChunkAudioBufferReceiver, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
 import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
-import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 
@@ -625,6 +627,20 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
+
+          let audioDownloadType=this._clientAudioStorageType;
+          if(AudioStorageType.NET_AUTO===this._clientAudioStorageType) {
+            // Default is network mode
+            audioDownloadType=AudioStorageType.NET;
+            if (rf.channels && rf.frames) {
+              const samples = rf.channels * rf.frames;
+              if (samples <= AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES) {
+                // But if audio file is small, load in chunked mode
+                  audioDownloadType=AudioStorageType.CHUNKED;
+              }
+            }
+          }
+
           if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType){
             // Fetch chunked indexed db audio buffer
             let nextIab: IndexedDbAudioBuffer | null = null;
@@ -667,7 +683,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 }
               });
             }
-          }else if(AudioStorageType.NET===this._clientAudioStorageType){
+          }else if(AudioStorageType.NET===audioDownloadType){
             // Fetch chunked audio buffer from network
             let nextNetAb: NetAudioBuffer | null = null;
 
@@ -711,53 +727,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               }
             });
 
-          }else if(AudioStorageType.NET_AUTO===this._clientAudioStorageType){
-            // TODO Always fetching a net audio buffer for now
-
-            // Fetch chunked audio buffer from network
-            let nextNetAb: NetAudioBuffer | null = null;
-
-            //console.debug("Fetch chunked audio from network");
-            this.audioFetchSubscription = this.recFileService.fetchRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
-              next: (netAb) => {
-                //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
-                nextNetAb = netAb;
-              },
-              complete: () => {
-                this.liveLevelDisplayState = LiveLevelState.READY;
-                let fabDh = null;
-                if (nextNetAb) {
-                  if (rf) {
-                    fabDh = new AudioDataHolder(nextNetAb);
-
-                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
-                  }
-                } else {
-                  // Should actually be handled by the error resolver
-                  this.statusMsg = 'Recording file could not be loaded.'
-                  this.statusAlertType = 'error'
-                }
-                if (fabDh) {
-                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
-                  //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
-                  this.displayAudioClip = new AudioClip(fabDh);
-                  // fabDh.onReady=()=>{
-                  //   this.audioLoaded=true;
-                  // }
-                }
-                this.controlAudioPlayer.audioClip = this.displayAudioClip
-                this.showRecording();
-              },
-              error: err => {
-                console.error("Could not load recording file from server: " + err);
-                this.liveLevelDisplayState = LiveLevelState.READY;
-                this.statusMsg = 'Recording file could not be loaded: ' + err;
-                this.statusAlertType = 'error';
-                this.changeDetectorRef.detectChanges();
-              }
-            });
-
-          }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
+          }else if(AudioStorageType.CHUNKED===audioDownloadType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
             //console.debug("Fetch audio and store to (chunked) array buffer...");

@@ -631,6 +631,21 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.liveLevelDisplayState=LiveLevelState.LOADING;
           let rf=this._displayRecFile;
 
+          let audioDownloadType=this._clientAudioStorageType;
+          if(AudioStorageType.NET_AUTO===this._clientAudioStorageType) {
+            // Default is network mode
+            audioDownloadType=AudioStorageType.NET;
+            if (rf.channels && rf.frames) {
+              const samples = rf.channels * rf.frames;
+              console.debug("Samples to download: "+samples);
+              if (samples <= AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES) {
+                // But if audio file is small, load in chunked mode
+                audioDownloadType=AudioStorageType.CHUNKED;
+              }
+            }
+          }
+          console.debug("Audio download type: "+audioDownloadType);
+
           if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType){
             // Fetch chunked indexed db audio buffer
             let nextIab: IndexedDbAudioBuffer | null = null;
@@ -673,7 +688,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 }
               });
             }
-          }else if(AudioStorageType.NET===this._clientAudioStorageType){
+          }else if(AudioStorageType.NET===audioDownloadType){
             // Fetch chunked audio buffer from network
             let nextNetAb: NetAudioBuffer | null = null;
 
@@ -713,7 +728,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 }
               });
 
-          }else if(AudioStorageType.CHUNKED===this._clientAudioStorageType){
+          }else if(AudioStorageType.CHUNKED===audioDownloadType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
             //console.debug("Fetch audio and store to (chunked) array buffer...");
@@ -1111,6 +1126,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           if(rfd.samplerate && rfd.frames){
             rf.samplerate=rfd.samplerate;
             rf.frames=rfd.frames;
+          }
+          if(rfd.channels){
+            rf.channels=rfd.channels;
           }
           this.items.addSprRecFile(it,rf);
 

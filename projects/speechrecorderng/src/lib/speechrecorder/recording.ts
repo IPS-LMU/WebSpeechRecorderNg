@@ -18,6 +18,7 @@ export class RecordingFileDescriptorImpl {
   version!:number;
   frames?:number;
   samplerate?:number;
+  channels?: number;
   constructor() {}
 }
 
@@ -31,6 +32,7 @@ export class RecordingFile {
   _startedAsDateObj?:Date|null=null;
   audioDataHolder:AudioDataHolder|null=null;
   session:string|number|null=null;
+  channels:number|null=null;
   frames:number|null=null;
   samplerate:number|null=null;
   timeLength:number|null=null;
