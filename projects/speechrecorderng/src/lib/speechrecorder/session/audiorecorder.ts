@@ -629,14 +629,18 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           let rf=this._displayRecFile;
 
           let audioDownloadType=this._clientAudioStorageType;
-          if(AudioStorageType.NET_AUTO===this._clientAudioStorageType) {
+          if(AudioStorageType.CONTINUOUS_AUTO_NET===this._clientAudioStorageType || AudioStorageType.NET_AUTO===this._clientAudioStorageType) {
             // Default is network mode
             audioDownloadType=AudioStorageType.NET;
             if (rf.channels && rf.frames) {
               const samples = rf.channels * rf.frames;
               if (samples <= AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES) {
-                // But if audio file is small, load in chunked mode
-                  audioDownloadType=AudioStorageType.CHUNKED;
+                // But if audio file is small, load in continuous resp. chunked mode
+                if(AudioStorageType.CONTINUOUS_AUTO_NET===this._clientAudioStorageType){
+                  audioDownloadType=AudioStorageType.CONTINUOUS;
+                }else if(AudioStorageType.NET_AUTO===this._clientAudioStorageType) {
+                  audioDownloadType = AudioStorageType.CHUNKED;
+                }
               }
             }
           }
@@ -964,8 +968,16 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               }
             }
 
-        }else if (AudioStorageType.NET_AUTO === this.ac.audioStorageType) {
-          as = this.ac.audioBufferArray();
+        }else if (AudioStorageType.CONTINUOUS_AUTO_NET === this.ac.audioStorageType || AudioStorageType.NET_AUTO === this.ac.audioStorageType) {
+          if (AudioStorageType.CONTINUOUS_AUTO_NET === this.ac.audioStorageType){
+            const acAb=this.ac.audioBuffer();
+            if(acAb) {
+              as = new AudioBufferSource(acAb);
+            }
+          }
+          if(AudioStorageType.NET_AUTO === this.ac.audioStorageType){
+            as = this.ac.audioBufferArray();
+          }
           if(!as){
             this.playStartAction.disabled = true;
             this.audioLoaded=false;

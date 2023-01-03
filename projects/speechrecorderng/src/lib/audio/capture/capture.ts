@@ -524,7 +524,7 @@ export class AudioCapture {
                         }
                         let chunk = new Array<Float32Array>(chs);
                         const samples=this.framesRecorded*chs;
-                        if(AudioStorageType.NET_AUTO===this.audioStorageType && this.data && samples>AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES){
+                        if((AudioStorageType.CONTINUOUS_AUTO_NET===this.audioStorageType || AudioStorageType.NET_AUTO===this.audioStorageType) && this.data && samples>AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES){
                           this.data=null;
                         }
 
