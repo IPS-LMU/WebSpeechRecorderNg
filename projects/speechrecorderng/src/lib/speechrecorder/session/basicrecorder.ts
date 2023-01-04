@@ -132,7 +132,16 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+  get maxAutoNetMemStoreSamples(): number {
+    return this._maxAutoNetMemStoreSamples;
+  }
 
+  set maxAutoNetMemStoreSamples(value: number) {
+    this._maxAutoNetMemStoreSamples = value;
+  }
+
+  public static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES=2880000*5; // Default 5 minute at 48kHz
+  protected _maxAutoNetMemStoreSamples=BasicRecorder.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
 
   public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=30;
 
@@ -343,6 +352,7 @@ export abstract class BasicRecorder {
       outStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
     }
     if(this.ac) {
+      this.ac.maxAutoNetMemStoreSamples=this._maxAutoNetMemStoreSamples;
       this.ac.audioStorageType=this._clientAudioStorageType;
       this.ac.audioOutStream = outStream;
       if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {

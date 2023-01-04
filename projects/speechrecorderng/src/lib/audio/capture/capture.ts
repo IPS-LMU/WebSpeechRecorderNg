@@ -106,6 +106,13 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
+  get maxAutoNetMemStoreSamples(): number {
+    return this._maxAutoNetMemStoreSamples;
+  }
+
+  set maxAutoNetMemStoreSamples(value: number) {
+    this._maxAutoNetMemStoreSamples = value;
+  }
   set recUUID(value: string|null) {
     this._recUUID = value;
   }
@@ -132,7 +139,8 @@ export class AudioCapture {
   }
 
   static BUFFER_SIZE: number = 8192;
-  static readonly MAX_NET_AUTO_MEM_STORE_SAMPLES=2880000; //  1 minute at 48kHz
+  private static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES=2880000*5; // Default 5 minute at 48kHz
+  private _maxAutoNetMemStoreSamples=AudioCapture.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
@@ -524,7 +532,7 @@ export class AudioCapture {
                         }
                         let chunk = new Array<Float32Array>(chs);
                         const samples=this.framesRecorded*chs;
-                        if((AudioStorageType.CONTINUOUS_AUTO_NET===this.audioStorageType || AudioStorageType.NET_AUTO===this.audioStorageType) && this.data && samples>AudioCapture.MAX_NET_AUTO_MEM_STORE_SAMPLES){
+                        if((AudioStorageType.CONTINUOUS_AUTO_NET===this.audioStorageType || AudioStorageType.CHUNKED_AUTO_NET===this.audioStorageType) && this.data && samples>this._maxAutoNetMemStoreSamples){
                           this.data=null;
                         }
 
