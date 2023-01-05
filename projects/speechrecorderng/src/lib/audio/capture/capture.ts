@@ -139,8 +139,8 @@ export class AudioCapture {
   }
 
   static BUFFER_SIZE: number = 8192;
-  private static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES=2880000*5; // Default 5 minute at 48kHz
-  private _maxAutoNetMemStoreSamples=AudioCapture.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
+  private static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minute at 48kHz
+  private _maxAutoNetMemStoreSamples:number=AudioCapture.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;

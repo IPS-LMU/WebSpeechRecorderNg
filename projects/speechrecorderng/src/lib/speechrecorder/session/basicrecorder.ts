@@ -140,8 +140,8 @@ export abstract class BasicRecorder {
     this._maxAutoNetMemStoreSamples = value;
   }
 
-  public static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES=2880000*5; // Default 5 minute at 48kHz
-  protected _maxAutoNetMemStoreSamples=BasicRecorder.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
+  public static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minute at 48kHz
+  protected _maxAutoNetMemStoreSamples:number=BasicRecorder.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
 
   public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=30;
 
