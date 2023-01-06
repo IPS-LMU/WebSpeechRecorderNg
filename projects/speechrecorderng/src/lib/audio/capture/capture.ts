@@ -11,8 +11,6 @@ export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
 
 const DEBUG_TRACE_LEVEL=0;
 
-const ENABLE_AUDIO_WORKLET=true;
-
 // Dirty way to load this module
 // Copy content of interceptor_worklet.js to this string
 const awpStr="class AudioCaptureInterceptorProcessor extends AudioWorkletProcessor{\n" +
@@ -500,7 +498,7 @@ export class AudioCapture {
       // Update 06-2021
       //  AudioWorkletProcessor is here to stay. Web Audio API has now Recommendation status !
 
-          if(ENABLE_AUDIO_WORKLET && this.context.audioWorklet){
+          if(this.context.audioWorklet){
             //const workletFileName = ('file-loader!./interceptor_worklet.js');
             //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
             //console.log(awpStr);
