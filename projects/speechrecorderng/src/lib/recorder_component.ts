@@ -1,5 +1,4 @@
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
-import {UploaderStatus, UploaderStatusChangeEvent} from "./net/uploader";
 import {SprDb} from "./db/inddb";
 import {Observable} from "rxjs";
 import {PersistentAudioStorageTarget} from "./audio/inddb_audio_buffer";
@@ -15,9 +14,7 @@ export abstract class RecorderComponent implements ReadyStateProvider{
     dataSaved: boolean = true;
 
     protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
-    constructor(protected uploader:SpeechRecorderUploader) {
-       this.printStorageInfos();
-    }
+    constructor(protected uploader:SpeechRecorderUploader) {}
 
     printStorageInfos(){
       // Safari seems not to support the estimate function.
@@ -32,6 +29,9 @@ export abstract class RecorderComponent implements ReadyStateProvider{
 
     prepare(persistentAudioStorage=false):Observable<void>{
 
+        if(persistentAudioStorage){
+            this.printStorageInfos();
+        }
       return new Observable(subscriber => {
         if (persistentAudioStorage) {
           SprDb.prepare().subscribe({

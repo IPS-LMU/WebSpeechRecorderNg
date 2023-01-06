@@ -40,14 +40,14 @@ export enum Mode {SINGLE_SESSION,DEMO}
 })
 export class SpeechrecorderngComponent extends RecorderComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
-	  mode!:Mode;
-		controlAudioPlayer!:AudioPlayer;
-		audio:any;
-
-	_project:Project|null=null;
+  // Persistent storage (temp client audio storage to indexed db) currently not used
+  static ENABLE_PERSISTENT_STORAGE:boolean=false;
+  mode!:Mode;
+  controlAudioPlayer!:AudioPlayer;
+  audio:any;
+  _project:Project|null=null;
   sessionId!: string;
   session!:Session;
-
   script!:Script;
 
   @ViewChild(SessionManager, { static: true }) sm!:SessionManager;
@@ -126,8 +126,8 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
               this.projectService.projectObservable(sess.project).subscribe({
                   next: (project) => {
                     this.project = project;
-                    // TODO get config from project!!!
-                    let persistentAudiStorage=true;
+                    // Disable indexed db storage for now.
+                    let persistentAudiStorage=SpeechrecorderngComponent.ENABLE_PERSISTENT_STORAGE;
                     super.prepare(persistentAudiStorage).subscribe({
                       complete:()=> {
                         this.sm.persistentAudioStorageTarget=this._persistentAudioStorageTarget;
