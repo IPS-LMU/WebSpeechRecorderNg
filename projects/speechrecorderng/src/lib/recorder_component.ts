@@ -36,7 +36,7 @@ export abstract class RecorderComponent implements ReadyStateProvider{
         if (persistentAudioStorage) {
           SprDb.prepare().subscribe({
             next: (db) => {
-              this._persistentAudioStorageTarget = new PersistentAudioStorageTarget(db, SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
+              this._persistentAudioStorageTarget = new PersistentAudioStorageTarget(db, SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME);
               //let delCnt=0;
               this._persistentAudioStorageTarget.deleteAll().subscribe({
                 next:()=>{
@@ -53,6 +53,13 @@ export abstract class RecorderComponent implements ReadyStateProvider{
                   subscriber.error(err);
                 }
 
+              });
+
+              window.addEventListener('beforeunload',(e)=>{
+                  if(this._persistentAudioStorageTarget) {
+                      // Delete on page leave. Di not register callbacks to prevent page leave blocking
+                      this._persistentAudioStorageTarget.deleteAll().subscribe();
+                  }
               });
 
             },
