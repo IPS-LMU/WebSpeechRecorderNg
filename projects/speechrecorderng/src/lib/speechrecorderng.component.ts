@@ -19,6 +19,7 @@ import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
 import {Arrays, DataSize} from "./utils/utils";
 import {RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
+import {SprDb} from "./db/inddb";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -40,8 +41,6 @@ export enum Mode {SINGLE_SESSION,DEMO}
 })
 export class SpeechrecorderngComponent extends RecorderComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
-  // Persistent storage (temp client audio storage to indexed db) currently not used
-  static ENABLE_PERSISTENT_STORAGE:boolean=false;
   mode!:Mode;
   controlAudioPlayer!:AudioPlayer;
   audio:any;
@@ -126,17 +125,18 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
               this.projectService.projectObservable(sess.project).subscribe({
                   next: (project) => {
                     this.project = project;
-                    // Disable indexed db storage for now.
-                    let persistentAudiStorage=SpeechrecorderngComponent.ENABLE_PERSISTENT_STORAGE;
-                    super.prepare(persistentAudiStorage).subscribe({
-                      complete:()=> {
-                        this.sm.persistentAudioStorageTarget=this._persistentAudioStorageTarget;
-                        this.fetchScript(sess);
-                      },
-                      error: (err)=>{
-                        this.handleError(err);
-                      }
-                    });
+
+                    let persistentAudiStorage=(AudioStorageType.PERSISTTODB===project.clientAudioStorageType);
+                      super.prepare(persistentAudiStorage).subscribe({
+                        complete: () => {
+                          this.sm.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
+                          this.fetchScript(sess);
+                        },
+                        error: (err) => {
+                          this.handleError(err);
+                        }
+                      });
+
                   }, error: (reason) => {
                     this.sm.statusMsg = reason;
                     this.sm.statusAlertType = 'error';
@@ -353,6 +353,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
         this.sm.wakeLock=true;
       }
       console.info("Audio storage type: "+project.clientAudioStorageType);
+      if(AudioStorageType.PERSISTTODB===project.clientAudioStorageType){
+        SprDb.prepare().subscribe()
+      }
       if(project.clientAudioStorageType) {
         this.sm.clientAudioStorageType = project.clientAudioStorageType;
       }
