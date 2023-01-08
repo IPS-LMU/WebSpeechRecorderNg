@@ -29,8 +29,8 @@ export class SprDb {
 
     public static dbName='speechrecorder'
 
-    //public static RECORDING_FILE_CACHE_OBJECT_STORE_NAME='_recording_file_cache';
-     public static RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME='rec_file_chunks';
+    public static RECORDING_FILE_CACHE_OBJECT_STORE_NAME='_recording_file_cache';
+     //public static RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME='rec_file_chunks';
     public static dbVersion=1;
 
     private _store:IDBDatabase|null=null
@@ -87,8 +87,8 @@ export class SprDb {
                         //     rfStore.createIndex('sessIdIdx', ['sessionId'], {unique:false});
                         //     rfStore.createIndex('sessIdItemcodeIdx', ['sessionId','itemCode'], {unique:false});
                         // }
-                      if (!db.objectStoreNames.contains(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME)) {
-                            let rfStore=db.createObjectStore(SprDb.RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME);
+                      if (!db.objectStoreNames.contains(SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME)) {
+                            let rfStore=db.createObjectStore(SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME);
                         }
                         if (ev.oldVersion) {
                             console.info("Upgraded indexed database " + SprDb.dbName + " schema from version " + ev.oldVersion + " to " + ev.newVersion)
