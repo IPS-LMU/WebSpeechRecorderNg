@@ -289,7 +289,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
     this.dataSaved = (UploaderStatus.DONE === upStatus);
     let percentUpl = ue.percentDone();
     let sizeInQueue=ue.sizeInQueue();
-    console.debug("Uploader: status: "+upStatus+", "+percentUpl+"%, Bytes in queue: "+sizeInQueue+' ('+DataSize.formatBytesToBinaryUnits(sizeInQueue)+')');
+    //console.debug("Uploader: status: "+upStatus+", "+percentUpl+"%, Bytes in queue: "+sizeInQueue+' ('+DataSize.formatBytesToBinaryUnits(sizeInQueue)+')');
     if (UploaderStatus.ERR === upStatus) {
       this.sm.uploadStatus = 'warn'
     } else {
