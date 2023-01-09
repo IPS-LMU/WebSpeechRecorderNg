@@ -3,7 +3,6 @@ import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
 import {Subscription} from "rxjs";
-import {State} from "./livelevel";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
