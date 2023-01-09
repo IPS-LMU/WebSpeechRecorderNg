@@ -102,13 +102,17 @@ export class Sonagram extends AudioCanvasLayerComponent {
     }
 
   drawStateText(stateText:string) {
-    const g = this.sonagramCanvas.getContext("2d");
-    if (g) {
-      g.strokeStyle = 'black';
-      g.fillStyle = 'black';
-      g.font = '20px sans-serif';
-      g.fillText(stateText, 10, 25);
-    }
+        if(stateText) {
+            const g = this.sonagramCanvas.getContext("2d");
+            const w = this.sonagramCanvas.width;
+            const h = this.sonagramCanvas.height;
+            if (g && w && h) {
+                g.strokeStyle = 'black';
+                g.fillStyle = 'black';
+                g.font = '20px sans-serif';
+                g.fillText(stateText, 10, 25);
+            }
+        }
   }
 
   drawCursorPosition(e: MouseEvent, show: boolean) {

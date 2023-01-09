@@ -433,13 +433,17 @@ export class AudioSignal extends AudioCanvasLayerComponent{
   }
 
 drawStateText(stateText:string) {
-  const g = this.signalCanvas.getContext("2d");
-  if (g) {
-    g.strokeStyle = 'white';
-    g.fillStyle = 'white';
-    g.font = '20px sans-serif';
-    g.fillText(stateText, 10, 25);
-  }
+    if(stateText) {
+      const g = this.signalCanvas.getContext("2d");
+      const w=this.signalCanvas.width;
+      const h=this.signalCanvas.height;
+      if (g && w && h) {
+        g.strokeStyle = 'white';
+        g.fillStyle = 'white';
+        g.font = '20px sans-serif';
+        g.fillText(stateText, 10, 25);
+      }
+    }
 }
   drawRendered(left:number,w:number,h:number,chs:number,psMinMax:Float32Array) {
     this.drawBg();
