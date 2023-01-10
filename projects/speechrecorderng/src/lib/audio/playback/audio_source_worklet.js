@@ -65,6 +65,10 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
       //console.debug("Audio source worklet: process "+outputs.length+ " output buffers.");
       // copy ring buffer data to outputs
         if(!this.running || this.stalled){
+            if(this.endOfStream) {
+                this.ended = true;
+                this.port.postMessage({eventType: 'ended'});
+            }
           return !this.ended && !this.stopped;
         }
 
