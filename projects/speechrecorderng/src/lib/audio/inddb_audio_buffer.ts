@@ -455,12 +455,12 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
   }
 
   private fillBufs(os:IDBObjectStore,trgState:{framePos:number,frameLen:number,trgBufs:Float32Array[],filled:number},srcState:{srcFramePos:number,ci:number,ccPos:number,ccFilled:number},cb:(filled:number)=>void,cbEnd:(filled:number)=>void,cbErr:(err:Error)=>void){
-    console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+trgState.framePos+', frameLen: '+trgState.frameLen+', filled: '+trgState.filled+', srcFramePos: '+srcState.srcFramePos+',ci: '+srcState.ci+', ccPos: '+srcState.ccPos);
+    //console.debug('IndexedDbAudioBuffer::fillBufs: framePos:'+trgState.framePos+', frameLen: '+trgState.frameLen+', filled: '+trgState.filled+', srcFramePos: '+srcState.srcFramePos+',ci: '+srcState.ci+', ccPos: '+srcState.ccPos);
     if(this._ccCache){
       this._fillBufs(this._ccCache,trgState,srcState);
-      console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+trgState.frameLen);
+      //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+trgState.frameLen);
       if(trgState.frameLen===0){
-        console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+trgState.filled);
+        //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+trgState.filled);
         cbEnd(trgState.filled);
       }else {
         this.fillBufs(os, trgState, srcState, cb, cbEnd, cbErr);
@@ -472,15 +472,15 @@ export class IndexedDbRandomAccessStream implements RandomAccessAudioStream{
           this._ccCache = ccBufs;
 
           this._fillBufs(ccBufs, trgState, srcState);
-          console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+trgState.frameLen);
+          //console.debug('IndexedDbAudioBuffer::fillBufs frameLen: '+trgState.frameLen);
           if (trgState.frameLen === 0) {
-            console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+trgState.filled);
+            //console.debug('IndexedDbAudioBuffer::fillBufs (framelen==0) call: cbend '+trgState.filled);
             cbEnd(trgState.filled);
           } else {
             this.fillBufs(os,trgState, srcState, cb, cbEnd, cbErr);
           }
         } else {
-          console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+trgState.filled);
+          //console.debug('IndexedDbAudioBuffer::fillBufs (chunk not found) call: cbend '+trgState.filled);
           cbEnd(trgState.filled);
         }
       }, (err) => {

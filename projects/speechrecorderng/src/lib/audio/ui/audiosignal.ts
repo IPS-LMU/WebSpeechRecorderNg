@@ -227,7 +227,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
               let frameLength = this._audioDataHolder.frameLen;
               let framesPerPixel = Math.ceil(frameLength / vw);
-              console.debug("Chs: " + chs + ", vw: " + vw + ", frameLength: " + frameLength + ", fraemPerPixel: " + framesPerPixel);
+              //console.debug("Chs: " + chs + ", vw: " + vw + ", frameLength: " + frameLength + ", framesPerPixel: " + framesPerPixel);
               let ad: Float32Array = new Float32Array(chs * framesPerPixel);
               let raAs = this._audioDataHolder.randomAccessAudioStream();
               let audioBuffer: AudioBuffer | null = null;

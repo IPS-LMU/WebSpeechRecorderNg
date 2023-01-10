@@ -30,7 +30,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
               this.fillBufferObs().subscribe();
             }
           } else if ('ended' === evType) {
-            console.debug("Inddb audio source ended playback.");
+            //console.debug("Inddb audio source ended playback.");
             let drainTime = 0;
             if (this._inddbAudioBuffer?.sampleRate) {
               drainTime = ArrayAudioBufferSourceNode.QUANTUM_FRAME_LEN / this._inddbAudioBuffer.sampleRate;
@@ -80,16 +80,16 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
                       audioData: trBuffers
                     }, trBuffers);
                     filled += read;
-                    console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Sent "+read+" frames to audio source worklet. Filled: "+filled+", to fill: "+this.bufferFillFrames);
+                    //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Sent "+read+" frames to audio source worklet. Filled: "+filled+", to fill: "+this.bufferFillFrames);
                     if (this._audioInputStream && filled < this.bufferFillFrames) {
-                      console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
+                      //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Next inddb audio input stream readObs");
                       return this._audioInputStream.readObs(this._aisBufs);
                     } else {
-                      console.debug("Return EMPTY");
+                      //console.debug("Return EMPTY");
                       return EMPTY;
                     }
                   } else {
-                    console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
+                    //console.debug("IndexedDbAudioBufferSourceNode::fillBufferObs: Return EMPTY (read: "+read+")");
                     this._endOfStream=true;
                     this.port.postMessage({
                       cmd: 'endOfStream'
@@ -144,7 +144,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
         if(duration!==undefined){
           durationFrames=Math.floor(duration * this._inddbAudioBuffer.sampleRate);
         }
-        console.debug("Create AsyncEditFloat32ArrayInputStream: offsetFrames:"+offsetFrames+", durationFrames:"+durationFrames);
+        //console.debug("Create AsyncEditFloat32ArrayInputStream: offsetFrames:"+offsetFrames+", durationFrames:"+durationFrames);
         this._audioInputStream=new AsyncEditFloat32ArrayInputStream(arrAis,offsetFrames,durationFrames);
       }
 
@@ -156,7 +156,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
       this.fillBufferObs().subscribe({
         complete: ()=>{
-          console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
+          //console.debug("IndexedDbAudioBufferSourceNode::start: Async play buffer fill completed. Sending start command to audio worklet.");
           if(this._active) {
             this.port.postMessage({cmd: 'start'});
             if (offset) {
