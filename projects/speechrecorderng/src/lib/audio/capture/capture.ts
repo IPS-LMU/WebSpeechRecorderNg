@@ -157,7 +157,7 @@ export class AudioCapture {
 
   framesRecorded: number=0;
 
-  private _audioStorageType:AudioStorageType=AudioStorageType.CONTINUOUS;
+  private _audioStorageType:AudioStorageType=AudioStorageType.MEM_ENTIRE;
   private _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
   private persisted=true;
@@ -175,11 +175,11 @@ export class AudioCapture {
     }
     this.persistError=null;
     console.info("Audio capture initialize storage for type: "+this._audioStorageType);
-    if(AudioStorageType.PERSISTTODB === this._audioStorageType && this._persistentAudioStorageTarget && this._recUUID) {
+    if(AudioStorageType.DB_CHUNKED === this._audioStorageType && this._persistentAudioStorageTarget && this._recUUID) {
       console.debug("Create indexed db audio buffer.");
       this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this._recUUID)
     }
-    if(!(AudioStorageType.NET === this._audioStorageType)) {
+    if(!(AudioStorageType.NET_CHUNKED === this._audioStorageType)) {
       // Initialize audio data array except for net audio buffer mode
       this.data = new Array<Array<Float32Array>>();
       for (let i = 0; i < this.channelCount; i++) {
@@ -530,7 +530,7 @@ export class AudioCapture {
                         }
                         let chunk = new Array<Float32Array>(chs);
                         const samples=this.framesRecorded*chs;
-                        if((AudioStorageType.CONTINUOUS_AUTO_NET===this.audioStorageType || AudioStorageType.CHUNKED_AUTO_NET===this.audioStorageType) && this.data && samples>this._maxAutoNetMemStoreSamples){
+                        if((AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this.audioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this.audioStorageType) && this.data && samples>this._maxAutoNetMemStoreSamples){
                           this.data=null;
                         }
 
@@ -583,7 +583,7 @@ export class AudioCapture {
                             }
                           }
                         }
-                        if(AudioStorageType.PERSISTTODB===this._audioStorageType && this._persistentAudioStorageTarget){
+                        if(AudioStorageType.DB_CHUNKED===this._audioStorageType && this._persistentAudioStorageTarget){
                           this.store();
                         }
                       }

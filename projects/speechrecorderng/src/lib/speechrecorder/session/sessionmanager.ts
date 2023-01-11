@@ -632,23 +632,23 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           let rf=this._displayRecFile;
 
           let audioDownloadType=this._clientAudioStorageType;
-          if(AudioStorageType.CONTINUOUS_AUTO_NET===this._clientAudioStorageType || AudioStorageType.CHUNKED_AUTO_NET===this._clientAudioStorageType) {
+          if(AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this._clientAudioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this._clientAudioStorageType) {
             // Default is network mode
-            audioDownloadType=AudioStorageType.NET;
+            audioDownloadType=AudioStorageType.NET_CHUNKED;
             if (rf.channels && rf.frames) {
               const samples = rf.channels * rf.frames;
               if (samples <= this._maxAutoNetMemStoreSamples) {
                 // But if audio file is small, load in continuous resp. chunked mode
-                if(AudioStorageType.CONTINUOUS_AUTO_NET===this._clientAudioStorageType){
-                  audioDownloadType=AudioStorageType.CONTINUOUS;
-                }else if(AudioStorageType.CHUNKED_AUTO_NET===this._clientAudioStorageType) {
-                  audioDownloadType = AudioStorageType.CHUNKED;
+                if(AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this._clientAudioStorageType){
+                  audioDownloadType=AudioStorageType.MEM_ENTIRE;
+                }else if(AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this._clientAudioStorageType) {
+                  audioDownloadType = AudioStorageType.MEM_CHUNKED;
                 }
               }
             }
           }
           console.debug("Audio download type: "+audioDownloadType);
-          if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType){
+          if(AudioStorageType.DB_CHUNKED===this._clientAudioStorageType){
             // Fetch chunked indexed db audio buffer
             let nextIab: IndexedDbAudioBuffer | null = null;
             if(!this._persistentAudioStorageTarget){
@@ -690,7 +690,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 }
               });
             }
-          }else if(AudioStorageType.NET===audioDownloadType){
+          }else if(AudioStorageType.NET_CHUNKED===audioDownloadType){
             // Fetch chunked audio buffer from network
             let nextNetAb: NetAudioBuffer | null = null;
 
@@ -730,7 +730,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 }
               });
 
-          }else if(AudioStorageType.CHUNKED===audioDownloadType){
+          }else if(AudioStorageType.MEM_CHUNKED===audioDownloadType){
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
             //console.debug("Fetch audio and store to (chunked) array buffer...");
@@ -1164,7 +1164,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let as:AudioSource|null=null;
      let ab:AudioBuffer|null=null;
       if(this.ac) {
-        if (AudioStorageType.NET === this.ac.audioStorageType) {
+        if (AudioStorageType.NET_CHUNKED === this.ac.audioStorageType) {
           this.playStartAction.disabled = true;
           this.keepLiveLevel=true;
           let burl:string|null=null;
@@ -1197,14 +1197,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               }
             }
           }
-        }else if (AudioStorageType.CONTINUOUS_AUTO_NET === this.ac.audioStorageType || AudioStorageType.CHUNKED_AUTO_NET === this.ac.audioStorageType) {
-          if (AudioStorageType.CONTINUOUS_AUTO_NET === this.ac.audioStorageType){
+        }else if (AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED === this.ac.audioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED === this.ac.audioStorageType) {
+          if (AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED === this.ac.audioStorageType){
             const acAb=this.ac.audioBuffer();
             if(acAb) {
               as = new AudioBufferSource(acAb);
             }
           }
-          if(AudioStorageType.CHUNKED_AUTO_NET === this.ac.audioStorageType){
+          if(AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED === this.ac.audioStorageType){
             as = this.ac.audioBufferArray();
           }
           if(!as){
@@ -1241,9 +1241,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               }
             }
           }
-        } else if (AudioStorageType.PERSISTTODB === this.ac.audioStorageType) {
+        } else if (AudioStorageType.DB_CHUNKED === this.ac.audioStorageType) {
           as = this.ac.inddbAudioBufferArray();
-        } else if (AudioStorageType.CHUNKED === this.ac.audioStorageType) {
+        } else if (AudioStorageType.MEM_CHUNKED === this.ac.audioStorageType) {
           as = this.ac.audioBufferArray();
         } else {
           ab = this.ac.audioBuffer();
@@ -1260,7 +1260,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let rf = this._recordingFile;
     if (rf && rf instanceof SprRecordingFile) {
       this.items?.setSprRecFileAudioData(rf,adh);
-      if (this.enableUploadRecordings && AudioStorageType.CONTINUOUS===this._clientAudioStorageType) {
+      if (this.enableUploadRecordings && AudioStorageType.MEM_ENTIRE===this._clientAudioStorageType) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
         // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?

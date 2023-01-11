@@ -126,7 +126,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
                   next: (project) => {
                     this.project = project;
 
-                    let persistentAudiStorage=(AudioStorageType.PERSISTTODB===project.clientAudioStorageType);
+                    let persistentAudiStorage=(AudioStorageType.DB_CHUNKED===project.clientAudioStorageType);
                       super.prepare(persistentAudiStorage).subscribe({
                         complete: () => {
                           this.sm.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
@@ -353,7 +353,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
         this.sm.wakeLock=true;
       }
       console.info("Audio storage type: "+project.clientAudioStorageType);
-      if(AudioStorageType.PERSISTTODB===project.clientAudioStorageType){
+      if(AudioStorageType.DB_CHUNKED===project.clientAudioStorageType){
         SprDb.prepare().subscribe()
       }
       if(project.clientAudioStorageType) {

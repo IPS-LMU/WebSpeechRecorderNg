@@ -237,7 +237,7 @@ export abstract class BasicRecorder {
   //=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
 
   // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
-  protected _clientAudioStorageType:AudioStorageType=AudioStorageType.CONTINUOUS;
+  protected _clientAudioStorageType:AudioStorageType=AudioStorageType.MEM_ENTIRE;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
@@ -331,7 +331,7 @@ export abstract class BasicRecorder {
   configureStreamCaptureStream() {
     let outStream;
 
-    if (AudioStorageType.CONTINUOUS!==this._clientAudioStorageType || this.uploadChunkSizeSeconds) {
+    if (AudioStorageType.MEM_ENTIRE!==this._clientAudioStorageType || this.uploadChunkSizeSeconds) {
       if(!this.uploadChunkSizeSeconds){
         this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
       }
@@ -355,7 +355,7 @@ export abstract class BasicRecorder {
       this.ac.maxAutoNetMemStoreSamples=this._maxAutoNetMemStoreSamples;
       this.ac.audioStorageType=this._clientAudioStorageType;
       this.ac.audioOutStream = outStream;
-      if(AudioStorageType.PERSISTTODB===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
+      if(AudioStorageType.DB_CHUNKED===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
         this.ac.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
       }
     }
