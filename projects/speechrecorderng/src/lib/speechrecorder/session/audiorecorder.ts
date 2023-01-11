@@ -954,9 +954,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 console.error("Could not create net audio buffer.");
               }
               if (burl) {
-                let sr = this.ac.currentSampleRate;
+                const sr = this.ac.currentSampleRate;
+                const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
                 as=netAs;
                 if(this.uploadSet){
                   this.uploadSet.onDone=(uploadSet)=>{
@@ -1000,9 +1001,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 console.error("Could not create net audio buffer.");
               }
               if (burl) {
-                let sr = this.ac.currentSampleRate;
+                const sr = this.ac.currentSampleRate;
+                const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
                 as = netAs;
                 if (this.uploadSet) {
                   this.uploadSet.onDone = (uploadSet) => {

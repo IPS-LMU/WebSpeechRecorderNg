@@ -1181,10 +1181,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               console.error("Could not create net audio buffer.");
             }
             if (burl) {
-              let rUUID = this.ac.recUUID;
-              let sr = this.ac.currentSampleRate;
+              const rUUID = this.ac.recUUID;
+              const sr = this.ac.currentSampleRate;
+              const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
               //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-              let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+              let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
               as=netAb;
               if(this.uploadSet){
                 //let rp=new ReadyProvider();
@@ -1224,10 +1225,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 console.error("Could not create net audio buffer.");
               }
               if (burl) {
-                let rUUID = this.ac.recUUID;
-                let sr = this.ac.currentSampleRate;
+                const rUUID = this.ac.recUUID;
+                const sr = this.ac.currentSampleRate;
+                const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, sr, this.ac.framesRecorded, rUUID, sr);
+                let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
                 as = netAb;
                 if (this.uploadSet) {
                   //let rp=new ReadyProvider();
