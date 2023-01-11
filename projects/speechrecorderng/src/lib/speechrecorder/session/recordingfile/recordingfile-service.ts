@@ -219,6 +219,11 @@ export class RecordingFileService {
       }, (error) => {
         observer.error(error);
       }, () => {
+        let sampleCnt:number|null=null;
+        if(rf && rf.channels && rf.frames){
+          sampleCnt=rf.channels*rf.frames;
+        }
+        // TODO use download storage type depending on sample count of file
         let rfAudioObs = this.fetchAudiofile(recordingFileId);
         rfAudioObs.subscribe(resp => {
               // Do not use Promise version, which does not work with Safari 13
