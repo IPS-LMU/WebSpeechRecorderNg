@@ -372,6 +372,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
             }
           } else if (this._audioSource instanceof ArrayAudioBuffer || this._audioSource instanceof IndexedDbAudioBuffer || this._audioSource instanceof NetAudioBuffer) {
+            this.playStartTime = null;
             if (this._audioSource instanceof ArrayAudioBuffer) {
               const aabsn = new ArrayAudioBufferSourceNode(this.context);
               aabsn.arrayAudioBuffer = this._audioSource;
