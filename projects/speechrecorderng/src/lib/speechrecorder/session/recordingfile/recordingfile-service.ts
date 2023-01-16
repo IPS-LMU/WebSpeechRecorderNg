@@ -9,38 +9,19 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../../spr
 import {UUID} from "../../../utils/utils";
 import {RecordingFile, RecordingFileUtils, SprRecordingFile} from "../../recording";
 import {AudioBufferSource, AudioDataHolder} from "../../../audio/audio_data_holder";
+import {BasicRecordingService} from "../../recordings/basic_recording.service";
 
 
 @Injectable()
-export class RecordingFileService {
+export class RecordingFileService extends BasicRecordingService{
 
   public static readonly RECOFILE_API_CTX = 'recordingfile'
-  private apiEndPoint: string;
-  private withCredentials: boolean = false;
 
   //private debugDelay:number=10000;
   private debugDelay:number=0;
 
-  constructor(private http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) private config?: SpeechRecorderConfig) {
-    //constructor(private http: HttpClient) {
-      // TODO test only
-    this.apiEndPoint = ''
-     // this.apiEndPoint =  '/wikispeech/api/v1'
-
-    if (config && config.apiEndPoint) {
-      this.apiEndPoint = config.apiEndPoint;
-    }
-    if (this.apiEndPoint !== '') {
-      this.apiEndPoint = this.apiEndPoint + '/'
-    }
-    if (config != null && config.withCredentials != null) {
-      this.withCredentials = config.withCredentials;
-    }
-  //this.withCredentials=true
-
-    //this.recordingCtxUrl = apiEndPoint + REC_API_CTX;
-
-
+  constructor(protected http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) protected config?: SpeechRecorderConfig) {
+      super(http,config);
   }
 
   private recoFileUrl(recordingFileId: string | number):string{

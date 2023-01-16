@@ -3,6 +3,7 @@ import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/strea
 import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
 import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
+import {BasicRecordingService} from "../speechrecorder/recordings/basic_recording.service";
 
 
 export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
@@ -10,7 +11,7 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
   get orgFetchChunkFrameLen(): number {
     return this._orgFetchChunkFrameLen;
   }
-  get recFileService(): RecordingService {
+  get recFileService(): BasicRecordingService {
     return this._recFileService;
   }
   get audioContext(): AudioContext {
@@ -31,7 +32,7 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
   private _sealed=false;
 
   constructor(protected _audioContext:AudioContext,
-              private _recFileService:RecordingService,
+              private _recFileService:BasicRecordingService,
               private _baseUrl:string,
               private _channelCount: number,
               private _sampleRate: number,
@@ -79,7 +80,7 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
     return "Indexed db audio buffer. Channels: "+this.channelCount+", sample rate: "+this.sampleRate+", chunk frame length: "+this._chunkFrameLen+", number of chunks: "+this.chunkCount+", frame length: "+this.frameLen+", sealed: "+this.sealed();
   }
 
-    static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:RecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
+    static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:BasicRecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
       let nab=new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
       nab.ready();
       return nab;
