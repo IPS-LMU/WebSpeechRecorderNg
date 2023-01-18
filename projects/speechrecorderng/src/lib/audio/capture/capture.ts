@@ -167,6 +167,11 @@ export class AudioCapture {
   constructor(context: AudioContext) {
     this.context = context;
     this.n = navigator;
+    this.context.addEventListener('statechange', (ev) => {
+      if (this.context.state !== 'running') {
+        this.close();
+      }
+    });
   }
 
   private initData() {

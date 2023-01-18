@@ -82,6 +82,12 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
             this._stopAction = new Action('Stop');
             this._stopAction.disabled = true;
             this._stopAction.onAction = ()=>this.stop();
+          this.context.addEventListener('statechange', (ev) => {
+              if(this.context.state!=='running'){
+                this.stop();
+              }
+            }
+          );
         }
 
         get startAction() {
