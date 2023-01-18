@@ -205,44 +205,74 @@ export class RecordingFileService extends BasicRecordingService{
           sampleCnt=rf.channels*rf.frames;
         }
         // TODO use download storage type depending on sample count of file
-        let rfAudioObs = this.fetchAudiofile(recordingFileId);
-        rfAudioObs.subscribe(resp => {
-              // Do not use Promise version, which does not work with Safari 13
-          if(resp.body) {
-            aCtx.decodeAudioData(resp.body, ab => {
-              if(rf) {
-                let as=new AudioBufferSource(ab);
-                let adh=new AudioDataHolder(as);
-                RecordingFileUtils.setAudioData(rf,adh);
-              }else{
-                observer.error('Recording file object null');
-              }
-              if (this.debugDelay > 0) {
-                window.setTimeout(() => {
+        if(rf && rf.samplerate && sampleCnt!=null && sampleCnt>this._maxAutoNetMemStoreSamples) {
+          const baseUrl=this.recoFileUrl(recordingFileId);
+          const obNetAb=this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl,0,rf?.samplerate,BasicRecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS,rf.frames);
+          obNetAb.subscribe(
+            {
+              next:(nab)=>{
+                let adh = new AudioDataHolder(nab);
+                if(rf) {
+                  RecordingFileUtils.setAudioData(rf, adh);
                   observer.next(rf);
+                }
+              },
+              complete:()=>{
+                observer.complete();
+              },
+              error:(error)=>{
+                if (error.status == 404) {
+                  // Interpret not as an error, the file ist not recorded yet
+                  observer.next(null);
+                  observer.complete()
+                } else {
+                  // all other states are errors
+                  observer.error(error);
                   observer.complete();
-                }, this.debugDelay);
+                }
+              }
+            }
+          );
+        }else {
+
+          let rfAudioObs = this.fetchAudiofile(recordingFileId);
+          rfAudioObs.subscribe(resp => {
+              // Do not use Promise version, which does not work with Safari 13
+              if (resp.body) {
+                aCtx.decodeAudioData(resp.body, ab => {
+                  if (rf) {
+                    let as = new AudioBufferSource(ab);
+                    let adh = new AudioDataHolder(as);
+                    RecordingFileUtils.setAudioData(rf, adh);
+                  } else {
+                    observer.error('Recording file object null');
+                  }
+                  if (this.debugDelay > 0) {
+                    window.setTimeout(() => {
+                      observer.next(rf);
+                      observer.complete();
+                    }, this.debugDelay);
+                  } else {
+                    observer.next(rf);
+                    observer.complete();
+                  }
+                })
               } else {
-                observer.next(rf);
+                observer.error('Received no audio data');
+              }
+            },
+            (error: HttpErrorResponse) => {
+              if (error.status == 404) {
+                // Interpret not as an error, the file ist not recorded yet
+                observer.next(null);
+                observer.complete()
+              } else {
+                // all other states are errors
+                observer.error(error);
                 observer.complete();
               }
-            })
-          }else{
-            observer.error('Received no audio data');
-          }
-          },
-          (error: HttpErrorResponse) => {
-            if (error.status == 404) {
-              // Interpret not as an error, the file ist not recorded yet
-              observer.next(null);
-              observer.complete()
-            } else {
-              // all other states are errors
-              observer.error(error);
-              observer.complete();
-            }
-          });
-
+            });
+        }
       });
     });
 

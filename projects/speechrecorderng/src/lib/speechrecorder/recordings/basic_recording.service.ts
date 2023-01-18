@@ -8,7 +8,12 @@ import {WavReader} from "../../audio/impl/wavreader";
 import {ChunkDownload} from "./recordings.service";
 
 export class BasicRecordingService{
-
+  // iPad 9th generation, iOS 15.7.1, sometimes:
+  // Failed to load resource: WebKit hat einen internen Fehler festgestellt
+  // Firefox on Windows crashes
+  public static readonly DEFAULT_CHUNKED_DOWNLOAD_SECONDS:number=10;
+  public static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minutes one channel at 48kHz
+  protected _maxAutoNetMemStoreSamples:number=BasicRecordingService.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
     protected apiEndPoint: string;
     protected withCredentials: boolean = false;
     constructor(protected http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) protected config?: SpeechRecorderConfig) {

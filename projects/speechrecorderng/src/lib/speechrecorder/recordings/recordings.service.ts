@@ -39,11 +39,6 @@ export class ChunkDownload{
 @Injectable()
 export class RecordingService extends BasicRecordingService{
 
-  // iPad 9th generation, iOS 15.7.1, sometimes:
-  // Failed to load resource: WebKit hat einen internen Fehler festgestellt
-  // Firefox on Windows crashes
-  public static readonly DEFAULT_CHUNKED_DOWNLOAD_SECONDS:number=10;
-
   // This seems to work
   //public static readonly DEFAULT_CHUNKED_DOWNLOAD_SECONDS:number=4;
 
