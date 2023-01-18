@@ -428,9 +428,9 @@ export class AudioCapture {
 
     } else if (ua.detectedBrowser===Browser.Safari) {
       console.info("Setting media track constraints for Safari browser.")
-      console.info("Apply workaround for Safari: Avoid disconnect of streams.");
+      //console.info("Apply workaround for Safari: Avoid disconnect of streams.");
 
-      this.disconnectStreams = false;
+      this.disconnectStreams = true;
       msc = {
         audio: {
           deviceId: selDeviceId,
@@ -659,8 +659,7 @@ export class AudioCapture {
     )
   }
 
-  start() {
-
+  private _start(){
     this.initData();
     if (this.audioOutStream) {
       this.audioOutStream.nextStream()
@@ -673,7 +672,19 @@ export class AudioCapture {
     if (this.listener) {
       this.listener.started();
     }
+  }
 
+  start() {
+    const aSt=this.context.state;
+    if(aSt==='running') {
+      this._start();
+    }else{
+      console.debug("Capture start: audio context not running, state: "+aSt+", resuming...");
+      this.context.resume().then(()=>{
+        console.debug("Capture start: audio context resumed, starting...");
+        this._start();
+      })
+    }
   }
 
   stop() {
