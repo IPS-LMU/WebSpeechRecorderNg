@@ -132,6 +132,12 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder {
+
+  protected updateTimerId: any;
+
+  protected maxRecTimerId: number|null=null;
+  protected maxRecTimerRunning: boolean=false;
+
   get maxAutoNetMemStoreSamples(): number {
     return this._maxAutoNetMemStoreSamples;
   }
@@ -635,6 +641,21 @@ export abstract class BasicRecorder {
     this.uploadSet=null;
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
+  }
+
+  protected startCapture() {
+    if (this.ac) {
+      if (!this.ac.opened) {
+        if (this._selectedDeviceId) {
+          console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
+        } else {
+          console.log("Open session with default audio device for " + this._channelCount + " channels");
+        }
+        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs);
+      } else {
+        this.ac.start();
+      }
+    }
   }
 
   opened() {

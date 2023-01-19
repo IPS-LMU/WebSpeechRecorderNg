@@ -43,19 +43,6 @@ export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
 }
 
-// export class Item {
-//   promptAsString: string;
-//   training: boolean;
-//   recs: Array<RecordingFile> | null;
-//
-//   constructor(promptAsString: string, training: boolean) {
-//     this.promptAsString = promptAsString;
-//     this.training = training;
-//     this.recs = null;
-//   }
-// }
-
-
 @Component({
   selector: 'app-audiorecorder',
   providers: [SessionService],
@@ -171,19 +158,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   @Input() dataSaved=true
 
 
-  private maxRecTimerId: number|null=null;
-  private maxRecTimerRunning: boolean=false;
-  private updateTimerId: any;
+
 
   startStopNextButtonName!:string;
   startStopNextButtonIconName!:string;
 
   audio: any;
 
-  //private _promptIndex:number|null=null;
-
-  //items: Array<Item>|null=null;
-  //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
 
@@ -561,18 +542,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.liveLevelDisplayState=LiveLevelState.READY;
     this.showRecording();
 
-    if (this.ac) {
-      if (!this.ac.opened) {
-        if (this._selectedDeviceId) {
-          console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
-        } else {
-          console.log("Open session with default audio device for " + this._channelCount + " channels");
-        }
-        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
-      } else {
-        this.ac.start();
-      }
-    }
+    this.startCapture();
   }
 
 
@@ -626,7 +596,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
-          let rf=this._displayRecFile;
+          const rf=this._displayRecFile;
 
           let audioDownloadType=this._clientAudioStorageType;
           if(AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this._clientAudioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this._clientAudioStorageType) {

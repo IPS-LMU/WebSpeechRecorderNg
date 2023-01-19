@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {SprRecordingFile, RecordingFileDescriptorImpl, RecordingFile} from '../recording'
+import {SprRecordingFile, RecordingFileDescriptorImpl} from '../recording'
 import {UploadHolder} from '../../net/uploader';
 import {
   AfterViewInit,
@@ -151,16 +151,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   startStopSignalState!: StartStopSignalState;
 
-  private updateTimerId: any;
   private preRecTimerId: number|null=null;
   private preRecTimerRunning: boolean|null=null;
   private postDelay:number=DEFAULT_POST_REC_DELAY;
   private postRecTimerId: number|null=null;
   private postRecTimerRunning: boolean|null=null;
-  private maxRecTimerId: number|null=null;
-  private maxRecTimerRunning: boolean|null=null;
-
-  dnlLnk!: HTMLAnchorElement;
+  //private maxRecTimerRunning: boolean|null=null;
 
   audio: any;
   _script!: Script;
@@ -368,7 +364,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A'));
   }
 
-  isDefaultAudioTestSessionOverwriteingProjectRequirements():boolean {
+  isDefaultAudioTestSessionOverwritingProjectRequirements():boolean {
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
@@ -495,18 +491,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.autorecording = true;
     }
 
-    if(this.ac!=null) {
-      if (!this.ac.opened) {
-        if (this._selectedDeviceId) {
-          console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
-        } else {
-          console.log("Open session with default audio device for " + this._channelCount + " channels");
-        }
-        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
-      } else {
-        this.ac.start();
-      }
-    }
+    this.startCapture();
   }
 
 
@@ -582,13 +567,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(adh){
         as=adh.audioSource;
       }
-      let ww = new WavWriter();
+      const ww = new WavWriter();
       if(as instanceof AudioBufferSource) {
-        let wavFile = ww.writeAsync(as.audioBuffer, (wavFile) => {
-          let blob = new Blob([wavFile], {type: 'audio/wav'});
-          let rfUrl = URL.createObjectURL(blob);
+        ww.writeAsync(as.audioBuffer, (wavFile) => {
+          const blob = new Blob([wavFile], {type: 'audio/wav'});
+          const rfUrl = URL.createObjectURL(blob);
 
-          let dataDnlLnk = this.renderer.createElement('a');
+          const dataDnlLnk = this.renderer.createElement('a');
           //dataDnlLnk.name = 'Recording';
           dataDnlLnk.href = rfUrl;
 
@@ -629,7 +614,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
-          let rf=this._displayRecFile;
+          const rf=this._displayRecFile;
 
           let audioDownloadType=this._clientAudioStorageType;
           if(AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this._clientAudioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this._clientAudioStorageType) {
@@ -675,7 +660,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                     this.statusAlertType = 'error'
                   }
                   if (fabDh) {
-                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
                   this.controlAudioPlayer.audioClip = this.displayAudioClip
@@ -714,7 +699,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                     this.statusAlertType = 'error'
                   }
                   if (fabDh) {
-                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                     //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
@@ -752,7 +737,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   this.statusAlertType = 'error'
                 }
                 if (fabDh) {
-                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
@@ -789,7 +774,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   this.statusAlertType = 'error'
                 }
                 if (fabDh) {
-                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
@@ -1143,9 +1128,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
-  addRecordingFileByPromptIndex(promptIndex:number, rf:SprRecordingFile){
-
-  }
+  // addRecordingFileByPromptIndex(promptIndex:number, rf:SprRecordingFile){
+  //
+  // }
 
 
   stopped() {
@@ -1229,14 +1214,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 const sr = this.ac.currentSampleRate;
                 const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
+                const netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
                 as = netAb;
                 if (this.uploadSet) {
-                  //let rp=new ReadyProvider();
-                  //netAb.readyProvider=rp;
                   this.uploadSet.onDone = (uploadSet) => {
                     console.debug("upload set on done: Call ready provider.ready");
-                    //rp.ready();
+
                     netAb.ready();
                   }
                 }

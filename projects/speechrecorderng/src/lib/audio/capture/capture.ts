@@ -104,6 +104,7 @@ export interface AudioCaptureListener {
 }
 
 export class AudioCapture {
+
   get maxAutoNetMemStoreSamples(): number {
     return this._maxAutoNetMemStoreSamples;
   }
@@ -304,9 +305,7 @@ export class AudioCapture {
       //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
         //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
-        //window.setTimeout(()=>{
-          this._open(channelCount, selDeviceId, autoGainControlConfigs);
-        //});
+        this._open(channelCount, selDeviceId, autoGainControlConfigs);
       })
     }else{
       this._open(channelCount, selDeviceId, autoGainControlConfigs);

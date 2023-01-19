@@ -12,7 +12,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
 
 
-    export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED}
+    export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED,ERROR}
 
     export class AudioPlayerEvent{
 
@@ -176,69 +176,6 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
         }
 
 
-      // set arrayAudioBuffer(arrayAudioBuffer:ArrayAudioBuffer | null) {
-      //   this.stop();
-      //   this._audioBuffer=null;
-      //   this._arrayAudioBuffer=arrayAudioBuffer;
-      //   this._inddbAudioBuffer=null;
-      //   this._netAudioBuffer=null;
-      //   if (arrayAudioBuffer && this.context) {
-      //     this._loadSourceWorkletAndInitStart();
-      //   }else{
-      //     this.ready=false;
-      //     this.updateStartActions();
-      //     if(this.listener){
-      //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-      //     }
-      //   }
-      // }
-      //
-      // get arrayAudioBuffer():ArrayAudioBuffer| null{
-      //   return this._arrayAudioBuffer;
-      // }
-      //
-      // set inddbAudioBuffer(inddbAudioBuffer:IndexedDbAudioBuffer | null) {
-      //   this.stop();
-      //   this._audioBuffer=null;
-      //   this._arrayAudioBuffer=null;
-      //   this._inddbAudioBuffer=inddbAudioBuffer;
-      //   this._netAudioBuffer=null;
-      //   if (inddbAudioBuffer && this.context) {
-      //     this._loadSourceWorkletAndInitStart();
-      //   }else{
-      //     this.ready=false;
-      //     this.updateStartActions();
-      //     if(this.listener){
-      //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-      //     }
-      //   }
-      // }
-      //
-      // get inddbAudioBuffer():IndexedDbAudioBuffer| null{
-      //   return this._inddbAudioBuffer;
-      // }
-      //
-      // set netAudioBuffer(netAudioBuffer:NetAudioBuffer | null) {
-      //   this.stop();
-      //   this._audioBuffer=null;
-      //   this._arrayAudioBuffer=null;
-      //   this._inddbAudioBuffer=null;
-      //   this._netAudioBuffer=netAudioBuffer;
-      //   if (netAudioBuffer && this.context) {
-      //     this._loadSourceWorkletAndInitStart();
-      //   }else{
-      //     this.ready=false;
-      //     this.updateStartActions();
-      //     if(this.listener){
-      //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-      //     }
-      //   }
-      // }
-      //
-      // get netAudioBuffer():NetAudioBuffer| null{
-      //   return this._netAudioBuffer;
-      // }
-
   private _startAudioSourceWorkletNode(){
           if(this.sourceAudioWorkletNode) {
             this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
@@ -270,39 +207,6 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
   }
 
-        // private _start(){
-        //   if(this._audioSource instanceof AudioBufferSource) {
-        //     this.sourceBufferNode = this.context.createBufferSource();
-        //     this.sourceBufferNode.buffer = this._audioSource.audioBuffer;
-        //     this.sourceBufferNode.connect(this.context.destination);
-        //     this.sourceBufferNode.onended = () => this.onended();
-        //     this.running = true;
-        //     this.sourceBufferNode.start();
-        //     this.playStartTime = this.context.currentTime;
-        //     this._startAction.disabled = true;
-        //     this._startSelectionAction.disabled=true
-        //     this._stopAction.disabled = false;
-        //     if (this.listener) {
-        //       this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-        //     }
-        //   }else if(this._audioSource instanceof ArrayAudioBuffer) {
-        //     let aabsn=new ArrayAudioBufferSourceNode(this.context);
-        //     aabsn.arrayAudioBuffer=this._audioSource;
-        //     this.sourceAudioWorkletNode=aabsn;
-        //     this._startAudioSourceWorkletNode();
-        //   }else if(this._audioSource instanceof IndexedDbAudioBuffer){
-        //     let idabs =new IndexedDbAudioBufferSourceNode(this.context);
-        //     idabs.inddbAudioBuffer=this._audioSource;
-        //     this.sourceAudioWorkletNode=idabs;
-        //     this._startAudioSourceWorkletNode();
-        //   }else if(this._audioSource instanceof NetAudioBuffer){
-        //     let nabs =new NetAudioBufferSourceNode(this.context);
-        //     nabs.netAudioBuffer=this._audioSource;
-        //     this.sourceAudioWorkletNode=nabs;
-        //     this._startAudioSourceWorkletNode();
-        //   }
-        // }
-
         start() {
             if(!this._startAction.disabled && !this.running) {
               if(this.context.state!=='running') {
@@ -325,7 +229,6 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
               this._startSelectionAction.disabled=this.startSelectionDisabled();
             }else{
               if(this._audioSource instanceof NetAudioBuffer){
-               // this._audioSource.onReady=()=>{
                 this._audioSource.addOnReadyListener(()=>{
                   this._startAction.disabled=false;
                   this._startSelectionAction.disabled=this.startSelectionDisabled();
@@ -335,10 +238,6 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
           }else{
             this._startAction.disabled=true;
             this._startSelectionAction.disabled=true;
-            // if(this._audioSource instanceof NetAudioBuffer){
-            //   this._audioSource.onReady = null;
-            // }
-
           }
         }
 
@@ -400,9 +299,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
                 }
                 console.error("Audio source worklet error: " + msg);
                 if (this.listener) {
-                  // TODO
-                  // this.listener.error(msg);
-                  // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
+                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ERROR));
                 }
               };
 

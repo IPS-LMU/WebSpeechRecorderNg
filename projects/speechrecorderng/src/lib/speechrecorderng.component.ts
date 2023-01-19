@@ -415,20 +415,18 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
     start(){
     }
 
-		audioPlayerUpdate(e:AudioPlayerEvent){
-			if(PlaybackEventType.STARTED===e.type){
-				//this.startBtn.disabled=true;
-				//this.stopBtn.disabled=true;
-                this.sm.statusAlertType='info';
-				this.sm.statusMsg='Playback...';
-
-            } else if (PlaybackEventType.ENDED === e.type) {
-				//this.startBtn.disabled=false;
-				//this.stopBtn.disabled=true;
-                this.sm.statusAlertType='info';
-				this.sm.statusMsg='Ready.';
-			}
-		}
+  audioPlayerUpdate(e:AudioPlayerEvent){
+    if(PlaybackEventType.STARTED===e.type){
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg='Playback...';
+    } else if (PlaybackEventType.ENDED === e.type) {
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg='Ready.';
+    }else if(PlaybackEventType.ERROR=== e.type){
+      this.sm.statusAlertType='error';
+      this.sm.statusMsg='Playback error.';
+    }
+  }
 		error(){
 		    this.sm.statusAlertType='error';
 			this.sm.statusMsg='ERROR: Recording.';
