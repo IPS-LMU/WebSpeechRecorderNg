@@ -221,7 +221,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
 
-    this.audioLoaded=false;
+    //this.audioLoaded=false;
 
     let context:AudioContext|null=null;
     try {
@@ -725,7 +725,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 if (fabDh) {
                   // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
                   this.displayAudioClip = new AudioClip(fabDh);
-                  this.audioLoaded=true;
+                  //this.audioLoaded=true;
                 }
                 this.controlAudioPlayer.audioClip = this.displayAudioClip
                 this.showRecording();
@@ -903,7 +903,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       if(this.ac) {
         if (AudioStorageType.NET_CHUNKED === this.ac.audioStorageType) {
           this.playStartAction.disabled = true;
-          this.audioLoaded=false;
+          //this.audioLoaded=false;
           this.keepLiveLevel=true;
           let rUUID:string|null=null;
             let burl:string|null=null;
@@ -951,7 +951,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           }
           if(!as){
             this.playStartAction.disabled = true;
-            this.audioLoaded=false;
             this.keepLiveLevel=true;
             let rUUID:string|null=null;
             let burl:string|null=null;
