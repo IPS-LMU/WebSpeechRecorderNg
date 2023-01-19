@@ -833,7 +833,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     this.clearPrompt();
 
-    let isNonrecording=(this.promptItem.type==='nonrecording')
+    const isNonrecording=(this.promptItem.type==='nonrecording');
 
     if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
       this.applyPrompt();
@@ -933,7 +933,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
     if(this.items!=null) {
       let it=this.items.getItem(newPrIdx);
-      while (it.itemDone() && newPrIdx < this.promptItemCount) {
+      while ((!it.recording || it.itemDone()) && newPrIdx < this.promptItemCount) {
         newPrIdx++;
         it=this.items.getItem(newPrIdx);
       }
