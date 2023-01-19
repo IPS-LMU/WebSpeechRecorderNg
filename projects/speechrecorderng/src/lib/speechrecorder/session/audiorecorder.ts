@@ -1048,7 +1048,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.changeDetectorRef.detectChanges();
   }
 
-
+  error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
+    this.status=Status.ERROR;
+    super.error(msg,advice);
+    this.updateNavigationActions();
+    this.updateStartActionDisableState();
+  }
 
   postRecordingMultipart(wavFile: Uint8Array,recUrl: string,rf:RecordingFile) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});

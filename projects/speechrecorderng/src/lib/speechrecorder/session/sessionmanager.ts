@@ -1332,6 +1332,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.changeDetectorRef.detectChanges();
   }
 
+  error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
+    this.status=Status.ERROR;
+    super.error(msg,advice);
+    this.updateNavigationActions();
+    this.updateStartActionDisableState();
+  }
+
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
     let ww = new WavWriter();

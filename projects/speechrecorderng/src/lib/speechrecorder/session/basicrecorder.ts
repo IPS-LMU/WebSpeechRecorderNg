@@ -749,6 +749,7 @@ protected sessionsBaseUrl():string {
   }
 
   error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
+    this.navigationDisabled = false;
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
     this.dialog.open(MessageDialog, {
