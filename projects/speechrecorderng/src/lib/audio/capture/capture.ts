@@ -180,9 +180,9 @@ export class AudioCapture {
       this._recUUID = UUID.generate();
     }
     this.persistError=null;
-    console.info("Audio capture initialize storage for type: "+this._audioStorageType);
+    //console.debug("Audio capture initialize storage for type: "+this._audioStorageType);
     if(AudioStorageType.DB_CHUNKED === this._audioStorageType && this._persistentAudioStorageTarget && this._recUUID) {
-      console.debug("Create indexed db audio buffer.");
+      //console.debug("Create indexed db audio buffer.");
       this.inddbAudioBuffer = new IndexedDbAudioBuffer(this._persistentAudioStorageTarget, this.channelCount,this.currentSampleRate,AudioCapture.BUFFER_SIZE,0,this._recUUID)
     }
     if(!(AudioStorageType.NET_CHUNKED === this._audioStorageType)) {
