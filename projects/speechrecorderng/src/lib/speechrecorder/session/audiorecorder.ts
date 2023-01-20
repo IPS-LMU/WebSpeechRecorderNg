@@ -3,50 +3,45 @@ import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/pla
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {RecordingFile, RecordingFileUtils} from '../recording'
 import {
-  Component, ViewChild, ChangeDetectorRef, Inject,
-  AfterViewInit, HostListener, OnDestroy, Input, Renderer2, OnInit, Injector
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  Inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  Renderer2,
+  ViewChild
 } from "@angular/core";
 import {SessionService} from "./session.service";
-import { MatDialog } from "@angular/material/dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import { Project, ProjectUtil} from "../project/project";
+import {AudioStorageType, Project, ProjectUtil} from "../project/project";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 
 import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 
-import {Upload, UploaderStatus, UploaderStatusChangeEvent} from "../../net/uploader";
+import {Upload, UploaderStatus, UploaderStatusChangeEvent, UploadHolder} from "../../net/uploader";
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {ProjectService} from "../project/project.service";
-import {UUID} from "../../utils/utils";
-import {LevelBar} from "../../audio/ui/livelevel";
+import {LevelBar, State as LiveLevelState} from "../../audio/ui/livelevel";
 import {RecorderCombiPane} from "./recorder_combi_pane";
-import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
+import {BasicRecorder, ChunkAudioBufferReceiver, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
-import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
-import {State as LiveLevelState} from "../../audio/ui/livelevel"
+import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
 }
-
-export class Item {
-  promptAsString: string;
-  training: boolean;
-  recs: Array<RecordingFile> | null;
-
-  constructor(promptAsString: string, training: boolean) {
-    this.promptAsString = promptAsString;
-    this.training = training;
-    this.recs = null;
-  }
-}
-
 
 @Component({
   selector: 'app-audiorecorder',
@@ -68,11 +63,12 @@ export class Item {
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
          [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()" [state]="liveLevelDisplayState"
+      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
         <spr-recordingitemcontrols fxFlex="10 0 1"
-                                   [audioLoaded]="displayAudioClip?.audioDataHolder!==null"
+                                   [disableAudioDetails]="disableAudioDetails"
+                                   [audioLoaded]="audioLoaded"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
@@ -148,7 +144,7 @@ export class Item {
   }`
    ]
 })
-export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider {
+export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider,ChunkAudioBufferReceiver {
 
   _project:Project|undefined| null=null;
   @Input() projectName:string|undefined|null=null;
@@ -162,19 +158,13 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   @Input() dataSaved=true
 
 
-  private maxRecTimerId: number|null=null;
-  private maxRecTimerRunning: boolean=false;
-  private updateTimerId: any;
+
 
   startStopNextButtonName!:string;
   startStopNextButtonIconName!:string;
 
   audio: any;
 
-  private _promptIndex:number|null=null;
-
-  //items: Array<Item>|null=null;
-  //selectedItemIdx: number;
   private _displayRecFile: RecordingFile | null=null;
   private displayRecFileVersion: number=0;
 
@@ -230,6 +220,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
+
+    //this.audioLoaded=false;
 
     let context:AudioContext|null=null;
     try {
@@ -365,7 +357,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusAlertType='info';
     this.statusMsg = 'Fetching infos of recordings...';
     this.statusWaiting=true;
-    let prNm:string|null=null;
+    //let prNm:string|null=null;
     if(this.project) {
       let rfsObs = this.recFileService.recordingFileList(this.project.name, sess.sessionId);
       rfsObs.subscribe({next:(rfs: Array<RecordingFile>) => {
@@ -416,17 +408,20 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     if (project) {
       console.info("Project name: " + project.name)
-      if(project.recordingDeviceWakeLock===true){
-        this.wakeLock=true;
+      if (project.recordingDeviceWakeLock === true) {
+        this.wakeLock = true;
       }
       this.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
-      this.autoGainControlConfigs=project.autoGainControlConfigs;
-      if(project.chunkedRecording===true){
-        this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
-      }else{
-        this.uploadChunkSizeSeconds=null;
+      this.autoGainControlConfigs = project.autoGainControlConfigs;
+      if (project.chunkedRecording === true) {
+        this.uploadChunkSizeSeconds = BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      } else {
+        this.uploadChunkSizeSeconds = null;
+      }
+      if (project.clientAudioStorageType) {
+        this.clientAudioStorageType = project.clientAudioStorageType;
       }
     } else {
       console.error("Empty project configuration!")
@@ -441,6 +436,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   selectRecordingFile(rf:RecordingFile){
     this.liveLevelDisplayState=LiveLevelState.READY;
+    this.keepLiveLevel=false;
     this.displayRecFile=rf;
   }
 
@@ -481,7 +477,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }, 50);
     } else if (e.type == EventType.STOPPED || e.type == EventType.ENDED) {
       window.clearInterval(this.updateTimerId);
-      // this.audioSignal.playFramePosition = this.ap.playPositionFrames;
+      //console.debug("Enable play start action (by player events stopped or ended): "+(!(this.displayRecFile)));
       this.playStartAction.disabled = (!(this.displayRecFile));
 
     }
@@ -542,21 +538,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.displayRecFile = null;
     this.displayRecFileVersion = 0;
     this.displayAudioClip = null;
+    this.liveLevelDisplay.reset(true);
+    this.liveLevelDisplayState=LiveLevelState.READY;
     this.showRecording();
 
-    if (this.ac) {
-      this.liveLevelDisplayState=LiveLevelState.READY;
-      if (!this.ac.opened) {
-        if (this._selectedDeviceId) {
-          console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
-        } else {
-          console.log("Open session with default audio device for " + this._channelCount + " channels");
-        }
-        this.ac.open(this._channelCount, this._selectedDeviceId,this._autoGainControlConfigs);
-      } else {
-        this.ac.start();
-      }
-    }
+    this.startCapture();
   }
 
 
@@ -564,77 +550,226 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     if (this.displayRecFile) {
       let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
       let ww = new WavWriter();
-      if (ab?.buffer) {
-        let wavFile = ww.writeAsync(ab.buffer, (wavFile) => {
-          let blob = new Blob([wavFile], {type: 'audio/wav'});
-          let rfUrl = URL.createObjectURL(blob);
+      let as=ab?.audioSource;
+      if(as instanceof AudioBufferSource) {
+          ww.writeAsync(as.audioBuffer, (wavFile) => {
+            let blob = new Blob([wavFile], {type: 'audio/wav'});
+            let rfUrl = URL.createObjectURL(blob);
 
-          let dataDnlLnk = this.renderer.createElement('a');
-          //dataDnlLnk.name = 'Recording';
-          dataDnlLnk.href = rfUrl;
+            let dataDnlLnk = this.renderer.createElement('a');
+            //dataDnlLnk.name = 'Recording';
+            dataDnlLnk.href = rfUrl;
 
-          this.renderer.appendChild(document.body, dataDnlLnk);
+            this.renderer.appendChild(document.body, dataDnlLnk);
 
-          // download property not yet in TS def
-          if (this.displayRecFile) {
-            let fn = this.displayRecFile.filenameString();
-            fn += '_' + this.displayRecFileVersion;
-            fn += '.wav';
-            dataDnlLnk.download = fn;
-            dataDnlLnk.click();
-          }
-          this.renderer.removeChild(document.body, dataDnlLnk);
-        });
+            // download property not yet in TS def
+            if (this.displayRecFile) {
+              let fn = this.displayRecFile.filenameString();
+              fn += '_' + this.displayRecFileVersion;
+              fn += '.wav';
+              dataDnlLnk.download = fn;
+              dataDnlLnk.click();
+            }
+            this.renderer.removeChild(document.body, dataDnlLnk);
+          });
       }
     }
   }
 
   set displayRecFile(displayRecFile: RecordingFile | null) {
+    //this.audioLoaded=false;
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
       let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(adh) {
         this.displayAudioClip = new AudioClip(adh);
-        console.debug(" set recording file: display audio clip set");
+        //this.audioLoaded=true;
+        //console.debug(" set recording file: display audio clip set");
         this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        this.showRecording();
       }else {
         // clear for now ...
         this.displayAudioClip = null;
-        console.debug("set recording file: display audio clip null");
+        //console.debug("set recording file: display audio clip null");
         this.controlAudioPlayer.audioClip = null;
 
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
           this.liveLevelDisplayState=LiveLevelState.LOADING;
-          let rf=this._displayRecFile;
-          let clip=this.displayAudioClip;
-          this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
-            next: ab => {
-              this.liveLevelDisplayState=LiveLevelState.READY;
-              let fabDh = null;
-              if(ab) {
-                if (rf) {
-                  fabDh = new AudioDataHolder(ab);
-                  this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+          const rf=this._displayRecFile;
+
+          let audioDownloadType=this._clientAudioStorageType;
+          if(AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this._clientAudioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this._clientAudioStorageType) {
+            // Default is network mode
+            audioDownloadType=AudioStorageType.NET_CHUNKED;
+            if (rf.channels && rf.frames) {
+              const samples = rf.channels * rf.frames;
+              if (samples <= this._maxAutoNetMemStoreSamples) {
+                // But if audio file is small, load in continuous resp. chunked mode
+                if(AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this._clientAudioStorageType){
+                  audioDownloadType=AudioStorageType.MEM_ENTIRE;
+                }else if(AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this._clientAudioStorageType) {
+                  audioDownloadType = AudioStorageType.MEM_CHUNKED;
                 }
-              } else {
-                console.error('Recording file could not be loaded.');
-                this.statusMsg = 'Recording file could not be loaded.';
+              }
+            }
+          }
+
+          if(AudioStorageType.DB_CHUNKED===this._clientAudioStorageType){
+            // Fetch chunked indexed db audio buffer
+            let nextIab: IndexedDbAudioBuffer | null = null;
+            if(!this._persistentAudioStorageTarget){
+              throw Error('Error: Persistent storage target not set.');
+            }else {
+              //console.debug("Fetch audio and store to indexed db...");
+              this.audioFetchSubscription = this.recFileService.fetchRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
+                next: (iab) => {
+                  //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
+                  nextIab = iab;
+                },
+                complete: () => {
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  let fabDh = null;
+                  if (nextIab) {
+                    if (rf ) {
+                      fabDh = new AudioDataHolder(nextIab);
+                      //this.audioLoaded=true;
+                      this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                    }
+                  } else {
+                    // Should actually be handled by the error resolver
+                    this.statusMsg = 'Recording file could not be loaded.'
+                    this.statusAlertType = 'error'
+                  }
+                  if (fabDh) {
+                    // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
+                    this.displayAudioClip = new AudioClip(fabDh);
+                  }
+                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  this.showRecording();
+                },
+                error: err => {
+                  console.error("Could not load recording file from server: " + err);
+                  this.liveLevelDisplayState = LiveLevelState.READY;
+                  this.statusMsg = 'Recording file could not be loaded: ' + err;
+                  this.statusAlertType = 'error';
+                  this.changeDetectorRef.detectChanges();
+                }
+              });
+            }
+          }else if(AudioStorageType.NET_CHUNKED===audioDownloadType){
+            // Fetch chunked audio buffer from network
+            let nextNetAb: NetAudioBuffer | null = null;
+
+            //console.debug("Fetch chunked audio from network");
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (netAb) => {
+                //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
+                nextNetAb = netAb;
+              },
+              complete: () => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextNetAb) {
+                  if (rf) {
+                    fabDh = new AudioDataHolder(nextNetAb);
+
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
+                  //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
+                  this.displayAudioClip = new AudioClip(fabDh);
+                  // fabDh.onReady=()=>{
+                  //   this.audioLoaded=true;
+                  // }
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
+                this.changeDetectorRef.detectChanges();
+              }
+            });
+
+          }else if(AudioStorageType.MEM_CHUNKED===audioDownloadType){
+            // Fetch chunked array audio buffer
+            let nextAab: ArrayAudioBuffer | null = null;
+            //console.debug("Fetch audio and store to (chunked) array buffer...");
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: (aab) => {
+                nextAab = aab;
+              },
+              complete: () => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (nextAab) {
+                  if (rf ) {
+                    fabDh = new AudioDataHolder(nextAab);
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  // Should actually be handled by the error resolver
+                  this.statusMsg = 'Recording file could not be loaded.'
+                  this.statusAlertType = 'error'
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                  //this.audioLoaded=true;
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip
+                this.showRecording();
+              },
+              error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
                 this.statusAlertType = 'error';
               }
-              if (fabDh){
-                // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore there should be no risk to set to wrong item
-                this.displayAudioClip = new AudioClip(fabDh);
-                //console.debug("set recording file: display audio clip from fetched audio buffer");
+            });
+
+          } else {
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+              next: ab => {
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                let fabDh = null;
+                if (ab) {
+                  let abSrc=new AudioBufferSource(ab);
+                  if (rf) {
+                    fabDh = new AudioDataHolder(abSrc);
+                    this.recorderCombiPane.setRecFileAudioData(rf, fabDh);
+                  }
+                } else {
+                  console.error('Recording file could not be loaded.');
+                  this.statusMsg = 'Recording file could not be loaded.';
+                  this.statusAlertType = 'error';
+                }
+                if (fabDh) {
+                  // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item. Therefore, there should be no risk to set to wrong item
+                  this.displayAudioClip = new AudioClip(fabDh);
+                  //this.audioLoaded=true;
+                  //console.debug("set recording file: display audio clip from fetched audio buffer");
+                }
+                this.controlAudioPlayer.audioClip = this.displayAudioClip;
+                this.showRecording();
+              }, error: err => {
+                console.error("Could not load recording file from server: " + err);
+                this.liveLevelDisplayState = LiveLevelState.READY;
+                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusAlertType = 'error';
               }
-              this.controlAudioPlayer.audioClip =this.displayAudioClip;
-              this.showRecording();
-            }, error: err => {
-              console.error("Could not load recording file from server: " + err);
-              this.liveLevelDisplayState=LiveLevelState.READY;
-              this.statusMsg = 'Recording file could not be loaded: ' + err;
-              this.statusAlertType = 'error';
-            }})
+            })
+          }
         }else{
           this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.';
           this.statusAlertType = 'error';
@@ -642,7 +777,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }
 
     } else {
-      console.debug("recording file null");
+      //console.debug("recording file null");
       this.displayAudioClip = null;
       this.controlAudioPlayer.audioClip = null;
     }
@@ -666,7 +801,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   isRecording(): boolean {
-    return (this.status === Status.RECORDING);
+    return (this.status === Status.RECORDING || this.status===Status.STOPPING_STOP);
   }
 
   isActive(): boolean{
@@ -697,40 +832,30 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.updateNavigationActions();
   }
 
-  opened() {
-    if(this.ac) {
-      this.ac.start();
-    }
-  }
-
   started() {
     this.status = Status.RECORDING;
     super.started();
     this.statusAlertType = 'info';
     this.statusMsg = 'Recording...';
 
-    if(!this.rfUuid){
-      this.rfUuid=UUID.generate()
-    }
     let sessId: string | number = 0;
     if(this._session){
       sessId=this._session.sessionId;
     }
-    let rf = new RecordingFile(this.rfUuid,sessId,null);
-    rf._startedAsDateObj=this.startedDate;
-    if(rf._startedAsDateObj) {
-      rf.startedDate = rf._startedAsDateObj.toString();
+
+    if(this.rfUuid) {
+      let rf = new RecordingFile(this.rfUuid, sessId, null);
+      rf._startedAsDateObj = this.startedDate;
+      if (rf._startedAsDateObj) {
+        rf.startedDate = rf._startedAsDateObj.toString();
+      }
+      this._recordingFile = rf;
     }
-
-    this._recordingFile=rf;
-
     let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
-
-
     this.transportActions.stopAction.disabled = false;
   }
 
@@ -771,18 +896,108 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusMsg = 'Recorded.';
 
     let ad:AudioBuffer|null=null;
-    let ada:ArrayAudioBuffer|null=null;
-    let adh:AudioDataHolder|null=null;
-    let frameLen:number=0;
+
     if(this.ac) {
-      if(this.uploadChunkSizeSeconds || AudioRecorder.FORCE_ARRRAY_AUDIO_BUFFER){
-        ada=this.ac.audioBufferArray();
-        frameLen = ada.frameLen;
-      }else{
-        ad=this.ac.audioBuffer();
-        frameLen=ad.length;
+      let adh:AudioDataHolder|null=null;
+      let as:AudioSource|null=null;
+      if(this.ac) {
+        if (AudioStorageType.NET_CHUNKED === this.ac.audioStorageType) {
+          this.playStartAction.disabled = true;
+          //this.audioLoaded=false;
+          this.keepLiveLevel=true;
+          let rUUID:string|null=null;
+            let burl:string|null=null;
+            if(this._session) {
+              if (this._recordingFile) {
+
+                let rf = this._recordingFile;
+                rf.frames=this.ac.framesRecorded;
+                rUUID=rf.uuid;
+                //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
+                burl = this.recFileService.audioFileUrl(this._session?.project, rf);
+              } else if (this.session?.project) {
+                if(this.ac.recUUID) {
+                  rUUID=this.ac.recUUID;
+                  burl = this.recFileService.audioFileUrlByUUID(this.session.project, this.session.sessionId, rUUID);
+                }
+              }else{
+                console.error("Could not create net audio buffer.");
+              }
+              if (burl) {
+                const sr = this.ac.currentSampleRate;
+                const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
+                //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
+                as=netAs;
+                if(this.uploadSet){
+                  this.uploadSet.onDone=(uploadSet)=>{
+                    //console.debug("upload set on done: Call ready provider.ready");
+                    netAs.ready();
+                  }
+                }
+
+              }
+            }
+
+        }else if (AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED === this.ac.audioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED === this.ac.audioStorageType) {
+          if (AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED === this.ac.audioStorageType){
+            const acAb=this.ac.audioBuffer();
+            if(acAb) {
+              as = new AudioBufferSource(acAb);
+            }
+          }
+          if(AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED === this.ac.audioStorageType){
+            as = this.ac.audioBufferArray();
+          }
+          if(!as){
+            this.playStartAction.disabled = true;
+            this.keepLiveLevel=true;
+            let rUUID:string|null=null;
+            let burl:string|null=null;
+            if(this._session) {
+              if (this._recordingFile) {
+                let rf = this._recordingFile;
+                rf.frames=this.ac.framesRecorded;
+                rUUID=rf.uuid;
+                //console.debug("stopped(): Set frames: "+rf.frames+" on rfId: "+this.displayRecFile?.recordingFileId);
+                burl = this.recFileService.audioFileUrl(this._session?.project, rf);
+              } else if (this.session?.project) {
+                if(this.ac.recUUID) {
+                  rUUID=this.ac.recUUID;
+                  burl = this.recFileService.audioFileUrlByUUID(this.session.project, this.session.sessionId, rUUID);
+                }
+              }else{
+                console.error("Could not create net audio buffer.");
+              }
+              if (burl) {
+                const sr = this.ac.currentSampleRate;
+                const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
+                //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
+                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
+                as = netAs;
+                if (this.uploadSet) {
+                  this.uploadSet.onDone = (uploadSet) => {
+                    //console.debug("upload set on done: Call ready provider.ready");
+                    netAs.ready();
+                  }
+                }
+              }
+            }
+          }
+        } else if (AudioStorageType.DB_CHUNKED === this.ac.audioStorageType) {
+          as = this.ac.inddbAudioBufferArray();
+        } else if (AudioStorageType.MEM_CHUNKED === this.ac.audioStorageType) {
+          as = this.ac.audioBufferArray();
+        } else {
+          let ab = this.ac.audioBuffer();
+          if(ab) {
+            as = new AudioBufferSource(ab);
+          }
+        }
+        if (as) {
+          adh = new AudioDataHolder(as);
+        }
       }
-      adh=new AudioDataHolder(ad,ada);
 
       let sessId: string | number = 0;
       if(this._session){
@@ -790,6 +1005,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       }
 
       if(this._recordingFile) {
+        //this._recordingFile.samplerate=this.ac.currentSampleRate;
         // Use an own reference since the writing of the wave file is asynchronous and this._recordingFile might already contain the next recording
         let rf = this._recordingFile;
         RecordingFileUtils.setAudioData(rf,adh);
@@ -832,7 +1048,12 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.changeDetectorRef.detectChanges();
   }
 
-
+  error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
+    this.status=Status.ERROR;
+    super.error(msg,advice);
+    this.updateNavigationActions();
+    this.updateStartActionDisableState();
+  }
 
   postRecordingMultipart(wavFile: Uint8Array,recUrl: string,rf:RecordingFile) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
@@ -855,19 +1076,17 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
     let ww = new WavWriter();
-    //new REST API URL
-    let apiEndPoint = '';
-    if (this.config && this.config.apiEndPoint) {
-      apiEndPoint = this.config.apiEndPoint;
-    }
-    if (apiEndPoint !== '') {
-      apiEndPoint = apiEndPoint + '/'
-    }
-    let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+    let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     let rf=this._recordingFile;
+
+    // The upload holder is required to add the upload now to the upload set. The real upload is created async in postrecording and the upload set is already complete at that time.
+    let ulh=new UploadHolder();
+    if(this.uploadSet){
+      this.uploadSet.add(ulh);
+    }
     ww.writeAsync(audioBuffer, (wavFile) => {
-      this.postRecording(wavFile, recUrl,rf);
+      this.postRecording(wavFile, recUrl,rf,ulh);
       this.processingRecording = false;
     });
   }
@@ -931,7 +1150,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
 
-  constructor(protected injector:Injector,private route: ActivatedRoute,
+  constructor(private route: ActivatedRoute,
               private router: Router,
               private changeDetectorRef: ChangeDetectorRef,
               private sessionService:SessionService,
@@ -978,6 +1197,9 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   ngAfterViewInit() {
+
+    // TODO call prepare !!
+
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }

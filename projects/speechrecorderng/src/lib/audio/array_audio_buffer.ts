@@ -1,13 +1,26 @@
-import {Float32ArrayInputStream} from "../io/stream";
+import {BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
+import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
+import {Observable} from "rxjs";
+import {ArrayAudioBufferRandomAccessStream} from "./array_audio_buffer_random_access_stream";
 import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
 
-export class ArrayAudioBuffer {
 
+export class ArrayAudioBuffer extends BasicAudioSource{
 
   private _chunkCount=0;
   private _frameLen:number=0;
+  private _duration:number=0;
+  private _sealed=false;
 
   constructor(private _channelCount: number, private _sampleRate: number, private _data: Array<Array<Float32Array>>) {
+    super();
+    this.updateFrameLen();
+    this.ready();
+  }
+
+  private updateFrameLen(){
+    this._frameLen=0;
+    this._chunkCount=0;
     if(this._data.length>0) {
       let ch0Data = this.data[0];
       for (let ch0Chk of ch0Data) {
@@ -15,6 +28,15 @@ export class ArrayAudioBuffer {
         this._frameLen += ch0Chk.length;
       }
     }
+    this._duration=this._frameLen/this._sampleRate;
+  }
+
+  seal(){
+    this._sealed=true;
+  }
+
+  sealed():boolean{
+    return this._sealed;
   }
 
   static fromAudioBuffer(audioBuffer:AudioBuffer,chunkFrameSize=8192):ArrayAudioBuffer{
@@ -43,6 +65,24 @@ export class ArrayAudioBuffer {
       }
     aab=new ArrayAudioBuffer(chs,audioBuffer.sampleRate,data);
     return aab;
+  }
+
+  appendAudioBuffer(audioBuffer:AudioBuffer){
+    let chs=audioBuffer.numberOfChannels;
+    if(this._channelCount!== chs){
+      throw new Error('Cannot append audio buffer with '+chs+' channels to this array audio buffer with '+this._channelCount+' channels. Number of channels must match.');
+    }
+    let sr=audioBuffer.sampleRate;
+    if(sr!==this._sampleRate){
+      throw new Error('Cannot append audio buffer with samplerate '+sr+' to this array audio buffer with samplerate '+this._sampleRate+'. Samplerates must match.');
+    }
+
+    for(let ch=0;ch<chs;ch++) {
+      let chAbSlice=audioBuffer.getChannelData(ch).slice();
+      //console.debug("Append audio buffer ch: "+ch+": "+chAbSlice.length);
+      this._data[ch].push(chAbSlice);
+    }
+    this.updateFrameLen();
   }
 
 
@@ -112,6 +152,42 @@ export class ArrayAudioBuffer {
 
   get data(): Array<Array<Float32Array>> {
     return this._data;
+  }
+
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
+    return null;
+  }
+
+  audioInputStream(): Float32ArrayInputStream | null {
+    return new ArrayAudioBufferInputStream(this);
+  }
+
+  get duration(): number {
+    return this._duration;
+  }
+
+  get numberOfChannels(): number {
+    return this._channelCount;
+  }
+
+  releaseAudioData(): Observable<void> {
+        return new Observable<void>(subscriber => {
+        // No persistent respectively async deletable storage, they should be finally removed by the GC
+        //this._audioBuffer=null;
+        //this._arrayBuffer=null;
+        subscriber.next();
+        subscriber.complete();
+
+    });
+
+  }
+
+  sampleCounts(): number {
+    return this._channelCount*this._frameLen;
+  }
+
+  randomAccessAudioStream(): RandomAccessAudioStream {
+   return new ArrayAudioBufferRandomAccessStream(this);
   }
 
 }

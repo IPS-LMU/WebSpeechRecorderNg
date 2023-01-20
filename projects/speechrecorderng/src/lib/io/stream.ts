@@ -1,5 +1,13 @@
+import {Observable} from "rxjs";
+
 export interface Float32ArrayInputStream{
   read(buffers: Array<Float32Array>): number;
+  skipFrames(n:number):void;
+  close():void;
+}
+
+export interface AsyncFloat32ArrayInputStream{
+  readObs(buffers: Array<Float32Array>):Observable<number>;
   skipFrames(n:number):void;
   close():void;
 }
@@ -77,6 +85,105 @@ export class EditFloat32ArrayInputStream implements Float32ArrayInputStream{
     this._srcInputStream.close();
   }
 }
+
+
+export class AsyncEditFloat32ArrayInputStream implements AsyncFloat32ArrayInputStream{
+  private framePos=0;
+  private readFrames=0;
+  constructor(private _srcInputStream:AsyncFloat32ArrayInputStream,private offset:number=0,private length?:number|undefined) {
+    if (this.offset<0){
+      throw Error('Parameter offset must be undefined or greater or equal zero.');
+    }
+    if (this.length!==undefined && this.length<0){
+      throw Error('Parameter length must be undefined or greater or equal zero.');
+    }
+  }
+
+  private skipToOffset(){
+    if(this.framePos==0 && this.offset>0){
+      this._srcInputStream.skipFrames(this.offset);
+      this.framePos+=this.offset;
+    }
+  }
+
+  readObs(buffers: Array<Float32Array>): Observable<number> {
+    return new Observable<number>(subscriber=>{
+      this.skipToOffset();
+      if(this.length===undefined){
+        this._srcInputStream.readObs(buffers).subscribe(subscriber);
+      }else {
+        if (buffers.length > 0) {
+          let bufsCh0 = buffers[0];
+          let bufsLen = bufsCh0.length;
+          let avail = this.length - this.readFrames;
+          if (avail > 0) {
+            if (avail > bufsLen) {
+              this._srcInputStream.readObs(buffers).subscribe({
+                next: (read)=>{
+                  this.readFrames+=read;
+                  this.framePos+=read;
+                  subscriber.next(read);
+                },complete:()=>{
+                  subscriber.complete();
+               }
+              });
+            } else {
+              // temporary buffers required
+              let tmpBufs = new Array<Float32Array>(buffers.length);
+              for (let ch = 0; ch < buffers.length; ch++) {
+                tmpBufs[ch] = new Float32Array(avail);
+              }
+              this._srcInputStream.readObs(tmpBufs).subscribe({
+                next:(read)=>{
+                for (let ch = 0; ch < buffers.length; ch++) {
+                  buffers[ch].set(tmpBufs[ch]);
+                }
+                this.readFrames+=read;
+                this.framePos+=read;
+                subscriber.next(read);
+              },complete:()=>{
+                  subscriber.complete();
+                }
+              }
+              );
+            }
+          }else{
+            // end of stream
+            subscriber.next(0);
+            subscriber.complete();
+          }
+        }else{
+          subscriber.next(0);
+          subscriber.complete();
+        }
+      }
+    });
+  }
+
+  skipFrames(n:number):void{
+    this.skipToOffset();
+    if(this.length===undefined){
+      this._srcInputStream.skipFrames(n);
+    }else {
+      let avail = this.length - this.readFrames;
+      if (avail > 0) {
+        if (avail >= n) {
+          this._srcInputStream.skipFrames(n);
+          this.readFrames += n;
+          this.framePos += n;
+        } else {
+          throw Error('Tried to skip out of bounds.')
+        }
+      }
+    }
+  }
+
+  close():void{
+    this._srcInputStream.close();
+  }
+
+}
+
 
 export interface Float32ArrayOutStream {
 

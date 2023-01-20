@@ -126,6 +126,7 @@ export class AudioDisplay implements OnInit,AfterViewInit {
   set audioData(audioData: AudioDataHolder){
       this.audioDisplayScrollPane.audioData = audioData;
       if(this.playStartAction) {
+        console.debug("Play start action (by AudioDisplay::set audioData) disabled: "+(audioData==null));
           this.playStartAction.disabled = (audioData == null)
       }
   }
@@ -134,10 +135,10 @@ export class AudioDisplay implements OnInit,AfterViewInit {
   @Input()
   set audioClip(audioClip: AudioClip | null) {
 
-    let audioData:AudioBuffer|null=null;
+    //let audioData:AudioBuffer|null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.audioDataHolder.buffer;
+      //audioData=audioClip.audioDataHolder.buffer;
       sel=audioClip.selection;
       }
     this._audioClip=audioClip

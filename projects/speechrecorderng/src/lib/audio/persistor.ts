@@ -51,21 +51,21 @@ export class AudioClip {
   }
 
   removeSelectionObserver(selectionObserver:(audioClip:AudioClip)=>void){
-    this.selectionObservers=this.selectionObservers.filter((obs)=>{obs!==selectionObserver})
+    this.selectionObservers=this.selectionObservers.filter((obs)=>obs!==selectionObserver);
   }
 }
 
-export interface Reader {
-  read(data: Blob): AudioClip;
-}
-export interface Writer {
-  write(audioData: AudioClip): Blob;
-}
+// export interface Reader {
+//   read(data: Blob): AudioClip;
+// }
+// export interface Writer {
+//   write(audioData: AudioClip): Blob;
+// }
 
 export class Selection{
-  private _sampleRate:number;
-  private _startFrame:number;
-  private _endFrame:number;
+  private readonly _sampleRate:number;
+  private readonly _startFrame:number;
+  private readonly _endFrame:number;
 
   constructor(sampleRate:number,startFrame:number,endFrame:number){
     this._sampleRate=sampleRate;

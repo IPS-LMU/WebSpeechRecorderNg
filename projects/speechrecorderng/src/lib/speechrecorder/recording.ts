@@ -2,6 +2,12 @@ import { UUID } from '../utils/utils'
 import {PromptItem} from "./script/script";
 import {AudioDataHolder} from "../audio/audio_data_holder";
 
+// TODO I think the interface/class structure needs some refactoring
+// The question in general is how to fetch an object of a class (with member methods)
+// https://stackoverflow.com/questions/50452431/angular-6-httpclient-return-instance-of-class
+// Angular HTTPClient seems to simply
+// https://stackoverflow.com/questions/47499324/angular-5-models-httpclient-type-casting
+
 export interface RecordingFileDescriptor {
   recording:PromptItem;
   version:number;
@@ -10,6 +16,9 @@ export interface RecordingFileDescriptor {
 export class RecordingFileDescriptorImpl {
   recording!:PromptItem;
   version!:number;
+  frames?:number;
+  samplerate?:number;
+  channels?: number;
   constructor() {}
 }
 
@@ -23,7 +32,9 @@ export class RecordingFile {
   _startedAsDateObj?:Date|null=null;
   audioDataHolder:AudioDataHolder|null=null;
   session:string|number|null=null;
+  channels:number|null=null;
   frames:number|null=null;
+  samplerate:number|null=null;
   timeLength:number|null=null;
   editSampleRate:number|null=null;
   editStartFrame:number|null=null
@@ -122,7 +133,12 @@ export class RecordingFile {
       static setAudioData(rf:RecordingFile,audioDataHolder:AudioDataHolder|null){
           rf.audioDataHolder=audioDataHolder;
           if(audioDataHolder) {
-            rf.frames = audioDataHolder.frameLen;
+            if(rf.samplerate==null){
+              rf.samplerate=audioDataHolder.sampleRate;
+            }
+            if(rf.frames==null) {
+              rf.frames = audioDataHolder.frameLen;
+            }
             rf.timeLength=audioDataHolder.duration;
           }
       }
@@ -138,6 +154,7 @@ export class RecordingFile {
         let expiredSamples=0;
         if(rf && rf.audioDataHolder){
           expiredSamples=rf.audioDataHolder.sampleCounts();
+          rf.audioDataHolder.releaseAudioData()
           rf.audioDataHolder=null;
         }
         return expiredSamples;

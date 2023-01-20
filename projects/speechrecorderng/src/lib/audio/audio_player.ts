@@ -5,13 +5,13 @@ import {
     AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
-import {AudioClip, Selection} from './persistor'
+import {AudioClip} from './persistor'
 import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
-import {AudioDataHolder} from "./audio_data_holder";
+import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
 
 @Component({
 
@@ -47,7 +47,7 @@ import {AudioDataHolder} from "./audio_data_holder";
     }`]
 
 })
-export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterViewInit {
   private _audioUrl: string|null=null;
 
   parentE: HTMLElement;
@@ -109,14 +109,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       }
   }
 
-  ngAfterContentInit(){
-    //console.log("AfterContentInit: "+this.ac);
-  }
-
-  ngAfterContentChecked(){
-    //console.log("AfterContentChecked: "+this.ac);
-  }
-
   ngAfterViewInit() {
       if (this.aCtx && this.ap) {
           this.playStartAction.onAction = () => this.ap?.start();
@@ -137,17 +129,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
         this.audioUrl = params['url'];
       }
     });
-  }
-
-
-  ngAfterViewChecked(){
-    //console.log("AfterViewChecked: "+this.ac);
-  }
-
-
-  init() {
-
-
   }
 
   layout(){
@@ -194,11 +175,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       }
       this.currentLoader.onerror = (e) => {
         console.error("Error downloading ...");
-        //this.statusMsg.innerHTML = 'Error loading audio file!';
         this.currentLoader = null;
       }
-      //this.statusMsg.innerHTML = 'Loading...';
-
       this.currentLoader.send();
     }
   }
@@ -213,7 +191,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     if(this.aCtx) {
       this.aCtx.decodeAudioData(data, (audioBuffer) => {
         //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
-        let adh=new AudioDataHolder(audioBuffer,null);
+        let as=new AudioBufferSource(audioBuffer);
+        let adh=new AudioDataHolder(as);
         this.audioClip = new AudioClip(adh);
       });
     }
@@ -245,22 +224,16 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
     let audioData:AudioDataHolder| null=null;
-    let sel:Selection|null=null;
     if(audioClip){
       audioData=audioClip.audioDataHolder;
-      sel=audioClip.selection;
       if(this._audioClip) {
         this._audioClip.addSelectionObserver((ac) => {
-
           this.playSelectionAction.disabled = this.startSelectionDisabled()
-          // if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
-          //   this.ap.startSelected()
-          // }
-
         })
       }
     }
     if(audioData) {
+      //console.debug("Play start action (by AudioDisplayPlayer::set audioClip) disabled: "+(!this.ap));
       this.playStartAction.disabled =(!this.ap)
       this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{
@@ -298,7 +271,14 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.playStartAction.disabled = false;
       this.playSelectionAction.disabled=this.startSelectionDisabled()
       this.playStopAction.disabled = true;
+    }else if (EventType.ERROR === e.type) {
+      this.status = 'Error.';
+      window.clearInterval(this.updateTimerId);
+      this.playStartAction.disabled = false;
+      this.playSelectionAction.disabled=this.startSelectionDisabled()
+      this.playStopAction.disabled = true;
     }
+
 
     this.ref.detectChanges();
 

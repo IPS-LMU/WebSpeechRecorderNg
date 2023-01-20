@@ -1,38 +1,150 @@
-import {ArrayAudioBuffer} from "./array_audio_buffer";
-import {Float32ArrayInputStream} from "../io/stream";
-import {ArrayAudioBufferInputStream} from "./array_audio_buffer_input_stream";
+import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
+import {Observable} from "rxjs";
+
+export interface AudioSource {
+  get duration():number;
+  get sampleRate(): number;
+  get numberOfChannels(): number;
+  get frameLen(): number;
+  sampleCounts(): number;
+  audioInputStream(): Float32ArrayInputStream | null;
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
+  randomAccessAudioStream():RandomAccessAudioStream;
+  releaseAudioData(): Observable<void>;
+  addOnReadyListener(onReady:(()=>void)|null):void;
+  removeOnReadyListener(onReady:(()=>void)|null):void;
+  ready():void;
+}
+
+export abstract class BasicAudioSource implements AudioSource{
+  protected _ready:boolean=false;
+  protected onReadyListeners:Array<(() => void)>=new Array<() => void>();
+
+  addOnReadyListener(onReady: (() => void)): void {
+    // let alreadyAdded=false;
+    // for(let or of this.onReadyListeners){
+    //   if(or===onReady){
+    //     alreadyAdded=true;
+    //     break;
+    //   }
+    // }
+    // if(!alreadyAdded) {
+    //   this.onReadyListeners.push(onReady);
+    // }
+
+    if(! (this.onReadyListeners.find((or)=>or===onReady))){
+      this.onReadyListeners.push(onReady);
+    }
+
+    if(this._ready){
+      onReady();
+    }
+  }
+
+  removeOnReadyListener(onReady: (() => void)):void {
+    this.onReadyListeners=this.onReadyListeners.filter((or)=>or!==onReady);
+  }
+
+  ready():void{
+    this._ready=true;
+    for(let onReady of this.onReadyListeners){
+      onReady.call(this);
+    }
+  }
+
+  abstract asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null;
+
+  abstract audioInputStream(): Float32ArrayInputStream | null;
+
+  abstract  get duration(): number;
+
+  abstract get frameLen(): number;
+
+  abstract get numberOfChannels(): number;
+
+  abstract randomAccessAudioStream(): RandomAccessAudioStream ;
+
+  abstract releaseAudioData(): Observable<void> ;
+
+  abstract sampleCounts(): number;
+
+  abstract get sampleRate(): number;
+}
+
+export class AudioBufferSource extends BasicAudioSource{
+  private readonly _duration:number;
+  constructor(private _audioBuffer:AudioBuffer) {
+    super();
+    this._duration=this._audioBuffer.length/this._audioBuffer.sampleRate;
+    this.ready();
+  }
+
+  get audioBuffer(): AudioBuffer {
+    return this._audioBuffer;
+  }
+
+  get duration(): number {
+      return this._duration;
+    }
+    get sampleRate(): number {
+        return this._audioBuffer.sampleRate;
+    }
+    get numberOfChannels(): number {
+        return this._audioBuffer.numberOfChannels;
+    }
+    get frameLen(): number {
+        return this._audioBuffer.length;
+    }
+    sampleCounts(): number {
+      return this._audioBuffer.numberOfChannels*this._audioBuffer.length;
+    }
+    audioInputStream(): Float32ArrayInputStream | null {
+        return new AudioBufferInputStream(this._audioBuffer);
+    }
+    asyncAudioInputStream(): AsyncFloat32ArrayInputStream | null {
+        return null;
+    }
+    releaseAudioData(): Observable<void> {
+       return new Observable(subscriber => {
+          subscriber.next();
+          subscriber.complete();
+       });
+    }
+
+  randomAccessAudioStream(): RandomAccessAudioStream {
+    return new RandomAccessAudioBufferStream(this._audioBuffer);
+  }
+}
+
+export interface RandomAccessAudioStream{
+  framesObs(framePos:number,frameLen:number,bufs:Float32Array[]):Observable<number>;
+  close():void;
+}
 
 export class AudioDataHolder{
+  get audioSource(): AudioSource | null {
+    return this._audioSource;
+  }
   get duration(): number {
     return this._duration;
   }
 
-  private _numberOfChannels:number=0;
-  private _sampleRate:number=0;
-  private _frameLen:number=0;
-  private _duration:number=0;
-  private static readonly ONE_OF_MUST_BE_SET_ERR_MSG='One of either audio buffer or array audio buffer must be set!';
+  private readonly _numberOfChannels:number=0;
+  private readonly _sampleRate:number=0;
+  private readonly _frameLen:number=0;
+  private readonly _duration:number=0;
 
-  constructor(private _buffer: AudioBuffer|null,private _arrayBuffer:ArrayAudioBuffer|null=null) {
-    if(this._buffer && this._arrayBuffer){
-      throw Error('Only one of either audio buffer or array audio buffer must be set!');
+  constructor(private _audioSource:AudioSource|null) {
+    if(this._audioSource) {
+      this._numberOfChannels = this._audioSource.numberOfChannels;
+      this._sampleRate = this._audioSource.sampleRate;
+      this._frameLen = this._audioSource.frameLen;
+      this._duration = this._frameLen / this._sampleRate;
     }
-    if (this._buffer || this._arrayBuffer) {
-      if (this._buffer) {
-        this._numberOfChannels = this._buffer.numberOfChannels;
-        this._sampleRate = this._buffer.sampleRate;
-        this._frameLen=this._buffer.length;
-        this._duration=this._frameLen/this._sampleRate;
-      } else if (this._arrayBuffer) {
-        this._numberOfChannels = this._arrayBuffer.channelCount;
-        this._sampleRate = this._arrayBuffer.sampleRate;
-        this._frameLen=this._arrayBuffer.frameLen;
-        this._duration=this._frameLen/this._sampleRate;
-      }
+  }
 
-    }else{
-      throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
-    }
+  addOnReadyListener(onReady:(()=>void)|null):void{
+    this._audioSource?.addOnReadyListener(onReady);
   }
 
   get sampleRate(): number {
@@ -50,75 +162,143 @@ export class AudioDataHolder{
     return this._numberOfChannels*this._frameLen;
   }
 
-  frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
-    let read=0;
-    if(this._buffer){
-      let toRead=frameLen;
-      if(this._buffer.length<framePos+frameLen){
-        toRead=this._buffer.length-framePos;
+  randomAccessAudioStream():RandomAccessAudioStream{
+
+      if(this._audioSource){
+        return this._audioSource.randomAccessAudioStream();
+      }else {
+        throw Error('No audio source set');
       }
-      for(let ch=0;ch<bufs.length;ch++){
-        let chData=this._buffer.getChannelData(ch);
-        for(let i=0;i<toRead;i++){
-          bufs[ch][i]=chData[framePos+i];
-        }
-      }
-      read=toRead;
-    }else if(this._arrayBuffer){
-      read=this._arrayBuffer.frames(framePos,frameLen,bufs);
-    }
-    return read;
   }
 
-  audioInputStream():Float32ArrayInputStream{
-    if(this._buffer){
-      return new AudioBufferInputStream(this._buffer);
-    }
-    if(this._arrayBuffer){
-      return new ArrayAudioBufferInputStream(this._arrayBuffer);
-    }
-    throw Error(AudioDataHolder.ONE_OF_MUST_BE_SET_ERR_MSG);
-  }
 
-  get buffer(): AudioBuffer | null {
-    return this._buffer;
-  }
-
-  get arrayBuffer(): ArrayAudioBuffer | null {
-    return this._arrayBuffer;
-  }
-
-  // getChannelData(channel:number,startFrame:number,length:number):Float32Array|null{
-  //   let reqBuf=null;
+  // private frames(framePos:number,frameLen:number,bufs:Float32Array[]):number{
+  //   let read=0;
   //   if(this._buffer){
-  //     let chData=this._buffer.getChannelData(channel);
-  //     reqBuf= chData.slice(startFrame,startFrame+length);
-  //   } else if(this._arrayBuffer){
-  //     reqBuf=new Float32Array(length);
-  //     let chunkCnt=this._arrayBuffer.chunkCount;
-  //     let ci=0;
-  //     let framePos=0;
-  //     while(ci<chunkCnt){
-  //       let chunkBuf=this._arrayBuffer.data[channel][ci];
-  //       let chunkBuflen=chunkBuf.length;
-  //       let offset=startFrame-framePos;
-  //       if(offset>=0){
-  //         let chunkBufEndPos=framePos+chunkBuflen;
-  //         let reqEndPos=startFrame+length;
-  //         if(framePos>reqEndPos){
-  //           break;
-  //         }else{
-  //           // TODO
-  //           let toCopy=length;
-  //         }
+  //     let toRead=frameLen;
+  //     if(this._buffer.length<framePos+frameLen){
+  //       toRead=this._buffer.length-framePos;
+  //     }
+  //     for(let ch=0;ch<bufs.length;ch++){
+  //       let chData=this._buffer.getChannelData(ch);
+  //       for(let i=0;i<toRead;i++){
+  //         bufs[ch][i]=chData[framePos+i];
   //       }
   //     }
+  //     read=toRead;
+  //   }else if(this._arrayBuffer){
+  //     read=this._arrayBuffer.frames(framePos,frameLen,bufs);
   //   }
-  //   return  reqBuf;
+  //   return read;
   // }
+
+  audioInputStream():Float32ArrayInputStream|null{
+    // if(this._buffer){
+    //   return new AudioBufferInputStream(this._buffer);
+    // }
+    // if(this._arrayBuffer){
+    //   return new ArrayAudioBufferInputStream(this._arrayBuffer);
+    // }
+    // return null;
+    if(this._audioSource) {
+      return this._audioSource.audioInputStream();
+    }else{
+      return null;
+    }
+  }
+
+  asyncAudioInputStream(): AsyncFloat32ArrayInputStream|null{
+    // if(this._inddbAudioBuffer){
+    //   return new IndexedDbAudioInputStream(this._inddbAudioBuffer);
+    // }else if(this._netAudioBuffer){
+    //   return new NetAudioInputStream(this._netAudioBuffer);
+    // }
+    // return null;
+
+    if(this._audioSource) {
+      return this._audioSource.asyncAudioInputStream();
+    }else{
+      return null;
+    }
+  }
+
+  // get buffer(): AudioBuffer | null {
+  //   return this._buffer;
+  // }
+  //
+  // get arrayBuffer(): ArrayAudioBuffer | null {
+  //   return this._arrayBuffer;
+  // }
+  //
+  // get inddbBuffer():IndexedDbAudioBuffer|null{
+  //   return this._inddbAudioBuffer;
+  // }
+  //
+  // get netBuffer():NetAudioBuffer|null{
+  //   return this._netAudioBuffer;
+  // }
+
+  releaseAudioData():Observable<void>{
+    return new Observable<void>(subscriber => {
+      //if (this._audioSource instanceof  IndexedDbAudioBuffer) {
+      if(this._audioSource) {
+        this._audioSource.releaseAudioData().subscribe({
+          next: () => {
+            subscriber.next();
+          },
+          complete: () => {
+            this._audioSource = null;
+            subscriber.complete();
+          }, error: (err) => {
+            subscriber.error(err);
+          }
+        });
+      }else{
+        subscriber.next();
+        subscriber.complete();
+      }
+      // }else{
+      //   // Others have no persistent respectively async deletable storage, they should be finally removed by the GC
+      //   //this._buffer=null;
+      //   //this._arrayBuffer=null;
+      //   this._audioSource=null;
+      //   subscriber.next();
+      //   subscriber.complete();
+      // }
+    });
+  }
 
 }
 
+export class RandomAccessAudioBufferStream implements RandomAccessAudioStream{
+
+  constructor(private _buffer:AudioBuffer) {
+  }
+
+  close(): void {
+  }
+
+  framesObs(framePos: number, frameLen: number, bufs: Float32Array[]): Observable<number> {
+
+    return new Observable<number>(subscriber => {
+      let read=0;
+        let toRead=frameLen;
+        if(this._buffer.length<framePos+frameLen){
+          toRead=this._buffer.length-framePos;
+        }
+        for(let ch=0;ch<bufs.length;ch++){
+          let chData=this._buffer.getChannelData(ch);
+          for(let i=0;i<toRead;i++){
+            bufs[ch][i]=chData[framePos+i];
+          }
+        }
+        read=toRead;
+
+        subscriber.next(read);
+        subscriber.complete();
+    });
+  }
+}
 
 export class AudioBufferInputStream implements Float32ArrayInputStream{
   private framePos=0;
