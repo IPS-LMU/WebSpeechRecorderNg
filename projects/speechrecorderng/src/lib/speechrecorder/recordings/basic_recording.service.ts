@@ -5,7 +5,22 @@ import {Observable} from "rxjs";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {WavReader} from "../../audio/impl/wavreader";
-import {ChunkDownload} from "./recordings.service";
+import {PCMAudioFormat} from "../../audio/format";
+
+export class ChunkDownload{
+  get orgPCMAudioFormat(): PCMAudioFormat {
+    return this._orgPCMAudioFormat;
+  }
+
+  get orgFrameLength(): number {
+    return this._orgFrameLength;
+  }
+
+  get decodedAudioBuffer(): AudioBuffer {
+    return this._decodedAudioBuffer;
+  }
+  constructor(private _orgPCMAudioFormat:PCMAudioFormat,private _orgFrameLength:number,private _decodedAudioBuffer:AudioBuffer){}
+}
 
 export class BasicRecordingService{
   // iPad 9th generation, iOS 15.7.1, sometimes:

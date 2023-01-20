@@ -14,27 +14,7 @@ import {AudioBufferSource, AudioDataHolder} from "../../audio/audio_data_holder"
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
-import {WavReader} from "../../audio/impl/wavreader";
-import {PCMAudioFormat} from "../../audio/format";
 import {BasicRecordingService} from "./basic_recording.service";
-
-
-
-
-export class ChunkDownload{
-  get orgPCMAudioFormat(): PCMAudioFormat {
-    return this._orgPCMAudioFormat;
-  }
-
-  get orgFrameLength(): number {
-    return this._orgFrameLength;
-  }
-
-  get decodedAudioBuffer(): AudioBuffer {
-    return this._decodedAudioBuffer;
-  }
-  constructor(private _orgPCMAudioFormat:PCMAudioFormat,private _orgFrameLength:number,private _decodedAudioBuffer:AudioBuffer){}
-}
 
 @Injectable()
 export class RecordingService extends BasicRecordingService{
