@@ -20,6 +20,15 @@ export enum Platform {Linux='LINUX',macOS='MACOS',Windows='WINDOWS',Android='AND
 export enum BrowserBase {Chromium='CHROMIUM'};
 export enum Browser {Firefox='FIREFOX',Chromium='CHROMIUM',Chrome='CHROME',Edge='EDGE',Opera='OPERA'}
 
+export enum AudioStorageType {
+  MEM_ENTIRE='MEM_ENTIRE',
+  MEM_CHUNKED='MEM_CHUNKED',
+  DB_CHUNKED='DB_CHUNKED',
+  NET_CHUNKED='NET_CHUNKED',
+  MEM_ENTIRE_AUTO_NET_CHUNKED='MEM_ENTIRE_AUTO_NET_CHUNKED',
+  MEM_CHUNKED_AUTO_NET_CHUNKED='MEM_CHUNKED_AUTO_NET_CHUNKED'
+}
+
 export interface AutoGainControlConfig {
   value: boolean,
   //constraintType : ConstraintType,
@@ -35,7 +44,8 @@ export interface Project {
   mediaCaptureFormat?: MediaCaptureFormat,
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
   audioDevices?: Array<AudioDevice>,
-  chunkedRecording?: boolean
+  chunkedRecording?: boolean,
+  clientAudioStorageType?:AudioStorageType
 }
 
 

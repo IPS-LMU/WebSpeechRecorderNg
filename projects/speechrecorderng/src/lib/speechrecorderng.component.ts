@@ -3,7 +3,7 @@ import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
 } from './audio/playback/player';
-import {Group, Order, PromptItem, Script} from './speechrecorder/script/script'
+import {Group, PromptItem, Script} from './speechrecorder/script/script'
 import { SessionManager,Status as SessionManagerStatus} from './speechrecorder/session/sessionmanager';
 import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
@@ -11,15 +11,18 @@ import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {Session} from "./speechrecorder/session/session";
-import {Project, ProjectUtil} from "./speechrecorder/project/project";
+import {AudioStorageType, Project, ProjectUtil} from "./speechrecorder/project/project";
 import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
+import {Arrays, DataSize} from "./utils/utils";
+import {RecorderComponent} from "./recorder_component";
 import {Arrays} from "./utils/utils";
 import {FitToPageComponent, FitToPageUtil} from "./ui/fit_to_page_comp";
 import {ReadyStateProvider, RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
+import {SprDb} from "./db/inddb";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -42,14 +45,12 @@ export enum Mode {SINGLE_SESSION,DEMO}
 })
 export class SpeechrecorderngComponent extends  RecorderComponent implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,AudioPlayerListener,ReadyStateProvider {
 
-	  mode!:Mode;
-		controlAudioPlayer!:AudioPlayer;
-		audio:any;
-
-	_project:Project|undefined;
+  mode!:Mode;
+  controlAudioPlayer!:AudioPlayer;
+  audio:any;
+  _project:Project|undefined;
   sessionId!: string;
   session!:Session;
-
   script!:Script;
 
   @ViewChild(SessionManager, { static: true }) sm!:SessionManager;
@@ -65,6 +66,16 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     super(injector,uploader);
   }
 
+    handleError(err:any){
+      let errMsg='Unknown error';
+      if(err instanceof Error){
+        errMsg=err.message;
+      }
+      this.sm.statusMsg=errMsg;
+      this.sm.statusAlertType='error';
+      console.error(errMsg)
+    }
+
     ngOnInit() {
       super.ngOnInit();
 		  try {
@@ -76,37 +87,30 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
         this.sm.statusAlertType='info';
         this.sm.statusMsg = 'Player initialized.';
       }catch(err){
-        let errMsg='Unknown error';
-        if(err instanceof Error){
-          errMsg=err.message;
-        }
-        this.sm.statusMsg=errMsg;
-        this.sm.statusAlertType='error';
-        console.error(errMsg)
+        this.handleError(err);
       }
     }
        ngAfterViewInit(){
         // let wakeLockSupp=('wakeLock' in navigator);
         // alert('Wake lock API supported: '+wakeLockSupp);
+           if (this.sm.status !== SessionManagerStatus.ERROR) {
+             let initSuccess = this.init();
+             if (initSuccess) {
+               this.route.queryParams.subscribe((params: Params) => {
+                 if (params['sessionId']) {
+                   this.fetchSession(params['sessionId']);
+                 }
+               });
 
-
-		  if(this.sm.status!== SessionManagerStatus.ERROR) {
-        let initSuccess = this.init();
-        if (initSuccess) {
-          this.route.queryParams.subscribe((params: Params) => {
-            if (params['sessionId']) {
-              this.fetchSession(params['sessionId']);
-            }
+               this.route.params.subscribe((params: Params) => {
+                 let routeParamsId = params['id'];
+                 if (routeParamsId) {
+                   this.fetchSession(routeParamsId);
+                 }
           });
+             }
+           }
 
-          this.route.params.subscribe((params: Params) => {
-            let routeParamsId = params['id'];
-            if (routeParamsId) {
-              this.fetchSession(routeParamsId);
-            }
-          });
-        }
-      }
     }
 
     ngOnDestroy() {
@@ -120,7 +124,6 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       let sessObs= this.sessionsService.sessionObserver(sessionId);
 
       if(sessObs) {
-
         sessObs.subscribe({
           next: (sess:Session) => {
             this.setSession(sess);
@@ -132,7 +135,18 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
               this.projectService.projectObservable(sess.project).subscribe({
                   next: (project) => {
                 this.project = project;
+
+                    let persistentAudiStorage=(AudioStorageType.DB_CHUNKED===project.clientAudioStorageType);
+                      super.prepare(persistentAudiStorage).subscribe({
+                        complete: () => {
+                          this.sm.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
                 this.fetchScript(sess);
+                        },
+                        error: (err) => {
+                          this.handleError(err);
+                        }
+                      });
+
                   }, error: (reason) => {
                 this.sm.statusMsg = reason;
                 this.sm.statusAlertType = 'error';
@@ -203,6 +217,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
           if (rfs) {
             if (rfs instanceof Array) {
               rfs.forEach((rf) => {
+
                 //console.debug("Already recorded: " + rf+ " "+rf.recording.itemcode);
                 this.sm.addRecordingFileByDescriptor(rf);
               })
@@ -252,7 +267,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
           this.uploadUpdate(ue);
         }
         window.addEventListener('beforeunload', (e) => {
-          console.debug("Before page unload event");
+          //console.debug("Before page unload event");
 
           if (this.ready()) {
             return;
@@ -283,6 +298,8 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     let upStatus = ue.status;
     this.dataSaved = (UploaderStatus.DONE === upStatus);
     let percentUpl = ue.percentDone();
+    let sizeInQueue=ue.sizeInQueue();
+    //console.debug("Uploader: status: "+upStatus+", "+percentUpl+"%, Bytes in queue: "+sizeInQueue+' ('+DataSize.formatBytesToBinaryUnits(sizeInQueue)+')');
     if (UploaderStatus.ERR === upStatus) {
       this.sm.uploadStatus = 'warn'
     } else {
@@ -345,6 +362,14 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       if(project.recordingDeviceWakeLock===true){
         this.sm.wakeLock=true;
       }
+      console.info("Audio storage type: "+project.clientAudioStorageType);
+      if(AudioStorageType.DB_CHUNKED===project.clientAudioStorageType){
+        SprDb.prepare().subscribe()
+      }
+      if(project.clientAudioStorageType) {
+        this.sm.clientAudioStorageType = project.clientAudioStorageType;
+      }
+
       this.sm.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
@@ -400,20 +425,18 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     start(){
     }
 
-		audioPlayerUpdate(e:AudioPlayerEvent){
-			if(PlaybackEventType.STARTED===e.type){
-				//this.startBtn.disabled=true;
-				//this.stopBtn.disabled=true;
-                this.sm.statusAlertType='info';
-				this.sm.statusMsg='Playback...';
-
-            } else if (PlaybackEventType.ENDED === e.type) {
-				//this.startBtn.disabled=false;
-				//this.stopBtn.disabled=true;
-                this.sm.statusAlertType='info';
-				this.sm.statusMsg='Ready.';
-			}
-		}
+  audioPlayerUpdate(e:AudioPlayerEvent){
+    if(PlaybackEventType.STARTED===e.type){
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg='Playback...';
+    } else if (PlaybackEventType.ENDED === e.type) {
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg='Ready.';
+    }else if(PlaybackEventType.ERROR=== e.type){
+      this.sm.statusAlertType='error';
+      this.sm.statusMsg='Playback error.';
+    }
+  }
 		error(){
 		    this.sm.statusAlertType='error';
 			this.sm.statusMsg='ERROR: Recording.';

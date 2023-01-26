@@ -37,7 +37,7 @@ export class ItemcodeIndex{
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
-      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"></app-recording-file-meta>
+      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile" [stateLoading]="audioFetching"></app-recording-file-meta>
 
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
@@ -101,6 +101,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   nextAction: Action<void>;
   lastAction: Action<void>;
   toVersionAction: Action<number>;
+  audioFetching=false;
 
   naviInfoLoading=false;
 
@@ -285,12 +286,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.updateActions();
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
+      this.audioFetching=true;
       this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(value => {
+        this.audioFetching=false;
         this.status = 'Audio file loaded.';
         let clip = null;
         this.recordingFile = value;
         if (this.recordingFile) {
-          let ab = this.recordingFile.audioBuffer;
+          let ab = this.recordingFile.audioDataHolder;
           if (ab) {
             clip = new AudioClip(ab);
 
@@ -298,7 +301,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             let eeffsr = null;
             let esr = null;
 
-            if (clip.buffer != null) {
+            if (clip.audioDataHolder != null) {
               esr = ab.sampleRate;
               if (esr != null) {
                 esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
@@ -309,8 +312,8 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
                 if (eeffsr != null) {
                   sel = new Selection(ab.sampleRate, esffsr, eeffsr);
                 } else {
-                  let ch0 = ab.getChannelData(0);
-                  let frameLength = ch0.length;
+                  //let ch0 = ab.getChannelData(0);
+                  let frameLength = ab.frameLen;
                   sel = new Selection(esr, esffsr, frameLength);
                 }
               } else if (eeffsr != null) {
@@ -324,6 +327,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.loadedRecfile();
 
       }, error1 => {
+        this.audioFetching=false;
         this.status = 'Error loading audio file!';
       });
     }
@@ -434,7 +438,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
                 for (let avRfV of avRf) {
                   os += avRfV.version + '/';
                 }
-                console.debug(os);
+                //console.debug(os);
               }
           }
           this.updatePos()

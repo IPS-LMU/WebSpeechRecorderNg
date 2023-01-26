@@ -15,13 +15,23 @@
         "groups": []
       },
       {
-        "mode": "AUTORECORDING",
         "name": "Recording Session",
         "order": "SEQUENTIAL",
-        "promptphase": "PRERECORDING",
-        "speakerDisplay": true,
-        "training": false,
+        "training": true,
         "groups": [
+          {
+            "promptItems": [
+              {
+                "itemcode": "I0",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                  }
+                ]
+              }
+            ]
+          },
           {
             "promptItems": [
               {

@@ -23,11 +23,11 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button fxHide.xs i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="!audioLoaded"
+        <button fxHide.xs i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
-        <button i18n-matTooltip matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="!audioLoaded"
+        <button i18n-matTooltip matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
@@ -88,6 +88,7 @@ export class RecordingItemControls implements OnDestroy {
   @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
   @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
 
+  @Input() disableAudioDetails=true;
   @Input() audioLoaded=false;
   //@Input() controlAudioPlayer: AudioPlayer;
   @Input() playStartAction:Action<void>|undefined;

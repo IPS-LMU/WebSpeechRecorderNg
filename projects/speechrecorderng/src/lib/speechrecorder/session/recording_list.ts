@@ -1,8 +1,9 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output} from "@angular/core";
-import {RecordingFile, SprRecordingFile} from "../recording";
+import {RecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
-import {MatTable, MatTableDataSource} from "@angular/material/table";
-import {Observable, Subject} from "rxjs";
+import {MatTableDataSource} from "@angular/material/table";
+import {RecFilesCache} from "./recording_file_cache";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 @Component({
 
@@ -10,30 +11,45 @@ import {Observable, Subject} from "rxjs";
 
   template: `
     <mat-card>
-        <mat-card-header>
-          <h2>Recording list</h2>
-        </mat-card-header>
+      <mat-card-header>
+        <h2>Recording list</h2>
+      </mat-card-header>
       <mat-card-content>
-    <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
-      <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
-      <tr mat-row *matRowDef="let element; columns: cols;" [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid"></tr>
-      <ng-container matColumnDef="index">
-        <th mat-header-cell *matHeaderCellDef mat-header>#</th>
-        <td mat-cell class="monospaced" *matCellDef="let element;let i = index">{{recordingListDataSource.data.length-i}}</td>
-      </ng-container>
-      <ng-container matColumnDef="startedDate">
-        <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
-        <td mat-cell class="monospaced" *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
-      </ng-container>
-      <ng-container matColumnDef="length">
-        <th mat-header-cell *matHeaderCellDef mat-header>Length</th>
-        <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
-      </ng-container>
-      <ng-container matColumnDef="action">
-        <th mat-header-cell *matHeaderCellDef>Action</th>
-        <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" (click)="selectRecordingFile(element)" [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid"><mat-icon>edit_attributes</mat-icon> Select</button></td>
-      </ng-container>
-    </table>
+        <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
+          <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
+          <tr mat-row *matRowDef="let element; columns: cols;"
+              [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid" [class.selected]="element.uuid===selectedRecordingFile?.uuid"></tr>
+          <ng-container matColumnDef="index">
+            <th mat-header-cell *matHeaderCellDef mat-header>#</th>
+            <td mat-cell class="monospaced"
+                *matCellDef="let element;let i = index">{{recordingListDataSource.data.length - i}}</td>
+          </ng-container>
+          <ng-container matColumnDef="startedDate">
+            <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
+            <td mat-cell class="monospaced"
+                *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="length">
+            <th mat-header-cell *matHeaderCellDef mat-header>Length</th>
+            <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
+          </ng-container>
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef>Action</th>
+            <td mat-cell *matCellDef="let element">
+              <!--
+              <mat-icon *ngIf="recordingFileCached(element)===false" style="font-size:0.8em;width:0.8em;height:0.8em">
+                cloud_download
+              </mat-icon>
+              -->
+              <button mat-stroked-button color="primary" (click)="selectRecordingFile(element)"
+                      [disabled]="selectDisabled || element.uuid===selectedRecordingFile?.uuid">
+                <mat-icon>edit_attributes</mat-icon>
+                Select
+              </button>
+
+            </td>
+          </ng-container>
+        </table>
       </mat-card-content>
     </mat-card>
 
@@ -63,7 +79,8 @@ import {Observable, Subject} from "rxjs";
 
 })
 export class RecordingList implements AfterViewInit{
-  private recordingList:Array<RecordingFile>=new Array<RecordingFile>();
+  //private recordingList:Array<RecordingFile>=new Array<RecordingFile>();
+  private recordingList:RecFilesCache=new RecFilesCache();
   //recordingListSubject:Subject<Array<RecordingFile>> = new Subject<Array<RecordingFile>>();
   recordingListDataSource:MatTableDataSource<RecordingFile>;
   //cols=['index','length','samples','samplerate','action'];
@@ -81,7 +98,7 @@ export class RecordingList implements AfterViewInit{
   }
 
   private buildDataSource(){
-    this.recordingList.sort((a, b) => {
+    this.recordingList.recFiles.sort((a, b) => {
       let cmp:number=0;
       let aD:Date|null=null;
       let bD:Date|null=null;
@@ -100,29 +117,49 @@ export class RecordingList implements AfterViewInit{
       }
       return cmp;
     });
-    this.recordingListDataSource.data=this.recordingList;
+    this.recordingListDataSource.data=this.recordingList.recFiles;
   }
 
-  push(rf:RecordingFile){
-    this.recordingList.push(rf);
+  addRecFile(rf:RecordingFile){
+    this.recordingList.addRecFile(rf);
     this.buildDataSource();
   }
 
+  setRecFileAudioData(recFile:RecordingFile, adh:AudioDataHolder|null) {
+    this.recordingList.setRecFileAudioData(recFile,adh);
+  }
+
   selectRecordingFile(rf:RecordingFile){
+    this.recordingList.currentRecordingFile=rf;
     this.selectedRecordingFileChanged.emit(rf);
   }
 
   selectTop() {
-    if (this.recordingList.length > 0) {
-      this.selectRecordingFile(this.recordingList[0]);
+    if (this.recordingList.recFiles.length > 0) {
+      this.selectRecordingFile(this.recordingList.recFiles[0]);
     }
   }
 
   lengthTimeFormatted(rf:RecordingFile){
     let str='--:--:--';
-    if(rf.frames && rf.audioBuffer) {
-      str=MediaUtils.toMediaTime(rf.frames / rf.audioBuffer?.sampleRate);
+    let tl=null;
+    if(rf.timeLength){
+      tl=rf.timeLength;
+    }else if(rf.frames && rf.audioDataHolder) {
+      tl=rf.frames / rf.audioDataHolder?.sampleRate
+    }
+    if(tl) {
+      str = MediaUtils.toMediaTime(tl);
     }
     return str;
   }
+
+  recordingFileCached(rf:RecordingFile):boolean|null{
+    let cached=null;
+    if(rf && rf.serverPersisted) {
+      cached = (rf.audioDataHolder != null);
+    }
+    return cached;
+  }
+
 }

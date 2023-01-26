@@ -5,6 +5,8 @@
     "audioFormat" : {
       "channels": 1
     },
+    "chunkedRecording" : false,
+  "clientAudioStorageType": "MEM_ENTIRE",
     "speakerWindowShowStopRecordAction": true,
     "recordingDeviceWakeLock": true
 

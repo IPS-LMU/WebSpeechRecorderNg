@@ -7,6 +7,19 @@ export class Item {
         this.recs = null;
     }
 
+    itemDone(){
+      let done=false;
+      if(this.recs){
+        for(let rf of this.recs){
+          if(rf.recordingFileDone()){
+            done=true;
+            break;
+          }
+        }
+      }
+      return done;
+    }
+
     get promptAsString():string{
         return this._promptAsString;
     }
