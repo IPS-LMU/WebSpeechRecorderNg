@@ -56,8 +56,8 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
     }`]
 
 })
-export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,OnDestroy,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
-export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterViewInit {
+export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,OnDestroy,AfterViewInit{
+
   private _audioUrl: string|null=null;
 
   parentE: HTMLElement;

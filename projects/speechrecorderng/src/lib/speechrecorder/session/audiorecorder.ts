@@ -7,7 +7,7 @@ import {
   ChangeDetectorRef,
   Component,
   HostListener,
-  Inject,
+  Inject, Injector,
   Input,
   OnDestroy,
   OnInit,
@@ -1158,7 +1158,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
 
-  constructor(private route: ActivatedRoute,
+  constructor(injector:Injector,private route: ActivatedRoute,
               private router: Router,
               private changeDetectorRef: ChangeDetectorRef,
               private sessionService:SessionService,

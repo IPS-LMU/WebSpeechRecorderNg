@@ -16,8 +16,6 @@ import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
-import {Arrays, DataSize} from "./utils/utils";
-import {RecorderComponent} from "./recorder_component";
 import {Arrays} from "./utils/utils";
 import {FitToPageComponent, FitToPageUtil} from "./ui/fit_to_page_comp";
 import {ReadyStateProvider, RecorderComponent} from "./recorder_component";

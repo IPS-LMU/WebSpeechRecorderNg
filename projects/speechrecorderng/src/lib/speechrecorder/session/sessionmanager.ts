@@ -1369,10 +1369,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   //   let ul = new Upload(wavBlob, recUrl,rf);
   //   this.uploader.queueUpload(ul);
   // }
-  postRecordingBlob(audioFileBlob: Blob, recUrl: string) {
-    let ul = new Upload(audioFileBlob, recUrl);
-    this.uploader.queueUpload(ul);
-  }
+
 
   stop() {
     if(this.ac!=null){

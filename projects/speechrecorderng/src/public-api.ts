@@ -2,9 +2,6 @@
  * Public API Surface of speechrecorderng
  */
 
-
-import {AudioDisplayControl} from "./lib/audio/ui/audio_display_control";
-
 export {SpeechrecorderngModule} from './lib/speechrecorderng.module'
 export {VERSION} from './lib/spr.module.version'
 export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
@@ -40,6 +37,7 @@ export {SpeakerService} from './lib/speechrecorder/speaker/speaker.service'
 export {ScriptService} from './lib/speechrecorder/script/script.service'
 export {Script,Section,Group,PromptItem,Mediaitem,PromptPhase,Mode} from './lib/speechrecorder/script/script'
 export {RecordingService} from './lib/speechrecorder/recordings/recordings.service'
+export {AudioDataHolder,AudioSource,BasicAudioSource,AudioBufferSource} from './lib/audio/audio_data_holder'
 export {SprRecordingFile} from './lib/speechrecorder/recording'
 export {RecordingFileService} from './lib/speechrecorder/session/recordingfile/recordingfile-service'
 export {RecordingFileViewComponent} from './lib/speechrecorder/session/recordingfile/recording-file-view.component'

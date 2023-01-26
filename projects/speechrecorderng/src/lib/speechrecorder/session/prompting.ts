@@ -640,7 +640,7 @@ export class PromptingContainer {
   }`]
 })
 export class ProgressAndSpeakerContainer{
-  @Input() items: Array<Item>|null=null;
+  @Input() items: Array<Item>|undefined=undefined;
   @Input() selectedItemIdx: number=0;
   @Output() onItemSelect = new EventEmitter<number>();
   @Input() project?:Project

@@ -680,6 +680,10 @@ export abstract class BasicRecorder {
     }
     this.uploader.queueUpload(ul);
   }
+  postRecordingBlob(audioFileBlob: Blob, recUrl: string) {
+    let ul = new Upload(audioFileBlob, recUrl);
+    this.uploader.queueUpload(ul);
+  }
 
   postAudioStreamStart(): void {
     if(this.rfUuid) {

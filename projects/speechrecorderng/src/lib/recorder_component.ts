@@ -16,7 +16,10 @@ export abstract class RecorderComponent extends FitToPageComponent implements Re
     dataSaved: boolean = true;
 
     protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
-    constructor(protected uploader:SpeechRecorderUploader) {}
+
+  constructor(injector:Injector,protected uploader:SpeechRecorderUploader) {
+    super(injector);
+  }
 
     printStorageInfos(){
       // Safari seems not to support the estimate function.
@@ -29,54 +32,52 @@ export abstract class RecorderComponent extends FitToPageComponent implements Re
       }
     }
 
-    prepare(persistentAudioStorage=false):Observable<void>{
+    prepare(persistentAudioStorage=false):Observable<void> {
 
-        if(persistentAudioStorage){
-            this.printStorageInfos();
-        }
-      return new Observable(subscriber => {
-        if (persistentAudioStorage) {
-          SprDb.prepare().subscribe({
-            next: (db) => {
-              this._persistentAudioStorageTarget = new PersistentAudioStorageTarget(db, SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME);
-              //let delCnt=0;
-              this._persistentAudioStorageTarget.deleteAll().subscribe({
-                next:()=>{
-                  //delCnt++;
-                  subscriber.next();
-                },
-                complete:()=>{
-                  //console.info('Storage info after deletion of all ('+delCnt+') entries:');
-                  console.info('Persistent audio storage object store cleared.');
-                  this.printStorageInfos();
-                  subscriber.complete();
-                },
-                error:(err)=>{
-                  subscriber.error(err);
-                }
-
-              });
-
-              window.addEventListener('beforeunload',(e)=>{
-                  if(this._persistentAudioStorageTarget) {
-                      // Delete on page leave. Di not register callbacks to prevent page leave blocking
-                      this._persistentAudioStorageTarget.deleteAll().subscribe();
-                  }
-              });
-
-            },
-            error:(err)=>{
-              subscriber.error(err);
-            }
-          });
-        }else{
-          subscriber.next();
-          subscriber.complete();
-        }
+      if (persistentAudioStorage) {
+        this.printStorageInfos();
       }
-    );
-    constructor(injector:Injector,protected uploader:SpeechRecorderUploader) {
-        super(injector);
+      return new Observable(subscriber => {
+          if (persistentAudioStorage) {
+            SprDb.prepare().subscribe({
+              next: (db) => {
+                this._persistentAudioStorageTarget = new PersistentAudioStorageTarget(db, SprDb.RECORDING_FILE_CACHE_OBJECT_STORE_NAME);
+                //let delCnt=0;
+                this._persistentAudioStorageTarget.deleteAll().subscribe({
+                  next: () => {
+                    //delCnt++;
+                    subscriber.next();
+                  },
+                  complete: () => {
+                    //console.info('Storage info after deletion of all ('+delCnt+') entries:');
+                    console.info('Persistent audio storage object store cleared.');
+                    this.printStorageInfos();
+                    subscriber.complete();
+                  },
+                  error: (err) => {
+                    subscriber.error(err);
+                  }
+
+                });
+
+                window.addEventListener('beforeunload', (e) => {
+                  if (this._persistentAudioStorageTarget) {
+                    // Delete on page leave. Di not register callbacks to prevent page leave blocking
+                    this._persistentAudioStorageTarget.deleteAll().subscribe();
+                  }
+                });
+
+              },
+              error: (err) => {
+                subscriber.error(err);
+              }
+            });
+          } else {
+            subscriber.next();
+            subscriber.complete();
+          }
+        }
+      );
     }
 
     abstract ready():boolean;

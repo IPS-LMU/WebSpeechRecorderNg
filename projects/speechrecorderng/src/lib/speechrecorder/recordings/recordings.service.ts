@@ -15,9 +15,6 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BasicRecordingService} from "./basic_recording.service";
-import {Observable} from "rxjs";
-import {Session} from "../session/session";
-
 
 @Injectable()
 export class RecordingService extends BasicRecordingService{
