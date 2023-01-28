@@ -1170,7 +1170,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               const sr = this.ac.currentSampleRate;
               const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
               //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-              let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
+              let netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, chFl);
               as=netAb;
               if(this.uploadSet){
                 //let rp=new ReadyProvider();
@@ -1214,7 +1214,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 const sr = this.ac.currentSampleRate;
                 const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                const netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, sr);
+                const netAb = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, chFl);
                 as = netAb;
                 if (this.uploadSet) {
                   this.uploadSet.onDone = (uploadSet) => {
