@@ -570,6 +570,10 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
+  private loadDisplayRecordingFile(){
+
+  }
+
   set displayRecFile(displayRecFile: SprRecordingFile | null) {
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
@@ -583,15 +587,20 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.controlAudioPlayer.audioClip = null;
         if (this._controlAudioPlayer && this._session) {
           //... and try to fetch from server
-          this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
+          const dRf=this._displayRecFile;
+
+          this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, dRf).subscribe((rf) => {
             let fab = null;
-            if (rf && this._displayRecFile) {
-              fab = this._displayRecFile.audioBuffer;
+            if (rf) {
+              fab = dRf.audioBuffer;
             } else {
+              //console.debug("Recording file could not be loaded. rf: "+rf+", _displayRecFile: "+this._displayRecFile+", dRf: "+dRf);
               this.statusMsg = 'Recording file could not be loaded.'
               this.statusAlertType = 'error'
             }
             if (fab){
+
+              // TODO Async will set the previous file with autorecording
               this.displayAudioClip = new AudioClip(fab);
             }
             this.controlAudioPlayer.audioClip =this.displayAudioClip
@@ -1054,6 +1063,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       }
     }
     // apply recorded item
+    console.debug("Apply item: startNext: "+startNext);
     this.applyItem(startNext);
     if(startNext){
       this.startItem();
