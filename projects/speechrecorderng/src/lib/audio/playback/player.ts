@@ -103,7 +103,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
         }
 
         set audioClip(audioClip:AudioClip| null) {
-
+          this._audioClip=audioClip
             let length = 0;
             let chs = 0;
             if (audioClip && audioClip.audioDataHolder) {
@@ -127,8 +127,6 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
             }else{
                 this.audioSource=null;
             }
-          this._audioClip=audioClip
-
         }
 
       get audioSource(): AudioSource | null {
