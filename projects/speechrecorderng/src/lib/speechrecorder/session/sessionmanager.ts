@@ -453,7 +453,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.fwdAction.disabled = true
     this.transportActions.fwdNextAction.disabled = true
     this.transportActions.bwdAction.disabled = true
-    this.displayRecFile = null;
+    this.updateDisplayRecFile(null);
     this.displayRecFileVersion = 0;
     this.displayAudioClip = null;
     this.showRecording();
@@ -570,12 +570,16 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
-  private loadDisplayRecordingFile(){
+  private loadAndShowDisplayRecordingFile(){
 
   }
 
   set displayRecFile(displayRecFile: SprRecordingFile | null) {
     this._displayRecFile = displayRecFile;
+  }
+
+  updateDisplayRecFile(displayRecFile: SprRecordingFile | null,fetchAndApplyRecordingFile:boolean=true) {
+    this.displayRecFile=displayRecFile;
     if (this._displayRecFile) {
       let ab: AudioBuffer|null = this._displayRecFile.audioBuffer;
       if(ab) {
@@ -585,35 +589,37 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         // clear for now ...
         this.displayAudioClip = null;
         this.controlAudioPlayer.audioClip = null;
-        if (this._controlAudioPlayer && this._session) {
-          //... and try to fetch from server
-          const dRf=this._displayRecFile;
+        if(fetchAndApplyRecordingFile) {
+          if (this._controlAudioPlayer && this._session) {
+            //... and try to fetch from server
+            const dRf = this._displayRecFile;
 
-          this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, dRf).subscribe((rf) => {
-            let fab = null;
-            if (rf) {
-              fab = dRf.audioBuffer;
-            } else {
-              //console.debug("Recording file could not be loaded. rf: "+rf+", _displayRecFile: "+this._displayRecFile+", dRf: "+dRf);
-              this.statusMsg = 'Recording file could not be loaded.'
+            this.audioFetchSubscription = this.recFileService.fetchAndApplySprRecordingFile(this._controlAudioPlayer.context, this._session.project, dRf).subscribe((rf) => {
+              let fab = null;
+              if (rf) {
+                fab = dRf.audioBuffer;
+              } else {
+                //console.debug("Recording file could not be loaded. rf: "+rf+", _displayRecFile: "+this._displayRecFile+", dRf: "+dRf);
+                this.statusMsg = 'Recording file could not be loaded.'
+                this.statusAlertType = 'error'
+              }
+              if (fab) {
+
+                // TODO Async will set the previous file with autorecording
+                this.displayAudioClip = new AudioClip(fab);
+              }
+              this.controlAudioPlayer.audioClip = this.displayAudioClip
+              this.showRecording();
+
+            }, err => {
+              console.error("Could not load recording file from server: " + err)
+              this.statusMsg = 'Recording file could not be loaded: ' + err
               this.statusAlertType = 'error'
-            }
-            if (fab){
-
-              // TODO Async will set the previous file with autorecording
-              this.displayAudioClip = new AudioClip(fab);
-            }
-            this.controlAudioPlayer.audioClip =this.displayAudioClip
-            this.showRecording();
-
-          }, err => {
-            console.error("Could not load recording file from server: " + err)
-            this.statusMsg = 'Recording file could not be loaded: ' + err
+            })
+          } else {
+            this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
             this.statusAlertType = 'error'
-          })
-        }else{
-          this.statusMsg = 'Recording file could not be decoded. Audio context unavailable.'
-          this.statusAlertType = 'error'
+          }
         }
       }
 
@@ -680,7 +686,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
 
     if(isNonrecording){
-      this.displayRecFile = null;
+      this.updateDisplayRecFile(null);
       this.displayRecFileVersion = 0;
       this.startStopSignalState = StartStopSignalState.OFF;
     }else {
@@ -695,11 +701,11 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         if (availRecfiles > 0) {
           let rfVers: number = availRecfiles - 1;
           recentRecFile = it.recs[rfVers];
-          this.displayRecFile = recentRecFile;
+          this.updateDisplayRecFile(recentRecFile,!temporary);
           this.displayRecFileVersion = rfVers;
 
         } else {
-          this.displayRecFile = null;
+          this.updateDisplayRecFile(null);
           this.displayRecFileVersion = 0;
         }
       }
