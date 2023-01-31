@@ -81,32 +81,30 @@ import { AudioClip } from '../persistor'
             return this._stopAction;
         }
 
-        set audioClip(audioClip:AudioClip| null) {
-
-            var length = 0;
-            var chs = 0;
-            if (audioClip && audioClip.buffer) {
-                chs = audioClip.buffer.numberOfChannels;
-                if (chs > 0) {
-                    length = audioClip.buffer.length;
-                    if (chs > this.context.destination.maxChannelCount) {
-                        // TODO exception
-                    }
-                }
-                this.audioBuffer = audioClip.buffer;
-                audioClip.addSelectionObserver((ac)=> {
-                    this._startSelectionAction.disabled = this.startSelectionDisabled()
-                    if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
-                      this.startSelected()
-                    }
-                  }
-                )
-            }else{
-                this.audioBuffer=null;
+      set audioClip(audioClip:AudioClip| null) {
+        this._audioClip=audioClip;
+        let length = 0;
+        let chs = 0;
+        if (audioClip && audioClip.buffer) {
+          chs = audioClip.buffer.numberOfChannels;
+          if (chs > 0) {
+            length = audioClip.buffer.length;
+            if (chs > this.context.destination.maxChannelCount) {
+              // TODO exception
             }
-          this._audioClip=audioClip
-
+          }
+          this.audioBuffer = audioClip.buffer;
+          audioClip.addSelectionObserver((ac)=> {
+              this._startSelectionAction.disabled = this.startSelectionDisabled()
+              if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
+                this.startSelected()
+              }
+            }
+          )
+        }else{
+          this.audioBuffer=null;
         }
+      }
 
         set audioBuffer(audioBuffer:AudioBuffer | null) {
             this.stop();
