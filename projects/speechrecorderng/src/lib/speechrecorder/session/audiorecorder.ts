@@ -38,6 +38,7 @@ import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -169,7 +170,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   private displayRecFileVersion: number=0;
 
 
-  constructor(changeDetectorRef: ChangeDetectorRef,
+  constructor(protected bpo:BreakpointObserver,changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               private route: ActivatedRoute,
               dialog: MatDialog,
@@ -177,7 +178,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               private recFileService:RecordingService,
               protected uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
-    super(changeDetectorRef,dialog,sessionService,uploader,config);
+    super(bpo,changeDetectorRef,dialog,sessionService,uploader,config);
 
     //super(injector);
     this.status = Status.IDLE;

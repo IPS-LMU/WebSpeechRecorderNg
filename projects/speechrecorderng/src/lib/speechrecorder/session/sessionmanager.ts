@@ -41,6 +41,7 @@ import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {AudioStorageType} from "../project/project";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -67,7 +68,7 @@ export const enum Status {
                         [playStopAction]="controlAudioPlayer?.stopAction">
 
     </app-sprprompting>
-    <mat-progress-bar [value]="progressPercentValue()" fxShow="false" fxShow.xs="true" ></mat-progress-bar>
+    <mat-progress-bar [value]="progressPercentValue()" *ngIf="screenXs" ></mat-progress-bar>
 
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
@@ -89,8 +90,8 @@ export const enum Status {
         <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
-    <div #controlpanel class="controlpanel" fxLayout="row">
-      <div fxFlex="1 1 30%" fxLayoutAlign="start center">
+    <div #controlpanel class="controlpanel">
+      <div style="flex: 1 1 30%;justify-content: flex-start">
         <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
       <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
@@ -120,6 +121,7 @@ export const enum Status {
     }`,`.dark {
     background: darkgray;
   }`,`.controlpanel {
+    flex-direction: row;
     align-content: center;
     align-items: center;
     margin: 0;
@@ -182,14 +184,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   promptItemCount!: number;
 
-  constructor(changeDetectorRef: ChangeDetectorRef,
+  constructor(protected bpo:BreakpointObserver,
+              changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               dialog: MatDialog,
               sessionService:SessionService,
               private recFileService:RecordingService,
               uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
-    super(changeDetectorRef,dialog,sessionService,uploader,config);
+    super(bpo,changeDetectorRef,dialog,sessionService,uploader,config);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {

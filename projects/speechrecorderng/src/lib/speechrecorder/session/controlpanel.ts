@@ -5,6 +5,10 @@ import {
 
 import { MatDialog} from "@angular/material/dialog";
 import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
+import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
+import {ResponsiveComponent} from "../../ui/responsive_component";
+import {ThemePalette} from "@angular/material/core";
+
 
 
 @Component({
@@ -166,13 +170,13 @@ export class TransportActions {
     </button>
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      <span fxShow.xs="false">{{startStopNextName()}}</span>
+      <span *ngIf="!screenXs">{{startStopNextName()}}</span>
     </button>
     <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
       <mat-icon>pause</mat-icon>
-      <span fxShow.xs="false">Pause</span>
+      <span *ngIf="!screenXs">Pause</span>
     </button>
-    <button id="fwdNextBtn" *ngIf="navigationEnabled" fxHide.xs (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
       <mat-icon>redo</mat-icon>
     </button>
     <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
@@ -199,7 +203,7 @@ export class TransportActions {
   ]
 
 })
-export class TransportPanel {
+export class TransportPanel extends ResponsiveComponent{
 
   @Input() readonly!:boolean;
   @Input() actions!: TransportActions;
@@ -208,6 +212,10 @@ export class TransportPanel {
 
   startStopNextButtonName!:string;
   startStopNextButtonIconName!:string;
+
+    constructor(breakpointObserver: BreakpointObserver) {
+      super(breakpointObserver);
+    }
 
   startDisabled() {
     return !this.actions || this.readonly || this.actions.startAction.disabled
@@ -328,19 +336,19 @@ export class ReadyStateIndicator {
   selector: 'app-sprcontrolpanel',
 
   template: `
-    <div fxHide.xs  fxLayout="row" >
-     <app-sprstatusdisplay fxFlex="0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div *ngIf="!screenXs" style="flex-direction: row" >
+     <app-sprstatusdisplay style="flex:0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
-      <app-sprtransport fxFlex="10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-      <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <app-sprtransport style="flex:10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
       <app-readystateindicator [ready]="_ready"></app-readystateindicator>
     </div>
-    <div fxShow.xs fxHide fxLayout="column">
-      <div fxLayout="row" fxFlexFill>
-       <app-sprstatusdisplay fxFlex="10 0 0" fxFlexAlign="left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+    <div *ngIf="screenXs"style="flex-direction: column"  >
+      <div style="flex-direction: row" class="flexFill" >
+       <app-sprstatusdisplay style="flex:10 0 0;flex-align:left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
-       <app-uploadstatus fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+       <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                         [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
         <app-readystateindicator [ready]="_ready"></app-readystateindicator>
       </div>
@@ -356,7 +364,7 @@ export class ReadyStateIndicator {
     min-height: min-content; /* important */
   }`]
 })
-export class ControlPanel {
+export class ControlPanel extends ResponsiveComponent {
   @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
   @ViewChild(TransportPanel, { static: true }) transportPanel!: TransportPanel;
 
@@ -374,8 +382,8 @@ export class ControlPanel {
 
   _ready=true
 
-  constructor(public dialog: MatDialog) {
-
+  constructor(protected bpo:BreakpointObserver,public dialog: MatDialog) {
+    super(bpo);
   }
 
   @Input() set ready(ready:boolean){
