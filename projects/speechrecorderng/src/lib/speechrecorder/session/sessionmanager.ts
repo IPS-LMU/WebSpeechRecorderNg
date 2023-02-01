@@ -1392,7 +1392,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   private updateControlPlaybackPosition() {
     if (this._controlAudioPlayer.playPositionFrames) {
-      this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+      if(this.prompting.audioDisplay) {
+        this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+      }
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
   }

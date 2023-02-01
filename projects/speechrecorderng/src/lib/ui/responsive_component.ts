@@ -1,5 +1,7 @@
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
+import {Directive} from "@angular/core";
 
+@Directive()
 export class ResponsiveComponent {
 
   screenXs = false;
