@@ -71,10 +71,10 @@ export const enum Status {
     <mat-progress-bar [value]="progressPercentValue()" *ngIf="screenXs" ></mat-progress-bar>
 
 
-    <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
-      <div fxLayout="row">
-        <spr-recordingitemcontrols fxFlex="10 0 1"
+    <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
+      <audio-levelbar style="display:flex;flex:1 0 1px" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
+      <div style="display:flex;flex-direction: row">
+        <spr-recordingitemcontrols style="display:flex;flex:10 0 1px"
                                    [audioLoaded]="audioLoaded"
                                    [disableAudioDetails]="disableAudioDetails"
                                    [playStartAction]="controlAudioPlayer?.startAction"
@@ -84,10 +84,10 @@ export const enum Status {
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
-        <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs  fxFlex="0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
     <div #controlpanel class="controlpanel">
