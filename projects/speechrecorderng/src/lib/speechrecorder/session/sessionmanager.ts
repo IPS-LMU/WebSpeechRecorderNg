@@ -91,15 +91,15 @@ export const enum Status {
       </div>
     </div>
     <div #controlpanel class="controlpanel">
-      <div style="flex: 1 1 30%;justify-content: flex-start">
-        <app-sprstatusdisplay fxHide.xs [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
+      <div style="flex:1 1 30%;justify-content: flex-start;align-items: center; align-content: center">
+        <app-sprstatusdisplay *ngIf="!screenXs" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
-      <app-sprtransport fxFlex="10 0 30%" fxLayoutAlign="center center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
-      <div fxFlex="1 1 30%" fxLayoutAlign="end center" fxLayout="row">
-        <app-uploadstatus class="ricontrols" fxHide.xs fxLayoutAlign="end center" *ngIf="enableUploadRecordings" [value]="uploadProgress"
+      <app-sprtransport style="display:flex;flex:10 0 30%;justify-content: center;align-items: center; align-content: center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
+      <div style="display:flex;flex:10 1 30%;flex-direction:row;justify-content: flex-end;align-items: center; align-content: center">
+        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings"  class="ricontrols" [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator class="ricontrols" fxLayoutAlign="end center" fxHide.xs [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-wakelockindicator *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator *ngIf="!screenXs" class="ricontrols" [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
   `,
@@ -118,16 +118,29 @@ export const enum Status {
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
+    justify-content: flex-end;align-items: center; align-content: center;
     }`,`.dark {
     background: darkgray;
   }`,`.controlpanel {
+    display:flex;
     flex-direction: row;
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`]
+  }`,`.audioStatusDisplay{
+    display:flex;
+    flex-direction: row;
+    height:100px;
+    min-height: 100px;
+  }`,`.audioStatusDisplayXs{
+    display:flex;
+    flex-direction: column;
+    height:125px;
+    min-height: 125px;
+  }`
+  ]
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
   get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
