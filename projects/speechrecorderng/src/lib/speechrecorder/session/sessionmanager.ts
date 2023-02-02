@@ -298,7 +298,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.transportActions.fwdAction.onAction = () => this.nextItem();
       this.transportActions.fwdNextAction.onAction = () => this.nextUnrecordedItem();
       this.transportActions.bwdAction.onAction = () => this.prevItem();
-      this.playStartAction.onAction = () => this.controlAudioPlayer.start();
+      this.playStartAction.onAction = () => this.controlAudioPlayer?.start();
 
     }
 
@@ -368,14 +368,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     return ((this._session!=null) && (this._session.type==='TEST_DEF_A') && (this.audioDevices!=null) && this.audioDevices.length>0)
   }
 
-  set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
+  set controlAudioPlayer(controlAudioPlayer: AudioPlayer|null) {
     this._controlAudioPlayer=controlAudioPlayer;
     if (this._controlAudioPlayer) {
       this._controlAudioPlayer.listener = this;
     }
   }
 
-  get controlAudioPlayer(): AudioPlayer {
+  get controlAudioPlayer(): AudioPlayer|null {
     return this._controlAudioPlayer;
   }
 
@@ -606,7 +606,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
       if(adh) {
         this.displayAudioClip = new AudioClip(adh);
-        this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        if(this._controlAudioPlayer) {
+          this._controlAudioPlayer.audioClip = this.displayAudioClip;
+        }
         this.showRecording();
       }else {
         // clear for now ...
@@ -667,7 +669,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                       // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                       this.displayAudioClip = new AudioClip(fabDh);
                     }
-                    this.controlAudioPlayer.audioClip = this.displayAudioClip
+                    if(this._controlAudioPlayer) {
+                      this._controlAudioPlayer.audioClip = this.displayAudioClip
+                    }
                     this.showRecording();
                   },
                   error: err => {
@@ -707,7 +711,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                     //console.debug("set displayRecFile(): fetch net ab complete, set displayAudioClip.")
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
-                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  if(this._controlAudioPlayer) {
+                    this._controlAudioPlayer.audioClip = this.displayAudioClip;
+                  }
                   this.showRecording();
                 },
                 error: err => {
@@ -744,7 +750,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                     // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
-                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  if(this._controlAudioPlayer) {
+                    this._controlAudioPlayer.audioClip = this.displayAudioClip
+                  }
                   this.showRecording();
                 },
                 error: err => {
@@ -781,7 +789,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                     // this.displayAudioClip could have been changed meanwhile, but the recorder unsubcribes before changing the item, therefore there should be no risk to set to wrong item
                     this.displayAudioClip = new AudioClip(fabDh);
                   }
-                  this.controlAudioPlayer.audioClip = this.displayAudioClip
+                  if(this._controlAudioPlayer) {
+                    this._controlAudioPlayer.audioClip = this.displayAudioClip
+                  }
                   this.showRecording();
                 }, error: err => {
                   console.error("Could not load recording file from server: " + err);
@@ -1374,10 +1384,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
+
   private updateControlPlaybackPosition() {
-    if (this._controlAudioPlayer.playPositionFrames) {
-      this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
-      this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
+    if(this._controlAudioPlayer) {
+      const ppFrames=this._controlAudioPlayer.playPositionFrames;
+      if (ppFrames!==null) {
+        this.prompting.audioDisplay.playFramePosition = ppFrames;
+        this.liveLevelDisplay.playFramePosition = ppFrames;
+      }
     }
   }
 

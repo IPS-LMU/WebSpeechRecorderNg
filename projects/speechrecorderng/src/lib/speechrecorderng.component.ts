@@ -42,7 +42,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
 export class SpeechrecorderngComponent extends RecorderComponent implements OnInit,AfterViewInit,AudioPlayerListener {
 
   mode!:Mode;
-  controlAudioPlayer!:AudioPlayer;
+  controlAudioPlayer:AudioPlayer|null=null;
   audio:any;
   _project:Project|null=null;
   sessionId!: string;
@@ -72,19 +72,19 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       console.error(errMsg)
     }
 
-    ngOnInit() {
-		  try {
-        let audioContext = AudioContextProvider.audioContextInstance();
-              if(audioContext) {
-                  this.controlAudioPlayer = new AudioPlayer(audioContext, this);
-              }
-        this.sm.controlAudioPlayer=this.controlAudioPlayer;
-        this.sm.statusAlertType='info';
-        this.sm.statusMsg = 'Player initialized.';
-      }catch(err){
-        this.handleError(err);
+  ngOnInit() {
+    try {
+      let audioContext = AudioContextProvider.audioContextInstance();
+      if(audioContext) {
+        this.controlAudioPlayer = new AudioPlayer(audioContext, this);
       }
+      this.sm.controlAudioPlayer=this.controlAudioPlayer;
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg = 'Player initialized.';
+    }catch(err){
+      this.handleError(err);
     }
+  }
        ngAfterViewInit(){
         // let wakeLockSupp=('wakeLock' in navigator);
         // alert('Wake lock API supported: '+wakeLockSupp);
