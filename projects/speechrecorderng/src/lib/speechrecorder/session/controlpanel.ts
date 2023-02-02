@@ -68,10 +68,11 @@ export class StatusDisplay {
 export class UploadStatus {
   private _awaitNewUpload=false;
   spinnerMode:ProgressSpinnerMode = 'determinate';
-  _status!:string
-  _value = 100
-  displayValue:string|null=null
-  toolTipText:string=''
+  _status!:string;
+  _colorStatus:ThemePalette='primary';
+  _value = 100;
+  displayValue:string|null=null;
+  toolTipText:string='';
 
   private _updateSpinner(){
 
@@ -106,8 +107,15 @@ export class UploadStatus {
     this._updateSpinner()
   }
 
-  @Input() set status(status:string){
-    this._status=status
+  @Input() set status(status:string) {
+    this._status = status;
+    if ('accent' === status) {
+      this._colorStatus = 'accent';
+    } else if ('warn' === status) {
+      this._colorStatus = 'warn';
+    } else{
+      this._colorStatus = 'primary';
+    }
     this._updateSpinner()
   }
 
