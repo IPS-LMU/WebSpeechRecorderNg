@@ -64,7 +64,7 @@ export const enum Status {
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="flex:1 0 1px" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div style="flex-direction: row">
         <spr-recordingitemcontrols style="flex:10 0 1px"
