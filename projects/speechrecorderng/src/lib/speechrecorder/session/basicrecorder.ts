@@ -229,7 +229,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   peakLevelInDb:number=MIN_DB_LEVEL;
   audioLoaded:boolean=false;
   disableAudioDetails:boolean=false;
-  protected _controlAudioPlayer!: AudioPlayer;
+  protected _controlAudioPlayer: AudioPlayer|null=null;
   public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
 
@@ -370,8 +370,11 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     }
   }
 
+
   showRecording() {
-    this._controlAudioPlayer.stop();
+    if(this._controlAudioPlayer) {
+      this._controlAudioPlayer.stop();
+    }
     if(this.calcBufferInfosSubscr){
       this.calcBufferInfosSubscr.unsubscribe();
     }
