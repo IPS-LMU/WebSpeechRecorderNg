@@ -663,7 +663,6 @@ export class PromptingContainer {
     }
   `, `
     app-sprprogress {
-      display: flex;
       z-index: 3;
     }
   `, `
