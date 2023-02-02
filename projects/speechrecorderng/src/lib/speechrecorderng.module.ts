@@ -32,7 +32,7 @@ import {
   TransportPanel,
   UploadStatus, WakeLockIndicator
 } from "./speechrecorder/session/controlpanel";
-import {FlexLayoutModule} from "@angular/flex-layout";
+//import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionFinishedDialog} from "./speechrecorder/session/session_finished_dialog";
 import {MessageDialog} from "./ui/message_dialog";
 import {RecordingItemControls, RecordingItemDisplay} from "./ui/recordingitem_display";
@@ -71,6 +71,8 @@ import {
   RecordingFileDeleteConfirmDialog
 } from "./speechrecorder/session/recordingfile/recoring-file_delete_confirm_dialog";
 import {MatMenuModule} from "@angular/material/menu";
+import {CanvasLayerComponent} from "./ui/canvas_layer_comp";
+import {ResponsiveComponent} from "./ui/responsive_component";
 
 
 
@@ -126,7 +128,7 @@ export const SPR_ROUTES: Routes = [
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent,RecordingList,RecorderCombiPane,AudioRecorder
     ],
     exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar,AudioRecorder],
-    imports: [RouterModule.forChild(SPR_ROUTES), FlexLayoutModule, CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule,MatMenuModule],
+    imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule,MatMenuModule],
     providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader]
 })
 export class SpeechrecorderngModule{

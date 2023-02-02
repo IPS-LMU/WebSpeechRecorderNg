@@ -44,7 +44,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
 export class SpeechrecorderngComponent extends  RecorderComponent implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,AudioPlayerListener,ReadyStateProvider {
 
   mode!:Mode;
-  controlAudioPlayer!:AudioPlayer;
+  controlAudioPlayer:AudioPlayer|null=null;
   audio:any;
   _project:Project|undefined;
   sessionId!: string;

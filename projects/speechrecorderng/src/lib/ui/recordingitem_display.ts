@@ -5,6 +5,8 @@ import {
 import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
 import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
+import {ResponsiveComponent} from "./responsive_component";
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 
 export const MIN_DB_LEVEL = -40.0;
@@ -23,7 +25,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button fxHide.xs i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
+        <button *ngIf="!screenXs" i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
@@ -58,7 +60,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
      }`]
 
 })
-export class RecordingItemControls implements OnDestroy {
+export class RecordingItemControls extends ResponsiveComponent implements OnDestroy {
 
   ce: HTMLDivElement|null=null;
   @Input() audioSignalCollapsed: boolean=true;
@@ -101,8 +103,8 @@ export class RecordingItemControls implements OnDestroy {
 
   warnDbLevel = DEFAULT_WARN_DB_LEVEL;
 
-  constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
-
+  constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
+    super(bpo);
   }
 
   ngOnDestroy() {
@@ -136,9 +138,9 @@ export class RecordingItemControls implements OnDestroy {
 @Component({
     selector: 'spr-recordingitemdisplay',
     template: `
-      <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}" [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-        <audio-levelbar fxFlex="1 0 1" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
-        <spr-recordingitemcontrols fxFlex="0 0 0" [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" [peakDbLvl]="peakDbLvl" [agc]="_agc" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
+      <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
+        <audio-levelbar style="flex:1 0 1px" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <spr-recordingitemcontrols style="flex:0 0 0px" [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" [peakDbLvl]="peakDbLvl" [agc]="_agc" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
       </div>
     `,
     styles: [`div {
@@ -149,10 +151,20 @@ export class RecordingItemControls implements OnDestroy {
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
     }`, `audio-levelbar {
         box-sizing: border-box;
-    }`]
+    }`,`.audioStatusDisplay{
+    display:flex;
+    flex-direction: row;
+    height:100px;
+    min-height: 100px;
+  }`,`.audioStatusDisplayXs{
+    display:flex;
+    flex-direction: column;
+    height:125px;
+    min-height: 125px;
+  }`]
 
 })
-export class RecordingItemDisplay implements LevelListener, OnDestroy {
+export class RecordingItemDisplay extends ResponsiveComponent implements LevelListener, OnDestroy {
 
     ce: HTMLDivElement|null=null;
     @ViewChild(LevelBar, { static: true }) liveLevel!: LevelBar;
@@ -188,8 +200,8 @@ export class RecordingItemDisplay implements LevelListener, OnDestroy {
 
     //localizeVarTest=$localize `Hello world!`;
 
-    constructor(private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
-
+    constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
+        super(bpo);
     }
 
     ngOnDestroy() {

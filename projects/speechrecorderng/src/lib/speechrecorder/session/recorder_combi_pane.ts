@@ -9,6 +9,8 @@ import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {RecFilesCache} from "./recording_file_cache";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {ResponsiveComponent} from "../../ui/responsive_component";
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 @Component({
 
@@ -18,7 +20,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
     <div class="scrollList">
         <app-recordinglist [selectedRecordingFile]="selectedRecordingFile" [selectDisabled]="selectDisabled" (selectedRecordingFileChanged)="selectRecordingFile($event)"></app-recordinglist>
     </div>
-    <div class="collapsable" fxHide.xs #asCt [class.active]="!audioSignalCollapsed">
+    <div class="collapsable"  #asCt [class.active]="!audioSignalCollapsed && !screenXs">
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
                         [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
@@ -70,7 +72,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
   styleUrls: ['../../speechrecorder_mat.scss']
 
 })
-export class RecorderCombiPane implements AfterViewInit{
+export class RecorderCombiPane extends ResponsiveComponent implements AfterViewInit{
 
   @ViewChild(RecordingList) recordingListComp!:RecordingList;
   @Input() selectDisabled:boolean=false;
@@ -85,8 +87,8 @@ export class RecorderCombiPane implements AfterViewInit{
   @Input() autoPlayOnSelectToggleAction:Action<boolean>|undefined;
   @Input() playStopAction: Action<void>|undefined;
 
-  constructor() {
-
+  constructor(protected bpo:BreakpointObserver) {
+    super(bpo);
   }
 
   ngAfterViewInit() {

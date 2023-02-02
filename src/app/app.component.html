@@ -9,7 +9,7 @@
         <p>WebSpeechRecorderNg {{sprVersion}}</p>
       </mat-menu>
     </mat-menu>
-    &nbsp;<span fxShow.xs="false">{{title}}</span><span fxShow.xs="true" fxShow="false">{{shortTitle}}</span>
+    &nbsp;<span *ngIf="!screenXs">{{title}}</span><span *ngIf="screenXs">{{shortTitle}}</span>
 
 
 </mat-toolbar>

@@ -28,6 +28,8 @@ import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
 import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
+import {ResponsiveComponent} from "../../ui/responsive_component";
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -131,7 +133,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 
 }
 
-export abstract class BasicRecorder {
+export abstract class BasicRecorder extends ResponsiveComponent{
 
   protected updateTimerId: any;
 
@@ -227,7 +229,7 @@ export abstract class BasicRecorder {
   peakLevelInDb:number=MIN_DB_LEVEL;
   audioLoaded:boolean=false;
   disableAudioDetails:boolean=false;
-  protected _controlAudioPlayer!: AudioPlayer;
+  protected _controlAudioPlayer: AudioPlayer|null=null;
   public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
 
@@ -251,11 +253,12 @@ export abstract class BasicRecorder {
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(  protected changeDetectorRef: ChangeDetectorRef,
+  constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
                 public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
                 @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
+    super(bpo);
     this.userAgent=UserAgentBuilder.userAgent();
     const detPfm=this.userAgent.detectedPlatform;
     if(detPfm) {
@@ -367,8 +370,11 @@ export abstract class BasicRecorder {
     }
   }
 
+
   showRecording() {
-    this._controlAudioPlayer.stop();
+    if(this._controlAudioPlayer) {
+      this._controlAudioPlayer.stop();
+    }
     if(this.calcBufferInfosSubscr){
       this.calcBufferInfosSubscr.unsubscribe();
     }
