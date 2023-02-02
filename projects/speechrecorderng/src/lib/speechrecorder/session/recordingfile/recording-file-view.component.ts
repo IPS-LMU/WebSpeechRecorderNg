@@ -383,8 +383,9 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
             if (!ic) {
               let r = rfd.recording;
-              if (r && r.itemcode) { ic = r.itemcode;
-}
+              if (r && r.itemcode) {
+                ic = r.itemcode;
+              }
             }
             if (ic) {
               rfd.itemCode=ic;

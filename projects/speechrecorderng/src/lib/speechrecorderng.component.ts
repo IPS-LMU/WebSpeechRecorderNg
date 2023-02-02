@@ -112,7 +112,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     }
 
     ngOnDestroy() {
-      this.controlAudioPlayer.stop();
+      this.controlAudioPlayer?.stop();
       super.ngOnDestroy();
     }
 
