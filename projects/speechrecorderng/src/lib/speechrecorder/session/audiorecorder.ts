@@ -72,10 +72,10 @@ export const enum Status {
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="flex:1 0 1px" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div style="flex-direction: row">
-        <spr-recordingitemcontrols style="flex:10 0 1px"
+        <spr-recordingitemcontrols style="flex:10 0 1%"
                                    [disableAudioDetails]="disableAudioDetails"
                                    [audioLoaded]="audioLoaded"
                                    [playStartAction]="controlAudioPlayer?.startAction"
@@ -85,7 +85,7 @@ export const enum Status {
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
-        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark" style="flex:0 0 0" 
+        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark" style="flex:0 0 0"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
@@ -108,7 +108,7 @@ export const enum Status {
       <div style="flex:0.333 1 30%" >
         <div style="flex:1 1 auto"></div>
 
-        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols" style="flex:0 0 0" 
+        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols" style="flex:0 0 0"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-wakelockindicator  *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>

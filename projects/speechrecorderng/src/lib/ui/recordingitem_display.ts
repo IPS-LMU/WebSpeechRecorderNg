@@ -139,7 +139,7 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
     selector: 'spr-recordingitemdisplay',
     template: `
       <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-        <audio-levelbar style="flex:1 0 1px" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
+        <audio-levelbar style="flex:1 0 1%" [streamingMode]="streamingMode" [displayLevelInfos]="_displayLevelInfos"></audio-levelbar>
         <spr-recordingitemcontrols style="flex:0 0 0px" [audioLoaded]="displayAudioBuffer!==null" [playStartAction]="playStartAction" [playStopAction]="playStopAction" [peakDbLvl]="peakDbLvl" [agc]="_agc" (onShowRecordingDetails)="onShowRecordingDetails.emit()"></spr-recordingitemcontrols>
       </div>
     `,

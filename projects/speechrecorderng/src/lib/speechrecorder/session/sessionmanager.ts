@@ -76,7 +76,7 @@ export const enum Status {
 
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="display:flex;flex:1 0 1px" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="display:flex;flex:10 0 1px"
                                    [audioLoaded]="audioLoaded"
@@ -99,8 +99,8 @@ export const enum Status {
         <app-sprstatusdisplay *ngIf="!screenXs" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
       <app-sprtransport style="display:flex;flex:10 0 30%;justify-content: center;align-items: center; align-content: center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
-      <div style="display:flex;flex:10 1 30%;flex-direction:row;justify-content: flex-end;align-items: center; align-content: center">
-        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings"  class="ricontrols" [value]="uploadProgress"
+      <div style="display:flex;flex:1 1 30%;flex-direction:row;justify-content: flex-end;align-items: center; align-content: center">
+        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings"  class="ricontrols"  [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-wakelockindicator *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator *ngIf="!screenXs" class="ricontrols" [ready]="dataSaved && !isActive()"></app-readystateindicator>
@@ -119,10 +119,12 @@ export const enum Status {
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
   }`,`.ricontrols {
+        display:flex;
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
-    justify-content: flex-end;align-items: center; align-content: center;
+        flex-direction: row;
+        justify-content: flex-end;align-items: center; align-content: center;
     }`,`.dark {
     background: darkgray;
   }`,`.controlpanel {
