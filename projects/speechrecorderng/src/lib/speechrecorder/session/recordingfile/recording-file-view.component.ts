@@ -48,7 +48,7 @@ export class ItemcodeIndex{
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
                            [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [items]="availRecFiles.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
   styles: [
@@ -83,7 +83,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   sessionId: string | number | null= null;
   sessionIdFromRoute:string|null=null;
 
-  availRecFiles!: Array<Array<SprRecordingFile>>;
+  availRecFiles: Array<Array<SprRecordingFile>>|null=null;
   versions: Array<number>|null=null;
 
   recordingFile: SprRecordingFile|null=null;
@@ -173,7 +173,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private navigateToRecordingFile(){
-    if(this.posInList!=null) {
+    if(this.posInList!=null && this.availRecFiles) {
       let latestNextRf = this.availRecFiles[this.posInList][0];
       let lnRfId = latestNextRf.recordingFileId;
       if(lnRfId) {
@@ -185,7 +185,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   toVersion(ae: ActionEvent<number>) {
     let toRfId = null;
     let version = ae.value;
-    if(this.posInList!=null) {
+    if(this.posInList!=null && this.availRecFiles) {
       let cRfs = this.availRecFiles[this.posInList];
       let availVersionCnt = cRfs.length;
       for (let cRf of cRfs) {
