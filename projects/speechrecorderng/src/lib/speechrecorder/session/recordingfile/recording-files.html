@@ -3,6 +3,7 @@
         <mat-card-title>Recording files of session <span class="monospaced">{{sessionId}} of project "{{projectName}}"</span></mat-card-title>
     </mat-card-header>
     <mat-card-content>
+      <div *ngIf="waitingForRfs"><mat-progress-spinner color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner> Loading recording file(s)... Please wait.</div>
         <table mat-table matSort [dataSource]="dataSource">
             <ng-container matColumnDef="recordingFileId">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>

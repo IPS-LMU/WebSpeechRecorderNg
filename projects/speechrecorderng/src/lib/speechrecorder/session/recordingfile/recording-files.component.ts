@@ -31,6 +31,7 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
   recordingFiles:Array<RecordingFile>
     displayedColumns: string[] = ['recordingFileId','itemCode','action'];
     dataSource:MatTableDataSource<RecordingFile>;
+    waitingForRfs:boolean=false;
     @ViewChild(MatSort, { static: true }) sort!: MatSort;
     private d:Document;
 
@@ -57,7 +58,7 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
       this.route.params.subscribe((params: Params) => {
           this.projectName = params['projectName'];
           this.sessionId = params['sessionId'];
-          this.fetchRecordingFiles()
+          this.fetchRecordingFiles();
 
       })
   }
@@ -69,10 +70,12 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
 
   fetchRecordingFiles(){
     if (this.projectName && this.sessionId!==null) {
+      this.waitingForRfs=true;
       this.recService.recordingFileList(this.projectName,this.sessionId).subscribe(rfds=>{
         console.info("List " + rfds.length + " recordingFiles")
         this.recordingFiles=rfds;
-        this.dataSource.data=this.recordingFiles
+        this.dataSource.data=this.recordingFiles;
+        this.waitingForRfs=false;
         //console.log(this.recordingFiles)
         //this.chDetRef.detectChanges()
       })
