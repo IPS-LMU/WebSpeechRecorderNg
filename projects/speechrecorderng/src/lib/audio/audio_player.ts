@@ -143,12 +143,8 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
   }
 
   ngOnDestroy(){
+    this.ap?.stop();
    super.ngOnDestroy();
-  }
-
-  init() {
-
-
   }
 
   layout(){
@@ -187,7 +183,7 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
       this.currentLoader.onload = (e) => {
         if (this.currentLoader) {
 
-          var data = this.currentLoader.response; // not responseText
+          const data = this.currentLoader.response; // not responseText
           //console.debug("Received data ", data.byteLength);
           this.currentLoader = null;
           this.loaded(data);
