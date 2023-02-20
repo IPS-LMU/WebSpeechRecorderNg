@@ -1,6 +1,6 @@
 # SpeechRecorderNg
 
-A Speech Recording Tool implemented as an Angular 13 module.
+A Speech Recording Tool implemented as an Angular 14 module.
 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli).
