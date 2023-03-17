@@ -58,10 +58,10 @@ export class Item {
                            [selectedRecordingFile]="displayRecFile"
                            [selectDisabled]="isActive()"
                            [displayAudioClip]="displayAudioClip"
-                           [playStartAction]="controlAudioPlayer.startAction"
-                           [playStopAction]="controlAudioPlayer.stopAction"
-                           [playSelectionAction]="controlAudioPlayer.startSelectionAction"
-                           [autoPlayOnSelectToggleAction]="controlAudioPlayer.autoPlayOnSelectToggleAction"
+                           [playStartAction]="controlAudioPlayer?.startAction"
+                           [playStopAction]="controlAudioPlayer?.stopAction"
+                           [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+                           [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
 
     <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
@@ -298,7 +298,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.transportActions.nextAction.onAction = () => this.stopItem();
       //this.transportActions.pauseAction.onAction = () => this.pauseItem();
 
-      this.playStartAction.onAction = () => this.controlAudioPlayer.start();
+      this.playStartAction.onAction = () => this.controlAudioPlayer?.start();
 
     }
     this.uploader.listener = (ue) => {
@@ -457,17 +457,14 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.changeDetectorRef.detectChanges()
   }
 
-  set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
-    if (this._controlAudioPlayer) {
-      //this._controlAudioPlayer.listener=null;
-    }
+  set controlAudioPlayer(controlAudioPlayer: AudioPlayer|null) {
     this._controlAudioPlayer = controlAudioPlayer;
     if (this._controlAudioPlayer) {
       this._controlAudioPlayer.listener = this;
     }
   }
 
-  get controlAudioPlayer(): AudioPlayer {
+  get controlAudioPlayer(): AudioPlayer|null {
     return this._controlAudioPlayer;
   }
 
@@ -592,12 +589,15 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       let ab: AudioBuffer| null = this._displayRecFile.audioBuffer;
       if(ab) {
         this.displayAudioClip = new AudioClip(ab);
-        this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        if(this._controlAudioPlayer) {
+          this._controlAudioPlayer.audioClip = this.displayAudioClip;
+        }
       }else {
         // clear for now ...
         this.displayAudioClip = null;
-        this.controlAudioPlayer.audioClip = null;
-
+        if(this._controlAudioPlayer) {
+          this._controlAudioPlayer.audioClip = null;
+        }
         if (this._controlAudioPlayer && this._session) {
             //... and try to fetch from server
             this.audioFetchSubscription = this.recFileService.fetchAndApplyRecordingFile(this._controlAudioPlayer.context, this._session.project, this._displayRecFile).subscribe((rf) => {
@@ -611,7 +611,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               if (fab){
                 this.displayAudioClip = new AudioClip(fab);
               }
-              this.controlAudioPlayer.audioClip =this.displayAudioClip
+              if(this._controlAudioPlayer) {
+                this._controlAudioPlayer.audioClip = this.displayAudioClip
+              }
               this.showRecording();
 
             }, err => {
@@ -627,7 +629,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     } else {
       this.displayAudioClip = null;
-      this.controlAudioPlayer.audioClip = null;
+      if(this._controlAudioPlayer) {
+        this._controlAudioPlayer.audioClip = null;
+      }
     }
     this.showRecording();
   }
@@ -637,7 +641,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   showRecording() {
-    this.controlAudioPlayer.stop();
+    if(this._controlAudioPlayer) {
+      this._controlAudioPlayer.stop();
+    }
 
     if (this.displayAudioClip) {
       let dap=this.displayAudioClip;
@@ -861,7 +867,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   }
 
   private updateControlPlaybackPosition() {
-    if (this._controlAudioPlayer.playPositionFrames) {
+    if (this._controlAudioPlayer && this._controlAudioPlayer.playPositionFrames) {
       this.recorderCombiPane.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }

@@ -293,7 +293,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.transportActions.fwdAction.onAction = () => this.nextItem();
       this.transportActions.fwdNextAction.onAction = () => this.nextUnrecordedItem();
       this.transportActions.bwdAction.onAction = () => this.prevItem();
-      this.playStartAction.onAction = () => this.controlAudioPlayer.start();
+      this.playStartAction.onAction = () => this.controlAudioPlayer?.start();
 
     }
 
@@ -364,17 +364,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
 
-  set controlAudioPlayer(controlAudioPlayer: AudioPlayer) {
-    if (this._controlAudioPlayer) {
-      //this._controlAudioPlayer.listener=null;
-    }
+  set controlAudioPlayer(controlAudioPlayer: AudioPlayer|null) {
     this._controlAudioPlayer = controlAudioPlayer;
     if (this._controlAudioPlayer) {
       this._controlAudioPlayer.listener = this;
     }
   }
 
-  get controlAudioPlayer(): AudioPlayer {
+  get controlAudioPlayer(): AudioPlayer|null{
     return this._controlAudioPlayer;
   }
 
@@ -584,11 +581,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       let ab: AudioBuffer|null = this._displayRecFile.audioBuffer;
       if(ab) {
         this.displayAudioClip = new AudioClip(ab);
-        this.controlAudioPlayer.audioClip = this.displayAudioClip;
+        if(this._controlAudioPlayer) {
+          this._controlAudioPlayer.audioClip = this.displayAudioClip;
+        }
       }else {
         // clear for now ...
         this.displayAudioClip = null;
-        this.controlAudioPlayer.audioClip = null;
+        if(this._controlAudioPlayer) {
+          this._controlAudioPlayer.audioClip = null;
+        }
         if(fetchAndApplyRecordingFile) {
           if (this._controlAudioPlayer && this._session) {
             //... and try to fetch from server
@@ -608,7 +609,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                 // TODO Async will set the previous file with autorecording
                 this.displayAudioClip = new AudioClip(fab);
               }
-              this.controlAudioPlayer.audioClip = this.displayAudioClip
+              if(this._controlAudioPlayer) {
+                this._controlAudioPlayer.audioClip = this.displayAudioClip;
+              }
               this.showRecording();
 
             }, err => {
@@ -625,7 +628,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     } else {
       this.displayAudioClip = null;
-      this.controlAudioPlayer.audioClip = null;
+      if(this._controlAudioPlayer) {
+        this._controlAudioPlayer.audioClip = null;
+      }
     }
   }
 
@@ -634,7 +639,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   showRecording() {
-    this.controlAudioPlayer.stop();
+    if(this._controlAudioPlayer) {
+      this._controlAudioPlayer.stop();
+    }
 
     if (this.displayAudioClip) {
       let dap=this.displayAudioClip;
@@ -1110,7 +1117,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   private updateControlPlaybackPosition() {
-    if (this._controlAudioPlayer.playPositionFrames) {
+    if (this._controlAudioPlayer && this._controlAudioPlayer.playPositionFrames) {
       this.prompting.audioDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
       this.liveLevelDisplay.playFramePosition = this._controlAudioPlayer.playPositionFrames;
     }
