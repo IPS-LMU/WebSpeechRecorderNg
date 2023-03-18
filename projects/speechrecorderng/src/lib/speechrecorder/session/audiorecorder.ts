@@ -27,7 +27,7 @@ import {RecorderCombiPane} from "./recorder_combi_pane";
 import {BasicRecorder, LEVEL_BAR_INTERVALL_SECONDS, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
 import {ReadyStateProvider, RecorderComponent} from "../../recorder_component";
 import {Mode} from "../../speechrecorderng.component";
-
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -64,12 +64,11 @@ export class Item {
                            [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
 
-    <div fxLayout="row" fxLayout.xs="column" [ngStyle]="{'height.px':100,'min-height.px': 100}"
-         [ngStyle.xs]="{'height.px':125,'min-height.px': 125}">
-      <audio-levelbar fxFlex="1 0 1" [streamingMode]="isRecording()"
+    <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording()"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div fxLayout="row">
-        <spr-recordingitemcontrols fxFlex="10 0 1"
+        <spr-recordingitemcontrols style="flex:10 0 1%"
                                    [audioLoaded]="displayAudioClip?.buffer!==null"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
@@ -78,11 +77,11 @@ export class Item {
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
-        <app-uploadstatus class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
+        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark" style="flex:0 0 0"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator class="ricontrols dark" fxHide fxShow.xs fxFlex="0 0 0"
+        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
@@ -90,7 +89,7 @@ export class Item {
       <app-sprstatusdisplay fxHide.xs fxFlex="30% 1 30%" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                             [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
-      <div fxFlex="100% 0 100%" class="startstop">
+      <div style="flex:1 0 100%" class="startstop">
         <div style="align-content: center">
           <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
             <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
@@ -98,14 +97,14 @@ export class Item {
           </button>
         </div>
       </div>
-      <div fxFlex="30% 1 30%" >
-        <div fxFlex="1 1 auto"></div>
+      <div style="flex:0.333 1 30%" >
+        <div style="flex:1 1 auto"></div>
 
-        <app-uploadstatus class="ricontrols" fxHide.xs fxFlex="0 0 0" *ngIf="enableUploadRecordings"
+        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols" style="flex:0 0 0"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator class="ricontrols" fxHide.xs [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator class="ricontrols" fxHide.xs
+        <app-wakelockindicator  *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator  *ngIf="!screenXs" class="ricontrols"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
@@ -128,6 +127,8 @@ export class Item {
     }`,`.dark {
     background: darkgray;
   }`,`.controlpanel {
+    display:flex;
+    flex-direction: row;
     align-content: center;
     align-items: center;
     margin: 0;
@@ -143,6 +144,16 @@ export class Item {
     min-height: 50px;
     font-size: 50px;
     border-radius: 20px;
+  }`,`.audioStatusDisplay{
+    display:flex;
+    flex-direction: row;
+    height:100px;
+    min-height: 100px;
+  }`,`.audioStatusDisplayXs{
+    display:flex;
+    flex-direction: column;
+    height:125px;
+    min-height: 125px;
   }`
    ]
 })
@@ -177,7 +188,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   private displayRecFileVersion: number=0;
 
 
-  constructor(private changeDetectorRef: ChangeDetectorRef,
+  constructor(protected bpo:BreakpointObserver,
+              protected changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
               private route: ActivatedRoute,
               public dialog: MatDialog,
@@ -185,7 +197,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               private recFileService:RecordingService,
               protected uploader: SpeechRecorderUploader,
               @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
-    super(dialog,sessionService,uploader,config);
+    super(bpo,changeDetectorRef,dialog,sessionService,uploader,config);
 
     //super(injector);
     this.status = Status.IDLE;
