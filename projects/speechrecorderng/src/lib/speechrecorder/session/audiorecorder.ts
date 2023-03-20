@@ -1039,7 +1039,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         this.recorderCombiPane.addRecFile(rf);
 
         // Upload if upload enabled and not in chunked upload mode
-        if (this.enableUploadRecordings && !this.uploadChunkSizeSeconds && rf != null && ad != null) {
+        if (this.enableUploadRecordings && this._uploadChunkSizeSeconds===null && rf != null && ad != null) {
           let apiEndPoint = '';
 
           if (this.config && this.config.apiEndPoint) {

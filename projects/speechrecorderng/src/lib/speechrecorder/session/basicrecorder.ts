@@ -241,7 +241,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   protected navigationDisabled=true;
 
-  private _uploadChunkSizeSeconds:number|null=null;
+  protected _uploadChunkSizeSeconds:number|null=null;
   //=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
 
   // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
