@@ -7,6 +7,10 @@ import {RecordingList} from "./recording_list";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
+import {RecFilesCache} from "./recording_file_cache";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {ResponsiveComponent} from "../../ui/responsive_component";
+import {BreakpointObserver} from "@angular/cdk/layout";
 
 @Component({
 
@@ -16,7 +20,7 @@ import {AudioDisplay} from "../../audio/audio_display";
     <div class="scrollList">
         <app-recordinglist [selectedRecordingFile]="selectedRecordingFile" [selectDisabled]="selectDisabled" (selectedRecordingFileChanged)="selectRecordingFile($event)"></app-recordinglist>
     </div>
-    <div class="collapsable" fxHide.xs #asCt [class.active]="!audioSignalCollapsed">
+    <div class="collapsable"  #asCt [class.active]="!audioSignalCollapsed && !screenXs">
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
                         [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
@@ -44,7 +48,7 @@ import {AudioDisplay} from "../../audio/audio_display";
     margin: 0;
     padding: 0;
     background: lightgrey;
-    width: 100%; 
+    width: 100%;
     height: 100%;
     overflow-y: auto;
   }`, `
@@ -68,7 +72,7 @@ import {AudioDisplay} from "../../audio/audio_display";
   styleUrls: ['../../speechrecorder_mat.scss']
 
 })
-export class RecorderCombiPane implements AfterViewInit{
+export class RecorderCombiPane extends ResponsiveComponent implements AfterViewInit{
 
   @ViewChild(RecordingList) recordingListComp!:RecordingList;
   @Input() selectDisabled:boolean=false;
@@ -83,18 +87,22 @@ export class RecorderCombiPane implements AfterViewInit{
   @Input() autoPlayOnSelectToggleAction:Action<boolean>|undefined;
   @Input() playStopAction: Action<void>|undefined;
 
-  constructor() {
-
+  constructor(protected bpo:BreakpointObserver) {
+    super(bpo);
   }
 
   ngAfterViewInit() {
 
   }
 
-  push(rf:RecordingFile){
-    this.recordingListComp.push(rf);
-
+  addRecFile(rf:RecordingFile){
+    this.recordingListComp.addRecFile(rf);
   }
+
+  setRecFileAudioData(recFile:RecordingFile,adh:AudioDataHolder|null) {
+    this.recordingListComp.setRecFileAudioData(recFile, adh);
+  }
+
 
   selectRecordingFile(rf:RecordingFile){
     this.selectedRecordingFileChanged.emit(rf);

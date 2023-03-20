@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "2.25.6",
+  "version": "3.3.7-beta.1",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -15,6 +15,7 @@
     "new_patchrelease": "npm version --no-git-tag-version patch && cd projects && cd speechrecorderng && npm version --no-git-tag-version patch && cd .. && cd ..",
     "new_patchrelease_build_and_pack_module": "npm run new_patchrelease && npm run build_and_pack_module",
     "build_module": "npm run apply_module_version && ng build speechrecorderng --configuration production",
+    "test_module": "ng test speechrecorderng",
     "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
     "pack_pi_module": "cd dist && cd speechrecorderng && npm pack && cd ../../ && node bin/mv_tgz_pkgs.js",
     "build_and_pack_module": "npm run build_module && npm run pack_pi_module",
@@ -32,7 +33,6 @@
     "@angular/common": "^14.2.12",
     "@angular/compiler": "^14.2.12",
     "@angular/core": "^14.2.12",
-    "@angular/flex-layout": "^14.0.0-beta.41",
     "@angular/forms": "^14.2.12",
     "@angular/material": "^14.2.7",
     "@angular/platform-browser": "^14.2.12",
@@ -50,6 +50,7 @@
     "@types/jasmine": "~4.0.1",
     "@types/node": "~17.0.23",
     "@types/dom-screen-wake-lock": "~1.0.0",
+    "core-js": "^3.23.3",
     "karma": "~6.3.17",
     "karma-chrome-launcher": "~3.1.1",
     "karma-coverage": "~2.2.0",

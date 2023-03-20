@@ -1,5 +1,4 @@
 import { WavFileFormat } from './wavformat'
-import { PCMAudioFormat } from '../format'
 import { BinaryByteWriter } from '../../io/BinaryWriter'
 import {WorkerHelper} from "../../utils/utils";
 declare function postMessage (message:any, transfer:Array<any>):void;
@@ -7,13 +6,9 @@ declare function postMessage (message:any, transfer:Array<any>):void;
 
    export class WavWriter {
 
-     static PCM:number = 1;
-     static DEFAULT_SAMPLE_SIZE_BYTES:number = 2;
+     static readonly DEFAULT_SAMPLE_SIZE_BYTES:number = 2;
      private bw:BinaryByteWriter;
-     private format:PCMAudioFormat|null=null;
-     private dataLength:number|null=null;
      private workerURL: string|null=null;
-
      constructor() {
        this.bw = new BinaryByteWriter();
      }
@@ -24,8 +19,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      workerFunction() {
        self.onmessage = function (msg:MessageEvent) {
 
-         let bufLen=msg.data.frameLength * msg.data.chs;
-         let valView = new DataView(msg.data.buf,msg.data.bufPos);
+         const valView = new DataView(msg.data.buf,msg.data.bufPos);
 
          let bufPos = 0;
          let hDynIntRange = 1 << (msg.data.sampleSizeInBits - 1);
@@ -115,12 +109,15 @@ declare function postMessage (message:any, transfer:Array<any>):void;
 
 
       writeHeader(audioBuffer:AudioBuffer):number{
-
         this.bw.writeAscii(WavFileFormat.RIFF_KEY);
-        let dataChkByteLen=audioBuffer.getChannelData(0).length*WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*audioBuffer.numberOfChannels;
-        let wavChunkByteLen=(4+4)*3+16+dataChkByteLen;
-        let wavFileDataByteLen=wavChunkByteLen+8;
-
+        let dataChkByteLen=0;
+        //const dataChkByteLen=audioBuffer.getChannelData(0).length*WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*audioBuffer.numberOfChannels;
+        const abChs=audioBuffer.numberOfChannels;
+        if(abChs>0){
+          const abCh0=audioBuffer.getChannelData(0);
+          dataChkByteLen=abCh0.length*WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*abChs;
+        }
+        const wavChunkByteLen=(4+4)*3+16+dataChkByteLen;
         this.bw.writeUint32(wavChunkByteLen,true); // must be set to file length-8 later
         this.bw.writeAscii(WavFileFormat.WAV_KEY);
         this.writeChunkHeader('fmt ',16);

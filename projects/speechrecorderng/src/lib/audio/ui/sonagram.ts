@@ -1,10 +1,10 @@
 import {DFTFloat32} from '../../math/dft';
-import {DSPUtils} from '../../dsp/utils'
-import {CSSUtils} from '../../utils/css_utils'
 import {Marker, Point} from './common';
 import {Component, ElementRef, ViewChild} from "@angular/core";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
+import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
+import {Subscription} from "rxjs";
 
 declare function postMessage(message: any, transfer: Array<any>): void;
 
@@ -47,13 +47,15 @@ export class Sonagram extends AudioCanvasLayerComponent {
     private _playFramePosition: number|null=null;
 
     private worker: Worker | null;
-    private workerURL: string;
+    private readonly workerURL: string;
+    private raAsSubsc:Subscription|null=null;
+
     private dftSize = DEFAULT_DFT_SIZE;
 
     constructor(private ref: ElementRef) {
         super();
         this.worker = null;
-        this._audioData = null;
+        this._audioDataHolder = null;
         this.markers = new Array<Marker>();
         this.dft = new DFTFloat32(this.dftSize);
 
@@ -99,48 +101,61 @@ export class Sonagram extends AudioCanvasLayerComponent {
         return new Point(x,y);
     }
 
-    drawCursorPosition(e: MouseEvent, show: boolean) {
+  drawStateText(stateText:string) {
+        if(stateText) {
+            const g = this.sonagramCanvas.getContext("2d");
+            const w = this.sonagramCanvas.width;
+            const h = this.sonagramCanvas.height;
+            if (g && w && h) {
+                g.strokeStyle = 'black';
+                g.fillStyle = 'black';
+                g.font = '20px sans-serif';
+                g.fillText(stateText, 10, 25);
+            }
+        }
+  }
 
-        if (this.cursorCanvas) {
-            const w = this.cursorCanvas.width;
-            const h = this.cursorCanvas.height;
-            const g = this.cursorCanvas.getContext('2d');
-          if (g) {
-            g.clearRect(0, 0, w, h);
-            if (show) {
-              const pp = this.canvasMousePos(this.cursorCanvas, e);
-              let xViewPortPixelpos = e.offsetX;
+  drawCursorPosition(e: MouseEvent, show: boolean) {
 
+    if (this.cursorCanvas) {
+      const w = this.cursorCanvas.width;
+      const h = this.cursorCanvas.height;
+      const g = this.cursorCanvas.getContext('2d');
+      if (g) {
+        g.clearRect(0, 0, w, h);
+        if (show) {
+          //const pp = this.canvasMousePos(this.cursorCanvas, e);
+          let xViewPortPixelpos = e.offsetX;
+
+          g.fillStyle = 'yellow';
+          g.strokeStyle = 'yellow';
+          g.beginPath();
+          g.moveTo(xViewPortPixelpos, 0);
+          g.lineTo(xViewPortPixelpos, h);
+          g.closePath();
+
+          g.stroke();
+
+          if (this._audioDataHolder) {
+
+            let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
+            if(framePosRound!=null) {
+              g.font = '14px sans-serif';
               g.fillStyle = 'yellow';
-              g.strokeStyle = 'yellow';
-              g.beginPath();
-              g.moveTo(xViewPortPixelpos, 0);
-              g.lineTo(xViewPortPixelpos, h);
-              g.closePath();
-
-              g.stroke();
-
-                    if (this._audioData) {
-
-                let framePosRound = this.viewPortXPixelToFramePosition(xViewPortPixelpos);
-                if(framePosRound!=null) {
-                    g.font = '14px sans-serif';
-                    g.fillStyle = 'yellow';
-                    g.fillText(framePosRound.toString(), xViewPortPixelpos + 2, 50);
-                }
-              }
+              g.fillText(framePosRound.toString(), xViewPortPixelpos + 2, 50);
             }
           }
         }
+      }
     }
+  }
 
     drawPlayPosition() {
         if (this.markerCanvas) {
-            var w = this.markerCanvas.width;
-            var h = this.markerCanvas.height;
-            var g = this.markerCanvas.getContext("2d");
+            const w = this.markerCanvas.width;
+            const h = this.markerCanvas.height;
+            const g = this.markerCanvas.getContext("2d");
             if (g) {
-
                 g.clearRect(0, 0, w, h);
                 if(this._playFramePosition!=null) {
                     let pixelPos = this.frameToViewPortXPixelPosition(this._playFramePosition);
@@ -157,57 +172,6 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
         }
     }
-
-    // layout() {
-    //
-    //
-    //   var offW = this.sonagramCanvas.offsetWidth;
-    //   var offH = this.sonagramCanvas.offsetHeight;
-    //   this.layoutBounds(0, 0, offW, offH, true);
-    // }
-
-
-    // layoutBounds(left: number, top: number, offW: number, offH: number, virtualWidth:number,redraw: boolean) {
-    //
-    //   const leftStr = left.toString() + 'px';
-    //   this.sonagramCanvas.style.left = leftStr;
-    //   const topStr = top.toString() + 'px';
-    //   this.sonagramCanvas.style.top = topStr;
-    //   this.cursorCanvas.style.top = topStr;
-    //   this.markerCanvas.style.top = topStr;
-    //
-    //   if (offW) {
-    //     const wStr = offW.toString() + 'px';
-    //     if (redraw) {
-    //
-    //       this.cursorCanvas.width = offW;
-    //       this.markerCanvas.width = offW;
-    //     }
-    //     this.sonagramCanvas.style.width = wStr;
-    //     this.cursorCanvas.style.width = wStr;
-    //     this.markerCanvas.style.width = wStr;
-    //   }
-    //   if (offH) {
-    //     const hStr = offH.toString() + 'px';
-    //     if (redraw) {
-    //       this.cursorCanvas.height = offH;
-    //       this.markerCanvas.height = offH;
-    //     }
-    //     this.sonagramCanvas.style.height = hStr;
-    //     this.cursorCanvas.style.height = hStr;
-    //     this.markerCanvas.style.height = hStr;
-    //
-    //   }
-    //   if (redraw) {
-    //     //this.redraw();
-    //     if (offW > 0) {
-    //       if (offH > 0) {
-    //         this.startDraw(left,top,offW, offH,virtualWidth);
-    //       }
-    //     }
-    //   }
-    // }
-
 
     /*
      *  Method used as worker code.
@@ -294,11 +258,11 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
         class DFTFloat32 {
 
-            private n: number;
-            private m: number;
+            private readonly n: number;
+            private readonly m: number;
 
-            private cosLookup: Float32Array;
-            private sinLookup: Float32Array;
+            private readonly cosLookup: Float32Array;
+            private readonly sinLookup: Float32Array;
 
             constructor(n: number) {
                 this.n = n;
@@ -430,7 +394,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
             // http://reference.wolfram.com/language/ref/GaussianWindow.html
             // val=exp(-50*x*x/9) => sigma=0.3
 
-            private buf: Float32Array;
+            private readonly buf: Float32Array;
 
             constructor(size: number, sigma: number = GaussianWindow.DEFAULT_SIGMA) {
                 this.buf = new Float32Array(size);
@@ -449,12 +413,22 @@ export class Sonagram extends AudioCanvasLayerComponent {
         }
 
         self.onmessage = function (msg:MessageEvent) {
-
+            //console.debug("Sonagram render thread");
             let l = msg.data.l;
             let w = msg.data.w;
             let h = msg.data.h;
             let vw = msg.data.vw;
             let chs = msg.data.chs;
+            let audioDataOffset=0;
+            let adOffset=msg.data.audioDataOffset;
+            if(adOffset){
+              audioDataOffset=adOffset;
+            }
+           let maxPsd = null;
+            if(msg.data.maxPsd!==undefined){
+              maxPsd=msg.data.maxPsd;
+            }
+
             let audioData = new Array(chs);
             for (let ch = 0; ch < chs; ch++) {
                 audioData[ch] = new Float32Array(msg.data['audioData'][ch]);
@@ -473,20 +447,20 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
             let imgData = new Uint8ClampedArray(arrSize);
             //console.log("Render method:");
-            if (audioData && arrSize>0) {
+          //console.debug("Created imgData arrSize: "+arrSize+" ", w, "x", h);
+          let calcMaxPsd=-Infinity;
+            if (arrSize>0) {
+
                 let chH = Math.round(h / chs);
                 let framesPerPixel = frameLength / vw;
-                //console.log("Render: ", w, "x", h);
+                //console.debug("Render: ", w, "x", h);
 
                 let b = new Float32Array(dftSize);
                 let sona = new Array(chs);
 
-                let maxPsd = -Infinity;
-                let p = 0;
                 for (let ch = 0; ch < chs; ch++) {
-                    p = ch * frameLength;
+
                     let chDataLen=audioData[ch].length;
-                    let x = 0;
                     // initialize DFT array buffer
                     sona[ch] = new Array(w);
                     let framePos = 0;
@@ -502,8 +476,12 @@ export class Sonagram extends AudioCanvasLayerComponent {
                             let chDat=0;
 
                             // Set audio sample if available
-                            if(samplePos>=0 && samplePos < chDataLen) {
-                              chDat = audioData[ch][samplePos];
+                            let adp=samplePos-audioDataOffset;
+                            if(adp>=0 && adp < chDataLen) {
+                              chDat = audioData[ch][adp];
+                              //console.debug("Audio data: "+chDat);
+                            }else{
+                              //console.debug("Sample buf pos oob: adp: "+adp+", chDataLen: "+chDataLen+", samplePos: "+samplePos+", i: "+i);
                             }
 
                             // apply Window
@@ -515,66 +493,82 @@ export class Sonagram extends AudioCanvasLayerComponent {
                         // Get maximum value of spectral energy
                         for (let s = 0; s < dftBands; s++) {
                             let psd = (2 * Math.pow(spectr[s], 2)) / dftBands;
-                            if (psd > maxPsd) {
-                                maxPsd = psd;
+                            if (psd > calcMaxPsd) {
+                                calcMaxPsd = psd;
                             }
                         }
                         // Set render model data for this pixel
                         sona[ch][pii] = spectr;
                     }
                 }
-                //maxPsd = (2 * Math.pow(max, 2)) / dftBands;
 
+                if(!msg.data.norender) {
+                  if(!maxPsd){
+                    maxPsd=calcMaxPsd;
+                  }
                 for (let ch = 0; ch < chs; ch++) {
 
-                    for (let pii = 0; pii < w; pii++) {
-                        let allBlack = true;
-                        for (let y = 0; y < chH; y++) {
-                            let freqIdx = Math.round(y * dftBands / chH);
-                            // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
-                            // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
-                            let val = sona[ch][pii][freqIdx];
-                            let psd = (2 * Math.pow(val, 2)) / dftBands;
-                            // Calculate logarithmic value
-                            //let psdLog = ips.dsp.DSPUtils.toLevelInDB(psd / maxPsd);
-                            let linearLevel = psd / maxPsd;
-                            let psdLog = 10 * Math.log(linearLevel) / Math.log(10);
-                            // Fixed dynamic Range value of 70dB for now
-                            let dynRangeInDb = 70;
-                            let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
+                  for (let pii = 0; pii < w; pii++) {
+                    let allBlack = true;
+                    for (let y = 0; y < chH; y++) {
+                      let freqIdx = Math.round(y * dftBands / chH);
+                      // calculate the one-sided power spectral density PSD (f, t) in Pa2/Hz
+                      // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
+                      let val = sona[ch][pii][freqIdx];
+                      let psd = (2 * Math.pow(val, 2)) / dftBands;
+                      // Calculate logarithmic value
+                      //let psdLog = ips.dsp.DSPUtils.toLevelInDB(psd / maxPsd);
+                      let linearLevel = psd / maxPsd;
+                      let psdLog = 10 * Math.log(linearLevel) / Math.log(10);
+                      // Fixed dynamic Range value of 70dB for now
+                      let dynRangeInDb = 70;
+                      let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
 
-                            // are the following checks necessary for clamped array ?
-                            if (scaledVal > 1.0)
-                                scaledVal = 1;
-                            if (scaledVal < 0.0) {
-                                scaledVal = 0;
-                            }
-                            let rgbVal = Math.round(255 * scaledVal);
-                            if (rgbVal < 0) {
-                                //							System.out.println("Neg RGB val: "+rgbVal);
-                                rgbVal = 0;
-                            }
-                            if (rgbVal > 255) {
-                                rgbVal = 255;
-                            }
-                            rgbVal = 255 - rgbVal;
-                            if (rgbVal > 0) {
-                                allBlack = false;
-                            }
-                            let py = chH - y;
-                            let dataPos = ((((ch * chH) + py) * w) + pii) * 4;
-                            imgData[dataPos + 0] = rgbVal; //R
-                            imgData[dataPos + 1] = rgbVal; //G
-                            imgData[dataPos + 2] = rgbVal; //B
-                            imgData[dataPos + 3] = 255; //A (alpha: fully opaque)
-                        }
-                        // if (allBlack) {
-                        //   console.log("Black: ", pii, " ", ch);
-                        // }
+                      // are the following checks necessary for clamped array ?
+                      if (scaledVal > 1.0)
+                        scaledVal = 1;
+                      if (scaledVal < 0.0) {
+                        scaledVal = 0;
+                      }
+                      let rgbVal = Math.round(255 * scaledVal);
+                      if (rgbVal < 0) {
+                        //							System.out.println("Neg RGB val: "+rgbVal);
+                        rgbVal = 0;
+                      }
+                      if (rgbVal > 255) {
+                        rgbVal = 255;
+                      }
+                      rgbVal = 255 - rgbVal;
+                      if (rgbVal > 0) {
+                        allBlack = false;
+                      }
+                      let py = chH - y;
+                      let dataPos = ((((ch * chH) + py) * w) + pii) * 4;
+                      imgData[dataPos + 0] = rgbVal; //R
+                      imgData[dataPos + 1] = rgbVal; //G
+                      imgData[dataPos + 2] = rgbVal; //B
+                      imgData[dataPos + 3] = 255; //A (alpha: fully opaque)
+                      //console.debug("Rendered: py: "+py+", rgbval: "+rgbVal);
+                      // example 1x1, 2chs
+                      //  ch0x0y0R,ch0x0y0G,ch0x0y0B,ch0x0y0A,
+                      //  ch0x1y0R,ch0x1y0G,ch0x1y0B,ch0x1y0A,
+                      //  ch0x0y0R,ch0x0y0G,ch0x0y0B,ch0x0y0A,
+                      //  ch0x1y1R,ch0x1y1G,ch0x1y1B,ch0x1y1A,
+
+                      //  ch1x0y0R,ch1x0y0G,ch1x0y0B,ch1x0y0A,
+                      //  ch1x1y0R,ch1x1y0G,ch1x1y0B,ch1x1y0A,
+                      //  ch1x0y0R,ch1x0y0G,ch1x0y0B,ch1x0y0A,
+                      //  ch1x1y1R,ch1x1y1G,ch1x1y1B,ch1x1y1A
                     }
+                    // if (allBlack) {
+                    //   console.log("Black: ", pii, " ", ch);
+                    // }
+                  }
+                }
                 }
             }
-            postMessage({imgData: imgData, l: l, w: msg.data.w, h: msg.data.h, vw: vw}, [imgData.buffer]);
+            //console.debug("Render thread post message imgData: "+imgData.length)
+            postMessage({imgData: imgData, l: l, w: msg.data.w, h: msg.data.h, vw: vw,maxPsd:calcMaxPsd,terminate:msg.data.terminate}, [imgData.buffer]);
         }
     }
 
@@ -600,196 +594,444 @@ export class Sonagram extends AudioCanvasLayerComponent {
     }
 
     private startRender() {
-
+      //console.debug("Sonagram start render...");
         if (this.worker) {
             this.worker.terminate();
             this.worker = null;
-
         }
-        if (this.bounds) {
+      if(this.raAsSubsc){
+        this.raAsSubsc.unsubscribe();
+      }
+      if (this._audioDataHolder) {
+        this._audioDataHolder.addOnReadyListener(()=> {
+          if (this._audioDataHolder && this.bounds && this.bounds.dimension) {
             let w = Math.round(this.bounds.dimension.width);
             let h = Math.round(this.bounds.dimension.height);
+            let vw = Math.round(this.virtualDimension.width);
+
+            if (w > 0 && h > 0 && vw > 0) {
+
+              this.worker = new Worker(this.workerURL);
+              //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
+
+              let chs = this._audioDataHolder.numberOfChannels;
+              let vw = Math.round(this.virtualDimension.width);
+
+              let frameLength = this._audioDataHolder.frameLen;
+              let framesPerPixel = Math.ceil(frameLength / vw);
+              let leftPos = Math.round(this.bounds.position.left);
+              let renderPos = leftPos;
+              let raAs = this._audioDataHolder.randomAccessAudioStream();
+
+              let audioBuffer: AudioBuffer | null = null;
+              let audioSource = this._audioDataHolder.audioSource;
+              if (audioSource instanceof AudioBufferSource) {
+                audioBuffer = audioSource.audioBuffer;
+              }
+              //let arrayAudioBuffer=this._audioDataHolder.arrayBuffer;
+              let arrAbBuf: Float32Array[] | null;
+              let ada = new Array<ArrayBuffer>(chs);
+              // for(let ch=0;ch<chs;ch++) {
+              //   ada[ch] = new Float32Array(this.dftSize);
+              // }
+              let imgData: Uint8ClampedArray;
+              let maxPsd = -Infinity;
+              let norender = true;
+
+              if (this.worker) {
+                this.worker.onmessage = (me) => {
+                  if (true === me.data.terminate) {
+                    let drawImgData;
+                    if (imgData) {
+                      drawImgData = imgData;
+                    } else {
+                      drawImgData = me.data.imgData;
+                    }
+                    this.drawRendered(w, h, drawImgData);
+                    if (this.worker) {
+                      this.worker.terminate();
+                    }
+                    this.worker = null;
+                    raAs.close();
+                  } else {
+
+                    // set rendered vertical values of one pixel of timescale
+                    //let dataPos = renderPos * h * 4;
+                    if (norender) {
+                      if (me.data.maxPsd > maxPsd) {
+                        maxPsd = me.data.maxPsd;
+                        //console.debug("new maxPsd: "+maxPsd);
+                      }
+                    } else {
+                      let chH = Math.round(h / chs);
+                      let idp = me.data.l - leftPos;
+                      for (let ch = 0; ch < chs; ch++) {
+                        for (let y = 0; y < chH; y++) {
+                          let py = chH - y;
+                          let dataPos = ((((ch * chH) + py) * w) + idp) * 4;
+                          let mePos = ((ch * chH) + py) * 4;
+                          //let lastPos = dataPos + me.data.imgData.length;
+                          //if (lastPos < imgData.length) {
+                          // set one pixel
+
+                          imgData[dataPos] = me.data.imgData[mePos];
+                          imgData[dataPos + 1] = me.data.imgData[mePos + 1];
+                          imgData[dataPos + 2] = me.data.imgData[mePos + 2];
+                          imgData[dataPos + 3] = me.data.imgData[mePos + 3];
+                          //} else {
+                          //console.error("Out of range: " + dataPos + "+" + me.data.imgData.length + ">=" + imgData.length);
+                          // }
+                        }
+                      }
+                    }
+                    if (this._audioDataHolder && arrAbBuf && this.worker) {
+                      // proceed with next pixel
+                      renderPos++;
+                      //console.debug("Render pos: "+renderPos);
+
+                      let terminate = false;
+                      let windowEnd = renderPos >= leftPos + w;
+
+                      if (windowEnd) {
+                        if (norender) {
+                          // phase two: rendering
+                          norender = false;
+                          // start from beginning
+                          renderPos = leftPos;
+                          //console.debug("now rendering: maxPsd: "+maxPsd);
+                        } else {
+                          // terminate render phase
+                          terminate = true;
+                        }
+                      }
+
+                      let leftFramePos = Math.floor(frameLength * renderPos / vw) - this.dftSize / 2;
+                      if (leftFramePos < 0) {
+                        leftFramePos = 0;
+                      }
+                      //let ada = new Array<ArrayBuffer>(chs);
+
+                      //console.debug("Render pos: "+renderPos+" leftFramePos: "+leftFramePos);
+
+                      if (!terminate) {
+                        if (this._audioDataHolder) {
+                          //let read = this._audioDataHolder.frames(leftFramePos, this.dftSize, arrAbBuf);
+                          this.raAsSubsc = raAs.framesObs(leftFramePos, this.dftSize, arrAbBuf).subscribe(
+                            {
+                              next: (read) => {
+                                if (arrAbBuf && this.worker) {
+                                  if (read < this.dftSize) {
+                                    // zero padding
+                                    for (let ch = 0; ch < chs; ch++) {
+                                      for (let zp = read; zp < this.dftSize; zp++) {
+                                        arrAbBuf[ch][zp] = 0;
+                                      }
+                                    }
+                                  }
+                                  for (let ch = 0; ch < chs; ch++) {
+                                    // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                                    //ada[ch] = arrAbBuf[ch].buffer.slice(0);
+                                    const arrAbBufCh = arrAbBuf[ch];
+                                    const adLen = arrAbBufCh.buffer.byteLength;
+                                    if (!ada[ch] || ada[ch].byteLength !== adLen) {
+                                      ada[ch] = new ArrayBuffer(adLen);
+                                    }
+                                    let fAdaCh = new Float32Array(ada[ch]);
+                                    fAdaCh.set(arrAbBuf[ch]);
+                                  }
+
+                                  this.worker.postMessage({
+                                    audioData: ada,
+                                    audioDataOffset: leftFramePos,
+                                    l: renderPos,
+                                    w: me.data.w,
+                                    h: h,
+                                    vw: vw,
+                                    chs: chs,
+                                    frameLength: frameLength,
+                                    dftSize: this.dftSize,
+                                    maxPsd: maxPsd,
+                                    norender: norender,
+                                    terminate: terminate
+                                  }, ada);
+                                }
+                              },
+                              error: (err) => {
+                                console.error("Sonagram: Error reading audio data: " + err);
+                              }
+                            }
+                          )
 
 
-            if (this._audioData && w>0 && h>0) {
+                        }
+                      } else {
+                        for (let ch = 0; ch < chs; ch++) {
+                          ada[ch] = new ArrayBuffer(0);
+                        }
+                        this.worker.postMessage({
+                          audioData: ada,
+                          audioDataOffset: leftFramePos,
+                          l: renderPos,
+                          w: me.data.w,
+                          h: h,
+                          vw: vw,
+                          chs: chs,
+                          frameLength: frameLength,
+                          dftSize: this.dftSize,
+                          maxPsd: maxPsd,
+                          norender: norender,
+                          terminate: terminate
+                        }, ada);
+                      }
 
-                this.worker = new Worker(this.workerURL);
-                //this.wo = new Worker('./worker/sonagram.worker', { type: `module` });
 
-                let chs = this._audioData.numberOfChannels;
+                    }
 
-                let frameLength = this._audioData.getChannelData(0).length;
+                  }
+                }
+              }
+              if (audioBuffer && audioBuffer.length * audioBuffer.numberOfChannels < AudioCanvasLayerComponent.ENABLE_STREAMING_NUMBER_OF_SAMPLES_THRESHOLD) {
                 let ada = new Array<ArrayBuffer>(chs);
                 for (let ch = 0; ch < chs; ch++) {
-                    // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
-                    ada[ch] = this._audioData.getChannelData(ch).buffer.slice(0);
+                  // Need a copy here for the worker, otherwise this.audioData is not accessible after posting to the worker
+                  ada[ch] = audioBuffer.getChannelData(ch).buffer.slice(0);
                 }
-                let start = Date.now();
-                if (this.worker) {
-                    this.worker.onmessage = (me) => {
-                        this.drawRendered(me);
-                        if (this.worker) {
-                            this.worker.terminate();
-                        }
-                        this.worker = null;
-                    }
-                }
+                //let start = Date.now();
+
                 if (this.markerCanvas) {
-                    let g = this.markerCanvas.getContext("2d");
-                    if (g) {
-                        g.fillText("Rendering...", 10, 20);
-                    }
+                  let g = this.markerCanvas.getContext("2d");
+                  if (g) {
+                    g.fillText("Rendering...", 10, 20);
+                  }
 
                 }
                 this.worker.postMessage({
-                    audioData: ada,
-                    l: Math.round(this.bounds.position.left),
-                    w: w,
-                    h: h,
-                    vw: Math.round(this.virtualDimension.width),
-                    chs: chs,
-                    frameLength: frameLength,
-                    dftSize: this.dftSize
+                  audioData: ada,
+                  l: leftPos,
+                  w: w,
+                  h: h,
+                  vw: Math.round(this.virtualDimension.width),
+                  chs: chs,
+                  frameLength: frameLength,
+                  dftSize: this.dftSize,
+                  terminate: true
                 }, ada);
-            } else {
-                let g = this.sonagramCanvas.getContext("2d");
-                if (g) {
-                    g.clearRect(0, 0, w, h);
+              } else {
+                if (w > 0) {
+
+                  if (framesPerPixel > 0) {
+                    let arrSize = w * h * 4;
+                    if (arrSize < 0) {
+                      arrSize = 0
+                    }
+                    imgData = new Uint8ClampedArray(arrSize);
+                    let rw = 1;
+                    arrAbBuf = new Array<Float32Array>(chs);
+
+                    for (let ch = 0; ch < chs; ch++) {
+                      arrAbBuf[ch] = new Float32Array(this.dftSize);
+                    }
+
+                    let leftFramePos = Math.floor(frameLength * renderPos / vw) - this.dftSize / 2;
+                    let framesToRead = this.dftSize;
+                    if (leftFramePos < 0) {
+                      leftFramePos = 0;
+                    }
+                    this.drawStateText('Loading/Rendering...');
+                    this.raAsSubsc = raAs.framesObs(leftFramePos, framesToRead, arrAbBuf).subscribe(
+                      {
+                        next: (read) => {
+                          if (arrAbBuf && this.worker) {
+                            if (read < this.dftSize) {
+                              // zero padding
+                              for (let ch = 0; ch < chs; ch++) {
+                                for (let zp = read; zp < this.dftSize; zp++) {
+                                  arrAbBuf[ch][zp] = 0;
+                                }
+                              }
+                            }
+                            for (let ch = 0; ch < chs; ch++) {
+                              const arrAbBufCh = arrAbBuf[ch];
+                              const adLen = arrAbBufCh.buffer.byteLength;
+                              if (!ada[ch] || ada[ch].byteLength !== adLen) {
+                                ada[ch] = new ArrayBuffer(adLen);
+                              }
+                              let fAdaCh = new Float32Array(ada[ch]);
+                              fAdaCh.set(arrAbBuf[ch]);
+                            }
+
+                            this.worker.postMessage({
+                              l: renderPos,
+                              w: rw,
+                              h: h,
+                              vw: vw,
+                              chs: chs,
+                              frameLength: frameLength,
+                              audioData: ada,
+                              audioDataOffset: leftFramePos,
+                              dftSize: this.dftSize,
+                              norender: norender,
+                              terminate: false
+                            }, ada);
+                          }
+                        },
+                        error: (err) => {
+                          console.error("Sonagram: Error reading audio data: " + err);
+                        }
+                      }
+                    );
+                  }
                 }
+              }
             }
+          }
+        });
+            } else {
+        if (this.bounds && this.bounds.dimension) {
+          let w = Math.round(this.bounds.dimension.width);
+          let h = Math.round(this.bounds.dimension.height);
+          let g = this.sonagramCanvas.getContext("2d");
+          if (g) {
+            g.clearRect(0, 0, w, h);
+          }
         }
+      }
     }
 
-    drawRendered(me: MessageEvent) {
+    drawRendered(w:number,h:number,imgData:Uint8ClampedArray) {
         if (this.sonagramCanvas) {
-
-            this.sonagramCanvas.width = me.data.w;
-            this.sonagramCanvas.height = me.data.h;
+            this.sonagramCanvas.width = w;
+            this.sonagramCanvas.height = h;
             let g = this.sonagramCanvas.getContext("2d");
             if (g) {
-                let imgDataArr: Uint8ClampedArray = me.data.imgData;
-                if (me.data.w > 0 && me.data.h > 0) {
-                    let imgData = g.createImageData(me.data.w, me.data.h);
-                    imgData.data.set(imgDataArr);
-                    g.putImageData(imgData, 0, 0);
+                if (w > 0 && h > 0) {
+                    let gImgData = g.createImageData(w, h);
+                    gImgData.data.set(imgData);
+                    g.putImageData(gImgData, 0, 0);
                 }
             }
         }
-        this.drawBg()
+        this.drawBg();
         this.drawPlayPosition();
     }
 
-    // synchronous draw (not used anymore)
-    redraw() {
+//     // synchronous draw (not used anymore)
+//   redraw() {
+//
+//     let g = this.sonagramCanvas.getContext("2d");
+//
+//     let w = this.sonagramCanvas.width;
+//     let h = this.sonagramCanvas.height;
+//     if (g) {
+//       g.clearRect(0, 0, w, h);
+//       g.fillStyle = "white";
+//       g.fillRect(0, 0, w, h);
+//       if (this._audioDataHolder) {
+//         let spectSize = Math.floor(this.dftSize / 2)
+//         let chs = this._audioDataHolder.numberOfChannels;
+//         let chH = h / chs;
+//
+//         let frameLength = this._audioDataHolder.frameLen;
+//
+//         let framesPerPixel = frameLength / w;
+//         let y = 0;
+//         let audioBuffer:AudioBuffer|null=null;
+//         let audioSource=this._audioDataHolder.audioSource;
+//         if(audioSource instanceof AudioBufferSource){
+//           audioBuffer=audioSource.audioBuffer;
+//         }
+//
+//         if(audioBuffer) {
+//           let b = new Float32Array(this.dftSize)
+//
+//           let sona = new Array<Array<Float32Array>>(chs);
+//           let max = 0;
+//           let maxPsd = -Infinity;
+//           for (let ch = 0; ch < chs; ch++) {
+//             let x = 0;
+//             sona[ch] = new Array<Float32Array>(w);
+//
+//             let chData = audioBuffer.getChannelData(ch);
+//             // TODO center buffer
+//
+//             let framePos = 0;
+//             for (let pii = 0; pii < w; pii++) {
+//               framePos = Math.round(pii * framesPerPixel);
+//               // calculate DFT at pixel position
+//               for (let i = 0; i < this.dftSize; i++) {
+//                 let chDat = chData[framePos + i];
+//                 b[i] = chDat;
+//               }
+//               let spectr = this.dft.processRealMagnitude(b);
+//               sona[ch][pii] = spectr;
+//               // @ts-ignore
+//               let pMax = Math.max.apply(null, spectr);
+//               if (pMax > max) {
+//                 max = pMax;
+//               }
+//
+//               for (let s = 0; s < spectSize; s++) {
+//                 let psd = (2 * Math.pow(spectr[s], 2)) / spectSize;
+//                 if (psd > maxPsd) {
+//                   maxPsd = psd;
+//                 }
+//               }
+//             }
+//           }
+//           //console.log("max: ", max);
+//           maxPsd = (2 * Math.pow(max, 2)) / spectSize;
+//           for (let ch = 0; ch < chs; ch++) {
+//
+//             let framePos = 0;
+//             for (let pii = 0; pii < w; pii++) {
+//               framePos = pii * framesPerPixel;
+//
+//               for (let y = 0; y < h; y++) {
+//                 let freqIdx = Math.round(y * spectSize / h);
+//
+//                 // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
+//                 // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
+//                 let val = sona[ch][pii][freqIdx];
+//                 let psd = (2 * Math.pow(val, 2)) / spectSize;
+//
+//                 // Calculate logarithmic
+//                 let psdLog = DSPUtils.toLevelInDB(psd / maxPsd);
+//                 let dynRangeInDb = 70;
+//                 let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
+//
+//                 if (scaledVal > 1)
+//                   scaledVal = 1;
+//                 if (scaledVal < 0) {
+//                   scaledVal = 0;
+//                 }
+//                 let rgbVal = (255 * scaledVal);
+//                 if (rgbVal < 0) {
+// //							System.out.println("Neg RGB val: "+rgbVal);
+//                   rgbVal = 0;
+//                 }
+//                 if (rgbVal > 255) {
+//                   rgbVal = 255;
+//                 }
+//                 rgbVal = 255 - rgbVal;
+//                 let colorStr = CSSUtils.toColorString(rgbVal, rgbVal, rgbVal);
+//                 g.fillStyle = colorStr;
+//                 g.fillRect(pii, chH - y, 1, 1);
+//               }
+//             }
+//           }
+//           this.drawPlayPosition();
+//         }else{
+//           throw Error("Redraw only supported with audio buffer.")
+//         }
+//       }
+//     }
+//   }
+//
 
-        let g = this.sonagramCanvas.getContext("2d");
-
-        let w = this.sonagramCanvas.width;
-        let h = this.sonagramCanvas.height;
-        if (g) {
-            g.clearRect(0, 0, w, h);
-            g.fillStyle = "white";
-            g.fillRect(0, 0, w, h);
-            if (this._audioData) {
-                let spectSize = Math.floor(this.dftSize / 2)
-                let chs = this._audioData.numberOfChannels;
-                let chH = h / chs;
-
-                let frameLength = this._audioData.getChannelData(0).length;
-
-                let framesPerPixel = frameLength / w;
-                let y = 0;
-                // TODO
-                let b = new Float32Array(this.dftSize)
-
-                let sona = new Array<Array<Float32Array>>(chs);
-                let max = 0;
-                let maxPsd = -Infinity;
-                for (let ch = 0; ch < chs; ch++) {
-                    let x = 0;
-                    sona[ch] = new Array<Float32Array>(w);
-
-                    let chData = this._audioData.getChannelData(ch);
-                    // TODO center buffer
-
-                    let framePos = 0;
-                    for (let pii = 0; pii < w; pii++) {
-                        framePos = Math.round(pii * framesPerPixel);
-                        // calculate DFT at pixel position
-                        for (let i = 0; i < this.dftSize; i++) {
-                            let chDat = chData[framePos + i];
-                            b[i] = chDat;
-                        }
-                        let spectr = this.dft.processRealMagnitude(b);
-                        sona[ch][pii] = spectr;
-                        // @ts-ignore
-                        let pMax = Math.max.apply(null, spectr);
-                        if (pMax > max) {
-                            max = pMax;
-                        }
-
-                        for (let s = 0; s < spectSize; s++) {
-                            let psd = (2 * Math.pow(spectr[s], 2)) / spectSize;
-                            if (psd > maxPsd) {
-                                maxPsd = psd;
-                            }
-                        }
-                    }
-                }
-                //console.log("max: ", max);
-                maxPsd = (2 * Math.pow(max, 2)) / spectSize;
-                for (let ch = 0; ch < chs; ch++) {
-
-                    let framePos = 0;
-                    for (let pii = 0; pii < w; pii++) {
-                        framePos = pii * framesPerPixel;
-
-                        for (let y = 0; y < h; y++) {
-                            let freqIdx = Math.round(y * spectSize / h);
-
-                            // calculate the one sided power spectral density PSD (f, t) in Pa2/Hz
-                            // PSD(f) proportional to 2|X(f)|2 / (t2 - t1)
-                            let val = sona[ch][pii][freqIdx];
-                            let psd = (2 * Math.pow(val, 2)) / spectSize;
-
-                            // Calculate logarithmic
-                            let psdLog = DSPUtils.toLevelInDB(psd / maxPsd);
-                            let dynRangeInDb = 70;
-                            let scaledVal = (psdLog + dynRangeInDb) / dynRangeInDb;
-
-                            if (scaledVal > 1)
-                                scaledVal = 1;
-                            if (scaledVal < 0) {
-                                scaledVal = 0;
-                            }
-                            let rgbVal = (255 * scaledVal);
-                            if (rgbVal < 0) {
-//							System.out.println("Neg RGB val: "+rgbVal);
-                                rgbVal = 0;
-                            }
-                            if (rgbVal > 255) {
-                                rgbVal = 255;
-                            }
-                            rgbVal = 255 - rgbVal;
-                            let colorStr = CSSUtils.toColorString(rgbVal, rgbVal, rgbVal);
-                            g.fillStyle = colorStr;
-                            g.fillRect(pii, chH - y, 1, 1);
-                        }
-                    }
-                }
-                this.drawPlayPosition();
-            }
-        }
-    }
-
-
-    setData(audioData: AudioBuffer | null) {
-        this._audioData = audioData;
+    setData(audioData: AudioDataHolder | null) {
+        this._audioDataHolder = audioData;
         this.playFramePosition = 0;
-        //this.redraw();
-        //this.startRender();
     }
-
 
 }
 

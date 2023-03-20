@@ -8,6 +8,7 @@ import {RecordingFile, SprRecordingFile} from "../../recording";
     <mat-card>
       <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
       <mat-card-content>
+        <mat-progress-spinner *ngIf="stateLoading" mode="indeterminate" [diameter]="20"></mat-progress-spinner>
         <table>
           <tr *ngIf="itemCode">
             <td>Itemcode:</td>
@@ -47,6 +48,8 @@ export class RecordingFileMetaComponent{
 
   private _recordingFile:SprRecordingFile|null=null;
 
+  @Input() stateLoading:boolean=false;
+
   get recordingFile(): SprRecordingFile | null {
     return this._recordingFile;
   }
@@ -61,11 +64,11 @@ export class RecordingFileMetaComponent{
       if (this.itemCode) {
 
         this.uuid = null;
-        console.debug("SprRecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+        //console.debug("SprRecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
       } else {
         this.itemCode = null;
         this.uuid = this._recordingFile?.uuid;
-        console.debug("RecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
+        //console.debug("RecordingFile: "+this.itemCode+ " UUID: "+this.uuid)
       }
     }else{
       this.itemCode=null;

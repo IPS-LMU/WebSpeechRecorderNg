@@ -17,16 +17,16 @@ import {Action} from "../../../action/action";
               <legend>Navigate</legend>
               <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="15"></mat-progress-spinner>
               <div *ngIf="!naviInfoLoading"  style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
-                <button (click)="firstAction?.perform()" [disabled]="!firstAction || firstAction?.disabled" matTooltip="First recording file">
+                <button (click)="firstAction?.perform()" [disabled]="!firstAction || firstAction.disabled" matTooltip="First recording file">
                   <mat-icon>first_page</mat-icon>
                 </button>
-                <button (click)="prevAction?.perform()" [disabled]="!prevAction || prevAction?.disabled" matTooltip="Previous recording file">
+                <button (click)="prevAction?.perform()" [disabled]="!prevAction || prevAction.disabled" matTooltip="Previous recording file">
                   <mat-icon>chevron_left</mat-icon>
                 </button>
-                <button (click)="nextAction?.perform()" [disabled]="!nextAction || nextAction?.disabled" matTooltip="Next recording file">
+                <button (click)="nextAction?.perform()" [disabled]="!nextAction || nextAction.disabled" matTooltip="Next recording file">
                   <mat-icon>chevron_right</mat-icon>
                 </button>
-                <button (click)="lastAction?.perform()" [disabled]="!lastAction || lastAction?.disabled" matTooltip="Last recording file">
+                <button (click)="lastAction?.perform()" [disabled]="!lastAction || lastAction.disabled" matTooltip="Last recording file">
                   <mat-icon>last_page</mat-icon>
                 </button>
               </div>

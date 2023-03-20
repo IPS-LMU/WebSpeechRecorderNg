@@ -9,7 +9,7 @@ import {
   OnInit,
   Renderer2,
   HostBinding,
-  AfterContentChecked
+  AfterContentChecked, ChangeDetectorRef, Inject
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -21,6 +21,14 @@ import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
 import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
+import {ResponsiveComponent} from "../../ui/responsive_component";
+import {BreakpointObserver} from "@angular/cdk/layout";
+import {ActivatedRoute} from "@angular/router";
+import {MatDialog} from "@angular/material/dialog";
+import {SessionService} from "./session.service";
+import {RecordingService} from "../recordings/recordings.service";
+import {SpeechRecorderUploader} from "../spruploader";
+import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 
 @Component({
 
@@ -612,9 +620,9 @@ export class PromptingContainer {
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
                                [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
                                [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
+    <app-sprprogress *ngIf="!screenXs" [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
-    <div fxHide.xs #asCt [class.active]="!audioSignalCollapsed">
+    <div #asCt [class.active]="!audioSignalCollapsed && !screenXs">
 
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
                         [audioClip]="displayAudioClip"
@@ -695,15 +703,19 @@ export class PromptingContainer {
   ]
 
 })
+export class Prompting extends ResponsiveComponent{
 
-export class Prompting {
+  constructor(protected bpo:BreakpointObserver) {
+    super(bpo);
+  }
+
   @ViewChild(SimpleTrafficLight, { static: true }) simpleTrafficLight!: SimpleTrafficLight;
   @ViewChild(AudioDisplay, { static: true }) audioDisplay!: AudioDisplay;
   @Input() projectName: string | undefined;
   @Input() startStopSignalState!: StartStopSignalState;
   @Input() promptItem: PromptItem | null=null;
   @Input() showPrompt: boolean=false;
-  @Input() items: Array<Item>|null=null;
+  @Input() items: Array<Item>|undefined=undefined;
   @Input() selectedItemIdx!: number;
   @Input() transportActions!: TransportActions;
   @Input() enableDownload: boolean=false;

@@ -1,12 +1,23 @@
 import { Action } from '../../action/action'
 import { AudioClip } from '../persistor'
+import {ArrayAudioBuffer} from "../array_audio_buffer";
+import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
+import {IndexedDbAudioBuffer} from "../inddb_audio_buffer";
+import {AudioSourceWorkletModuleLoader} from "./audio_source_worklet_module_loader";
+import {IndexedDbAudioBufferSourceNode} from "./inddb_audio_buffer_source_node";
+import {AudioSourceNode} from "./audio_source_node";
+import {NetAudioBuffer} from "../net_audio_buffer";
+import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
+import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
-    export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED}
+
+
+    export enum  EventType {CLOSED,READY,STARTED,POS_UPDATE, STOPPED, ENDED,ERROR}
 
     export class AudioPlayerEvent{
 
-        private _type:EventType;
-        private _timePosition:number | undefined;
+        private readonly _type:EventType;
+        private readonly _timePosition:number | undefined;
 
         constructor(type:EventType, timePosition?:number) {
             this._type = type;
@@ -26,21 +37,25 @@ import { AudioClip } from '../persistor'
     }
 
     export class AudioPlayer {
+
         get autoPlayOnSelectToggleAction(): Action<boolean> {
             return this._autoPlayOnSelectToggleAction;
         }
         public static DEFAULT_BUFSIZE:number = 8192;
         private running=false;
-        private _startAction:Action<void>;
-      private _startSelectionAction:Action<void>;
-        private _autoPlayOnSelectToggleAction:Action<boolean>
-        private _stopAction:Action<void>;
+        private readonly _startAction:Action<void>;
+        private readonly _startSelectionAction:Action<void>;
+        private readonly _autoPlayOnSelectToggleAction:Action<boolean>
+        private readonly _stopAction:Action<void>;
         bufSize:number;
         context:AudioContext;
+        ready=false;
         listener:AudioPlayerListener;
         _audioClip:AudioClip|null=null;
-        _audioBuffer:AudioBuffer | null=null;
+        private _audioSource:AudioSource|null=null;
         sourceBufferNode:AudioBufferSourceNode|null=null;
+        sourceAudioWorkletNode:AudioSourceNode|null=null;
+
         buffPos:number;
         private zeroBufCnt:number;
         n:any;
@@ -62,11 +77,17 @@ import { AudioClip } from '../persistor'
             this._startAction.onAction = ()=>this.start();
             this._startSelectionAction=new Action('Start selected')
             this._startSelectionAction.disabled=true
-             this._startSelectionAction.onAction = ()=>this.startSelected();
+            this._startSelectionAction.onAction = ()=>this.startSelected();
             this._autoPlayOnSelectToggleAction=new Action<boolean>("Autoplay on select",false);
             this._stopAction = new Action('Stop');
             this._stopAction.disabled = true;
             this._stopAction.onAction = ()=>this.stop();
+          this.context.addEventListener('statechange', (ev) => {
+              if(this.context.state!=='running'){
+                this.stop();
+              }
+            }
+          );
         }
 
         get startAction() {
@@ -81,136 +102,272 @@ import { AudioClip } from '../persistor'
             return this._stopAction;
         }
 
-      set audioClip(audioClip:AudioClip| null) {
-        this._audioClip=audioClip;
-        let length = 0;
-        let chs = 0;
-        if (audioClip && audioClip.buffer) {
-          chs = audioClip.buffer.numberOfChannels;
-          if (chs > 0) {
-            length = audioClip.buffer.length;
-            if (chs > this.context.destination.maxChannelCount) {
-              // TODO exception
+        set audioClip(audioClip:AudioClip| null) {
+          this._audioClip=audioClip
+            let length = 0;
+            let chs = 0;
+            if (audioClip && audioClip.audioDataHolder) {
+                let audioDataHolder=audioClip.audioDataHolder;
+                chs = audioDataHolder.numberOfChannels
+                if (chs > 0) {
+                    length = audioDataHolder.frameLen;
+                    if (chs > this.context.destination.maxChannelCount) {
+                        // TODO exception
+                    }
+                }
+                this.audioSource=audioDataHolder.audioSource;
+
+                audioClip.addSelectionObserver((ac)=> {
+                    this._startSelectionAction.disabled = this.startSelectionDisabled()
+                    if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
+                      this.startSelected()
+                    }
+                  }
+                )
+            }else{
+                this.audioSource=null;
             }
-          }
-          this.audioBuffer = audioClip.buffer;
-          audioClip.addSelectionObserver((ac)=> {
-              this._startSelectionAction.disabled = this.startSelectionDisabled()
-              if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
-                this.startSelected()
-              }
-            }
-          )
-        }else{
-          this.audioBuffer=null;
         }
+
+      get audioSource(): AudioSource | null {
+        return this._audioSource;
       }
 
-        set audioBuffer(audioBuffer:AudioBuffer | null) {
-            this.stop();
-            this._audioBuffer = audioBuffer;
-            if (audioBuffer && this.context) {
-                this._startAction.disabled = false;
-                this._startSelectionAction.disabled=this.startSelectionDisabled()
-                if(this.listener){
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+      set audioSource(value: AudioSource | null) {
+        this.stop();
+        this._audioSource = value;
+            if (this._audioSource && this.context) {
+              if (this._audioSource instanceof AudioBufferSource) {
+                this.ready = true;
+                this.updateStartActions();
+                if (this.listener) {
+                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
-            }else{
-                this._startAction.disabled = true;
-                this._startSelectionAction.disabled=true
-                if(this.listener){
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-                }
+              } else {
+                this._loadSourceWorkletAndInitStart();
+              }
+            }else {
+              this.ready = false;
+              this.updateStartActions();
+              if (this.listener) {
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+              }
             }
+      }
+
+        private _loadSourceWorkletAndInitStart(){
+          AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
+            //console.debug("Player ready. ( by Player::_loadSourceWorkletAndInitStart()");
+            this.ready=true;
+            this.updateStartActions();
+            if(this.listener){
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+            }
+          }).catch((error: any)=>{
+            this.ready=false;
+             this.updateStartActions();
+            if(this.listener){
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+            }
+            console.error('Could not add module '+error);
+          });
         }
-        get audioBuffer():AudioBuffer| null{
-            return this._audioBuffer;
-        }
+
+
+  private _startAudioSourceWorkletNode(){
+          if(this.sourceAudioWorkletNode) {
+            this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
+              let msg = 'Unknwon error';
+              if (ev instanceof ErrorEvent) {
+                msg = ev.message;
+              }
+              console.error("Audio source worklet error: " + msg);
+              if (this.listener) {
+                // TODO
+                // this.listener.error(msg);
+                // this.listener.audioPlayerUpdate(new AudioPlayerEvent());
+              }
+            };
+
+            this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
+            this.sourceAudioWorkletNode.onended = () => this.onended();
+            this.running = true;
+            this.sourceAudioWorkletNode.start();
+            //console.debug("Playback start action enabled. ( by Player::_startAudioSourceWorkletNode()");
+            this._startAction.disabled = true;
+            this._startSelectionAction.disabled = true
+            this._stopAction.disabled = false;
+
+            if (this.listener) {
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+            }
+          }
+
+  }
 
         start() {
             if(!this._startAction.disabled && !this.running) {
-                this.context.resume();
-                this.sourceBufferNode = this.context.createBufferSource();
-                this.sourceBufferNode.buffer = this._audioBuffer;
-                this.sourceBufferNode.connect(this.context.destination);
-                this.sourceBufferNode.onended = () => this.onended();
-
-                this.playStartTime = this.context.currentTime;
-                this.running=true;
-                this.sourceBufferNode.start();
-
-                this.playStartTime = this.context.currentTime;
-                this._startAction.disabled = true;
-                this._startSelectionAction.disabled=true
-                this._stopAction.disabled = false;
-                //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
-                if (this.listener) {
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-                }
+              if(this.context.state!=='running') {
+                this.context.resume().then(() => {
+                  this._start();
+                }).catch((reason) => {
+                  console.error('Could not resume audio context: ' + reason);
+                })
+              }else{
+                this._start();
+              }
             }
+        }
+
+        updateStartActions(){
+
+          if(this.ready){
+            if(this._audioSource instanceof AudioBufferSource || this._audioSource instanceof ArrayAudioBuffer || this._audioSource instanceof IndexedDbAudioBuffer){
+              this._startAction.disabled=false;
+              this._startSelectionAction.disabled=this.startSelectionDisabled();
+            }else{
+              if(this._audioSource instanceof NetAudioBuffer){
+                this._audioSource.addOnReadyListener(()=>{
+                  this._startAction.disabled=false;
+                  this._startSelectionAction.disabled=this.startSelectionDisabled();
+                });
+              }
+            }
+          }else{
+            this._startAction.disabled=true;
+            this._startSelectionAction.disabled=true;
+          }
         }
 
         startSelectionDisabled(){
           return !(this._audioClip && this.context && !this.startAction.disabled && this._audioClip.selection )
         }
 
+
+        private _start(playSelection=false){
+          if (this._audioSource instanceof AudioBufferSource) {
+            this.sourceBufferNode = this.context.createBufferSource();
+            this.sourceBufferNode.buffer = this._audioSource.audioBuffer;
+            this.sourceBufferNode.connect(this.context.destination);
+            this.sourceBufferNode.onended = () => this.onended();
+            this.playStartTime = this.context.currentTime;
+            this.running = true;
+            // unfortunately Web Audio API uses time values not frames
+            const ac = this._audioClip
+            let offset = 0;
+            if (playSelection && ac && ac.selection) {
+
+              const s = ac.selection;
+              const sr = ac.audioDataHolder.sampleRate;
+              offset = s.leftFrame / sr;
+              const stopPosInsecs = s.rightFrame / sr;
+              const dur = stopPosInsecs - offset;
+              this.sourceBufferNode.start(0, offset, dur)
+            } else {
+              this.sourceBufferNode.start();
+            }
+            this.playStartTime = this.context.currentTime - offset;
+            this._startAction.disabled = true;
+            this._startSelectionAction.disabled = true
+            this._stopAction.disabled = false;
+
+            if (this.listener) {
+              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+            }
+          } else if (this._audioSource instanceof ArrayAudioBuffer || this._audioSource instanceof IndexedDbAudioBuffer || this._audioSource instanceof NetAudioBuffer) {
+            this.playStartTime = null;
+            if (this._audioSource instanceof ArrayAudioBuffer) {
+              const aabsn = new ArrayAudioBufferSourceNode(this.context);
+              aabsn.arrayAudioBuffer = this._audioSource;
+              this.sourceAudioWorkletNode = aabsn;
+            } else if (this._audioSource instanceof IndexedDbAudioBuffer) {
+              const iasn = new IndexedDbAudioBufferSourceNode(this.context);
+              iasn.inddbAudioBuffer = this._audioSource;
+              this.sourceAudioWorkletNode = iasn;
+            } else if (this._audioSource instanceof NetAudioBuffer) {
+              const nabsn = new NetAudioBufferSourceNode(this.context);
+              nabsn.netAudioBuffer = this._audioSource;
+              this.sourceAudioWorkletNode = nabsn;
+            }
+            if (this.sourceAudioWorkletNode) {
+              this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
+                let msg = 'Unknwon error';
+                if (ev instanceof ErrorEvent) {
+                  msg = ev.message;
+                }
+                console.error("Audio source worklet error: " + msg);
+                if (this.listener) {
+                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ERROR));
+                }
+              };
+
+              this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
+              this.sourceAudioWorkletNode.onended = () => this.onended();
+
+              this.running = true;
+
+              const ac = this._audioClip
+              let offset = 0
+              if (playSelection && ac && ac.selection) {
+                const s = ac.selection;
+                const sr = ac.audioDataHolder.sampleRate;
+                offset = s.leftFrame / sr;
+                const stopPosInsecs = s.rightFrame / sr;
+                const dur = stopPosInsecs - offset
+                this.sourceAudioWorkletNode.start(0, offset, dur)
+              } else {
+                this.sourceAudioWorkletNode.start();
+              }
+
+              //this.playStartTime = this.context.currentTime - offset;
+              this._startAction.disabled = true;
+              this._startSelectionAction.disabled = true
+              this._stopAction.disabled = false;
+
+              if (this.listener) {
+                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+              }
+            }
+          }
+        }
+
       startSelected() {
         if(!this._startAction.disabled && !this.running) {
-          this.context.resume();
-          this.sourceBufferNode = this.context.createBufferSource();
-
-          this.sourceBufferNode.buffer = this._audioBuffer;
-          this.sourceBufferNode.connect(this.context.destination);
-          this.sourceBufferNode.onended = () => this.onended();
-
-          this.playStartTime = this.context.currentTime;
-          this.running=true;
-          // unfortunately Web Audio API uses time values not frames
-          let ac=this._audioClip
-          let offset=0
-          if(ac && ac.selection){
-            let s=ac.selection
-            let sr=ac.buffer.sampleRate
-            offset=s.leftFrame/sr
-            let stopPosInsecs=s.rightFrame/sr
-          let dur=stopPosInsecs-offset
-            // TODO check valid values
-            this.sourceBufferNode.start(0,offset,dur)
-          }else {
-            this.sourceBufferNode.start();
+          if (this.context.state !== 'running') {
+            this.context.resume().then(() => {
+              this._start(true);
+            }).catch((reason) => {
+              console.error('Could not resume audio context: ' + reason);
+            })
+          }else{
+            this._start(true);
           }
-          this.playStartTime = this.context.currentTime-offset;
-          this._startAction.disabled = true;
-          this._startSelectionAction.disabled=true
-                this._stopAction.disabled = false;
-                //this.timerVar = window.setInterval((e)=>this.updatePlayPosition(), 200);
-                if (this.listener) {
-                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-                }
-            }
         }
+      }
 
         stop(){
             if(this.running) {
                 if (this.sourceBufferNode) {
                     this.sourceBufferNode.stop();
                 }
-                if(this.timerVar!==null) {
+                if(this.sourceAudioWorkletNode){
+                  this.sourceAudioWorkletNode.stop();
+                }
+                  if (this.timerVar !== null) {
                     window.clearInterval(this.timerVar);
-                }
-                this.running=false;
-                if (this.listener) {
+                  }
+                  this.running = false;
+                  if (this.listener) {
                     this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STOPPED));
+                  }
                 }
-            }
-
         }
 
         onended() {
             if(this.timerVar!=null) {
                 window.clearInterval(this.timerVar);
             }
-            this._startAction.disabled = !(this.audioBuffer);
+            this._startAction.disabled = !this._audioSource;
             this._startSelectionAction.disabled=this.startSelectionDisabled()
             this._stopAction.disabled = true;
             this.running=false;
@@ -223,20 +380,25 @@ import { AudioClip } from '../persistor'
             let ppt=null;
             if(this.playStartTime!==null) {
                 ppt= this.context.currentTime - this.playStartTime;
+            }else if(this.sourceAudioWorkletNode){
+              ppt=this.sourceAudioWorkletNode.playPositionTime;
             }
             return ppt;
         }
 
-        get playPositionFrames():number|null {
-            let ppFrs:number|null=null;
-            if(this._audioBuffer ) {
-                let ppTime = this.playPositionTime;
-                if(ppTime!==null) {
-                    ppFrs = this._audioBuffer.sampleRate * ppTime;
-                }
-            }
-            return ppFrs;
-        }
+      get playPositionFrames():number|null {
+        let ppFrs:number|null=null;
+       if(this._audioSource) {
+         let sr=this._audioSource.sampleRate;
+         if (sr) {
+           let ppTime = this.playPositionTime;
+           if (ppTime !== null) {
+             ppFrs = sr * ppTime;
+           }
+         }
+       }
+        return ppFrs;
+      }
 
     }
 

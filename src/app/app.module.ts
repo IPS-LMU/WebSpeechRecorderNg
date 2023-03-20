@@ -15,7 +15,7 @@ import { MatMenuModule } from "@angular/material/menu";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
 import {SPR_CFG} from "./app.config";
-import {FlexLayoutModule} from "@angular/flex-layout";
+//import {FlexLayoutModule} from "@angular/flex-layout";
 import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -40,13 +40,12 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SessionsComponent
+    AppComponent,SessionsComponent,StartComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
-    FlexLayoutModule,
     BrowserAnimationsModule,
-    MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+    MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
     BrowserModule,
     SpeechrecorderngModule.forRoot(SPR_CFG)
   ],

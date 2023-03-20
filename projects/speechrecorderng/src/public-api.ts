@@ -12,6 +12,7 @@ export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
 export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
 
+export {ResponsiveComponent} from './lib/ui/responsive_component'
 export {MessageDialog} from "./lib/ui/message_dialog"
 export {ReadyStateProvider} from "./lib/recorder_component"
 export {AudioClip,Selection} from './lib/audio/persistor'
