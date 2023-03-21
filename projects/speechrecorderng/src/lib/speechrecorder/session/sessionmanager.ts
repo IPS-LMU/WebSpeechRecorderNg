@@ -1283,7 +1283,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     let rf = this._recordingFile;
     if (rf && rf instanceof SprRecordingFile) {
       this.items?.setSprRecFileAudioData(rf,adh);
-      if (this.enableUploadRecordings && AudioStorageType.MEM_ENTIRE===this._clientAudioStorageType) {
+      if (this.enableUploadRecordings && this._uploadChunkSizeSeconds===null && AudioStorageType.MEM_ENTIRE===this._clientAudioStorageType) {
         // TODO use SpeechRecorderconfig resp. RecfileService
         // convert asynchronously to 16-bit integer PCM
         // TODO could we avoid conversion to save CPU resources and transfer float PCM directly?
