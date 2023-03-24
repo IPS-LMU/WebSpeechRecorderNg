@@ -13,7 +13,7 @@ import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
 import {Upload} from "../../net/uploader";
-import {Inject} from "@angular/core";
+import {ChangeDetectorRef, Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
 
@@ -26,7 +26,8 @@ import {SprRecordingFile} from "../recording";
 import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
-
+import {ResponsiveComponent} from "../../ui/responsive_component";
+import {BreakpointObserver} from "@angular/cdk/layout";
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
 export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -96,7 +97,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 
 }
 
-export abstract class BasicRecorder {
+export abstract class BasicRecorder  extends ResponsiveComponent{
   get uploadChunkSizeSeconds(): number | null {
     return this._uploadChunkSizeSeconds;
   }
@@ -140,7 +141,7 @@ export abstract class BasicRecorder {
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
   peakLevelInDb:number=MIN_DB_LEVEL;
-  protected _controlAudioPlayer!: AudioPlayer;
+  protected _controlAudioPlayer: AudioPlayer|null=null;
   displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
 
@@ -155,10 +156,12 @@ export abstract class BasicRecorder {
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(  public dialog: MatDialog,
+  constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
+                public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
                 @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
+    super(bpo);
     this.userAgent=UserAgentBuilder.userAgent();
     console.debug("Detected platform: "+this.userAgent.detectedPlatform);
     console.debug("Detected browser: "+this.userAgent.detectedBrowser);
