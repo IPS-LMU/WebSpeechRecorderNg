@@ -40,7 +40,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SessionsComponent
+    AppComponent,SessionsComponent,StartComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
