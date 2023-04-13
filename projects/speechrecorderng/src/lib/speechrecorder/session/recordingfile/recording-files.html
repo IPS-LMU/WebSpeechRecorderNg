@@ -15,7 +15,7 @@
           </ng-container>
             <ng-container matColumnDef="action">
                 <th mat-header-cell *matHeaderCellDef>Action</th>
-                <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" matToolTip="Show recording file details" (click)="toRecordingFileDetail(element)"><mat-icon>view_stream</mat-icon></button> <button mat-stroked-button color="primary" matTooltip="Delete recording file" (click)="deleteRecordingFileRequest(element)"><mat-icon [style.color]="'red'">delete</mat-icon></button></td>
+                <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" matToolTip="Show recording file details" (click)="toRecordingFileDetail(element)"><mat-icon>view_stream</mat-icon></button> <button *ngIf="deleteEnabled" mat-stroked-button color="primary" matTooltip="Delete recording file" (click)="deleteRecordingFileRequest(element)"><mat-icon [style.color]="'red'">delete</mat-icon></button></td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>

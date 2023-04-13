@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Inject, OnInit, Renderer2, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Inject, Input, OnInit, Renderer2, ViewChild} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 
 import {DOCUMENT} from "@angular/common";
@@ -11,7 +11,7 @@ import {ScriptService} from "../../script/script.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {SessionService} from "../session.service";
 import {MatDialog} from "@angular/material/dialog";
-import {RecordingFileDeleteConfirmDialog} from "./recoring-file_delete_confirm_dialog";
+import {RecordingFileDeleteConfirmDialog} from "./recording-file_delete_confirm_dialog";
 import {MessageDialog} from "../../../ui/message_dialog";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {RecordingFileService} from "./recordingfile-service";
@@ -32,6 +32,7 @@ export class RecordingFilesComponent implements  OnInit,AfterViewInit {
     displayedColumns: string[] = ['recordingFileId','itemCode','action'];
     dataSource:MatTableDataSource<RecordingFile>;
     waitingForRfs:boolean=false;
+    @Input() deleteEnabled=true;
     @ViewChild(MatSort, { static: true }) sort!: MatSort;
     private d:Document;
 

@@ -69,7 +69,7 @@ import {ProjectInfo} from "./speechrecorder/project/project_info";
 import {SpeakerService} from "./speechrecorder/speaker/speaker.service";
 import {
   RecordingFileDeleteConfirmDialog
-} from "./speechrecorder/session/recordingfile/recoring-file_delete_confirm_dialog";
+} from "./speechrecorder/session/recordingfile/recording-file_delete_confirm_dialog";
 import {MatMenuModule} from "@angular/material/menu";
 import {CanvasLayerComponent} from "./ui/canvas_layer_comp";
 import {ResponsiveComponent} from "./ui/responsive_component";
