@@ -250,9 +250,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
-    let context:AudioContext|null=null;
+
     try {
-      context = AudioContextProvider.audioContextInstance()
+      this.context = AudioContextProvider.audioContextInstance()
     } catch (err) {
       this.status = Status.ERROR;
       let errMsg = 'Unknown error';
@@ -271,12 +271,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       });
       return;
     }
-    if(context) {
-      console.info("State of audio context: " + context.state)
+    if(this.context) {
+      console.info("State of audio context: " + this.context.state)
     }else{
       console.info("No audio context available!");
     }
-    if (!context || !navigator.mediaDevices) {
+    if (!this.context || !navigator.mediaDevices) {
       this.status = Status.ERROR;
       let errMsg = 'Browser does not support Media streams!';
       this.statusMsg = 'ERROR: ' + errMsg;
@@ -291,7 +291,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       });
       return;
     } else {
-      this.ac = new AudioCapture(context);
+      this.ac = new AudioCapture(this.context);
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;

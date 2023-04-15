@@ -135,6 +135,8 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 
 export abstract class BasicRecorder extends ResponsiveComponent{
 
+  protected context:AudioContext|null=null;
+
   protected updateTimerId: any;
 
   protected maxRecTimerId: number|null=null;
