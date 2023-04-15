@@ -279,6 +279,14 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     this.selCaptureDeviceId = null;
   }
 
+  ngOnDestroy() {
+    if(this.context){
+      this.context.close();
+    }
+    this.disableWakeLockCond();
+    this.destroyed=true;
+  }
+
   get wakeLock(): boolean {
     return this._wakeLock;
   }

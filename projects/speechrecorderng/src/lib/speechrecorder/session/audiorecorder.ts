@@ -226,11 +226,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   ready():boolean{
     return this.dataSaved && !this.isActive()
   }
-    ngOnDestroy() {
-      this.disableWakeLockCond();
-       this.destroyed=true;
-       // TODO stop capture /playback
-    }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+  }
 
   ngOnInit() {
     this.transportActions.startAction.disabled = true;
