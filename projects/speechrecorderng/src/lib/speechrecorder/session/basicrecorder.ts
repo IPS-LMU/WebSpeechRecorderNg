@@ -13,7 +13,7 @@ import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
 import {Upload, UploadHolder, UploadSet} from "../../net/uploader";
-import {ChangeDetectorRef, Inject} from "@angular/core";
+import {ChangeDetectorRef, Directive, Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
 
@@ -133,6 +133,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 
 }
 
+@Directive()
 export abstract class BasicRecorder extends ResponsiveComponent{
 
   protected context:AudioContext|null=null;
@@ -280,8 +281,12 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   }
 
   ngOnDestroy() {
+    //this.ac?.close();
     if(this.context){
-      this.context.close();
+      //console.debug("Suspend audio context ...");
+      this.context.close().then(()=>{
+        console.debug("Audio context suspended.");
+      })
     }
     this.disableWakeLockCond();
     this.destroyed=true;

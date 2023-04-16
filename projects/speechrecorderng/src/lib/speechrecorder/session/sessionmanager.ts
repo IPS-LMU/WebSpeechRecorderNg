@@ -234,6 +234,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
     ngOnDestroy() {
+    console.debug("Session manager destroy...");
       super.ngOnDestroy();
     }
 
