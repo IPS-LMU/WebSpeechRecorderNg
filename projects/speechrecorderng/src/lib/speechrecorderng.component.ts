@@ -370,6 +370,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       }else{
         this.sm.uploadChunkSizeSeconds=null;
       }
+      if(project.showSessionCompleteMessage!=null){
+        this.sm.showSessionCompleteMessage=project.showSessionCompleteMessage;
+      }
     } else {
       console.error("Empty project configuration!")
     }
