@@ -45,7 +45,8 @@ export interface Project {
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
   audioDevices?: Array<AudioDevice>,
   chunkedRecording?: boolean,
-  clientAudioStorageType?:AudioStorageType
+  clientAudioStorageType?:AudioStorageType,
+  showSessionCompleteMessage?:boolean;
 }
 
 

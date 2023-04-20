@@ -204,6 +204,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   promptItemCount!: number;
 
+  showSessionCompleteMessage=true;
+
   constructor(protected bpo:BreakpointObserver,
               changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
@@ -1342,8 +1344,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       }
       this.statusMsg = 'Session complete!';
       this.updateWakeLock();
-      let dialogRef = this.dialog.open(SessionFinishedDialog, {});
-
+      if(this.showSessionCompleteMessage) {
+        this.dialog.open(SessionFinishedDialog, {});
+      }
       // enable navigation
       this.transportActions.fwdAction.disabled = false
       this.transportActions.bwdAction.disabled = false
