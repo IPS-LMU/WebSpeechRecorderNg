@@ -56,15 +56,21 @@ export class RecordingService extends BasicRecordingService{
   //   return recFilesUrl;
   // }
 
-  private sessionRecFilesUrl(projectName: string, sessId: string | number):string{
-    let encPrjName=encodeURIComponent(projectName);
+  private sessionRecFilesUrl(projectName: string|null, sessId: string | number):string{
+
     let encSessId=encodeURIComponent(sessId);
-    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
+    let recFilesUrl=null;
+    if(projectName) {
+      const encPrjName=encodeURIComponent(projectName);
+      recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
         SessionService.SESSION_API_CTX + '/' + encSessId + '/' + RecordingService.REC_API_CTX;
+    }else{
+      recFilesUrl = this.apiEndPoint + SessionService.SESSION_API_CTX + '/' + encSessId + '/' + RecordingService.REC_API_CTX;
+    }
     return recFilesUrl;
   }
 
-  private sessionRecFilesReqUrl(projectName: string, sessId: string | number):string{
+  private sessionRecFilesReqUrl(projectName: string|null, sessId: string | number):string{
     let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
@@ -80,13 +86,13 @@ export class RecordingService extends BasicRecordingService{
     return wobs;
   }
 
-  recordingFileList(projectName: string, sessId: string | number):Observable<Array<RecordingFile>> {
+  recordingFileList(projectName: string|null, sessId: string | number):Observable<Array<RecordingFile>> {
     let recFilesReqUrl = this.sessionRecFilesReqUrl(projectName,sessId);
     let wobs = this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
-  sprRecordingFileList(projectName: string, sessId: string | number):Observable<Array<SprRecordingFile>> {
+  sprRecordingFileList(projectName: string|null, sessId: string | number):Observable<Array<SprRecordingFile>> {
     let recFilesReqUrl = this.sessionRecFilesReqUrl(projectName,sessId);
     let wobs = this.http.get<Array<SprRecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
