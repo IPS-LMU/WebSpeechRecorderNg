@@ -283,8 +283,8 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   ngOnDestroy() {
     //this.ac?.close();
     if(this.context){
-      //console.debug("Suspend audio context ...");
-      this.context.close().then(()=>{
+      console.debug("Suspend audio context ...");
+      this.context.suspend().then(()=>{
         console.debug("Audio context suspended.");
       })
     }
