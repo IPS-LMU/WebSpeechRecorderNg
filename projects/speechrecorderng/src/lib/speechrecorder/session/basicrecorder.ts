@@ -444,7 +444,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
             type: 'error',
             title: 'Error',
             msg: "This session is sealed. Recordings cannot be added anymore.",
-            advise: 'Please ask your experimenter what to do (e.g start a new session).',
+            advice: 'Please ask your experimenter what to do (e.g start a new session).',
           }
         });
       } else {

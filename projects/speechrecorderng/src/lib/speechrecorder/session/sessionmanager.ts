@@ -266,7 +266,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           type: 'error',
           title: 'Error',
           msg: errMsg,
-          advise: 'Please use a supported browser.',
+          advice: 'Please use a supported browser.',
         }
       });
       return;
@@ -286,7 +286,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           type: 'error',
           title: 'Error',
           msg: errMsg,
-          advise: 'Please use a supported browser.',
+          advice: 'Please use a supported browser.',
         }
       });
       return;
@@ -310,7 +310,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
             type: 'error',
             title: 'Error',
             msg: errMsg,
-            advise: 'Please use a supported browser.',
+            advice: 'Please use a supported browser.',
           }
         });
         return;

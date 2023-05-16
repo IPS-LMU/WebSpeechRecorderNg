@@ -256,7 +256,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           type: 'error',
           title: 'Error',
           msg: errMsg,
-          advise: 'Please use a supported browser.',
+          advice: 'Please use a supported browser.',
         }
       });
       return;
@@ -276,7 +276,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           type: 'error',
           title: 'Error',
           msg: errMsg,
-          advise: 'Please use a supported browser.',
+          advice: 'Please use a supported browser.',
         }
       });
       return;
@@ -300,7 +300,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             type: 'error',
             title: 'Error',
             msg: errMsg,
-            advise: 'Please use a supported browser.',
+            advice: 'Please use a supported browser.',
           }
         });
         return;
