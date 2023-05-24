@@ -1,0 +1,19 @@
+{
+    "recordingFileId": "sinus_377Hz",
+    "session": 2,
+    "version": 1,
+    "recording": {
+        "itemcode": "SIN377",
+        "recduration": 10000,
+
+        "mediaitems": [
+            {
+                "annotationTemplate": false,
+                "autoplay": false,
+                "mimetype": "text/plain",
+                "text": "Sinus 377Hz"
+            }
+        ]
+    }
+}
+
