@@ -43,7 +43,7 @@ testem.log
 Thumbs.db
 
 # NPM package lock file
-/package-lock.json
+#/package-lock.json
 
 # project configuration environment file
 src/environments/environment.prod.ts
