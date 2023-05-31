@@ -70,7 +70,7 @@ export class RecordingService extends BasicRecordingService{
     return recFilesUrl;
   }
 
-  private sessionRecFilesReqUrl(projectName: string|null, sessId: string | number):string{
+  public sessionRecordingFilesRequestURL(projectName: string|null, sessId: string | number):string{
     let recFilesUrl=this.sessionRecFilesUrl(projectName,sessId);
     if (this.config && this.config.apiType === ApiType.FILES) {
       // for development and demo
@@ -81,19 +81,19 @@ export class RecordingService extends BasicRecordingService{
   }
 
   recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptorImpl>> {
-    let recFilesReqUrl = this.sessionRecFilesReqUrl(projectName,sessId);
+    let recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
     let wobs = this.http.get<Array<RecordingFileDescriptorImpl>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   recordingFileList(projectName: string|null, sessId: string | number):Observable<Array<RecordingFile>> {
-    let recFilesReqUrl = this.sessionRecFilesReqUrl(projectName,sessId);
+    let recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
     let wobs = this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
 
   sprRecordingFileList(projectName: string|null, sessId: string | number):Observable<Array<SprRecordingFile>> {
-    let recFilesReqUrl = this.sessionRecFilesReqUrl(projectName,sessId);
+    let recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
     let wobs = this.http.get<Array<SprRecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
     return wobs;
   }
