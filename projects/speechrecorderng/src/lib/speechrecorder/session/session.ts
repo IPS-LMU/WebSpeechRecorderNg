@@ -15,6 +15,6 @@ export interface Session{
   completedDate?:Date,
   restartedDate?:Date,
   project: string,
-  script: string | number
+  script: string | number | null
 
 }

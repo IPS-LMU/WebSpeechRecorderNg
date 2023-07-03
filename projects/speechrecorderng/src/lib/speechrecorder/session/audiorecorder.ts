@@ -1236,12 +1236,16 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
     this.route.queryParams.subscribe((params: Params) => {
       if (params['sessionId']) {
         this.fetchSession(params['sessionId']);
+      }else{
+        this.loadStandaloneSession();
       }
     });
     this.route.params.subscribe((params: Params) => {
       let routeParamsId = params['id'];
       if (routeParamsId) {
         this.fetchSession(routeParamsId);
+      }else{
+        this.loadStandaloneSession();
       }
     });
   }
@@ -1249,6 +1253,14 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   ngOnDestroy() {
     //super.ngOnDestroy();
   }
+
+  loadStandaloneSession(){
+    const standaloneProject:Project={name:'Standalone'};
+    this.session={sessionId:0,project:standaloneProject.name,status:'LOADED',type:"NORM",script:0};
+    this.ar.project=standaloneProject;
+    this.ar.start();
+  }
+
 
   get screenLocked():boolean{
     return  this.ar.screenLocked;

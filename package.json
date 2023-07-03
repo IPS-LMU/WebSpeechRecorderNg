@@ -22,7 +22,9 @@
     "publish_module": "cd dist && cd speechrecorderng && npm publish",
     "start": "ng serve --configuration development",
     "start_prod": "ng serve --configuration production",
+    "start_standalone": "ng serve --configuration standalone",
     "build": "ng build",
+    "build_standalone_audiorecorder": "ng build --base-href /WebSpeechRecorderNg/dist/WebSpeechRecorderNg --configuration standalone",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

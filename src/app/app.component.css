@@ -12,6 +12,17 @@ md-toolbar {
   margin: 0;
   padding: 0;
 }
+.toolbar {
+  /*position: fixed;*/
+  /* Make sure the toolbar will stay on top of the content as it scrolls past. */
+  /*z-index: 2;*/
+  width: 20%;
+}
+.sidenavcontainer{
+  flex: 2;
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /*router-outlet {*/
   /*//flex: 1;*/

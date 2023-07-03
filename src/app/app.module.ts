@@ -21,6 +21,10 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import {RouterModule, Routes} from "@angular/router";
+import {MatCardModule} from "@angular/material/card";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatSidenavModule} from "@angular/material/sidenav";
+import { SettingsComponent } from './settings/settings.component';
 
 
 
@@ -28,6 +32,9 @@ const appRoutes: Routes = [
 
   { path: 'session',
     component: SessionsComponent
+  },
+  { path: 'settings',
+    component: SettingsComponent
   },
     { path: 'test',
         redirectTo: 'session/',
@@ -40,14 +47,14 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SessionsComponent,StartComponent
+    AppComponent,SessionsComponent,StartComponent, SettingsComponent
   ],
   imports: [
-    RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
+    RouterModule.forRoot(appRoutes, {relativeLinkResolution: 'legacy'}),
     BrowserAnimationsModule,
-    MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+    MatMenuModule, MatFormFieldModule, MatInputModule, MatToolbarModule, MatMenuModule, MatIconModule, MatButtonModule, MatDialogModule,
     BrowserModule,
-    SpeechrecorderngModule.forRoot(SPR_CFG)
+    SpeechrecorderngModule.forRoot(SPR_CFG), MatCardModule, MatCheckboxModule, MatSidenavModule
   ],
   providers: [],
   bootstrap: [AppComponent]

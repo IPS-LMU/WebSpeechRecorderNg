@@ -58,6 +58,27 @@
               ],
               "outputHashing": "all"
             },
+            "standalone": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "10mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.standalone.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "development": {
               "buildOptimizer": false,
               "optimization": false,
@@ -74,6 +95,9 @@
           "configurations": {
             "production": {
               "browserTarget": "WebSpeechRecorderNg:build:production"
+            },
+            "standalone": {
+              "browserTarget": "WebSpeechRecorderNg:build:standalone"
             },
             "development": {
               "browserTarget": "WebSpeechRecorderNg:build:development"
