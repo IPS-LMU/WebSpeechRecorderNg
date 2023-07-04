@@ -17,6 +17,8 @@ export class ProjectService {
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
 
+  private standaloneProject:Project|null=null;
+
   constructor(private http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
@@ -63,6 +65,13 @@ export class ProjectService {
   projectObservable(id:string):Observable<Project>{
     let prjUrl=this.projectUrl(id);
      return this.http.get<Project>(prjUrl,{withCredentials: this.withCredentials})
+   }
+
+   projectStandalone():Project{
+    if(!this.standaloneProject) {
+      this.standaloneProject = {name: 'Standalone'};
+    }
+    return this.standaloneProject;
    }
 
 }

@@ -32,7 +32,7 @@ export enum AudioStorageType {
 export interface AutoGainControlConfig {
   value: boolean,
   //constraintType : ConstraintType,
-  platform: Platform,
+  platform: Platform|null,
   //browserBase:BrowserBase,
   //browser:Browser
 }
