@@ -3,14 +3,17 @@
     <button mat-button [matMenuTriggerFor]="menu">
       <mat-icon>menu</mat-icon>
     </button>
-    <mat-menu #menu="matMenu" yPosition="below" [overlapTrigger]="false">
-      <button mat-menu-item  [matMenuTriggerFor]="helpMenu">Help</button>
-      <mat-menu #helpMenu="matMenu" xPosition="after" [overlapTrigger]="false">
-        <p>WebSpeechRecorderNg {{sprVersion}}</p>
-      </mat-menu>
-     <!-- <button mat-menu-item  (click)="router.navigate(['settings']);">Settings</button> -->
-      <button mat-menu-item  (click)="openSettingsDialog()">Settings</button>
+  <mat-menu #menu="matMenu" yPosition="below" [overlapTrigger]="false">
+    <button mat-menu-item  [matMenuTriggerFor]="helpMenu">Help</button>
+    <mat-menu #helpMenu="matMenu" xPosition="after" [overlapTrigger]="false">
+      <p>WebSpeechRecorderNg {{sprVersion}}</p>
     </mat-menu>
+    <button mat-menu-item (click)="openSettingsDialog()">Settings</button>
+  </mat-menu>
+
+  <span *ngIf="!screenXs">{{title}}</span><span *ngIf="screenXs">{{shortTitle}}</span>
+
+
 </mat-toolbar>
 <!--
 <mat-sidenav-container class="sidenavcontainer"  autosize >
@@ -22,7 +25,7 @@
       </mat-menu>
       <button mat-menu-item  (click)="router.navigate(['settings']);">Settings</button>
   </mat-sidenav>
-      <mat-sidenav-content style="padding: 0px;margin: 0px">
+<mat-sidenav-content style="padding: 0px;margin: 0px">
 <router-outlet></router-outlet>
 </mat-sidenav-content>
 </mat-sidenav-container>

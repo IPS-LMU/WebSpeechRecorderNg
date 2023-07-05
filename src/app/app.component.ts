@@ -5,7 +5,8 @@ import {BreakpointObserver} from "@angular/cdk/layout";
 import {MatSidenav} from "@angular/material/sidenav";
 import {Router} from "@angular/router";
 import {MatDialog} from "@angular/material/dialog";
-import {SettingsComponent} from "./settings/settings.component";
+//import {SettingsComponent} from "../../projects/speechrecorderng/src/lib/audio/ui/settings/settings.component";
+import {SettingsComponent} from "speechrecorderng";
 
 
 @Component({

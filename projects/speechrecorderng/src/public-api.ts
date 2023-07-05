@@ -30,6 +30,7 @@ export {AudioDisplayControl} from "./lib/audio/ui/audio_display_control"
 export {LevelBar} from './lib/audio/ui/livelevel'
 
 export {ProjectService} from './lib/speechrecorder/project/project.service'
+export {SettingsComponent} from './lib/audio/ui/settings/settings.component'
 export {Session} from './lib/speechrecorder/session/session'
 export {SessionService} from './lib/speechrecorder/session/session.service'
 export {ScriptService} from './lib/speechrecorder/script/script.service'

@@ -24,7 +24,8 @@ import {RouterModule, Routes} from "@angular/router";
 import {MatCardModule} from "@angular/material/card";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatSidenavModule} from "@angular/material/sidenav";
-import { SettingsComponent } from './settings/settings.component';
+
+
 
 
 
@@ -32,9 +33,6 @@ const appRoutes: Routes = [
 
   { path: 'session',
     component: SessionsComponent
-  },
-  { path: 'settings',
-    component: SettingsComponent
   },
     { path: 'test',
         redirectTo: 'session/',
@@ -47,7 +45,7 @@ const appRoutes: Routes = [
 
 @NgModule({
   declarations: [
-    AppComponent,SessionsComponent,StartComponent, SettingsComponent
+    AppComponent,SessionsComponent,StartComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {relativeLinkResolution: 'legacy'}),

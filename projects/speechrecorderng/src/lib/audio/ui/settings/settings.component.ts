@@ -1,16 +1,16 @@
 import {AfterViewInit, Component, OnInit} from '@angular/core';
-import {MatDialogRef} from "@angular/material/dialog";
-import {ProjectService} from "../../../speechrecorder/project/project.service";
-
+import {MatDialogRef} from "@angular/material/dialog"
 @Component({
   selector: 'lib-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
+
 })
 export class SettingsComponent implements OnInit ,AfterViewInit{
 
   agcOn=false;
-  constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService) { }
+  constructor(public dialogRef: MatDialogRef<SettingsComponent>
+  ) { }
 
   ngOnInit(): void {
 
