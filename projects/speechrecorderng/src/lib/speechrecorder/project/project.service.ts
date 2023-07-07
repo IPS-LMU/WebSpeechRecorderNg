@@ -6,18 +6,20 @@ import {HttpClient} from "@angular/common/http";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Project} from "./project";
 import {UUID} from "../../utils/utils";
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {PlatformLocation} from "@angular/common";
 
 
 
 @Injectable()
 export class ProjectService {
+
   public static readonly PROJECT_API_CTX='project'
   private projectCtxUrl:string;
   private withCredentials:boolean=false;
 
-  private standaloneProject:Project|null=null;
+  //private standaloneProject:Project|null=null;
+  private _behaviourSubjectProject:BehaviorSubject<Project>|null=null;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
@@ -68,14 +70,18 @@ export class ProjectService {
    }
 
    projectStandalone():Project{
-    if(!this.standaloneProject) {
-      this.standaloneProject = {name: 'Standalone'};
-      this.standaloneProject.mediaCaptureFormat={audioChannelCount:1};
-      this.standaloneProject.autoGainControlConfigs=[{platform:null,value:true}];
-
-    }
-    return this.standaloneProject;
+    return this.behaviourSubjectProject().value;
    }
+
+  behaviourSubjectProject(): BehaviorSubject<Project> {
+    if(!this._behaviourSubjectProject){
+      const newPrj:Project={name: 'Standalone'};
+      newPrj.mediaCaptureFormat={audioChannelCount:1};
+      newPrj.autoGainControlConfigs=[{platform:null,value:true}];
+      this._behaviourSubjectProject=new BehaviorSubject<Project>(newPrj);
+    }
+    return this._behaviourSubjectProject;
+  }
 
 }
 
