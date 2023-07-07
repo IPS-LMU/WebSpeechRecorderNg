@@ -1,10 +1,8 @@
-import { NgModule } from '@angular/core';
+import {ModuleWithProviders, NgModule} from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
-import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { StartComponent} from "./start/start";
-import {AudioDisplay} from '../../projects/speechrecorderng/src/lib/audio/audio_display';
+
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialogModule } from "@angular/material/dialog";
@@ -13,18 +11,17 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatToolbarModule } from "@angular/material/toolbar";
-import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
 import {SPR_CFG} from "./app.config";
-//import {FlexLayoutModule} from "@angular/flex-layout";
+
 import {SessionsComponent} from "./session/sessions";
-import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
-import { ServiceWorkerModule } from '@angular/service-worker';
-import { environment } from '../environments/environment';
+
 import {RouterModule, Routes} from "@angular/router";
 import {MatCardModule} from "@angular/material/card";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatSidenavModule} from "@angular/material/sidenav";
-
+import {SPEECHRECORDER_CONFIG,
+  SpeechrecorderngModule,AudioDisplayPlayer,ProjectService
+} from 'speechrecorderng'
 
 
 
@@ -54,7 +51,16 @@ const appRoutes: Routes = [
     BrowserModule,
     SpeechrecorderngModule.forRoot(SPR_CFG), MatCardModule, MatCheckboxModule, MatSidenavModule
   ],
-  providers: [],
+  providers: [ProjectService],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  static forRoot(): ModuleWithProviders<AppModule> {
+    return {
+      ngModule: AppModule,
+      providers: [
+        {provide:  SPEECHRECORDER_CONFIG, useValue: SPR_CFG}
+      ]
+    };
+  }
+}

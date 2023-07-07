@@ -349,13 +349,18 @@ export class AudioCapture {
     let chromeEchoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
-        if(agcc.platform===CfgPlatform.Android && ua.detectedPlatform===Platform.Android){
-            agcCfg=agcc;
+
+          if (agcc.platform === CfgPlatform.Android && ua.detectedPlatform === Platform.Android) {
+            agcCfg = agcc;
             break;
-        }
-        if(agcc.platform===CfgPlatform.Windows && ua.detectedPlatform===Platform.Windows){
-          agcCfg=agcc;
-          break;
+          }else if (agcc.platform === CfgPlatform.Windows && ua.detectedPlatform === Platform.Windows) {
+            agcCfg = agcc;
+            break;
+          }else{
+            if(agcc.platform===null){
+              agcCfg = agcc;
+              break;
+            }
         }
       }
       if(agcCfg){

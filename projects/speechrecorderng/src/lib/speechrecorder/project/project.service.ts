@@ -19,9 +19,9 @@ export class ProjectService {
 
   private standaloneProject:Project|null=null;
 
-  constructor(private http:HttpClient,private platformLoaction:PlatformLocation,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
-    console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
+    //console.log("Base Href: "+platformLoaction.getBaseHrefFromDOM());
 
     let apiEndPoint = ''
 
@@ -70,6 +70,9 @@ export class ProjectService {
    projectStandalone():Project{
     if(!this.standaloneProject) {
       this.standaloneProject = {name: 'Standalone'};
+      this.standaloneProject.mediaCaptureFormat={audioChannelCount:1};
+      this.standaloneProject.autoGainControlConfigs=[{platform:null,value:true}];
+
     }
     return this.standaloneProject;
    }

@@ -1255,8 +1255,8 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   loadStandaloneSession(){
-    //const standaloneProject=this.projectService.projectStandalone();
-    const standaloneProject={name:'Standalone'}
+    const standaloneProject=this.projectService.projectStandalone();
+    //const standaloneProject={name:'Standalone'}
     this.session={sessionId:0,project:standaloneProject.name,status:'LOADED',type:"NORM",script:0};
     this.ar.project=standaloneProject;
     this.ar.start();
