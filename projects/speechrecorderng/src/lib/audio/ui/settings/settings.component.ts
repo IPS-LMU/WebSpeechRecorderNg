@@ -30,7 +30,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       console.debug("AGC configs: "+agcCtrlCfgs?.length);
       this.agcOn=false;
       if(agcCtrlCfgs) {
-        this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val));
+        this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val),false);
       }
     })
 

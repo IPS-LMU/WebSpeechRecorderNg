@@ -822,7 +822,9 @@ export class AudioCapture {
 
 
   close() {
-    this.mediaStream.disconnect();
+    if(this.mediaStream) {
+      this.mediaStream.disconnect();
+    }
     if (this.stream) {
       const mts = this.stream.getTracks();
       for (let i = 0; i < mts.length; i++) {
