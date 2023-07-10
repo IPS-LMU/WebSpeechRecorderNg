@@ -9,7 +9,7 @@
 -->
 <h1 mat-dialog-title>Settings</h1>
 <div>
-  <mat-checkbox value="false" [checked]="agcOn" (change)="agcChange($event)">Automatic gain control (AGC)</mat-checkbox>
+  <mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC)</mat-checkbox>
 </div>
 <div mat-dialog-actions>
   <button mat-button mat-dialog-close>Close</button>

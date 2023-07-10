@@ -13,10 +13,12 @@ import {Project} from "../../../speechrecorder/project/project";
 export class SettingsComponent implements OnInit ,AfterViewInit{
 
   private _bsProject:BehaviorSubject<Project>;
+  mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
   agcOn=false;
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
+    this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
   }
 
   ngOnInit(): void {
