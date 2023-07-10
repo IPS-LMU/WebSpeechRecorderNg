@@ -475,7 +475,7 @@ export class AudioCapture {
           // https://github.com/mdn/browser-compat-data/blob/5493d8f937e05b2ddbd41b99f5bdfad4a1f2ed85/api/MediaTrackSettings.json
           //@ts-ignore
           console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
-          if(mtrSts.autoGainControl){
+          if(mtrSts.autoGainControl!==undefined){
             this.agcStatus=mtrSts.autoGainControl;
           }
         }
