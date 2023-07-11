@@ -17,6 +17,6 @@
     RewriteCond %{REQUEST_FILENAME} -l [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^.*$ - [NC,L]
-    RewriteRule ^(.*) /wsr/ng/dist/index.html [NC,L]
+    RewriteRule ^(.*) /apps/WebSpeechRecorderNg/index.html [NC,L]
 </IfModule>
 
