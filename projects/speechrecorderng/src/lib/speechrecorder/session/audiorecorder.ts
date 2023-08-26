@@ -66,8 +66,8 @@ export const enum Status {
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
-      <div style="flex-direction: row">
-        <spr-recordingitemcontrols style="flex:10 0 1%"
+      <div style="display:flex;flex-direction: row">
+        <spr-recordingitemcontrols style="flex:10 0 1px"
                                    [disableAudioDetails]="disableAudioDetails"
                                    [audioLoaded]="audioLoaded"
                                    [playStartAction]="controlAudioPlayer?.startAction"
