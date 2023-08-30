@@ -5,7 +5,7 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
-import {AudioDevice, AudioStorageType, AutoGainControlConfig} from "../project/project";
+import {AudioDevice, AudioStorageType, AutoGainControlConfig, NoiseSuppressionConfig} from "../project/project";
 import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
@@ -209,6 +209,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   protected selCaptureDeviceId: ConstrainDOMString | null;
   protected _channelCount = 2;
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
+  protected _noiseSuppressionConfigs:Array<NoiseSuppressionConfig>  | null | undefined;
 
   _session: Session|null=null;
   protected _recordingFile:RecordingFile|null=null;
@@ -318,6 +319,9 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   set autoGainControlConfigs(autoGainControlConfigs: Array<AutoGainControlConfig>|null|undefined){
     this._autoGainControlConfigs=autoGainControlConfigs;
+  }
+  set noiseSuppressionConfigs(noiseSuppressionConfigs: Array<NoiseSuppressionConfig>|null|undefined){
+    this._noiseSuppressionConfigs=noiseSuppressionConfigs;
   }
 
   set channelCount(channelCount: number) {
@@ -657,7 +661,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs);
+        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._noiseSuppressionConfigs);
       } else {
         this.ac.start();
       }

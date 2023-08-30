@@ -37,7 +37,16 @@ export interface AutoGainControlConfig {
   //browser:Browser
 }
 
+export interface NoiseSuppressionConfig {
+  value: boolean,
+  //constraintType : ConstraintType,
+  platform: Platform|null,
+  //browserBase:BrowserBase,
+  //browser:Browser
+}
+
 export interface Project {
+  noiseSuppressionConfigs?:Array<NoiseSuppressionConfig> ;
   name: string,
   recordingDeviceWakeLock?:boolean,
   audioFormat?: AudioFormat,

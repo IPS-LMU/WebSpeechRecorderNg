@@ -1,7 +1,12 @@
 import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
-import {AudioStorageType, AutoGainControlConfig, Platform as CfgPlatform} from "../../speechrecorder/project/project";
+import {
+    AudioStorageType,
+    AutoGainControlConfig,
+    NoiseSuppressionConfig,
+    Platform as CfgPlatform
+} from "../../speechrecorder/project/project";
 import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
@@ -146,6 +151,7 @@ export class AudioCapture {
   private _recUUID:string|null=null;
   mediaStream: any;
   agcStatus:boolean|null=null;
+  nsStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
   listener!: AudioCaptureListener;
   data: Array<Array<Float32Array>>|null=null;
@@ -299,21 +305,21 @@ export class AudioCapture {
     }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
+    open(channelCount: number, selDeviceId?: ConstrainDOMString | undefined, autoGainControlConfigs?: Array<AutoGainControlConfig> | null | undefined, noiseSuppressionConfigs?: Array<NoiseSuppressionConfig> | null | undefined){
     //console.debug("Capture open: ctx state: "+this.context.state);
     if(this.context.state!=='running'){
       //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
         //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
-        this._open(channelCount, selDeviceId, autoGainControlConfigs);
+        this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs);
       })
     }else{
-      this._open(channelCount, selDeviceId, autoGainControlConfigs);
+      this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs);
     }
 
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>|null|undefined) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
 
@@ -344,8 +350,10 @@ export class AudioCapture {
       // })
 
      let agcCfg:AutoGainControlConfig|null=null;
+     let nsCfg:NoiseSuppressionConfig|null=null;
 
     let autoGainControl=false;
+    let noiseSuppression=false;
     let chromeEchoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
@@ -375,6 +383,32 @@ export class AudioCapture {
         this.agcStatus=false;
       }
     }
+    if(noiseSuppressionConfigs){
+      for(let nsc of noiseSuppressionConfigs){
+
+        if (nsc.platform === CfgPlatform.Android && ua.detectedPlatform === Platform.Android) {
+          nsCfg = nsc;
+          break;
+        }else if (nsc.platform === CfgPlatform.Windows && ua.detectedPlatform === Platform.Windows) {
+          nsCfg = nsc;
+          break;
+        }else{
+          if(nsc.platform===null){
+            nsCfg = nsc;
+            break;
+          }
+        }
+      }
+      if(nsCfg){
+        // TODO use EXACT/IDEAL constraint
+        noiseSuppression=nsCfg.value;
+
+        // TODO query real AGC status
+        this.nsStatus=nsCfg.value;
+      }else{
+        this.nsStatus=false;
+      }
+    }
 
     // default
     msc = {
@@ -382,7 +416,8 @@ export class AudioCapture {
         deviceId: selDeviceId,
         echoCancellation: false,
         channelCount: channelCount,
-        autoGainControl: autoGainControl
+        autoGainControl: autoGainControl,
+        noiseSuppression:noiseSuppression
       },
       video: false
     };
@@ -397,7 +432,8 @@ export class AudioCapture {
           deviceId: selDeviceId,
           echoCancellation: false,
           channelCount: channelCount,
-          autoGainControl: autoGainControl
+          autoGainControl: autoGainControl,
+          noiseSuppression:noiseSuppression
         },
         video: false
       };
@@ -416,6 +452,7 @@ export class AudioCapture {
           channelCount: channelCount,
           echoCancellation: {exact:chromeEchoCancellation},
           autoGainControl: {exact:autoGainControl},
+          noiseSuppression:{exact:noiseSuppression},
           sampleSize:{min: 16},
         },
         video: false,
@@ -430,7 +467,7 @@ export class AudioCapture {
             channelCount: channelCount,
           echoCancellation: false,
             autoGainControl: autoGainControl,
-          noiseSuppression: false
+          noiseSuppression: noiseSuppression
         },
         video: false,
       }
@@ -444,6 +481,8 @@ export class AudioCapture {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
+          autoGainControl:autoGainControl,
+          noiseSuppression:noiseSuppression,
           echoCancellation: false
         },
         video: false,
@@ -477,6 +516,8 @@ export class AudioCapture {
           console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
           if(mtrSts.autoGainControl!==undefined){
             this.agcStatus=mtrSts.autoGainControl;
+          }else{
+            this.agcStatus=false;
           }
         }
 
