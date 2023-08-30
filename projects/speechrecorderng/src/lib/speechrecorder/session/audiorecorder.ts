@@ -86,10 +86,10 @@ export const enum Status {
       </div>
     </div>
     <div #controlpanel class="controlpanel">
-      <app-sprstatusdisplay *ngIf="!screenXs" style="flex:0.333 1 30%" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+      <app-sprstatusdisplay *ngIf="!screenXs" style="flex:0 1 30%;" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
                             [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
-      <div style="flex:1 0 100%" class="startstop">
+      <div [class.startstop]="!screenXs" [class.startstopscreenxs]="screenXs">
         <div style="align-content: center">
           <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
             <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
@@ -97,14 +97,12 @@ export const enum Status {
           </button>
         </div>
       </div>
-      <div style="flex:0.333 1 30%" >
-        <div style="flex:1 1 auto"></div>
-
-        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols" style="flex:0 0 0"
+      <div style="flex:0 1 30%;display:flex;justify-items: flex-end;justify-content:flex-end" >
+        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
         <app-wakelockindicator  *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator  *ngIf="!screenXs" class="ricontrols"
+        <app-readystateindicator *ngIf="!screenXs" class="ricontrols"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
@@ -136,9 +134,16 @@ export const enum Status {
     min-height: min-content; /* important */
   }`,`.startstop {
     width: 100%;
+    flex:1 0 30%;
+    align-items: center;
     text-align: center;
     align-content: center;
+  }`,`.startstopscreenxs {
+    width: 100%;
+    flex:1 0 100%;
     align-items: center;
+    text-align: center;
+    align-content: center;
   }`,`.bigbutton {
     min-width: 70px;
     min-height: 50px;
