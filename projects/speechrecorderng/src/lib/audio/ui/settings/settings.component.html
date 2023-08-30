@@ -12,6 +12,11 @@
   <mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></mat-checkbox>
   <mat-checkbox value="false" [checked]="noiseSuppressionOn && mediaTrackSupportedConstraints.noiseSuppression==true" (change)="noiseSuppressionChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Noise suppression <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></mat-checkbox>
 </div>
+<div style="display: flex;flex-direction: column">
+ <mat-select>
+   <mat-option *ngFor="let cdi of captureDeviceInfos;let i = index">{{i}}: {{mediaDeviceInfoToStr(cdi)}}</mat-option>
+ </mat-select>
+</div>
 <div mat-dialog-actions>
   <button mat-button mat-dialog-close>Close</button>
 </div>

@@ -16,6 +16,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
   agcOn=false;
   noiseSuppressionOn=false;
+  captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
@@ -35,8 +36,15 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       if(agcCtrlCfgs) {
         this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val),false);
       }
-    })
 
+      navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
+        this.captureDeviceInfos=l.filter((d)=>(d.kind==='audioinput'));
+      });
+    })
+  }
+
+  mediaDeviceInfoToStr(cdi:MediaDeviceInfo):string{
+    return cdi.label?cdi.label:'<Device name>';
   }
 
   agcChange(ev: { checked: boolean; }){
