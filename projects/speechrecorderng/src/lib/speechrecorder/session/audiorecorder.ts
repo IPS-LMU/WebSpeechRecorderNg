@@ -430,6 +430,11 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         this.wakeLock = true;
       }
       this.audioDevices = project.audioDevices;
+
+      if (project.audioCaptureDeviceId != null) {
+        this.captureDeviceId = project.audioCaptureDeviceId;
+        console.debug("Set audio capture device ID: "+this.captureDeviceId);
+      }
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.autoGainControlConfigs = project.autoGainControlConfigs;

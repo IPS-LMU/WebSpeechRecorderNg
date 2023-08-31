@@ -53,6 +53,7 @@ export interface Project {
   mediaCaptureFormat?: MediaCaptureFormat,
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
   audioDevices?: Array<AudioDevice>,
+  audioCaptureDeviceId?:string,
   chunkedRecording?: boolean,
   clientAudioStorageType?:AudioStorageType,
   showSessionCompleteMessage?:boolean;

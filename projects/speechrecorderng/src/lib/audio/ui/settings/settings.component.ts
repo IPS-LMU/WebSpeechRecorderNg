@@ -3,6 +3,8 @@ import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog"
 import {ProjectService} from "../../../speechrecorder/project/project.service";
 import {BehaviorSubject} from "rxjs";
 import {AutoGainControlConfig, NoiseSuppressionConfig, Project} from "../../../speechrecorder/project/project";
+import {SelectionChange} from "@angular/cdk/collections";
+import {FormControl} from "@angular/forms";
 
 @Component({
   selector: 'lib-settings',
@@ -17,6 +19,8 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   agcOn=false;
   noiseSuppressionOn=false;
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
+  selCaptureDeviceId:string|null=null;
+  selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
@@ -24,7 +28,19 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   }
 
   ngOnInit(): void {
+    this.selCaptureDeviceCtl.valueChanges.subscribe((selCdId)=>{
+      console.debug("Sel.: dev id: "+selCdId);
+      this.selCaptureDeviceId=selCdId;
+      const prj=this._bsProject.value;
+      prj.audioCaptureDeviceId=undefined;
+      if(this.selCaptureDeviceId){
+        console.debug("Sel.: dev id: "+selCdId);
+        prj.audioCaptureDeviceId=this.selCaptureDeviceId;
+        console.debug("Sel prj.: dev id: "+prj.audioCaptureDeviceId);
+      }
 
+      this._bsProject.next(prj);
+    });
   }
 
   ngAfterViewInit() {
@@ -36,6 +52,11 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       if(agcCtrlCfgs) {
         this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val),false);
       }
+      this.selCaptureDeviceId=null;
+      if(prj.audioCaptureDeviceId){
+        this.selCaptureDeviceId=prj.audioCaptureDeviceId;
+      }
+      this.selCaptureDeviceCtl.setValue(this.selCaptureDeviceId,{emitEvent:false});
 
       navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
         this.captureDeviceInfos=l.filter((d)=>(d.kind==='audioinput'));
@@ -68,4 +89,11 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     }
     this._bsProject.next(prj);
   }
+
+  // selectCaptureDevice(event:Event){
+  //   this.selCaptureDeviceId=(event.target as HTMLSelectElement).value;
+  //   const prj=this._bsProject.value;
+  //   prj.audioCaptureDeviceId=this.selCaptureDeviceId;
+  //   this._bsProject.next(prj);
+  // }
 }
