@@ -58,9 +58,6 @@ export class StatusDisplay {
     <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value" [matTooltip]="toolTipText"></mat-progress-spinner>
   `,
   styles: [`:host {
-    flex: 1;
-  /* align-self: flex-start; */
-    /*display: inline; */
     text-align: left;
   }`,`mat-progress-spinner{
       display: inline-block;
