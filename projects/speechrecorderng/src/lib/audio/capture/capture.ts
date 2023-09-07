@@ -534,7 +534,6 @@ export class AudioCapture {
 
     console.debug("Audio capture, AGC: "+this.agcStatus)
 
-
     let ump = navigator.mediaDevices.getUserMedia(msc);
     ump.then((s) => {
         this.stream = s;
@@ -543,7 +542,10 @@ export class AudioCapture {
 
         for (let i = 0; i < aTracks.length; i++) {
           let aTrack = aTracks[i];
-
+          const mtc=aTrack.getCapabilities();
+          if(mtc && mtc.sampleSize){
+            console.info("Track audio caps: sampleSize max: "+mtc.sampleSize.max);
+          }
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
           let mtrSts=aTrack.getSettings();
 

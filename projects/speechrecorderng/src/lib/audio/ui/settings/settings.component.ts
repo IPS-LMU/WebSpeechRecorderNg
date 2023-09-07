@@ -31,6 +31,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
     this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
+    console.info("Supported sampleSize setting: "+this.mediaTrackSupportedConstraints.sampleSize);
   }
 
   ngOnInit(): void {
