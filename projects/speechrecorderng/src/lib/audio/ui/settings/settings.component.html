@@ -22,6 +22,7 @@
     <div style="display: flex;flex-direction: column">
         <mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></mat-checkbox>
         <mat-checkbox value="false" [checked]="noiseSuppressionOn && mediaTrackSupportedConstraints.noiseSuppression==true" (change)="noiseSuppressionChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Noise suppression <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></mat-checkbox>
+        <mat-checkbox value="false" [checked]="echoCancellationOn && mediaTrackSupportedConstraints.echoCancellation==true" (change)="echoCancellationChange($event)" [disabled]="mediaTrackSupportedConstraints.echoCancellation==false">Echo cancellation <span *ngIf="!(mediaTrackSupportedConstraints.echoCancellation==true)">(not supported)</span></mat-checkbox>
     </div>
 </mat-card>
 <mat-dialog-actions align="end">

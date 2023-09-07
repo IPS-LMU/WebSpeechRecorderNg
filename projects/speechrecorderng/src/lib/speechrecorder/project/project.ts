@@ -45,13 +45,23 @@ export interface NoiseSuppressionConfig {
   //browser:Browser
 }
 
+export interface EchoCancellationConfig {
+  value: boolean,
+  //constraintType : ConstraintType,
+  platform: Platform|null,
+  //browserBase:BrowserBase,
+  //browser:Browser
+}
+
 export interface Project {
-  noiseSuppressionConfigs?:Array<NoiseSuppressionConfig> ;
+
   name: string,
   recordingDeviceWakeLock?:boolean,
   audioFormat?: AudioFormat,
   mediaCaptureFormat?: MediaCaptureFormat,
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
+  noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>,
+  echoCancellationConfigs?:Array<EchoCancellationConfig>,
   audioDevices?: Array<AudioDevice>,
   audioCaptureDeviceId?:string,
   chunkedRecording?: boolean,
