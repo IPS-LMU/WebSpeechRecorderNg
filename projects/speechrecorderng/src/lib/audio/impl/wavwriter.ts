@@ -17,8 +17,9 @@ export enum SampleSize {INT16=16,INT32=32}
        if(sampleSize){
          this.sampleSize=sampleSize;
        }
-       this.sampleSizeInBytes=Math.round(WavWriter.DEFAULT_SAMPLE_SIZE/8);
        this.sampleSizeInBits=this.sampleSize.valueOf();
+       this.sampleSizeInBytes=Math.round(this.sampleSizeInBits/8);
+
        this.bw = new BinaryByteWriter();
      }
 
@@ -29,7 +30,7 @@ export enum SampleSize {INT16=16,INT32=32}
        self.onmessage = function (msg:MessageEvent) {
 
          const valView = new DataView(msg.data.buf,msg.data.bufPos);
-
+         const sampleSizeInbytes=Math.round(msg.data.sampleSizeInBits/8);
          let bufPos = 0;
          let hDynIntRange = 1 << (msg.data.sampleSizeInBits - 1);
          for (let s = 0; s < msg.data.frameLength; s++) {
@@ -39,8 +40,12 @@ export enum SampleSize {INT16=16,INT32=32}
              let srcPos=(ch*msg.data.frameLength)+s;
              let valFlt = msg.data.audioData[srcPos];
              let valInt = Math.round(valFlt * hDynIntRange);
-             valView.setInt16(bufPos, valInt, true);
-             bufPos+=2;
+             if(msg.data.sampleSizeInBits===32) {
+               valView.setInt32(bufPos,valInt,true);
+             }else {
+               valView.setInt16(bufPos,valInt,true);
+             }
+             bufPos+=sampleSizeInbytes;
            }
          }
          postMessage({buf:msg.data.buf}, [msg.data.buf]);
@@ -52,7 +57,7 @@ export enum SampleSize {INT16=16,INT32=32}
      writeFmtChunk(audioBuffer:AudioBuffer){
 
        this.bw.writeUint16(WavFileFormat.PCM,true);
-       const frameSize=this.sampleSizeInBytes*audioBuffer.numberOfChannels; // fixed 16-bit for now
+       const frameSize=this.sampleSizeInBytes*audioBuffer.numberOfChannels;
        this.bw.writeUint16(audioBuffer.numberOfChannels,true);
        this.bw.writeUint32(audioBuffer.sampleRate,true);
          // dwAvgBytesPerSec
@@ -73,7 +78,11 @@ export enum SampleSize {INT16=16,INT32=32}
            let chData = audioBuffer.getChannelData(ch);
            let valFlt=chData[s];
            let valInt=Math.round(valFlt*hDynIntRange);
-           this.bw.writeInt16(valInt,true);
+           if(this.sampleSize===SampleSize.INT16) {
+             this.bw.writeInt16(valInt, true);
+           }else if(this.sampleSize===SampleSize.INT32){
+             this.bw.writeInt32(valInt,true);
+           }
          }
        }
 
@@ -107,7 +116,7 @@ export enum SampleSize {INT16=16,INT32=32}
        }
 
 
-       wo.postMessage({sampleSizeInBits:this.sampleSize.valueOf(), chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
+       wo.postMessage({sampleSizeInBits:this.sampleSizeInBits, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
 
      }
 
