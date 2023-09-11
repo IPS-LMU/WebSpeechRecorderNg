@@ -9,6 +9,7 @@
 -->
 <h1 mat-dialog-title>Settings</h1>
 <div style="display: flex;flex-direction: column">
+  <mat-label>Audio capture options</mat-label>
   <mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></mat-checkbox>
   <mat-checkbox value="false" [checked]="noiseSuppressionOn && mediaTrackSupportedConstraints.noiseSuppression==true" (change)="noiseSuppressionChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Noise suppression <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></mat-checkbox>
 </div>
@@ -16,9 +17,17 @@
   <mat-form-field style="width: fit-content;max-width: 100%;">
   <mat-label>Audio capture device</mat-label>
  <mat-select [formControl]="selCaptureDeviceCtl" style="width:fit-content;max-width: 100%">
-   <mat-option style="width: fit-contentmax-width: 100%" [value]="cdi.deviceId" *ngFor="let cdi of captureDeviceInfos;let i = index">{{i}}: {{mediaDeviceInfoToStr(cdi)}}</mat-option>
+   <mat-option style="width: fit-content;max-width: 100%" [value]="cdi.deviceId" *ngFor="let cdi of captureDeviceInfos;let i = index">{{i}}: {{mediaDeviceInfoToStr(cdi)}}</mat-option>
  </mat-select>
   </mat-form-field>
+
+<mat-form-field style="width: fit-content;max-width: 100%;">
+  <mat-label>Audio storage</mat-label>
+  <mat-select [formControl]="selStorageSampleSizeCtl" style="width:fit-content;max-width: 100%">
+    <mat-option style="width: fit-content;max-width: 100%" [value]="SampleSize.INT16.valueOf().toString()">16-bit signed</mat-option>
+    <mat-option style="width: fit-content;max-width: 100%" [value]="SampleSize.INT32.valueOf().toString()">32-bit signed</mat-option>
+  </mat-select>
+</mat-form-field>
 
 <div mat-dialog-actions>
   <button mat-button mat-dialog-close>Close</button>

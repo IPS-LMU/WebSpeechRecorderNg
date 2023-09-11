@@ -5,7 +5,13 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
-import {AudioDevice, AudioStorageType, AutoGainControlConfig, NoiseSuppressionConfig} from "../project/project";
+import {
+  AudioDevice,
+  AudioStorageFormat,
+  AudioStorageType,
+  AutoGainControlConfig,
+  NoiseSuppressionConfig
+} from "../project/project";
 import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
@@ -30,6 +36,7 @@ import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {SampleSize} from "../../audio/impl/wavwriter";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -41,7 +48,7 @@ export const NOSLEEP_VIDEO_TITLE='No Sleep';
 
 export interface ChunkAudioBufferReceiver{
   postAudioStreamStart():void;
-  postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
+  postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number,sampleSize?:SampleSize):void;
   postAudioStreamEnd(chunkCount:number):void;
 }
 
@@ -165,6 +172,14 @@ export abstract class BasicRecorder extends ResponsiveComponent{
       this.configureStreamCaptureStream();
     }
   }
+
+  get clientAudioStorageFormat(): AudioStorageFormat|undefined {
+    return this._clientAudioStorageFormat;
+  }
+
+  set clientAudioStorageFormat(value: AudioStorageFormat |undefined) {
+    this._clientAudioStorageFormat = value;
+  }
   get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
     return this._persistentAudioStorageTarget;
   }
@@ -247,6 +262,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
   protected _clientAudioStorageType:AudioStorageType=AudioStorageType.MEM_ENTIRE;
+  protected _clientAudioStorageFormat:AudioStorageFormat|undefined=undefined;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 

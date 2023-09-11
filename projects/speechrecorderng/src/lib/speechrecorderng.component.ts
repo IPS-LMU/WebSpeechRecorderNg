@@ -359,6 +359,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       if(project.clientAudioStorageType) {
         this.sm.clientAudioStorageType = project.clientAudioStorageType;
       }
+      this.sm.clientAudioStorageFormat=project.clientAudioStorageFormat;
 
       this.sm.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);

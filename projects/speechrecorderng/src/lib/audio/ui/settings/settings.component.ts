@@ -5,6 +5,7 @@ import {BehaviorSubject} from "rxjs";
 import {AutoGainControlConfig, NoiseSuppressionConfig, Project} from "../../../speechrecorder/project/project";
 import {SelectionChange} from "@angular/cdk/collections";
 import {FormControl} from "@angular/forms";
+import {SampleSize} from "../../impl/wavwriter";
 
 @Component({
   selector: 'lib-settings',
@@ -21,6 +22,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
+  selStorageSampleSizeCtl=new FormControl('selStorageSampleSize');
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
@@ -41,6 +43,16 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
       this._bsProject.next(prj);
     });
+    this.selStorageSampleSizeCtl.valueChanges.subscribe((selStorageSampleSizeStr)=>{
+      const prj=this._bsProject.value;
+      prj.clientAudioStorageFormat=undefined;
+      if(selStorageSampleSizeStr){
+        const selStorageSampleSize=parseInt(selStorageSampleSizeStr);
+        console.debug("Sel.: storage sample size: "+selStorageSampleSize);
+        prj.clientAudioStorageFormat={sampleSizeInBits:selStorageSampleSize};
+      }
+      this._bsProject.next(prj);
+    });
   }
 
   ngAfterViewInit() {
@@ -55,6 +67,16 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       this.selCaptureDeviceId=null;
       if(prj.audioCaptureDeviceId){
         this.selCaptureDeviceId=prj.audioCaptureDeviceId;
+      }
+      this.selCaptureDeviceCtl.setValue(this.selCaptureDeviceId,{emitEvent:false});
+
+
+      const pAf=prj.clientAudioStorageFormat;
+      if(pAf){
+        const pAfSs=pAf.sampleSizeInBits;
+        if(pAfSs) {
+          this.selStorageSampleSizeCtl.setValue(pAfSs.valueOf().toString(),{emitEvent:false});
+        }
       }
       this.selCaptureDeviceCtl.setValue(this.selCaptureDeviceId,{emitEvent:false});
 
@@ -96,4 +118,5 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   //   prj.audioCaptureDeviceId=this.selCaptureDeviceId;
   //   this._bsProject.next(prj);
   // }
+  protected readonly SampleSize = SampleSize;
 }

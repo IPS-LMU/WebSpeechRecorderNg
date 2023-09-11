@@ -4,12 +4,21 @@ import {WorkerHelper} from "../../utils/utils";
 declare function postMessage (message:any, transfer:Array<any>):void;
 
 
+export enum SampleSize {INT16=16,INT32=32}
    export class WavWriter {
 
-     static readonly DEFAULT_SAMPLE_SIZE_BYTES:number = 2;
+     static readonly DEFAULT_SAMPLE_SIZE:SampleSize = SampleSize.INT16;
+     private readonly sampleSizeInBytes:number=WavWriter.DEFAULT_SAMPLE_SIZE.valueOf()/8;
+     private sampleSize=WavWriter.DEFAULT_SAMPLE_SIZE;
+     private sampleSizeInBits=this.sampleSize.valueOf();
      private bw:BinaryByteWriter;
      private workerURL: string|null=null;
-     constructor() {
+     constructor(sampleSize?:SampleSize) {
+       if(sampleSize){
+         this.sampleSize=sampleSize;
+       }
+       this.sampleSizeInBytes=Math.round(WavWriter.DEFAULT_SAMPLE_SIZE/8);
+       this.sampleSizeInBits=this.sampleSize.valueOf();
        this.bw = new BinaryByteWriter();
      }
 
@@ -43,21 +52,21 @@ declare function postMessage (message:any, transfer:Array<any>):void;
      writeFmtChunk(audioBuffer:AudioBuffer){
 
        this.bw.writeUint16(WavFileFormat.PCM,true);
-       let frameSize=WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*audioBuffer.numberOfChannels; // fixed 16-bit for now
+       const frameSize=this.sampleSizeInBytes*audioBuffer.numberOfChannels; // fixed 16-bit for now
        this.bw.writeUint16(audioBuffer.numberOfChannels,true);
        this.bw.writeUint32(audioBuffer.sampleRate,true);
          // dwAvgBytesPerSec
        this.bw.writeUint32(frameSize*audioBuffer.sampleRate,true);
        this.bw.writeUint16(frameSize,true);
        // sample size in bits (PCM format only)
-       this.bw.writeUint16(WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*8,true);
+       this.bw.writeUint16(this.sampleSizeInBits,true);
      }
 
      writeDataChunk(audioBuffer:AudioBuffer){
 
        let chData0=audioBuffer.getChannelData(0);
        let dataLen=chData0.length;
-        let hDynIntRange=1 << ((WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*8)-1);
+        let hDynIntRange=1 << ((this.sampleSizeInBits)-1);
        for(let s=0;s<dataLen;s++) {
          // interleaved channel data
          for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
@@ -77,16 +86,16 @@ declare function postMessage (message:any, transfer:Array<any>):void;
 
      writeAsync(audioBuffer:AudioBuffer,callback: (wavFileData:Uint8Array)=> any){
 
-       let dataChkByteLen=this.writeHeader(audioBuffer);
+       const dataChkByteLen=this.writeHeader(audioBuffer);
        if (!this.workerURL) {
          this.workerURL = WorkerHelper.buildWorkerBlobURL(this.workerFunction)
         }
-       let wo = new Worker(this.workerURL);
+       const wo = new Worker(this.workerURL);
 
-       let chs = audioBuffer.numberOfChannels;
+       const chs = audioBuffer.numberOfChannels;
 
-       let frameLength = audioBuffer.getChannelData(0).length;
-       let ad = new Float32Array(chs * frameLength);
+       const frameLength = audioBuffer.getChannelData(0).length;
+       const ad = new Float32Array(chs * frameLength);
        for (let ch = 0; ch < chs; ch++) {
          ad.set(audioBuffer.getChannelData(ch), ch * frameLength);
        }
@@ -96,8 +105,9 @@ declare function postMessage (message:any, transfer:Array<any>):void;
          callback(me.data.buf);
          wo.terminate();
        }
-       //TODO Fixed sample size of 16 bits
-       wo.postMessage({sampleSizeInBits:16, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
+
+
+       wo.postMessage({sampleSizeInBits:this.sampleSize.valueOf(), chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
 
      }
 
@@ -115,7 +125,7 @@ declare function postMessage (message:any, transfer:Array<any>):void;
         const abChs=audioBuffer.numberOfChannels;
         if(abChs>0){
           const abCh0=audioBuffer.getChannelData(0);
-          dataChkByteLen=abCh0.length*WavWriter.DEFAULT_SAMPLE_SIZE_BYTES*abChs;
+          dataChkByteLen=abCh0.length*this.sampleSizeInBytes*abChs;
         }
         const wavChunkByteLen=(4+4)*3+16+dataChkByteLen;
         this.bw.writeUint32(wavChunkByteLen,true); // must be set to file length-8 later
