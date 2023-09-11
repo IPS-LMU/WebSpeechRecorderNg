@@ -2,7 +2,12 @@ import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog"
 import {ProjectService} from "../../../speechrecorder/project/project.service";
 import {BehaviorSubject} from "rxjs";
-import {AutoGainControlConfig, NoiseSuppressionConfig, Project} from "../../../speechrecorder/project/project";
+import {
+  AutoGainControlConfig,
+  EchoCancellationConfig,
+  NoiseSuppressionConfig,
+  Project
+} from "../../../speechrecorder/project/project";
 import {SelectionChange} from "@angular/cdk/collections";
 import {FormControl} from "@angular/forms";
 import {SampleSize} from "../../impl/wavwriter";
@@ -19,6 +24,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
   agcOn=false;
   noiseSuppressionOn=false;
+  echoCancellationOn=false;
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
@@ -27,6 +33,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
     this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
+    console.info("Supported sampleSize setting: "+this.mediaTrackSupportedConstraints.sampleSize);
   }
 
   ngOnInit(): void {
@@ -59,11 +66,22 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
     this._bsProject.subscribe((prj)=>{
       const agcCtrlCfgs=this.projectService.projectStandalone().autoGainControlConfigs;
+      const nsCtrlCfgs=this.projectService.projectStandalone().noiseSuppressionConfigs;
+      const ecCtrlCfgs=this.projectService.projectStandalone().echoCancellationConfigs;
       console.debug("AGC configs: "+agcCtrlCfgs?.length);
       this.agcOn=false;
       if(agcCtrlCfgs) {
         this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val),false);
       }
+      this.noiseSuppressionOn=false;
+      if(nsCtrlCfgs) {
+        this.noiseSuppressionOn=nsCtrlCfgs.map((nsc) => (nsc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+      }
+      this.echoCancellationOn=false;
+      if(ecCtrlCfgs) {
+        this.echoCancellationOn=ecCtrlCfgs.map((esc) => (esc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+      }
+
       this.selCaptureDeviceId=null;
       if(prj.audioCaptureDeviceId){
         this.selCaptureDeviceId=prj.audioCaptureDeviceId;
@@ -108,6 +126,17 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     prj.noiseSuppressionConfigs=new Array<NoiseSuppressionConfig>();
     if(this.noiseSuppressionOn){
       prj.noiseSuppressionConfigs.push({platform:null,value:true});
+    }
+    this._bsProject.next(prj);
+  }
+
+  echoCancellationChange(ev: { checked: boolean; }){
+    this.echoCancellationOn=ev.checked;
+    const prj=this._bsProject.value;
+
+    prj.echoCancellationConfigs=new Array<EchoCancellationConfig>();
+    if(this.echoCancellationOn){
+      prj.echoCancellationConfigs.push({platform:null,value:true});
     }
     this._bsProject.next(prj);
   }

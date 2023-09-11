@@ -22,6 +22,6 @@ export class AppComponent extends ResponsiveComponent{
   }
 
   openSettingsDialog(){
-    this.dialog.open(SettingsComponent);
+    this.dialog.open(SettingsComponent,{width:'80%',height:'80%'});
   }
 }

@@ -2,10 +2,10 @@ import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
 import {
-    AudioStorageType,
-    AutoGainControlConfig,
-    NoiseSuppressionConfig,
-    Platform as CfgPlatform
+  AudioStorageType,
+  AutoGainControlConfig, EchoCancellationConfig,
+  NoiseSuppressionConfig,
+  Platform as CfgPlatform
 } from "../../speechrecorder/project/project";
 import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {UUID} from "../../utils/utils";
@@ -152,6 +152,7 @@ export class AudioCapture {
   mediaStream: any;
   agcStatus:boolean|null=null;
   nsStatus:boolean|null=null;
+  ecStatus:boolean|null=null;
   bufferingNode: AudioNode|null=null;
   listener!: AudioCaptureListener;
   data: Array<Array<Float32Array>>|null=null;
@@ -305,21 +306,29 @@ export class AudioCapture {
     }
   }
 
-    open(channelCount: number, selDeviceId?: ConstrainDOMString | undefined, autoGainControlConfigs?: Array<AutoGainControlConfig> | null | undefined, noiseSuppressionConfigs?: Array<NoiseSuppressionConfig> | null | undefined){
+    open(channelCount: number,
+         selDeviceId?: ConstrainDOMString | undefined,
+         autoGainControlConfigs?: Array<AutoGainControlConfig> | null | undefined,
+         noiseSuppressionConfigs?: Array<NoiseSuppressionConfig> | null | undefined,
+         echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined){
     //console.debug("Capture open: ctx state: "+this.context.state);
     if(this.context.state!=='running'){
       //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
         //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
-        this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs);
+        this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs,echoCancellationConfigs);
       })
     }else{
-      this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs);
+      this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs,echoCancellationConfigs);
     }
 
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>|null|undefined) {
+  _open(channelCount: number,
+        selDeviceId?: ConstrainDOMString|undefined,
+        autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,
+        noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>|null|undefined,
+        echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
 
@@ -351,10 +360,11 @@ export class AudioCapture {
 
      let agcCfg:AutoGainControlConfig|null=null;
      let nsCfg:NoiseSuppressionConfig|null=null;
+    let ecCfg:EchoCancellationConfig|null=null;
 
     let autoGainControl=false;
     let noiseSuppression=false;
-    let chromeEchoCancellation=false;
+    let echoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
 
@@ -375,7 +385,7 @@ export class AudioCapture {
         // TODO use EXACT/IDEAL constraint
         autoGainControl=agcCfg.value;
         if(CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC){
-          chromeEchoCancellation=agcCfg.value;
+          echoCancellation=agcCfg.value;
         }
         // TODO query real AGC status
         this.agcStatus=agcCfg.value;
@@ -410,11 +420,38 @@ export class AudioCapture {
       }
     }
 
+    if(echoCancellationConfigs){
+      for(let ecc of echoCancellationConfigs){
+
+        if (ecc.platform === CfgPlatform.Android && ua.detectedPlatform === Platform.Android) {
+          ecCfg = ecc;
+          break;
+        }else if (ecc.platform === CfgPlatform.Windows && ua.detectedPlatform === Platform.Windows) {
+          ecCfg = ecc;
+          break;
+        }else{
+          if(ecc.platform===null){
+            ecCfg = ecc;
+            break;
+          }
+        }
+      }
+      if(ecCfg){
+        // TODO use EXACT/IDEAL constraint
+        echoCancellation=ecCfg.value;
+
+        // TODO query real AGC status
+        this.ecStatus=ecCfg.value;
+      }else{
+        this.ecStatus=false;
+      }
+    }
+
     // default
     msc = {
       audio: {
         deviceId: selDeviceId,
-        echoCancellation: false,
+        echoCancellation: echoCancellation,
         channelCount: channelCount,
         autoGainControl: autoGainControl,
         noiseSuppression:noiseSuppression
@@ -430,7 +467,7 @@ export class AudioCapture {
       msc = {
         audio: {
           deviceId: selDeviceId,
-          echoCancellation: false,
+          echoCancellation: echoCancellation,
           channelCount: channelCount,
           autoGainControl: autoGainControl,
           noiseSuppression:noiseSuppression
@@ -450,7 +487,7 @@ export class AudioCapture {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          echoCancellation: {exact:chromeEchoCancellation},
+          echoCancellation: {exact:echoCancellation},
           autoGainControl: {exact:autoGainControl},
           noiseSuppression:{exact:noiseSuppression},
           sampleSize:{min: 16},
@@ -465,7 +502,7 @@ export class AudioCapture {
         audio: {
             deviceId: selDeviceId,
             channelCount: channelCount,
-          echoCancellation: false,
+          echoCancellation: echoCancellation,
             autoGainControl: autoGainControl,
           noiseSuppression: noiseSuppression
         },
@@ -483,7 +520,7 @@ export class AudioCapture {
           channelCount: channelCount,
           autoGainControl:autoGainControl,
           noiseSuppression:noiseSuppression,
-          echoCancellation: false
+          echoCancellation: echoCancellation
         },
         video: false,
       }
@@ -497,7 +534,6 @@ export class AudioCapture {
 
     console.debug("Audio capture, AGC: "+this.agcStatus)
 
-
     let ump = navigator.mediaDevices.getUserMedia(msc);
     ump.then((s) => {
         this.stream = s;
@@ -506,7 +542,10 @@ export class AudioCapture {
 
         for (let i = 0; i < aTracks.length; i++) {
           let aTrack = aTracks[i];
-
+          const mtc=aTrack.getCapabilities();
+          if(mtc && mtc.sampleSize){
+            console.info("Track audio caps: sampleSize max: "+mtc.sampleSize.max);
+          }
           console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
           let mtrSts=aTrack.getSettings();
 
