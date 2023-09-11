@@ -77,11 +77,13 @@ export const enum Status {
         <spr-recordingitemcontrols style="display:flex;flex:10 0 1px"
                                    [audioLoaded]="audioLoaded"
                                    [disableAudioDetails]="disableAudioDetails"
+                                   [enableDownload]="enableDownloadRecordings"
                                    [playStartAction]="controlAudioPlayer?.startAction"
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
                                    [agc]="this.ac?.agcStatus"
-                                   (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
+                                   (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
+                                   (onDownloadRecording)="downloadRecording()">
         </spr-recordingitemcontrols>
 
         <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
