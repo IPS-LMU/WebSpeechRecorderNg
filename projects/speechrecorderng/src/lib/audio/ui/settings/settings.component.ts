@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog"
 import {ProjectService} from "../../../speechrecorder/project/project.service";
-import {BehaviorSubject} from "rxjs";
+import {BehaviorSubject, Subscription} from "rxjs";
 import {
   AutoGainControlConfig,
   EchoCancellationConfig,
@@ -21,6 +21,7 @@ import {SampleSize} from "../../impl/wavwriter";
 export class SettingsComponent implements OnInit ,AfterViewInit{
 
   private _bsProject:BehaviorSubject<Project>;
+  private _bsPrjSubscription:Subscription|null=null;
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
   agcOn=false;
   noiseSuppressionOn=false;
@@ -39,7 +40,11 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   ngOnInit(): void {
     this.selCaptureDeviceCtl.valueChanges.subscribe((selCdId)=>{
       console.debug("Sel.: dev id: "+selCdId);
-      this.selCaptureDeviceId=selCdId;
+      this.selCaptureDeviceId=null;
+      if(selCdId!==null && selCdId!==''){
+        this.selCaptureDeviceId=selCdId;
+      }
+
       const prj=this._bsProject.value;
       prj.audioCaptureDeviceId=undefined;
       if(this.selCaptureDeviceId){
@@ -53,18 +58,20 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     this.selStorageSampleSizeCtl.valueChanges.subscribe((selStorageSampleSizeStr)=>{
       const prj=this._bsProject.value;
       prj.clientAudioStorageFormat=undefined;
-      if(selStorageSampleSizeStr){
+      if(selStorageSampleSizeStr!==null && selStorageSampleSizeStr!==''){
         const selStorageSampleSize=parseInt(selStorageSampleSizeStr);
         console.debug("Sel.: storage sample size: "+selStorageSampleSize);
         prj.clientAudioStorageFormat={sampleSizeInBits:selStorageSampleSize};
       }
+      this._bsProject.unsubscribe();
       this._bsProject.next(prj);
     });
   }
 
   ngAfterViewInit() {
 
-    this._bsProject.subscribe((prj)=>{
+    //this._bsPrjSubscription=this._bsProject.subscribe((prj)=>{
+    const prj=this._bsProject.value;
       const agcCtrlCfgs=this.projectService.projectStandalone().autoGainControlConfigs;
       const nsCtrlCfgs=this.projectService.projectStandalone().noiseSuppressionConfigs;
       const ecCtrlCfgs=this.projectService.projectStandalone().echoCancellationConfigs;
@@ -83,25 +90,37 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       }
 
       this.selCaptureDeviceId=null;
+      let selCaptureDevIdStr='';
       if(prj.audioCaptureDeviceId){
         this.selCaptureDeviceId=prj.audioCaptureDeviceId;
+        selCaptureDevIdStr=this.selCaptureDeviceId;
       }
-      this.selCaptureDeviceCtl.setValue(this.selCaptureDeviceId,{emitEvent:false});
+      this.selCaptureDeviceCtl.setValue(selCaptureDevIdStr,{emitEvent:false});
 
-
+      let selAfSs='';
       const pAf=prj.clientAudioStorageFormat;
       if(pAf){
         const pAfSs=pAf.sampleSizeInBits;
         if(pAfSs) {
-          this.selStorageSampleSizeCtl.setValue(pAfSs.valueOf().toString(),{emitEvent:false});
+          selAfSs=pAfSs.valueOf().toString();
         }
       }
-      this.selCaptureDeviceCtl.setValue(this.selCaptureDeviceId,{emitEvent:false});
+      this.selStorageSampleSizeCtl.setValue(selAfSs,{emitEvent:false});
 
       navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
         this.captureDeviceInfos=l.filter((d)=>(d.kind==='audioinput'));
+        console.debug("Set capture device infos:");
+        for(let cdi of this.captureDeviceInfos){
+          console.debug(cdi.deviceId+' '+cdi.label);
+        }
+        let selCaptureDevIdStr='';
+        if(this.selCaptureDeviceId){
+          selCaptureDevIdStr=this.selCaptureDeviceId;
+        }
+        this.selCaptureDeviceCtl.setValue(selCaptureDevIdStr,{emitEvent:false});
+
       });
-    })
+    //})
   }
 
   mediaDeviceInfoToStr(cdi:MediaDeviceInfo):string{

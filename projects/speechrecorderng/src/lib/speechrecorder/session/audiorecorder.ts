@@ -1272,6 +1272,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
     //const standaloneProject={name:'Standalone'}
     this.session={sessionId:0,project:bsStandalonePrj.value.name,status:'LOADED',type:"NORM",script:0};
     bsStandalonePrj.subscribe((prj)=>{
+      console.debug("Project configuration changed. Restart audio recorder.")
       this.ar.stop();
       this.ar.project=prj;
       this.ar.start();

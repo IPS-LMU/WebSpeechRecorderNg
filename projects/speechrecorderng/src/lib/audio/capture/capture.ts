@@ -145,6 +145,7 @@ export class AudioCapture {
   static BUFFER_SIZE: number = 8192;
   private static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minute at 48kHz
   private _maxAutoNetMemStoreSamples:number=AudioCapture.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
+  private static captureInterceptorModuleRegistered=false;
   context: AudioContext;
   stream!: MediaStream;
   channelCount!: number;
@@ -305,6 +306,104 @@ export class AudioCapture {
       console.log("Audio device: Id: " + di.deviceId + " groupId: " + di.groupId + " label: " + di.label + " kind: " + di.kind);
     }
   }
+
+  addCaptureInterceptor() {
+    const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
+    awn.onprocessorerror = (ev: Event) => {
+      let msg = 'Unknwon error';
+      if (ev instanceof ErrorEvent) {
+        msg = ev.message;
+      }
+      console.error("Capture audio worklet error: " + msg);
+      if (this.listener) {
+        this.listener.error(msg);
+      }
+    }
+    let awnPt = awn.port;
+    if (awnPt) {
+      awnPt.onmessage = (ev: MessageEvent) => {
+        if (this.capturing) {
+          let dt = ev.data;
+          let chs = dt.chs;
+          let adaLen = dt.data.length;
+          if (DEBUG_TRACE_LEVEL > 8) {
+            console.debug('Received data from worklet: ' + chs + ' ' + dt.len + ' Data chs: ' + adaLen);
+          }
+          let chunk = new Array<Float32Array>(chs);
+          const samples = this.framesRecorded * chs;
+          if ((AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED === this.audioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED === this.audioStorageType) && this.data && samples > this._maxAutoNetMemStoreSamples) {
+            this.data = null;
+          }
+
+          //console.debug("Data initialized: "+(this.data!=null));
+          for (let ch = 0; ch < chs; ch++) {
+            //console.debug("Data ch initialized: "+(this.data !=null && this.data[ch] !=null));
+            if (ch < this.channelCount) {
+              if (dt.data[ch]) {
+                let fa = new Float32Array(dt.data[ch]);
+                if (this.data && this.data[ch]) {
+                  this.data[ch].push(fa);
+                }
+                chunk[ch] = fa;
+                // Use samples of channel 0 to count frames (samples)
+                if (ch == 0) {
+                  this.framesRecorded += fa.length;
+                }
+              }
+            }
+          }
+          if (this.audioOutStream) {
+            try {
+              this.audioOutStream.write(chunk);
+              // // Random test error:
+              // if(Math.random()>0.98) {
+              //   throw new Error('Test');
+              // }
+            } catch (err) {
+              if (err instanceof Error) {
+                this.persistError = err;
+              } else {
+                this.persistError = new Error('Error handling recorded audio data');
+              }
+
+              console.error("Capture error: " + err);
+              try {
+                this.stop();
+              } catch (err2) {
+                console.error("Capture next error (ignored): " + err2);
+              } finally {
+                if (this.listener) {
+                  let errExpl = '';
+                  if (err instanceof DOMException) {
+                    errExpl = ': ' + err.name + ': ' + err.message;
+                  }
+                  this.listener.error("Could not handle recorded audio data" + errExpl, "Please try to record again.");
+                } else {
+                  this.close();
+                }
+              }
+            }
+          }
+          if (AudioStorageType.DB_CHUNKED === this._audioStorageType && this._persistentAudioStorageTarget) {
+            this.store();
+          }
+        }
+      };
+    }
+    // Tried to fix that Safari does not record the second channel
+    // Does not help
+    //awn.channelCount=this.channelCount;
+    //awn.channelCountMode='explicit';
+    //console.debug('Channel count explicitly set to '+this.channelCount);
+
+    this.bufferingNode = awn;
+    //this.bufferingNode.channelCount=this.channelCount;
+    this._opened = true;
+    if (this.listener) {
+      this.listener.opened();
+    }
+  }
+
 
     open(channelCount: number,
          selDeviceId?: ConstrainDOMString | undefined,
@@ -595,110 +694,24 @@ export class AudioCapture {
             //const workletFileName = ('file-loader!./interceptor_worklet.js');
             //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
             //console.log(awpStr);
-            let audioWorkletModuleBlob= new Blob([awpStr], {type: 'text/javascript'});
+            if(AudioCapture.captureInterceptorModuleRegistered) {
+              // Required capture interceptor module already registered
+              this.addCaptureInterceptor();
+            }else{
 
-            let audioWorkletModuleBlobUrl=window.URL.createObjectURL(audioWorkletModuleBlob);
+              // Register capture interceptor module
+              let audioWorkletModuleBlob = new Blob([awpStr], {type: 'text/javascript'});
 
-            this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(()=> {
-                  const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
-                  awn.onprocessorerror=(ev:Event)=>{
-                    let msg='Unknwon error';
-                    if(ev instanceof ErrorEvent){
-                      msg=ev.message;
-                    }
-                    console.error("Capture audio worklet error: "+msg);
-                    if(this.listener){
-                      this.listener.error(msg);
-                    }
-                  }
-                  let awnPt = awn.port;
-                  if (awnPt) {
-                    awnPt.onmessage = (ev: MessageEvent) => {
-                      if (this.capturing) {
-                        let dt=ev.data;
-                        let chs = dt.chs;
-                        let adaLen = dt.data.length;
-                        if(DEBUG_TRACE_LEVEL>8) {
-                          console.debug('Received data from worklet: ' +chs + ' ' + dt.len +' Data chs: '+adaLen);
-                        }
-                        let chunk = new Array<Float32Array>(chs);
-                        const samples=this.framesRecorded*chs;
-                        if((AudioStorageType.MEM_ENTIRE_AUTO_NET_CHUNKED===this.audioStorageType || AudioStorageType.MEM_CHUNKED_AUTO_NET_CHUNKED===this.audioStorageType) && this.data && samples>this._maxAutoNetMemStoreSamples){
-                          this.data=null;
-                        }
+              let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
 
-                        //console.debug("Data initialized: "+(this.data!=null));
-                        for (let ch = 0; ch < chs; ch++) {
-                          //console.debug("Data ch initialized: "+(this.data !=null && this.data[ch] !=null));
-                          if (ch<this.channelCount) {
-                            if (dt.data[ch]) {
-                              let fa = new Float32Array(dt.data[ch]);
-                              if (this.data && this.data[ch]) {
-                                this.data[ch].push(fa);
-                              }
-                              chunk[ch] = fa;
-                              // Use samples of channel 0 to count frames (samples)
-                              if (ch == 0) {
-                                this.framesRecorded += fa.length;
-                              }
-                            }
-                          }
-                        }
-                        if (this.audioOutStream) {
-                          try {
-                            this.audioOutStream.write(chunk);
-                            // // Random test error:
-                            // if(Math.random()>0.98) {
-                            //   throw new Error('Test');
-                            // }
-                          }catch(err){
-                            if(err instanceof Error){
-                              this.persistError=err;
-                            }else{
-                              this.persistError=new Error('Error handling recorded audio data');
-                            }
-
-                            console.error("Capture error: "+err);
-                            try {
-                              this.stop();
-                            }catch(err2){
-                              console.error("Capture next error (ignored): "+err2);
-                            }finally {
-                              if (this.listener) {
-                                let errExpl = '';
-                                if (err instanceof DOMException) {
-                                  errExpl = ': ' + err.name + ': ' + err.message;
-                                }
-                                this.listener.error("Could not handle recorded audio data" + errExpl, "Please try to record again.");
-                              } else {
-                                this.close();
-                              }
-                            }
-                          }
-                        }
-                        if(AudioStorageType.DB_CHUNKED===this._audioStorageType && this._persistentAudioStorageTarget){
-                          this.store();
-                        }
-                      }
-                    };
-                  }
-                  // Tried to fix that Safari does not record the second channel
-                  // Does not help
-                  //awn.channelCount=this.channelCount;
-                  //awn.channelCountMode='explicit';
-                  //console.debug('Channel count explicitly set to '+this.channelCount);
-
-                  this.bufferingNode = awn;
-                  //this.bufferingNode.channelCount=this.channelCount;
-                  this._opened = true;
-                  if (this.listener) {
-                    this.listener.opened();
-                  }
+              this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
+                  AudioCapture.captureInterceptorModuleRegistered = true;
+                  this.addCaptureInterceptor();
                 }
-            ).catch((error: any)=>{
-              console.log('Could not add module '+error);
-            });
-
+              ).catch((error: any) => {
+                console.log('Could not add module ' + error);
+              });
+            }
           }else if(this.context.createScriptProcessor) {
             // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
             // TODO should we use streamChannelCount or channelCount here ?
