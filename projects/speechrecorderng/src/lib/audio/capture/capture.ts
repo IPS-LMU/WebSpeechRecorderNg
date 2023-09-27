@@ -11,7 +11,7 @@ import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
 
-
+export const SAFARI_FORCE_DEPRECATED_SCRIPT_PROCESSOR=false;
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
 
 const DEBUG_TRACE_LEVEL=0;
@@ -428,6 +428,9 @@ export class AudioCapture {
         autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,
         noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>|null|undefined,
         echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined) {
+
+    let forceDeprecatedScriptProcessor=false;
+
     this.channelCount = channelCount;
     this.framesRecorded = 0;
 
@@ -611,19 +614,38 @@ export class AudioCapture {
     } else if (ua.detectedBrowser===Browser.Safari) {
       console.info("Setting media track constraints for Safari browser.")
       //console.info("Apply workaround for Safari: Avoid disconnect of streams.");
-
-      this.disconnectStreams = true;
-      msc = {
-        audio: {
-          deviceId: selDeviceId,
-          channelCount: channelCount,
-          autoGainControl:autoGainControl,
-          noiseSuppression:noiseSuppression,
-          echoCancellation: echoCancellation
-        },
-        video: false,
+      if(SAFARI_FORCE_DEPRECATED_SCRIPT_PROCESSOR){
+        forceDeprecatedScriptProcessor=true;
       }
+      this.disconnectStreams = true;
+      // msc = {
+      //   audio: {
+      //     deviceId: selDeviceId,
+      //     channelCount: channelCount,
+      //     autoGainControl:autoGainControl,
+      //     noiseSuppression:noiseSuppression,
+      //     echoCancellation: echoCancellation
+      //   },
+      //   video: false,
+      // }
 
+      if(selDeviceId) {
+        msc = {
+          audio: {
+            deviceId: selDeviceId,
+            channelCount: channelCount
+          },
+          video: false,
+        }
+
+      }else{
+        msc = {
+          audio: {
+            channelCount: channelCount,
+          },
+          video: false,
+        }
+      }
     } else {
 
       // TODO default constraints or error Browser not supported
@@ -690,7 +712,7 @@ export class AudioCapture {
       // Update 06-2021
       //  AudioWorkletProcessor is here to stay. Web Audio API has now Recommendation status !
 
-          if(this.context.audioWorklet){
+          if(this.context.audioWorklet && !forceDeprecatedScriptProcessor){
             //const workletFileName = ('file-loader!./interceptor_worklet.js');
             //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
             //console.log(awpStr);
@@ -712,13 +734,13 @@ export class AudioCapture {
                 console.log('Could not add module ' + error);
               });
             }
-          }else if(this.context.createScriptProcessor) {
+          }else if(this.context.createScriptProcessor && forceDeprecatedScriptProcessor) {
             // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
             // TODO should we use streamChannelCount or channelCount here ?
             let scriptProcessorNode= this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
             this.bufferingNode=scriptProcessorNode;
             let c = 0;
-            if(scriptProcessorNode.onaudioprocess){
+            //if(scriptProcessorNode.onaudioprocess){
               scriptProcessorNode.onaudioprocess = (e: AudioProcessingEvent) => {
 
                 if (this.capturing) {
@@ -747,9 +769,9 @@ export class AudioCapture {
               if (this.listener) {
                 this.listener.opened();
               }
-            }else{
-              this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
-            }
+          // else{
+          //     this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
+          //   }
           }else{
             this.listener.error('Browser does not support audio processing (neither AudioWorkletProcessor nor ScriptProcessor)!');
           }
