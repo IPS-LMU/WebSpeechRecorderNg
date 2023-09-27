@@ -634,6 +634,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
       });
     }
+    this.statusMsg='Ready.';
   }
 
   startItem() {
