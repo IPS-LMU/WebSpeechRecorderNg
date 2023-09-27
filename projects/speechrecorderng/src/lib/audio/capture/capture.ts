@@ -537,7 +537,7 @@ export class AudioCapture {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          echoCancellation: false
+          //echoCancellation: false
         },
         video: false,
       }
