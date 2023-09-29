@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
 import {RecordingFile, SprRecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
-import {MatTable, MatTableDataSource} from "@angular/material/table";
+import {MatLegacyTable as MatTable, MatLegacyTableDataSource as MatTableDataSource} from "@angular/material/legacy-table";
 import {Observable, Subject} from "rxjs";
 import {RecordingList} from "./recording_list";
 import {AudioClip} from "../../audio/persistor";

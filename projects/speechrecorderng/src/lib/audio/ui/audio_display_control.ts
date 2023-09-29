@@ -1,6 +1,6 @@
 import {Component, Input, ViewChild} from '@angular/core'
 import {Action} from "../../action/action";
-import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
+import {MatLegacyCheckbox as MatCheckbox, MatLegacyCheckboxChange as MatCheckboxChange} from "@angular/material/legacy-checkbox";
 import {AudioClip} from "../persistor";
 
 

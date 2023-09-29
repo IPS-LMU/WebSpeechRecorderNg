@@ -3,8 +3,8 @@ import {
   Component, ViewChild, Input
 } from "@angular/core";
 
-import { MatDialog} from "@angular/material/dialog";
-import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
+import { MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
+import {LegacyProgressSpinnerMode as ProgressSpinnerMode} from "@angular/material/legacy-progress-spinner";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";

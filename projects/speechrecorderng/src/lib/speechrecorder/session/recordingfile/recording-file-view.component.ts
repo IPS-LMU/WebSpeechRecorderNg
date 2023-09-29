@@ -10,7 +10,7 @@ import {ActivatedRoute, Params, Route, Router} from "@angular/router";
 
 
 import {RecordingFileService} from "./recordingfile-service";
-import {MatDialog} from "@angular/material/dialog";
+import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
 import {AudioDisplayPlayer} from "../../../audio/audio_player";
 
 import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";

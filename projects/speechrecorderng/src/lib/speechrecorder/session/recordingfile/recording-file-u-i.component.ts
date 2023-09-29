@@ -8,14 +8,14 @@ import {
 
 import {ActivatedRoute, Router} from "@angular/router";
 import {RecordingFileService} from "./recordingfile-service";
-import {MatDialog} from "@angular/material/dialog";
+import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
 import {Selection} from "../../../audio/persistor";
 import {MessageDialog} from "../../../ui/message_dialog";
 import {Action} from "../../../action/action";
 import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
-import {MatSnackBar} from "@angular/material/snack-bar";
+import {MatLegacySnackBar as MatSnackBar} from "@angular/material/legacy-snack-bar";
 
 @Component({
 
