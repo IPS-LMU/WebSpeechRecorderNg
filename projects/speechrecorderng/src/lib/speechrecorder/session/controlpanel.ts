@@ -54,7 +54,8 @@ export class StatusDisplay {
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value" [matTooltip]="toolTipText"></mat-progress-spinner>
+    <mat-progress-spinner [mode]="spinnerMode" [color]="colorStatus" [diameter]="30" [strokeWidth]="5" [value]="_value"
+                          [matTooltip]="toolTipText"></mat-progress-spinner>
   `,
   styles: [`:host {
     text-align: left;
@@ -66,7 +67,7 @@ export class UploadStatus {
   private _awaitNewUpload=false;
   spinnerMode:ProgressSpinnerMode = 'determinate';
   _status!:string;
-  _colorStatus:ThemePalette='primary';
+  colorStatus:ThemePalette='primary';
   _value = 100;
   displayValue:string|null=null;
   toolTipText:string='';
@@ -107,11 +108,11 @@ export class UploadStatus {
   @Input() set status(status:string) {
     this._status = status;
     if ('accent' === status) {
-      this._colorStatus = 'accent';
+      this.colorStatus = 'accent';
     } else if ('warn' === status) {
-      this._colorStatus = 'warn';
+      this.colorStatus = 'warn';
     } else{
-      this._colorStatus = 'primary';
+      this.colorStatus = 'primary';
     }
     this._updateSpinner()
   }
