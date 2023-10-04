@@ -3,8 +3,8 @@ import {
   Component, ViewChild, Input
 } from "@angular/core";
 
-import { MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
-import {LegacyProgressSpinnerMode as ProgressSpinnerMode} from "@angular/material/legacy-progress-spinner";
+import { MatDialog} from "@angular/material/dialog";
+import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
@@ -178,7 +178,7 @@ export class TransportActions {
       <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       <span *ngIf="!screenXs">{{startStopNextName()}}</span>
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button >
       <mat-icon>pause</mat-icon>
       <span *ngIf="!screenXs">Pause</span>
     </button>
@@ -205,6 +205,8 @@ export class TransportActions {
     }`,`
      button {
        touch-action: manipulation;
+       justify-content: center;
+       background-color: aqua;
      }`
   ]
 

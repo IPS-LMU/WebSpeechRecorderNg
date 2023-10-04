@@ -24,7 +24,7 @@ import {AudioClip} from "../../audio/persistor";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {ActivatedRoute} from "@angular/router";
-import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {SessionService} from "./session.service";
 import {RecordingService} from "../recordings/recordings.service";
 import {SpeechRecorderUploader} from "../spruploader";

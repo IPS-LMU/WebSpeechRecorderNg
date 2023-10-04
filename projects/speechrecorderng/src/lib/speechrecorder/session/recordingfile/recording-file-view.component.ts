@@ -10,7 +10,7 @@ import {ActivatedRoute, Params, Route, Router} from "@angular/router";
 
 
 import {RecordingFileService} from "./recordingfile-service";
-import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {AudioDisplayPlayer} from "../../../audio/audio_player";
 
 import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
@@ -53,16 +53,16 @@ export class ItemcodeIndex{
   `,
   styles: [
     `:host {
-          flex: 2;
-          display: flex;
-          flex-direction: column;
-          min-height:0;
-          overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: white;
-    }`,`
+               flex: 2;
+               display: flex;
+               flex-direction: column;
+               min-height:0;
+               overflow: hidden;
+           padding: 20px;
+           z-index: 5;
+           box-sizing: border-box;
+           background-color: white;
+         }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;

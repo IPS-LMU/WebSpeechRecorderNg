@@ -8,14 +8,14 @@ import {
 
 import {ActivatedRoute, Router} from "@angular/router";
 import {RecordingFileService} from "./recordingfile-service";
-import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {Selection} from "../../../audio/persistor";
 import {MessageDialog} from "../../../ui/message_dialog";
 import {Action} from "../../../action/action";
 import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
-import {MatLegacySnackBar as MatSnackBar} from "@angular/material/legacy-snack-bar";
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 @Component({
 
@@ -44,16 +44,16 @@ import {MatLegacySnackBar as MatSnackBar} from "@angular/material/legacy-snack-b
   `,
   styles: [
     `:host {
-          flex: 2;
-          display: flex;
-          flex-direction: column;
-          min-height:0;
-          overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: white;
-    }`,`
+               flex: 2;
+               display: flex;
+               flex-direction: column;
+               min-height:0;
+               overflow: hidden;
+           padding: 20px;
+           z-index: 5;
+           box-sizing: border-box;
+           background-color: white;
+         }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;

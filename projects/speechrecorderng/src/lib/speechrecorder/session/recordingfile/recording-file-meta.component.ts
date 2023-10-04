@@ -5,7 +5,7 @@ import {RecordingFile, SprRecordingFile} from "../../recording";
 @Component({
   selector: 'app-recording-file-meta',
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
       <mat-card-content>
         <mat-progress-spinner *ngIf="stateLoading" mode="indeterminate" [diameter]="20"></mat-progress-spinner>

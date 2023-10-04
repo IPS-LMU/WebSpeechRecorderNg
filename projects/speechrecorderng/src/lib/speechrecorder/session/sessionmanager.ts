@@ -17,7 +17,7 @@ import {
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
-import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Prompting} from "./prompting";

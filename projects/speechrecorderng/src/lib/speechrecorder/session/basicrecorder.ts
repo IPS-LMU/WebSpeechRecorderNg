@@ -1,6 +1,6 @@
 import {TransportActions} from "./controlpanel";
 import {Browser, UserAgent, UserAgentBuilder} from "../../utils/ua-parser";
-import {MatLegacyDialog as MatDialog} from "@angular/material/legacy-dialog";
+import {MatDialog} from "@angular/material/dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";

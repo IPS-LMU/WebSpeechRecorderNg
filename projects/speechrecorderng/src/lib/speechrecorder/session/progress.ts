@@ -52,20 +52,20 @@ import {Item} from './item';
     min-height: 1px;
   }`,
       `table {
-      min-height: 1px;
-      border-collapse: collapse;
-          /* Tables do not have a natural min size */
-          /*min-width: 300px; */
-
-    }
-
-    table, th, td {
-      border: 1px solid lightgrey;
-      padding: 0.5em;
-
-    }
-
-    `, `
+             min-height: 1px;
+             border-collapse: collapse;
+                 /* Tables do not have a natural min size */
+                 /*min-width: 300px; */
+       
+           }
+       
+           table, th, td {
+             border: 1px solid lightgrey;
+             padding: 0.5em;
+       
+           }
+       
+           `, `
       .selRow {
         background: lightblue;
       }

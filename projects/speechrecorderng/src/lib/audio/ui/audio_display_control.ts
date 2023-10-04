@@ -1,6 +1,6 @@
 import {Component, Input, ViewChild} from '@angular/core'
 import {Action} from "../../action/action";
-import {MatLegacyCheckbox as MatCheckbox, MatLegacyCheckboxChange as MatCheckboxChange} from "@angular/material/legacy-checkbox";
+import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
 import {AudioClip} from "../persistor";
 
 
@@ -54,9 +54,9 @@ import {AudioClip} from "../persistor";
         </div>`,
     styles: [
         `:host {
-        flex: 0;
-
-      }`]
+                 flex: 0;
+         
+               }`]
 
   })
 	export class AudioDisplayControl {

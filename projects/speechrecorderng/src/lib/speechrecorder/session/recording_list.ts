@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output} from "@angular/core";
 import {RecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
-import {MatLegacyTableDataSource as MatTableDataSource} from "@angular/material/legacy-table";
+import {MatTableDataSource} from "@angular/material/table";
 import {RecFilesCache} from "./recording_file_cache";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 
@@ -10,7 +10,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
   selector: 'app-recordinglist',
 
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <h2>Recording list</h2>
       </mat-card-header>
