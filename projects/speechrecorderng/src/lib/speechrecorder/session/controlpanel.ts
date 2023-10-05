@@ -5,7 +5,7 @@ import {
 
 import { MatDialog} from "@angular/material/dialog";
 import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
-import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
+import {BreakpointObserver} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
 
@@ -172,32 +172,21 @@ export class TransportActions {
   template: `
     <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
             mat-raised-button class="transport-button-icon">
-      <span class="centered">
-      <mat-icon>chevron_left</mat-icon>
-      </span>
+      <span><mat-icon>chevron_left</mat-icon></span>
     </button>
-    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button class="transport-button-icon">
-      <span>
-      <mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-        </span>
+    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button  class="transport-button-icon">
+      <span><mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
       <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
-
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button class="transport-button-icon">
-      <span>
-      <mat-icon class="transport-button-icon">pause</mat-icon>
-      </span>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
+      <span><mat-icon>pause</mat-icon></span>
       <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
     </button>
     <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
-      <span>
-      <mat-icon>redo</mat-icon>
-      </span>
+      <span><mat-icon>redo</mat-icon></span>
     </button>
     <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
-        <span>
-      <mat-icon>chevron_right</mat-icon>
-        </span>
+      <span><mat-icon>chevron_right</mat-icon></span>
     </button>
 
   `,
@@ -214,22 +203,18 @@ export class TransportActions {
       display: inline;
       flex: 0;
     }`,`
-    button[mat-raised-button] {
-      touch-action: manipulation;
-
-    }`,`
-    .centered {
-      vertical-align: center;
-      height:min-content;
-    }`,`
+     button {
+       touch-action: manipulation;
+       justify-content: center;
+     }`,`
     .transport-button-icon{
       font-size: 24px;
-      vertical-align: middle;
+      vertical-align: center;
     }`,`
     .transport-button-text{
       font-size: medium;
       letter-spacing: normal;
-      vertical-align: baseline;
+      vertical-align: center;
     }`
   ]
 
@@ -375,9 +360,9 @@ export class ReadyStateIndicator {
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
       <app-readystateindicator [ready]="_ready"></app-readystateindicator>
     </div>
-    <div *ngIf="screenXs"style="flex-direction: column"  >
+    <div *ngIf="screenXs" style="flex-direction: column">
       <div style="flex-direction: row" class="flexFill" >
-       <app-sprstatusdisplay style="flex:10 0 0;flex-align:left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+       <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
        <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                         [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
