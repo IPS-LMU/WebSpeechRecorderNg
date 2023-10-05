@@ -171,22 +171,33 @@ export class TransportActions {
 
   template: `
     <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
-            mat-raised-button>
+            mat-raised-button class="transport-button-icon">
+      <span class="centered">
       <mat-icon>chevron_left</mat-icon>
+      </span>
     </button>
-    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
-      <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      <span *ngIf="!screenXs">{{startStopNextName()}}</span>
+    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button class="transport-button-icon">
+      <span>
+      <mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
+        </span>
+      <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
+
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button >
-      <mat-icon>pause</mat-icon>
-      <span *ngIf="!screenXs">Pause</span>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button class="transport-button-icon">
+      <span>
+      <mat-icon class="transport-button-icon">pause</mat-icon>
+      </span>
+      <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
     </button>
-    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
+    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
+      <span>
       <mat-icon>redo</mat-icon>
+      </span>
     </button>
-    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
+    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
+        <span>
       <mat-icon>chevron_right</mat-icon>
+        </span>
     </button>
 
   `,
@@ -203,8 +214,22 @@ export class TransportActions {
       display: inline;
       flex: 0;
     }`,`
-    button {
-      touch-action: manipulation
+    button[mat-raised-button] {
+      touch-action: manipulation;
+
+    }`,`
+    .centered {
+      vertical-align: center;
+      height:min-content;
+    }`,`
+    .transport-button-icon{
+      font-size: 24px;
+      vertical-align: middle;
+    }`,`
+    .transport-button-text{
+      font-size: medium;
+      letter-spacing: normal;
+      vertical-align: baseline;
     }`
   ]
 
