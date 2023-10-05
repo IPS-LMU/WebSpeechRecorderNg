@@ -203,11 +203,9 @@ export class TransportActions {
       display: inline;
       flex: 0;
     }`,`
-     button {
-       touch-action: manipulation;
-       justify-content: center;
-       background-color: aqua;
-     }`
+    button {
+      touch-action: manipulation
+    }`
   ]
 
 })
