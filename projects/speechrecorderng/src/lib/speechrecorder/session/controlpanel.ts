@@ -175,11 +175,11 @@ export class TransportActions {
       <span><mat-icon>chevron_left</mat-icon></span>
     </button>
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button  class="transport-button-icon">
-      <span><mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
+      <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon class="transport-button-icon" *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
       <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
     </button>
     <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
-      <span><mat-icon>pause</mat-icon></span>
+      <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
       <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
     </button>
     <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
@@ -205,16 +205,18 @@ export class TransportActions {
     }`,`
      button {
        touch-action: manipulation;
-       justify-content: center;
      }`,`
     .transport-button-icon{
       font-size: 24px;
-      vertical-align: center;
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: clip;
+      white-space: nowrap;
     }`,`
     .transport-button-text{
-      font-size: medium;
+      font-size: 14px;
       letter-spacing: normal;
-      vertical-align: center;
+      vertical-align: baseline;
     }`
   ]
 
