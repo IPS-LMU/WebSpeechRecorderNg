@@ -350,9 +350,9 @@ export class ReadyStateIndicator {
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
       <app-readystateindicator [ready]="_ready"></app-readystateindicator>
     </div>
-    <div *ngIf="screenXs"style="flex-direction: column"  >
+    <div *ngIf="screenXs" style="flex-direction: column"  >
       <div style="flex-direction: row" class="flexFill" >
-       <app-sprstatusdisplay style="flex:10 0 0;flex-align:left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+       <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
        <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                         [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
