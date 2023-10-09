@@ -2,7 +2,7 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, ElementRef, OnInit,
+  AfterViewInit, ElementRef, OnInit, Injector,
 } from '@angular/core'
 
 
