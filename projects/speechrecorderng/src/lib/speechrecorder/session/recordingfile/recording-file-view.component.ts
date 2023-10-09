@@ -2,11 +2,11 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, ElementRef, OnInit, Injector,
+  AfterViewInit, ElementRef, OnInit,
 } from '@angular/core'
 
 
-import {ActivatedRoute, Params, Route, Router} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 
 
 import {RecordingFileService} from "./recordingfile-service";
@@ -21,7 +21,7 @@ import {Selection} from "../../../audio/persistor";
 import {Action, ActionEvent} from "../../../action/action";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
-import {RecordingFile, SprRecordingFile} from "../../recording";
+import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 
 
@@ -399,7 +399,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               } else {
                 // rec file with itemcode already exists, add (push) this version ...
                 exRfsForIc.push(rfd);
-                // .. and sort latest version (highest version number) to lowest index
+                // ... and sort latest version (highest version number) to lowest index
                 exRfsForIc.sort((rfd1, rfd2) => {
                   return rfd2.version - rfd1.version;
                 })

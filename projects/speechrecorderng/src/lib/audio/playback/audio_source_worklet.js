@@ -94,7 +94,7 @@ class AudioSourceProcessor extends AudioWorkletProcessor{
 
           let copied=0;
           do{
-            if(this.currentAudioBufferAvail==0){
+            if(this.currentAudioBufferAvail===0){
               let nxtBuff=this.audioBuffers.shift();
               if(nxtBuff){
                 this.currentAudioBuffer=nxtBuff;

@@ -46,7 +46,7 @@ import {Item} from './item';
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
     the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
-    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+    See https://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
     */
     /* min-height:0px; */
     min-height: 1px;

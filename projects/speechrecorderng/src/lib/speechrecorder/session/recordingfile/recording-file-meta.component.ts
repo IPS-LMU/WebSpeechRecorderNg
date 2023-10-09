@@ -1,6 +1,6 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {RecordingFileUtil} from "./recording-file";
-import {RecordingFile, SprRecordingFile} from "../../recording";
+import {SprRecordingFile} from "../../recording";
 
 @Component({
   selector: 'app-recording-file-meta',

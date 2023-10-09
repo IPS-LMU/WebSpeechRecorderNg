@@ -9,7 +9,7 @@ import {
   OnInit,
   Renderer2,
   HostBinding,
-  AfterContentChecked, ChangeDetectorRef, Inject
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -23,15 +23,8 @@ import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
-import {ActivatedRoute} from "@angular/router";
-import {MatDialog} from "@angular/material/dialog";
-import {SessionService} from "./session.service";
-import {RecordingService} from "../recordings/recordings.service";
-import {SpeechRecorderUploader} from "../spruploader";
-import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Speaker} from "../speaker/speaker";
 import {Project} from "../project/project";
-
 
 @Component({
 
@@ -715,7 +708,7 @@ export class ProgressAndSpeakerContainer{
       z-index: 3;
     }
   `, `
-    spr-progress-speaker-container{
+    app-sprprogress {
       z-index: 3;
     }
   `, `

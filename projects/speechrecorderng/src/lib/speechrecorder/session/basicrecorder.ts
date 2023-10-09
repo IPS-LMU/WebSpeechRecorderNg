@@ -256,7 +256,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
+  protected constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
                 public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,

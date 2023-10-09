@@ -169,7 +169,7 @@ export class AudioCapture {
   constructor(context: AudioContext) {
     this.context = context;
     this.n = navigator;
-    this.context.addEventListener('statechange', (ev) => {
+    this.context.addEventListener('statechange', () => {
       if (this.context.state !== 'running') {
         this.close();
       }

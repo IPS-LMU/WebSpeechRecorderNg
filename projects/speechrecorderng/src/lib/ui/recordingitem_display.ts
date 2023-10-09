@@ -249,7 +249,7 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
         let peakDBVal = levelInfo.powerLevelDB();
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;
-            // the event comes from outside of an Angular zone
+            // the event comes from outside an Angular zone
             this.changeDetectorRef.detectChanges();
         }
         this.liveLevel.update(levelInfo);

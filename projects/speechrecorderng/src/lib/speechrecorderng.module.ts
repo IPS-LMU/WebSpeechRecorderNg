@@ -46,9 +46,8 @@ import {AudioDisplay} from "./audio/audio_display";
 import {AudioDisplayControl} from "./audio/ui/audio_display_control";
 import {LevelBar} from "./audio/ui/livelevel";
 import {AudioDisplayScrollPane} from "./audio/ui/audio_display_scroll_pane";
-import {UUID} from "./utils/utils";
 import {MatCheckboxModule} from "@angular/material/checkbox";
-import {MatCard, MatCardModule} from "@angular/material/card";
+import {MatCardModule} from "@angular/material/card";
 import {MatDividerModule} from "@angular/material/divider";
 import {MatGridListModule} from "@angular/material/grid-list";
 import {RecordingFileUI} from "./speechrecorder/session/recordingfile/recording-file-u-i.component";
@@ -71,8 +70,7 @@ import {
   RecordingFileDeleteConfirmDialog
 } from "./speechrecorder/session/recordingfile/recording-file_delete_confirm_dialog";
 import {MatMenuModule} from "@angular/material/menu";
-import {CanvasLayerComponent} from "./ui/canvas_layer_comp";
-import {ResponsiveComponent} from "./ui/responsive_component";
+
 
 
 

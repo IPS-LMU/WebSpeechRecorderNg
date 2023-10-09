@@ -85,19 +85,19 @@ import {AudioDataHolder} from "../audio_data_holder";
     height: 0;
     cursor: ns-resize;
     position: absolute;
-    zIndex: 1;
+    z-index: 1;
     transform: none;
   }`, `audio-signal {
     top: 0;
     left: 0;
     position: absolute;
-    zIndex: 1;
+    z-index: 1;
     transform: none;
   }`, `audio-sonagram {
     top: 0;
     left: 0;
     position: absolute;
-    zIndex: 1;
+    z-index: 1;
     transform: none;
   }`]
 

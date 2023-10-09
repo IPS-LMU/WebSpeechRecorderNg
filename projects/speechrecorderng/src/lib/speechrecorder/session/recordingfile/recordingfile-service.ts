@@ -97,7 +97,8 @@ export class RecordingFileService extends BasicRecordingService{
       if(recordingFile.recordingFileId) {
         let obs = this.fetchAudiofile(recordingFile.recordingFileId);
 
-        obs.subscribe(resp => {
+        obs.subscribe(
+            {next:resp => {
               // Do not use Promise version, which does not work with Safari 13
               if(resp.body) {
                 aCtx.decodeAudioData(resp.body, ab => {
@@ -118,7 +119,7 @@ export class RecordingFileService extends BasicRecordingService{
                 observer.error('Received no audio data!');
               }
             },
-            (error: HttpErrorResponse) => {
+            error:(error: HttpErrorResponse) => {
               if (error.status == 404) {
                 // Interpret not as an error, the file ist not recorded yet
                 observer.next(null);
@@ -128,7 +129,8 @@ export class RecordingFileService extends BasicRecordingService{
                 observer.error(error);
                 observer.complete();
               }
-            });
+            }
+      });
       }else{
         observer.error();
       }
@@ -142,20 +144,22 @@ export class RecordingFileService extends BasicRecordingService{
     let wobs = new Observable<RecordingFile | null>(observer => {
       let rf: RecordingFile|null = null;
       let rfDescrObs = this.recordingFileDescrObserver(recordingFileId);
-      rfDescrObs.subscribe(value => {
+      rfDescrObs.subscribe(
+          {next:value => {
         rf = value;
-      }, (error) => {
+      }, error:(error) => {
         observer.error(error);
-      }, () => {
+      }, complete:() => {
         let rfAudioObs = this.fetchAudiofile(recordingFileId);
-        rfAudioObs.subscribe(resp => {
+        rfAudioObs.subscribe({
+          next: resp => {
             // Do not use Promise version, which does not work with Safari 13
-            if(resp.body) {
+            if (resp.body) {
               aCtx.decodeAudioData(resp.body, ab => {
-                if(rf) {
-                  let as=new AudioBufferSource(ab);
-                  RecordingFileUtils.setAudioData(rf,new AudioDataHolder(as));
-                }else{
+                if (rf) {
+                  let as = new AudioBufferSource(ab);
+                  RecordingFileUtils.setAudioData(rf, new AudioDataHolder(as));
+                } else {
                   observer.error('Recording file object null');
                 }
                 if (this.debugDelay > 0) {
@@ -168,11 +172,11 @@ export class RecordingFileService extends BasicRecordingService{
                   observer.complete();
                 }
               })
-            }else{
+            } else {
               observer.error('Received no audio data');
             }
           },
-          (error: HttpErrorResponse) => {
+          error: (error: HttpErrorResponse) => {
             if (error.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
               observer.next(null);
@@ -182,8 +186,9 @@ export class RecordingFileService extends BasicRecordingService{
               observer.error(error);
               observer.complete();
             }
-          });
-
+          }
+        });
+        }
       });
     });
 
@@ -195,85 +200,90 @@ export class RecordingFileService extends BasicRecordingService{
     let wobs = new Observable<SprRecordingFile | null>(observer => {
       let rf: SprRecordingFile|null = null;
       let rfDescrObs = this.sprRecordingFileDescrObserver(recordingFileId);
-      rfDescrObs.subscribe(value => {
+      rfDescrObs.subscribe({next:value => {
         rf = value;
-      }, (error) => {
+      }
+    , error:(error) => {
         observer.error(error);
-      }, () => {
-        let sampleCnt:number|null=null;
-        if(rf && rf.channels && rf.frames){
-          sampleCnt=rf.channels*rf.frames;
+      }, complete:() => {
+        let sampleCnt: number | null = null;
+        if (rf && rf.channels && rf.frames) {
+          sampleCnt = rf.channels * rf.frames;
         }
         // TODO use download storage type depending on sample count of file
-        if(rf && rf.samplerate && sampleCnt!=null && sampleCnt>this._maxAutoNetMemStoreSamples) {
-          const baseUrl=this.recoFileUrl(recordingFileId);
-          const obNetAb=this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl,0,rf?.samplerate,BasicRecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS,rf.frames);
+        if (rf && rf.samplerate && sampleCnt != null && sampleCnt > this._maxAutoNetMemStoreSamples) {
+          const baseUrl = this.recoFileUrl(recordingFileId);
+          const obNetAb = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, rf?.samplerate, BasicRecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS, rf.frames);
           obNetAb.subscribe(
-            {
-              next:(nab)=>{
-                let adh = new AudioDataHolder(nab);
-                if(rf) {
-                  RecordingFileUtils.setAudioData(rf, adh);
-                  observer.next(rf);
-                }
-              },
-              complete:()=>{
-                observer.complete();
-              },
-              error:(error)=>{
-                if (error.status == 404) {
-                  // Interpret not as an error, the file ist not recorded yet
-                  observer.next(null);
-                  observer.complete()
-                } else {
-                  // all other states are errors
-                  observer.error(error);
-                  observer.complete();
-                }
-              }
-            }
-          );
-        }else {
-
-          let rfAudioObs = this.fetchAudiofile(recordingFileId);
-          rfAudioObs.subscribe(resp => {
-              // Do not use Promise version, which does not work with Safari 13
-              if (resp.body) {
-                aCtx.decodeAudioData(resp.body, ab => {
+              {
+                next: (nab) => {
+                  let adh = new AudioDataHolder(nab);
                   if (rf) {
-                    let as = new AudioBufferSource(ab);
-                    let adh = new AudioDataHolder(as);
                     RecordingFileUtils.setAudioData(rf, adh);
-                  } else {
-                    observer.error('Recording file object null');
-                  }
-                  if (this.debugDelay > 0) {
-                    window.setTimeout(() => {
-                      observer.next(rf);
-                      observer.complete();
-                    }, this.debugDelay);
-                  } else {
                     observer.next(rf);
+                  }
+                },
+                complete: () => {
+                  observer.complete();
+                },
+                error: (error) => {
+                  if (error.status == 404) {
+                    // Interpret not as an error, the file ist not recorded yet
+                    observer.next(null);
+                    observer.complete()
+                  } else {
+                    // all other states are errors
+                    observer.error(error);
                     observer.complete();
                   }
-                })
-              } else {
-                observer.error('Received no audio data');
+                }
               }
-            },
-            (error: HttpErrorResponse) => {
-              if (error.status == 404) {
-                // Interpret not as an error, the file ist not recorded yet
-                observer.next(null);
-                observer.complete()
-              } else {
-                // all other states are errors
-                observer.error(error);
-                observer.complete();
-              }
-            });
+          );
+        } else {
+
+          let rfAudioObs = this.fetchAudiofile(recordingFileId);
+          rfAudioObs.subscribe(
+              {next:resp =>
+          {
+            // Do not use Promise version, which does not work with Safari 13
+            if (resp.body) {
+              aCtx.decodeAudioData(resp.body, ab => {
+                if (rf) {
+                  let as = new AudioBufferSource(ab);
+                  let adh = new AudioDataHolder(as);
+                  RecordingFileUtils.setAudioData(rf, adh);
+                } else {
+                  observer.error('Recording file object null');
+                }
+                if (this.debugDelay > 0) {
+                  window.setTimeout(() => {
+                    observer.next(rf);
+                    observer.complete();
+                  }, this.debugDelay);
+                } else {
+                  observer.next(rf);
+                  observer.complete();
+                }
+              })
+            } else {
+              observer.error('Received no audio data');
+            }
+          }
+        , error:(error: HttpErrorResponse) => {
+            if (error.status == 404) {
+              // Interpret not as an error, the file ist not recorded yet
+              observer.next(null);
+              observer.complete()
+            } else {
+              // all other states are errors
+              observer.error(error);
+              observer.complete();
+            }
+          }
+        });
         }
-      });
+      }
+    });
     });
 
     return wobs;

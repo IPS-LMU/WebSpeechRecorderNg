@@ -1,7 +1,6 @@
 import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
-import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
 import {BasicRecordingService} from "../speechrecorder/recordings/basic_recording.service";
 
