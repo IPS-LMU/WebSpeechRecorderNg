@@ -263,7 +263,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
             return;
           } else {
             // all this attempts to customize the message do not work anymore (for security reasons)!!
-            var message = "Please do not leave the page, until all recordings are uploaded!";
+            const message = "Please do not leave the page, until all recordings are uploaded!";
             alert(message);
             e = e || window.event;
 
@@ -398,7 +398,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
 
       }
       if(projUrl) {
-        var pLoader = new XMLHttpRequest();
+        const pLoader = new XMLHttpRequest();
         pLoader.open("GET", projUrl, true);
         pLoader.setRequestHeader('Accept', 'application/json');
         pLoader.responseType = "json";

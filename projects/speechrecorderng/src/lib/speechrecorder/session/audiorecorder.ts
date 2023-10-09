@@ -189,7 +189,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   constructor(protected bpo:BreakpointObserver,changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
-              private route: ActivatedRoute,
               dialog: MatDialog,
               sessionService:SessionService,
               private recFileService:RecordingService,
@@ -1211,7 +1210,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
         return;
       } else {
         // all this attempts to customize the message do not work anymore (for security reasons)!!
-        var message = "Please do not leave the page, until all recordings are uploaded!";
+        const message = "Please do not leave the page, until all recordings are uploaded!";
         alert(message);
         e = e || window.event;
 

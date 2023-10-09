@@ -540,34 +540,37 @@ export class RecordingService extends BasicRecordingService{
       if(recordingFile.session && recFileId) {
 
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
-        obs.subscribe(resp => {
-            // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-            if (resp.body) {
-              aCtx.decodeAudioData(resp.body, ab => {
-                  observer.next(ab);
-                  observer.complete();
-              }, error => {
-                observer.error(error);
-                observer.complete();
-              })
-            } else {
-              observer.error('Fetching audio file: response has no body');
-            }
-          }, (err) => {
-          if(err instanceof HttpErrorResponse) {
-            if (err.status == 404) {
-              // Interpret not as an error, the file ist not recorded yet
-              observer.next(null);
-              observer.complete()
-            } else {
-              // all other states are errors
-              observer.error(err);
-              observer.complete();
-            }
-          }else{
-            observer.error(err);
-          }
-          });
+        obs.subscribe(
+            {
+              next: resp => {
+                // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+                if (resp.body) {
+                  aCtx.decodeAudioData(resp.body, ab => {
+                    observer.next(ab);
+                    observer.complete();
+                  }, error => {
+                    observer.error(error);
+                    observer.complete();
+                  })
+                } else {
+                  observer.error('Fetching audio file: response has no body');
+                }
+              }, error: (err) => {
+                if (err instanceof HttpErrorResponse) {
+                  if (err.status == 404) {
+                    // Interpret not as an error, the file ist not recorded yet
+                    observer.next(null);
+                    observer.complete()
+                  } else {
+                    // all other states are errors
+                    observer.error(err);
+                    observer.complete();
+                  }
+                } else {
+                  observer.error(err);
+                }
+              }
+            });
       }else{
         observer.error();
       }
@@ -586,7 +589,8 @@ export class RecordingService extends BasicRecordingService{
       if(recordingFile.session && recFileId) {
 
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
-        obs.subscribe(resp => {
+        obs.subscribe(
+            {next:resp => {
             //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
@@ -613,7 +617,7 @@ export class RecordingService extends BasicRecordingService{
               observer.error('Fetching audio file: response has no body');
             }
           },
-          (err) => {
+          error:(err) => {
           if(err instanceof HttpErrorResponse) {
             if (err.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
@@ -627,7 +631,7 @@ export class RecordingService extends BasicRecordingService{
           }else{
             observer.error(err);
           }
-          });
+          }});
       }else{
         observer.error();
       }
@@ -946,7 +950,9 @@ export class RecordingService extends BasicRecordingService{
     let wobs = new Observable<SprRecordingFile|null>(observer=>{
       if(recordingFile.session) {
         let obs = this.fetchSprAudiofile(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
-        obs.subscribe(resp => {
+        obs.subscribe(
+            {
+              next: resp => {
               //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
               // Do not use Promise version, which does not work with Safari 13 (13.0.5)
@@ -972,7 +978,7 @@ export class RecordingService extends BasicRecordingService{
                 observer.error('Fetching audio file: response has no body');
               }
             },
-            (err) => {
+            error:(err) => {
               if (err instanceof HttpErrorResponse && err.status == 404) {
                 // Interpret not as an error, the file ist not recorded yet
                 observer.next(null);
@@ -981,7 +987,7 @@ export class RecordingService extends BasicRecordingService{
                 // all other states are errors
                 observer.error(err);
               }
-            });
+            }});
       }else{
         observer.error();
       }
@@ -996,38 +1002,42 @@ export class RecordingService extends BasicRecordingService{
       let obs = this.fetchSprAudiofile(projectName, sessId, itemcode,version);
 
 
-      obs.subscribe(resp => {
-            // Do not use Promise version, which does not work with Safari 13
-          if(resp.body) {
-            aCtx.decodeAudioData(resp.body, ab => {
-              let abs=new AudioBufferSource(ab);
-              let adh=new AudioDataHolder(abs);
-              let rf = new SprRecordingFile(sessId, itemcode, version, adh);
-              if (this.debugDelay > 0) {
-                window.setTimeout(() => {
+      obs.subscribe(
+          {next:resp =>
+      {
+        // Do not use Promise version, which does not work with Safari 13
+        if (resp.body) {
+          aCtx.decodeAudioData(resp.body, ab => {
+            let abs = new AudioBufferSource(ab);
+            let adh = new AudioDataHolder(abs);
+            let rf = new SprRecordingFile(sessId, itemcode, version, adh);
+            if (this.debugDelay > 0) {
+              window.setTimeout(() => {
 
-                  observer.next(rf);
-                  observer.complete();
-                }, this.debugDelay);
-              } else {
                 observer.next(rf);
                 observer.complete();
-              }
-            });
-          }else{
-            observer.error();
-          }
-        },
-        (err) => {
-          if (err instanceof HttpErrorResponse && err.status == 404) {
-            // Interpret not as an error, the file ist not recorded yet
-            observer.next(null);
-            observer.complete()
-          }else{
-            // all other errors are real errors
-            observer.error(err);
-          }
-        });
+              }, this.debugDelay);
+            } else {
+              observer.next(rf);
+              observer.complete();
+            }
+          });
+        } else {
+          observer.error();
+        }
+      }
+    ,
+     error: (err) => {
+        if (err instanceof HttpErrorResponse && err.status == 404) {
+          // Interpret not as an error, the file ist not recorded yet
+          observer.next(null);
+          observer.complete()
+        } else {
+          // all other errors are real errors
+          observer.error(err);
+        }
+      }
+    });
     });
 
     return wobs;

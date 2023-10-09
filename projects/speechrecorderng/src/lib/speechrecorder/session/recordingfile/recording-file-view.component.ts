@@ -2,11 +2,11 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, ElementRef, OnInit,
+  AfterViewInit, ElementRef, OnInit,
 } from '@angular/core'
 
 
-import {ActivatedRoute, Params, Route, Router} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 
 
 import {RecordingFileService} from "./recordingfile-service";
@@ -21,7 +21,7 @@ import {Selection} from "../../../audio/persistor";
 import {Action, ActionEvent} from "../../../action/action";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
-import {RecordingFile, SprRecordingFile} from "../../recording";
+import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 
 
@@ -287,49 +287,53 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
       this.audioFetching=true;
-      this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(value => {
-        this.audioFetching=false;
-        this.status = 'Audio file loaded.';
-        let clip = null;
-        this.recordingFile = value;
-        if (this.recordingFile) {
-          let ab = this.recordingFile.audioDataHolder;
-          if (ab) {
-            clip = new AudioClip(ab);
+      this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(
+          {
+            next: value => {
+              this.audioFetching = false;
+              this.status = 'Audio file loaded.';
+              let clip = null;
+              this.recordingFile = value;
+              if (this.recordingFile) {
+                let ab = this.recordingFile.audioDataHolder;
+                if (ab) {
+                  clip = new AudioClip(ab);
 
-            let esffsr = null;
-            let eeffsr = null;
-            let esr = null;
+                  let esffsr = null;
+                  let eeffsr = null;
+                  let esr = null;
 
-            if (clip.audioDataHolder != null) {
-              esr = ab.sampleRate;
-              if (esr != null) {
-                esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
-                eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
-              }
-              let sel: Selection | null = null;
-              if (esffsr != null) {
-                if (eeffsr != null) {
-                  sel = new Selection(ab.sampleRate, esffsr, eeffsr);
-                } else {
-                  //let ch0 = ab.getChannelData(0);
-                  let frameLength = ab.frameLen;
-                  sel = new Selection(esr, esffsr, frameLength);
+                  if (clip.audioDataHolder != null) {
+                    esr = ab.sampleRate;
+                    if (esr != null) {
+                      esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
+                      eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
+                    }
+                    let sel: Selection | null = null;
+                    if (esffsr != null) {
+                      if (eeffsr != null) {
+                        sel = new Selection(ab.sampleRate, esffsr, eeffsr);
+                      } else {
+                        //let ch0 = ab.getChannelData(0);
+                        let frameLength = ab.frameLen;
+                        sel = new Selection(esr, esffsr, frameLength);
+                      }
+                    } else if (eeffsr != null) {
+                      sel = new Selection(esr, 0, eeffsr);
+                    }
+                    clip.selection = sel
+                  }
                 }
-              } else if (eeffsr != null) {
-                sel = new Selection(esr, 0, eeffsr);
               }
-              clip.selection = sel
-            }
-          }
-        }
-        this.audioClip = clip
-        this.loadedRecfile();
+              this.audioClip = clip
+              this.loadedRecfile();
 
-      }, error1 => {
-        this.audioFetching=false;
+            }, error:error1 =>
+      {
+        this.audioFetching = false;
         this.status = 'Error loading audio file!';
-      });
+      }
+    });
     }
   }
 
@@ -360,7 +364,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private loadSession(sessionId: string| number) {
-    // load session and recording file meta data only when on init and when session changes
+    // load session and recording file metadata only when on init and when session changes
     if (<string>sessionId != <string>this.sessionId) {
       // tell UI that we are working...
       this.naviInfoLoading=true;
@@ -398,7 +402,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               } else {
                 // rec file with itemcode already exists, add (push) this version ...
                 exRfsForIc.push(rfd);
-                // .. and sort latest version (highest version number) to lowest index
+                // ... and sort latest version (highest version number) to lowest index
                 exRfsForIc.sort((rfd1, rfd2) => {
                   return rfd2.version - rfd1.version;
                 })
