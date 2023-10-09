@@ -1,1 +1,1 @@
-export const VERSION='3.4.5-beta.3'
+export const VERSION='3.4.5'
