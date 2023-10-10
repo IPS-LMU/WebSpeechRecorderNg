@@ -97,13 +97,18 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   nextAction: Action<void>;
   lastAction: Action<void>;
   toVersionAction: Action<number>;
-  audioFetching=false;
-
-  naviInfoLoading=false;
+  audioFetching:boolean;
+  naviInfoLoading:boolean;
 
   constructor(protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
     super(route, ref, eRef)
     this.parentE = this.eRef.nativeElement;
+
+    // TODO Should be initialized with false, but this causes in debug mode:
+    // ERROR Error: NG0100: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'false'. Current value: 'true'. Find more at https://angular.io/errors/NG0100
+    this.audioFetching=true;
+
+    this.naviInfoLoading=false;
     this.firstAction = new Action<void>('First');
     this.firstAction.onAction= ()=>{
       this.posInList=0;

@@ -48,7 +48,11 @@ export class RecordingFileMetaComponent{
 
   private _recordingFile:SprRecordingFile|null=null;
 
-  @Input() stateLoading:boolean=false;
+  @Input() stateLoading:boolean;
+
+  constructor() {
+    this.stateLoading=false;
+  }
 
   get recordingFile(): SprRecordingFile | null {
     return this._recordingFile;

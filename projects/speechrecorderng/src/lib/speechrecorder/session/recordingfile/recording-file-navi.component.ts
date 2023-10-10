@@ -53,11 +53,14 @@ export class RecordingFileNaviComponent implements OnInit {
   @Input() versions: Array<number>|null=null;
   @Input() version: number|null=null;
 
-  @Input() naviInfoLoading=false;
+  @Input() naviInfoLoading;
 
-  constructor() { }
+  constructor() {
+      this.naviInfoLoading=false;
+  }
 
   ngOnInit(): void {
+
   }
 
   selectVersionChange(ev:Event){
