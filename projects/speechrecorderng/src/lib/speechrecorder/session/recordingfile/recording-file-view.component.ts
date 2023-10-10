@@ -78,8 +78,6 @@ export class ItemcodeIndex{
 })
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
 
-  //protected _recordingFileId: string | number = null;
-
   sessionId: string | number | null= null;
   sessionIdFromRoute:string|null=null;
 
@@ -90,7 +88,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   recordingFileVersion:number|null=null;
   private routedByQueryParam=false;
   posInList: number|null=null;
-
 
   @ViewChild(AudioDisplayScrollPane)
   private ac!: AudioDisplayScrollPane;
@@ -130,7 +127,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   ngOnInit() {
     super.ngOnInit();
-
   }
 
   ngAfterViewInit() {
@@ -284,8 +280,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.recordingFile=null;
     this.posInList=null;
     this.updateActions();
-    let audioContext = AudioContextProvider.audioContextInstance();
-    if(audioContext) {
       this.audioFetching=true;
       this.recordingFileService.fetchSprRecordingFile( rfId).subscribe(
           {
@@ -334,7 +328,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.status = 'Error loading audio file!';
       }
     });
-    }
+
   }
 
   protected loadedRecfile() {
