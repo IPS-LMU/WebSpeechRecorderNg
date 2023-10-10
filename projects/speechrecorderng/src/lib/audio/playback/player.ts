@@ -46,7 +46,7 @@ import {AudioContextProvider} from "../context";
         private running=false;
         private readonly _startAction:Action<void>;
         private readonly _startSelectionAction:Action<void>;
-        private readonly _autoPlayOnSelectToggleAction:Action<boolean>
+        private readonly _autoPlayOnSelectToggleAction:Action<boolean>;
         private readonly _stopAction:Action<void>;
         bufSize:number;
         context:AudioContext|null=null;
@@ -128,9 +128,9 @@ import {AudioContextProvider} from "../context";
                 this.audioSource=audioDataHolder.audioSource;
 
                 audioClip.addSelectionObserver((ac)=> {
-                    this._startSelectionAction.disabled = this.startSelectionDisabled()
+                    this._startSelectionAction.disabled = this.startSelectionDisabled();
                     if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
-                      this.startSelected()
+                      this.startSelected();
                     }
                   }
                 )
@@ -260,7 +260,7 @@ import {AudioContextProvider} from "../context";
         }
 
         startSelectionDisabled(){
-          return !(this._audioClip && this.context && !this.startAction.disabled && this._audioClip.selection )
+          return !(this._audioClip && !this.startAction.disabled && this._audioClip.selection )
         }
 
 
@@ -370,10 +370,7 @@ import {AudioContextProvider} from "../context";
         }
 
       startSelected() {
-          if(!this.context){
-              this.context=AudioContextProvider.audioContextInstance();
-          }
-
+            this._audioContext();
           if(!this.context){
               throw new Error("Could not get audio context!");
           }
