@@ -2,7 +2,7 @@ import {
     Component,
     ViewChild,
     ChangeDetectorRef,
-    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
+    AfterViewInit, Input, OnInit, ElementRef,
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -66,8 +66,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterView
   zoomInAction!:Action<void>;
   zoomOutAction!:Action<void>;
 
-
-  aCtx: AudioContext|null=null;
   private _audioClip:AudioClip|null=null;
   ap: AudioPlayer|undefined;
   status: string;
@@ -77,32 +75,31 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterView
   audio: any;
   updateTimerId: any;
 
-
   @ViewChild(AudioDisplayScrollPane, { static: true })
   private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
-    //console.log("constructor: "+this.ac);
-      this.parentE=this.eRef.nativeElement;
+    this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
     this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
-
   }
 
   ngOnInit(){
-    //console.log("OnInit: "+this.ac);
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
-      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
     this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
     this.ap = new AudioPlayer(this);
   }
 
   ngAfterViewInit() {
-      if (this.aCtx && this.ap) {
-          this.playStartAction.onAction = () => this.ap?.start();
+      if (this.ap) {
+          this.playStartAction.onAction = () => {
+            console.debug("Start action, player: "+this.ap)
+            this.ap?.start();
+          }
           this.playSelectionAction.onAction = () => this.ap?.startSelected();
           this.playStopAction.onAction = () => this.ap?.stop();
       }

@@ -216,9 +216,9 @@ import {AudioContextProvider} from "../context";
   }
 
         start() {
-            if(!this.context){
-                this._audioContext();
-            }
+
+            this._audioContext();
+
             if(this.context) {
                 if (!this._startAction.disabled && !this.running) {
                     if (this.context.state === 'suspended') {
