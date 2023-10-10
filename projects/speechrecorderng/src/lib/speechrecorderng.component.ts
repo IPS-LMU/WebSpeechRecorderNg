@@ -73,17 +73,11 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
     }
 
   ngOnInit() {
-    try {
-      let audioContext = AudioContextProvider.audioContextInstance();
-      if(audioContext) {
-        this.controlAudioPlayer = new AudioPlayer(audioContext, this);
-      }
+          this.controlAudioPlayer = new AudioPlayer( this);
       this.sm.controlAudioPlayer=this.controlAudioPlayer;
       this.sm.statusAlertType='info';
       this.sm.statusMsg = 'Player initialized.';
-    }catch(err){
-      this.handleError(err);
-    }
+
   }
        ngAfterViewInit(){
         // let wakeLockSupp=('wakeLock' in navigator);

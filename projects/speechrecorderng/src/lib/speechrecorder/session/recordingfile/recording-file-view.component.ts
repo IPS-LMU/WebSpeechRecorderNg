@@ -287,7 +287,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     let audioContext = AudioContextProvider.audioContextInstance();
     if(audioContext) {
       this.audioFetching=true;
-      this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(
+      this.recordingFileService.fetchSprRecordingFile( rfId).subscribe(
           {
             next: value => {
               this.audioFetching = false;
