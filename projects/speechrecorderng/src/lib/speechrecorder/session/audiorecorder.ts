@@ -75,6 +75,8 @@ export const enum Status {
                                    [playStopAction]="controlAudioPlayer?.stopAction"
                                    [peakDbLvl]="peakLevelInDb"
                                    [agc]="this.ac?.agcStatus"
+                                   [noiseSuppression]="this.ac?.nsStatus"
+                                   [echoCancellation]="this.ac?.ecStatus"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                                    (onDownloadRecording)="downloadRecording()">
         </spr-recordingitemcontrols>

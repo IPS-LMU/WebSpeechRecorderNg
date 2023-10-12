@@ -647,34 +647,34 @@ export class AudioCapture {
         forceDeprecatedScriptProcessor=true;
       }
       this.disconnectStreams = true;
-      // msc = {
-      //   audio: {
-      //     deviceId: selDeviceId,
-      //     channelCount: channelCount,
-      //     autoGainControl:autoGainControl,
-      //     noiseSuppression:noiseSuppression,
-      //     echoCancellation: echoCancellation
-      //   },
-      //   video: false,
-      // }
-
-      if(selDeviceId) {
-        msc = {
-          audio: {
-            deviceId: selDeviceId,
-            channelCount: channelCount
-          },
-          video: false,
-        }
-
-      }else{
-        msc = {
-          audio: {
-            channelCount: channelCount,
-          },
-          video: false,
-        }
+      msc = {
+        audio: {
+          deviceId: selDeviceId,
+          channelCount: channelCount,
+          autoGainControl:autoGainControl,
+          noiseSuppression:noiseSuppression,
+          echoCancellation: echoCancellation
+        },
+        video: false,
       }
+
+      // if(selDeviceId) {
+      //   msc = {
+      //     audio: {
+      //       deviceId: selDeviceId,
+      //       channelCount: channelCount
+      //     },
+      //     video: false,
+      //   }
+      //
+      // }else{
+      //   msc = {
+      //     audio: {
+      //       channelCount: channelCount,
+      //     },
+      //     video: false,
+      //   }
+      // }
     } else {
 
       // TODO default constraints or error Browser not supported
@@ -709,11 +709,31 @@ export class AudioCapture {
         // https://github.com/mdn/browser-compat-data/blob/5493d8f937e05b2ddbd41b99f5bdfad4a1f2ed85/api/MediaTrackSettings.json
         //@ts-ignore
         console.info("Track audio settings: Ch cnt: " + mtrSts.channelCount + ", AGC: " + mtrSts.autoGainControl + ", Echo cancell.: " + mtrSts.echoCancellation);
+
+        console.debug("Check AGC...");
         if (mtrSts.autoGainControl!==undefined) {
           this.agcStatus = mtrSts.autoGainControl;
           }else{
             this.agcStatus=false;
         }
+        console.debug("AGC: "+this.agcStatus);
+
+        console.debug("Check noise suppression...");
+        if (mtrSts.noiseSuppression!==undefined) {
+          this.nsStatus = mtrSts.noiseSuppression;
+        }else{
+          this.nsStatus=false;
+        }
+        console.debug("Noise suppression: "+this.nsStatus);
+
+        console.debug("Check echo cancellation...");
+        if (mtrSts.echoCancellation!==undefined) {
+          this.ecStatus = mtrSts.echoCancellation;
+        }else{
+          this.ecStatus=false;
+        }
+        console.debug("Echo cancellation: "+this.ecStatus);
+
       }
 
       let vTracks = s.getVideoTracks();
@@ -753,12 +773,7 @@ export class AudioCapture {
             }else{
 
               // Register capture interceptor module
-          if (AudioCapture.captureInterceptorModuleRegistered) {
-          // Required capture interceptor module already registered
-          this.addCaptureInterceptor();
-        } else {
-
-          // Register capture interceptor module    let audioWorkletModuleBlob = new Blob([awpStr], {type: 'text/javascript'});
+              let audioWorkletModuleBlob = new Blob([awpStr], {type: 'text/javascript'});
 
               let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
 
