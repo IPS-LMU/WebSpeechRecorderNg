@@ -67,6 +67,7 @@ import {ResponsiveComponent} from "./ui/responsive_component";
 import { SettingsComponent } from './audio/ui/settings/settings.component';
 import {MatListModule} from "@angular/material/list";
 import {ReactiveFormsModule} from "@angular/forms";
+import { AudioConfigSwitchComponent } from './audio/ui/settings/audio-config-switch/audio-config-switch.component';
 
 
 
@@ -92,7 +93,7 @@ export const SPR_ROUTES: Routes = [
 
 @NgModule({
     declarations: [AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
-        ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator,ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder,SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent,AudioRecorderComponent, RecordingFileViewComponent, RecordingFileUI, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent,RecordingList,RecorderCombiPane,AudioRecorder, SettingsComponent],
+        ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator,ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder,SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent,AudioRecorderComponent, RecordingFileViewComponent, RecordingFileUI, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent,RecordingList,RecorderCombiPane,AudioRecorder, SettingsComponent, AudioConfigSwitchComponent],
     exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar,AudioRecorder],
     imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, MatListModule, ReactiveFormsModule],
     providers: [SessionService, ProjectService, ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader]

@@ -3,6 +3,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog"
 import {ProjectService} from "../../../speechrecorder/project/project.service";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {
+  AudioConfig,
   AutoGainControlConfig,
   EchoCancellationConfig,
   NoiseSuppressionConfig,
@@ -23,7 +24,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   private _bsProject:BehaviorSubject<Project>;
   private _bsPrjSubscription:Subscription|null=null;
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
-  agcOn=false;
+  agcOn:AudioConfig|undefined=undefined;
   noiseSuppressionOn=false;
   echoCancellationOn=false;
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
@@ -76,9 +77,17 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       const nsCtrlCfgs=this.projectService.projectStandalone().noiseSuppressionConfigs;
       const ecCtrlCfgs=this.projectService.projectStandalone().echoCancellationConfigs;
       console.debug("AGC configs: "+agcCtrlCfgs?.length);
-      this.agcOn=false;
+      this.agcOn=undefined;
       if(agcCtrlCfgs) {
-        this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        //this.agcOn=agcCtrlCfgs.map((agcc) => (agcc)).reduce((prevVal,val)=>(prevVal || val),false);
+        for(let agcCtrlCfg of agcCtrlCfgs){
+            if(agcCtrlCfg.platform){
+              // TODO match ?
+            }else{
+              this.agcOn=agcCtrlCfg;
+              break;
+            }
+        }
       }
       this.noiseSuppressionOn=false;
       if(nsCtrlCfgs) {
@@ -127,8 +136,8 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     return cdi.label?cdi.label:'<Device name>';
   }
 
-  agcChange(ev: { checked: boolean; }){
-      this.agcOn=ev.checked;
+  agcChange(aCfg:AudioConfig){
+      this.agcOn=aCfg;
      const prj=this._bsProject.value;
 
       prj.autoGainControlConfigs=new Array<AutoGainControlConfig>();
