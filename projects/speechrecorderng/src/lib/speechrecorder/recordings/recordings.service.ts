@@ -15,6 +15,7 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BasicRecordingService} from "./basic_recording.service";
+import {AudioContextProvider} from "../../audio/context";
 
 @Injectable()
 export class RecordingService extends BasicRecordingService{
@@ -113,7 +114,7 @@ export class RecordingService extends BasicRecordingService{
 
 
 
-  private chunkAudioRequestToIndDb(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,inddbAudioBuffer:IndexedDbAudioBuffer|null,baseAudioUrl:string,startFrame:number=0,orgSampleRate: number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
+  private chunkAudioRequestToIndDb(persistentAudioStorageTarget:PersistentAudioStorageTarget,inddbAudioBuffer:IndexedDbAudioBuffer|null,baseAudioUrl:string,startFrame:number=0,orgSampleRate: number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
     //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
     //let audioUrl=new URL(baseAudioUrl);
     let frameLength=orgSampleRate * Math.round(seconds); // Important: multiple of original sample rate to prevent numeric rounding errors on resampling. 10 seconds is a good value for ind db storage.
@@ -132,60 +133,59 @@ export class RecordingService extends BasicRecordingService{
           if (resp.body) {
             //console.debug("chunkAudioRequestToIndDb: subscriber.closed: "+subscriber.closed);
             //console.debug("chunkAudioRequestToIndDb: Audio file bytes: "+resp.body.byteLength);
-            aCtx.decodeAudioData(resp.body, ab => {
-                //console.debug("chunkAudioRequestToIndDb: Decoded audio chunk frames for inddb: "+ab.length);
-
-                if(!inddbAudioBuffer){
-                  //console.debug("chunkAudioRequestToIndDb: Create inddb ab from chunk ab...");
-                 IndexedDbAudioBuffer.fromChunkAudioBuffer(persistentAudioStorageTarget,ab).subscribe({
-                    next:(iab)=>{
-                      //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: "+iab);
-                      inddbAudioBuffer=iab;
-                      if(inddbAudioBuffer.frameLen<frameLength){
-                        //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: First chunk shorter tha frameLength ("+inddbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing inddb ab.");
-                        inddbAudioBuffer.seal();
+            AudioContextProvider.decodeAudioData(resp.body).then( ab => {
+                  //console.debug("chunkAudioRequestToIndDb: Decoded audio chunk frames for inddb: "+ab.length);
+                  if (!inddbAudioBuffer) {
+                    //console.debug("chunkAudioRequestToIndDb: Create inddb ab from chunk ab...");
+                    IndexedDbAudioBuffer.fromChunkAudioBuffer(persistentAudioStorageTarget, ab).subscribe({
+                      next: (iab) => {
+                        //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: "+iab);
+                        inddbAudioBuffer = iab;
+                        if (inddbAudioBuffer.frameLen < frameLength) {
+                          //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab: First chunk shorter tha frameLength ("+inddbAudioBuffer.frameLen+"<"+frameLength+"), assuming end of data, sealing inddb ab.");
+                          inddbAudioBuffer.seal();
+                        }
+                        subscriber.next(iab);
+                      },
+                      complete: () => {
+                        //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab complete.");
+                        subscriber.complete();
+                      },
+                      error: (err) => {
+                        // iPad may throw QuotaExceededError here
+                        console.error("chunkAudioRequestToIndDb: Built inddb ab from chunk ab error: " + err);
+                        subscriber.error(err);
                       }
-                      subscriber.next(iab);
-                    },
-                   complete:()=>{
-                     //console.debug("chunkAudioRequestToIndDb: Built inddb ab from chunk ab complete.");
-                     subscriber.complete();
-                   },
-                   error:(err)=>{
-                      // iPad may throw QuotaExceededError here
-                     console.error("chunkAudioRequestToIndDb: Built inddb ab from chunk ab error: "+err);
-                      subscriber.error(err);
-                   }
-                  })
-                }else {
-                  //console.debug("chunkAudioRequestToIndDb: Append audio chunk to inddb ab...");
-                  inddbAudioBuffer.appendChunkAudioBuffer(ab).subscribe({
-                    next:(iab)=>{
-                      // if(inddbAudioBuffer) {
-                      //   console.debug("chunkAudioRequestToIndDb: Appended audio chunk to inddb audio buffer: "+inddbAudioBuffer);
-                      // }else{
-                      //   console.debug("chunkAudioRequestToIndDb: Append audio chunk returned null");
-                      // }
-                      subscriber.next(inddbAudioBuffer);
-                    },
-                    complete:()=>{
-                      subscriber.complete();
-                    },
-                    error:(err)=>{
-                      subscriber.error(err);
-                    }
-                  })
-                }
-              }
-              , error => {
-                console.error('chunkAudioRequestToIndDb: error: '+error);
-                //if(error instanceof HttpErrorResponse) {
+                    })
+                  } else {
+                    //console.debug("chunkAudioRequestToIndDb: Append audio chunk to inddb ab...");
+                    inddbAudioBuffer.appendChunkAudioBuffer(ab).subscribe({
+                      next: (iab) => {
+                        // if(inddbAudioBuffer) {
+                        //   console.debug("chunkAudioRequestToIndDb: Appended audio chunk to inddb audio buffer: "+inddbAudioBuffer);
+                        // }else{
+                        //   console.debug("chunkAudioRequestToIndDb: Append audio chunk returned null");
+                        // }
+                        subscriber.next(inddbAudioBuffer);
+                      },
+                      complete: () => {
+                        subscriber.complete();
+                      },
+                      error: (err) => {
+                        subscriber.error(err);
+                      }
+                    })
+                  }
+                }).catch(error => {
+                  console.error('chunkAudioRequestToIndDb: error: ' + error);
+                  //if(error instanceof HttpErrorResponse) {
                   subscriber.error(error);
-                //}
-              })
+                  //}
+                })
           } else {
-            console.error('chunkAudioRequestToIndDb: Fetching audio file: response has no body');
-            subscriber.error('chunkAudioRequestToIndDb: Fetching audio file: response has no body');
+            const errMsg='chunkAudioRequestToIndDb: Fetching audio file: response has no body';
+            console.error(errMsg);
+            subscriber.error(new Error(errMsg));
           }
         },
         error:(error) => {
@@ -201,13 +201,13 @@ export class RecordingService extends BasicRecordingService{
 
 
 
-  private chunkedAudioRequestToArrayBuffer(aCtx:AudioContext,baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<ArrayAudioBuffer|null> {
+  private chunkedAudioRequestToArrayBuffer(baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<ArrayAudioBuffer|null> {
     let obs=new Observable<ArrayAudioBuffer|null>(subscriber => {
       let arrayAudioBuffer: ArrayAudioBuffer | null = null;
       let startFrame=0;
       let frameLength=orgSampleRate * Math.round(seconds); // Important: multiple of original sample rate to prevent numeric rounding errors on resampling.
       //console.debug("Chunk audio request startFrame 0");
-      let subscr=this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength).pipe(
+      let subscr=this.chunkAudioRequest(baseAudioUrl, startFrame, frameLength).pipe(
 
         expand(value => {
           if(subscriber.closed){
@@ -228,7 +228,7 @@ export class RecordingService extends BasicRecordingService{
                   startFrame+=frameLength;
                   //console.debug("Next start frame: "+startFrame);
                   //console.debug("chunkedAudioRequest: expand() subscriber.closed: "+subscriber.closed);
-                  return this.chunkAudioRequest(aCtx, baseAudioUrl, startFrame, frameLength);
+                  return this.chunkAudioRequest(baseAudioUrl, startFrame, frameLength);
                 }
               } else {
                 return EMPTY;
@@ -295,14 +295,14 @@ export class RecordingService extends BasicRecordingService{
     return obs;
   }
 
-  private chunkedInddbAudioRequest(aCtx:AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget,baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
+  private chunkedInddbAudioRequest(persistentAudioStorageTarget:PersistentAudioStorageTarget,baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
     let obs=new Observable<IndexedDbAudioBuffer|null>(subscriber => {
       let inddbAudioBuffer: IndexedDbAudioBuffer | null = null;
       let startFrame=0;
       //let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
       let frameLength=orgSampleRate*Math.round(seconds);
       //console.debug("chunkedInddbAudioRequest: Chunk audio request for inddb. startFrame: "+startFrame);
-      let subscr=this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,null, baseAudioUrl, startFrame,orgSampleRate,seconds).pipe(
+      let subscr=this.chunkAudioRequestToIndDb(persistentAudioStorageTarget,null, baseAudioUrl, startFrame,orgSampleRate,seconds).pipe(
 
         expand(iab => {
          // console.debug("chunkedInddbAudioRequest (pipe/expand): Got inddb ab: "+iab);
@@ -325,7 +325,7 @@ export class RecordingService extends BasicRecordingService{
                   startFrame+=frameLength;
                   //console.debug("Next start frame: "+startFrame);
                   //console.debug("chunkedInddbAudioRequest: expand() subscriber.closed: "+subscriber.closed);
-                  return this.chunkAudioRequestToIndDb(aCtx,persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, orgSampleRate,seconds);
+                  return this.chunkAudioRequestToIndDb(persistentAudioStorageTarget,inddbAudioBuffer, baseAudioUrl, startFrame, orgSampleRate,seconds);
                 }
               // } else {
               //   return EMPTY;
@@ -530,7 +530,7 @@ export class RecordingService extends BasicRecordingService{
   //   return this.chunkedInddbAudioRequest(aCtx,recUrlStr);
   // }
 
-  fetchRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<AudioBuffer|null> {
+  fetchRecordingFileAudioBuffer(projectName: string, recordingFile:RecordingFile):Observable<AudioBuffer|null> {
 
     let wobs = new Observable<AudioBuffer|null>(observer=>{
       let recFileId=recordingFile.recordingFileId;
@@ -540,34 +540,37 @@ export class RecordingService extends BasicRecordingService{
       if(recordingFile.session && recFileId) {
 
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
-        obs.subscribe(resp => {
-            // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-            if (resp.body) {
-              aCtx.decodeAudioData(resp.body, ab => {
-                  observer.next(ab);
-                  observer.complete();
-              }, error => {
-                observer.error(error);
-                observer.complete();
-              })
-            } else {
-              observer.error('Fetching audio file: response has no body');
-            }
-          }, (err) => {
-          if(err instanceof HttpErrorResponse) {
-            if (err.status == 404) {
-              // Interpret not as an error, the file ist not recorded yet
-              observer.next(null);
-              observer.complete()
-            } else {
-              // all other states are errors
-              observer.error(err);
-              observer.complete();
-            }
-          }else{
-            observer.error(err);
-          }
-          });
+        obs.subscribe(
+            {
+              next: resp => {
+                // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+                if (resp.body) {
+                  AudioContextProvider.decodeAudioData(resp.body).then( ab => {
+                    observer.next(ab);
+                    observer.complete();
+                  }).catch( error => {
+                    observer.error(error);
+                    observer.complete();
+                  });
+                } else {
+                  observer.error('Fetching audio file: response has no body');
+                }
+              }, error: (err) => {
+                if (err instanceof HttpErrorResponse) {
+                  if (err.status == 404) {
+                    // Interpret not as an error, the file ist not recorded yet
+                    observer.next(null);
+                    observer.complete()
+                  } else {
+                    // all other states are errors
+                    observer.error(err);
+                    observer.complete();
+                  }
+                } else {
+                  observer.error(err);
+                }
+              }
+            });
       }else{
         observer.error();
       }
@@ -586,12 +589,13 @@ export class RecordingService extends BasicRecordingService{
       if(recordingFile.session && recFileId) {
 
         let obs = this.fetchAudiofile(projectName, recordingFile.session, recFileId);
-        obs.subscribe(resp => {
+        obs.subscribe(
+            {next:resp => {
             //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
-              aCtx.decodeAudioData(resp.body, ab => {
+              AudioContextProvider.decodeAudioData(resp.body).then(ab => {
                 let abs=new AudioBufferSource(ab);
                 let adh=new AudioDataHolder(abs);
                 RecordingFileUtils.setAudioData(recordingFile,adh);
@@ -605,15 +609,15 @@ export class RecordingService extends BasicRecordingService{
                   observer.next(recordingFile);
                   observer.complete();
                 }
-              }, error => {
+              }).catch(error => {
                 observer.error(error);
                 observer.complete();
-              })
+              });
             } else {
               observer.error('Fetching audio file: response has no body');
             }
           },
-          (err) => {
+          error:(err) => {
           if(err instanceof HttpErrorResponse) {
             if (err.status == 404) {
               // Interpret not as an error, the file ist not recorded yet
@@ -627,7 +631,7 @@ export class RecordingService extends BasicRecordingService{
           }else{
             observer.error(err);
           }
-          });
+          }});
       }else{
         observer.error();
       }
@@ -636,7 +640,7 @@ export class RecordingService extends BasicRecordingService{
     return wobs;
   }
 
-  fetchSprRecordingFileAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:SprRecordingFile):Observable<AudioBuffer|null> {
+  fetchSprRecordingFileAudioBuffer(projectName: string, recordingFile:SprRecordingFile):Observable<AudioBuffer|null> {
 
     let wobs = new Observable<AudioBuffer|null>(observer=>{
       if(recordingFile.session) {
@@ -645,15 +649,15 @@ export class RecordingService extends BasicRecordingService{
           next: resp => {
             // Do not use Promise version, which does not work with Safari 13 (13.0.5)
             if (resp.body) {
-              aCtx.decodeAudioData(resp.body, ab => {
+              AudioContextProvider.decodeAudioData(resp.body).then(ab => {
                 //RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(ab,null));
                 observer.next(ab);
                 observer.complete();
 
-              }, error => {
+              }).catch(error => {
                 observer.error(error);
                 observer.complete();
-              })
+              });
             } else {
               observer.error('Fetching audio file: response has no body');
             }
@@ -677,14 +681,14 @@ export class RecordingService extends BasicRecordingService{
   }
 
 
-  fetchSprRecordingFileArrayAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:SprRecordingFile):Observable<ArrayAudioBuffer|null> {
+  fetchSprRecordingFileArrayAudioBuffer( projectName: string, recordingFile:SprRecordingFile):Observable<ArrayAudioBuffer|null> {
     let wobs = new Observable<ArrayAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
             let lengthInSeconds = RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
-            let obs = this.chunkedAudioRequestToArrayBuffer(aCtx, baseUrl, recordingFile.samplerate, lengthInSeconds);
+            let obs = this.chunkedAudioRequestToArrayBuffer(baseUrl, recordingFile.samplerate, lengthInSeconds);
 
             //let obs = this.fetchSprAudiofileArrayBuffer(aCtx,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
             let subscr = obs.subscribe({
@@ -721,14 +725,14 @@ export class RecordingService extends BasicRecordingService{
     return wobs;
   }
 
-  fetchRecordingFileArrayAudioBuffer(aCtx: AudioContext, projectName: string, recordingFile:RecordingFile):Observable<ArrayAudioBuffer|null> {
+  fetchRecordingFileArrayAudioBuffer( projectName: string, recordingFile:RecordingFile):Observable<ArrayAudioBuffer|null> {
     let wobs = new Observable<ArrayAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.audioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
             let lengthInSeconds = RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
-            let obs = this.chunkedAudioRequestToArrayBuffer(aCtx, baseUrl, recordingFile.samplerate, lengthInSeconds);
+            let obs = this.chunkedAudioRequestToArrayBuffer(baseUrl, recordingFile.samplerate, lengthInSeconds);
 
             //let obs = this.fetchSprAudiofileArrayBuffer(aCtx,projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
             let subscr = obs.subscribe({
@@ -765,14 +769,14 @@ export class RecordingService extends BasicRecordingService{
     return wobs;
   }
 
-  fetchSprRecordingFileIndDbAudioBuffer(aCtx: AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget, projectName: string, recordingFile:SprRecordingFile):Observable<IndexedDbAudioBuffer|null> {
+  fetchSprRecordingFileIndDbAudioBuffer(persistentAudioStorageTarget:PersistentAudioStorageTarget, projectName: string, recordingFile:SprRecordingFile):Observable<IndexedDbAudioBuffer|null> {
     let wobs = new Observable<IndexedDbAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
             let lengthInSeconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
-            let obs = this.chunkedInddbAudioRequest(aCtx, persistentAudioStorageTarget,baseUrl,recordingFile.samplerate,lengthInSeconds);
+            let obs = this.chunkedInddbAudioRequest(persistentAudioStorageTarget,baseUrl,recordingFile.samplerate,lengthInSeconds);
             let subscr = obs.subscribe({
               next: aab => {
                 //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
@@ -807,14 +811,14 @@ export class RecordingService extends BasicRecordingService{
     return wobs;
   }
 
-  fetchRecordingFileIndDbAudioBuffer(aCtx: AudioContext,persistentAudioStorageTarget:PersistentAudioStorageTarget, projectName: string, recordingFile:RecordingFile):Observable<IndexedDbAudioBuffer|null> {
+  fetchRecordingFileIndDbAudioBuffer(persistentAudioStorageTarget:PersistentAudioStorageTarget, projectName: string, recordingFile:RecordingFile):Observable<IndexedDbAudioBuffer|null> {
     let wobs = new Observable<IndexedDbAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.audioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           if(recordingFile.samplerate) {
             let lengthInSeconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
-            let obs = this.chunkedInddbAudioRequest(aCtx, persistentAudioStorageTarget,baseUrl,recordingFile.samplerate,lengthInSeconds);
+            let obs = this.chunkedInddbAudioRequest(persistentAudioStorageTarget,baseUrl,recordingFile.samplerate,lengthInSeconds);
             let subscr = obs.subscribe({
               next: aab => {
                 //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
@@ -850,14 +854,14 @@ export class RecordingService extends BasicRecordingService{
   }
 
 
-  fetchSprRecordingFileNetAudioBuffer(aCtx: AudioContext,projectName: string, recordingFile:SprRecordingFile):Observable<NetAudioBuffer|null> {
+  fetchSprRecordingFileNetAudioBuffer(projectName: string, recordingFile:SprRecordingFile):Observable<NetAudioBuffer|null> {
     let wobs = new Observable<NetAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.sprAudioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           let seconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
           if(recordingFile.samplerate) {
-            let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.samplerate,seconds, recordingFile.frames);
+            let obs = this.chunkAudioRequestToNetAudioBuffer(baseUrl, 0, recordingFile.samplerate,seconds, recordingFile.frames);
             let subscr = obs.subscribe({
               next: aab => {
                 //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
@@ -895,14 +899,14 @@ export class RecordingService extends BasicRecordingService{
     return wobs;
   }
 
-  fetchRecordingFileNetAudioBuffer(aCtx: AudioContext,projectName: string, recordingFile:RecordingFile):Observable<NetAudioBuffer|null> {
+  fetchRecordingFileNetAudioBuffer(projectName: string, recordingFile:RecordingFile):Observable<NetAudioBuffer|null> {
     let wobs = new Observable<NetAudioBuffer|null>(observer=>{
       if(recordingFile.session) {
         let baseUrl=this.audioFileUrl(projectName,recordingFile);
         if(baseUrl) {
           let seconds= RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
           if(recordingFile.samplerate) {
-            let obs = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, recordingFile.samplerate,seconds, recordingFile.frames);
+            let obs = this.chunkAudioRequestToNetAudioBuffer(baseUrl, 0, recordingFile.samplerate,seconds, recordingFile.frames);
             let subscr = obs.subscribe({
               next: aab => {
                 //console.debug("fetchSprRecordingFileIndDbAudioBuffer: observer.closed: "+observer.closed);
@@ -946,12 +950,14 @@ export class RecordingService extends BasicRecordingService{
     let wobs = new Observable<SprRecordingFile|null>(observer=>{
       if(recordingFile.session) {
         let obs = this.fetchSprAudiofile(projectName, recordingFile.session, recordingFile.itemCode, recordingFile.version);
-        obs.subscribe(resp => {
+        obs.subscribe(
+            {
+              next: resp => {
               //console.log("Fetched audio file. HTTP response status: "+resp.status+", type: "+resp.type+", byte length: "+ resp.body.byteLength);
 
               // Do not use Promise version, which does not work with Safari 13 (13.0.5)
               if (resp.body) {
-                aCtx.decodeAudioData(resp.body, ab => {
+                AudioContextProvider.decodeAudioData(resp.body).then(ab => {
                   let abs=new AudioBufferSource(ab);
                   RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(abs));
                   if (this.debugDelay > 0) {
@@ -964,15 +970,15 @@ export class RecordingService extends BasicRecordingService{
                     observer.next(recordingFile);
                     observer.complete();
                   }
-                }, error => {
+                }).catch( error => {
                   observer.error(error);
                   observer.complete();
-                })
+                });
               } else {
                 observer.error('Fetching audio file: response has no body');
               }
             },
-            (err) => {
+            error:(err) => {
               if (err instanceof HttpErrorResponse && err.status == 404) {
                 // Interpret not as an error, the file ist not recorded yet
                 observer.next(null);
@@ -981,7 +987,7 @@ export class RecordingService extends BasicRecordingService{
                 // all other states are errors
                 observer.error(err);
               }
-            });
+            }});
       }else{
         observer.error();
       }
@@ -996,38 +1002,41 @@ export class RecordingService extends BasicRecordingService{
       let obs = this.fetchSprAudiofile(projectName, sessId, itemcode,version);
 
 
-      obs.subscribe(resp => {
-            // Do not use Promise version, which does not work with Safari 13
-          if(resp.body) {
-            aCtx.decodeAudioData(resp.body, ab => {
-              let abs=new AudioBufferSource(ab);
-              let adh=new AudioDataHolder(abs);
-              let rf = new SprRecordingFile(sessId, itemcode, version, adh);
-              if (this.debugDelay > 0) {
-                window.setTimeout(() => {
+      obs.subscribe(
+          {next:resp =>
+      {
+        if (resp.body) {
+          AudioContextProvider.decodeAudioData(resp.body).then( ab => {
+            let abs = new AudioBufferSource(ab);
+            let adh = new AudioDataHolder(abs);
+            let rf = new SprRecordingFile(sessId, itemcode, version, adh);
+            if (this.debugDelay > 0) {
+              window.setTimeout(() => {
 
-                  observer.next(rf);
-                  observer.complete();
-                }, this.debugDelay);
-              } else {
                 observer.next(rf);
                 observer.complete();
-              }
-            });
-          }else{
-            observer.error();
-          }
-        },
-        (err) => {
-          if (err instanceof HttpErrorResponse && err.status == 404) {
-            // Interpret not as an error, the file ist not recorded yet
-            observer.next(null);
-            observer.complete()
-          }else{
-            // all other errors are real errors
-            observer.error(err);
-          }
-        });
+              }, this.debugDelay);
+            } else {
+              observer.next(rf);
+              observer.complete();
+            }
+          }).catch((reason)=>{observer.error(reason)});
+        } else {
+          observer.error();
+        }
+      }
+    ,
+     error: (err) => {
+        if (err instanceof HttpErrorResponse && err.status == 404) {
+          // Interpret not as an error, the file ist not recorded yet
+          observer.next(null);
+          observer.complete()
+        } else {
+          // all other errors are real errors
+          observer.error(err);
+        }
+      }
+    });
     });
 
     return wobs;
