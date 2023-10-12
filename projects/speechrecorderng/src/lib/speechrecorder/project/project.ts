@@ -34,29 +34,37 @@ export interface AudioStorageFormat {
   sampleSizeInBits?: SampleSize;
 }
 
-export interface AutoGainControlConfig {
-  value: boolean,
-  //constraintType : ConstraintType,
-  platform: Platform|null,
-  //browserBase:BrowserBase,
-  //browser:Browser
+export class AudioConfigUtils{
+  static audioConfigToConstrainBoolean(audioCfg:AudioConfig|null):ConstrainBoolean|undefined{
+    if(audioCfg){
+      if(audioCfg.constraintType){
+          if(audioCfg.constraintType==='IDEAL'){
+            return {ideal:audioCfg.value};
+          }else if(audioCfg.constraintType==='EXACT'){
+            return {exact:audioCfg.value};
+          }else{
+            throw Error("Unknown constraint type: "+audioCfg.constraintType);
+          }
+      }else{
+        return audioCfg.value;
+      }
+    }else{
+      return undefined;
+    }
+  }
 }
 
-export interface NoiseSuppressionConfig {
-  value: boolean,
-  //constraintType : ConstraintType,
-  platform: Platform|null,
-  //browserBase:BrowserBase,
-  //browser:Browser
+export interface AudioConfig {
+    value: boolean,
+    constraintType? : ConstraintType|null,
+    platform: Platform|null
 }
 
-export interface EchoCancellationConfig {
-  value: boolean,
-  //constraintType : ConstraintType,
-  platform: Platform|null,
-  //browserBase:BrowserBase,
-  //browser:Browser
-}
+export interface AutoGainControlConfig extends AudioConfig{}
+
+export interface NoiseSuppressionConfig  extends AudioConfig{}
+
+export interface EchoCancellationConfig  extends AudioConfig{}
 
 export interface Project {
 

@@ -2,6 +2,7 @@ import {SequenceAudioFloat32OutStream} from "../io/stream";
 import {Browser, Platform, UserAgentBuilder} from "../../utils/ua-parser";
 
 import {
+  AudioConfigUtils,
   AudioStorageType,
   AutoGainControlConfig, EchoCancellationConfig,
   NoiseSuppressionConfig,
@@ -493,9 +494,6 @@ export class AudioCapture {
      let nsCfg:NoiseSuppressionConfig|null=null;
     let ecCfg:EchoCancellationConfig|null=null;
 
-    let autoGainControl=false;
-    let noiseSuppression=false;
-    let echoCancellation=false;
     if(autoGainControlConfigs){
       for(let agcc of autoGainControlConfigs){
 
@@ -512,18 +510,17 @@ export class AudioCapture {
             }
         }
       }
+
       if(agcCfg){
-        // TODO use EXACT/IDEAL constraint
-        autoGainControl=agcCfg.value;
-        if(CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC){
-          echoCancellation=agcCfg.value;
-        }
         // TODO query real AGC status
         this.agcStatus=agcCfg.value;
       }else{
         this.agcStatus=false;
       }
     }
+    let autoGainControl=AudioConfigUtils.audioConfigToConstrainBoolean(agcCfg);
+
+
     if(noiseSuppressionConfigs){
       for(let nsc of noiseSuppressionConfigs){
 
@@ -541,16 +538,15 @@ export class AudioCapture {
         }
       }
       if(nsCfg){
-        // TODO use EXACT/IDEAL constraint
-        noiseSuppression=nsCfg.value;
-
-        // TODO query real AGC status
+        // TODO use real status
         this.nsStatus=nsCfg.value;
       }else{
         this.nsStatus=false;
       }
     }
+    let noiseSuppression=AudioConfigUtils.audioConfigToConstrainBoolean(nsCfg);
 
+    let echoCancellation=undefined;
     if(echoCancellationConfigs){
       for(let ecc of echoCancellationConfigs){
 
@@ -568,15 +564,19 @@ export class AudioCapture {
         }
       }
       if(ecCfg){
-        // TODO use EXACT/IDEAL constraint
-        echoCancellation=ecCfg.value;
-
         // TODO query real AGC status
         this.ecStatus=ecCfg.value;
       }else{
         this.ecStatus=false;
       }
+      echoCancellation=AudioConfigUtils.audioConfigToConstrainBoolean(ecCfg);
+    }else{
+      if(CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC){
+        echoCancellation=AudioConfigUtils.audioConfigToConstrainBoolean(agcCfg);
+      }
     }
+
+    console.debug("AGC: "+autoGainControl+", NS: "+noiseSuppression+", EC: "+echoCancellation);
 
     // default
     msc = {
@@ -618,9 +618,9 @@ export class AudioCapture {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          echoCancellation: {exact:echoCancellation},
-          autoGainControl: {exact:autoGainControl},
-          noiseSuppression:{exact:noiseSuppression},
+          echoCancellation: echoCancellation,
+          autoGainControl: autoGainControl,
+          noiseSuppression:noiseSuppression,
           sampleSize:{min: 16},
         },
         video: false,
