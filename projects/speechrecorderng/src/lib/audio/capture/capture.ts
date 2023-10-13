@@ -641,7 +641,8 @@ export class AudioCapture {
       }
 
     } else if (ua.detectedBrowser===Browser.Safari) {
-      console.info("Setting media track constraints for Safari browser.")
+      console.info("Setting media track constraints for Safari browser.");
+      console.info("AGC: "+autoGainControl+", Noise suppr.: "+noiseSuppression+", Echo cancel.: "+echoCancellation);
       //console.info("Apply workaround for Safari: Avoid disconnect of streams.");
       if(SAFARI_FORCE_DEPRECATED_SCRIPT_PROCESSOR){
         forceDeprecatedScriptProcessor=true;
@@ -657,6 +658,17 @@ export class AudioCapture {
         },
         video: false,
       }
+
+      // // TODO Fixed config for testing only!!!
+      // this.disconnectStreams = true;
+      // msc = {
+      //   audio: {
+      //     deviceId: selDeviceId,
+      //     channelCount: channelCount,
+      //     echoCancellation: {ideal:false}
+      //   },
+      //   video: false,
+      // }
 
       // if(selDeviceId) {
       //   msc = {
