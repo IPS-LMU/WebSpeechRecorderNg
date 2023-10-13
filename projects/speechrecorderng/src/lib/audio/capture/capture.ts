@@ -710,7 +710,7 @@ export class AudioCapture {
         //@ts-ignore
         console.info("Track audio settings: Ch cnt: " + mtrSts.channelCount + ", AGC: " + mtrSts.autoGainControl + ", Echo cancell.: " + mtrSts.echoCancellation);
 
-        console.debug("Check AGC...");
+        console.debug("Check AGC: "+mtrSts.autoGainControl);
         if (mtrSts.autoGainControl!==undefined) {
           this.agcStatus = mtrSts.autoGainControl;
           }else{
@@ -726,7 +726,7 @@ export class AudioCapture {
         }
         console.debug("Noise suppression: "+this.nsStatus);
 
-        console.debug("Check echo cancellation...");
+        console.debug("Check echo cancellation "+mtrSts.echoCancellation);
         if (mtrSts.echoCancellation!==undefined) {
           this.ecStatus = mtrSts.echoCancellation;
         }else{

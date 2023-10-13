@@ -16,7 +16,9 @@
   <mat-checkbox value="false" [checked]="noiseSuppressionOn && mediaTrackSupportedConstraints.noiseSuppression==true" (change)="noiseSuppressionChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Noise suppression <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></mat-checkbox>
   <mat-checkbox value="false" [checked]="echoCancellationOn && mediaTrackSupportedConstraints.echoCancellation==true" (change)="echoCancellationChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Echo cancellation <span *ngIf="!(mediaTrackSupportedConstraints.echoCancellation==true)">(not supported)</span></mat-checkbox>
   -->
-  <audio-config-switch (change)="agcChange($aCfg)" [audioCfg]=""> Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></audio-config-switch>
+  <audio-config-switch (change)="agcChange($event)" [audioCfg]="agcOn">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></audio-config-switch>
+  <audio-config-switch (change)="noiseSuppressionChange($event)" [audioCfg]="noiseSuppressionOn">Noise suppression (NS) <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></audio-config-switch>
+  <audio-config-switch (change)="echoCancellationChange($event)" [audioCfg]="echoCancellationOn">Echo cancellation (EC) <span *ngIf="!(mediaTrackSupportedConstraints.echoCancellation==true)">(not supported)</span></audio-config-switch>
 </div>
   </mat-card-content>
 </mat-card>

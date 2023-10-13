@@ -25,11 +25,12 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   private _bsPrjSubscription:Subscription|null=null;
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
   agcOn:AudioConfig|undefined=undefined;
-  noiseSuppressionOn=false;
-  echoCancellationOn=false;
+  noiseSuppressionOn:AudioConfig|undefined=undefined;
+  echoCancellationOn:AudioConfig|undefined=undefined;
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
+  protected readonly SampleSize = SampleSize;
   selStorageSampleSizeCtl=new FormControl('selStorageSampleSize');
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
@@ -89,13 +90,30 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
             }
         }
       }
-      this.noiseSuppressionOn=false;
+      this.noiseSuppressionOn=undefined;
       if(nsCtrlCfgs) {
-        this.noiseSuppressionOn=nsCtrlCfgs.map((nsc) => (nsc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        //this.noiseSuppressionOn=nsCtrlCfgs.map((nsc) => (nsc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        if(nsCtrlCfgs){
+          for(let nsCtrlCfg of nsCtrlCfgs){
+            if(nsCtrlCfg.platform){
+              // TODO
+            }else{
+              this.noiseSuppressionOn=nsCtrlCfg;
+            }
+          }
+        }
       }
-      this.echoCancellationOn=false;
+      this.echoCancellationOn=undefined;
       if(ecCtrlCfgs) {
-        this.echoCancellationOn=ecCtrlCfgs.map((esc) => (esc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        //this.echoCancellationOn=ecCtrlCfgs.map((esc) => (esc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        for(let ecCtrlCfg of ecCtrlCfgs){
+          if(ecCtrlCfg.platform){
+            // TODO match ?
+          }else{
+            this.echoCancellationOn=ecCtrlCfg;
+            break;
+          }
+        }
       }
 
       this.selCaptureDeviceId=null;
@@ -142,29 +160,31 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
       prj.autoGainControlConfigs=new Array<AutoGainControlConfig>();
      if(this.agcOn){
-       prj.autoGainControlConfigs.push({platform:null,value:true});
+       //prj.autoGainControlConfigs.push({platform:null,value:this.agcOn.value,constraintType:this.agcOn.constraintType});
+       prj.autoGainControlConfigs.push(this.agcOn);
      }
      this._bsProject.next(prj);
   }
 
-  noiseSuppressionChange(ev: { checked: boolean; }){
-    this.noiseSuppressionOn=ev.checked;
+  noiseSuppressionChange(aCfg:AudioConfig){
+    this.noiseSuppressionOn=aCfg;
     const prj=this._bsProject.value;
 
     prj.noiseSuppressionConfigs=new Array<NoiseSuppressionConfig>();
     if(this.noiseSuppressionOn){
-      prj.noiseSuppressionConfigs.push({platform:null,value:true});
+      prj.noiseSuppressionConfigs.push(this.noiseSuppressionOn);
     }
     this._bsProject.next(prj);
   }
 
-  echoCancellationChange(ev: { checked: boolean; }){
-    this.echoCancellationOn=ev.checked;
+  echoCancellationChange(aCfg:AudioConfig){
+    this.echoCancellationOn=aCfg;
     const prj=this._bsProject.value;
 
     prj.echoCancellationConfigs=new Array<EchoCancellationConfig>();
     if(this.echoCancellationOn){
-      prj.echoCancellationConfigs.push({platform:null,value:true});
+      //prj.echoCancellationConfigs.push({platform:null,value:this.echoCancellationOn.value,constraintType:this.echoCancellationOn.constraintType});
+      prj.echoCancellationConfigs.push(this.echoCancellationOn);
     }
     this._bsProject.next(prj);
   }
@@ -175,5 +195,6 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   //   prj.audioCaptureDeviceId=this.selCaptureDeviceId;
   //   this._bsProject.next(prj);
   // }
-  protected readonly SampleSize = SampleSize;
+
+
 }
