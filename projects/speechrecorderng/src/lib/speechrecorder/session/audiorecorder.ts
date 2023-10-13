@@ -396,6 +396,8 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.autoGainControlConfigs = project.autoGainControlConfigs;
+      this.noiseSuppressionConfigs=project.noiseSuppressionConfigs;
+      this.echoCancellationConfigs=project.echoCancellationConfigs;
       if (project.chunkedRecording === true) {
         this.uploadChunkSizeSeconds = BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
       } else {
