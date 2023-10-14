@@ -134,6 +134,7 @@ export class AudioCapture {
     this._persistentAudioStorageTarget = value;
   }
 
+
   get opened(): boolean {
     return this._opened;
   }
@@ -411,7 +412,7 @@ export class AudioCapture {
   }
   }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
+  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,allowEchoCancellation?:boolean){
     //console.debug("Capture open: ctx state: "+this.context.state);
     this.context=this._audioContext();
     if(!this.context){
@@ -421,7 +422,7 @@ export class AudioCapture {
       //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
         //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
-        this._open(channelCount, selDeviceId, autoGainControlConfigs);
+        this._open(channelCount, selDeviceId, autoGainControlConfigs,allowEchoCancellation);
       }).catch((err)=>{
         console.error(err.message);
         throw err;
@@ -431,12 +432,12 @@ export class AudioCapture {
         console.error(msg);
         throw new Error(msg);
     }else {
-      this._open(channelCount, selDeviceId, autoGainControlConfigs);
+      this._open(channelCount, selDeviceId, autoGainControlConfigs,allowEchoCancellation);
     }
 
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,allowEchoCancellation?:boolean) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
 
@@ -563,11 +564,12 @@ export class AudioCapture {
       //console.info("Apply workaround for Safari: Avoid disconnect of streams.");
 
       this.disconnectStreams = true;
+
       msc = {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          //echoCancellation: false
+          echoCancellation: allowEchoCancellation?undefined:false
         },
         video: false,
       }
@@ -602,6 +604,9 @@ export class AudioCapture {
         if (mtrSts.autoGainControl) {
           this.agcStatus = mtrSts.autoGainControl;
         }
+
+        console.debug("Echo cancellation: "+mtrSts.echoCancellation);
+
       }
 
       let vTracks = s.getVideoTracks();

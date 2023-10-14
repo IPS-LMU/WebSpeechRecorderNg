@@ -358,6 +358,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
+      if(project.allowEchoCancellation!==undefined) {
+        this.sm.allowEchoCancellation = project.allowEchoCancellation;
+      }
       if(project.chunkedRecording===true){
         console.debug("Enable chunked upload: chunkSize: "+BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS)
         this.sm.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
