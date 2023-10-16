@@ -585,7 +585,8 @@ export class AudioCapture {
         echoCancellation: echoCancellation,
         channelCount: channelCount,
         autoGainControl: autoGainControl,
-        //noiseSuppression:noiseSuppression
+        noiseSuppression:noiseSuppression,
+        sampleSize:{min: 16},
       },
       video: false
     };
@@ -601,7 +602,8 @@ export class AudioCapture {
           echoCancellation: echoCancellation,
           channelCount: channelCount,
           autoGainControl: autoGainControl,
-          //noiseSuppression:noiseSuppression
+          noiseSuppression:noiseSuppression,
+          sampleSize:{min: 16}
         },
         video: false
       };
@@ -620,8 +622,8 @@ export class AudioCapture {
           channelCount: channelCount,
           echoCancellation: echoCancellation,
           autoGainControl: autoGainControl,
-          //noiseSuppression:noiseSuppression,
-          sampleSize:{min: 16},
+          noiseSuppression:noiseSuppression,
+          sampleSize:{min: 16}
         },
         video: false,
       }
@@ -633,9 +635,10 @@ export class AudioCapture {
         audio: {
             deviceId: selDeviceId,
             channelCount: channelCount,
-          echoCancellation: echoCancellation,
+            echoCancellation: echoCancellation,
             autoGainControl: autoGainControl,
-         // noiseSuppression: noiseSuppression
+            noiseSuppression: noiseSuppression,
+            sampleSize:{min: 16},
         },
         video: false,
       }
@@ -654,7 +657,8 @@ export class AudioCapture {
           channelCount: channelCount,
           autoGainControl:autoGainControl,
           noiseSuppression:noiseSuppression,
-          echoCancellation: echoCancellation
+          echoCancellation: echoCancellation,
+          sampleSize:{min: 16},
         },
         video: false,
       }
