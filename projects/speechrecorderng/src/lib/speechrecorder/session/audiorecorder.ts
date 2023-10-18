@@ -218,10 +218,14 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   ngAfterViewInit() {
 
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
-    this.streamLevelMeasure.peakLevelListener=(peakLvlInDb)=>{
+    this.streamLevelMeasure.peakLevelListener=(peakLvlInDb,peakLvl)=>{
+      if(peakLvl!==undefined) {
+        this.peakLevel = peakLvl;
+      }
       this.peakLevelInDb=peakLvlInDb;
       this.changeDetectorRef.detectChanges();
     }
+
     //let wakeLockSupp=('wakeLock' in navigator);
     //alert('Wake lock API supported: '+wakeLockSupp);
   }

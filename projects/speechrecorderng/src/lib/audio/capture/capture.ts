@@ -175,6 +175,9 @@ export class AudioCapture {
   private persistError:Error|null=null;
   private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
+  private gain:number|null=null;
+
+
   //private context:AudioContext|null=null;
 
   constructor() {
@@ -586,7 +589,7 @@ export class AudioCapture {
         channelCount: channelCount,
         autoGainControl: autoGainControl,
         noiseSuppression:noiseSuppression,
-        sampleSize:{min: 16},
+        sampleSize:{min: 16}
       },
       video: false
     };
@@ -757,7 +760,16 @@ export class AudioCapture {
         let vTrack = vTracks[i];
         console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
       }
-      this.mediaStream = this.context.createMediaStreamSource(s);
+      const msSrc= this.context.createMediaStreamSource(s);
+      if(this.gain!==null){
+        const gainNode=this.context.createGain();
+        gainNode.gain.value=this.gain;
+        msSrc.connect(gainNode);
+        this.mediaStream=gainNode;
+      }else{
+        this.mediaStream=msSrc;
+      }
+
       // stream channel count ( is always 2 !)
       let streamChannelCount: number = this.mediaStream.channelCount;
       console.info("Stream channel count: " + streamChannelCount);
