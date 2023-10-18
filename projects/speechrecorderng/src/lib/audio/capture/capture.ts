@@ -5,6 +5,7 @@ import {AudioStorageType, AutoGainControlConfig, Platform as CfgPlatform} from "
 import {ArrayAudioBuffer} from "../array_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../inddb_audio_buffer";
+import {AudioContextProvider} from "../context";
 
 
 export const CHROME_ACTIVATE_ECHO_CANCELLATION_WITH_AGC=false;
@@ -133,6 +134,7 @@ export class AudioCapture {
     this._persistentAudioStorageTarget = value;
   }
 
+
   get opened(): boolean {
     return this._opened;
   }
@@ -141,7 +143,7 @@ export class AudioCapture {
   private static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minute at 48kHz
   private _maxAutoNetMemStoreSamples:number=AudioCapture.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
   private static captureInterceptorModuleRegistered=false;
-  context: AudioContext;
+  context: AudioContext|null=null;
   stream!: MediaStream;
   channelCount!: number;
   private _recUUID:string|null=null;
@@ -166,14 +168,24 @@ export class AudioCapture {
   private persistError:Error|null=null;
   private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
-  constructor(context: AudioContext) {
-    this.context = context;
+  //private context:AudioContext|null=null;
+
+  constructor() {
     this.n = navigator;
-    this.context.addEventListener('statechange', () => {
-      if (this.context.state !== 'running') {
-        this.close();
+  }
+
+  private _audioContext():AudioContext|null{
+    if(!this.context){
+      this.context=AudioContextProvider.audioContextInstance();
+      if(this.context) {
+        this.context.addEventListener('statechange', () => {
+          if (this.context && this.context.state !== 'running') {
+            this.close();
+          }
+        });
       }
-    });
+    }
+    return this.context;
   }
 
   private initData() {
@@ -301,6 +313,8 @@ export class AudioCapture {
   }
 
   addCaptureInterceptor() {
+    if (this.context) {
+
     const awn = new AudioWorkletNode(this.context, 'capture-interceptor');
     awn.onprocessorerror = (ev: Event) => {
       let msg = 'Unknwon error';
@@ -396,25 +410,42 @@ export class AudioCapture {
       this.listener.opened();
     }
   }
+  }
 
-  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined){
+  open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,allowEchoCancellation?:boolean){
     //console.debug("Capture open: ctx state: "+this.context.state);
-    if(this.context.state!=='running'){
+    this.context=this._audioContext();
+    if(!this.context){
+      throw new Error("Could not get audio context!");
+    }
+    if(this.context.state==='suspended'){
       //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
         //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
-        this._open(channelCount, selDeviceId, autoGainControlConfigs);
+        this._open(channelCount, selDeviceId, autoGainControlConfigs,allowEchoCancellation);
+      }).catch((err)=>{
+        console.error(err.message);
+        throw err;
       })
-    }else{
-      this._open(channelCount, selDeviceId, autoGainControlConfigs);
+    }else if(this.context.state==='closed') {
+        const msg='Error on start capture: The audio context is already closed.';
+        console.error(msg);
+        throw new Error(msg);
+    }else {
+      this._open(channelCount, selDeviceId, autoGainControlConfigs,allowEchoCancellation);
     }
 
   }
 
-  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined) {
+  _open(channelCount: number, selDeviceId?: ConstrainDOMString|undefined,autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,allowEchoCancellation?:boolean) {
     this.channelCount = channelCount;
     this.framesRecorded = 0;
 
+    this.context=this._audioContext();
+
+    if(!this.context){
+      throw new Error("Could not get audio context!");
+    }
 
     //var msc = new AudioStreamConstr();
     // var msc={};
@@ -533,11 +564,12 @@ export class AudioCapture {
       //console.info("Apply workaround for Safari: Avoid disconnect of streams.");
 
       this.disconnectStreams = true;
+
       msc = {
         audio: {
           deviceId: selDeviceId,
           channelCount: channelCount,
-          //echoCancellation: false
+          echoCancellation: allowEchoCancellation?undefined:false
         },
         video: false,
       }
@@ -553,115 +585,121 @@ export class AudioCapture {
 
     let ump = navigator.mediaDevices.getUserMedia(msc);
     ump.then((s) => {
-        this.stream = s;
 
-        let aTracks = s.getAudioTracks();
+      if (this.context) {
+      this.stream = s;
 
-        for (let i = 0; i < aTracks.length; i++) {
-          let aTrack = aTracks[i];
+      let aTracks = s.getAudioTracks();
 
-          console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
-          let mtrSts=aTrack.getSettings();
+      for (let i = 0; i < aTracks.length; i++) {
+        let aTrack = aTracks[i];
 
-          // Typescript lib.dom.ts MediaTrackSettings.channelCount is missing
-          // https://github.com/mdn/browser-compat-data/blob/5493d8f937e05b2ddbd41b99f5bdfad4a1f2ed85/api/MediaTrackSettings.json
-          //@ts-ignore
-          console.info("Track audio settings: Ch cnt: "+mtrSts.channelCount+", AGC: "+mtrSts.autoGainControl+", Echo cancell.: "+mtrSts.echoCancellation);
-          if(mtrSts.autoGainControl){
-            this.agcStatus=mtrSts.autoGainControl;
-          }
+        console.info("Track audio info: id: " + aTrack.id + " kind: " + aTrack.kind + " label: \"" + aTrack.label + "\"");
+        let mtrSts = aTrack.getSettings();
+
+        // Typescript lib.dom.ts MediaTrackSettings.channelCount is missing
+        // https://github.com/mdn/browser-compat-data/blob/5493d8f937e05b2ddbd41b99f5bdfad4a1f2ed85/api/MediaTrackSettings.json
+        //@ts-ignore
+        console.info("Track audio settings: Ch cnt: " + mtrSts.channelCount + ", AGC: " + mtrSts.autoGainControl + ", Echo cancell.: " + mtrSts.echoCancellation);
+        if (mtrSts.autoGainControl) {
+          this.agcStatus = mtrSts.autoGainControl;
         }
 
-        let vTracks = s.getVideoTracks();
-        for (let i = 0; i < vTracks.length; i++) {
-          let vTrack = vTracks[i];
-          console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
-        }
-        this.mediaStream = this.context.createMediaStreamSource(s);
-        // stream channel count ( is always 2 !)
-        let streamChannelCount: number = this.mediaStream.channelCount;
-        console.info("Stream channel count: "+streamChannelCount);
-        // is not set!!
-        //this.currentSampleRate = this.mediaStream.sampleRate;
-        this.currentSampleRate = this.context.sampleRate;
-        console.info("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
-        if (this.audioOutStream) {
-          this.audioOutStream.setFormat(this.channelCount, this.currentSampleRate);
-        }
-        // W3C  -> new name is createScriptProcessor
-        //
-        // Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
-        // AudioWorker is now AudioWorkletProcessor ... (May 2017)
+        console.debug("Echo cancellation: "+mtrSts.echoCancellation);
+
+      }
+
+      let vTracks = s.getVideoTracks();
+      for (let i = 0; i < vTracks.length; i++) {
+        let vTrack = vTracks[i];
+        console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
+      }
+      this.mediaStream = this.context.createMediaStreamSource(s);
+      // stream channel count ( is always 2 !)
+      let streamChannelCount: number = this.mediaStream.channelCount;
+      console.info("Stream channel count: " + streamChannelCount);
+      // is not set!!
+      //this.currentSampleRate = this.mediaStream.sampleRate;
+      this.currentSampleRate = this.context.sampleRate;
+      console.info("Source audio node: channels: " + streamChannelCount + " samplerate: " + this.currentSampleRate);
+      if (this.audioOutStream) {
+        this.audioOutStream.setFormat(this.channelCount, this.currentSampleRate);
+      }
+      // W3C  -> new name is createScriptProcessor
+      //
+      // Again deprecated, but AudioWorker not yet implemented in stable releases (June 2016)
+      // AudioWorker is now AudioWorkletProcessor ... (May 2017)
 
       // Update 12-2020:
-       // The ScriptProcessorNode Interface - DEPRECATED
+      // The ScriptProcessorNode Interface - DEPRECATED
 
       // Update 06-2021
       //  AudioWorkletProcessor is here to stay. Web Audio API has now Recommendation status !
 
-          if(this.context.audioWorklet){
-            //const workletFileName = ('file-loader!./interceptor_worklet.js');
-            //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
-            //console.log(awpStr);
-            if(AudioCapture.captureInterceptorModuleRegistered) {
-              // Required capture interceptor module already registered
-              this.addCaptureInterceptor();
-            }else{
+      if (this.context.audioWorklet) {
+        //const workletFileName = ('file-loader!./interceptor_worklet.js');
+        //const workletFileName = 'http://localhost:4200/assets/interceptor_worklet.js';
+        //console.log(awpStr);
+        if (AudioCapture.captureInterceptorModuleRegistered) {
+          // Required capture interceptor module already registered
+          this.addCaptureInterceptor();
+        } else {
 
-              // Register capture interceptor module
-              let audioWorkletModuleBlob = new Blob([awpStr], {type: 'text/javascript'});
+          // Register capture interceptor module
+          let audioWorkletModuleBlob = new Blob([awpStr], {type: 'text/javascript'});
 
-              let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
+          let audioWorkletModuleBlobUrl = window.URL.createObjectURL(audioWorkletModuleBlob);
 
-              this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
-                  AudioCapture.captureInterceptorModuleRegistered = true;
-                  this.addCaptureInterceptor();
-                }
-              ).catch((error: any) => {
-                console.log('Could not add module ' + error);
-              });
-            }
-          }else if(this.context.createScriptProcessor) {
-            // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
-            // TODO should we use streamChannelCount or channelCount here ?
-            let scriptProcessorNode= this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
-            this.bufferingNode=scriptProcessorNode;
-            let c = 0;
-            if(scriptProcessorNode.onaudioprocess){
-              scriptProcessorNode.onaudioprocess = (e: AudioProcessingEvent) => {
-
-                if (this.capturing) {
-                  let inBuffer = e.inputBuffer;
-                  // only process requested count of channels
-                  let currentBuffers = new Array<Float32Array>(channelCount);
-                  for (let ch: number = 0; ch < channelCount; ch++) {
-                    let chSamples = inBuffer.getChannelData(ch);
-                    let chSamplesCopy = chSamples.slice(0);
-                    currentBuffers[ch] = chSamplesCopy.slice(0);
-                    if(this.data) {
-                      this.data[ch].push(chSamplesCopy);
-                    }
-                    if(DEBUG_TRACE_LEVEL>8){
-                      console.debug("Process "+chSamplesCopy.length+" samples.");
-                    }
-                    this.framesRecorded += chSamplesCopy.length;
-                  }
-                  c++;
-                  if (this.audioOutStream) {
-                    this.audioOutStream.write(currentBuffers);
-                  }
-                }
-              };
-              this._opened = true;
-              if (this.listener) {
-                this.listener.opened();
+          this.context.audioWorklet.addModule(audioWorkletModuleBlobUrl).then(() => {
+                AudioCapture.captureInterceptorModuleRegistered = true;
+                this.addCaptureInterceptor();
               }
-            }else{
-              this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
+          ).catch((error: any) => {
+            console.log('Could not add module ' + error);
+          });
+        }
+      } else if (this.context.createScriptProcessor) {
+        // The ScriptProcessorNode Interface - DEPRECATED Only as fallback
+        // TODO should we use streamChannelCount or channelCount here ?
+        let scriptProcessorNode = this.context.createScriptProcessor(AudioCapture.BUFFER_SIZE, streamChannelCount, streamChannelCount);
+        this.bufferingNode = scriptProcessorNode;
+        let c = 0;
+        if (scriptProcessorNode.onaudioprocess) {
+          scriptProcessorNode.onaudioprocess = (e: AudioProcessingEvent) => {
+
+            if (this.capturing) {
+              let inBuffer = e.inputBuffer;
+              // only process requested count of channels
+              let currentBuffers = new Array<Float32Array>(channelCount);
+              for (let ch: number = 0; ch < channelCount; ch++) {
+                let chSamples = inBuffer.getChannelData(ch);
+                let chSamplesCopy = chSamples.slice(0);
+                currentBuffers[ch] = chSamplesCopy.slice(0);
+                if (this.data) {
+                  this.data[ch].push(chSamplesCopy);
+                }
+                if (DEBUG_TRACE_LEVEL > 8) {
+                  console.debug("Process " + chSamplesCopy.length + " samples.");
+                }
+                this.framesRecorded += chSamplesCopy.length;
+              }
+              c++;
+              if (this.audioOutStream) {
+                this.audioOutStream.write(currentBuffers);
+              }
             }
-          }else{
-            this.listener.error('Browser does not support audio processing (neither AudioWorkletProcessor nor ScriptProcessor)!');
+          };
+          this._opened = true;
+          if (this.listener) {
+            this.listener.opened();
           }
+        } else {
+          this.listener.error('Browser does not support audio processing (ScriptProcessor.onaudioprocess method not found)!');
+        }
+      } else {
+        this.listener.error('Browser does not support audio processing (neither AudioWorkletProcessor nor ScriptProcessor)!');
+      }
+    }
         }, (e) => {
           console.error(e + " Error name: " +e.name);
           if (this.listener) {
@@ -681,30 +719,34 @@ export class AudioCapture {
   }
 
   private _start(){
-    this.initData();
-    if (this.audioOutStream) {
-      this.audioOutStream.nextStream()
-    }
-    this.capturing = true;
-    if(this.bufferingNode) {
-      this.mediaStream.connect(this.bufferingNode);
-      this.bufferingNode.connect(this.context.destination);
-    }
-    if (this.listener) {
-      this.listener.started();
+    if(this.context) {
+      this.initData();
+      if (this.audioOutStream) {
+        this.audioOutStream.nextStream()
+      }
+      this.capturing = true;
+      if (this.bufferingNode) {
+        this.mediaStream.connect(this.bufferingNode);
+        this.bufferingNode.connect(this.context.destination);
+      }
+      if (this.listener) {
+        this.listener.started();
+      }
     }
   }
 
   start() {
-    const aSt=this.context.state;
-    if(aSt==='running') {
-      this._start();
-    }else{
-      console.debug("Capture start: audio context not running, state: "+aSt+", resuming...");
-      this.context.resume().then(()=>{
-        console.debug("Capture start: audio context resumed, starting...");
+    if(this.context) {
+      const aSt = this.context.state;
+      if (aSt === 'running') {
         this._start();
-      })
+      } else {
+        console.debug("Capture start: audio context not running, state: " + aSt + ", resuming...");
+        this.context.resume().then(() => {
+          console.debug("Capture start: audio context resumed, starting...");
+          this._start();
+        })
+      }
     }
   }
 
@@ -712,7 +754,9 @@ export class AudioCapture {
 
     if (this.disconnectStreams && this.bufferingNode) {
       this.mediaStream.disconnect(this.bufferingNode);
-      this.bufferingNode.disconnect(this.context.destination);
+      if(this.context) {
+        this.bufferingNode.disconnect(this.context.destination);
+      }
     }
 
     try {
@@ -842,7 +886,7 @@ export class AudioCapture {
 
   audioBuffer(): AudioBuffer |null{
     let ab: AudioBuffer|null=null;
-    if(this.data) {
+    if(this.context && this.data) {
       let frameLen: number = 0;
 
       let ch0Data = this.data[0];

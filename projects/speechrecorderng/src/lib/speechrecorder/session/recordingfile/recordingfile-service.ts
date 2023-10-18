@@ -10,6 +10,7 @@ import {UUID} from "../../../utils/utils";
 import {RecordingFile, RecordingFileUtils, SprRecordingFile} from "../../recording";
 import {AudioBufferSource, AudioDataHolder} from "../../../audio/audio_data_holder";
 import {BasicRecordingService} from "../../recordings/basic_recording.service";
+import {AudioContextProvider} from "../../../audio/context";
 
 
 @Injectable()
@@ -91,7 +92,7 @@ export class RecordingFileService extends BasicRecordingService{
 
   // TODO test
 
-  fetchAndApplyRecordingFile(aCtx: AudioContext, recordingFile:SprRecordingFile):Observable<SprRecordingFile|null> {
+  fetchAndApplyRecordingFile(recordingFile:SprRecordingFile):Observable<SprRecordingFile|null> {
 
     let wobs = new Observable<SprRecordingFile|null>(observer=>{
       if(recordingFile.recordingFileId) {
@@ -99,9 +100,8 @@ export class RecordingFileService extends BasicRecordingService{
 
         obs.subscribe(
             {next:resp => {
-              // Do not use Promise version, which does not work with Safari 13
               if(resp.body) {
-                aCtx.decodeAudioData(resp.body, ab => {
+                AudioContextProvider.decodeAudioData(resp.body).then(ab => {
                   let as=new AudioBufferSource(ab);
                   RecordingFileUtils.setAudioData(recordingFile,new AudioDataHolder(as));
                   if (this.debugDelay > 0) {
@@ -114,7 +114,7 @@ export class RecordingFileService extends BasicRecordingService{
                     observer.next(recordingFile);
                     observer.complete();
                   }
-                })
+                }).catch(reason=>{observer.error(reason)});
               }else{
                 observer.error('Received no audio data!');
               }
@@ -155,7 +155,7 @@ export class RecordingFileService extends BasicRecordingService{
           next: resp => {
             // Do not use Promise version, which does not work with Safari 13
             if (resp.body) {
-              aCtx.decodeAudioData(resp.body, ab => {
+              AudioContextProvider.decodeAudioData(resp.body).then( ab => {
                 if (rf) {
                   let as = new AudioBufferSource(ab);
                   RecordingFileUtils.setAudioData(rf, new AudioDataHolder(as));
@@ -171,7 +171,7 @@ export class RecordingFileService extends BasicRecordingService{
                   observer.next(rf);
                   observer.complete();
                 }
-              })
+              }).catch(reason => {observer.error(reason)});
             } else {
               observer.error('Received no audio data');
             }
@@ -195,7 +195,7 @@ export class RecordingFileService extends BasicRecordingService{
     return wobs;
   }
 
-  fetchSprRecordingFile(aCtx: AudioContext, recordingFileId: string | number): Observable<SprRecordingFile | null> {
+  fetchSprRecordingFile( recordingFileId: string | number): Observable<SprRecordingFile | null> {
 
     let wobs = new Observable<SprRecordingFile | null>(observer => {
       let rf: SprRecordingFile|null = null;
@@ -213,7 +213,7 @@ export class RecordingFileService extends BasicRecordingService{
         // TODO use download storage type depending on sample count of file
         if (rf && rf.samplerate && sampleCnt != null && sampleCnt > this._maxAutoNetMemStoreSamples) {
           const baseUrl = this.recoFileUrl(recordingFileId);
-          const obNetAb = this.chunkAudioRequestToNetAudioBuffer(aCtx, baseUrl, 0, rf?.samplerate, BasicRecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS, rf.frames);
+          const obNetAb = this.chunkAudioRequestToNetAudioBuffer(baseUrl, 0, rf?.samplerate, BasicRecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS, rf.frames);
           obNetAb.subscribe(
               {
                 next: (nab) => {
@@ -247,7 +247,7 @@ export class RecordingFileService extends BasicRecordingService{
           {
             // Do not use Promise version, which does not work with Safari 13
             if (resp.body) {
-              aCtx.decodeAudioData(resp.body, ab => {
+              AudioContextProvider.decodeAudioData(resp.body).then( ab => {
                 if (rf) {
                   let as = new AudioBufferSource(ab);
                   let adh = new AudioDataHolder(as);
@@ -264,7 +264,7 @@ export class RecordingFileService extends BasicRecordingService{
                   observer.next(rf);
                   observer.complete();
                 }
-              })
+              }).catch(reason => {observer.error(reason)});
             } else {
               observer.error('Received no audio data');
             }

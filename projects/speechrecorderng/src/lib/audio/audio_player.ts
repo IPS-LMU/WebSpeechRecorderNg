@@ -1,16 +1,8 @@
 import {
-  Component,
-  ViewChild,
-  ChangeDetectorRef,
-  AfterViewInit,
-  Input,
-  AfterContentInit,
-  OnInit,
-  AfterContentChecked,
-  AfterViewChecked,
-  ElementRef,
-  Injector,
-  OnDestroy,
+    Component,
+    ViewChild,
+    ChangeDetectorRef,
+    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -76,8 +68,6 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
   zoomInAction!:Action<void>;
   zoomOutAction!:Action<void>;
 
-
-  aCtx: AudioContext|null=null;
   private _audioClip:AudioClip|null=null;
   ap: AudioPlayer|undefined;
   status: string;
@@ -87,42 +77,33 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
   audio: any;
   updateTimerId: any;
 
-
   @ViewChild(AudioDisplayScrollPane, { static: true })
   private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(protected injector:Injector,protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
     super(injector);
-    //console.log("constructor: "+this.ac);
-      this.parentE=this.eRef.nativeElement;
+    this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
     this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
-
   }
 
   ngOnInit(){
     super.ngOnInit();
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
-      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
     this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
-     try {
-       this.aCtx = AudioContextProvider.audioContextInstance();
-       if(this.aCtx) {
-         this.ap = new AudioPlayer(this.aCtx, this);
-       }
-     }catch(err){
-       if(err instanceof Error) {
-         this.status = err.message;
-       }
-      }
+    this.ap = new AudioPlayer(this);
   }
 
   ngAfterViewInit() {
-      if (this.aCtx && this.ap) {
-          this.playStartAction.onAction = () => this.ap?.start();
+      if (this.ap) {
+          this.playStartAction.onAction = () => {
+            console.debug("Start action, player: "+this.ap)
+            this.ap?.start();
+          }
           this.playSelectionAction.onAction = () => this.ap?.startSelected();
           this.playStopAction.onAction = () => this.ap?.stop();
       }
@@ -203,15 +184,13 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
     this.status = 'Audio file loaded.';
     //console.debug("Received data ", data.byteLength);
 
-    // Do not use Promise version, which does not work with Safari 13
-    if(this.aCtx) {
-      this.aCtx.decodeAudioData(data, (audioBuffer) => {
-        //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
-        let as=new AudioBufferSource(audioBuffer);
-        let adh=new AudioDataHolder(as);
-        this.audioClip = new AudioClip(adh);
-      });
-    }
+    AudioContextProvider.decodeAudioData(data).then(audioBuffer => {
+      //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
+      let as=new AudioBufferSource(audioBuffer);
+      let adh=new AudioDataHolder(as);
+      this.audioClip = new AudioClip(adh);
+    });
+
   }
 
   @Input()

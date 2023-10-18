@@ -1,4 +1,4 @@
-import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, Injector, OnDestroy} from '@angular/core'
+import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit} from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
@@ -34,7 +34,6 @@ export enum Mode {SINGLE_SESSION,DEMO}
   styles: [`:host{
     flex: 2;
     display: flex;
-      height: 100%;
     flex-direction: column;
     min-height:0;
 
@@ -76,17 +75,10 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
 
     ngOnInit() {
       super.ngOnInit();
-		  try {
-        let audioContext = AudioContextProvider.audioContextInstance();
-              if(audioContext) {
-                  this.controlAudioPlayer = new AudioPlayer(audioContext, this);
-              }
-        this.sm.controlAudioPlayer=this.controlAudioPlayer;
-        this.sm.statusAlertType='info';
-        this.sm.statusMsg = 'Player initialized.';
-      }catch(err){
-        this.handleError(err);
-      }
+      this.controlAudioPlayer = new AudioPlayer( this);
+      this.sm.controlAudioPlayer=this.controlAudioPlayer;
+      this.sm.statusAlertType='info';
+      this.sm.statusMsg = 'Player initialized.';
     }
        ngAfterViewInit(){
         // let wakeLockSupp=('wakeLock' in navigator);
@@ -372,6 +364,9 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
+      if(project.allowEchoCancellation!==undefined) {
+        this.sm.allowEchoCancellation = project.allowEchoCancellation;
+      }
       if(project.chunkedRecording===true){
         console.debug("Enable chunked upload: chunkSize: "+BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS)
         this.sm.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
