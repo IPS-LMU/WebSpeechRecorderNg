@@ -1,8 +1,16 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
+  Component,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit,
+  Input,
+  AfterContentInit,
+  OnInit,
+  AfterContentChecked,
+  AfterViewChecked,
+  ElementRef,
+  Injector,
+  OnDestroy,
 } from '@angular/core'
 
 import {AudioClip} from './persistor'

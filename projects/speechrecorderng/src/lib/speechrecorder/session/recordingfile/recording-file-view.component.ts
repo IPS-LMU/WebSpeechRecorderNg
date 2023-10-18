@@ -14,7 +14,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {AudioDisplayPlayer} from "../../../audio/audio_player";
 
 import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
-import {AudioContextProvider} from "../../../audio/context";
 import {AudioClip} from "../../../audio/persistor";
 import {Selection} from "../../../audio/persistor";
 
@@ -331,7 +330,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.status = 'Error loading audio file!';
       });
     }
-  }
+
 
   protected loadedRecfile() {
     if(this.recordingFile && !this.sessionId) {
