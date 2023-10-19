@@ -30,8 +30,9 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
-  protected readonly SampleSize = SampleSize;
-  selStorageSampleSizeCtl=new FormControl('selStorageSampleSize');
+  protected float:boolean=false;
+  protected readonly sampleSize = SampleSize;
+  selStorageTypeCtl=new FormControl('selStorageSampleSize');
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
@@ -57,15 +58,20 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
       this._bsProject.next(prj);
     });
-    this.selStorageSampleSizeCtl.valueChanges.subscribe((selStorageSampleSizeStr)=>{
+    this.selStorageTypeCtl.valueChanges.subscribe((selStorageTypeStr)=>{
       const prj=this._bsProject.value;
       prj.clientAudioStorageFormat=undefined;
-      if(selStorageSampleSizeStr!==null && selStorageSampleSizeStr!==''){
-        const selStorageSampleSize=parseInt(selStorageSampleSizeStr);
-        console.debug("Sel.: storage sample size: "+selStorageSampleSize);
-        prj.clientAudioStorageFormat={sampleSizeInBits:selStorageSampleSize};
+      if(selStorageTypeStr!==null && selStorageTypeStr!==''){
+        if(selStorageTypeStr==='FLOAT'){
+          console.debug("Sel.: storage sample type float.");
+          prj.clientAudioStorageFormat={float:true};
+        }else {
+          const selStorageSampleSize = parseInt(selStorageTypeStr);
+          console.debug("Sel.: storage sample size: " + selStorageSampleSize);
+          prj.clientAudioStorageFormat = {sampleSizeInBits: selStorageSampleSize};
+        }
       }
-      this._bsProject.unsubscribe();
+      //this._bsProject.unsubscribe();
       this._bsProject.next(prj);
     });
   }
@@ -127,12 +133,16 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       let selAfSs='';
       const pAf=prj.clientAudioStorageFormat;
       if(pAf){
-        const pAfSs=pAf.sampleSizeInBits;
-        if(pAfSs) {
-          selAfSs=pAfSs.valueOf().toString();
+        if(pAf.float ===true){
+          selAfSs='FLOAT';
+        }else {
+          const pAfSs = pAf.sampleSizeInBits;
+          if (pAfSs) {
+            selAfSs = pAfSs.valueOf().toString();
+          }
         }
       }
-      this.selStorageSampleSizeCtl.setValue(selAfSs,{emitEvent:false});
+      this.selStorageTypeCtl.setValue(selAfSs,{emitEvent:false});
 
       navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
         this.captureDeviceInfos=l.filter((d)=>(d.kind==='audioinput'));

@@ -591,7 +591,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(adh){
         as=adh.audioSource;
       }
-      const ww = new WavWriter(this._clientAudioStorageFormat?.sampleSizeInBits);
+      const ww = new WavWriter(this._clientAudioStorageFormat?.float,this._clientAudioStorageFormat?.sampleSizeInBits);
       if(as instanceof AudioBufferSource) {
         ww.writeAsync(as.audioBuffer, (wavFile) => {
           const blob = new Blob([wavFile], {type: 'audio/wav'});
@@ -1292,7 +1292,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         //console.log("Build wav writer...");
         if(ab) {
           this.processingRecording=true;
-          let ww = new WavWriter(this._clientAudioStorageFormat?.sampleSizeInBits);
+          let ww = new WavWriter(this._clientAudioStorageFormat?.float,this._clientAudioStorageFormat?.sampleSizeInBits);
           //new REST API URL
           let apiEndPoint = '';
           if (this.config && this.config.apiEndPoint) {
@@ -1381,7 +1381,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
-    let ww = new WavWriter(this._clientAudioStorageFormat?.sampleSizeInBits);
+    let ww = new WavWriter(this._clientAudioStorageFormat?.float,this._clientAudioStorageFormat?.sampleSizeInBits);
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
     // The upload holder is required to add the upload now to the upload set. The real upload is created async in postrecording and the upload set is already complete at that time.

@@ -31,6 +31,7 @@ export enum AudioStorageType {
 }
 
 export interface AudioStorageFormat {
+  float?:boolean;
   sampleSizeInBits?: SampleSize;
 }
 

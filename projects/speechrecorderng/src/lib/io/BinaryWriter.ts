@@ -70,7 +70,7 @@
       writeFloat(val:number){
           this.ensureCapacity(4);
           const valView = new DataView(this.buf, this._pos, 4);
-          valView.setFloat32(0, val);
+          valView.setFloat32(0, val,true);
           this._pos += 4;
       }
 

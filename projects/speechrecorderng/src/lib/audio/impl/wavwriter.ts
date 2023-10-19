@@ -44,13 +44,19 @@ export enum SampleSize {INT16=16,INT32=32}
            for (let ch = 0; ch < msg.data.chs; ch++) {
              const srcPos=(ch*msg.data.frameLength)+s;
              const valFlt = msg.data.audioData[srcPos];
-             const valInt = Math.round(valFlt * hDynIntRange);
-             if(msg.data.sampleSizeInBits===32) {
-               valView.setInt32(bufPos,valInt,true);
+             if(msg.data.float===true){
+               valView.setFloat32(bufPos,valFlt,true);
+               bufPos+=4;
              }else {
-               valView.setInt16(bufPos,valInt,true);
+               const valInt = Math.round(valFlt * hDynIntRange);
+               if (msg.data.sampleSizeInBits === 32) {
+                 valView.setInt32(bufPos, valInt, true);
+               } else {
+                 valView.setInt16(bufPos, valInt, true);
+               }
+               bufPos+=sampleSizeInbytes;
              }
-             bufPos+=sampleSizeInbytes;
+
            }
          }
          postMessage({buf:msg.data.buf}, [msg.data.buf]);
@@ -134,7 +140,7 @@ export enum SampleSize {INT16=16,INT32=32}
        }
 
 
-       wo.postMessage({sampleSizeInBits:this.sampleSizeInBits, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
+       wo.postMessage({float:this.float,sampleSizeInBits:this.sampleSizeInBits, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
 
      }
 
