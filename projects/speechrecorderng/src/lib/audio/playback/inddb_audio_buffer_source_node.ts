@@ -1,7 +1,7 @@
 import {AsyncEditFloat32ArrayInputStream, AsyncFloat32ArrayInputStream} from "../../io/stream";
 import {IndexedDbAudioBuffer, IndexedDbAudioInputStream} from "../inddb_audio_buffer";
 import {ArrayAudioBufferSourceNode} from "./array_audio_buffer_source_node";
-import {EMPTY, expand, map, Observable} from "rxjs";
+import {EMPTY, expand, Observable} from "rxjs";
 import {AudioSourceNode} from "./audio_source_node";
 
 export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {

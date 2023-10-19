@@ -9,6 +9,7 @@ import {AudioSourceNode} from "./audio_source_node";
 import {NetAudioBuffer} from "../net_audio_buffer";
 import {NetAudioBufferSourceNode} from "./net_audio_buffer_source_node";
 import {AudioBufferSource, AudioSource} from "../audio_data_holder";
+import {AudioContextProvider} from "../context";
 
 
 
@@ -45,10 +46,10 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
         private running=false;
         private readonly _startAction:Action<void>;
         private readonly _startSelectionAction:Action<void>;
-        private readonly _autoPlayOnSelectToggleAction:Action<boolean>
+        private readonly _autoPlayOnSelectToggleAction:Action<boolean>;
         private readonly _stopAction:Action<void>;
         bufSize:number;
-        context:AudioContext;
+        context:AudioContext|null=null;
         ready=false;
         listener:AudioPlayerListener;
         _audioClip:AudioClip|null=null;
@@ -64,8 +65,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
         private timerVar:number|null=null;
 
-        constructor(context:AudioContext, listener:AudioPlayerListener) {
-           this.context=context;
+        constructor(listener:AudioPlayerListener) {
             this.listener=listener;
             this.bufSize = AudioPlayer.DEFAULT_BUFSIZE;
             this.n=navigator;
@@ -82,12 +82,22 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
             this._stopAction = new Action('Stop');
             this._stopAction.disabled = true;
             this._stopAction.onAction = ()=>this.stop();
-          this.context.addEventListener('statechange', (ev) => {
-              if(this.context.state!=='running'){
-                this.stop();
-              }
+
+        }
+
+        private _audioContext():AudioContext|null{
+            if(!this.context){
+                this.context=AudioContextProvider.audioContextInstance();
+                if(this.context) {
+                    this.context.addEventListener('statechange', (ev) => {
+                            if(this.context && this.context.state!=='running'){
+                                this.stop();
+                            }
+                        }
+                    );
+                }
             }
-          );
+            return this.context;
         }
 
         get startAction() {
@@ -111,16 +121,16 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
                 chs = audioDataHolder.numberOfChannels
                 if (chs > 0) {
                     length = audioDataHolder.frameLen;
-                    if (chs > this.context.destination.maxChannelCount) {
-                        // TODO exception
-                    }
+                    //if (chs > this.context.destination.maxChannelCount) {
+                    //    // TODO exception
+                    //}
                 }
                 this.audioSource=audioDataHolder.audioSource;
 
                 audioClip.addSelectionObserver((ac)=> {
-                    this._startSelectionAction.disabled = this.startSelectionDisabled()
+                    this._startSelectionAction.disabled = this.startSelectionDisabled();
                     if (!this.startSelectionAction.disabled && this._autoPlayOnSelectToggleAction.value) {
-                      this.startSelected()
+                      this.startSelected();
                     }
                   }
                 )
@@ -136,16 +146,13 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
       set audioSource(value: AudioSource | null) {
         this.stop();
         this._audioSource = value;
-            if (this._audioSource && this.context) {
-              if (this._audioSource instanceof AudioBufferSource) {
+            if (this._audioSource) {
+
                 this.ready = true;
                 this.updateStartActions();
                 if (this.listener) {
-                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+                    this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
                 }
-              } else {
-                this._loadSourceWorkletAndInitStart();
-              }
             }else {
               this.ready = false;
               this.updateStartActions();
@@ -156,26 +163,29 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
       }
 
         private _loadSourceWorkletAndInitStart(){
-          AudioSourceWorkletModuleLoader.loadModule(this.context).then(()=>{
-            //console.debug("Player ready. ( by Player::_loadSourceWorkletAndInitStart()");
-            this.ready=true;
-            this.updateStartActions();
-            if(this.listener){
-              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+            if(this.context) {
+                AudioSourceWorkletModuleLoader.loadModule(this.context).then(() => {
+                    //console.debug("Player ready. ( by Player::_loadSourceWorkletAndInitStart()");
+                    this.ready = true;
+                    this.updateStartActions();
+                    if (this.listener) {
+                        this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.READY));
+                    }
+                }).catch((error: any) => {
+                    this.ready = false;
+                    this.updateStartActions();
+                    if (this.listener) {
+                        this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+                    }
+                    console.error('Could not add module ' + error);
+                });
             }
-          }).catch((error: any)=>{
-            this.ready=false;
-             this.updateStartActions();
-            if(this.listener){
-              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
-            }
-            console.error('Could not add module '+error);
-          });
         }
 
 
   private _startAudioSourceWorkletNode(){
-          if(this.sourceAudioWorkletNode) {
+      this._loadSourceWorkletAndInitStart();
+          if(this.context && this.sourceAudioWorkletNode) {
             this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
               let msg = 'Unknwon error';
               if (ev instanceof ErrorEvent) {
@@ -206,16 +216,26 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
   }
 
         start() {
-            if(!this._startAction.disabled && !this.running) {
-              if(this.context.state!=='running') {
-                this.context.resume().then(() => {
-                  this._start();
-                }).catch((reason) => {
-                  console.error('Could not resume audio context: ' + reason);
-                })
-              }else{
-                this._start();
-              }
+
+            this._audioContext();
+
+            if(this.context) {
+                if (!this._startAction.disabled && !this.running) {
+                    if (this.context.state === 'suspended') {
+                        this.context.resume().then(() => {
+                            this._start();
+                        }).catch((reason) => {
+                            console.error(reason.message());
+                            throw reason;
+                        })
+                    } else if (this.context.state === 'closed') {
+                        const msg = 'Error: Cannot start playback. Audio context is already closed!';
+                        console.error(msg);
+                        throw new Error(msg);
+                    } else {
+                        this._start();
+                    }
+                }
             }
         }
 
@@ -240,11 +260,15 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
         }
 
         startSelectionDisabled(){
-          return !(this._audioClip && this.context && !this.startAction.disabled && this._audioClip.selection )
+          return !(this._audioClip && !this.startAction.disabled && this._audioClip.selection )
         }
 
 
         private _start(playSelection=false){
+                if(!this.context){
+                    throw new Error("Could not get audio context!");
+                }
+
           if (this._audioSource instanceof AudioBufferSource) {
             this.sourceBufferNode = this.context.createBufferSource();
             this.sourceBufferNode.buffer = this._audioSource.audioBuffer;
@@ -275,70 +299,94 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
               this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
             }
           } else if (this._audioSource instanceof ArrayAudioBuffer || this._audioSource instanceof IndexedDbAudioBuffer || this._audioSource instanceof NetAudioBuffer) {
-            this.playStartTime = null;
-            if (this._audioSource instanceof ArrayAudioBuffer) {
-              const aabsn = new ArrayAudioBufferSourceNode(this.context);
-              aabsn.arrayAudioBuffer = this._audioSource;
-              this.sourceAudioWorkletNode = aabsn;
-            } else if (this._audioSource instanceof IndexedDbAudioBuffer) {
-              const iasn = new IndexedDbAudioBufferSourceNode(this.context);
-              iasn.inddbAudioBuffer = this._audioSource;
-              this.sourceAudioWorkletNode = iasn;
-            } else if (this._audioSource instanceof NetAudioBuffer) {
-              const nabsn = new NetAudioBufferSourceNode(this.context);
-              nabsn.netAudioBuffer = this._audioSource;
-              this.sourceAudioWorkletNode = nabsn;
-            }
-            if (this.sourceAudioWorkletNode) {
-              this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
-                let msg = 'Unknwon error';
-                if (ev instanceof ErrorEvent) {
-                  msg = ev.message;
-                }
-                console.error("Audio source worklet error: " + msg);
-                if (this.listener) {
-                  this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ERROR));
-                }
-              };
+              AudioSourceWorkletModuleLoader.loadModule(this.context).then(() => {
+                  this.playStartTime = null;
+                  if (this.context) {
+                  if (this._audioSource instanceof ArrayAudioBuffer) {
+                      const aabsn = new ArrayAudioBufferSourceNode(this.context);
+                      aabsn.arrayAudioBuffer = this._audioSource;
+                      this.sourceAudioWorkletNode = aabsn;
+                  } else if (this._audioSource instanceof IndexedDbAudioBuffer) {
+                      const iasn = new IndexedDbAudioBufferSourceNode(this.context);
+                      iasn.inddbAudioBuffer = this._audioSource;
+                      this.sourceAudioWorkletNode = iasn;
+                  } else if (this._audioSource instanceof NetAudioBuffer) {
+                      const nabsn = new NetAudioBufferSourceNode(this.context);
+                      nabsn.netAudioBuffer = this._audioSource;
+                      this.sourceAudioWorkletNode = nabsn;
+                  }
+                  if (this.sourceAudioWorkletNode) {
+                      this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
+                          let msg = 'Unknwon error';
+                          if (ev instanceof ErrorEvent) {
+                              msg = ev.message;
+                          }
+                          console.error("Audio source worklet error: " + msg);
+                          if (this.listener) {
+                              this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.ERROR));
+                          }
+                      };
 
-              this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
-              this.sourceAudioWorkletNode.onended = () => this.onended();
+                      this.sourceAudioWorkletNode.connect(this.context.destination); // this already starts playing
+                      this.sourceAudioWorkletNode.onended = () => this.onended();
 
-              this.running = true;
+                      this.running = true;
 
-              const ac = this._audioClip
-              let offset = 0
-              if (playSelection && ac && ac.selection) {
-                const s = ac.selection;
-                const sr = ac.audioDataHolder.sampleRate;
-                offset = s.leftFrame / sr;
-                const stopPosInsecs = s.rightFrame / sr;
-                const dur = stopPosInsecs - offset
-                this.sourceAudioWorkletNode.start(0, offset, dur)
-              } else {
-                this.sourceAudioWorkletNode.start();
+                      const ac = this._audioClip
+                      let offset = 0
+                      if (playSelection && ac && ac.selection) {
+                          const s = ac.selection;
+                          const sr = ac.audioDataHolder.sampleRate;
+                          offset = s.leftFrame / sr;
+                          const stopPosInsecs = s.rightFrame / sr;
+                          const dur = stopPosInsecs - offset
+                          this.sourceAudioWorkletNode.start(0, offset, dur)
+                      } else {
+                          this.sourceAudioWorkletNode.start();
+                      }
+
+                      //this.playStartTime = this.context.currentTime - offset;
+                      this._startAction.disabled = true;
+                      this._startSelectionAction.disabled = true
+                      this._stopAction.disabled = false;
+
+                      if (this.listener) {
+                          this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
+                      }
+                  }
               }
+              }).catch((error: any) => {
+                  console.error(error.message);
+                  this.ready = false;
+                  this.updateStartActions();
+                  if (this.listener) {
+                      this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.CLOSED));
+                  }
 
-              //this.playStartTime = this.context.currentTime - offset;
-              this._startAction.disabled = true;
-              this._startSelectionAction.disabled = true
-              this._stopAction.disabled = false;
+                  throw error;
+              });
 
-              if (this.listener) {
-                this.listener.audioPlayerUpdate(new AudioPlayerEvent(EventType.STARTED));
-              }
-            }
           }
         }
 
       startSelected() {
-        if(!this._startAction.disabled && !this.running) {
-          if (this.context.state !== 'running') {
+            this._audioContext();
+          if(!this.context){
+              throw new Error("Could not get audio context!");
+          }
+
+          if(!this._startAction.disabled && !this.running) {
+          if (this.context.state === 'suspended') {
             this.context.resume().then(() => {
               this._start(true);
             }).catch((reason) => {
-              console.error('Could not resume audio context: ' + reason);
+              console.error(reason.message);
+              throw reason;
             })
+          }else if(this.context.state==='closed'){
+            const msg='Error: Cannot start playback of selection. Audio context is already closed!';
+            console.error(msg);
+            throw new Error(msg);
           }else{
             this._start(true);
           }
@@ -378,7 +426,7 @@ import {AudioBufferSource, AudioSource} from "../audio_data_holder";
 
         get playPositionTime():number|null {
             let ppt=null;
-            if(this.playStartTime!==null) {
+            if(this.context && this.playStartTime!==null) {
                 ppt= this.context.currentTime - this.playStartTime;
             }else if(this.sourceAudioWorkletNode){
               ppt=this.sourceAudioWorkletNode.playPositionTime;

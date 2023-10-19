@@ -189,7 +189,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   constructor(protected bpo:BreakpointObserver,changeDetectorRef: ChangeDetectorRef,
               private renderer: Renderer2,
-              private route: ActivatedRoute,
               dialog: MatDialog,
               sessionService:SessionService,
               private recFileService:RecordingService,
@@ -239,51 +238,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.transportActions.pauseAction.disabled = true;
     this.playStartAction.disabled = true;
 
-    //this.audioLoaded=false;
-
-    let context:AudioContext|null=null;
-    try {
-      context = AudioContextProvider.audioContextInstance()
-    } catch (err) {
-      this.status = Status.ERROR;
-      let errMsg = 'Unknown error';
-      if(err instanceof Error){
-        errMsg=err.message;
-      }
-      this.statusMsg = 'ERROR: ' + errMsg;
-      this.statusAlertType = 'error';
-      this.dialog.open(MessageDialog, {
-        data: {
-          type: 'error',
-          title: 'Error',
-          msg: errMsg,
-          advice: 'Please use a supported browser.',
-        }
-      });
-      return;
-    }
-    if(context) {
-      console.info("State of audio context: " + context.state)
-    }else{
-      console.info("No audio context available!");
-    }
-    if (!context || !navigator.mediaDevices) {
-      this.status = Status.ERROR;
-      let errMsg = 'Browser does not support Media streams!';
-      this.statusMsg = 'ERROR: ' + errMsg;
-      this.statusAlertType = 'error';
-      this.dialog.open(MessageDialog, {
-        data: {
-          type: 'error',
-          title: 'Error',
-          msg: errMsg,
-          advice: 'Please use a supported browser.',
-        }
-      });
-      return;
-    } else {
-      //this.controlAudioPlayer = new AudioPlayer(context, this);
-      this.ac = new AudioCapture(context);
+      this.ac = new AudioCapture();
       if (this.ac) {
         this.transportActions.startAction.onAction = () => this.startItem();
         this.ac.listener = this;
@@ -312,7 +267,6 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
       this.playStartAction.onAction = () => this.controlAudioPlayer?.start();
 
-    }
     this.uploader.listener = (ue) => {
       this.uploadUpdate(ue);
     }
@@ -433,6 +387,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.autoGainControlConfigs = project.autoGainControlConfigs;
+      if(project.allowEchoCancellation!==undefined) {
+        this.allowEchoCancellation = project.allowEchoCancellation;
+      }
       if (project.chunkedRecording === true) {
         this.uploadChunkSizeSeconds = BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
       } else {
@@ -644,7 +601,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               throw Error('Error: Persistent storage target not set.');
             }else {
               //console.debug("Fetch audio and store to indexed db...");
-              this.audioFetchSubscription = this.recFileService.fetchRecordingFileIndDbAudioBuffer(this._controlAudioPlayer.context, this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
+              this.audioFetchSubscription = this.recFileService.fetchRecordingFileIndDbAudioBuffer(this._persistentAudioStorageTarget, this._session.project, rf).subscribe({
                 next: (iab) => {
                   //console.debug("Sessionmanager: Received inddb audio buffer: "+iab);
                   nextIab = iab;
@@ -686,7 +643,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             let nextNetAb: NetAudioBuffer | null = null;
 
             //console.debug("Fetch chunked audio from network");
-            this.audioFetchSubscription = this.recFileService.fetchRecordingFileNetAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileNetAudioBuffer( this._session.project, rf).subscribe({
               next: (netAb) => {
                 //console.debug("Sessionmanager: Received net audio buffer: "+netAb);
                 nextNetAb = netAb;
@@ -731,7 +688,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             // Fetch chunked array audio buffer
             let nextAab: ArrayAudioBuffer | null = null;
             //console.debug("Fetch audio and store to (chunked) array buffer...");
-            this.audioFetchSubscription = this.recFileService.fetchRecordingFileArrayAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileArrayAudioBuffer( this._session.project, rf).subscribe({
               next: (aab) => {
                 nextAab = aab;
               },
@@ -767,7 +724,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             });
 
           } else {
-            this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._controlAudioPlayer.context, this._session.project, rf).subscribe({
+            this.audioFetchSubscription = this.recFileService.fetchRecordingFileAudioBuffer(this._session.project, rf).subscribe({
               next: ab => {
                 this.liveLevelDisplayState = LiveLevelState.READY;
                 let fabDh = null;
@@ -927,7 +884,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.statusAlertType = 'info';
     this.statusMsg = 'Recorded.';
 
-    let ad:AudioBuffer|null=null;
+    let ab:AudioBuffer|null=null;
 
     if(this.ac) {
       let adh:AudioDataHolder|null=null;
@@ -959,7 +916,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 const sr = this.ac.currentSampleRate;
                 const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, chFl);
+                let netAs = new NetAudioBuffer(this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, chFl);
                 as=netAs;
                 if(this.uploadSet){
                   this.uploadSet.onDone=(uploadSet)=>{
@@ -1005,7 +962,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 const sr = this.ac.currentSampleRate;
                 const chFl=sr*RecordingService.DEFAULT_CHUNKED_DOWNLOAD_SECONDS;
                 //console.debug("stopped(): rfID: "+this._recordingFile?.recordingFileId+", net ab url: " + burl+", frames: "+this.ac.framesRecorded+", sample rate: "+sr);
-                let netAs = new NetAudioBuffer(this.ac.context, this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, chFl);
+                let netAs = new NetAudioBuffer(this.recFileService, burl, this.ac.channelCount, sr, chFl, this.ac.framesRecorded, rUUID, chFl);
                 as = netAs;
                 if (this.uploadSet) {
                   this.uploadSet.onDone = (uploadSet) => {
@@ -1021,7 +978,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         } else if (AudioStorageType.MEM_CHUNKED === this.ac.audioStorageType) {
           as = this.ac.audioBufferArray();
         } else {
-          let ab = this.ac.audioBuffer();
+          ab = this.ac.audioBuffer();
           if(ab) {
             as = new AudioBufferSource(ab);
           }
@@ -1044,7 +1001,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
         this.recorderCombiPane.addRecFile(rf);
 
         // Upload if upload enabled and not in chunked upload mode
-        if (this.enableUploadRecordings && this._uploadChunkSizeSeconds===null && rf != null && ad != null) {
+        if (this.enableUploadRecordings && this._uploadChunkSizeSeconds===null && AudioStorageType.MEM_ENTIRE===this._clientAudioStorageType && rf != null && ab != null) {
           let apiEndPoint = '';
 
           if (this.config && this.config.apiEndPoint) {
@@ -1063,7 +1020,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
           this.processingRecording = true
           let ww = new WavWriter();
-          ww.writeAsync(ad, (wavFile) => {
+          ww.writeAsync(ab, (wavFile) => {
             this.postRecordingMultipart(wavFile,recUrl,rf);
             this.processingRecording = false;
             this.updateWakeLock();
@@ -1196,11 +1153,9 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
   }
 
   ngOnInit() {
-    //super.ngOnInit();
-    let audioContext = AudioContextProvider.audioContextInstance();
-    if(audioContext) {
-      this.controlAudioPlayer = new AudioPlayer(audioContext,this.ar);
-    }
+
+    this.controlAudioPlayer = new AudioPlayer(this.ar);
+
     this.ar.controlAudioPlayer=this.controlAudioPlayer;
 
     //TODO Duplicate code in SpeechRecorderComponent
@@ -1211,7 +1166,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
         return;
       } else {
         // all this attempts to customize the message do not work anymore (for security reasons)!!
-        var message = "Please do not leave the page, until all recordings are uploaded!";
+        const message = "Please do not leave the page, until all recordings are uploaded!";
         alert(message);
         e = e || window.event;
 

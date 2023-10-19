@@ -15,8 +15,8 @@ export class SessionService {
   }
   public static readonly SESSION_API_CTX='session';
   private apiEndPoint='';
-  private sessionsUrl:string;
-  private withCredentials:boolean=false;
+  private readonly sessionsUrl:string;
+  private readonly withCredentials:boolean=false;
   private _uploadCount=0;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
@@ -52,15 +52,19 @@ export class SessionService {
     let wrapObs = new Observable<Session>(subscriber => {
       this._uploadCount++;
       let obs = this.http.patch<Session>(sesssUrl, body, {withCredentials: this.withCredentials});
-      obs.subscribe((value) => {
+      obs.subscribe({
+      next:(value) =>
+      {
         subscriber.next(value);
-      }, error => {
+      }
+      ,error: error => {
         this._uploadCount--;
         subscriber.error(error);
-      }, () => {
+      }, complete:() => {
         this._uploadCount--;
         subscriber.complete();
-      });
+      }
+    });
     });
     return wrapObs;
   }

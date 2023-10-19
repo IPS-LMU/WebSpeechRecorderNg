@@ -6,6 +6,7 @@ import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {UUID} from "../../utils/utils";
 import {WavReader} from "../../audio/impl/wavreader";
 import {PCMAudioFormat} from "../../audio/format";
+import {AudioContextProvider} from "../../audio/context";
 
 export class ChunkDownload{
   get orgPCMAudioFormat(): PCMAudioFormat {
@@ -31,6 +32,7 @@ export class BasicRecordingService{
   protected _maxAutoNetMemStoreSamples:number=BasicRecordingService.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
     protected apiEndPoint: string;
     protected withCredentials: boolean = false;
+
     constructor(protected http: HttpClient, @Inject(SPEECHRECORDER_CONFIG) protected config?: SpeechRecorderConfig) {
         this.apiEndPoint = ''
 
@@ -68,7 +70,7 @@ export class BasicRecordingService{
 
     }
 
-    public chunkAudioRequest(aCtx:AudioContext,baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<ChunkDownload|null> {
+    public chunkAudioRequest(baseAudioUrl:string,startFrame:number=0,frameLength:number): Observable<ChunkDownload|null> {
 
         let ausps=new URLSearchParams();
         ausps.set('startFrame',startFrame.toString());
@@ -81,72 +83,74 @@ export class BasicRecordingService{
         }
 
         let obs=new Observable<ChunkDownload|null>(observer=> {
-            this.audioRequestByURL(baseAudioUrl,ausps).subscribe(resp => {
-                    // Do not use Promise version, which does not work with Safari 13 (13.0.5)
-                    if (resp.body) {
-                        //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
-                        //console.debug("Audio file bytes: "+resp.body.byteLength);
+            this.audioRequestByURL(baseAudioUrl,ausps).subscribe(
+                {
+                    next: resp => {
+                        // Do not use Promise version, which does not work with Safari 13 (13.0.5)
+                        if (resp.body) {
+                            //console.debug("chunkAudioRequest: observer.closed: "+observer.closed);
+                            //console.debug("Audio file bytes: "+resp.body.byteLength);
 
-                        // Check original audio format
-                        let wr=new WavReader(resp.body);
-                        const pcmFmt=wr.readFormat();
-                        const orgFl=wr.frameLength();
-                        // if(pcmFmt){
-                        //   console.debug("Original WAVE format of download chunk: "+pcmFmt);
-                        // }else{
-                        //   console.error("Could not read WAVE format of original download chunk!");
-                        // }
-                        // if(orgFl){
-                        //   console.debug("Original frame length of download chunk: "+orgFl);
-                        // }else{
-                        //   console.error("Could not read WAVE format of original download chunk!");
-                        // }
+                            // Check original audio format
+                            let wr = new WavReader(resp.body);
+                            const pcmFmt = wr.readFormat();
+                            const orgFl = wr.frameLength();
+                            // if(pcmFmt){
+                            //   console.debug("Original WAVE format of download chunk: "+pcmFmt);
+                            // }else{
+                            //   console.error("Could not read WAVE format of original download chunk!");
+                            // }
+                            // if(orgFl){
+                            //   console.debug("Original frame length of download chunk: "+orgFl);
+                            // }else{
+                            //   console.error("Could not read WAVE format of original download chunk!");
+                            // }
 
-                        if(pcmFmt && orgFl) {
-                            aCtx.decodeAudioData(resp.body, ab => {
-                                    //console.debug("Decoded audio chunk frames: "+ab.length);
-                                    let chDl = new ChunkDownload(pcmFmt, orgFl, ab);
-                                    observer.next(chDl);
-                                    observer.complete();
-                                }
-                                , error => {
-                                    //if(error instanceof HttpErrorResponse) {
-                                    // if (error.status == 404) {
-                                    //   // Interpret not as an error, the file ist not recorded yet
-                                    //   observer.next(null);
-                                    //   observer.complete()
-                                    // } else {
-                                    //   // all other states are errors
-                                    console.error("Recordings service chunkAudioRequest error decoding audio data: "+error.name+": "+error.message);
-                                    observer.error(error);
-                                    // }
-                                    // }
-                                });
-                        }else{
-                            const errMsg='Could not parse audio header for format and/or frame length of download.';
+                            if (pcmFmt && orgFl) {
+                              AudioContextProvider.decodeAudioData(resp.body).then((ab)=>{
+                                      //console.debug("Decoded audio chunk frames: "+ab.length);
+                                      let chDl = new ChunkDownload(pcmFmt, orgFl, ab);
+                                      observer.next(chDl);
+                                      observer.complete();
+                                    }).catch(error => {
+                                      //if(error instanceof HttpErrorResponse) {
+                                      // if (error.status == 404) {
+                                      //   // Interpret not as an error, the file ist not recorded yet
+                                      //   observer.next(null);
+                                      //   observer.complete()
+                                      // } else {
+                                      //   // all other states are errors
+                                      console.error("Recordings service chunkAudioRequest error decoding audio data: " + error.name + ": " + error.message);
+                                      observer.error(error);
+                                      // }
+                                      // }
+                                    });
+                            } else {
+                                const errMsg = 'Could not parse audio header for format and/or frame length of download.';
+                                console.error(errMsg);
+                                observer.error(errMsg);
+                            }
+                        } else {
+                            const errMsg = 'Fetching audio file: response has no body';
                             console.error(errMsg);
                             observer.error(errMsg);
                         }
-                    } else {
-                        const errMsg='Fetching audio file: response has no body';
-                        console.error(errMsg);
-                        observer.error(errMsg);
-                    }
-                },
-                (error) => {
-                    // all other states are errors
-                    //const errMsg='Fetching audio file HTTP error: '+error;
-                    //console.error(errMsg);
-                    observer.error(error);
-                    //observer.complete();
+                    }, error:
+                        (error) => {
+                            // all other states are errors
+                            //const errMsg='Fetching audio file HTTP error: '+error;
+                            //console.error(errMsg);
+                            observer.error(error);
+                            //observer.complete();
 
+                        }
                 });
         });
         return obs;
     }
 
 
-    protected chunkAudioRequestToNetAudioBuffer(aCtx: AudioContext, baseAudioUrl: string, startFrame: number = 0, orgSampleRate: number, seconds:number,frames: number | null): Observable<NetAudioBuffer | null> {
+    protected chunkAudioRequestToNetAudioBuffer(baseAudioUrl: string, startFrame: number = 0, orgSampleRate: number, seconds:number,frames: number | null): Observable<NetAudioBuffer | null> {
         //let audioUrl=baseAudioUrl+'?startFrame='+startFrame+'&frameLength='+frameLength;
         //let audioUrl=new URL(baseAudioUrl);
         // if(orgSampleRate!=null && frameLength%orgSampleRate>0){
@@ -170,7 +174,7 @@ export class BasicRecordingService{
                     if (resp.body) {
                         //console.debug("chunkAudioRequestTonetAb: subscriber.closed: "+subscriber.closed);
                         //console.debug("chunkAudioRequestTonetAb: Audio file bytes: "+resp.body.byteLength);
-                        aCtx.decodeAudioData(resp.body, ab => {
+                        AudioContextProvider.decodeAudioData(resp.body).then(ab => {
                                 //console.debug("chunkAudioRequestTonetAb: Decoded audio chunk frames for netAb: "+ab.length);
                                 //console.debug("chunkAudioRequestTonetAb: Create netAb ab from chunk ab...");
                                 if(frames===null){
@@ -184,7 +188,7 @@ export class BasicRecordingService{
                                         }
                                     }
 
-                                    let nab = NetAudioBuffer.fromChunkAudioBuffer(aCtx, this,baseAudioUrl, ab, fl,frameLength);
+                                    let nab = NetAudioBuffer.fromChunkAudioBuffer(this,baseAudioUrl, ab, fl,frameLength);
                                     //let rp=new ReadyProvider();
                                     //nab.readyProvider=rp;
                                     //rp.ready();
@@ -197,8 +201,7 @@ export class BasicRecordingService{
 
                                     subscriber.complete();
                                 }
-                            }
-                            , error => {
+                            }).catch(error => {
                                 console.error('chunkAudioRequestToNetAb: error: '+error);
                                 //if(error instanceof HttpErrorResponse) {
                                 subscriber.error(error);

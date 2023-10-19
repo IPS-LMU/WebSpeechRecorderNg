@@ -5,7 +5,7 @@ import {
 
 import { MatDialog} from "@angular/material/dialog";
 import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
-import {BreakpointObserver} from "@angular/cdk/layout";
+import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
 

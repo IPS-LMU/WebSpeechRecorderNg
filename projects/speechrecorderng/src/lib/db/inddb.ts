@@ -1,7 +1,4 @@
 import {Injectable} from "@angular/core";
-import {SessionFinishedDialog} from "../speechrecorder/session/session_finished_dialog";
-import {Session} from "../speechrecorder/session/session";
-import {UUID} from "../utils/utils";
 import {Observable} from "rxjs";
 
 

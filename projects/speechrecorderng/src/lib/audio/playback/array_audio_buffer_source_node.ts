@@ -42,7 +42,7 @@ export class ArrayAudioBufferSourceNode extends AudioSourceNode {
     }
   }
 
-  private fillBuffer(frameOffset?:number) {
+  private fillBuffer() {
     if (this._arrayAudioBuffer && this._audioInputStream && this._aisBufs) {
       let filled = this.filledFrames;
       let bufLen = 0;

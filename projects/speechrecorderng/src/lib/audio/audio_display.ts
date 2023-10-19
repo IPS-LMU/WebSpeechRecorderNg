@@ -6,7 +6,6 @@ import {
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
-import {ActivatedRoute} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioDataHolder} from "./audio_data_holder";
@@ -80,7 +79,7 @@ export class AudioDisplay implements OnInit,AfterViewInit {
   @ViewChild(AudioDisplayScrollPane, { static: true })
   audioDisplayScrollPane!: AudioDisplayScrollPane;
 
-  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
+  constructor(private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
