@@ -243,6 +243,8 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
+
+  peakLevel:number=0.0;
   peakLevelInDb:number=MIN_DB_LEVEL;
   audioLoaded:boolean=false;
   disableAudioDetails:boolean=false;
