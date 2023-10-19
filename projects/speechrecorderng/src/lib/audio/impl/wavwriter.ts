@@ -9,12 +9,17 @@ export enum SampleSize {INT16=16,INT32=32}
 
      static readonly DEFAULT_SAMPLE_SIZE:SampleSize = SampleSize.INT16;
      private readonly sampleSizeInBytes:number=WavWriter.DEFAULT_SAMPLE_SIZE.valueOf()/8;
+     private float:boolean=false;
      private sampleSize=WavWriter.DEFAULT_SAMPLE_SIZE;
      private sampleSizeInBits=this.sampleSize.valueOf();
      private bw:BinaryByteWriter;
      private workerURL: string|null=null;
-     constructor(sampleSize?:SampleSize) {
-       if(sampleSize){
+
+     constructor(float?:boolean,sampleSize?:SampleSize) {
+       if(float!==undefined){
+         this.float=float;
+         this.sampleSize=SampleSize.INT32;
+       }else if(sampleSize){
          this.sampleSize=sampleSize;
        }
        this.sampleSizeInBits=this.sampleSize.valueOf();
@@ -32,14 +37,14 @@ export enum SampleSize {INT16=16,INT32=32}
          const valView = new DataView(msg.data.buf,msg.data.bufPos);
          const sampleSizeInbytes=Math.round(msg.data.sampleSizeInBits/8);
          let bufPos = 0;
-         let hDynIntRange = 1 << (msg.data.sampleSizeInBits - 1);
+         const hDynIntRange = 1 << (msg.data.sampleSizeInBits - 1);
          for (let s = 0; s < msg.data.frameLength; s++) {
            // interleaved channel data
 
            for (let ch = 0; ch < msg.data.chs; ch++) {
-             let srcPos=(ch*msg.data.frameLength)+s;
-             let valFlt = msg.data.audioData[srcPos];
-             let valInt = Math.round(valFlt * hDynIntRange);
+             const srcPos=(ch*msg.data.frameLength)+s;
+             const valFlt = msg.data.audioData[srcPos];
+             const valInt = Math.round(valFlt * hDynIntRange);
              if(msg.data.sampleSizeInBits===32) {
                valView.setInt32(bufPos,valInt,true);
              }else {
@@ -55,8 +60,11 @@ export enum SampleSize {INT16=16,INT32=32}
 
 
      writeFmtChunk(audioBuffer:AudioBuffer){
-
-       this.bw.writeUint16(WavFileFormat.PCM,true);
+       if(this.float===true){
+         this.bw.writeUint16(WavFileFormat.WAVE_FORMAT_IEEE_FLOAT, true);
+       }else {
+         this.bw.writeUint16(WavFileFormat.PCM, true);
+       }
        const frameSize=this.sampleSizeInBytes*audioBuffer.numberOfChannels;
        this.bw.writeUint16(audioBuffer.numberOfChannels,true);
        this.bw.writeUint32(audioBuffer.sampleRate,true);
@@ -69,23 +77,33 @@ export enum SampleSize {INT16=16,INT32=32}
 
      writeDataChunk(audioBuffer:AudioBuffer){
 
-       let chData0=audioBuffer.getChannelData(0);
-       let dataLen=chData0.length;
-        let hDynIntRange=1 << ((this.sampleSizeInBits)-1);
-       for(let s=0;s<dataLen;s++) {
-         // interleaved channel data
-         for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
-           let chData = audioBuffer.getChannelData(ch);
-           let valFlt=chData[s];
-           let valInt=Math.round(valFlt*hDynIntRange);
-           if(this.sampleSize===SampleSize.INT16) {
-             this.bw.writeInt16(valInt, true);
-           }else if(this.sampleSize===SampleSize.INT32){
-             this.bw.writeInt32(valInt,true);
+       const chData0=audioBuffer.getChannelData(0);
+       const dataLen=chData0.length;
+       if(this.float===true){
+         for (let s = 0; s < dataLen; s++) {
+           // interleaved channel data
+           for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+             const chData = audioBuffer.getChannelData(ch);
+             const valFlt = chData[s];
+             this.bw.writeFloat(valFlt);
+           }
+         }
+       }else {
+         const hDynIntRange = 1 << ((this.sampleSizeInBits) - 1);
+         for (let s = 0; s < dataLen; s++) {
+           // interleaved channel data
+           for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+             const chData = audioBuffer.getChannelData(ch);
+             const valFlt = chData[s];
+             const valInt = Math.round(valFlt * hDynIntRange);
+             if (this.sampleSize === SampleSize.INT16) {
+               this.bw.writeInt16(valInt, true);
+             } else if (this.sampleSize === SampleSize.INT32) {
+               this.bw.writeInt32(valInt, true);
+             }
            }
          }
        }
-
      }
 
      writeChunkHeader(name:string,chkLen:number){
