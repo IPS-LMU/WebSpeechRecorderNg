@@ -38,9 +38,9 @@ import {Action} from "../../../action/action";
           `,
   styles: [
     `:host {
-        flex: 0;
-
-      }`]
+             flex: 0;
+     
+           }`]
 })
 export class RecordingFileNaviComponent implements OnInit {
   @Input() firstAction: Action<void>|undefined;

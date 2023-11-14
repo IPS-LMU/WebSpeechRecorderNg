@@ -42,18 +42,18 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
   `,
   styles: [
       `:host {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      bottom: 0px;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: rgba(0, 0, 0, 0.75)
-    }`]
+             display: flex;
+             flex-direction: column;
+             position: absolute;
+             bottom: 0px;
+             height: 100%;
+             width: 100%;
+             overflow: hidden;
+             padding: 20px;
+             z-index: 5;
+             box-sizing: border-box;
+             background-color: rgba(0, 0, 0, 0.75)
+           }`]
 
 })
 export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,OnDestroy,AfterViewInit{

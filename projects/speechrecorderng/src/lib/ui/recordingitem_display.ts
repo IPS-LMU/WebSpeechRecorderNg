@@ -16,7 +16,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
   selector: 'spr-recordingitemcontrols',
   template: `
         <button i18n-matTooltip matTooltip="Start playback" (click)="playStartAction?.perform()"
-                [disabled]="playStartAction?.disabled"
+                [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
