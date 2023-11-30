@@ -493,27 +493,72 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   startItem() {
-    this.status=Status.STARTING;
-    super.startItem();
-    if (this.readonly) {
-      this.status=Status.IDLE;
-      return
-    }
-    this.transportActions.fwdAction.disabled = true
-    this.transportActions.fwdNextAction.disabled = true
-    this.transportActions.bwdAction.disabled = true
-    this.updateDisplayRecFile(null);
-    this.displayRecFileVersion = 0;
-    this.displayAudioClip = null;
-    this.liveLevelDisplay.reset(true);
-    // Hide loading hint on livelevel display
-    this.liveLevelDisplayState=LiveLevelState.READY;
-    this.showRecording();
-    if (this.section.mode === 'AUTORECORDING') {
-      this.autorecording = true;
-    }
+    const isNonrecording=(this.promptItem.type==='nonrecording');
+    if(isNonrecording){
+      this.status = Status.IDLE;
 
-    this.startCapture();
+      this.transportActions.fwdAction.disabled = false;
+      this.transportActions.fwdNextAction.disabled = true;
+      this.transportActions.bwdAction.disabled = false;
+      this.updateDisplayRecFile(null);
+      this.displayRecFileVersion = 0;
+      this.displayAudioClip = null;
+      this.liveLevelDisplay.reset(true);
+      // Hide loading hint on livelevel display
+      this.liveLevelDisplayState = LiveLevelState.READY;
+      this.showRecording();
+      if (this.section.mode === 'AUTORECORDING') {
+        this.autorecording = true;
+      }
+      const nrDuration=this.promptItem.duration;
+      if(nrDuration!==undefined){
+        window.setTimeout(()=>{
+
+          // TODO duplicate code
+          //let autoStart = (this.status === Status.STOPPING_STOP);
+          this.status = Status.IDLE;
+          let startNext:boolean=false;
+          if (this.section.mode === 'AUTOPROGRESS' || this.section.mode === 'AUTORECORDING') {
+            this.nextItem();
+          }
+          if (this.section.mode === 'AUTORECORDING' && this.autorecording) {
+            startNext=true;
+          } else {
+            this.navigationDisabled = false;
+            this.updateNavigationActions();
+            this.updateWakeLock();
+          }
+        // apply recorded item
+        this.applyItem(startNext);
+        if(startNext){
+          this.startItem();
+        }
+        this.changeDetectorRef.detectChanges();
+        },nrDuration);
+      }
+    }else {
+      this.status = Status.STARTING;
+      super.startItem();
+      if (this.readonly) {
+        this.status = Status.IDLE;
+        return
+      }
+      this.transportActions.fwdAction.disabled = true
+      this.transportActions.fwdNextAction.disabled = true
+      this.transportActions.bwdAction.disabled = true
+      this.updateDisplayRecFile(null);
+      this.displayRecFileVersion = 0;
+      this.displayAudioClip = null;
+      this.liveLevelDisplay.reset(true);
+      // Hide loading hint on livelevel display
+      this.liveLevelDisplayState = LiveLevelState.READY;
+      this.showRecording();
+      if (this.section.mode === 'AUTORECORDING') {
+        this.autorecording = true;
+      }
+
+      this.startCapture();
+    }
   }
 
 
