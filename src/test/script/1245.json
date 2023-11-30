@@ -166,13 +166,14 @@
             "promptItems": [
               {
                 "type": "nonrecording",
+                "duration": 10000,
                 "recinstructions": {
                   "recinstructions": "Please wait 10 seconds"
                 },
                 "mediaitems": [
                   {
                     "mimetype": "text/plain",
-                    "duration": 10000,
+
                     "text": "Hello!"
                   }
                 ]
@@ -183,10 +184,11 @@
             "promptItems": [
               {
                 "type": "nonrecording",
+                "duration": 10000,
                 "mediaitems": [
                   {
                     "mimetype": "text/plain",
-                    "duration": 10000,
+
                     "text": "Non recording duration 10000ms."
                   }
                 ]
