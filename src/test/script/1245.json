@@ -165,6 +165,37 @@
           {
             "promptItems": [
               {
+                "type": "nonrecording",
+                "recinstructions": {
+                  "recinstructions": "Please wait 10 seconds"
+                },
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+                    "duration": 10000,
+                    "text": "Hello!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+                    "duration": 10000,
+                    "text": "Non recording duration 10000ms."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
                 "itemcode": "AS1",
                 "recinstructions": {
                   "recinstructions": "Please answer:"
