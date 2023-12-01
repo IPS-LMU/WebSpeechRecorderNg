@@ -152,6 +152,7 @@
                 "recinstructions": {
                   "recinstructions": "Please read the digits:"
                 },
+                "recduration": 6000,
                 "mediaitems": [
                   {
                     "annotationTemplate": false,
