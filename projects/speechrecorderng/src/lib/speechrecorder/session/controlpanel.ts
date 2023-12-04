@@ -177,7 +177,7 @@ export class TransportActions {
       <mat-icon>chevron_left</mat-icon>
     </button>
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled() && stopNonrecordingDisabled()"  mat-raised-button>
-      <mat-icon *ngIf="stopNonrecordingDisabled()" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled() && stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
+      <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled() || !stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       <span *ngIf="!screenXs">{{startStopNextName()}}</span>
     </button>
     <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
@@ -270,7 +270,7 @@ export class TransportPanel extends ResponsiveComponent{
   startStopNextIconName():string{
       if(!this.startDisabled()){
          this.startStopNextButtonIconName="fiber_manual_record"
-      }else if(!this.stopDisabled()){
+      }else if(!this.stopDisabled() || !this.stopNonrecordingDisabled()){
           this.startStopNextButtonIconName="stop"
       }else if(!this.nextDisabled()){
           this.startStopNextButtonIconName="stop"
