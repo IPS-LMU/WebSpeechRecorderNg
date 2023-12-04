@@ -532,9 +532,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.status = Status.STOPPING_STOP;
           this.continueSession();
         }, nrDuration);
-        this.status=Status.NON_RECORDING_WAIT;
         this.nonRecordingDurationTimerRunning = true;
       }
+      this.status=Status.NON_RECORDING_WAIT;
       this.transportActions.stopNonrecordingAction.disabled = false;
     }else {
       this.status = Status.STARTING;
