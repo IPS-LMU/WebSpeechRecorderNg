@@ -524,12 +524,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if (this.section.mode === 'AUTORECORDING') {
         this.autorecording = true;
       }
-      let nrDuration=0;
-      const nrScrDuration=this.promptItem.duration;
-      if(nrScrDuration!==undefined){
-        nrDuration=nrScrDuration;
-      }
-      if(this.autorecording) {
+      const nrDuration=this.promptItem.duration;
+      if(this.autorecording && nrDuration!==undefined) {
         this.nonRecordingDurationTimerId = window.setTimeout(() => {
           this.nonRecordingDurationTimerRunning = false;
           this.transportActions.stopNonrecordingAction.disabled=true;

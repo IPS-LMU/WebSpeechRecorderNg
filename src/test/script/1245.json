@@ -458,9 +458,9 @@
             "promptItems": [
               {
                 "type": "nonrecording",
-                "duration": 5000,
+
                 "recinstructions": {
-                  "recinstructions": "Please wait 5 seconds"
+                  "recinstructions": "Please wait 10 seconds"
                 },
                 "mediaitems": [
                   {
