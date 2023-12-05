@@ -51,6 +51,7 @@ export interface PromptItem {
   prerecdelay?: number,
   prerecording?: number,
   recduration?: number,
+  duration?:number,
   postrecording?: number,
   postrecdelay?: number,
   recinstructions?: Recinstructions,
