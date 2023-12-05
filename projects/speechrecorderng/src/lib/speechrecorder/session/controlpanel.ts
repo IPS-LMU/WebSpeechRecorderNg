@@ -152,6 +152,7 @@ export class TransportActions {
   pauseAction: Action<void>;
   fwdAction: Action<void>;
   bwdAction: Action<void>;
+  stopNonrecordingAction:Action<void>;
 
   constructor() {
     this.startAction = new Action('Start');
