@@ -153,6 +153,7 @@ export class TransportActions {
   pauseAction: Action<void>;
   fwdAction: Action<void>;
   bwdAction: Action<void>;
+  stopNonrecordingAction:Action<void>;
 
   constructor() {
     const locStart=$localize `Start`;
@@ -163,6 +164,7 @@ export class TransportActions {
     this.fwdNextAction = new Action('Next recording');
     this.fwdAction = new Action('Forward');
     this.bwdAction = new Action('Backward');
+    this.stopNonrecordingAction=new Action('Next');
 
   }
 }
@@ -176,8 +178,8 @@ export class TransportActions {
             mat-raised-button>
       <mat-icon>chevron_left</mat-icon>
     </button>
-    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
-      <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
+    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled() && stopNonrecordingDisabled()"  mat-raised-button>
+      <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled() || !stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
       <span *ngIf="!screenXs">{{startStopNextName()}}</span>
     </button>
     <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
@@ -237,6 +239,10 @@ export class TransportPanel extends ResponsiveComponent{
     return !this.actions || this.actions.nextAction.disabled || !this.navigationEnabled;
   }
 
+  stopNonrecordingDisabled() {
+    return !this.actions || this.actions.stopNonrecordingAction.disabled || !this.navigationEnabled;
+  }
+
   pauseDisabled() {
     return !this.actions || this.actions.pauseAction.disabled || !this.pausingEnabled;
   }
@@ -254,7 +260,7 @@ export class TransportPanel extends ResponsiveComponent{
   }
 
     startStopNextName():string{
-        if(!this.nextDisabled()){
+        if(!this.nextDisabled() || !this.stopNonrecordingDisabled()){
             this.startStopNextButtonName= "Next"
         }else if(!this.startDisabled()){
             this.startStopNextButtonName="Start"
@@ -266,7 +272,7 @@ export class TransportPanel extends ResponsiveComponent{
   startStopNextIconName():string{
       if(!this.startDisabled()){
          this.startStopNextButtonIconName="fiber_manual_record"
-      }else if(!this.stopDisabled()){
+      }else if(!this.stopDisabled() || !this.stopNonrecordingDisabled()){
           this.startStopNextButtonIconName="stop"
       }else if(!this.nextDisabled()){
           this.startStopNextButtonIconName="stop"
@@ -290,6 +296,8 @@ export class TransportPanel extends ResponsiveComponent{
       this.actions.stopAction.perform();
     }else if(!this.nextDisabled()){
       this.actions.nextAction.perform();
+    }else if(!this.stopNonrecordingDisabled()){
+      this.actions.stopNonrecordingAction.perform();
     }
   }
 
