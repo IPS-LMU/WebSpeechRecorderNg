@@ -70,6 +70,7 @@ import {
   RecordingFileDeleteConfirmDialog
 } from "./speechrecorder/session/recordingfile/recording-file_delete_confirm_dialog";
 import {MatMenuModule} from "@angular/material/menu";
+import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 
 
 
@@ -126,7 +127,7 @@ export const SPR_ROUTES: Routes = [
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent,RecordingList,RecorderCombiPane,AudioRecorder
     ],
     exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar,AudioRecorder],
-    imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule,MatMenuModule],
+    imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, HttpClientModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective],
     providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader]
 })
 export class SpeechrecorderngModule{
