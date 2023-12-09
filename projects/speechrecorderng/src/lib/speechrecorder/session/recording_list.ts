@@ -10,7 +10,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
   selector: 'app-recordinglist',
 
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-header>
         <h2>Recording list</h2>
       </mat-card-header>
