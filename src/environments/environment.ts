@@ -3,13 +3,11 @@
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 
-import {SPR_ENVIRONMENT_DEFAULTS} from "../../projects/speechrecorderng/src/lib/environment/environment.defaults";
 export const environment = {
-  ...SPR_ENVIRONMENT_DEFAULTS,
-
   production: false,
   apiType: 'files',
   apiEndPoint: 'test',
+  apiVersion: 1,
   enableDownloadRecordings:true,
   enableUploadRecordings: false
 };
