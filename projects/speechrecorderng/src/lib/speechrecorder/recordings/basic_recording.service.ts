@@ -29,7 +29,7 @@ export class BasicRecordingService{
   // Firefox on Windows crashes
   public static readonly DEFAULT_CHUNKED_DOWNLOAD_SECONDS:number=10;
   public static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minutes one channel at 48kHz
-  protected _maxAutoNetMemStoreSamples:number=BasicRecordingService.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
+  protected _maxAutoNetMemStoreSamples:number=Number.MAX_SAFE_INTEGER;
     protected apiEndPoint: string;
     protected withCredentials: boolean = false;
 
@@ -44,6 +44,9 @@ export class BasicRecordingService{
         }
         if (config != null && config.withCredentials != null) {
             this.withCredentials = config.withCredentials;
+        }
+        if(config && config.apiVersion>1){
+          this._maxAutoNetMemStoreSamples=BasicRecordingService.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
         }
     }
 

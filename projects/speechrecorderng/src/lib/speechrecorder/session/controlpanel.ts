@@ -221,7 +221,7 @@ export class TransportActions {
       font-size: 14px;
       letter-spacing: normal;
       vertical-align: baseline;
-    }`
+     }`
   ]
 
 })
