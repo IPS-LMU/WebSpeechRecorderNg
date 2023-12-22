@@ -1,12 +1,10 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
-import {RecordingFile, SprRecordingFile} from "../recording";
-import {MediaUtils} from "../../media/utils";
-import {MatTable, MatTableDataSource} from "@angular/material/table";
-import {Observable, Subject} from "rxjs";
+import {RecordingFile} from "../recording";
 import {RecordingList} from "./recording_list";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {AudioDisplay} from "../../audio/audio_display";
+import {AudioDataHolder} from "../../audio/audio_data_holder";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
 
@@ -38,7 +36,7 @@ import {BreakpointObserver} from "@angular/cdk/layout";
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
     the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
-    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+    See https://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
     */
     min-height: 0px;
 
@@ -93,10 +91,14 @@ export class RecorderCombiPane extends ResponsiveComponent implements AfterViewI
 
   }
 
-  push(rf:RecordingFile){
-    this.recordingListComp.push(rf);
-
+  addRecFile(rf:RecordingFile){
+    this.recordingListComp.addRecFile(rf);
   }
+
+  setRecFileAudioData(recFile:RecordingFile,adh:AudioDataHolder|null) {
+    this.recordingListComp.setRecFileAudioData(recFile, adh);
+  }
+
 
   selectRecordingFile(rf:RecordingFile){
     this.selectedRecordingFileChanged.emit(rf);

@@ -11,7 +11,6 @@ import {RecordingFileService} from "./recordingfile-service";
 import {MatDialog} from "@angular/material/dialog";
 import {Selection} from "../../../audio/persistor";
 import {MessageDialog} from "../../../ui/message_dialog";
-import {Action} from "../../../action/action";
 import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
@@ -27,7 +26,7 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
       <div class="ctrlview">
-        <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile"></app-recording-file-meta>
+        <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile" [stateLoading]="audioFetching"></app-recording-file-meta>
     <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
@@ -44,16 +43,16 @@ import {MatSnackBar} from "@angular/material/snack-bar";
   `,
   styles: [
     `:host {
-          flex: 2;
-          display: flex;
-          flex-direction: column;
-          min-height:0;
-          overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: white;
-    }`,`
+               flex: 2;
+               display: flex;
+               flex-direction: column;
+               min-height:0;
+               overflow: hidden;
+           padding: 20px;
+           z-index: 5;
+           box-sizing: border-box;
+           background-color: white;
+         }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;
@@ -113,7 +112,7 @@ protected loadedRecfile() {
 
   applySelection(){
     if(this.audioClip) {
-      let ab=this.audioClip.buffer;
+      let ab=this.audioClip.audioDataHolder;
       let s = this.audioClip.selection
       if (ab && this.recordingFile?.recordingFileId) {
 
@@ -125,25 +124,25 @@ protected loadedRecfile() {
           sf = s.startFrame;
           ef = s.endFrame;
         }
-          this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe((value) => {
-            },
-            () => {
-              this.dialog.open(MessageDialog, {
+          this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe(
+              {next:(value) => {}
+      , error:() => {
+          this.dialog.open(MessageDialog, {
 
-                data: {
-                  type: 'error',
-                  title: 'Save selection edit error',
-                  msg: "Could not save edit selection to WikiSpeech server!",
-                  advice: "Please check network connection and server state."
-                }
-              })
-            },
-            () => {
+            data: {
+              type: 'error',
+              title: 'Save selection edit error',
+              msg: "Could not save edit selection to WikiSpeech server!",
+              advice: "Please check network connection and server state."
+            }
+          })
+        }, complete:() => {
               // Or use returned selection value from server?
               this.savedEditSelection = s
               this.editSaved = true
               this.snackBar.open('Selection edit saved successfully.', 'OK', {duration: 1500})
-            });
+            }
+      });
       }
     }
   }

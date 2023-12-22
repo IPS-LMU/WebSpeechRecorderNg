@@ -18,11 +18,11 @@ export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOut
   }
 
   setFormat(channels: number,sampleRate:number):void{
-    console.debug("SequenceAudioFloat32ChunkerOutStream:setFormat(channels: "+channels+",sampleRate: "+sampleRate+")")
+    //console.debug("SequenceAudioFloat32ChunkerOutStream:setFormat(channels: "+channels+",sampleRate: "+sampleRate+")")
     this.channels=channels;
     this.sampleRate=sampleRate;
     this.chunkSize=Math.round(sampleRate*this.chunkDurationSeconds);
-    console.debug("SequenceAudioFloat32ChunkerOutStream: chunkSize: "+this.chunkSize);
+    //console.debug("SequenceAudioFloat32ChunkerOutStream: chunkSize: "+this.chunkSize);
     this.sequenceAudioFloat32OutStream.setFormat(channels,sampleRate);
   }
   nextStream():void{
@@ -35,7 +35,7 @@ export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOut
  */
 export class SequenceAudioFloat32OutStreamMultiplier implements SequenceAudioFloat32OutStream{
 
-  private _sequenceAudioFloat32OutStreams!:Array<SequenceAudioFloat32OutStream>;
+  private readonly _sequenceAudioFloat32OutStreams!:Array<SequenceAudioFloat32OutStream>;
 
   constructor() {
     this._sequenceAudioFloat32OutStreams=new Array<SequenceAudioFloat32OutStream>();

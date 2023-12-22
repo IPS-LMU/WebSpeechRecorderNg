@@ -1,4 +1,4 @@
-import {Component, AfterContentInit, ChangeDetectorRef, Input, ViewChild} from '@angular/core'
+import {Component, Input, ViewChild} from '@angular/core'
 import {Action} from "../../action/action";
 import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
 import {AudioClip} from "../persistor";
@@ -54,12 +54,12 @@ import {AudioClip} from "../persistor";
         </div>`,
     styles: [
         `:host {
-        flex: 0;
-
-      }`]
+                 flex: 0;
+         
+               }`]
 
   })
-	export class AudioDisplayControl implements AfterContentInit {
+	export class AudioDisplayControl {
 
     @Input() audioClip: AudioClip|null=null;
 
@@ -77,13 +77,7 @@ import {AudioClip} from "../persistor";
 
 		audio:any;
 
-		constructor(private ref: ChangeDetectorRef) {
-
-		}
-
-    ngAfterContentInit() {
-
-		}
+		constructor() {}
 
     clearSelection(){
         if(this.audioClip!=null){
@@ -101,7 +95,7 @@ import {AudioClip} from "../persistor";
 
     autoPlaySelectionChange(ch: MatCheckboxChange) {
         if (this.autoPlayOnSelectToggleAction) {
-            this.autoPlayOnSelectToggleAction.perform(ch.checked)
+            this.autoPlayOnSelectToggleAction.perform(ch.checked);
         }
     }
 

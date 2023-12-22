@@ -30,11 +30,16 @@ export enum Platform {Windows='Windows',Android='Android',macOS='MAC OS X'}
 
 export class UserAgent{
 
-  constructor(private _detectedPlatform:Platform|null,private _detectedBrowser:Browser|null) {
+
+  constructor(private _detectedPlatform:Platform|null,private _detectedBrowser:Browser|null,private _detectedBrowserVersion:string|null=null) {
   }
 
   get detectedBrowser(): Browser | null {
     return this._detectedBrowser;
+  }
+
+  get detectedBrowserVersion(): string | null {
+    return this._detectedBrowserVersion;
   }
 
   get detectedPlatform(): Platform | null {
@@ -71,7 +76,7 @@ export class UserAgentBuilder {
     // }
 
     let ua=navigator.userAgent;
-
+    console.debug("User agent: "+ua);
     this.comps = new Array<UserAgentComponent>();
 
     let pp = 0;
@@ -83,6 +88,8 @@ export class UserAgentBuilder {
 
       let blPos = ua.indexOf(' ', pp);
       let prt: string;
+      // TODO Replace substr with substring (?)
+      // https://stackoverflow.com/questions/52640271/why-is-string-prototype-substr-deprecated
       if (blPos == -1) {
         prt = ua.substr(pp);
         pp += prt.length;
@@ -109,7 +116,9 @@ export class UserAgentBuilder {
       while (ua[pp] === ' ' && pp < ua.length) {
         pp++;
       }
-      this.comps.push(new UserAgentComponent(name, version, comment));
+      const uac=new UserAgentComponent(name, version, comment);
+      console.debug("user agent comp: "+uac);
+      this.comps.push(uac);
     }
 
     let detPlatf:Platform|null=null;
@@ -130,8 +139,11 @@ export class UserAgentBuilder {
     }else if(this.matchesBrowser(Browser.Safari)){
       detBr=Browser.Safari;
     }
-
-    this.userAgent=new UserAgent(detPlatf,detBr);
+    let detBrVers =null;
+    if(detBr) {
+     detBrVers=this.browserVersion(detBr);
+    }
+    this.userAgent=new UserAgent(detPlatf,detBr,detBrVers);
 
   }
 
@@ -144,6 +156,18 @@ export class UserAgentBuilder {
       }
     }
     return false;
+  }
+
+  private browserVersion(browserName:string):string|null{
+    for(let ci=0;ci<this.comps.length;ci++){
+      const comp=this.comps[ci];
+      const bn=comp.name;
+      const bnRe=new RegExp(browserName,'i');
+      if(bn.match(bnRe)){
+        return comp.version;
+      }
+    }
+    return null;
   }
 
   private runsOnOS(os:string):boolean{

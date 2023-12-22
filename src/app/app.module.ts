@@ -43,9 +43,9 @@ const appRoutes: Routes = [
     AppComponent,SessionsComponent,StartComponent
   ],
   imports: [
-    RouterModule.forRoot(appRoutes, { relativeLinkResolution: 'legacy' }),
+    RouterModule.forRoot(appRoutes, {}),
     BrowserAnimationsModule,
-    MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+    MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
     BrowserModule,
     SpeechrecorderngModule.forRoot(SPR_CFG)
   ],

@@ -6,9 +6,9 @@ import {
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
-import {ActivatedRoute} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
+import {AudioDataHolder} from "./audio_data_holder";
 
 @Component({
 
@@ -30,18 +30,18 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
   `,
   styles: [
       `:host {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      bottom: 0px;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: rgba(230, 230, 230, 1.0)
-    }`,`
+             display: flex;
+             flex-direction: column;
+             position: absolute;
+             bottom: 0px;
+             height: 100%;
+             width: 100%;
+             overflow: hidden;
+             padding: 20px;
+             z-index: 5;
+             box-sizing: border-box;
+             background-color: rgba(230, 230, 230, 1.0)
+           }`,`
           legend{
               margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
       }`,`
@@ -79,7 +79,7 @@ export class AudioDisplay implements OnInit,AfterViewInit {
   @ViewChild(AudioDisplayScrollPane, { static: true })
   audioDisplayScrollPane!: AudioDisplayScrollPane;
 
-  constructor(private route: ActivatedRoute, private ref: ChangeDetectorRef,private eRef:ElementRef) {
+  constructor(private ref: ChangeDetectorRef,private eRef:ElementRef) {
     //console.log("constructor: "+this.ac);
       this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
@@ -122,20 +122,22 @@ export class AudioDisplay implements OnInit,AfterViewInit {
 
 
   @Input()
-  set audioData(audioBuffer: AudioBuffer){
-      this.audioDisplayScrollPane.audioData = audioBuffer;
+  set audioData(audioData: AudioDataHolder){
+      this.audioDisplayScrollPane.audioData = audioData;
       if(this.playStartAction) {
-          this.playStartAction.disabled = (audioBuffer == null)
+        console.debug("Play start action (by AudioDisplay::set audioData) disabled: "+(audioData==null));
+          this.playStartAction.disabled = (audioData == null)
       }
   }
+
 
   @Input()
   set audioClip(audioClip: AudioClip | null) {
 
-    let audioData:AudioBuffer|null=null;
+    //let audioData:AudioBuffer|null=null;
     let sel:Selection|null=null;
     if(audioClip){
-      audioData=audioClip.buffer;
+      //audioData=audioClip.audioDataHolder.buffer;
       sel=audioClip.selection;
       }
     this._audioClip=audioClip

@@ -54,12 +54,10 @@ export class StatusDisplay {
 @Component({
   selector: 'app-uploadstatus',
   template: `
-    <mat-progress-spinner [mode]="spinnerMode" [color]="status" [diameter]="30" [strokeWidth]="5" [value]="_value" [matTooltip]="toolTipText"></mat-progress-spinner>
+    <mat-progress-spinner [mode]="spinnerMode" [color]="colorStatus" [diameter]="30" [strokeWidth]="5" [value]="_value"
+                          [matTooltip]="toolTipText"></mat-progress-spinner>
   `,
   styles: [`:host {
-    flex: 1;
-  /* align-self: flex-start; */
-    /*display: inline; */
     text-align: left;
   }`,`mat-progress-spinner{
       display: inline-block;
@@ -69,7 +67,7 @@ export class UploadStatus {
   private _awaitNewUpload=false;
   spinnerMode:ProgressSpinnerMode = 'determinate';
   _status!:string;
-  _colorStatus:ThemePalette='primary';
+  colorStatus:ThemePalette='primary';
   _value = 100;
   displayValue:string|null=null;
   toolTipText:string='';
@@ -110,11 +108,11 @@ export class UploadStatus {
   @Input() set status(status:string) {
     this._status = status;
     if ('accent' === status) {
-      this._colorStatus = 'accent';
+      this.colorStatus = 'accent';
     } else if ('warn' === status) {
-      this._colorStatus = 'warn';
+      this.colorStatus = 'warn';
     } else{
-      this._colorStatus = 'primary';
+      this.colorStatus = 'primary';
     }
     this._updateSpinner()
   }
@@ -154,6 +152,7 @@ export class TransportActions {
   pauseAction: Action<void>;
   fwdAction: Action<void>;
   bwdAction: Action<void>;
+  stopNonrecordingAction:Action<void>;
 
   constructor() {
     this.startAction = new Action('Start');
@@ -163,6 +162,7 @@ export class TransportActions {
     this.fwdNextAction = new Action('Next recording');
     this.fwdAction = new Action('Forward');
     this.bwdAction = new Action('Backward');
+    this.stopNonrecordingAction=new Action('Next');
 
   }
 }
@@ -173,22 +173,22 @@ export class TransportActions {
 
   template: `
     <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
-            mat-raised-button>
-      <mat-icon>chevron_left</mat-icon>
+            mat-raised-button class="transport-button-icon">
+      <span><mat-icon>chevron_left</mat-icon></span>
     </button>
-    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled()"  mat-raised-button>
-      <mat-icon [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon *ngIf="!nextDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
-      <span *ngIf="!screenXs">{{startStopNextName()}}</span>
+    <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled() && stopNonrecordingDisabled()"  mat-raised-button  class="transport-button-icon">
+      <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon class="transport-button-icon" *ngIf="!nextDisabled() || !stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
+      <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
-      <mat-icon>pause</mat-icon>
-      <span *ngIf="!screenXs">Pause</span>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
+      <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
+      <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
     </button>
-    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button>
-      <mat-icon>redo</mat-icon>
+    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
+      <span><mat-icon>redo</mat-icon></span>
     </button>
-    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button>
-      <mat-icon>chevron_right</mat-icon>
+    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
+      <span><mat-icon>chevron_right</mat-icon></span>
     </button>
 
   `,
@@ -207,7 +207,19 @@ export class TransportActions {
     }`,`
      button {
        touch-action: manipulation;
-     }`
+     }`,`
+    .transport-button-icon{
+      font-size: 24px;
+      vertical-align: middle;
+      overflow: hidden;
+      text-overflow: clip;
+      white-space: nowrap;
+    }`,`
+    .transport-button-text{
+      font-size: 14px;
+      letter-spacing: normal;
+      vertical-align: baseline;
+    }`
   ]
 
 })
@@ -237,6 +249,10 @@ export class TransportPanel extends ResponsiveComponent{
     return !this.actions || this.actions.nextAction.disabled || !this.navigationEnabled;
   }
 
+  stopNonrecordingDisabled() {
+    return !this.actions || this.actions.stopNonrecordingAction.disabled || !this.navigationEnabled;
+  }
+
   pauseDisabled() {
     return !this.actions || this.actions.pauseAction.disabled || !this.pausingEnabled;
   }
@@ -254,7 +270,7 @@ export class TransportPanel extends ResponsiveComponent{
   }
 
     startStopNextName():string{
-        if(!this.nextDisabled()){
+        if(!this.nextDisabled() || !this.stopNonrecordingDisabled()){
             this.startStopNextButtonName= "Next"
         }else if(!this.startDisabled()){
             this.startStopNextButtonName="Start"
@@ -266,7 +282,7 @@ export class TransportPanel extends ResponsiveComponent{
   startStopNextIconName():string{
       if(!this.startDisabled()){
          this.startStopNextButtonIconName="fiber_manual_record"
-      }else if(!this.stopDisabled()){
+      }else if(!this.stopDisabled() || !this.stopNonrecordingDisabled()){
           this.startStopNextButtonIconName="stop"
       }else if(!this.nextDisabled()){
           this.startStopNextButtonIconName="stop"
@@ -290,6 +306,8 @@ export class TransportPanel extends ResponsiveComponent{
       this.actions.stopAction.perform();
     }else if(!this.nextDisabled()){
       this.actions.nextAction.perform();
+    }else if(!this.stopNonrecordingDisabled()){
+      this.actions.stopNonrecordingAction.perform();
     }
   }
 
@@ -352,9 +370,9 @@ export class ReadyStateIndicator {
                       [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
       <app-readystateindicator [ready]="_ready"></app-readystateindicator>
     </div>
-    <div *ngIf="screenXs"style="flex-direction: column"  >
+    <div *ngIf="screenXs" style="flex-direction: column">
       <div style="flex-direction: row" class="flexFill" >
-       <app-sprstatusdisplay style="flex:10 0 0;flex-align:left" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+       <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
        <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
                         [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>

@@ -5,14 +5,14 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
-import {AudioDevice, AutoGainControlConfig} from "../project/project";
-import {LevelInfos, LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
+import {AudioDevice, AudioStorageType, AutoGainControlConfig} from "../project/project";
+import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
 import {AudioClip} from "../../audio/persistor";
 import {Action} from "../../action/action";
 import {MIN_DB_LEVEL} from "../../ui/recordingitem_display";
-import {Upload} from "../../net/uploader";
+import {Upload, UploadHolder, UploadSet} from "../../net/uploader";
 import {ChangeDetectorRef, Inject} from "@angular/core";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {SpeechRecorderUploader} from "../spruploader";
@@ -22,12 +22,15 @@ import {
   SequenceAudioFloat32OutStream,
   SequenceAudioFloat32OutStreamMultiplier
 } from "../../audio/io/stream";
-import {SprRecordingFile} from "../recording";
+import {RecordingFile, SprRecordingFile} from "../recording";
 import {AudioContextProvider} from "../../audio/context";
 import {UUID} from "../../utils/utils";
 import {WakeLockManager} from "../../utils/wake_lock";
+import {State as LiveLevelState} from "../../audio/ui/livelevel"
+import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
 export const MAX_RECORDING_TIME_MS = 1000 * 60 * 60 * 60; // 1 hour
@@ -54,7 +57,6 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
   private _rf!:SprRecordingFile;
 
   private chunkIdx:number=0;
-
 
 
   constructor(private chunkAudioBufferReceiver:ChunkAudioBufferReceiver) {
@@ -85,31 +87,119 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
     let frameLen=0;
     if(aCtx && bChs>0) {
       frameLen=buffers[0].length;
-      let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
-      for (let ch = 0; ch < this.channels; ch++) {
-        ad.copyToChannel(buffers[ch],ch);
+      try {
+        let ad = aCtx.createBuffer(this.channels, frameLen, this.sampleRate);
+        for (let ch = 0; ch < this.channels; ch++) {
+          ad.copyToChannel(buffers[ch],ch);
+        }
+        this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
+        this.chunkIdx++;
+      }catch(err){
+        // TODO Handle errors
+        // iOS Safari sometimes throws NotSupportedError
+        console.error("Could not create audio buffer for chunked upload.");
+        console.error("Nr. of chs: "+this.channels+", frame length: "+frameLen+", sample rate: "+this.sampleRate);
+        if(err instanceof DOMException){
+          console.error("DOM exception: Name: "+err.name+", Msg: "+err.message);
+          if(err.name==='NotSupportedError'){
+            if(frameLen==0){
+              // Empty buffers are not supported by Chromium
+             // No data to transfer, but this case should never happen
+              return frameLen;
+            }else{
+              throw err;
+            }
+          }else if(err.name==='RangeError'){
+            console.error("DOM RangeError");
+            // Out of memory
+            // TODO What to do ??
+            throw err;
+          }else{
+            console.error("DOM Exception unknown");
+            throw err;
+          }
+        }else if (err instanceof RangeError){
+          console.error("RangeError: Name: "+err.name+", Msg: "+err.message);
+          // Out of memory
+          // TODO What to do ??
+          throw err;
+        }else{
+          throw err;
+        }
       }
-      this.chunkAudioBufferReceiver.postChunkAudioBuffer(ad,this.chunkIdx);
-      this.chunkIdx++;
     }
     return frameLen;
   }
 
 }
 
-export abstract class BasicRecorder  extends ResponsiveComponent{
-  get uploadChunkSizeSeconds(): number | null {
+export abstract class BasicRecorder extends ResponsiveComponent{
+  get allowEchoCancellation(): boolean {
+    return this._allowEchoCancellation;
+  }
+
+  set allowEchoCancellation(value: boolean) {
+    this._allowEchoCancellation = value;
+  }
+
+  protected updateTimerId: any;
+
+  protected maxRecTimerId: number|null=null;
+  protected maxRecTimerRunning: boolean=false;
+
+  get maxAutoNetMemStoreSamples(): number {
+    return this._maxAutoNetMemStoreSamples;
+  }
+
+  set maxAutoNetMemStoreSamples(value: number) {
+    this._maxAutoNetMemStoreSamples = value;
+  }
+
+  public static readonly DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES:number=2880000*5; // Default 5 minutes one channel at 48kHz
+  protected _maxAutoNetMemStoreSamples:number=BasicRecorder.DEFAULT_MAX_NET_AUTO_MEM_STORE_SAMPLES;
+
+  public static readonly DEFAULT_CHUNK_SIZE_SECONDS:number=30;
+
+  get clientAudioStorageType(): AudioStorageType {
+    return this._clientAudioStorageType;
+  }
+
+  set clientAudioStorageType(value: AudioStorageType) {
+
+    let oldValue=this._clientAudioStorageType;
+    this._clientAudioStorageType = value;
+    if(value!==oldValue){
+      this.configureStreamCaptureStream();
+    }
+  }
+  get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
+    return this._persistentAudioStorageTarget;
+  }
+
+  set persistentAudioStorageTarget(value: PersistentAudioStorageTarget | null) {
+    let oldValue=this._persistentAudioStorageTarget;
+    this._persistentAudioStorageTarget = value;
+    if(value!==oldValue){
+      this.configureStreamCaptureStream();
+    }
+
+  }
+
+  // Enable only for developemnt/debug purposes of array audio buffers !!
+  public static readonly FORCE_ARRRAY_AUDIO_BUFFER=false;
+
+  get uploadChunkSizeSeconds(): number|null {
     return this._uploadChunkSizeSeconds;
   }
 
-  set uploadChunkSizeSeconds(value: number | null) {
+  set uploadChunkSizeSeconds(value: number|null) {
     let oldValue=this.uploadChunkSizeSeconds;
     this._uploadChunkSizeSeconds = value;
     if(value!==oldValue){
       this.configureStreamCaptureStream();
     }
   }
-  public static readonly DEFAULT_CHUNK_SIZE_SECONDS=30;
+
   protected userAgent:UserAgent;
   statusMsg: string='';
   statusAlertType!: string;
@@ -126,8 +216,10 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
   protected selCaptureDeviceId: ConstrainDOMString | null;
   protected _channelCount = 2;
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
+  protected _allowEchoCancellation:boolean=false;
 
   _session: Session|null=null;
+  protected _recordingFile:RecordingFile|null=null;
 
   transportActions: TransportActions;
   playStartAction: Action<void>;
@@ -136,35 +228,56 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
 
   uploadProgress: number = 100;
   uploadStatus: string = 'ok'
+  protected uploadSet:UploadSet|null=null;
+
   audioSignalCollapsed = true;
 
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
   peakLevelInDb:number=MIN_DB_LEVEL;
+  audioLoaded:boolean=false;
+  disableAudioDetails:boolean=false;
   protected _controlAudioPlayer: AudioPlayer|null=null;
-  displayAudioClip: AudioClip | null=null;
+  public displayAudioClip: AudioClip | null=null;
   protected audioFetchSubscription:Subscription|null=null;
+
+  liveLevelDisplayState:LiveLevelState=LiveLevelState.READY;
+  keepLiveLevel:boolean=false;
+  private calcBufferInfosSubscr:Subscription|null=null;
 
   protected destroyed=false;
 
   protected navigationDisabled=true;
 
-  // Default: Disabled chunked upload
-  private _uploadChunkSizeSeconds:number|null=null;
+  protected _uploadChunkSizeSeconds:number|null=null;
+  //=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+
+  // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
+  protected _clientAudioStorageType:AudioStorageType=AudioStorageType.MEM_ENTIRE;
+
+  protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
   protected _screenLocked=false;
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
+  protected constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
                 public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
                 @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
     super(bpo);
     this.userAgent=UserAgentBuilder.userAgent();
-    console.debug("Detected platform: "+this.userAgent.detectedPlatform);
-    console.debug("Detected browser: "+this.userAgent.detectedBrowser);
+    const detPfm=this.userAgent.detectedPlatform;
+    if(detPfm) {
+      console.debug("Detected platform: " +detPfm);
+    }
+    const detBr=this.userAgent.detectedBrowser;
+    const detBrVers=this.userAgent.detectedBrowserVersion;
+    if(detBr) {
+      let detBrVersStr=(detBrVers)?' '+detBrVers:'';
+      console.debug("Detected browser: " +detBr+detBrVersStr);
+    }
     this.transportActions = new TransportActions();
     this.playStartAction = new Action('Play');
     this.levelMeasure = new LevelMeasure();
@@ -234,7 +347,11 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
 
   configureStreamCaptureStream() {
     let outStream;
-    if (this.uploadChunkSizeSeconds) {
+
+    if (AudioStorageType.MEM_ENTIRE!==this._clientAudioStorageType || this.uploadChunkSizeSeconds) {
+      if(!this.uploadChunkSizeSeconds){
+        this.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;
+      }
       // Multiply the capture stream to...
       let sasm = new SequenceAudioFloat32OutStreamMultiplier();
 
@@ -252,8 +369,58 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
       outStream = new SequenceAudioFloat32ChunkerOutStream(this.streamLevelMeasure, LEVEL_BAR_INTERVALL_SECONDS);
     }
     if(this.ac) {
+      this.ac.maxAutoNetMemStoreSamples=this._maxAutoNetMemStoreSamples;
+      this.ac.audioStorageType=this._clientAudioStorageType;
       this.ac.audioOutStream = outStream;
+      if(AudioStorageType.DB_CHUNKED===this._clientAudioStorageType && this._persistentAudioStorageTarget!==null) {
+        this.ac.persistentAudioStorageTarget = this._persistentAudioStorageTarget;
+      }
     }
+  }
+
+
+  showRecording() {
+    if(this._controlAudioPlayer) {
+      this._controlAudioPlayer.stop();
+    }
+    if(this.calcBufferInfosSubscr){
+      this.calcBufferInfosSubscr.unsubscribe();
+    }
+    if (this.displayAudioClip) {
+      let dap=this.displayAudioClip;
+      let adh=dap.audioDataHolder;
+      if(adh){
+        if(!this.keepLiveLevel) {
+          this.liveLevelDisplayState = LiveLevelState.LOADING;
+        }
+        adh.addOnReadyListener(()=>{
+          //console.debug("Audio data holder ready. Enable playback. Audio loaded true.")
+          if(!this.keepLiveLevel) {
+            this.liveLevelDisplayState = LiveLevelState.RENDERING;
+            this.calcBufferInfosSubscr = this.levelMeasure.calcBufferLevelInfos(adh, LEVEL_BAR_INTERVALL_SECONDS).subscribe((levelInfos) => {
+              //console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
+              dap.levelInfos = levelInfos;
+              this.liveLevelDisplayState = LiveLevelState.READY;
+              this.changeDetectorRef.detectChanges();
+            });
+          }
+          this.playStartAction.disabled = false;
+          this.audioLoaded=true;
+          this.changeDetectorRef.detectChanges();
+        });
+        //console.debug("Audio data holder added onReady.")
+      }
+      //this.playStartAction.disabled = false;
+    } else {
+
+      this.playStartAction.disabled = true;
+      this.audioLoaded=false;
+      // Collapse audio signal display if open
+      if (!this.audioSignalCollapsed) {
+        this.audioSignalCollapsed = true;
+      }
+    }
+    this.changeDetectorRef.detectChanges();
   }
 
   start() {
@@ -475,32 +642,63 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
 
       });
     }
+    this.statusMsg='Ready.';
   }
 
   startItem() {
+    this.rfUuid = UUID.generate();
+    if(this.ac) {
+      this.ac.recUUID = this.rfUuid;
+    }
     this.startedDate=null;
     this.enableWakeLockCond();
-    this.rfUuid=UUID.generate();
+    //this.rfUuid=UUID.generate();
+    this.uploadSet=null;
     this.transportActions.startAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
   }
 
+  protected startCapture() {
+    if (this.ac) {
+      if (!this.ac.opened) {
+        if (this._selectedDeviceId) {
+          console.log("Open session with audio device Id: \'" + this._selectedDeviceId + "\' for " + this._channelCount + " channels");
+        } else {
+          console.log("Open session with default audio device for " + this._channelCount + " channels");
+        }
+        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._allowEchoCancellation);
+      } else {
+        this.ac.start();
+      }
+    }
+  }
+
+  opened() {
+    if(this.ac) {
+      this.ac.start();
+    }
+  }
+
   started() {
-    //this.enableWakeLockCond();
+
     if(!this.startedDate) {
       this.startedDate=new Date();
     }
     this.transportActions.startAction.disabled = true;
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string) {
+  postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null,uploadHolder?:UploadHolder) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
-    let ul = new Upload(wavBlob, recUrl);
+    let ul = new Upload(wavBlob, recUrl,rf);
+    if(uploadHolder){
+      uploadHolder.upload=ul;
+    }
     this.uploader.queueUpload(ul);
   }
 
   postAudioStreamStart(): void {
     if(this.rfUuid) {
+      this.uploadSet=new UploadSet();
       let apiEndPoint = '';
       if (this.config && this.config.apiEndPoint) {
         apiEndPoint = this.config.apiEndPoint;
@@ -519,37 +717,46 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
       fd.set('startedDate',this.startedDate.toJSON());
 
       let ul = new Upload(fd, recUrl);
+      this.uploadSet.add(ul);
       this.uploader.queueUpload(ul);
     }else{
       console.error("Recording file UUID not set!")
     }
   }
+
+protected sessionsBaseUrl():string {
+  let apiEndPoint = '';
+  if (this.config && this.config.apiEndPoint) {
+    apiEndPoint = this.config.apiEndPoint;
+  }
+  if (apiEndPoint !== '') {
+    apiEndPoint = apiEndPoint + '/'
+  }
+  return  apiEndPoint + SessionService.SESSION_API_CTX;
+}
 
   abstract postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void;
 
   postAudioStreamEnd(chunkCount: number): void {
 
     if(this.rfUuid) {
-      let apiEndPoint = '';
-      if (this.config && this.config.apiEndPoint) {
-        apiEndPoint = this.config.apiEndPoint;
-      }
-      if (apiEndPoint !== '') {
-        apiEndPoint = apiEndPoint + '/'
-      }
-      let sessionsUrl = apiEndPoint + SessionService.SESSION_API_CTX;
+
+      let sessionsUrl = this.sessionsBaseUrl();
       let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/concatChunksRequest';
       let fd=new FormData();
       fd.set('uuid',this.rfUuid);
       fd.set('chunkCount',chunkCount.toString());
-      let ul = new Upload( fd,recUrl);
+      let ul = new Upload(fd, recUrl,this._recordingFile);
+      if(this.uploadSet){
+        this.uploadSet.add(ul);
+        this.uploadSet.complete();
+      }
       this.uploader.queueUpload(ul);
+      //console.debug("Queued for upload: "+this._recordingFile);
     }else{
       console.error("Recording file UUID not set!")
     }
   }
-
-
 
   closed() {
     this.statusAlertType = 'info';
@@ -557,6 +764,7 @@ export abstract class BasicRecorder  extends ResponsiveComponent{
   }
 
   error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
+    this.navigationDisabled = false;
     this.statusMsg = 'ERROR: Recording.';
     this.statusAlertType = 'error';
     this.dialog.open(MessageDialog, {

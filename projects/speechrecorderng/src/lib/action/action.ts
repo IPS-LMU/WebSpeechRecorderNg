@@ -17,7 +17,7 @@
             return this._value;
         }
 
-        private _name:string;
+        private readonly _name:string;
         private _value:T|null;
         _disabled=true;
         private _onAction:ActionEventListener<T>|null=null;
@@ -58,6 +58,7 @@
         }
 
         set disabled(disabled:boolean) {
+           //console.debug("Action: "+this._name+" disabled: "+disabled)
             this._disabled = disabled;
             for (let c of this.controls) {
                 c.disabled = this._disabled;
@@ -76,7 +77,7 @@
                     ctrl.disabled = this.disabled;
                     this.controls.push(ctrl);
                     if (actionEventName) {
-                        ctrl.addEventListener(actionEventName, (e) => {
+                        ctrl.addEventListener(actionEventName, () => {
                             this.perform();
                         });
                     }
@@ -85,7 +86,7 @@
         }
 
         removeControl(ctrl:HTMLInputElement) {
-            var i = this.controls.indexOf(ctrl);
+            const i = this.controls.indexOf(ctrl);
             if (i >= 0) {
                 this.controls = this.controls.splice(i, 1);
             }

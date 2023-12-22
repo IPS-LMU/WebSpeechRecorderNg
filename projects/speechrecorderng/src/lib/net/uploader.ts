@@ -10,9 +10,9 @@
     export enum UploaderStatus { DONE = 0, UPLOADING = 1, TRY_UPLOADING = 2,NEXT = 3, ERR = -1}
 
     export class UploaderStatusChangeEvent {
-        private _sizeQueued:number;
-        private _sizeDone:number;
-        private _status: UploaderStatus;
+        private readonly _sizeQueued:number;
+        private readonly _sizeDone:number;
+        private readonly _status: UploaderStatus;
 
 
         constructor(sizeQueued: number, sizeDone: number, status: UploaderStatus) {
@@ -27,6 +27,10 @@
 
         get sizeDone():number {
             return this._sizeDone;
+        }
+
+        sizeInQueue(){
+          return this._sizeQueued-this._sizeDone;
         }
 
         get status(): UploaderStatus {
@@ -51,11 +55,17 @@
 
     export class Upload {
 
-        private _data:Blob|FormData;
-        private _url:string;
-        status: UploadStatus;
+      get serverPersistable(): ServerPersistable | null {
+        return this._serverPersistable;
+      }
 
-        constructor(blob:Blob|FormData, url:string) {
+        private readonly _data:Blob|FormData;
+        private readonly _url:string;
+
+        status: UploadStatus;
+        onDone:((upload:Upload)=>void) | null=null;
+
+        constructor(blob:Blob|FormData, url:string,private _serverPersistable:ServerPersistable|null=null) {
             this._data = blob;
             this._url = url;
             this.status = UploadStatus.IDLE;
@@ -69,6 +79,22 @@
             return this._data;
         }
 
+        done(){
+            this.status=UploadStatus.DONE;
+            //console.debug("Single upload done.");
+            if(this._serverPersistable) {
+              this._serverPersistable.serverPersisted = true;
+              //console.debug("Single upload set server persisted: "+this.serverPersistable);
+            }else{
+              //console.debug("Server persistable not set.");
+            }
+            if(this.onDone){
+              this.onDone(this);
+            }
+        }
+
+
+
       public toString = () : string => {
         let s=`Upload: Status: ${this.status}, URL: ${this._url}`;
         if(this._data instanceof Blob){
@@ -80,6 +106,114 @@
       }
     }
 
+    export class UploadHolder{
+
+      onUploadSet:((upload:Upload)=>void)|null=null;
+
+      get upload(): Upload | null {
+        return this._upload;
+      }
+
+      set upload(value: Upload | null) {
+        this._upload = value;
+        if(this._upload && this.onUploadSet){
+          this.onUploadSet(this._upload);
+        }
+      }
+      private _upload:Upload|null=null;
+    }
+
+    export class UploadSet{
+
+      private uploads: Array<Upload|UploadHolder>=new Array<Upload|UploadHolder>();
+      private _complete=false;
+
+      private _onDone:((uploadSet:UploadSet)=>void)|null=null;
+
+      add(upload:Upload|UploadHolder){
+        if(this._complete) {
+          throw new Error('Cannot add upload to upload set. Upload set already complete.')
+        }
+        if(upload instanceof UploadHolder){
+          upload.onUploadSet=(upl)=>{
+            upl.onDone=()=>{
+              this.checkUploadStates();
+            }
+            this.checkUploadStates();
+          }
+        }
+        this.uploads.push(upload);
+
+      }
+
+      complete(){
+        // Mark set as complete
+        this._complete=true;
+
+        // add listeners to each upload
+        for(let upl of this.uploads){
+          if(upl instanceof Upload) {
+            upl.onDone = (upl: Upload) => {
+              this.checkUploadStates();
+            }
+          }else if(upl instanceof UploadHolder){
+            if(upl.upload){
+              upl.upload.onDone = (upl: Upload) => {
+                this.checkUploadStates();
+              }
+            }
+          }
+        }
+
+        // check immediately if already done
+        this.checkUploadStates();
+      }
+
+      set onDone(value: ((uploadSet: UploadSet) => void) | null) {
+        this._onDone = value;
+        this.checkUploadStates();
+      }
+
+      private checkUploadStates(){
+        //console.debug("Check upload state...")
+        if(this._complete){
+
+          if(this._onDone) {
+            for(let upl of this.uploads){
+              if(upl instanceof Upload) {
+                if (UploadStatus.DONE !== upl.status) {
+                  // At least this upload is not yet done
+                  // Do nothing
+                  //console.debug("Check upload state: Upload not done.")
+                  return;
+                }
+              }else if(upl instanceof UploadHolder){
+                if(upl.upload){
+                  if (UploadStatus.DONE !== upl.upload.status) {
+                    // At least this upload is not yet done
+                    // Do nothing
+                    //console.debug("Check upload state: Upload (holder) not done.")
+                    return;
+                  }
+                }else{
+                  // The actual upload is not yet set
+                  //console.debug("Check upload state: Upload (holder): upload not yet set.")
+                  return;
+                }
+              }
+            }
+            // set is complete and all upload parts are done, call done callback
+            //console.debug("Check upload state: All done.")
+            this._onDone(this);
+          }
+        }
+      }
+    }
+
+    export interface ServerPersistable{
+        serverPersisted:boolean;
+    }
+
     export class Uploader {
         POST_MIN_TIMEOUT = 120000; // 2min plus ...
         POST_TIMEOUT_PER_KB = 1000;  // ... 1s per kB
@@ -88,7 +222,7 @@
         DEBUG_DELAY: number = 0;
         //DEBUG_DELAY:number=0;
         private status: UploaderStatus = UploaderStatus.DONE;
-        private que: Array<Upload>;
+        private readonly que: Array<Upload>;
         listener: ((ue: UploaderStatusChangeEvent) => void) | null = null;
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
@@ -111,7 +245,7 @@
                     if(v instanceof File){
                         si+=v.size;
                     }else if(typeof v ==='string'){
-                        // encode to UT-f8 to get upload size
+                        // encode to UTF-8 to get upload size
                         si+= this.te.encode().length;
                     }
                 })
@@ -121,7 +255,7 @@
 
         private  uploadDone(ul:Upload) {
 
-            ul.status = UploadStatus.DONE;
+            ul.done();
 
             // remove upload from queue
             for (let i = 0; i < this.que.length; i++) {
@@ -155,34 +289,38 @@
 
           let uploadedUpload:Upload|null=null;
             //console.debug("Post upload: "+ul)
-          this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
-            data => {
-              uploadedUpload = ul;
-              //console.debug('Next method called for upload: '+uploadedUpload)
-            },(err: HttpErrorResponse) => {
-              if (err.error instanceof Error) {
-                // A client-side or network error occurred. Handle it accordingly.
-                console.error('Upload error occurred:', err.error.message);
-              } else {
-                // The backend returned an unsuccessful response code.
-                // The response body may contain clues as to what went wrong,
-                console.error(`Upload error: Server returned code ${err.status}`);
-              }
-              this.processError(ul)
-            },()=>{
-              //console.debug('Upload complete method called')
-              if(uploadedUpload) {
-                if (this.DEBUG_DELAY>0) {
-                  window.setTimeout(() => {
-                    this.uploadDone(ul);
-                  }, this.DEBUG_DELAY);
-                } else {
-                  this.uploadDone(uploadedUpload)
-                }
-              }else{
-                console.error('Upload post complete, but upload not set in next method!')
-              }
-            });
+            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
+                {
+                    next: (data)=>
+                    {
+                        uploadedUpload = ul;
+                        //console.debug('Next method called for upload: '+uploadedUpload)
+                    }
+                    , error:(err: HttpErrorResponse) => {
+                        if (err.error instanceof Error) {
+                            // A client-side or network error occurred. Handle it accordingly.
+                            console.error('Upload error occurred:', err.error.message);
+                        } else {
+                            // The backend returned an unsuccessful response code.
+                            // The response body may contain clues as to what went wrong,
+                            console.error(`Upload error: Server returned code ${err.status}`);
+                        }
+                        this.processError(ul)
+                    }, complete: () => {
+                        //console.debug('Upload complete method called')
+                        if (uploadedUpload) {
+                            if (this.DEBUG_DELAY > 0) {
+                                window.setTimeout(() => {
+                                    this.uploadDone(ul);
+                                }, this.DEBUG_DELAY);
+                            } else {
+                                this.uploadDone(uploadedUpload)
+                            }
+                        } else {
+                            console.error('Upload post complete, but upload not set in next method!')
+                        }
+                    }
+                });
         }
 
         private processError(ul:Upload) {
@@ -198,7 +336,7 @@
             // set retry timer
             this.retryTimerId=window.setTimeout(() => {
                 this.retryTimerRunning=false;
-                //console.debug("Upload retry timer exprired. Continue processing...")
+                //console.debug("Upload retry timer expired. Continue processing...")
                 this.process();
             }, this.RETRY_DELAY);
 

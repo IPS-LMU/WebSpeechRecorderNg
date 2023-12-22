@@ -16,7 +16,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
   selector: 'spr-recordingitemcontrols',
   template: `
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
-                [disabled]="playStartAction?.disabled"
+                [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
@@ -25,11 +25,11 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button *ngIf="!screenXs" matTooltip="Toggle detailed audio display" [disabled]="!audioLoaded"
+        <button *ngIf="!screenXs" matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
-        <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="!audioLoaded"
+        <button matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
@@ -90,6 +90,7 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
   @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
   @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
 
+  @Input() disableAudioDetails=true;
   @Input() audioLoaded=false;
   //@Input() controlAudioPlayer: AudioPlayer;
   @Input() playStartAction:Action<void>|undefined;
@@ -246,7 +247,7 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
         let peakDBVal = levelInfo.powerLevelDB();
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;
-            // the event comes from outside of an Angular zone
+            // the event comes from outside an Angular zone
             this.changeDetectorRef.detectChanges();
         }
         this.liveLevel.update(levelInfo);

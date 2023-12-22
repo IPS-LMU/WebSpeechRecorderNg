@@ -1,15 +1,15 @@
 # SpeechRecorderNg
 
-A Speech Recording Tool implemented as an Angular 14 module.
+A Speech Recording Tool implemented as an Angular 17 module.
 
-
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli).
+## Migrate from version 2.x.x to 3.x.x
+For backwards compatibility to server REST API v1 set the property `apiVersion: 1` in your environment file.
 
 ## Integrate SpeechRecorder module to your web application
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "2.25.7"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "3.9.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 
@@ -101,6 +101,8 @@ Copy the dist folder to ```/wsr/ng/``` on your Web-Server and setup the fallback
 
 SpeechRecorder requires a HTTP server providing a REST API. The server code is not part of this package.
 The package only contains a minimal file structure for testing. The files reside in `src/test`.
+
+Versions 2.x.x of WebSpeechRecorderNg use the REST API version v1, Versions 3.x.x may use API version v1 and  v2. Set environment property apiVersion accordingly (default: `apiVersion: 1`) 
 
 ## Configuration
 
@@ -279,7 +281,7 @@ Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
 Content-Type: audio/wav
 
 There might be multiple uploads for one recording item, when the subject repeats a recording. The server is responsible to handle this uploads.
-The server should apply an unique identifier for each uploaded recording file. Subsequent recording uploads for the same itemcode should get different IDs and should be stored with a version number starting with zero.    
+The server should apply a unique identifier for each uploaded recording file. Subsequent recording uploads for the same itemcode should get different IDs and should be stored with a version number starting with zero.    
 A GET request to the URL should return the latest upload.  
 
 ### Start a recording session
@@ -420,7 +422,23 @@ A server response might look like this:
 ]
 ```
 
-5. Save edit selection:
+5. Get the recording file:
+Path: GET {apiEndPoint}project/{projectId}/session/{sessionId}/recfile
+Accept: audio/wav
+
+Content-type: audio/wav
+
+   API v2 extension: 
+   The server must be able to deliver sections of a recording file as a valid WAVE file.
+   The section will be selected by the query parameters `startFrame` for the start position and `frameLength` for the length of the section.
+   The client will not send this queries with API v1.
+
+Path: GET {apiEndPoint}project/{projectId}/session/{sessionId}/recfile?startFrame={startFrame}&frameLength={frameLength}
+Accept: audio/wav
+
+Content-type: audio/wav
+
+6. Save edit selection:
 
 Path: PATCH {apiEndPoint}recordingfile/{recordingFileId}
 

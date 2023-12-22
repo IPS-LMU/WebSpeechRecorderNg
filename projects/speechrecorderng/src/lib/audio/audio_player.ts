@@ -2,15 +2,16 @@ import {
     Component,
     ViewChild,
     ChangeDetectorRef,
-    AfterViewInit, Input, AfterContentInit, OnInit, AfterContentChecked, AfterViewChecked, ElementRef,
+    AfterViewInit, Input, OnInit, ElementRef,
 } from '@angular/core'
 
-import {AudioClip, Selection} from './persistor'
+import {AudioClip} from './persistor'
 import {AudioPlayer, AudioPlayerListener, AudioPlayerEvent, EventType} from './playback/player'
 import {ActivatedRoute, Params} from "@angular/router";
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
+import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
 
 @Component({
 
@@ -32,21 +33,21 @@ import {AudioContextProvider} from "./context";
   `,
   styles: [
       `:host {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      bottom: 0px;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: rgba(0, 0, 0, 0.75)
-    }`]
+             display: flex;
+             flex-direction: column;
+             position: absolute;
+             bottom: 0px;
+             height: 100%;
+             width: 100%;
+             overflow: hidden;
+             padding: 20px;
+             z-index: 5;
+             box-sizing: border-box;
+             background-color: rgba(0, 0, 0, 0.75)
+           }`]
 
 })
-export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterContentInit,AfterContentChecked,AfterViewInit,AfterViewChecked {
+export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterViewInit {
   private _audioUrl: string|null=null;
 
   parentE: HTMLElement;
@@ -65,8 +66,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   zoomInAction!:Action<void>;
   zoomOutAction!:Action<void>;
 
-
-  aCtx: AudioContext|null=null;
   private _audioClip:AudioClip|null=null;
   ap: AudioPlayer|undefined;
   status: string;
@@ -76,49 +75,31 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   audio: any;
   updateTimerId: any;
 
-
   @ViewChild(AudioDisplayScrollPane, { static: true })
   private audioDisplayScrollPane!: AudioDisplayScrollPane;
 
   constructor(protected route: ActivatedRoute, protected ref: ChangeDetectorRef,protected eRef:ElementRef) {
-    //console.log("constructor: "+this.ac);
-      this.parentE=this.eRef.nativeElement;
+    this.parentE=this.eRef.nativeElement;
     this.playStartAction = new Action("Start");
     this.playSelectionAction=new Action("Play selected");
     this.playStopAction = new Action("Stop");
     this.status="Player created.";
-
   }
 
   ngOnInit(){
-    //console.log("OnInit: "+this.ac);
     this.zoomSelectedAction=this.audioDisplayScrollPane.zoomSelectedAction
-      this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
+    this.zoomFitToPanelAction=this.audioDisplayScrollPane.zoomFitToPanelAction;
     this.zoomOutAction=this.audioDisplayScrollPane.zoomOutAction;
     this.zoomInAction=this.audioDisplayScrollPane.zoomInAction;
-     try {
-       this.aCtx = AudioContextProvider.audioContextInstance();
-       if(this.aCtx) {
-         this.ap = new AudioPlayer(this.aCtx, this);
-       }
-     }catch(err){
-       if(err instanceof Error) {
-         this.status = err.message;
-       }
-      }
-  }
-
-  ngAfterContentInit(){
-    //console.log("AfterContentInit: "+this.ac);
-  }
-
-  ngAfterContentChecked(){
-    //console.log("AfterContentChecked: "+this.ac);
+    this.ap = new AudioPlayer(this);
   }
 
   ngAfterViewInit() {
-      if (this.aCtx && this.ap) {
-          this.playStartAction.onAction = () => this.ap?.start();
+      if (this.ap) {
+          this.playStartAction.onAction = () => {
+            console.debug("Start action, player: "+this.ap)
+            this.ap?.start();
+          }
           this.playSelectionAction.onAction = () => this.ap?.startSelected();
           this.playStopAction.onAction = () => this.ap?.stop();
       }
@@ -136,17 +117,6 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
         this.audioUrl = params['url'];
       }
     });
-  }
-
-
-  ngAfterViewChecked(){
-    //console.log("AfterViewChecked: "+this.ac);
-  }
-
-
-  init() {
-
-
   }
 
   layout(){
@@ -193,11 +163,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       }
       this.currentLoader.onerror = (e) => {
         console.error("Error downloading ...");
-        //this.statusMsg.innerHTML = 'Error loading audio file!';
         this.currentLoader = null;
       }
-      //this.statusMsg.innerHTML = 'Loading...';
-
       this.currentLoader.send();
     }
   }
@@ -208,20 +175,20 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
     this.status = 'Audio file loaded.';
     //console.debug("Received data ", data.byteLength);
 
-    // Do not use Promise version, which does not work with Safari 13
-    if(this.aCtx) {
-      this.aCtx.decodeAudioData(data, (audioBuffer) => {
-        //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
-        this.audioClip = new AudioClip(audioBuffer)
-      });
-    }
+    AudioContextProvider.decodeAudioData(data).then(audioBuffer => {
+      //console.debug("Audio Buffer Samplerate: ", audioBuffer.sampleRate)
+      let as=new AudioBufferSource(audioBuffer);
+      let adh=new AudioDataHolder(as);
+      this.audioClip = new AudioClip(adh);
+    });
+
   }
 
   @Input()
-  set audioData(audioBuffer: AudioBuffer){
-      this.audioDisplayScrollPane.audioData = audioBuffer;
-      if(audioBuffer) {
-          let clip = new AudioClip(audioBuffer);
+  set audioData(audioData: AudioDataHolder){
+      this.audioDisplayScrollPane.audioData = audioData;
+      if(audioData) {
+          let clip = new AudioClip(audioData);
           if (this.ap){
               this.ap.audioClip = clip;
                 this.playStartAction.disabled = false
@@ -242,23 +209,17 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
   @Input()
   set audioClip(audioClip: AudioClip | null) {
     this._audioClip=audioClip
-    let audioData:AudioBuffer|null=null;
-    let sel:Selection|null=null;
+    let audioData:AudioDataHolder| null=null;
     if(audioClip){
-      audioData=audioClip.buffer;
-      sel=audioClip.selection;
+      audioData=audioClip.audioDataHolder;
       if(this._audioClip) {
         this._audioClip.addSelectionObserver((ac) => {
-
           this.playSelectionAction.disabled = this.startSelectionDisabled()
-          // if(this.ap && ac.selection && this.autoplaySelectedCheckbox.checked){
-          //   this.ap.startSelected()
-          // }
-
         })
       }
     }
     if(audioData) {
+      //console.debug("Play start action (by AudioDisplayPlayer::set audioClip) disabled: "+(!this.ap));
       this.playStartAction.disabled =(!this.ap)
       this.playSelectionAction.disabled=this.startSelectionDisabled()
     }else{
@@ -296,7 +257,14 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterCont
       this.playStartAction.disabled = false;
       this.playSelectionAction.disabled=this.startSelectionDisabled()
       this.playStopAction.disabled = true;
+    }else if (EventType.ERROR === e.type) {
+      this.status = 'Error.';
+      window.clearInterval(this.updateTimerId);
+      this.playStartAction.disabled = false;
+      this.playSelectionAction.disabled=this.startSelectionDisabled()
+      this.playStopAction.disabled = true;
     }
+
 
     this.ref.detectChanges();
 
