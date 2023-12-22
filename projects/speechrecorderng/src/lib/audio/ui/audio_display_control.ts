@@ -54,9 +54,9 @@ import {AudioClip} from "../persistor";
         </div>`,
     styles: [
         `:host {
-        flex: 0;
-
-      }`]
+                 flex: 0;
+         
+               }`]
 
   })
 	export class AudioDisplayControl {
@@ -95,7 +95,7 @@ import {AudioClip} from "../persistor";
 
     autoPlaySelectionChange(ch: MatCheckboxChange) {
         if (this.autoPlayOnSelectToggleAction) {
-            this.autoPlayOnSelectToggleAction.perform(ch.checked)
+            this.autoPlayOnSelectToggleAction.perform(ch.checked);
         }
     }
 

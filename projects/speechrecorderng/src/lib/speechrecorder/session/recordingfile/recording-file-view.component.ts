@@ -2,11 +2,11 @@ import {
   Component,
   ViewChild,
   ChangeDetectorRef,
-  AfterViewInit, Input, ElementRef, OnInit,
+  AfterViewInit, ElementRef, OnInit,
 } from '@angular/core'
 
 
-import {ActivatedRoute, Params, Route, Router} from "@angular/router";
+import {ActivatedRoute, Params, Router} from "@angular/router";
 
 
 import {RecordingFileService} from "./recordingfile-service";
@@ -21,7 +21,7 @@ import {Selection} from "../../../audio/persistor";
 import {Action, ActionEvent} from "../../../action/action";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
-import {RecordingFile, SprRecordingFile} from "../../recording";
+import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 
 
@@ -53,16 +53,16 @@ export class ItemcodeIndex{
   `,
   styles: [
     `:host {
-          flex: 2;
-          display: flex;
-          flex-direction: column;
-          min-height:0;
-          overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: white;
-    }`,`
+               flex: 2;
+               display: flex;
+               flex-direction: column;
+               min-height:0;
+               overflow: hidden;
+           padding: 20px;
+           z-index: 5;
+           box-sizing: border-box;
+           background-color: white;
+         }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;
@@ -78,8 +78,6 @@ export class ItemcodeIndex{
 })
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
 
-  //protected _recordingFileId: string | number = null;
-
   sessionId: string | number | null= null;
   sessionIdFromRoute:string|null=null;
 
@@ -91,7 +89,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   private routedByQueryParam=false;
   posInList: number|null=null;
 
-
   @ViewChild(AudioDisplayScrollPane)
   private ac!: AudioDisplayScrollPane;
 
@@ -100,13 +97,18 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   nextAction: Action<void>;
   lastAction: Action<void>;
   toVersionAction: Action<number>;
-  audioFetching=false;
-
-  naviInfoLoading=false;
+  audioFetching:boolean;
+  naviInfoLoading:boolean;
 
   constructor(protected recordingFileService: RecordingFileService, protected recordingService: RecordingService, protected sessionService: SessionService, protected router:Router,protected route: ActivatedRoute, protected ref: ChangeDetectorRef, protected eRef: ElementRef, protected dialog: MatDialog) {
     super(route, ref, eRef)
     this.parentE = this.eRef.nativeElement;
+
+    // TODO Should be initialized with false, but this causes in debug mode:
+    // ERROR Error: NG0100: ExpressionChangedAfterItHasBeenCheckedError: Expression has changed after it was checked. Previous value: 'false'. Current value: 'true'. Find more at https://angular.io/errors/NG0100
+    this.audioFetching=true;
+
+    this.naviInfoLoading=false;
     this.firstAction = new Action<void>('First');
     this.firstAction.onAction= ()=>{
       this.posInList=0;
@@ -130,7 +132,6 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   ngOnInit() {
     super.ngOnInit();
-
   }
 
   ngAfterViewInit() {
@@ -284,53 +285,55 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.recordingFile=null;
     this.posInList=null;
     this.updateActions();
-    let audioContext = AudioContextProvider.audioContextInstance();
-    if(audioContext) {
       this.audioFetching=true;
-      this.recordingFileService.fetchSprRecordingFile(audioContext, rfId).subscribe(value => {
-        this.audioFetching=false;
-        this.status = 'Audio file loaded.';
-        let clip = null;
-        this.recordingFile = value;
-        if (this.recordingFile) {
-          let ab = this.recordingFile.audioDataHolder;
-          if (ab) {
-            clip = new AudioClip(ab);
+      this.recordingFileService.fetchSprRecordingFile( rfId).subscribe(
+          {
+            next: value => {
+              this.audioFetching = false;
+              this.status = 'Audio file loaded.';
+              let clip = null;
+              this.recordingFile = value;
+              if (this.recordingFile) {
+                let ab = this.recordingFile.audioDataHolder;
+                if (ab) {
+                  clip = new AudioClip(ab);
 
-            let esffsr = null;
-            let eeffsr = null;
-            let esr = null;
+                  let esffsr = null;
+                  let eeffsr = null;
+                  let esr = null;
 
-            if (clip.audioDataHolder != null) {
-              esr = ab.sampleRate;
-              if (esr != null) {
-                esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
-                eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
-              }
-              let sel: Selection | null = null;
-              if (esffsr != null) {
-                if (eeffsr != null) {
-                  sel = new Selection(ab.sampleRate, esffsr, eeffsr);
-                } else {
-                  //let ch0 = ab.getChannelData(0);
-                  let frameLength = ab.frameLen;
-                  sel = new Selection(esr, esffsr, frameLength);
+                  if (clip.audioDataHolder != null) {
+                    esr = ab.sampleRate;
+                    if (esr != null) {
+                      esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
+                      eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
+                    }
+                    let sel: Selection | null = null;
+                    if (esffsr != null) {
+                      if (eeffsr != null) {
+                        sel = new Selection(ab.sampleRate, esffsr, eeffsr);
+                      } else {
+                        //let ch0 = ab.getChannelData(0);
+                        let frameLength = ab.frameLen;
+                        sel = new Selection(esr, esffsr, frameLength);
+                      }
+                    } else if (eeffsr != null) {
+                      sel = new Selection(esr, 0, eeffsr);
+                    }
+                    clip.selection = sel
+                  }
                 }
-              } else if (eeffsr != null) {
-                sel = new Selection(esr, 0, eeffsr);
               }
-              clip.selection = sel
-            }
-          }
-        }
-        this.audioClip = clip
-        this.loadedRecfile();
+              this.audioClip = clip
+              this.loadedRecfile();
 
-      }, error1 => {
-        this.audioFetching=false;
+            }, error:error1 =>
+      {
+        this.audioFetching = false;
         this.status = 'Error loading audio file!';
-      });
-    }
+      }
+    });
+
   }
 
   protected loadedRecfile() {
@@ -360,7 +363,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
   }
 
   private loadSession(sessionId: string| number) {
-    // load session and recording file meta data only when on init and when session changes
+    // load session and recording file metadata only when on init and when session changes
     if (<string>sessionId != <string>this.sessionId) {
       // tell UI that we are working...
       this.naviInfoLoading=true;
@@ -398,7 +401,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               } else {
                 // rec file with itemcode already exists, add (push) this version ...
                 exRfsForIc.push(rfd);
-                // .. and sort latest version (highest version number) to lowest index
+                // ... and sort latest version (highest version number) to lowest index
                 exRfsForIc.sort((rfd1, rfd2) => {
                   return rfd2.version - rfd1.version;
                 })

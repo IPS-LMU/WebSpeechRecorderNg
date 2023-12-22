@@ -9,7 +9,7 @@ import {
   OnInit,
   Renderer2,
   HostBinding,
-  AfterContentChecked, ChangeDetectorRef, Inject
+  AfterContentChecked
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -23,12 +23,7 @@ import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
-import {ActivatedRoute} from "@angular/router";
-import {MatDialog} from "@angular/material/dialog";
-import {SessionService} from "./session.service";
-import {RecordingService} from "../recordings/recordings.service";
-import {SpeechRecorderUploader} from "../spruploader";
-import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
+
 
 @Component({
 
@@ -648,7 +643,7 @@ export class PromptingContainer {
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
     the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
-    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+    See https://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
     */
     min-height: 0px;
 

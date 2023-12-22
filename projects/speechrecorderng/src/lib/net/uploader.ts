@@ -10,9 +10,9 @@
     export enum UploaderStatus { DONE = 0, UPLOADING = 1, TRY_UPLOADING = 2,NEXT = 3, ERR = -1}
 
     export class UploaderStatusChangeEvent {
-        private _sizeQueued:number;
-        private _sizeDone:number;
-        private _status: UploaderStatus;
+        private readonly _sizeQueued:number;
+        private readonly _sizeDone:number;
+        private readonly _status: UploaderStatus;
 
 
         constructor(sizeQueued: number, sizeDone: number, status: UploaderStatus) {
@@ -59,8 +59,8 @@
         return this._serverPersistable;
       }
 
-        private _data:Blob|FormData;
-        private _url:string;
+        private readonly _data:Blob|FormData;
+        private readonly _url:string;
 
         status: UploadStatus;
         onDone:((upload:Upload)=>void) | null=null;
@@ -222,7 +222,7 @@
         DEBUG_DELAY: number = 0;
         //DEBUG_DELAY:number=0;
         private status: UploaderStatus = UploaderStatus.DONE;
-        private que: Array<Upload>;
+        private readonly que: Array<Upload>;
         listener: ((ue: UploaderStatusChangeEvent) => void) | null = null;
         private _sizeQueued: number = 0;
         private _sizeDone: number = 0;
@@ -245,7 +245,7 @@
                     if(v instanceof File){
                         si+=v.size;
                     }else if(typeof v ==='string'){
-                        // encode to UT-f8 to get upload size
+                        // encode to UTF-8 to get upload size
                         si+= this.te.encode().length;
                     }
                 })
@@ -289,34 +289,38 @@
 
           let uploadedUpload:Upload|null=null;
             //console.debug("Post upload: "+ul)
-          this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
-            data => {
-              uploadedUpload = ul;
-              //console.debug('Next method called for upload: '+uploadedUpload)
-            },(err: HttpErrorResponse) => {
-              if (err.error instanceof Error) {
-                // A client-side or network error occurred. Handle it accordingly.
-                console.error('Upload error occurred:', err.error.message);
-              } else {
-                // The backend returned an unsuccessful response code.
-                // The response body may contain clues as to what went wrong,
-                console.error(`Upload error: Server returned code ${err.status}`);
-              }
-              this.processError(ul)
-            },()=>{
-              //console.debug('Upload complete method called')
-              if(uploadedUpload) {
-                if (this.DEBUG_DELAY>0) {
-                  window.setTimeout(() => {
-                    this.uploadDone(ul);
-                  }, this.DEBUG_DELAY);
-                } else {
-                  this.uploadDone(uploadedUpload)
-                }
-              }else{
-                console.error('Upload post complete, but upload not set in next method!')
-              }
-            });
+            this.http.post(ul.url,ul.data,{withCredentials:this.withCredentials}).pipe(timeout(timeoVal)).subscribe(
+                {
+                    next: (data)=>
+                    {
+                        uploadedUpload = ul;
+                        //console.debug('Next method called for upload: '+uploadedUpload)
+                    }
+                    , error:(err: HttpErrorResponse) => {
+                        if (err.error instanceof Error) {
+                            // A client-side or network error occurred. Handle it accordingly.
+                            console.error('Upload error occurred:', err.error.message);
+                        } else {
+                            // The backend returned an unsuccessful response code.
+                            // The response body may contain clues as to what went wrong,
+                            console.error(`Upload error: Server returned code ${err.status}`);
+                        }
+                        this.processError(ul)
+                    }, complete: () => {
+                        //console.debug('Upload complete method called')
+                        if (uploadedUpload) {
+                            if (this.DEBUG_DELAY > 0) {
+                                window.setTimeout(() => {
+                                    this.uploadDone(ul);
+                                }, this.DEBUG_DELAY);
+                            } else {
+                                this.uploadDone(uploadedUpload)
+                            }
+                        } else {
+                            console.error('Upload post complete, but upload not set in next method!')
+                        }
+                    }
+                });
         }
 
         private processError(ul:Upload) {
@@ -332,7 +336,7 @@
             // set retry timer
             this.retryTimerId=window.setTimeout(() => {
                 this.retryTimerRunning=false;
-                //console.debug("Upload retry timer exprired. Continue processing...")
+                //console.debug("Upload retry timer expired. Continue processing...")
                 this.process();
             }, this.RETRY_DELAY);
 

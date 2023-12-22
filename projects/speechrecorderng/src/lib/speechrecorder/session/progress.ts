@@ -1,11 +1,11 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core'
+import {Component, ElementRef, EventEmitter, Input, Output} from '@angular/core'
 import {Item} from './item';
+import {IntersectionObserverDirective} from "../../ui/intersection-observer.directive";
 
 
 @Component({
 
   selector: 'app-sprprogress',
-
   template: `
 
     <table class="mat-typography">
@@ -21,7 +21,7 @@ import {Item} from './item';
 
         <tr *ngFor="let item of items; let itIdx=index;"
             (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
-            [scrollIntoViewToBottom]="itIdx===selectedItemIdx">
+            [updateObservation]="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
           <td>{{itIdx}}</td>
           <td class="promptDescriptor">{{item.promptAsString}}</td>
           <td>
@@ -46,26 +46,26 @@ import {Item} from './item';
     /* Workaround for Firefox
     If the progress table gets long (script with many items) FF increases the height of the overflow progressContainer and
     the whole app does not fit into the page anymore. The app overflows and shows a vertical scrollbar for the whole app.
-    See http://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
+    See https://stackoverflow.com/questions/28636832/firefox-overflow-y-not-working-with-nested-flexbox
     */
     /* min-height:0px; */
     min-height: 1px;
   }`,
       `table {
-      min-height: 1px;
-      border-collapse: collapse;
-          /* Tables do not have a natural min size */
-          /*min-width: 300px; */
-
-    }
-
-    table, th, td {
-      border: 1px solid lightgrey;
-      padding: 0.5em;
-
-    }
-
-    `, `
+             min-height: 1px;
+             border-collapse: collapse;
+                 /* Tables do not have a natural min size */
+                 /*min-width: 300px; */
+       
+           }
+       
+           table, th, td {
+             border: 1px solid lightgrey;
+             padding: 0.5em;
+       
+           }
+       
+           `, `
       .selRow {
         background: lightblue;
       }
@@ -79,6 +79,19 @@ import {Item} from './item';
 
 })
 export class Progress {
+  isObs:IntersectionObserver;
+  constructor(private elRef:ElementRef) {
+    this.isObs=new IntersectionObserver(ise=>{
+      //console.debug("Intersection changed: ");
+      ise.forEach((isee)=>{
+        //console.debug("Intersection: "+isee.isIntersecting+' '+isee.intersectionRatio);
+        if(isee.intersectionRatio<1){
+          isee.target.scrollIntoView(false);
+          this.isObs.unobserve(isee.target);
+        }
+      });
+    },{root:this.elRef.nativeElement})
+  }
   @Input() items: Array<Item>|undefined=undefined;
   @Input() selectedItemIdx = 0;
   @Input() enableDownload: boolean=false;

@@ -10,6 +10,7 @@ export enum ApiType {
 export class SpeechRecorderConfig{
   apiEndPoint?: string | null=null;
   apiType?: ApiType | null=null;
+  apiVersion: number=1;
   withCredentials?: boolean=false;
   enableDownloadRecordings?: boolean=false;
   enableUploadRecordings?: boolean=true;

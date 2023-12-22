@@ -1,7 +1,6 @@
 import {Observable} from "rxjs";
 import {AsyncFloat32ArrayInputStream, Float32ArrayInputStream} from "../io/stream";
 import {AudioSource, BasicAudioSource, RandomAccessAudioStream} from "./audio_data_holder";
-import {RecordingService} from "../speechrecorder/recordings/recordings.service";
 import {HttpErrorResponse} from "@angular/common/http";
 import {BasicRecordingService} from "../speechrecorder/recordings/basic_recording.service";
 
@@ -13,9 +12,6 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
   }
   get recFileService(): BasicRecordingService {
     return this._recFileService;
-  }
-  get audioContext(): AudioContext {
-    return this._audioContext;
   }
   get baseUrl(): string {
     return this._baseUrl;
@@ -31,7 +27,7 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
   private _chunkCount=0;
   private _sealed=false;
 
-  constructor(protected _audioContext:AudioContext,
+  constructor(
               private _recFileService:BasicRecordingService,
               private _baseUrl:string,
               private _channelCount: number,
@@ -80,8 +76,8 @@ export class NetAudioBuffer extends BasicAudioSource implements AudioSource{
     return "Indexed db audio buffer. Channels: "+this.channelCount+", sample rate: "+this.sampleRate+", chunk frame length: "+this._chunkFrameLen+", number of chunks: "+this.chunkCount+", frame length: "+this.frameLen+", sealed: "+this.sealed();
   }
 
-    static fromChunkAudioBuffer(aCtx:AudioContext,recordingsService:BasicRecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
-      let nab=new NetAudioBuffer(aCtx,recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
+    static fromChunkAudioBuffer(recordingsService:BasicRecordingService,baseUrl:string,ab: AudioBuffer,frameLen:number,orgFetchChunkFrameLen:number=ab.length):NetAudioBuffer {
+      let nab=new NetAudioBuffer(recordingsService,baseUrl,ab.numberOfChannels,ab.sampleRate,ab.length,frameLen,null,orgFetchChunkFrameLen);
       nab.ready();
       return nab;
   }
@@ -135,7 +131,7 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
     let startFrame=ci*this._netAb.orgFetchChunkFrameLen;
 
-    this._netAb.recFileService.chunkAudioRequest(this._netAb.audioContext,baseUrl,startFrame,this._netAb.orgFetchChunkFrameLen).subscribe(
+    this._netAb.recFileService.chunkAudioRequest(baseUrl,startFrame,this._netAb.orgFetchChunkFrameLen).subscribe(
       {
 
         next: (chDl)=>{

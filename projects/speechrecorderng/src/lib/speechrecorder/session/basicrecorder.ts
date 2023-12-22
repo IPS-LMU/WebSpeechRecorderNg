@@ -134,6 +134,13 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder extends ResponsiveComponent{
+  get allowEchoCancellation(): boolean {
+    return this._allowEchoCancellation;
+  }
+
+  set allowEchoCancellation(value: boolean) {
+    this._allowEchoCancellation = value;
+  }
 
   protected updateTimerId: any;
 
@@ -209,6 +216,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   protected selCaptureDeviceId: ConstrainDOMString | null;
   protected _channelCount = 2;
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
+  protected _allowEchoCancellation:boolean=false;
 
   _session: Session|null=null;
   protected _recordingFile:RecordingFile|null=null;
@@ -253,7 +261,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
+  protected constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
                 public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
@@ -658,7 +666,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs);
+        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._allowEchoCancellation);
       } else {
         this.ac.start();
       }

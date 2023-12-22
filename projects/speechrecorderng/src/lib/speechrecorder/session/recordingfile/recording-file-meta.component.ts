@@ -1,11 +1,11 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {RecordingFileUtil} from "./recording-file";
-import {RecordingFile, SprRecordingFile} from "../../recording";
+import {SprRecordingFile} from "../../recording";
 
 @Component({
   selector: 'app-recording-file-meta',
   template: `
-    <mat-card>
+    <mat-card appearance="outlined">
       <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
       <mat-card-content>
         <mat-progress-spinner *ngIf="stateLoading" mode="indeterminate" [diameter]="20"></mat-progress-spinner>
@@ -48,7 +48,11 @@ export class RecordingFileMetaComponent{
 
   private _recordingFile:SprRecordingFile|null=null;
 
-  @Input() stateLoading:boolean=false;
+  @Input() stateLoading:boolean;
+
+  constructor() {
+    this.stateLoading=false;
+  }
 
   get recordingFile(): SprRecordingFile | null {
     return this._recordingFile;

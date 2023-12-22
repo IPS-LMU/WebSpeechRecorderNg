@@ -16,7 +16,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
   selector: 'spr-recordingitemcontrols',
   template: `
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
-                [disabled]="playStartAction?.disabled"
+                [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
@@ -247,7 +247,7 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
         let peakDBVal = levelInfo.powerLevelDB();
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;
-            // the event comes from outside of an Angular zone
+            // the event comes from outside an Angular zone
             this.changeDetectorRef.detectChanges();
         }
         this.liveLevel.update(levelInfo);

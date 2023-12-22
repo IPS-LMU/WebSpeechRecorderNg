@@ -13,8 +13,8 @@ export const SCRIPT_API_CTX='script'
 
 @Injectable()
 export class ScriptService {
-  private scriptCtxUrl:string;
-  private withCredentials:boolean=false;
+  private readonly scriptCtxUrl:string;
+  private readonly withCredentials:boolean=false;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
