@@ -11,12 +11,13 @@ export interface EnumConstantDescriptor{
   localizedNames: Array<LocalizedMessage>
 }
 
- export interface PropertyDescriptor {
+export interface PropertyDescriptor {
   name: string,
   dataType: DataType,
+  maxStringLength?:number|null,
   uiFieldHint: UiFieldHint,
   localizedNames: Array<LocalizedMessage>,
-   enumConstantDescriptors: Array<EnumConstantDescriptor>
+  enumConstantDescriptors: Array<EnumConstantDescriptor>
 }
 
 export interface ClassDescriptor{
