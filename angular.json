@@ -138,7 +138,6 @@
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
             "project": "projects/speechrecorderng/ng-package.json"
-
           },
           "localize": true,
           "configurations": {

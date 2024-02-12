@@ -369,12 +369,9 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     }
     this.prompter.promptMediaItems=this._mediaitems
     this.autoFontSize=(mimetype!=null && mimetype.startsWith('text/'));
-    if(this.autoFontSize){
-        this.fontSizeChange = true;
-        this.contentChecked = false
-        this.prDisplay = 'hidden'
-        this.layout()
-      }
+
+    this.layout();
+
   }
 
   get mediaitems():Array<Mediaitem>|null{
@@ -408,6 +405,9 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       //console.log("layout, call fontSizeToFit hook ");
       window.setTimeout(() => this.fontSizeToFit())
 
+    }else{
+      this.contentChecked = true;
+      this.prDisplay = 'visible';
     }
   }
 
