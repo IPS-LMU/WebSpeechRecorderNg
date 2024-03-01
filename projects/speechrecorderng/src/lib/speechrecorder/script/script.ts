@@ -1,3 +1,4 @@
+import {Session} from "../session/session";
 
 export type Mode = "MANUAL" | "AUTOPROGRESS" | "AUTORECORDING";
 export type PromptPhase = "IDLE" | "PRERECORDING" | "PRERECORDINGONLY" | "RECORDING";
@@ -82,6 +83,7 @@ export interface Script {
   name?:string;
   virtualViewBox?:VirtualViewBox;
   sections: Array<Section>;
+  sessions?:Array<number|string>;
 }
 
 export class PromptDocUtil{
