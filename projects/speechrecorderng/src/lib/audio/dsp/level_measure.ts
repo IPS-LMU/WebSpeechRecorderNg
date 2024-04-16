@@ -28,6 +28,17 @@ export class LevelInfo {
     return this._maxLinLevels;
   }
 
+  absMaxLevelOfAllChannels(){
+
+    const min=Math.min(...this._minLinLevels);
+    const minAbs=Math.abs(min);
+
+    const max=Math.max(...this.maxLinLevels);
+
+    const maxAbsAll=Math.max(minAbs,max);
+    return maxAbsAll;
+  }
+
   private checkOrInitArray(arr: Array<number> | undefined): Array<number> {
     if (arr) {
       if (arr.length !== this.channelCount)
@@ -456,7 +467,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
   private frameCount: number = 0;
 
   levelListener: LevelListener|null=null;
-  peakLevelListener: ((peakLvlInDb:number)=>void)|null=null;
+  peakLevelListener: ((peakLvlInDb:number,peakLevel?:number)=>void)|null=null;
   private peakLevelInDb:number=MIN_DB_LEVEL;
 
   constructor() {
@@ -503,7 +514,7 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
     }
     if (this.peakLevelListener) {
       this.peakLevelInDb=MIN_DB_LEVEL;
-      this.peakLevelListener(this.peakLevelInDb);
+      this.peakLevelListener(this.peakLevelInDb,0.0);
     }
   }
 
@@ -586,11 +597,12 @@ export class StreamLevelMeasure implements SequenceAudioFloat32OutStream {
         this.levelListener.update(this.currentLevelInfos, this.peakLevelInfo.clone());
       }
       if(this.peakLevelListener){
+        let peakVal=bufferLevelInfo.absMaxLevelOfAllChannels();
         let peakDBVal = bufferLevelInfo.powerLevelDB();
         if (this.peakLevelInDb < peakDBVal) {
           this.peakLevelInDb = peakDBVal;
           // the event comes from outside an Angular zone
-          this.peakLevelListener(this.peakLevelInDb);
+          this.peakLevelListener(this.peakLevelInDb,peakVal);
         }
       }
     }

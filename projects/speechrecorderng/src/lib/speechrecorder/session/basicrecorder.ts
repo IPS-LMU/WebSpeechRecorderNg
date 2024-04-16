@@ -9,7 +9,7 @@ import {
   AudioDevice,
   AudioStorageFormat,
   AudioStorageType,
-  AutoGainControlConfig,
+  AutoGainControlConfig, EchoCancellationConfig,
   NoiseSuppressionConfig
 } from "../project/project";
 import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
@@ -224,7 +224,8 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   protected selCaptureDeviceId: ConstrainDOMString | null;
   protected _channelCount = 2;
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
-  protected _noiseSuppressionConfigs:Array<NoiseSuppressionConfig>  | null | undefined;
+  protected _noiseSuppressionConfigs:Array<NoiseSuppressionConfig> | null | undefined;
+  protected _echoCancellationConfigs:Array<EchoCancellationConfig> | null | undefined;
 
   _session: Session|null=null;
   protected _recordingFile:RecordingFile|null=null;
@@ -242,6 +243,8 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   protected streamLevelMeasure: StreamLevelMeasure;
   protected levelMeasure: LevelMeasure;
+
+  peakLevel:number=0.0;
   peakLevelInDb:number=MIN_DB_LEVEL;
   audioLoaded:boolean=false;
   disableAudioDetails:boolean=false;
@@ -270,7 +273,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   private wakeLockManager?:WakeLockManager;
 
-  constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
+  protected constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
                 public dialog: MatDialog,
                 protected sessionService:SessionService,
                 protected uploader: SpeechRecorderUploader,
@@ -345,6 +348,9 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   }
   set noiseSuppressionConfigs(noiseSuppressionConfigs: Array<NoiseSuppressionConfig>|null|undefined){
     this._noiseSuppressionConfigs=noiseSuppressionConfigs;
+  }
+  set echoCancellationConfigs(echoCancellationConfigs: Array<EchoCancellationConfig>|null|undefined){
+    this._echoCancellationConfigs=echoCancellationConfigs;
   }
 
   set channelCount(channelCount: number) {
@@ -686,7 +692,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._noiseSuppressionConfigs);
+        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._noiseSuppressionConfigs,this._echoCancellationConfigs);
       } else {
         this.ac.start();
       }

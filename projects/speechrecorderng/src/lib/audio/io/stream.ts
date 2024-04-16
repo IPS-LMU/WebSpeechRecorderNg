@@ -35,7 +35,7 @@ export class SequenceAudioFloat32ChunkerOutStream extends Float32ArrayChunkerOut
  */
 export class SequenceAudioFloat32OutStreamMultiplier implements SequenceAudioFloat32OutStream{
 
-  private _sequenceAudioFloat32OutStreams!:Array<SequenceAudioFloat32OutStream>;
+  private readonly _sequenceAudioFloat32OutStreams!:Array<SequenceAudioFloat32OutStream>;
 
   constructor() {
     this._sequenceAudioFloat32OutStreams=new Array<SequenceAudioFloat32OutStream>();

@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {Action} from "../../../action/action";
 
 @Component({
@@ -10,7 +10,7 @@ import {Action} from "../../../action/action";
               <legend>Versions</legend>
               <mat-progress-spinner *ngIf="naviInfoLoading" mode="indeterminate" [diameter]="15"></mat-progress-spinner>
                 <select *ngIf="!naviInfoLoading" [disabled]="versions==null || versions.length==1" (change)="selectVersionChange($event)">
-                  <option *ngFor="let v of versions; let i = index" [selected]="v===version" value="{{v}}">{{v}}<span *ngIf="i==0"> (latest)</span></option>
+                  <option *ngFor="let v of versions; let i = index" [selected]="v===version" value="{{v}}">{{v}}<ng-container *ngIf="i==0"> (latest)</ng-container></option>
                 </select>
             </fieldset>
             <fieldset>
@@ -53,11 +53,14 @@ export class RecordingFileNaviComponent implements OnInit {
   @Input() versions: Array<number>|null=null;
   @Input() version: number|null=null;
 
-  @Input() naviInfoLoading=false;
+  @Input() naviInfoLoading;
 
-  constructor() { }
+  constructor() {
+      this.naviInfoLoading=false;
+  }
 
   ngOnInit(): void {
+
   }
 
   selectVersionChange(ev:Event){

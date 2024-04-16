@@ -95,7 +95,7 @@ import {AudioClip} from "../persistor";
 
     autoPlaySelectionChange(ch: MatCheckboxChange) {
         if (this.autoPlayOnSelectToggleAction) {
-            this.autoPlayOnSelectToggleAction.perform(ch.checked)
+            this.autoPlayOnSelectToggleAction.perform(ch.checked);
         }
     }
 

@@ -12,8 +12,13 @@
   <mat-card-content>
     <mat-card-title>Audio capture options</mat-card-title>
 <div style="display: flex;flex-direction: column">
-  <mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></mat-checkbox>
+  <!--<mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></mat-checkbox>
   <mat-checkbox value="false" [checked]="noiseSuppressionOn && mediaTrackSupportedConstraints.noiseSuppression==true" (change)="noiseSuppressionChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Noise suppression <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></mat-checkbox>
+  <mat-checkbox value="false" [checked]="echoCancellationOn && mediaTrackSupportedConstraints.echoCancellation==true" (change)="echoCancellationChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Echo cancellation <span *ngIf="!(mediaTrackSupportedConstraints.echoCancellation==true)">(not supported)</span></mat-checkbox>
+  -->
+  <audio-config-switch (change)="agcChange($event)" [audioCfg]="agcOn">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></audio-config-switch>
+  <audio-config-switch (change)="noiseSuppressionChange($event)" [audioCfg]="noiseSuppressionOn">Noise suppression (NS) <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></audio-config-switch>
+  <audio-config-switch (change)="echoCancellationChange($event)" [audioCfg]="echoCancellationOn">Echo cancellation (EC) <span *ngIf="!(mediaTrackSupportedConstraints.echoCancellation==true)">(not supported)</span></audio-config-switch>
 </div>
   </mat-card-content>
 </mat-card>
@@ -34,10 +39,11 @@
   <mat-card-title>Audio storage</mat-card-title>
   <mat-card-content>
 <mat-form-field style="width: fit-content;max-width: 100%;">
-  <mat-select [formControl]="selStorageSampleSizeCtl" style="width:fit-content;max-width: 100%">
+  <mat-select [formControl]="selStorageTypeCtl" style="width:fit-content;max-width: 100%">
     <mat-option style="width: fit-content;max-width: 100%" value="">Default (16-bit signed)</mat-option>
-    <mat-option style="width: fit-content;max-width: 100%" [value]="SampleSize.INT16.valueOf().toString()">16-bit signed</mat-option>
-    <mat-option style="width: fit-content;max-width: 100%" [value]="SampleSize.INT32.valueOf().toString()">32-bit signed</mat-option>
+    <mat-option style="width: fit-content;max-width: 100%" [value]="sampleSize.INT16.valueOf().toString()">16-bit signed</mat-option>
+    <mat-option style="width: fit-content;max-width: 100%" [value]="sampleSize.INT32.valueOf().toString()">32-bit signed</mat-option>
+    <mat-option style="width: fit-content;max-width: 100%" value="FLOAT">Float</mat-option>
   </mat-select>
 </mat-form-field>
   </mat-card-content>

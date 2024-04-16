@@ -66,6 +66,14 @@
         valView.setInt32(0, val, le);
         this._pos += 4;
       }
+
+      writeFloat(val:number){
+          this.ensureCapacity(4);
+          const valView = new DataView(this.buf, this._pos, 4);
+          valView.setFloat32(0, val,true);
+          this._pos += 4;
+      }
+
         finish(): Uint8Array {
           const finalArr = new Uint8Array(this._pos);
           const dv = new DataView(this.buf, 0, this._pos);

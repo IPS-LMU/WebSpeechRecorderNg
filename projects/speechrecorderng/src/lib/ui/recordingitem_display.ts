@@ -35,7 +35,10 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         </button>
         <div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span matTooltip="Peak level"
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
-          <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
+          <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr>
+          <tr *ngIf="_ns"><td>NS:</td><td><span matTooltip="Noise suppression">{{nsString}}</span></td></tr>
+          <tr *ngIf="_ec"><td>EC:</td><td><span matTooltip="Echo cnacellation">{{ecString}}</span></td></tr>
+        </table></div>
     `,
   styles: [`:host {
         flex: 0; /* only required vertical space */
@@ -74,6 +77,12 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
   _agc:boolean|null|undefined=undefined;
   agcString='n/a';
 
+  _ns:boolean|null|undefined=undefined;
+  nsString='n/a';
+
+  _ec:boolean|null|undefined=undefined;
+  ecString='n/a';
+
   @Input() set agc(agc:boolean|null|undefined){
     this._agc=agc;
     if(this._agc===undefined || this._agc===null){
@@ -86,6 +95,34 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
       }
     }
   }
+
+  @Input() set noiseSuppression(ns:boolean|null|undefined){
+    this._ns=ns;
+    if(this._ns===undefined || this._ns===null){
+      this.nsString='n/a';
+    }else{
+      if(this._ns===true){
+        this.nsString='On';
+      }else{
+        this.nsString='Off';
+      }
+    }
+  }
+
+  @Input() set echoCancellation(ec:boolean|null|undefined){
+    this._ec=ec;
+    if(this._ec===undefined || this._agc===null){
+      this.ecString='n/a';
+    }else{
+      if(this._ec===true){
+        this.ecString='On';
+      }else{
+        this.ecString='Off';
+      }
+    }
+  }
+
+
 
   @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
   @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();
@@ -132,6 +169,8 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
     // this.status = 'ERROR';
   }
 
+  //protected readonly undefined = undefined;
+  //protected readonly undefined = undefined;
 }
 
 
@@ -247,7 +286,7 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
         let peakDBVal = levelInfo.powerLevelDB();
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;
-            // the event comes from outside of an Angular zone
+            // the event comes from outside an Angular zone
             this.changeDetectorRef.detectChanges();
         }
         this.liveLevel.update(levelInfo);

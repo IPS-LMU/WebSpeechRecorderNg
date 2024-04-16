@@ -3,6 +3,7 @@ import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog"
 import {ProjectService} from "../../../speechrecorder/project/project.service";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {
+  AudioConfig,
   AutoGainControlConfig,
   EchoCancellationConfig,
   NoiseSuppressionConfig,
@@ -23,13 +24,15 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   private _bsProject:BehaviorSubject<Project>;
   private _bsPrjSubscription:Subscription|null=null;
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
-  agcOn=false;
-  noiseSuppressionOn=false;
-  echoCancellationOn=false;
+  agcOn:AudioConfig|undefined=undefined;
+  noiseSuppressionOn:AudioConfig|undefined=undefined;
+  echoCancellationOn:AudioConfig|undefined=undefined;
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
-  selStorageSampleSizeCtl=new FormControl('selStorageSampleSize');
+  protected float:boolean=false;
+  protected readonly sampleSize = SampleSize;
+  selStorageTypeCtl=new FormControl('selStorageSampleSize');
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
@@ -55,15 +58,20 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
       this._bsProject.next(prj);
     });
-    this.selStorageSampleSizeCtl.valueChanges.subscribe((selStorageSampleSizeStr)=>{
+    this.selStorageTypeCtl.valueChanges.subscribe((selStorageTypeStr)=>{
       const prj=this._bsProject.value;
       prj.clientAudioStorageFormat=undefined;
-      if(selStorageSampleSizeStr!==null && selStorageSampleSizeStr!==''){
-        const selStorageSampleSize=parseInt(selStorageSampleSizeStr);
-        console.debug("Sel.: storage sample size: "+selStorageSampleSize);
-        prj.clientAudioStorageFormat={sampleSizeInBits:selStorageSampleSize};
+      if(selStorageTypeStr!==null && selStorageTypeStr!==''){
+        if(selStorageTypeStr==='FLOAT'){
+          console.debug("Sel.: storage sample type float.");
+          prj.clientAudioStorageFormat={float:true};
+        }else {
+          const selStorageSampleSize = parseInt(selStorageTypeStr);
+          console.debug("Sel.: storage sample size: " + selStorageSampleSize);
+          prj.clientAudioStorageFormat = {sampleSizeInBits: selStorageSampleSize};
+        }
       }
-      this._bsProject.unsubscribe();
+      //this._bsProject.unsubscribe();
       this._bsProject.next(prj);
     });
   }
@@ -76,17 +84,42 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       const nsCtrlCfgs=this.projectService.projectStandalone().noiseSuppressionConfigs;
       const ecCtrlCfgs=this.projectService.projectStandalone().echoCancellationConfigs;
       console.debug("AGC configs: "+agcCtrlCfgs?.length);
-      this.agcOn=false;
+      this.agcOn=undefined;
       if(agcCtrlCfgs) {
-        this.agcOn=agcCtrlCfgs.map((agcc) => (agcc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        //this.agcOn=agcCtrlCfgs.map((agcc) => (agcc)).reduce((prevVal,val)=>(prevVal || val),false);
+        for(let agcCtrlCfg of agcCtrlCfgs){
+            if(agcCtrlCfg.platform){
+              // TODO match ?
+            }else{
+              this.agcOn=agcCtrlCfg;
+              break;
+            }
+        }
       }
-      this.noiseSuppressionOn=false;
+      this.noiseSuppressionOn=undefined;
       if(nsCtrlCfgs) {
-        this.noiseSuppressionOn=nsCtrlCfgs.map((nsc) => (nsc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        //this.noiseSuppressionOn=nsCtrlCfgs.map((nsc) => (nsc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        if(nsCtrlCfgs){
+          for(let nsCtrlCfg of nsCtrlCfgs){
+            if(nsCtrlCfg.platform){
+              // TODO
+            }else{
+              this.noiseSuppressionOn=nsCtrlCfg;
+            }
+          }
+        }
       }
-      this.echoCancellationOn=false;
+      this.echoCancellationOn=undefined;
       if(ecCtrlCfgs) {
-        this.echoCancellationOn=ecCtrlCfgs.map((esc) => (esc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        //this.echoCancellationOn=ecCtrlCfgs.map((esc) => (esc.value)).reduce((prevVal,val)=>(prevVal || val),false);
+        for(let ecCtrlCfg of ecCtrlCfgs){
+          if(ecCtrlCfg.platform){
+            // TODO match ?
+          }else{
+            this.echoCancellationOn=ecCtrlCfg;
+            break;
+          }
+        }
       }
 
       this.selCaptureDeviceId=null;
@@ -100,12 +133,16 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       let selAfSs='';
       const pAf=prj.clientAudioStorageFormat;
       if(pAf){
-        const pAfSs=pAf.sampleSizeInBits;
-        if(pAfSs) {
-          selAfSs=pAfSs.valueOf().toString();
+        if(pAf.float ===true){
+          selAfSs='FLOAT';
+        }else {
+          const pAfSs = pAf.sampleSizeInBits;
+          if (pAfSs) {
+            selAfSs = pAfSs.valueOf().toString();
+          }
         }
       }
-      this.selStorageSampleSizeCtl.setValue(selAfSs,{emitEvent:false});
+      this.selStorageTypeCtl.setValue(selAfSs,{emitEvent:false});
 
       navigator.mediaDevices.enumerateDevices().then((l: MediaDeviceInfo[]) => {
         this.captureDeviceInfos=l.filter((d)=>(d.kind==='audioinput'));
@@ -127,35 +164,37 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     return cdi.label?cdi.label:'<Device name>';
   }
 
-  agcChange(ev: { checked: boolean; }){
-      this.agcOn=ev.checked;
+  agcChange(aCfg:AudioConfig){
+      this.agcOn=aCfg;
      const prj=this._bsProject.value;
 
       prj.autoGainControlConfigs=new Array<AutoGainControlConfig>();
      if(this.agcOn){
-       prj.autoGainControlConfigs.push({platform:null,value:true});
+       //prj.autoGainControlConfigs.push({platform:null,value:this.agcOn.value,constraintType:this.agcOn.constraintType});
+       prj.autoGainControlConfigs.push(this.agcOn);
      }
      this._bsProject.next(prj);
   }
 
-  noiseSuppressionChange(ev: { checked: boolean; }){
-    this.noiseSuppressionOn=ev.checked;
+  noiseSuppressionChange(aCfg:AudioConfig){
+    this.noiseSuppressionOn=aCfg;
     const prj=this._bsProject.value;
 
     prj.noiseSuppressionConfigs=new Array<NoiseSuppressionConfig>();
     if(this.noiseSuppressionOn){
-      prj.noiseSuppressionConfigs.push({platform:null,value:true});
+      prj.noiseSuppressionConfigs.push(this.noiseSuppressionOn);
     }
     this._bsProject.next(prj);
   }
 
-  echoCancellationChange(ev: { checked: boolean; }){
-    this.echoCancellationOn=ev.checked;
+  echoCancellationChange(aCfg:AudioConfig){
+    this.echoCancellationOn=aCfg;
     const prj=this._bsProject.value;
 
     prj.echoCancellationConfigs=new Array<EchoCancellationConfig>();
     if(this.echoCancellationOn){
-      prj.echoCancellationConfigs.push({platform:null,value:true});
+      //prj.echoCancellationConfigs.push({platform:null,value:this.echoCancellationOn.value,constraintType:this.echoCancellationOn.constraintType});
+      prj.echoCancellationConfigs.push(this.echoCancellationOn);
     }
     this._bsProject.next(prj);
   }
@@ -166,5 +205,6 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   //   prj.audioCaptureDeviceId=this.selCaptureDeviceId;
   //   this._bsProject.next(prj);
   // }
-  protected readonly SampleSize = SampleSize;
+
+
 }
