@@ -97,7 +97,7 @@
               "buildTarget": "WebSpeechRecorderNg:build:production"
             },
             "standalone": {
-              "browserTarget": "WebSpeechRecorderNg:build:standalone"
+              "buildTarget": "WebSpeechRecorderNg:build:standalone"
             },
             "development": {
               "buildTarget": "WebSpeechRecorderNg:build:development"

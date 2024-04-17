@@ -6,7 +6,7 @@ export interface ElementIntersection{
 }
 
 @Directive({
-  selector: '[updateObservation]',
+  selector: 'updateObservation',
   standalone: true,
 })
 export class IntersectionObserverDirective {

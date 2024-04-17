@@ -21,7 +21,7 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
 
         <tr *ngFor="let item of items; let itIdx=index;"
             (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
-            [updateObservation]="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
+            updateObservation="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
           <td>{{itIdx}}</td>
           <td class="promptDescriptor">{{item.promptAsString}}</td>
           <td>
@@ -56,15 +56,15 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
              border-collapse: collapse;
                  /* Tables do not have a natural min size */
                  /*min-width: 300px; */
-       
+
            }
-       
+
            table, th, td {
              border: 1px solid lightgrey;
              padding: 0.5em;
-       
+
            }
-       
+
            `, `
       .selRow {
         background: lightblue;
