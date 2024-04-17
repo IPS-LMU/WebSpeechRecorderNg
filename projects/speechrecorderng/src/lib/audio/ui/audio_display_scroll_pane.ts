@@ -22,27 +22,27 @@ import {AudioDataHolder} from "../audio_data_holder";
   `,
   styles: [
     `:host {
-      flex: 2;
-      width: 100%;
-      background: darkgray;
-      box-sizing: border-box;
-      height: 100%;
-      position: relative;
-      overflow-x: scroll;
-      overflow-y: auto;
-    }`,
+           flex: 2;
+           width: 100%;
+           background: darkgray;
+           box-sizing: border-box;
+           height: 100%;
+           position: relative;
+           overflow-x: scroll;
+           overflow-y: auto;
+         }`,
     `app-audio {
-
-    margin: 0;
-    padding: 0;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-
-    /*position: absolute;*/
-    box-sizing: border-box;
-  }`]
+     
+         margin: 0;
+         padding: 0;
+         top: 0;
+         left: 0;
+         width: 100%;
+         height: 100%;
+     
+         /*position: absolute;*/
+         box-sizing: border-box;
+       }`]
 
 })
 export class AudioDisplayScrollPane {

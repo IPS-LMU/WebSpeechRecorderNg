@@ -140,6 +140,7 @@ export class AudioCapture {
     this._persistentAudioStorageTarget = value;
   }
 
+
   get opened(): boolean {
     return this._opened;
   }
@@ -654,6 +655,7 @@ export class AudioCapture {
         forceDeprecatedScriptProcessor=true;
       }
       this.disconnectStreams = true;
+
       msc = {
         audio: {
           deviceId: selDeviceId,
@@ -743,6 +745,7 @@ export class AudioCapture {
         }else{
           this.nsStatus=false;
         }
+
         console.debug("Noise suppression: "+this.nsStatus);
 
         console.debug("Check echo cancellation "+mtrSts.echoCancellation);

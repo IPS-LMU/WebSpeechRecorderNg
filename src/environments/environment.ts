@@ -7,6 +7,7 @@ export const environment = {
   production: false,
   apiType: 'files',
   apiEndPoint: 'test',
+  apiVersion: 1,
   enableDownloadRecordings:true,
   enableUploadRecordings: false
 };

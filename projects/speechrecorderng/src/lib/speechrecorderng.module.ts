@@ -68,6 +68,8 @@ import { SettingsComponent } from './audio/ui/settings/settings.component';
 import {MatListModule} from "@angular/material/list";
 import {ReactiveFormsModule} from "@angular/forms";
 import { AudioConfigSwitchComponent } from './audio/ui/settings/audio-config-switch/audio-config-switch.component';
+import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
+
 
 
 

@@ -96,8 +96,8 @@ export const enum Status {
       <div [class.startstop]="!screenXs" [class.startstopscreenxs]="screenXs">
         <div style="align-content: center">
           <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
-            <mat-icon [style.color]="startStopNextIconColor()" inline="true">{{startStopNextIconName()}}</mat-icon>
-            <span style="font-weight: bolder;font-size: 14px">{{startStopNextName()}}</span>
+            <mat-icon class="bigbuttonicon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon>
+            <span class="bigbuttontext">{{startStopNextName()}}</span>
           </button>
         </div>
       </div>
@@ -149,11 +149,24 @@ export const enum Status {
     text-align: center;
     align-content: center;
   }`,`.bigbutton {
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    letter-spacing: normal;
     min-width: 70px;
     min-height: 50px;
-    font-size: 50px;
     border-radius: 20px;
-  }`,`.audioStatusDisplay{
+  }`,`.bigbuttonicon {
+    min-width: 50px;
+    min-height: 50px;
+    font-size: 50px;
+  }`,`.bigbuttontext {
+      font-weight: bolder;
+      font-size: 14px;
+      vertical-align: middle;
+  }
+  `,`.audioStatusDisplay{
     display:flex;
     flex-direction: row;
     height:100px;
@@ -400,6 +413,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       chCnt = ProjectUtil.audioChannelCount(project);
       console.info("Project requested recording channel count: " + chCnt);
       this.autoGainControlConfigs = project.autoGainControlConfigs;
+      if(project.allowEchoCancellation!==undefined) {
+        this.allowEchoCancellation = project.allowEchoCancellation;
+      }
       this.noiseSuppressionConfigs=project.noiseSuppressionConfigs;
       this.echoCancellationConfigs=project.echoCancellationConfigs;
       if (project.chunkedRecording === true) {

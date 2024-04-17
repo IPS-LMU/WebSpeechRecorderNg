@@ -141,6 +141,13 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
 }
 
 export abstract class BasicRecorder extends ResponsiveComponent{
+  get allowEchoCancellation(): boolean {
+    return this._allowEchoCancellation;
+  }
+
+  set allowEchoCancellation(value: boolean) {
+    this._allowEchoCancellation = value;
+  }
 
   protected updateTimerId: any;
 
@@ -224,6 +231,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   protected selCaptureDeviceId: ConstrainDOMString | null;
   protected _channelCount = 2;
   protected _autoGainControlConfigs: Array<AutoGainControlConfig> | null| undefined;
+  protected _allowEchoCancellation:boolean=false;
   protected _noiseSuppressionConfigs:Array<NoiseSuppressionConfig> | null | undefined;
   protected _echoCancellationConfigs:Array<EchoCancellationConfig> | null | undefined;
 

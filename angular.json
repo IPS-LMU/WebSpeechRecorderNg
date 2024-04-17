@@ -94,13 +94,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "WebSpeechRecorderNg:build:production"
+              "buildTarget": "WebSpeechRecorderNg:build:production"
             },
             "standalone": {
               "browserTarget": "WebSpeechRecorderNg:build:standalone"
             },
             "development": {
-              "browserTarget": "WebSpeechRecorderNg:build:development"
+              "buildTarget": "WebSpeechRecorderNg:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -108,7 +108,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "WebSpeechRecorderNg:build"
+            "buildTarget": "WebSpeechRecorderNg:build"
           }
         },
         "test": {

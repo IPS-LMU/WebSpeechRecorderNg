@@ -54,9 +54,9 @@ import {AudioClip} from "../persistor";
         </div>`,
     styles: [
         `:host {
-        flex: 0;
-
-      }`]
+                 flex: 0;
+         
+               }`]
 
   })
 	export class AudioDisplayControl {

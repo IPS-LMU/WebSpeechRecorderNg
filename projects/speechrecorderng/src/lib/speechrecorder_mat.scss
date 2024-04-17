@@ -1,12 +1,12 @@
 .monospaced{font-family:monospace}
 
-.mat-cell,.mat-header-cell {
+.mat-mdc-cell,.mat-mdc-header-cell {
   padding-left: 5px;
   padding-right: 5px;
 
 }
 
-.mat-card,.mat-card-header,.mat-card-content{
+.mat-mdc-card,.mat-mdc-card-header,.mat-mdc-card-content{
   width:auto;
 }
 
@@ -27,6 +27,14 @@ https://github.com/angular/flex-layout/wiki/fxFlexFill-API
   height: 100%;
   min-width: 100%;
   min-height:100%;
+}
+
+.spr-button-icon{
+  font-size: 24px;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 

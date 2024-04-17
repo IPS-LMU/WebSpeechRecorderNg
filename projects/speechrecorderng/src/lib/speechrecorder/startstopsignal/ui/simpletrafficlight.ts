@@ -36,16 +36,16 @@ import {StartStopSignal, State} from '../startstopsignal'
       background: black;
     }`,
       `:host {
-      display: flex;
-      flex-direction: column;
-      background: black;
-          
-      padding: 2px;
-      height: 170px;
-      max-height: 170px;
-      flex: 0 0 content;
-    }
-    `]
+             display: flex;
+             flex-direction: column;
+             background: black;
+                 
+             padding: 2px;
+             height: 170px;
+             max-height: 170px;
+             flex: 0 0 content;
+           }
+           `]
 })
 export class SimpleTrafficLight implements StartStopSignal {
 

@@ -24,6 +24,11 @@ md-toolbar {
   box-sizing: border-box;
 }
 
+/* Does not work */
+.spr-mat-icon {
+  font-size: 24px;
+}
+
 /*router-outlet {*/
   /*//flex: 1;*/
   /*height: 100%;*/

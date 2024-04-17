@@ -76,6 +76,7 @@ export interface Project {
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
   noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>,
   echoCancellationConfigs?:Array<EchoCancellationConfig>,
+  allowEchoCancellation?:boolean,
   audioDevices?: Array<AudioDevice>,
   audioCaptureDeviceId?:string,
   chunkedRecording?: boolean,

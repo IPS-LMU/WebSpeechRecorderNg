@@ -361,6 +361,9 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       this.sm.autoGainControlConfigs=project.autoGainControlConfigs;
       this.sm.noiseSuppressionConfigs=project.noiseSuppressionConfigs;
       this.sm.echoCancellationConfigs=project.echoCancellationConfigs;
+      if(project.allowEchoCancellation!==undefined) {
+        this.sm.allowEchoCancellation = project.allowEchoCancellation;
+      }
       if(project.chunkedRecording===true){
         console.debug("Enable chunked upload: chunkSize: "+BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS)
         this.sm.uploadChunkSizeSeconds=BasicRecorder.DEFAULT_CHUNK_SIZE_SECONDS;

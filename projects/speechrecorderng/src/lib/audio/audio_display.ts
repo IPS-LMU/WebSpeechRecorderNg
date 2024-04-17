@@ -30,18 +30,18 @@ import {AudioDataHolder} from "./audio_data_holder";
   `,
   styles: [
       `:host {
-      display: flex;
-      flex-direction: column;
-      position: absolute;
-      bottom: 0px;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: rgba(230, 230, 230, 1.0)
-    }`,`
+             display: flex;
+             flex-direction: column;
+             position: absolute;
+             bottom: 0px;
+             height: 100%;
+             width: 100%;
+             overflow: hidden;
+             padding: 20px;
+             z-index: 5;
+             box-sizing: border-box;
+             background-color: rgba(230, 230, 230, 1.0)
+           }`,`
           legend{
               margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
       }`,`

@@ -43,16 +43,16 @@ import {MatSnackBar} from "@angular/material/snack-bar";
   `,
   styles: [
     `:host {
-          flex: 2;
-          display: flex;
-          flex-direction: column;
-          min-height:0;
-          overflow: hidden;
-      padding: 20px;
-      z-index: 5;
-      box-sizing: border-box;
-      background-color: white;
-    }`,`
+               flex: 2;
+               display: flex;
+               flex-direction: column;
+               min-height:0;
+               overflow: hidden;
+           padding: 20px;
+           z-index: 5;
+           box-sizing: border-box;
+           background-color: white;
+         }`,`
         .ctrlview{
           display: flex;
           flex-direction: row;
