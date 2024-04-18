@@ -537,7 +537,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   downloadRecording() {
     if (this.displayRecFile) {
       let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
-      let ww = new WavWriter();
+      let ww = new WavWriter(this.project?.clientAudioStorageFormat?.float,this.project?.clientAudioStorageFormat?.sampleSizeInBits);
       let as=ab?.audioSource;
       if(as instanceof AudioBufferSource) {
           ww.writeAsync(as.audioBuffer, (wavFile) => {
@@ -1077,7 +1077,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
-    let ww = new WavWriter();
+    let ww = new WavWriter(this.project?.clientAudioStorageFormat?.float,this.project?.clientAudioStorageFormat?.sampleSizeInBits);
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     let rf=this._recordingFile;
