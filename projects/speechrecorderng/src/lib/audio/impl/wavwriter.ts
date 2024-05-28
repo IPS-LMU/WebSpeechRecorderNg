@@ -81,44 +81,7 @@ export enum SampleSize {INT16=16,INT32=32}
        // sample size in bits (PCM format only)
        this.bw.writeUint16(this.sampleSizeInBits,true);
        if(this.encodingFloat===true){
-         //this.bw.writeUint16(22,true);
-         // //wValidBitsPerSample
-         // this.bw.writeUint16(25,true);
-         //
-         // // Channel mask (Loudspeaker position mask)
-         // let dwChannelmask=0;
-         // if(audioBuffer.numberOfChannels===1){
-         //   dwChannelmask=0x04;  //SPEAKER_FRONT_CENTER
-         // }else if(audioBuffer.numberOfChannels===2){
-         //   dwChannelmask=0x01 | 0x02; //SPEAKER_FRONT_LEFT, SPEAKER_FRONT_RIGHT
-         // }
-         // this.bw.writeUint16(dwChannelmask,true);
-         // // Subformat
-         // this.bw.writeUint16(WavFileFormat.WAVE_FORMAT_IEEE_FLOAT, true);
-         //
-         // this.bw.writeUint8(0x00);
-         // this.bw.writeUint8(0x00);
-         //
-         // this.bw.writeUint8(0x00);
-         // this.bw.writeUint8(0x00);
-         //
-         // this.bw.writeUint8(0x10);
-         // this.bw.writeUint8(0x00);
-         //
-         // this.bw.writeUint8(0x80);
-         // this.bw.writeUint8(0x00);
-         //
-         // this.bw.writeUint8(0x00);
-         // this.bw.writeUint8(0xAA);
-         //
-         // this.bw.writeUint8(0x00);
-         // this.bw.writeUint8(0x38);
-         //
-         // this.bw.writeUint8(0x9B);
-         // this.bw.writeUint8(0x71);
-
          this.bw.writeUint16(0,true);
-
        }
      }
 
