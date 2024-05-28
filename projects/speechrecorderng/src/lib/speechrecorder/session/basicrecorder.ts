@@ -5,7 +5,7 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
-import {AudioDevice, AudioStorageFormat,AudioStorageType, AutoGainControlConfig} from "../project/project";
+import {AudioDevice, MediaStorageFormat,AudioStorageType, AutoGainControlConfig} from "../project/project";
 import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
@@ -174,12 +174,12 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     }
   }
 
-  get clientAudioStorageFormat(): AudioStorageFormat|undefined {
-    return this._clientAudioStorageFormat;
+  get clientMediaStorageFormat(): MediaStorageFormat|undefined {
+    return this._clientMediaStorageFormat;
   }
 
-  set clientAudioStorageFormat(value: AudioStorageFormat |undefined) {
-    this._clientAudioStorageFormat = value;
+  set clientMediaStorageFormat(value: MediaStorageFormat |undefined) {
+    this._clientMediaStorageFormat = value;
   }
   get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
     return this._persistentAudioStorageTarget;
@@ -263,7 +263,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
   protected _clientAudioStorageType:AudioStorageType=AudioStorageType.MEM_ENTIRE;
-  protected _clientAudioStorageFormat:AudioStorageFormat|undefined=undefined;
+  protected _clientMediaStorageFormat:MediaStorageFormat|undefined=undefined;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
