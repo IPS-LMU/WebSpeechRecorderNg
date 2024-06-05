@@ -48,7 +48,7 @@ export const enum Status {
 
 @Component({
   selector: 'app-audiorecorder',
-  providers: [SessionService],
+  //providers: [SessionService],
   template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()"
@@ -1247,6 +1247,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
     //const standaloneProject=this.projectService.projectStandalone();
     //const bsStandalonePrj=this.projectService.behaviourSubjectProject();
     //const standaloneProject={name:'Standalone'}
+    console.debug("loadStandaloneSession(): Get session behavior subject for session");
     const bsSess=this.sessionService.behaviourSubjectSession();
     //const session=bsSess.getValue();
     bsSess.subscribe((sess)=>{

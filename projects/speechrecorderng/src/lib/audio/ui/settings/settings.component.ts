@@ -39,9 +39,11 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   protected float:boolean=false;
   protected readonly sampleSize = SampleSize;
   selStorageTypeCtl=new FormControl('selStorageSampleSize');
+
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService,private sessionService:SessionService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
+    console.debug("Settings: Get session behavior subject for session");
     this._bsSession=this.sessionService.behaviourSubjectSession();
     console.debug("Settings: Got session behavior subject.")
     this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
