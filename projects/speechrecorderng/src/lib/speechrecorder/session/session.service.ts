@@ -3,8 +3,9 @@ import {HttpClient} from "@angular/common/http";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
 import {UUID} from "../../utils/utils";
-import {Observable} from "rxjs";
+import {BehaviorSubject, Observable} from "rxjs";
 import {ProjectService} from "../project/project.service";
+import {Project} from "../project/project";
 
 
 
@@ -18,8 +19,9 @@ export class SessionService {
   private readonly sessionsUrl:string;
   private readonly withCredentials:boolean=false;
   private _uploadCount=0;
+  private _behaviourSubjectSession:BehaviorSubject<Session>|null=null;
 
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+  constructor(private http:HttpClient,private projectService:ProjectService,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
     if(config && config.apiEndPoint) {
       this.apiEndPoint=config.apiEndPoint;
@@ -90,6 +92,16 @@ export class SessionService {
   // }
   //
 
+  behaviourSubjectSession(): BehaviorSubject<Session> {
+    if(!this._behaviourSubjectSession){
+      const bsStandalonePrj=this.projectService.behaviourSubjectProject();
+      const newSess:Session={sessionId:0,project:bsStandalonePrj.value.name,status:'LOADED',type:"NORM",script:0};
+
+      this._behaviourSubjectSession=new BehaviorSubject<Session>(newSess);
+      console.debug("Behavior subject for session created.");
+    }
+    return this._behaviourSubjectSession;
+  }
 
 }
 

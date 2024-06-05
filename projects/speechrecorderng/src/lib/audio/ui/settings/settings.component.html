@@ -36,6 +36,20 @@
     </mat-card-content>
 </mat-card>
 <mat-card>
+  <mat-card-title>Gain boost</mat-card-title>
+  <mat-card-content>
+    <mat-form-field style="width: fit-content;max-width: 100%;">
+      <mat-select [formControl]="selGainDbCtl" style="width:fit-content;max-width: 100%">
+        <mat-option style="width: fit-content;max-width: 100%" value="0">O dB (Off)</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" value="6">6 dB</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" value="12">12 dB</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" value="18">18 dB</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" value="24">24 dB</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-card-content>
+</mat-card>
+<mat-card>
   <mat-card-title>Audio storage</mat-card-title>
   <mat-card-content>
 <mat-form-field style="width: fit-content;max-width: 100%;">

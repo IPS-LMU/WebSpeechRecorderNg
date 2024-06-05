@@ -13,6 +13,9 @@ import {SelectionChange} from "@angular/cdk/collections";
 import {FormControl} from "@angular/forms";
 import {SampleSize} from "../../impl/wavwriter";
 
+import {Session} from "../../../speechrecorder/session/session";
+import {SessionService} from "../../../speechrecorder/session/session.service";
+
 @Component({
   selector: 'lib-settings',
   templateUrl: './settings.component.html',
@@ -23,6 +26,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
   private _bsProject:BehaviorSubject<Project>;
   private _bsPrjSubscription:Subscription|null=null;
+  private _bsSession:BehaviorSubject<Session>;
   mediaTrackSupportedConstraints:MediaTrackSupportedConstraints;
   agcOn:AudioConfig|undefined=undefined;
   noiseSuppressionOn:AudioConfig|undefined=undefined;
@@ -30,12 +34,16 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
+  ginaDb=0;
+  selGainDbCtl=new FormControl('selGainDb');
   protected float:boolean=false;
   protected readonly sampleSize = SampleSize;
   selStorageTypeCtl=new FormControl('selStorageSampleSize');
-  constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService
+  constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService,private sessionService:SessionService
   ) {
     this._bsProject=this.projectService.behaviourSubjectProject();
+    this._bsSession=this.sessionService.behaviourSubjectSession();
+    console.debug("Settings: Got session behavior subject.")
     this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
     console.info("Supported sampleSize setting: "+this.mediaTrackSupportedConstraints.sampleSize);
   }
@@ -73,6 +81,21 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       }
       //this._bsProject.unsubscribe();
       this._bsProject.next(prj);
+    });
+
+    this.selGainDbCtl.valueChanges.subscribe((selGainDbStr)=>{
+      const sess=this._bsSession.value;
+      console.debug("Gain dB changed: "+selGainDbStr);
+      sess.audioCaptureGain=undefined;
+      if(selGainDbStr!==null && selGainDbStr!==''){
+        const newGainDb=Number.parseFloat(selGainDbStr);
+
+        sess.audioCaptureGain=Math.pow(10, (newGainDb/10));
+        console.debug("Gain changed: "+sess.audioCaptureGain);
+      }
+      //this._bsProject.unsubscribe();
+      this._bsSession.next(sess);
+      console.debug("Session update");
     });
   }
 

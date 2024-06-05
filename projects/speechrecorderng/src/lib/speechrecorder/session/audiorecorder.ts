@@ -39,6 +39,7 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {BehaviorSubject} from "rxjs";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -1166,7 +1167,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   _project:Project|undefined;
   sessionId!: string;
-  session!:Session;
+  private behaviourSubjectSession:BehaviorSubject<Session>|null=null;
 
   @ViewChild(AudioRecorder, { static: true }) ar!:AudioRecorder;
 
@@ -1244,15 +1245,26 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
 
   loadStandaloneSession(){
     //const standaloneProject=this.projectService.projectStandalone();
-    const bsStandalonePrj=this.projectService.behaviourSubjectProject();
+    //const bsStandalonePrj=this.projectService.behaviourSubjectProject();
     //const standaloneProject={name:'Standalone'}
-    this.session={sessionId:0,project:bsStandalonePrj.value.name,status:'LOADED',type:"NORM",script:0};
-    bsStandalonePrj.subscribe((prj)=>{
+    const bsSess=this.sessionService.behaviourSubjectSession();
+    //const session=bsSess.getValue();
+    bsSess.subscribe((sess)=>{
+      console.debug("Session configuration changed. Restart audio recorder.")
+      this.ar.stop();
+      this.ar.session=sess;
+      this.ar.start();
+    });
+    console.debug("Subscribed to session behavior subject.")
+    this.behaviourSubjectSession=bsSess;
+
+    const bsPrj=this.projectService.behaviourSubjectProject();
+    bsPrj.subscribe((prj)=>{
       console.debug("Project configuration changed. Restart audio recorder.")
       this.ar.stop();
       this.ar.project=prj;
       this.ar.start();
-    })
+    });
 
   }
 
@@ -1271,7 +1283,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
           this.ar.statusAlertType='info';
           this.ar.statusMsg = 'Received session info.';
           this.ar.statusWaiting=false;
-          this.session=sess;
+          //this.session=sess;
           this.ar.session=sess;
           if (sess.project) {
             //console.debug("Session associated project: "+sess.project)

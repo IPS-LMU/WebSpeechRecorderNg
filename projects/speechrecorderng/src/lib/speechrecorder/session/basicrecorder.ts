@@ -700,7 +700,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
         } else {
           console.log("Open session with default audio device for " + this._channelCount + " channels");
         }
-        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._noiseSuppressionConfigs,this._echoCancellationConfigs);
+        this.ac.open(this._channelCount, this._selectedDeviceId, this._autoGainControlConfigs,this._noiseSuppressionConfigs,this._echoCancellationConfigs,this.session?.audioCaptureGain);
       } else {
         this.ac.start();
       }

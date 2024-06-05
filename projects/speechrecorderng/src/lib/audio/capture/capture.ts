@@ -176,7 +176,7 @@ export class AudioCapture {
   private persistError:Error|null=null;
   private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
-  private gain:number|null=null;
+  //private gain:number|null=null;
 
 
   //private context:AudioContext|null=null;
@@ -427,7 +427,8 @@ export class AudioCapture {
        selDeviceId?: ConstrainDOMString | undefined,
        autoGainControlConfigs?: Array<AutoGainControlConfig> | null | undefined,
        noiseSuppressionConfigs?: Array<NoiseSuppressionConfig> | null | undefined,
-       echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined){
+       echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined,
+       gain?:number|null|undefined){
     //console.debug("Capture open: ctx state: "+this.context.state);
     this.context=this._audioContext();
     if(!this.context){
@@ -447,7 +448,7 @@ export class AudioCapture {
         console.error(msg);
         throw new Error(msg);
     }else {
-      this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs,echoCancellationConfigs);
+      this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs,echoCancellationConfigs,gain);
     }
 
   }
@@ -456,7 +457,11 @@ export class AudioCapture {
         selDeviceId?: ConstrainDOMString|undefined,
         autoGainControlConfigs?:Array<AutoGainControlConfig>|null|undefined,
         noiseSuppressionConfigs?:Array<NoiseSuppressionConfig>|null|undefined,
-        echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined) {
+        echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined,
+        gain?:number|null|undefined) {
+
+    const _gain:number|null=gain?gain:null;
+
 
     let forceDeprecatedScriptProcessor=false;
 
@@ -764,12 +769,14 @@ export class AudioCapture {
         console.info("Track video info: id: " + vTrack.id + " kind: " + vTrack.kind + " label: " + vTrack.label);
       }
       const msSrc= this.context.createMediaStreamSource(s);
-      if(this.gain!==null){
+      if(_gain!==null){
         const gainNode=this.context.createGain();
-        gainNode.gain.value=this.gain;
+        gainNode.gain.value=_gain;
         msSrc.connect(gainNode);
         this.mediaStream=gainNode;
+        console.debug("Gain node with value: "+_gain+" applied.")
       }else{
+        console.debug("No gain node applied.")
         this.mediaStream=msSrc;
       }
 
