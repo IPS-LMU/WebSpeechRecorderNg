@@ -3,9 +3,10 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { SpeechrecorderngComponent} from './speechrecorderng.component';
 import {RouterTestingModule} from "@angular/router/testing";
 import {SpeechrecorderngService} from "./speechrecorderng.service";
-import {HttpClientTestingModule} from "@angular/common/http/testing";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import {SpeechrecorderngModule} from "./speechrecorderng.module";
 import {SPR_CFG} from "../../../../src/app/app.config";
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SpeechrecorderngComponent', () => {
   let component: SpeechrecorderngComponent;
@@ -13,9 +14,10 @@ describe('SpeechrecorderngComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule,RouterTestingModule,SpeechrecorderngModule.forRoot(SPR_CFG)],
-      declarations: [ SpeechrecorderngComponent ]
-    })
+    declarations: [SpeechrecorderngComponent],
+    imports: [RouterTestingModule, SpeechrecorderngModule.forRoot(SPR_CFG)],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
   }));
   //
