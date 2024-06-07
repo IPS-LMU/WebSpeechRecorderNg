@@ -19,7 +19,7 @@ export class SessionService {
   private readonly sessionsUrl:string;
   private readonly withCredentials:boolean=false;
   private _uploadCount=0;
-  private _behaviourSubjectSession:BehaviorSubject<Session>|null=null;
+  private static _behaviourSubjectSession:BehaviorSubject<Session>|null=null;
 
   constructor(private http:HttpClient,private projectService:ProjectService,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
@@ -92,15 +92,15 @@ export class SessionService {
   // }
   //
 
-  behaviourSubjectSession(): BehaviorSubject<Session> {
-    if(!this._behaviourSubjectSession){
-      const bsStandalonePrj=this.projectService.behaviourSubjectProject();
+  static behaviourSubjectSession(): BehaviorSubject<Session> {
+    if(!SessionService._behaviourSubjectSession){
+      const bsStandalonePrj=ProjectService.behaviourSubjectProject();
       const newSess:Session={sessionId:0,project:bsStandalonePrj.value.name,status:'LOADED',type:"NORM",script:0};
 
-      this._behaviourSubjectSession=new BehaviorSubject<Session>(newSess);
+      SessionService._behaviourSubjectSession=new BehaviorSubject<Session>(newSess);
       console.debug("Behavior subject for session created.");
     }
-    return this._behaviourSubjectSession;
+    return SessionService._behaviourSubjectSession;
   }
 
 }

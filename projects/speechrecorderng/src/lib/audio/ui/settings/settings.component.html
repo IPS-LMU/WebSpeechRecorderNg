@@ -9,8 +9,25 @@
 -->
 <h1 mat-dialog-title>Settings</h1>
 <mat-card>
+  <mat-card-header>
+    <mat-card-title>Audio capture device</mat-card-title>
+  </mat-card-header>
   <mat-card-content>
+    <mat-form-field style="width: fit-content;max-width: 100%;">
+
+      <mat-select [formControl]="selCaptureDeviceCtl" style="width:fit-content;max-width: 100%">
+        <mat-option style="width: fit-content;max-width: 100%" value="">Default</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" [value]="cdi.deviceId" *ngFor="let cdi of captureDeviceInfos;let i = index">{{i}}: {{mediaDeviceInfoToStr(cdi)}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <p style="font-size: small">Note: The correct audio device names are only available when the user granted permission to the device. Permission will be requested before start of recording.</p>
+  </mat-card-content>
+</mat-card>
+<mat-card>
+  <mat-card-header>
     <mat-card-title>Audio capture options</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
 <div style="display: flex;flex-direction: column">
   <!--<mat-checkbox value="false" [checked]="agcOn && mediaTrackSupportedConstraints.autoGainControl==true" (change)="agcChange($event)" [disabled]="mediaTrackSupportedConstraints.autoGainControl==false">Automatic gain control (AGC) <span *ngIf="!(mediaTrackSupportedConstraints.autoGainControl==true)">(not supported)</span></mat-checkbox>
   <mat-checkbox value="false" [checked]="noiseSuppressionOn && mediaTrackSupportedConstraints.noiseSuppression==true" (change)="noiseSuppressionChange($event)" [disabled]="mediaTrackSupportedConstraints.noiseSuppression==false">Noise suppression <span *ngIf="!(mediaTrackSupportedConstraints.noiseSuppression==true)">(not supported)</span></mat-checkbox>
@@ -22,35 +39,27 @@
 </div>
   </mat-card-content>
 </mat-card>
-<mat-card>
-  <mat-card-title>Audio capture device</mat-card-title>
-  <mat-card-content>
-  <mat-form-field style="width: fit-content;max-width: 100%;">
 
- <mat-select [formControl]="selCaptureDeviceCtl" style="width:fit-content;max-width: 100%">
-   <mat-option style="width: fit-content;max-width: 100%" value="">Default</mat-option>
-   <mat-option style="width: fit-content;max-width: 100%" [value]="cdi.deviceId" *ngFor="let cdi of captureDeviceInfos;let i = index">{{i}}: {{mediaDeviceInfoToStr(cdi)}}</mat-option>
- </mat-select>
-  </mat-form-field>
-    <p style="font-size: small">Note: The correct audio device names are only available when the user granted permission to the device. Permission will be requested before start of recording.</p>
-    </mat-card-content>
-</mat-card>
 <mat-card>
-  <mat-card-title>Gain boost</mat-card-title>
+  <mat-card-header>
+    <mat-card-title>Gain boost</mat-card-title>
+  </mat-card-header>
   <mat-card-content>
     <mat-form-field style="width: fit-content;max-width: 100%;">
       <mat-select [formControl]="selGainDbCtl" style="width:fit-content;max-width: 100%">
-        <mat-option style="width: fit-content;max-width: 100%" value="0">O dB (Off)</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" value="0">0 dB (Off)</mat-option>
+        <mat-option style="width: fit-content;max-width: 100%" value="3">3 dB</mat-option>
         <mat-option style="width: fit-content;max-width: 100%" value="6">6 dB</mat-option>
         <mat-option style="width: fit-content;max-width: 100%" value="12">12 dB</mat-option>
         <mat-option style="width: fit-content;max-width: 100%" value="18">18 dB</mat-option>
-        <mat-option style="width: fit-content;max-width: 100%" value="24">24 dB</mat-option>
       </mat-select>
     </mat-form-field>
   </mat-card-content>
 </mat-card>
 <mat-card>
+  <mat-card-header>
   <mat-card-title>Audio storage</mat-card-title>
+  </mat-card-header>
   <mat-card-content>
 <mat-form-field style="width: fit-content;max-width: 100%;">
   <mat-select [formControl]="selStorageTypeCtl" style="width:fit-content;max-width: 100%">

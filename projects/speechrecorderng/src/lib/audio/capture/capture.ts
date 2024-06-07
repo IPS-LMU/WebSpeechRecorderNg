@@ -157,6 +157,7 @@ export class AudioCapture {
   agcStatus:boolean|null=null;
   nsStatus:boolean|null=null;
   ecStatus:boolean|null=null;
+  gainDb:number|null=null;
   bufferingNode: AudioNode|null=null;
   listener!: AudioCaptureListener;
   data: Array<Array<Float32Array>>|null=null;
@@ -438,7 +439,7 @@ export class AudioCapture {
       //console.debug("Capture open: Resume context");
       this.context.resume().then(()=>{
         //console.debug("Capture open (ctx resumed): ctx state: "+this.context.state);
-        this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs,echoCancellationConfigs);
+        this._open(channelCount, selDeviceId, autoGainControlConfigs,noiseSuppressionConfigs,echoCancellationConfigs,gain);
       }).catch((err)=>{
         console.error(err.message);
         throw err;
@@ -460,8 +461,11 @@ export class AudioCapture {
         echoCancellationConfigs?:Array<EchoCancellationConfig>|null|undefined,
         gain?:number|null|undefined) {
 
-    const _gain:number|null=gain?gain:null;
-
+    let _gain:number|null=null;
+    if(gain){
+      _gain=gain;
+    }
+    this.gainDb=null;
 
     let forceDeprecatedScriptProcessor=false;
 
@@ -774,10 +778,12 @@ export class AudioCapture {
         gainNode.gain.value=_gain;
         msSrc.connect(gainNode);
         this.mediaStream=gainNode;
-        console.debug("Gain node with value: "+_gain+" applied.")
+        this.gainDb=10*Math.log10(_gain);
+        console.debug("Gain node with value: "+_gain+" applied.");
       }else{
         console.debug("No gain node applied.")
         this.mediaStream=msSrc;
+        this.gainDb=null;
       }
 
       // stream channel count ( is always 2 !)

@@ -42,9 +42,9 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
   constructor(public dialogRef: MatDialogRef<SettingsComponent>,private projectService:ProjectService,private sessionService:SessionService
   ) {
-    this._bsProject=this.projectService.behaviourSubjectProject();
+    this._bsProject=ProjectService.behaviourSubjectProject();
     console.debug("Settings: Get session behavior subject for session");
-    this._bsSession=this.sessionService.behaviourSubjectSession();
+    this._bsSession=SessionService.behaviourSubjectSession();
     console.debug("Settings: Got session behavior subject.")
     this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
     console.info("Supported sampleSize setting: "+this.mediaTrackSupportedConstraints.sampleSize);
@@ -88,12 +88,14 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     this.selGainDbCtl.valueChanges.subscribe((selGainDbStr)=>{
       const sess=this._bsSession.value;
       console.debug("Gain dB changed: "+selGainDbStr);
+      sess.audioCaptureGainDb=undefined;
       sess.audioCaptureGain=undefined;
+
       if(selGainDbStr!==null && selGainDbStr!==''){
         const newGainDb=Number.parseFloat(selGainDbStr);
-
+        sess.audioCaptureGainDb=newGainDb;
         sess.audioCaptureGain=Math.pow(10, (newGainDb/10));
-        console.debug("Gain changed: "+sess.audioCaptureGain);
+        console.debug("Gain changed: "+sess.audioCaptureGainDb+" dB");
       }
       //this._bsProject.unsubscribe();
       this._bsSession.next(sess);
@@ -105,6 +107,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
     //this._bsPrjSubscription=this._bsProject.subscribe((prj)=>{
     const prj=this._bsProject.value;
+    const sess=this._bsSession.value;
       const agcCtrlCfgs=this.projectService.projectStandalone().autoGainControlConfigs;
       const nsCtrlCfgs=this.projectService.projectStandalone().noiseSuppressionConfigs;
       const ecCtrlCfgs=this.projectService.projectStandalone().echoCancellationConfigs;
@@ -154,6 +157,13 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
         selCaptureDevIdStr=this.selCaptureDeviceId;
       }
       this.selCaptureDeviceCtl.setValue(selCaptureDevIdStr,{emitEvent:false});
+
+      const gainDb=sess.audioCaptureGainDb;
+      if(gainDb!==undefined){
+        this.selGainDbCtl.setValue(gainDb.toString());
+      }else{
+        this.selGainDbCtl.setValue("0");
+      }
 
       let selAfSs='';
       const pAf=prj.clientAudioStorageFormat;

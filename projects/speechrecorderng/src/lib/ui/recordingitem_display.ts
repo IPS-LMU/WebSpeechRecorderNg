@@ -37,7 +37,8 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
           <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr>
           <tr *ngIf="_ns"><td>NS:</td><td><span matTooltip="Noise suppression">{{nsString}}</span></td></tr>
-          <tr *ngIf="_ec"><td>EC:</td><td><span matTooltip="Echo cnacellation">{{ecString}}</span></td></tr>
+          <tr *ngIf="_ec"><td>EC:</td><td><span matTooltip="Echo cancellation">{{ecString}}</span></td></tr>
+          <tr *ngIf="_gainDb"><td>Gain:</td><td><span matTooltip="Audio capture gain">{{gainDbString}}</span></td></tr>
         </table></div>
     `,
   styles: [`:host {
@@ -83,6 +84,9 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
   _ec:boolean|null|undefined=undefined;
   ecString='n/a';
 
+  _gainDb:number|null|undefined=undefined;
+  gainDbString='n/a';
+
   @Input() set agc(agc:boolean|null|undefined){
     this._agc=agc;
     if(this._agc===undefined || this._agc===null){
@@ -122,7 +126,14 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
     }
   }
 
-
+  @Input() set gainDb(gainDb:number|null|undefined){
+    this._gainDb=gainDb;
+    if(this._gainDb===undefined || this._gainDb===null){
+      this.gainDbString='0 dB';
+    }else{
+      this.gainDbString=this._gainDb.toString()+' dB';
+    }
+  }
 
   @Output() onShowRecordingDetails: EventEmitter<void> = new EventEmitter<void>();
   @Output() onDownloadRecording: EventEmitter<void> = new EventEmitter<void>();

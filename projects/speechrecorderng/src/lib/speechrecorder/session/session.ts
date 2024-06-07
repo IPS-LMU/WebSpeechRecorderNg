@@ -14,6 +14,7 @@ export interface Session{
   startedDate?:Date,
   completedDate?:Date,
   restartedDate?:Date,
+  audioCaptureGainDb?:number,
   audioCaptureGain?:number,
   project: string,
   script: string | number | null

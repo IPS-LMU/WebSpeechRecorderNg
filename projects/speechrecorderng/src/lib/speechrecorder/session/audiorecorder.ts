@@ -65,7 +65,8 @@ export const enum Status {
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel"
+                      [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="flex:10 0 1px"
@@ -78,6 +79,7 @@ export const enum Status {
                                    [agc]="this.ac?.agcStatus"
                                    [noiseSuppression]="this.ac?.nsStatus"
                                    [echoCancellation]="this.ac?.ecStatus"
+                                   [gainDb]="this.ac?.gainDb"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                                    (onDownloadRecording)="downloadRecording()">
         </spr-recordingitemcontrols>
@@ -1248,7 +1250,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
     //const bsStandalonePrj=this.projectService.behaviourSubjectProject();
     //const standaloneProject={name:'Standalone'}
     console.debug("loadStandaloneSession(): Get session behavior subject for session");
-    const bsSess=this.sessionService.behaviourSubjectSession();
+    const bsSess=SessionService.behaviourSubjectSession();
     //const session=bsSess.getValue();
     bsSess.subscribe((sess)=>{
       console.debug("Session configuration changed. Restart audio recorder.")
@@ -1259,7 +1261,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
     console.debug("Subscribed to session behavior subject.")
     this.behaviourSubjectSession=bsSess;
 
-    const bsPrj=this.projectService.behaviourSubjectProject();
+    const bsPrj=ProjectService.behaviourSubjectProject();
     bsPrj.subscribe((prj)=>{
       console.debug("Project configuration changed. Restart audio recorder.")
       this.ar.stop();

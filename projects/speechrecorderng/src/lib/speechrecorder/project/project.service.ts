@@ -19,7 +19,7 @@ export class ProjectService {
   private readonly withCredentials:boolean=false;
 
   //private standaloneProject:Project|null=null;
-  private _behaviourSubjectProject:BehaviorSubject<Project>|null=null;
+  private static _behaviourSubjectProject:BehaviorSubject<Project>|null=null;
 
   constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
 
@@ -70,17 +70,18 @@ export class ProjectService {
    }
 
    projectStandalone():Project{
-    return this.behaviourSubjectProject().value;
+    return ProjectService.behaviourSubjectProject().value;
    }
 
-  behaviourSubjectProject(): BehaviorSubject<Project> {
-    if(!this._behaviourSubjectProject){
+  static behaviourSubjectProject(): BehaviorSubject<Project> {
+    if(!ProjectService._behaviourSubjectProject){
       const newPrj:Project={name: 'Standalone'};
       newPrj.mediaCaptureFormat={audioChannelCount:1};
-      newPrj.autoGainControlConfigs=[{platform:null,value:true}];
-      this._behaviourSubjectProject=new BehaviorSubject<Project>(newPrj);
+      //newPrj.autoGainControlConfigs=[{platform:null,value:true}];
+      newPrj.echoCancellationConfigs=[{platform:null,value:false}];
+      ProjectService._behaviourSubjectProject=new BehaviorSubject<Project>(newPrj);
     }
-    return this._behaviourSubjectProject;
+    return ProjectService._behaviourSubjectProject;
   }
 
 }

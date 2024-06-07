@@ -20,7 +20,7 @@ import {MatCardModule} from "@angular/material/card";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {MatSidenavModule} from "@angular/material/sidenav";
 import {SPEECHRECORDER_CONFIG,
-  SpeechrecorderngModule,AudioDisplayPlayer,ProjectService
+  SpeechrecorderngModule,AudioDisplayPlayer
 } from 'speechrecorderng'
 
 
@@ -51,7 +51,7 @@ const appRoutes: Routes = [
     BrowserModule,
     SpeechrecorderngModule.forRoot(SPR_CFG), MatCardModule, MatCheckboxModule, MatSidenavModule
   ],
-  providers: [ProjectService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule {
