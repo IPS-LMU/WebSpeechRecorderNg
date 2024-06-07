@@ -9,15 +9,15 @@ export enum SampleSize {INT16=16,INT32=32}
 
      static readonly DEFAULT_SAMPLE_SIZE:SampleSize = SampleSize.INT16;
      private readonly sampleSizeInBytes:number=WavWriter.DEFAULT_SAMPLE_SIZE.valueOf()/8;
-     private float:boolean=false;
+     private encodingFloat:boolean=false;
      private sampleSize=WavWriter.DEFAULT_SAMPLE_SIZE;
      private sampleSizeInBits=this.sampleSize.valueOf();
      private bw:BinaryByteWriter;
      private workerURL: string|null=null;
 
-     constructor(float?:boolean,sampleSize?:SampleSize) {
-       if(float!==undefined){
-         this.float=float;
+     constructor(encodingFloat?:boolean,sampleSize?:SampleSize) {
+       if(encodingFloat!==undefined){
+         this.encodingFloat=encodingFloat;
          this.sampleSize=SampleSize.INT32;
        }else if(sampleSize){
          this.sampleSize=sampleSize;
@@ -44,7 +44,7 @@ export enum SampleSize {INT16=16,INT32=32}
            for (let ch = 0; ch < msg.data.chs; ch++) {
              const srcPos=(ch*msg.data.frameLength)+s;
              const valFlt = msg.data.audioData[srcPos];
-             if(msg.data.float===true){
+             if(msg.data.encodingFloat===true){
                valView.setFloat32(bufPos,valFlt,true);
                bufPos+=4;
              }else {
@@ -66,7 +66,8 @@ export enum SampleSize {INT16=16,INT32=32}
 
 
      writeFmtChunk(audioBuffer:AudioBuffer){
-       if(this.float===true){
+
+       if(this.encodingFloat===true){
          this.bw.writeUint16(WavFileFormat.WAVE_FORMAT_IEEE_FLOAT, true);
        }else {
          this.bw.writeUint16(WavFileFormat.PCM, true);
@@ -79,13 +80,25 @@ export enum SampleSize {INT16=16,INT32=32}
        this.bw.writeUint16(frameSize,true);
        // sample size in bits (PCM format only)
        this.bw.writeUint16(this.sampleSizeInBits,true);
+       if(this.encodingFloat===true){
+         this.bw.writeUint16(0,true);
+       }
+     }
+
+     writeFactChunk(audioBuffer:AudioBuffer){
+       const ch0=audioBuffer.getChannelData(0);
+       let sampleLen=0;
+       if(ch0){
+         sampleLen=ch0.length;
+       }
+        this.bw.writeUint32(sampleLen,true);
      }
 
      writeDataChunk(audioBuffer:AudioBuffer){
 
        const chData0=audioBuffer.getChannelData(0);
        const dataLen=chData0.length;
-       if(this.float===true){
+       if(this.encodingFloat===true){
          for (let s = 0; s < dataLen; s++) {
            // interleaved channel data
            for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
@@ -110,6 +123,7 @@ export enum SampleSize {INT16=16,INT32=32}
            }
          }
        }
+
      }
 
      writeChunkHeader(name:string,chkLen:number){
@@ -140,7 +154,7 @@ export enum SampleSize {INT16=16,INT32=32}
        }
 
 
-       wo.postMessage({float:this.float,sampleSizeInBits:this.sampleSizeInBits, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
+       wo.postMessage({encodingFloat:this.encodingFloat,sampleSizeInBits:this.sampleSizeInBits, chs: chs, frameLength: frameLength, audioData: ad,buf:this.bw.buf,bufPos:this.bw.pos}, [ad.buffer,this.bw.buf]);
 
      }
 
@@ -160,11 +174,31 @@ export enum SampleSize {INT16=16,INT32=32}
           const abCh0=audioBuffer.getChannelData(0);
           dataChkByteLen=abCh0.length*this.sampleSizeInBytes*abChs;
         }
-        const wavChunkByteLen=(4+4)*3+16+dataChkByteLen;
+        let headerCnts=3; //Wave,fmt and data
+
+        let fmtChunkSize=16;
+        let factChunkSize=4;
+        if(this.encodingFloat===true){
+          fmtChunkSize=18;
+          headerCnts++; // fact
+        }// Float encoding requires fmt extension (with zero length)
+        let wavChunkByteLen=(4+4)*headerCnts;
+
+        wavChunkByteLen+=fmtChunkSize;
+        wavChunkByteLen+=factChunkSize;
+        wavChunkByteLen+=dataChkByteLen;
+
+        console.debug("Write WAV header: Wav chunk len: "+wavChunkByteLen);
         this.bw.writeUint32(wavChunkByteLen,true); // must be set to file length-8 later
         this.bw.writeAscii(WavFileFormat.WAV_KEY);
-        this.writeChunkHeader('fmt ',16);
+
+        this.writeChunkHeader('fmt ',fmtChunkSize);
         this.writeFmtChunk(audioBuffer);
+        if(this.encodingFloat===true){
+          console.debug("Write WAV header: Write 'fact' chunk.");
+          this.writeChunkHeader('fact',4);
+          this.writeFactChunk(audioBuffer);
+        }
         this.writeChunkHeader('data',dataChkByteLen);
         return dataChkByteLen;
       }

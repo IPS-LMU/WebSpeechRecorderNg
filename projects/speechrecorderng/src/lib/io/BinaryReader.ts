@@ -97,5 +97,14 @@
             return val;
         }
 
+        readFloat32():number{
+          const seg=new Float32Array(1);
+          let i: number;
+          for (i = 0; i < 4; i++) {
+            seg[i] = this.buf[this._pos++];
+          }
+          return seg[0];
+        }
+
 
     }

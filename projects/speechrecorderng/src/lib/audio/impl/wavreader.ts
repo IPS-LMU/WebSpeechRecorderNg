@@ -110,7 +110,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
         private parseFmtChunk():PCMAudioFormat | null {
             let pcmAf:PCMAudioFormat|null=null;
             const fmt = this.br.readUint16LE();
-            if (fmt === WavFileFormat.PCM) {
+            if (fmt === WavFileFormat.PCM || fmt==WavFileFormat.WAVE_FORMAT_IEEE_FLOAT) {
                 const channels = this.br.readUint16LE();
                 const sampleRate = this.br.readUint32LE();
 
@@ -123,7 +123,7 @@ import { BinaryByteReader } from '../../io/BinaryReader'
                 // sample size in bits (PCM format only)
                 const sampleSizeInBits = this.br.readUint16LE();
 
-                pcmAf=new PCMAudioFormat(sampleRate, channels, frameSize / channels, sampleSizeInBits);
+                pcmAf=new PCMAudioFormat(sampleRate, channels, frameSize / channels, sampleSizeInBits,(fmt===WavFileFormat.WAVE_FORMAT_IEEE_FLOAT));
             }
             return pcmAf;
         }
@@ -136,11 +136,20 @@ import { BinaryByteReader } from '../../io/BinaryReader'
               for (let ch = 0; ch < this.format.channelCount; ch++) {
                 chsArr[ch] = new Float32Array(sampleCount);
               }
-              if (this.format.sampleSize == 2) {
-                for (let i = 0; i < this.totalLength / 2; i++) {
+              if(this.format.encodingFloat){
+                // Not tested yet!
+                for (let i = 0; i < this.totalLength / 4; i++) {
                   for (let ch = 0; ch < this.format.channelCount; ch++) {
-                    const s16Ampl = this.br.readInt16LE();
-                    chsArr[ch][i] = s16Ampl / 32768;
+                    chsArr[ch][i]=this.br.readFloat32();
+                  }
+                }
+              }else {
+                if (this.format.sampleSize == 2) {
+                  for (let i = 0; i < this.totalLength / 2; i++) {
+                    for (let ch = 0; ch < this.format.channelCount; ch++) {
+                      const s16Ampl = this.br.readInt16LE();
+                      chsArr[ch][i] = s16Ampl / 32768;
+                    }
                   }
                 }
               }
