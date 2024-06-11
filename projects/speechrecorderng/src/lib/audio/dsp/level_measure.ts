@@ -259,8 +259,9 @@ export class LevelMeasure {
           if (subscriber.closed) {
             // subscriber abandoned
             worker.terminate();
-            ais?.close();
-            aAis?.close();
+            if(aAis) {
+              aAis.close();
+            }
           }else {
 
             if (me.data.linLevelBuffers) {
@@ -290,7 +291,7 @@ export class LevelMeasure {
               // end of data, terminate worker and return result
               //this.terminateWorker();
               worker.terminate();
-              ais?.close();
+              //ais?.close();
               aAis?.close();
               //console.debug("Audio input stream CRC hex: "+crcVal.toString(16)+", crcLen: "+crclen+", buffer frame len: "+bufferFrameLength);
               subscriber.next(new LevelInfos(bufferLevelInfos, peakLevelInfo));

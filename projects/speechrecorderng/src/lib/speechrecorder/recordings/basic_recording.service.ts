@@ -1,4 +1,4 @@
-import {HttpClient, HttpHeaders, HttpResponse} from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpResponse } from "@angular/common/http";
 import {Inject} from "@angular/core";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Observable} from "rxjs";
