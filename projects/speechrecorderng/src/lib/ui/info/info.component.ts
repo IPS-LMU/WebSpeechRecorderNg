@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import {MatCard, MatCardContent, MatCardTitle} from "@angular/material/card";
-import {MatDialogTitle} from "@angular/material/dialog";
+import {MatDialogActions, MatDialogClose, MatDialogTitle} from "@angular/material/dialog";
 import {NgIf} from "@angular/common";
 import {UserAgentBuilder} from "../../utils/ua-parser";
+import {MatButton} from "@angular/material/button";
 
 @Component({
   selector: 'lib-info',
@@ -12,7 +13,10 @@ import {UserAgentBuilder} from "../../utils/ua-parser";
         MatCardContent,
         MatCardTitle,
         MatDialogTitle,
-        NgIf
+        NgIf,
+        MatButton,
+        MatDialogActions,
+        MatDialogClose
     ],
   templateUrl: './info.component.html',
   styleUrl: './info.component.css'

@@ -22,11 +22,15 @@ export class AppComponent extends ResponsiveComponent{
     super(bpo);
   }
 
+  openRecorder(){
+    this.router.navigate(['recorder']);
+  }
+
   openInfoDialog(){
-    this.dialog.open(InfoComponent,{width:'80%',height:'80%'});
+    this.dialog.open(InfoComponent,{width:'auto',height:'auto'});
   }
 
   openSettingsDialog(){
-    this.dialog.open(SettingsComponent,{width:'80%',height:'80%'});
+    this.dialog.open(SettingsComponent,{width:'auto',height:'80%'});
   }
 }

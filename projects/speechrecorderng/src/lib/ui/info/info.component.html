@@ -1,17 +1,20 @@
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>
 <h1 mat-dialog-title>Infos</h1>
 <mat-card>
   <mat-card-content>
-    <mat-card-title>Infos</mat-card-title>
     <div style="display: flex;flex-direction: column">
       <ul>
         <li>User agent: {{navigator.userAgent}}</li>
         <li>Detected platform: {{ua.detectedPlatform}}</li>
         <li>Detected browser: {{ua.detectedBrowser}}, Version: {{ua.detectedBrowserVersion}}</li>
-        <li>Platform (deprecated): {{navigator.platform}}</li>
-        <li>Product (deprecated): {{navigator.product}}, Sub: {{navigator.productSub}}</li>
+        <!--<li>Platform (deprecated): {{navigator.platform}}</li>-->
+        <!--<li>Product (deprecated): {{navigator.product}}, Sub: {{navigator.productSub}}</li>-->
         <li>Max touch points: {{navigator.maxTouchPoints}}</li>
-        <li>Product (deprecated): {{navigator.product}}, Sub: {{navigator.productSub}}</li>
       </ul>
     </div>
+
   </mat-card-content>
 </mat-card>
+
