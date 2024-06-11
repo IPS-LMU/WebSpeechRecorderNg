@@ -1,5 +1,5 @@
 
-    import {HttpClient, HttpErrorResponse} from "@angular/common/http";
+    import { HttpClient, HttpErrorResponse } from "@angular/common/http";
     import { timeout } from 'rxjs/operators'
 
     // state of an upload
