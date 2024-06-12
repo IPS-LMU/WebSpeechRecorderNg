@@ -177,9 +177,6 @@ export class AudioCapture {
   private persistError:Error|null=null;
   private inddbAudioBuffer:IndexedDbAudioBuffer|null=null;
 
-  //private gain:number|null=null;
-
-
   //private context:AudioContext|null=null;
 
   constructor() {

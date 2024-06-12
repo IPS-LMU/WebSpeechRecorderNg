@@ -5,7 +5,6 @@ import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 import {BehaviorSubject, Observable} from "rxjs";
 import {ProjectService} from "../project/project.service";
-import {Project} from "../project/project";
 
 
 

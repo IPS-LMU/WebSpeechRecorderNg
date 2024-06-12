@@ -1,15 +1,15 @@
-import {AfterViewInit, Component, Inject, OnInit} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog"
+import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {MatDialogRef} from "@angular/material/dialog"
 import {ProjectService} from "../../../speechrecorder/project/project.service";
 import {BehaviorSubject, Subscription} from "rxjs";
 import {
   AudioConfig,
+  AudioStorageFormatEncoding,
   AutoGainControlConfig,
   EchoCancellationConfig,
   NoiseSuppressionConfig,
   Project
 } from "../../../speechrecorder/project/project";
-import {SelectionChange} from "@angular/cdk/collections";
 import {FormControl} from "@angular/forms";
 import {SampleSize} from "../../impl/wavwriter";
 
@@ -70,15 +70,15 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     });
     this.selStorageTypeCtl.valueChanges.subscribe((selStorageTypeStr)=>{
       const prj=this._bsProject.value;
-      prj.clientAudioStorageFormat=undefined;
+      prj.mediaStorageFormat=undefined;
       if(selStorageTypeStr!==null && selStorageTypeStr!==''){
         if(selStorageTypeStr==='FLOAT'){
           console.debug("Sel.: storage sample type float.");
-          prj.clientAudioStorageFormat={float:true};
+          prj.mediaStorageFormat={audioEncoding:AudioStorageFormatEncoding.PCM_FLOAT};
         }else {
           const selStorageSampleSize = parseInt(selStorageTypeStr);
           console.debug("Sel.: storage sample size: " + selStorageSampleSize);
-          prj.clientAudioStorageFormat = {sampleSizeInBits: selStorageSampleSize};
+          prj.mediaStorageFormat = {audioPCMsampleSizeInBits: selStorageSampleSize};
         }
       }
       //this._bsProject.unsubscribe();
@@ -166,12 +166,12 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       }
 
       let selAfSs='';
-      const pAf=prj.clientAudioStorageFormat;
+      const pAf=prj.mediaStorageFormat;
       if(pAf){
-        if(pAf.float ===true){
+        if(AudioStorageFormatEncoding.PCM_FLOAT===pAf.audioEncoding){
           selAfSs='FLOAT';
         }else {
-          const pAfSs = pAf.sampleSizeInBits;
+          const pAfSs = pAf.audioPCMsampleSizeInBits;
           if (pAfSs) {
             selAfSs = pAfSs.valueOf().toString();
           }

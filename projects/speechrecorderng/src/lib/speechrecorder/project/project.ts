@@ -30,9 +30,15 @@ export enum AudioStorageType {
   MEM_CHUNKED_AUTO_NET_CHUNKED='MEM_CHUNKED_AUTO_NET_CHUNKED'
 }
 
-export interface AudioStorageFormat {
-  float?:boolean;
-  sampleSizeInBits?: SampleSize;
+export enum AudioStorageFormatEncoding {
+  PCM_SIGNED='PCM_SIGNED',
+  PCM_FLOAT='PCM_FLOAT',
+}
+
+
+export interface MediaStorageFormat {
+  audioEncoding?:AudioStorageFormatEncoding;
+  audioPCMsampleSizeInBits?: SampleSize;
 }
 
 export class AudioConfigUtils{
@@ -81,7 +87,7 @@ export interface Project {
   audioCaptureDeviceId?:string,
   chunkedRecording?: boolean,
   clientAudioStorageType?:AudioStorageType,
-  clientAudioStorageFormat?:AudioStorageFormat,
+  mediaStorageFormat?:MediaStorageFormat,
   showSessionCompleteMessage?:boolean;
 }
 
