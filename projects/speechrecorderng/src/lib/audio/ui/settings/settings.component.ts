@@ -34,6 +34,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
   captureDeviceInfos:Array<MediaDeviceInfo>|null=null;
   selCaptureDeviceId:string|null=null;
   selCaptureDeviceCtl=new FormControl('selCaptureDeviceId');
+  selChannelCountCtl=new FormControl('selChannelCount')
   ginaDb=0;
   selGainDbCtl=new FormControl('selGainDb');
   protected float:boolean=false;
@@ -47,6 +48,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     this._bsSession=SessionService.behaviourSubjectSession();
     console.debug("Settings: Got session behavior subject.")
     this.mediaTrackSupportedConstraints=navigator.mediaDevices.getSupportedConstraints();
+
     console.info("Supported sampleSize setting: "+this.mediaTrackSupportedConstraints.sampleSize);
   }
 
@@ -68,6 +70,24 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
 
       this._bsProject.next(prj);
     });
+
+    this.selChannelCountCtl.valueChanges.subscribe(selChCntStr=>{
+      const prj=this._bsProject.value;
+      let selChCnt=1;
+      if(selChCntStr) {
+        selChCnt = Number.parseInt(selChCntStr);
+      }
+      let mcf=prj.mediaCaptureFormat;
+      if(mcf){
+        mcf.audioChannelCount=selChCnt;
+
+      }else{
+        mcf={audioChannelCount:selChCnt};
+        prj.mediaCaptureFormat=mcf;
+      }
+      this._bsProject.next(prj);
+    })
+
     this.selStorageTypeCtl.valueChanges.subscribe((selStorageTypeStr)=>{
       const prj=this._bsProject.value;
       prj.mediaStorageFormat=undefined;
@@ -108,6 +128,12 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
     //this._bsPrjSubscription=this._bsProject.subscribe((prj)=>{
     const prj=this._bsProject.value;
     const sess=this._bsSession.value;
+
+    let audioChCnt=1;
+    const mcf=prj.mediaCaptureFormat;
+    if(mcf && mcf.audioChannelCount!==null){
+      audioChCnt=mcf.audioChannelCount;
+    }
       const agcCtrlCfgs=this.projectService.projectStandalone().autoGainControlConfigs;
       const nsCtrlCfgs=this.projectService.projectStandalone().noiseSuppressionConfigs;
       const ecCtrlCfgs=this.projectService.projectStandalone().echoCancellationConfigs;
@@ -158,6 +184,8 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
       }
       this.selCaptureDeviceCtl.setValue(selCaptureDevIdStr,{emitEvent:false});
 
+      this.selChannelCountCtl.setValue(audioChCnt.toString(),{emitEvent:false});
+
       const gainDb=sess.audioCaptureGainDb;
       if(gainDb!==undefined){
         this.selGainDbCtl.setValue(gainDb.toString());
@@ -183,7 +211,7 @@ export class SettingsComponent implements OnInit ,AfterViewInit{
         this.captureDeviceInfos=l.filter((d)=>(d.kind==='audioinput'));
         console.debug("Set capture device infos:");
         for(let cdi of this.captureDeviceInfos){
-          console.debug(cdi.deviceId+' '+cdi.label);
+          console.debug(cdi.deviceId+' '+cdi.label+' '+cdi.kind+' '+cdi.groupId);
         }
         let selCaptureDevIdStr='';
         if(this.selCaptureDeviceId){
