@@ -16,7 +16,7 @@ export enum SampleSize {INT16=16,INT32=32}
      private workerURL: string|null=null;
 
      constructor(encodingFloat?:boolean,sampleSize?:SampleSize) {
-       if(encodingFloat!==undefined){
+       if(encodingFloat!==undefined && encodingFloat!==null){
          this.encodingFloat=encodingFloat;
          this.sampleSize=SampleSize.INT32;
        }else if(sampleSize){
