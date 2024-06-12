@@ -1,6 +1,6 @@
 {
   "name": "speechrecorderng",
-  "version": "3.10.0-alpha.14",
+  "version": "3.10.0-alpha.15",
   "peerDependencies": {
     "@angular/animations": "~18.0.2",
     "@angular/cdk": "~18.0.2",

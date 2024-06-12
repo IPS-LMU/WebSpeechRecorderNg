@@ -468,18 +468,20 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     }
 
     // Check browser compatibility
-    if(this.userAgent.detectedBrowser===Browser.Safari && this._channelCount>1){
-      let eMsg="Error: Safari browser does not support stereo recordings.";
-      console.error(eMsg);
-      this.dialog.open(MessageDialog, {
-        data: {
-          type: 'error',
-          title: 'Browser not supported',
-          msg: eMsg,
-          advice: "Please use a supported browser, e.g. Mozilla Firefox."
-        }
-      })
-    }
+
+    // Safari seems to support Stereo recordings now (2024-06-12, iPadOS 17.5.1)
+    // if(this.userAgent.detectedBrowser===Browser.Safari && this._channelCount>1){
+    //   let eMsg="Error: Safari browser does not support stereo recordings.";
+    //   console.error(eMsg);
+    //   this.dialog.open(MessageDialog, {
+    //     data: {
+    //       type: 'error',
+    //       title: 'Browser not supported',
+    //       msg: eMsg,
+    //       advice: "Please use a supported browser, e.g. Mozilla Firefox."
+    //     }
+    //   })
+    // }
 
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=undefined;
