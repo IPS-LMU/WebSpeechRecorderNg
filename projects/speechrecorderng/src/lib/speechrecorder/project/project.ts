@@ -49,12 +49,25 @@ export interface AutoGainControlConfig {
   //browser:Browser
 }
 
+// If platform and browser matches, allow to boost playback level
+// On some platform/browsers the audio capture level is very low, but the signal quality is acceptable
+// Increase the playback and level display volume so that the subject can see and hear his recordings
+export interface PlaybackLevelBoostConfig {
+  value: boolean,
+  //constraintType : ConstraintType,
+  platform: Platform,
+  //browserBase:BrowserBase,
+  browser:Browser
+}
+
+
 export interface Project {
   name: string,
   recordingDeviceWakeLock?:boolean,
   audioFormat?: AudioFormat,
   mediaCaptureFormat?: MediaCaptureFormat,
   autoGainControlConfigs?:Array<AutoGainControlConfig>,
+  playbackLevelBoostConfigs?:Array<PlaybackLevelBoostConfig>,
   allowEchoCancellation?:boolean,
   audioDevices?: Array<AudioDevice>,
   chunkedRecording?: boolean,
