@@ -16,9 +16,16 @@ export enum SampleSize {INT16=16,INT32=32}
      private workerURL: string|null=null;
 
      constructor(encodingFloat?:boolean,sampleSize?:SampleSize) {
+       //console.debug("WavWriter: "+encodingFloat+", "+sampleSize);
        if(encodingFloat!==undefined && encodingFloat!==null){
          this.encodingFloat=encodingFloat;
-         this.sampleSize=SampleSize.INT32;
+         if(encodingFloat===true) {
+           this.sampleSize = SampleSize.INT32;
+         }else{
+           if(sampleSize) {
+             this.sampleSize = sampleSize;
+           }
+         }
        }else if(sampleSize){
          this.sampleSize=sampleSize;
        }
