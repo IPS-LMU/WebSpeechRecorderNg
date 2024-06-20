@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {SprRecordingFile, RecordingFileDescriptorImpl} from '../recording'
+import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {UploadHolder} from '../../net/uploader';
 import {
   AfterViewInit,
@@ -24,10 +24,9 @@ import {Prompting} from "./prompting";
 import {SessionFinishedDialog} from "./session_finished_dialog";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
-import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
-import {LevelBar} from "../../audio/ui/livelevel";
+import {LevelBar, State as LiveLevelState} from "../../audio/ui/livelevel";
 import {FitToPageComponent} from "../../ui/fit_to_page_comp";
 import {
   BasicRecorder,
@@ -38,9 +37,8 @@ import {
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
 import {SprItemsCache} from "./recording_file_cache";
-import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
-import {AudioStorageType} from "../project/project";
+import {AudioStorageFormatEncoding, AudioStorageType} from "../project/project";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {Project} from "../project/project";
@@ -635,7 +633,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       if(adh){
         as=adh.audioSource;
       }
-      const ww = new WavWriter();
+      const ww = new WavWriter(this._clientMediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this._clientMediaStorageFormat?.audioPCMsampleSizeInBits);
       if(as instanceof AudioBufferSource) {
         ww.writeUrlAsync(as.audioBuffer, (wavFile) => {
           const blob = new Blob([wavFile], {type: 'audio/wav'});
@@ -1345,7 +1343,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         //console.log("Build wav writer...");
         if(ab) {
           this.processingRecording=true;
-          let ww = new WavWriter();
+          const ww = new WavWriter(this._clientMediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this._clientMediaStorageFormat?.audioPCMsampleSizeInBits);
           //new REST API URL
           let apiEndPoint = '';
           if (this.config && this.config.apiEndPoint) {
@@ -1437,7 +1435,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
-    let ww = new WavWriter();
+    const ww = new WavWriter(this._clientMediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this._clientMediaStorageFormat?.audioPCMsampleSizeInBits);
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.promptItem.itemcode+'/'+this.rfUuid+'/'+chunkIdx;
     // The upload holder is required to add the upload now to the upload set. The real upload is created async in postrecording and the upload set is already complete at that time.

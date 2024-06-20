@@ -1,3 +1,4 @@
+import {SampleSize} from "../../audio/impl/wavwriter";
 
 export interface AudioFormat {
   channels: number;
@@ -29,6 +30,17 @@ export enum AudioStorageType {
   MEM_CHUNKED_AUTO_NET_CHUNKED='MEM_CHUNKED_AUTO_NET_CHUNKED'
 }
 
+export enum AudioStorageFormatEncoding {
+  PCM_SIGNED='PCM_SIGNED',
+  PCM_FLOAT='PCM_FLOAT',
+}
+
+
+export interface MediaStorageFormat {
+  audioEncoding?:AudioStorageFormatEncoding;
+  audioPCMsampleSizeInBits?: SampleSize;
+}
+
 export interface AutoGainControlConfig {
   value: boolean,
   //constraintType : ConstraintType,
@@ -47,6 +59,7 @@ export interface Project {
   audioDevices?: Array<AudioDevice>,
   chunkedRecording?: boolean,
   clientAudioStorageType?:AudioStorageType,
+  mediaStorageFormat?:MediaStorageFormat,
   showSessionCompleteMessage?:boolean;
 }
 

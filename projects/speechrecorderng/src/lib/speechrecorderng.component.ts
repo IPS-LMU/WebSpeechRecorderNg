@@ -360,6 +360,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
       if(project.clientAudioStorageType) {
         this.sm.clientAudioStorageType = project.clientAudioStorageType;
       }
+      this.sm.clientMediaStorageFormat=project.mediaStorageFormat;
 
       this.sm.audioDevices = project.audioDevices;
       chCnt = ProjectUtil.audioChannelCount(project);

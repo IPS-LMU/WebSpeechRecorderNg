@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import {HttpClient} from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Script} from "./script";
 import {UUID} from "../../utils/utils";

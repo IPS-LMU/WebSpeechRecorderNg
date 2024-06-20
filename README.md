@@ -1,6 +1,6 @@
 # SpeechRecorderNg
 
-A Speech Recording Tool implemented as an Angular 17 module.
+A Speech Recording Tool implemented as an Angular 18 module.
 
 ## Migrate from version 2.x.x to 3.x.x
 For backwards compatibility to server REST API v1 set the property `apiVersion: 1` in your environment file.
@@ -9,7 +9,7 @@ For backwards compatibility to server REST API v1 set the property `apiVersion: 
 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
-Add `"speechrecorderng": "3.9.0"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
+Add `"speechrecorderng": "3.10.1"` to the `dependencies` array property in the `package.json` file of your application. Run `npm install` to install the package.
 ### Module integration
 Add SpeechRecorderNg module to imports property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 

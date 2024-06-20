@@ -19,11 +19,9 @@ import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Session} from "./session";
-import {AudioStorageType, Project, ProjectUtil} from "../project/project";
+import {AudioStorageFormatEncoding, AudioStorageType, Project, ProjectUtil} from "../project/project";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
-
-import {AudioContextProvider} from "../../audio/context";
 import {AudioClip} from "../../audio/persistor";
 
 import {Upload, UploaderStatus, UploaderStatusChangeEvent, UploadHolder} from "../../net/uploader";
@@ -538,7 +536,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   downloadRecording() {
     if (this.displayRecFile) {
       let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
-      let ww = new WavWriter();
+      const ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
       let as=ab?.audioSource;
       if(as instanceof AudioBufferSource) {
           ww.writeAsync(as.audioBuffer, (wavFile) => {
@@ -1033,7 +1031,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           // TODO duplicate conversion for manual download
 
           this.processingRecording = true
-          let ww = new WavWriter();
+          const ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
           ww.writeAsync(ab, (wavFile) => {
             this.postRecordingMultipart(wavFile,recUrl,rf);
             this.processingRecording = false;
@@ -1078,7 +1076,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
-    let ww = new WavWriter();
+    const ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     let rf=this._recordingFile;

@@ -5,7 +5,7 @@ import {MessageDialog} from "../../ui/message_dialog";
 import {Session} from "./session";
 import {SessionService} from "./session.service";
 import {AudioCapture} from "../../audio/capture/capture";
-import {AudioDevice, AudioStorageType, AutoGainControlConfig} from "../project/project";
+import {AudioDevice, MediaStorageFormat,AudioStorageType, AutoGainControlConfig} from "../project/project";
 import {LevelMeasure, StreamLevelMeasure} from "../../audio/dsp/level_measure";
 import {AudioPlayer} from "../../audio/playback/player";
 import {Subscription} from "rxjs";
@@ -30,6 +30,7 @@ import {State as LiveLevelState} from "../../audio/ui/livelevel"
 import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {SampleSize} from "../../audio/impl/wavwriter";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -41,7 +42,7 @@ export const NOSLEEP_VIDEO_TITLE='No Sleep';
 
 export interface ChunkAudioBufferReceiver{
   postAudioStreamStart():void;
-  postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number):void;
+  postChunkAudioBuffer(audioBuffer:AudioBuffer,chunkIdx:number,sampleSize?:SampleSize):void;
   postAudioStreamEnd(chunkCount:number):void;
 }
 
@@ -175,6 +176,14 @@ export abstract class BasicRecorder extends ResponsiveComponent{
       this.configureStreamCaptureStream();
     }
   }
+
+  get clientMediaStorageFormat(): MediaStorageFormat|undefined {
+    return this._clientMediaStorageFormat;
+  }
+
+  set clientMediaStorageFormat(value: MediaStorageFormat |undefined) {
+    this._clientMediaStorageFormat = value;
+  }
   get persistentAudioStorageTarget(): PersistentAudioStorageTarget | null {
     return this._persistentAudioStorageTarget;
   }
@@ -257,6 +266,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   // Default: Continuous HTML5 Audio API AudioBuffer, no chunked upload
   protected _clientAudioStorageType:AudioStorageType=AudioStorageType.MEM_ENTIRE;
+  protected _clientMediaStorageFormat:MediaStorageFormat|undefined=undefined;
 
   protected _persistentAudioStorageTarget:PersistentAudioStorageTarget|null=null;
 
@@ -473,18 +483,20 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     }
 
     // Check browser compatibility
-    if(this.userAgent.detectedBrowser===Browser.Safari && this._channelCount>1){
-      let eMsg="Error: Safari browser does not support stereo recordings.";
-      console.error(eMsg);
-      this.dialog.open(MessageDialog, {
-        data: {
-          type: 'error',
-          title: 'Browser not supported',
-          msg: eMsg,
-          advice: "Please use a supported browser, e.g. Mozilla Firefox."
-        }
-      })
-    }
+
+    // Safari seems to support Stereo recordings now (2024-06-12, iPadOS 17.5.1)
+    // if(this.userAgent.detectedBrowser===Browser.Safari && this._channelCount>1){
+    //   let eMsg="Error: Safari browser does not support stereo recordings.";
+    //   console.error(eMsg);
+    //   this.dialog.open(MessageDialog, {
+    //     data: {
+    //       type: 'error',
+    //       title: 'Browser not supported',
+    //       msg: eMsg,
+    //       advice: "Please use a supported browser, e.g. Mozilla Firefox."
+    //     }
+    //   })
+    // }
 
     //console.log("Session ID: "+this._session.session+ " status: "+this._session.status)
     this._selectedDeviceId=undefined;
