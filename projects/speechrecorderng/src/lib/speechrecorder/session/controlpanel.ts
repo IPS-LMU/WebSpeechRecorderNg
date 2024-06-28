@@ -9,8 +9,6 @@ import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
 
-import '@angular/localize/init';
-
 
 @Component({
 
