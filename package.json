@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "3.10.3",
+  "version": "3.10.4",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -29,12 +29,12 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "~18.1.0",
-    "@angular/cdk": "~18.0.6",
+    "@angular/cdk": "~18.1.0",
     "@angular/common": "~18.1.0",
     "@angular/compiler": "~18.1.0",
     "@angular/core": "~18.1.0",
     "@angular/forms": "~18.1.0",
-    "@angular/material": "~18.0.6",
+    "@angular/material": "~18.1.0",
     "@angular/platform-browser": "~18.1.0",
     "@angular/platform-browser-dynamic": "~18.1.0",
     "@angular/router": "~18.1.0",
