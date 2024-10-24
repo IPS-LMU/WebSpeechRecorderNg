@@ -124,25 +124,26 @@ protected loadedRecfile() {
           sf = s.startFrame;
           ef = s.endFrame;
         }
-          this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe(
-              {next:(value) => {}
-      , error:() => {
-          this.dialog.open(MessageDialog, {
+        this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe(
+          {
+            next:() => {}
+            , error:(err) => {
+              this.dialog.open(MessageDialog, {
 
-            data: {
-              type: 'error',
-              title: 'Save selection edit error',
-              msg: "Could not save edit selection to WikiSpeech server!",
-              advice: "Please check network connection and server state."
-            }
-          })
-        }, complete:() => {
+                data: {
+                  type: 'error',
+                  title: 'Save selection edit error',
+                  msg: "Could not save edit selection to server: "+err,
+                  advice: "Please check network connection and server state."
+                }
+              })
+            }, complete:() => {
               // Or use returned selection value from server?
               this.savedEditSelection = s
               this.editSaved = true
               this.snackBar.open('Selection edit saved successfully.', 'OK', {duration: 1500})
             }
-      });
+          });
       }
     }
   }
