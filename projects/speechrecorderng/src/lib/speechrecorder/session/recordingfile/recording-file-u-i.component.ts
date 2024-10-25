@@ -15,6 +15,7 @@ import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {ErrorHelper} from "../../../utils/utils";
 
 @Component({
 
@@ -128,12 +129,14 @@ protected loadedRecfile() {
           {
             next:() => {}
             , error:(err) => {
+
+              const errMsg=ErrorHelper.message('Could not save edit selection to server',err);
               this.dialog.open(MessageDialog, {
 
                 data: {
                   type: 'error',
                   title: 'Save selection edit error',
-                  msg: "Could not save edit selection to server: "+err,
+                  msg: errMsg,
                   advice: "Please check network connection and server state."
                 }
               })

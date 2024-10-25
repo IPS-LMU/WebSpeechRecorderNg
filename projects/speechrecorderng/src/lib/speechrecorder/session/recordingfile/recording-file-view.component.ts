@@ -23,6 +23,7 @@ import {RecordingService} from "../../recordings/recordings.service";
 import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 import {MessageDialog} from "../../../ui/message_dialog";
+import {ErrorHelper} from "../../../utils/utils";
 
 
 export class ItemcodeIndex{
@@ -330,14 +331,14 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             }, error:(err) =>
       {
         this.audioFetching = false;
-        this.status = 'Error loading audio file!';
+        this.status = 'Error loading audio file';
+        const errMsg=ErrorHelper.message('Could not load audio file',err);
         this.dialog.open(MessageDialog, {
-
           data: {
             type: 'error',
-            title: 'Error loading audio file',
-            msg: "Could not load audio file: "+err,
-            advice: "Please check network connection and server state."
+            title: this.status,
+            msg: errMsg,
+            advice: "Please check network connection and server state or contact application administrator."
           }
         })
       }

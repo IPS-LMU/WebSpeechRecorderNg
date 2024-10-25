@@ -125,3 +125,34 @@
       return workerBlobUrl;
     }
   }
+
+  export class ErrorHelper{
+
+    static messageFromError(error:any):string|null{
+        let msg=null;
+        if(error instanceof Error){
+          msg=error.message;
+        }
+        return msg;
+    }
+
+    static messageFromErrorNonNull(error:any):string{
+      let msg='';
+      const msgNullable=ErrorHelper.messageFromError(error);
+      if(msgNullable!=null){
+        msg=msgNullable;
+      }
+      return msg;
+    }
+
+    static message(baseMessage:string,error:any):string{
+      let msg=baseMessage;
+      if(error instanceof Error){
+        msg=baseMessage+': '+error.message;
+      }else{
+        msg=baseMessage+'.';
+      }
+      return msg;
+    }
+
+  }
