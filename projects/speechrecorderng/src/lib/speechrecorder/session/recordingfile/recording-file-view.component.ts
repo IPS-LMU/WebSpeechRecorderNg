@@ -284,68 +284,67 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   protected loadRecFile(rfId:number | string) {
     this.ap?.stop();
-    this.audioClip =null;
-    this.recordingFile=null;
-    this.posInList=null;
+    this.audioClip = null;
+    this.recordingFile = null;
+    this.posInList = null;
     this.updateActions();
-      this.audioFetching=true;
-      this.recordingFileService.fetchSprRecordingFile( rfId).subscribe(
-        {
-          next: value => {
-            this.audioFetching=false;
-        this.status = 'Audio file loaded.';
-        let clip = null;
-        this.recordingFile = value;
-        if (this.recordingFile) {
-          let ab = this.recordingFile.audioDataHolder;
-          if (ab) {
-            clip = new AudioClip(ab);
+    this.audioFetching = true;
+    this.recordingFileService.fetchSprRecordingFile(rfId).subscribe(
+      {
+        next: value => {
+          this.audioFetching = false;
+          this.status = 'Audio file loaded.';
+          let clip = null;
+          this.recordingFile = value;
+          if (this.recordingFile) {
+            let ab = this.recordingFile.audioDataHolder;
+            if (ab) {
+              clip = new AudioClip(ab);
 
-            let esffsr = null;
-            let eeffsr = null;
-            let esr = null;
+              let esffsr = null;
+              let eeffsr = null;
+              let esr = null;
 
-            if (clip.audioDataHolder != null) {
-              esr = ab.sampleRate;
-              if (esr != null) {
-                esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
-                eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
-              }
-              let sel: Selection | null = null;
-              if (esffsr != null) {
-                if (eeffsr != null) {
-                  sel = new Selection(ab.sampleRate, esffsr, eeffsr);
-                } else {
-                  //let ch0 = ab.getChannelData(0);
-                  let frameLength = ab.frameLen;
-                  sel = new Selection(esr, esffsr, frameLength);
+              if (clip.audioDataHolder != null) {
+                esr = ab.sampleRate;
+                if (esr != null) {
+                  esffsr = RecordingFileUtil.editStartFrameForSampleRate(this.recordingFile, esr);
+                  eeffsr = RecordingFileUtil.editEndFrameForSampleRate(this.recordingFile, esr);
                 }
-              } else if (eeffsr != null) {
-                sel = new Selection(esr, 0, eeffsr);
+                let sel: Selection | null = null;
+                if (esffsr != null) {
+                  if (eeffsr != null) {
+                    sel = new Selection(ab.sampleRate, esffsr, eeffsr);
+                  } else {
+                    //let ch0 = ab.getChannelData(0);
+                    let frameLength = ab.frameLen;
+                    sel = new Selection(esr, esffsr, frameLength);
+                  }
+                } else if (eeffsr != null) {
+                  sel = new Selection(esr, 0, eeffsr);
+                }
+                clip.selection = sel
               }
-              clip.selection = sel
             }
           }
-        }
-        this.audioClip = clip
-        this.loadedRecfile();
+          this.audioClip = clip
+          this.loadedRecfile();
 
-            }, error:(err) =>
-      {
-        this.audioFetching = false;
-        this.status = 'Error loading audio file';
-        const errMsg=ErrorHelper.message('Could not load audio file',err);
-        this.dialog.open(MessageDialog, {
-          data: {
-            type: 'error',
-            title: this.status,
-            msg: errMsg,
-            advice: "Please check network connection and server state or contact application administrator."
-          }
-        })
-      }
-    });
-      }
+        }, error: (err) => {
+          this.audioFetching = false;
+          this.status = 'Error loading audio file';
+          const errMsg = ErrorHelper.message('Could not load audio file', err);
+          this.dialog.open(MessageDialog, {
+            data: {
+              type: 'error',
+              title: this.status,
+              msg: errMsg,
+              advice: "Please check network connection and server state or contact application administrator."
+            }
+          })
+        }
+      });
+  }
 
 
   protected loadedRecfile() {
