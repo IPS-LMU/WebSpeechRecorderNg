@@ -14,6 +14,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {AudioDisplayPlayer} from "../../../audio/audio_player";
 
 import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
+import {AudioContextProvider} from "../../../audio/context";
 import {AudioClip} from "../../../audio/persistor";
 import {Selection} from "../../../audio/persistor";
 
@@ -22,6 +23,8 @@ import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
+import {MessageDialog} from "../../../ui/message_dialog";
+import {ErrorHelper} from "../../../utils/utils";
 
 
 export class ItemcodeIndex{
@@ -185,10 +188,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   toVersion(ae: ActionEvent<number>) {
     let toRfId = null;
-    let version = ae.value;
+    const version = ae.value;
     if(this.posInList!=null && this.availRecFiles) {
       let cRfs = this.availRecFiles[this.posInList];
-      let availVersionCnt = cRfs.length;
+      //let availVersionCnt = cRfs.length;
       for (let cRf of cRfs) {
         if(cRf.version !=null) {
           if (cRf.version === version) {
@@ -286,8 +289,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     this.posInList=null;
     this.updateActions();
       this.audioFetching=true;
-      this.recordingFileService.fetchSprRecordingFile( rfId).subscribe(value => {
-        this.audioFetching=false;
+      this.recordingFileService.fetchSprRecordingFile( rfId).subscribe(
+        {
+          next: value => {
+            this.audioFetching=false;
         this.status = 'Audio file loaded.';
         let clip = null;
         this.recordingFile = value;
@@ -325,11 +330,22 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
         this.audioClip = clip
         this.loadedRecfile();
 
-      }, error1 => {
-        this.audioFetching=false;
-        this.status = 'Error loading audio file!';
-      });
-    }
+            }, error:(err) =>
+      {
+        this.audioFetching = false;
+        this.status = 'Error loading audio file';
+        const errMsg=ErrorHelper.message('Could not load audio file',err);
+        this.dialog.open(MessageDialog, {
+          data: {
+            type: 'error',
+            title: this.status,
+            msg: errMsg,
+            advice: "Please check network connection and server state or contact application administrator."
+          }
+        })
+      }
+    });
+      }
 
 
   protected loadedRecfile() {
@@ -375,8 +391,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             let rfd = rfds[rfdi];
             if (rfd.date) {
               // convert date string for faster sorting later
-              let rfdd = new Date(rfd.date);
-              rfd._dateAsDateObj = rfdd;
+              rfd._dateAsDateObj = new Date(rfd.date);
             }
             let ic = rfd.itemCode;
 
