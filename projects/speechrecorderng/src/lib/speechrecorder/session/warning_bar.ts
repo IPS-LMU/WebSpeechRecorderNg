@@ -2,23 +2,22 @@ import {Component, Input} from "@angular/core";
 import {SessionService} from "./session.service";
 
 @Component({
-
-  selector: 'app-warningbar',
-  providers: [SessionService],
-  template: `
+    selector: 'app-warningbar',
+    providers: [SessionService],
+    template: `
     <div [class]="displayClass">{{warningText}}</div>
 
   `,
-  styles: [`:host {
+    styles: [`:host {
 
     flex: 0 0 content;
     background: orange;
 
-  }`,`
+  }`, `
     .off {
       display: none;
     }
-  `,`
+  `, `
     .on {
       padding: 2px;
       display: inline-block;
@@ -27,7 +26,8 @@ import {SessionService} from "./session.service";
       font-size: larger;
       text-align: center;
     }
-  ` ]
+  `],
+    standalone: false
 })
 export class WarningBar {
   @Input() warningText!:string;

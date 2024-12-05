@@ -2,8 +2,8 @@ import {Component, Input, OnInit} from '@angular/core';
 import {Action} from "../../../action/action";
 
 @Component({
-  selector: 'app-recording-file-navi',
-  template: `
+    selector: 'app-recording-file-navi',
+    template: `
         <div #controlPanel style="display:flex;flex-direction: row;">
           <div #navi style="flex: 0;display:flex;flex-direction: row;flex-wrap: nowrap">
             <fieldset>
@@ -36,11 +36,13 @@ import {Action} from "../../../action/action";
           </div>
         </div>
           `,
-  styles: [
-    `:host {
+    styles: [
+        `:host {
              flex: 0;
      
-           }`]
+           }`
+    ],
+    standalone: false
 })
 export class RecordingFileNaviComponent implements OnInit {
   @Input() firstAction: Action<void>|undefined;

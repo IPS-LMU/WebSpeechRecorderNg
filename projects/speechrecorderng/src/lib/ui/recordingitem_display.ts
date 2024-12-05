@@ -13,8 +13,8 @@ export const MIN_DB_LEVEL = -40.0;
 export const DEFAULT_WARN_DB_LEVEL = -2;
 
 @Component({
-  selector: 'spr-recordingitemcontrols',
-  template: `
+    selector: 'spr-recordingitemcontrols',
+    template: `
         <button matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
@@ -37,7 +37,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
           <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
     `,
-  styles: [`:host {
+    styles: [`:host {
         flex: 0; /* only required vertical space */
         width: 100%;
         background: darkgray;
@@ -54,11 +54,11 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         display: inline-block;
         white-space: nowrap;
         box-sizing: border-box;
-    }`,`
+    }`, `
      button {
        touch-action: manipulation;
-     }`]
-
+     }`],
+    standalone: false
 })
 export class RecordingItemControls extends ResponsiveComponent implements OnDestroy {
 
@@ -151,18 +151,18 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
         flex-wrap: nowrap; /* wrap could completely destroy the layout */
     }`, `audio-levelbar {
         box-sizing: border-box;
-    }`,`.audioStatusDisplay{
+    }`, `.audioStatusDisplay{
     display:flex;
     flex-direction: row;
     height:100px;
     min-height: 100px;
-  }`,`.audioStatusDisplayXs{
+  }`, `.audioStatusDisplayXs{
     display:flex;
     flex-direction: column;
     height:125px;
     min-height: 125px;
-  }`]
-
+  }`],
+    standalone: false
 })
 export class RecordingItemDisplay extends ResponsiveComponent implements LevelListener, OnDestroy {
 

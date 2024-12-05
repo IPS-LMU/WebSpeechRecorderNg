@@ -5,9 +5,7 @@ import {AudioClip} from "../persistor";
 
 
   @Component({
-
     selector: 'audio-display-control',
-
     template: `
         <div #controlPanel style="display:flex;flex-direction: row;">
             <fieldset>
@@ -56,9 +54,10 @@ import {AudioClip} from "../persistor";
         `:host {
                  flex: 0;
          
-               }`]
-
-  })
+               }`
+    ],
+    standalone: false
+})
 	export class AudioDisplayControl {
 
     @Input() audioClip: AudioClip|null=null;

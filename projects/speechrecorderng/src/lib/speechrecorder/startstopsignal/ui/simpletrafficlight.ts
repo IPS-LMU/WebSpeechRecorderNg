@@ -2,19 +2,16 @@ import {Component,Input} from '@angular/core'
 import {StartStopSignal, State} from '../startstopsignal'
 
 @Component({
-
-  selector: 'app-simpletrafficlight',
-
-  template: `
+    selector: 'app-simpletrafficlight',
+    template: `
 
     <div>
       <div class="circle {{lighttop}}"></div>
       <div class="circle {{lightmid}}"></div>
       <div class="circle {{lightbottom}}"></div>
     </div>
-  `
-  ,
-  styles: [`.circle {
+  `,
+    styles: [`.circle {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -35,7 +32,7 @@ import {StartStopSignal, State} from '../startstopsignal'
     .black {
       background: black;
     }`,
-      `:host {
+        `:host {
              display: flex;
              flex-direction: column;
              background: black;
@@ -45,7 +42,8 @@ import {StartStopSignal, State} from '../startstopsignal'
              max-height: 170px;
              flex: 0 0 content;
            }
-           `]
+           `],
+    standalone: false
 })
 export class SimpleTrafficLight implements StartStopSignal {
 

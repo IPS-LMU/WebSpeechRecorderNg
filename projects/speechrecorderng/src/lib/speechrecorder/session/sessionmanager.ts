@@ -44,9 +44,9 @@ export const enum Status {
 }
 
 @Component({
-  selector: 'app-sprrecordingsession',
-  providers: [SessionService],
-  template: `
+    selector: 'app-sprrecordingsession',
+    providers: [SessionService],
+    template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
       <app-sprprompting [projectName]="projectName"
@@ -96,7 +96,7 @@ export const enum Status {
       </div>
     </div>
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 2;
     background: lightgrey;
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
@@ -107,16 +107,16 @@ export const enum Status {
 
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
-  }`,`.ricontrols {
+  }`, `.ricontrols {
         display:flex;
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
         flex-direction: row;
         justify-content: flex-end;align-items: center; align-content: center;
-    }`,`.dark {
+    }`, `.dark {
     background: darkgray;
-  }`,`.controlpanel {
+  }`, `.controlpanel {
     display:flex;
     flex-direction: row;
     align-content: center;
@@ -124,18 +124,19 @@ export const enum Status {
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`,`.audioStatusDisplay{
+  }`, `.audioStatusDisplay{
     display:flex;
     flex-direction: row;
     height:100px;
     min-height: 100px;
-  }`,`.audioStatusDisplayXs{
+  }`, `.audioStatusDisplayXs{
     display:flex;
     flex-direction: column;
     height:125px;
     min-height: 125px;
   }`
-  ]
+    ],
+    standalone: false
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 

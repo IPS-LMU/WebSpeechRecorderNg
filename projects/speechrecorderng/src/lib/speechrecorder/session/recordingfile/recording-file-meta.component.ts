@@ -3,8 +3,8 @@ import {RecordingFileUtil} from "./recording-file";
 import {SprRecordingFile} from "../../recording";
 
 @Component({
-  selector: 'app-recording-file-meta',
-  template: `
+    selector: 'app-recording-file-meta',
+    template: `
     <mat-card appearance="outlined">
       <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
       <mat-card-content>
@@ -39,7 +39,8 @@ import {SprRecordingFile} from "../../recording";
       </mat-card-content>
     </mat-card>
   `,
-  styles: []
+    styles: [],
+    standalone: false
 })
 export class RecordingFileMetaComponent{
 

@@ -31,10 +31,8 @@ export class ItemcodeIndex{
 }
 
 @Component({
-
-  selector: 'app-audiodisplayplayer',
-
-  template: `
+    selector: 'app-audiodisplayplayer',
+    template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
@@ -52,8 +50,8 @@ export class ItemcodeIndex{
       <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
-  styles: [
-    `:host {
+    styles: [
+        `:host {
                flex: 2;
                display: flex;
                flex-direction: column;
@@ -63,19 +61,20 @@ export class ItemcodeIndex{
            z-index: 5;
            box-sizing: border-box;
            background-color: white;
-         }`,`
+         }`, `
         .ctrlview{
           display: flex;
           flex-direction: row;
 
         }
-    `,`
+    `, `
       audio-display-control{
 
         flex: 3;
       }
-    `]
-
+    `
+    ],
+    standalone: false
 })
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
 

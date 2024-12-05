@@ -18,10 +18,8 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 import {ErrorHelper} from "../../../utils/utils";
 
 @Component({
-
-  selector: 'app-audiodisplayplayer',
-
-  template: `
+    selector: 'app-audiodisplayplayer',
+    template: `
       <h1>Recording file editing</h1>
       <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
 
@@ -42,8 +40,8 @@ import {ErrorHelper} from "../../../utils/utils";
 
       <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
   `,
-  styles: [
-    `:host {
+    styles: [
+        `:host {
                flex: 2;
                display: flex;
                flex-direction: column;
@@ -53,18 +51,19 @@ import {ErrorHelper} from "../../../utils/utils";
            z-index: 5;
            box-sizing: border-box;
            background-color: white;
-         }`,`
+         }`, `
         .ctrlview{
           display: flex;
           flex-direction: row;
         }
-    `,`
+    `, `
       audio-display-control{
 
         flex: 3;
       }
-    `]
-
+    `
+    ],
+    standalone: false
 })
 export class RecordingFileUI extends RecordingFileViewComponent implements AfterViewInit {
 
