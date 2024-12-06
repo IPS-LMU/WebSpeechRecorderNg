@@ -10,6 +10,7 @@ import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
 
 
+
 @Component({
     selector: 'app-sprstatusdisplay',
     template: `
@@ -178,9 +179,9 @@ export class TransportActions {
       <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon class="transport-button-icon" *ngIf="!nextDisabled() || !stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
       <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button>
-      <mat-icon>pause</mat-icon>
-      <span *ngIf="!screenXs">Pause</span>
+    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
+      <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
+      <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
     </button>
     <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
       <span><mat-icon>redo</mat-icon></span>
