@@ -11,10 +11,8 @@ import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioDataHolder} from "./audio_data_holder";
 
 @Component({
-
-  selector: 'app-audiodisplay',
-
-  template: `
+    selector: 'app-audiodisplay',
+    template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
@@ -28,8 +26,8 @@ import {AudioDataHolder} from "./audio_data_holder";
     [zoomSelectedAction]="zoomSelectedAction"
     [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
   `,
-  styles: [
-      `:host {
+    styles: [
+        `:host {
              display: flex;
              flex-direction: column;
              position: absolute;
@@ -41,15 +39,16 @@ import {AudioDataHolder} from "./audio_data_holder";
              z-index: 5;
              box-sizing: border-box;
              background-color: rgba(230, 230, 230, 1.0)
-           }`,`
+           }`, `
           legend{
               margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
-      }`,`
+      }`, `
         fieldset{
             border: 1px darkgray solid
       }
-      `]
-
+      `
+    ],
+    standalone: false
 })
 export class AudioDisplay implements OnInit,AfterViewInit {
 

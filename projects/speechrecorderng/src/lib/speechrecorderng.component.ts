@@ -25,21 +25,20 @@ import {SprDb} from "./db/inddb";
 export enum Mode {SINGLE_SESSION,DEMO}
 
 @Component({
-
-  selector: 'app-speechrecorder',
-  providers: [SessionService],
-  template: `
+    selector: 'app-speechrecorder',
+    providers: [SessionService],
+    template: `
     <app-sprrecordingsession [project]="project" [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
-  styles: [`:host{
+    styles: [`:host{
     flex: 2;
     display: flex;
     height: 100%;
     flex-direction: column;
     min-height:0;
 
-  }`]
-
+  }`],
+    standalone: false
 })
 export class SpeechrecorderngComponent extends  RecorderComponent implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,AudioPlayerListener,ReadyStateProvider {
 

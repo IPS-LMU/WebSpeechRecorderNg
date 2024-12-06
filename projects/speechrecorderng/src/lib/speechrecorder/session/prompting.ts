@@ -27,14 +27,12 @@ import {Speaker} from "../speaker/speaker";
 import {Project} from "../project/project";
 
 @Component({
-
-  selector: 'spr-recinstructions',
-
-  template: `
+    selector: 'spr-recinstructions',
+    template: `
 
     {{displayText()}}
   `,
-  styles: [`:host {
+    styles: [`:host {
 
     justify-content: left; /* align horizontal center */
     align-items: flex-start; /* align vertical  center */
@@ -44,7 +42,8 @@ import {Project} from "../project/project";
     flex: 0;
     width: 100%;
   }
-  `]
+  `],
+    standalone: false
 })
 export class Recinstructions {
   @Input() recinstructions: string|null| undefined;
@@ -64,15 +63,13 @@ export class Recinstructions {
 }
 
 @Component({
-
-  selector: 'app-sprprompter',
-
-  template: `
+    selector: 'app-sprprompter',
+    template: `
 
     <!--<ng-template [ngIf]="text">{{text}}</ng-template>-->
     <!-- <img *ngIf="src" #promptImage [src]="srcUrl()" [height]="prompterHeight-20" /> -->
   `,
-  styles: [`:host {
+    styles: [`:host {
 
     justify-content: center; /* align horizontal center */
     align-items: center; /* align vertical  center */
@@ -94,7 +91,8 @@ export class Recinstructions {
     max-width: 100%;
     /* A separate flex container might be necessayr to alighn centered */
     vertical-align: middle; /* TODO does not work, image is not vertically centered */
-  }`]
+  }`],
+    standalone: false
 })
 export class Prompter {
   @Input() projectName: string | undefined;
@@ -272,14 +270,11 @@ export const MIN_FONT_SIZE=6;
 export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
 
 @Component({
-
-  selector: 'app-sprpromptcontainer',
-
-  template: `
+    selector: 'app-sprpromptcontainer',
+    template: `
     <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
-  `
-  ,
-  styles: [`:host {
+  `,
+    styles: [`:host {
 
     flex: 3; /* the container consumes all available space */
     padding: 10pt;
@@ -295,7 +290,8 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
     min-height: 0px;
     width: 100%;
   }
-  `]
+  `],
+    standalone: false
 })
 export class PromptContainer implements OnInit,AfterContentChecked {
   @Input() projectName: string | undefined;
@@ -453,18 +449,15 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
 
 @Component({
-
-  selector: 'app-sprpromptingcontainer',
-
-  template: `
+    selector: 'app-sprpromptingcontainer',
+    template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
                          [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
     <app-sprpromptcontainer [projectName]="projectName"
                             [mediaitems]="showPrompt?(promptItem?promptItem.mediaitems:null):null"></app-sprpromptcontainer>
 
-  `
-  ,
-  styles: [`:host {
+  `,
+    styles: [`:host {
     position: relative;
     flex: 3; /* the container consumes all available space */
     padding: 10pt;
@@ -476,7 +469,8 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     flex-direction: column;
     min-height: 0px;
   }
-  `]
+  `],
+    standalone: false
 })
 export class PromptingContainer {
   @Input() projectName: string | undefined;
@@ -606,15 +600,14 @@ export class PromptingContainer {
 }
 
 @Component({
-  selector: 'spr-progress-speaker-container',
-
-  template: `
+    selector: 'spr-progress-speaker-container',
+    template: `
     <!--<spr-projectinfo fxHide.xs [project]="project"></spr-projectinfo>-->
     <spr-speakerinfo fxHide.xs [speakerIds]="speakerIds"></spr-speakerinfo>
     <app-sprprogress fxHide.xs [items]="items" [selectedItemIdx]="selectedItemIdx"
                      (onRowSelect)="itemSelect($event)"></app-sprprogress>
   `,
-  styles: [`:host {
+    styles: [`:host {
       position: relative;
       margin: 0;
       padding: 0;
@@ -628,17 +621,18 @@ export class PromptingContainer {
     app-sprprogress {
       z-index: 3;
     }
-  `,`spr-projectinfo {
+  `, `spr-projectinfo {
     padding-top: 10pt;
     padding-left: 5pt;
     padding-right: 5pt;
     padding-bottom: 1pt;
-  }`,`spr-speakerinfo {
+  }`, `spr-speakerinfo {
     padding-top: 1pt;
     padding-left: 5pt;
     padding-right: 5pt;
     padding-bottom: 10pt;
-  }`]
+  }`],
+    standalone: false
 })
 export class ProgressAndSpeakerContainer{
   @Input() items: Array<Item>|undefined=undefined;
@@ -658,10 +652,8 @@ export class ProgressAndSpeakerContainer{
 }
 
 @Component({
-
-  selector: 'app-sprprompting',
-
-  template: `
+    selector: 'app-sprprompting',
+    template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
@@ -683,7 +675,7 @@ export class ProgressAndSpeakerContainer{
 
 
   `,
-  styles: [`:host {
+    styles: [`:host {
     position: relative;
     margin: 0;
     padding: 0;
@@ -746,8 +738,8 @@ export class ProgressAndSpeakerContainer{
       background-color: rgba(0, 0, 0, 0)
 
     }`
-  ]
-
+    ],
+    standalone: false
 })
 export class Prompting extends ResponsiveComponent{
 

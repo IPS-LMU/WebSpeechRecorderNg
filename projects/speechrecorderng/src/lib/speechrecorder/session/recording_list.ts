@@ -6,10 +6,8 @@ import {RecFilesCache} from "./recording_file_cache";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
 
 @Component({
-
-  selector: 'app-recordinglist',
-
-  template: `
+    selector: 'app-recordinglist',
+    template: `
     <mat-card appearance="outlined">
       <mat-card-header>
         <h2>Recording list</h2>
@@ -54,7 +52,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
     </mat-card>
 
   `,
-  styles: [`:host {
+    styles: [`:host {
     position: relative;
     margin: 0;
     padding: 0;
@@ -70,13 +68,13 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
     */
     min-height: 0px;
 
-  }`,`
+  }`, `
     .selected{
       font-weight: bold;
     }
   `],
-  styleUrls: ['../../speechrecorder_mat.scss']
-
+    styleUrls: ['../../speechrecorder_mat.scss'],
+    standalone: false
 })
 export class RecordingList implements AfterViewInit{
   //private recordingList:Array<RecordingFile>=new Array<RecordingFile>();

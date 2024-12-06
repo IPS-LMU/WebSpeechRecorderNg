@@ -3,10 +3,8 @@ import {Speaker} from "./speaker";
 import {SpeakerService} from "./speaker.service";
 
 @Component({
-
-  selector: 'spr-speakerinfo',
-
-  template: `
+    selector: 'spr-speakerinfo',
+    template: `
     <table matTooltip="Speakers data info">
       <tr *ngFor="let spk of speakers">
         <td>Speaker:</td>
@@ -16,7 +14,7 @@ import {SpeakerService} from "./speaker.service";
       </tr>
     </table>
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 0;
     background-color: white;
   }`, `table {
@@ -24,7 +22,8 @@ import {SpeakerService} from "./speaker.service";
     border: 1px;
     background-color: lightgrey;
     font-weight: bold;
-  }`]
+  }`],
+    standalone: false
 })
 export class SpeakerInfo {
     constructor(private speakerService:SpeakerService) {}

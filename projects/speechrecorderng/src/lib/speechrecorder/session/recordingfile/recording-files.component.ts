@@ -19,9 +19,10 @@ import {RecordingFileService} from "./recordingfile-service";
 
 
 @Component({
-  selector: 'app-sessions',
-  templateUrl: 'recording-files.html',
-    styleUrls: ['recording-files.css']
+    selector: 'app-sessions',
+    templateUrl: 'recording-files.html',
+    styleUrls: ['recording-files.css'],
+    standalone: false
 })
 export class RecordingFilesComponent implements  OnInit,AfterViewInit {
 

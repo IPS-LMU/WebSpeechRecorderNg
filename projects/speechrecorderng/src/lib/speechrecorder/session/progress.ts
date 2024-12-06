@@ -4,9 +4,8 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
 
 
 @Component({
-
-  selector: 'app-sprprogress',
-  template: `
+    selector: 'app-sprprogress',
+    template: `
 
     <table class="mat-typography">
       <thead>
@@ -35,7 +34,7 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
       </tbody>
     </table>
   `,
-  styles: [`:host {
+    styles: [`:host {
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 10pt;
@@ -51,7 +50,7 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
     /* min-height:0px; */
     min-height: 1px;
   }`,
-      `table {
+        `table {
              min-height: 1px;
              border-collapse: collapse;
                  /* Tables do not have a natural min size */
@@ -69,14 +68,14 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
       .selRow {
         background: lightblue;
       }
-    `,`.promptDescriptor{
+    `, `.promptDescriptor{
 
       max-width: 200px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-    }`]
-
+    }`],
+    standalone: false
 })
 export class Progress {
   isObs:IntersectionObserver;

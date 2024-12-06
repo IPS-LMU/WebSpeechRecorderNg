@@ -52,9 +52,9 @@ export const enum Status {
 
 
 @Component({
-  selector: 'app-audiorecorder',
-  providers: [SessionService],
-  template: `
+    selector: 'app-audiorecorder',
+    providers: [SessionService],
+    template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()"
                     warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
@@ -113,7 +113,7 @@ export const enum Status {
       </div>
     </div>
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 2;
     background: lightgrey;
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
@@ -124,13 +124,13 @@ export const enum Status {
     min-height: 0px;
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
-  }`,`.ricontrols {
+  }`, `.ricontrols {
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
-    }`,`.dark {
+    }`, `.dark {
     background: darkgray;
-  }`,`.controlpanel {
+  }`, `.controlpanel {
     display:flex;
     flex-direction: row;
     align-content: center;
@@ -138,19 +138,19 @@ export const enum Status {
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`,`.startstop {
+  }`, `.startstop {
     width: 100%;
     flex:1 0 30%;
     align-items: center;
     text-align: center;
     align-content: center;
-  }`,`.startstopscreenxs {
+  }`, `.startstopscreenxs {
     width: 100%;
     flex:1 0 100%;
     align-items: center;
     text-align: center;
     align-content: center;
-  }`,`.bigbutton {
+  }`, `.bigbutton {
     vertical-align: middle;
     overflow: hidden;
     text-overflow: clip;
@@ -159,27 +159,28 @@ export const enum Status {
     min-width: 70px;
     min-height: 50px;
     border-radius: 20px;
-  }`,`.bigbuttonicon {
+  }`, `.bigbuttonicon {
     min-width: 50px;
     min-height: 50px;
     font-size: 50px;
-  }`,`.bigbuttontext {
+  }`, `.bigbuttontext {
       font-weight: bolder;
       font-size: 14px;
       vertical-align: middle;
   }
-  `,`.audioStatusDisplay{
+  `, `.audioStatusDisplay{
     display:flex;
     flex-direction: row;
     height:100px;
     min-height: 100px;
-  }`,`.audioStatusDisplayXs{
+  }`, `.audioStatusDisplayXs{
     display:flex;
     flex-direction: column;
     height:125px;
     min-height: 125px;
   }`
-   ]
+    ],
+    standalone: false
 })
 export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider,ChunkAudioBufferReceiver {
 
@@ -1127,20 +1128,20 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 }
 
 @Component({
-  selector: 'app-audiorecorder-comp',
-  providers: [SessionService],
-  template: `
+    selector: 'app-audiorecorder-comp',
+    providers: [SessionService],
+    template: `
     <app-audiorecorder [projectName]="_project?.name" [dataSaved]="dataSaved"></app-audiorecorder>
   `,
-  styles: [`:host{
+    styles: [`:host{
     flex: 2;
     display: flex;
       height: 100%;
     flex-direction: column;
     min-height:0;
 
-  }`]
-
+  }`],
+    standalone: false
 })
 export class AudioRecorderComponent extends RecorderComponent  implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,ReadyStateProvider {
 

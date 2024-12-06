@@ -23,10 +23,8 @@ import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
 import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
 
 @Component({
-
-  selector: 'app-audiodisplayplayer',
-
-  template: `
+    selector: 'app-audiodisplayplayer',
+    template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
@@ -40,8 +38,8 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
                              [zoomSelectedAction]="zoomSelectedAction"
                              [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control><p>{{status}}
   `,
-  styles: [
-      `:host {
+    styles: [
+        `:host {
              display: flex;
              flex-direction: column;
              position: absolute;
@@ -53,8 +51,9 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
              z-index: 5;
              box-sizing: border-box;
              background-color: rgba(0, 0, 0, 0.75)
-           }`]
-
+           }`
+    ],
+    standalone: false
 })
 export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,OnDestroy,AfterViewInit{
 

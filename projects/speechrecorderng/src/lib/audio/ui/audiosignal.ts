@@ -7,26 +7,24 @@ import {Subscription} from "rxjs";
 declare function postMessage(message: any, transfer: Array<any>): void;
 
 @Component({
-
-  selector: 'audio-signal',
-  template: `
+    selector: 'audio-signal',
+    template: `
     <canvas #bg height="10"></canvas>
     <canvas #audioSignal height="10"></canvas>
     <canvas #cursor height="10" (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
             (mouseleave)="updateCursorCanvas($event, false)"></canvas>
     <canvas #marker height="10"></canvas>`,
-
-  styles: [`:host{
+    styles: [`:host{
       min-height: 0px;
-    }`,`canvas {
+    }`, `canvas {
     top: 0;
     left: 0;
     width: 0;
     height: 0;
     min-height: 0px;
     position: absolute;
-  }`]
-
+  }`],
+    standalone: false
 })
 export class AudioSignal extends AudioCanvasLayerComponent{
 

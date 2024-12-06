@@ -3,10 +3,8 @@ import {Project} from "./project";
 
 
 @Component({
-
-  selector: 'spr-projectinfo',
-
-  template: `
+    selector: 'spr-projectinfo',
+    template: `
     <table>
       <tr>
         <td>Project:</td>
@@ -14,7 +12,7 @@ import {Project} from "./project";
       </tr>
     </table>
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 0;
     background-color: white;
   }`, `table {
@@ -22,8 +20,8 @@ import {Project} from "./project";
     border: 1px;
     background-color: lightgrey;
     font-weight: bolder;
-  }`]
-
+  }`],
+    standalone: false
 })
 
 export class ProjectInfo {

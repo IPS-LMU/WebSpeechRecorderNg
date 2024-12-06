@@ -5,8 +5,8 @@ import {RecordingFile} from "../../recording";
 
 
 @Component({
-  selector: 'spr-recording-file-delete-confirm-dialog',
-  template: `<h1 mat-dialog-title><mat-icon [style.color]="'red'">delete_force</mat-icon> Delete recording file?</h1>
+    selector: 'spr-recording-file-delete-confirm-dialog',
+    template: `<h1 mat-dialog-title><mat-icon [style.color]="'red'">delete_force</mat-icon> Delete recording file?</h1>
   <div mat-dialog-content>
 
     <p>Really delete recording file {{data.recordingFileId}}?</p>
@@ -16,7 +16,8 @@ import {RecordingFile} from "../../recording";
     <button mat-button [mat-dialog-close]="null">Cancel</button>
     <button mat-button [style.color]="'red'" [mat-dialog-close]="data">Delete</button>
   </div>
-  `
+  `,
+    standalone: false
 })
 
 

@@ -57,9 +57,8 @@ import {AudioDataHolder} from "../audio_data_holder";
  * The layout of the component is updated on resize of the parent or changes of the zoom factor.
  */
 @Component({
-
-  selector: 'app-audio',
-  template: `
+    selector: 'app-audio',
+    template: `
     <div #virtualCanvas>
     <canvas #divider (mousedown)="mousedown($event)" (mouseover)="mouseover($event)"
             (mouseleave)="mouseleave($event)" height="10"></canvas>
@@ -67,7 +66,7 @@ import {AudioDataHolder} from "../audio_data_holder";
     <audio-sonagram [pointerPosition]="pointer" [selecting]="selecting" [selection]="selection" (pointerPositionEventEmitter)="pointerPositionChanged($event)" (selectingEventEmitter)="selectingChanged($event)" (selectedEventEmitter)="selectionChanged($event)"></audio-sonagram>
     </div>
   `,
-  styles: [`div {
+    styles: [`div {
     margin: 0;
     padding: 0;
     top: 0;
@@ -99,8 +98,8 @@ import {AudioDataHolder} from "../audio_data_holder";
     position: absolute;
     z-index: 1;
     transform: none;
-  }`]
-
+  }`],
+    standalone: false
 })
 export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent implements OnInit,AfterViewInit{
 

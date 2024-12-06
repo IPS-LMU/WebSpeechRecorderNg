@@ -11,16 +11,14 @@ import {ThemePalette} from "@angular/material/core";
 
 
 @Component({
-
-  selector: 'app-sprstatusdisplay',
-
-  template: `
+    selector: 'app-sprstatusdisplay',
+    template: `
     <p matTooltip="Status">
       <mat-progress-spinner *ngIf="statusWaiting" color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
       {{statusMsg}}
     </p>
   `,
-  styles: [`:host {
+    styles: [`:host {
     display: inline;
     text-align: left;
     font-size: smaller;
@@ -39,8 +37,8 @@ import {ThemePalette} from "@angular/material/core";
     span {
       color: red;
     }
-  `]
-
+  `],
+    standalone: false
 })
 
 export class StatusDisplay {
@@ -51,16 +49,17 @@ export class StatusDisplay {
 
 
 @Component({
-  selector: 'app-uploadstatus',
-  template: `
+    selector: 'app-uploadstatus',
+    template: `
     <mat-progress-spinner [mode]="spinnerMode" [color]="colorStatus" [diameter]="30" [strokeWidth]="5" [value]="_value"
                           [matTooltip]="toolTipText"></mat-progress-spinner>
   `,
-  styles: [`:host {
+    styles: [`:host {
     text-align: left;
-  }`,`mat-progress-spinner{
+  }`, `mat-progress-spinner{
       display: inline-block;
-  }`]
+  }`],
+    standalone: false
 })
 export class UploadStatus {
   private _awaitNewUpload=false;
@@ -124,17 +123,18 @@ export class UploadStatus {
 
 
 @Component({
-  selector: 'app-sprprogressdisplay',
-  template: `
+    selector: 'app-sprprogressdisplay',
+    template: `
     <p>{{progressMsg}}</p>
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
     /*display: inline; */
       width: 100%;
     text-align: left;
-  }`]
+  }`],
+    standalone: false
 })
 export class ProgressDisplay {
   progressMsg = '[itemcode]';
@@ -168,10 +168,8 @@ export class TransportActions {
 }
 
 @Component({
-
-  selector: 'app-sprtransport',
-
-  template: `
+    selector: 'app-sprtransport',
+    template: `
     <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
             mat-raised-button class="transport-button-icon">
       <span><mat-icon>chevron_left</mat-icon></span>
@@ -192,7 +190,7 @@ export class TransportActions {
     </button>
 
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 20;
     align-self: center;
     width: 100%;
@@ -204,24 +202,24 @@ export class TransportActions {
     div {
       display: inline;
       flex: 0;
-    }`,`
+    }`, `
      button {
        touch-action: manipulation;
-     }`,`
+     }`, `
     .transport-button-icon{
       font-size: 24px;
       vertical-align: middle;
       overflow: hidden;
       text-overflow: clip;
       white-space: nowrap;
-    }`,`
+    }`, `
     .transport-button-text{
       font-size: 14px;
       letter-spacing: normal;
       vertical-align: baseline;
      }`
-  ]
-
+    ],
+    standalone: false
 })
 export class TransportPanel extends ResponsiveComponent{
 
@@ -314,11 +312,12 @@ export class TransportPanel extends ResponsiveComponent{
 }
 
 @Component({
-  selector: 'app-wakelockindicator',
-  template: `
+    selector: 'app-wakelockindicator',
+    template: `
     <mat-icon *ngIf="_screenLocked">screen_lock_portrait</mat-icon>
   `,
-  styles: []
+    styles: [],
+    standalone: false
 })
 export class WakeLockIndicator {
   _screenLocked=false;
@@ -331,13 +330,12 @@ export class WakeLockIndicator {
 }
 
 @Component({
-
-  selector: 'app-readystateindicator',
-
-  template: `
+    selector: 'app-readystateindicator',
+    template: `
     <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
-  styles: []
+    styles: [],
+    standalone: false
 })
 export class ReadyStateIndicator {
   _ready=true;
@@ -358,10 +356,8 @@ export class ReadyStateIndicator {
 }
 
 @Component({
-
-  selector: 'app-sprcontrolpanel',
-
-  template: `
+    selector: 'app-sprcontrolpanel',
+    template: `
     <div *ngIf="!screenXs" style="flex-direction: row" >
      <app-sprstatusdisplay style="flex:0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
                           class="hidden-xs"></app-sprstatusdisplay>
@@ -382,13 +378,14 @@ export class ReadyStateIndicator {
 
     </div>
   `,
-  styles: [`div {
+    styles: [`div {
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`]
+  }`],
+    standalone: false
 })
 export class ControlPanel extends ResponsiveComponent {
   @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;
