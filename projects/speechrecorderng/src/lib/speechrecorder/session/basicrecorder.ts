@@ -144,7 +144,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     this._allowEchoCancellation = value;
   }
 
-  protected context:AudioContext|null=null;
+  //protected context:AudioContext|null=null;
 
   protected updateTimerId: any;
 
@@ -299,10 +299,10 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   }
 
   ngOnDestroy() {
-    //this.ac?.close();
-    if(this.context){
+    const ctx=this.ac?.context
+    if(ctx){
       console.debug("Suspend audio context ...");
-      this.context.suspend().then(()=>{
+      ctx.suspend().then(()=>{
         console.debug("Audio context suspended.");
       })
     }
