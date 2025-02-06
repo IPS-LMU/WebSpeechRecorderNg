@@ -2,7 +2,7 @@
  * Created by klausj on 17.06.2017.
  */
 import {Inject, Injectable} from '@angular/core';
-import { HttpClient } from "@angular/common/http";
+import {HttpClient, HttpHeaders} from "@angular/common/http";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
 import {Script} from "./script";
 import {UUID} from "../../utils/utils";
@@ -42,8 +42,26 @@ export class ScriptService {
       scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
     }
     return  this.http.get<Script>(scriptUrl,{withCredentials: this.withCredentials })
-
    }
+
+  scriptAsXmlObservable(id:string ):Observable<string>{
+    const encScriptId=encodeURIComponent(id);
+    let scriptUrl = this.scriptCtxUrl + '/' + encScriptId;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
+    }
+    let headers = new HttpHeaders();
+    headers = headers.set('Accept', 'application/xml');
+
+    return  this.http.get(scriptUrl,{
+      withCredentials: this.withCredentials,
+      responseType: 'text',
+      headers:headers
+    });
+  }
+
 
 }
 
