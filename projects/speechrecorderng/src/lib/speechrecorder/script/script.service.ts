@@ -33,6 +33,25 @@ export class ScriptService {
     this.scriptCtxUrl = apiEndPoint + ScriptService.SCRIPT_API_CTX;
   }
 
+
+
+  scriptUrlString(id:string | number):string{
+    let encScriptId=encodeURIComponent(id);
+    let scriptUrlStr = this.scriptCtxUrl + '/' + encScriptId;
+    if (this.config && this.config.apiType === ApiType.FILES) {
+      // for development and demo
+      // append UUID to make request URL unique to avoid localhost server caching
+      scriptUrlStr = scriptUrlStr + '.json?requestUUID='+UUID.generate();
+    }
+    return scriptUrlStr
+  }
+
+  scriptUrl(id:string | number):URL{
+    const scriptUrlStr=this.scriptUrlString(id);
+    const url=new URL(scriptUrlStr);
+    return url;
+  }
+
   scriptObservable(id:string | number):Observable<Script>{
     let encScriptId=encodeURIComponent(id);
     let scriptUrl = this.scriptCtxUrl + '/' + encScriptId;
