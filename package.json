@@ -40,8 +40,8 @@
     "@angular/router": "~19.2.0",
     "@angular/service-worker": "~19.2.0",
     "@types/mime-types": "^2.1.4",
-    "rxjs": "~7.8.1",
-    "tslib": "~2.3.1",
+    "rxjs": "~7.8.2",
+    "tslib": "~2.8.1",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -49,16 +49,16 @@
     "@angular/cli": "~19.2.0",
     "@angular/compiler-cli": "~19.2.0",
     "@angular/localize": "~19.2.0",
-    "@types/dom-screen-wake-lock": "~1.0.0",
-    "@types/jasmine": "~4.3.6",
-    "@types/node": "~17.0.45",
-    "core-js": "~3.23.3",
-    "karma": "~6.4.3",
+    "@types/dom-screen-wake-lock": "~1.0.3",
+    "@types/jasmine": "~5.1.7",
+    "@types/node": "~22.13.8",
+    "core-js": "~3.41.0",
+    "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "ng-packagr": "~19.1.2",
-    "typescript": "~5.6.3"
+    "ng-packagr": "~19.2.0",
+    "typescript": "~5.8.2"
   }
 }
