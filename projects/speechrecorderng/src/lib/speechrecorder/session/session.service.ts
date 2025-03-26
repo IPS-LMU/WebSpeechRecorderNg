@@ -33,6 +33,10 @@ export class SessionService {
     this.sessionsUrl = this.apiEndPoint + SessionService.SESSION_API_CTX;
   }
 
+  projectsessionUrl(session:Session):string{
+    return this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + session.project + '/' + SessionService.SESSION_API_CTX + '/' + session.sessionId;
+  }
+
   sessionObserver(id: string): Observable<Session> {
 
     let sessUrl = this.sessionsUrl + '/' + id;
@@ -43,6 +47,29 @@ export class SessionService {
     }
     return this.http.get<Session>(sessUrl,{ withCredentials: this.withCredentials });
 
+  }
+
+  putSessionObserver(session: Session): Observable<Session> {
+
+    const sessUrl=this.projectsessionUrl(session);
+    const putObs = new Observable<Session>(subscriber => {
+      this._uploadCount++;
+      const httpObs = this.http.put<Session>(sessUrl, session,{withCredentials: this.withCredentials});
+      httpObs.subscribe({
+        next:(value) =>
+        {
+          subscriber.next(value);
+        }
+        ,error: error => {
+          this._uploadCount--;
+          subscriber.error(error);
+        }, complete:() => {
+          this._uploadCount--;
+          subscriber.complete();
+        }
+      });
+    });
+    return putObs;
   }
 
   patchSessionObserver(session:Session,body:any): Observable<Session> {

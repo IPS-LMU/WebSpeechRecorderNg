@@ -7,6 +7,7 @@ export {VERSION} from './lib/spr.module.version'
 export {SPEECHRECORDER_ENVIRONMENT_DEFAULTS} from './lib/environment/environment.defaults'
 export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
 
+export {ErrorHelper} from './lib/utils/utils'
 export {UUID} from "./lib/utils/utils"
 export {Action} from "./lib/action/action";
 export {ClassDescriptor,PropertyDescriptor,DataType,UiFieldHint,LocalizedMessage} from './lib/reflect/class_descriptor'
