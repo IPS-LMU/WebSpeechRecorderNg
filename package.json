@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "4.0.0-alpha.80",
+  "version": "4.0.0-alpha.81",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -29,12 +29,12 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "~19.2.3",
-    "@angular/cdk": "~19.2.6",
+    "@angular/cdk": "~19.2.7",
     "@angular/common": "~19.2.3",
     "@angular/compiler": "~19.2.3",
     "@angular/core": "~19.2.3",
     "@angular/forms": "~19.2.3",
-    "@angular/material": "~19.2.6",
+    "@angular/material": "~19.2.7",
     "@angular/platform-browser": "~19.2.3",
     "@angular/platform-browser-dynamic": "~19.2.3",
     "@angular/router": "~19.2.3",
@@ -45,8 +45,8 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~19.2.4",
-    "@angular/cli": "~19.2.4",
+    "@angular-devkit/build-angular": "~19.2.5",
+    "@angular/cli": "~19.2.5",
     "@angular/compiler-cli": "~19.2.3",
     "@angular/localize": "~19.2.3",
     "@types/dom-screen-wake-lock": "~1.0.3",
