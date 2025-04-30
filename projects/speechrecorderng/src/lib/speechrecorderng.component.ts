@@ -284,23 +284,6 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
             return message;
           }
         });
-        // window.addEventListener('popstate', (e) => {
-        //   e.preventDefault();
-        //   e.stopImmediatePropagation();
-        // });
-      const wHref=window.location.href
-      this.locationStrategy.pushState(null, 'WikiSpeech - SpeechRecorder', wHref,'');
-
-      console.debug('init push href '+wHref);
-        this.locationStrategy.onPopState(event => {
-          console.debug('popState event (back button pressed)');
-          if(!this.ready()) {
-            //Block back button
-            console.debug('popState not ready, push href '+wHref+' , block back button');
-            this.locationStrategy.pushState(null, 'WikiSpeech - SpeechRecorder (block)', wHref,'');
-
-          }
-        })
 			return true;
     }
 
