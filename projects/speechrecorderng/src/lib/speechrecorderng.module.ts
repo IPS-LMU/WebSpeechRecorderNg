@@ -20,7 +20,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
 import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
-import {RouterModule, Routes} from "@angular/router";
+import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
 import {SpeechRecorderConfig, SPEECHRECORDER_CONFIG} from "./spr.config";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {ProjectService} from "./speechrecorder/project/project.service";
@@ -79,14 +79,28 @@ export const SPR_ROUTES: Routes = [
   {
     path: 'recorder',
     children: [
-      {path: 'session/:id', component: AudioRecorderComponent},
-      {path: '', component: AudioRecorderComponent}
+      {
+        path: 'session/:id',
+        title: 'Audio recorder',
+        component: AudioRecorderComponent,
+        canDeactivate: [(component: AudioRecorderComponent) => component.ready()]
+      },
+      {
+        path: '',
+        title: 'Audio recorder',
+        component: AudioRecorderComponent,
+        canDeactivate: [(component: AudioRecorderComponent) => component.ready()]
+      }
     ]
   },
   {
     path: 'spr',
     children: [
-      {path: 'session/:id', component: SpeechrecorderngComponent},
+      {
+        path: 'session/:id',
+        component: SpeechrecorderngComponent,
+        canDeactivate: [(component: SpeechrecorderngComponent) => component.ready()]
+      },
       {path: 'db',
         children:[
           {path: 'project/:project',
@@ -116,7 +130,12 @@ export const SPR_ROUTES: Routes = [
         ]
       }
       ,
-      {path: '', component: SpeechrecorderngComponent}
+      {
+        path: '',
+        title: 'SpeechRecorder',
+        component: SpeechrecorderngComponent,
+        canDeactivate: [(component: SpeechrecorderngComponent) => component.ready()]
+      }
     ]
   }
 ];
@@ -132,7 +151,8 @@ export class SpeechrecorderngModule{
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
-        {provide: SPEECHRECORDER_CONFIG, useValue: config }
+        {provide: SPEECHRECORDER_CONFIG, useValue: config },
+        provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'}))
       ]
     };
   }

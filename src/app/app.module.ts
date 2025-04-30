@@ -20,7 +20,7 @@ import {SessionsComponent} from "./session/sessions";
 import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/audio_player";
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
-import {RouterModule, Routes} from "@angular/router";
+import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
 
 
 
@@ -49,7 +49,9 @@ const appRoutes: Routes = [
     BrowserModule,
     SpeechrecorderngModule.forRoot(SPR_CFG)
   ],
-  providers: [],
+  providers: [
+    provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'}))
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
