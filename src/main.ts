@@ -10,9 +10,12 @@ import {appConfig} from "./app/app.config";
 if (environment.production) {
   enableProdMode();
 }
+// Still bootstrap the NgModule not the AppComponent
+// because the module includes the routes of the speechrecorderng module
 
-//platformBrowserDynamic().bootstrapModule(AppModule)
-// .catch(err => console.error(err));
+platformBrowserDynamic().bootstrapModule(AppModule)
+ .catch(err => console.error(err));
 
-bootstrapApplication(AppComponent,appConfig)
-  .catch((err) => console.error(err));
+
+//bootstrapApplication(AppComponent,appConfig)
+//  .catch((err) => console.error(err));

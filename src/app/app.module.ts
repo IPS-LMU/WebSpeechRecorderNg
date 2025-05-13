@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import {BrowserModule} from '@angular/platform-browser';
+import {bootstrapApplication, BrowserModule} from '@angular/platform-browser';
 
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MatButtonModule } from "@angular/material/button";
@@ -10,16 +10,19 @@ import { MatInputModule } from "@angular/material/input";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
-import {SPR_CFG} from "./app.config";
+import {appConfig, SPR_CFG} from "./app.config";
+import {RouterModule} from "@angular/router";
+import {appRoutes} from "./app.routes";
+import {AppComponent} from "./app.component";
 
 
 
 
 
 @NgModule({
-  declarations: [],
+  declarations: [AppComponent],
   imports: [
-    //RouterModule.forRoot(appRoutes, {}),
+    RouterModule.forRoot(appRoutes, {}),
     BrowserAnimationsModule,
     MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
     BrowserModule,
@@ -27,7 +30,7 @@ import {SPR_CFG} from "./app.config";
 
   ],
   providers: [],
-  bootstrap: []
+  bootstrap: [AppComponent]
 
 })
 export class AppModule { }

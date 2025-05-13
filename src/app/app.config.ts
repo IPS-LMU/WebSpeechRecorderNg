@@ -1,6 +1,6 @@
 import {ApiType, SpeechRecorderConfig} from "../../projects/speechrecorderng/src/lib/spr.config";
 import {environment} from "../environments/environment";
-import {PreloadAllModules, provideRouter, withPreloading} from '@angular/router';
+import {provideRouter} from '@angular/router';
 import { appRoutes } from './app.routes';
 import {ApplicationConfig, importProvidersFrom, provideZoneChangeDetection} from "@angular/core";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
