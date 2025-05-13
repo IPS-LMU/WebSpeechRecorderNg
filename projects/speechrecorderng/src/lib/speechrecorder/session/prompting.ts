@@ -23,6 +23,8 @@ import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {Progress} from "./progress";
+import {NgIf} from "@angular/common";
 
 
 @Component({
@@ -42,7 +44,7 @@ import {BreakpointObserver} from "@angular/cdk/layout";
     width: 100%;
   }
   `],
-    standalone: false
+    standalone: true
 })
 export class Recinstructions {
   @Input() recinstructions: string|null| undefined;
@@ -91,7 +93,7 @@ export class Recinstructions {
     /* A separate flex container might be necessayr to alighn centered */
     vertical-align: middle; /* TODO does not work, image is not vertically centered */
   }`],
-    standalone: false
+    standalone: true
 })
 export class Prompter {
   @Input() projectName: string | undefined;
@@ -269,11 +271,13 @@ export const MIN_FONT_SIZE=6;
 export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
 
 @Component({
-    selector: 'app-sprpromptcontainer',
-    template: `
-    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems" [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay" [prompterHeight]="prompterHeight"></app-sprprompter>
+  selector: 'app-sprpromptcontainer',
+  template: `
+    <app-sprprompter #prompter [projectName]="projectName" [promptMediaItems]="mediaitems"
+                     [style.font-size]="fontSize+'px'" [style.visibility]="prDisplay"
+                     [prompterHeight]="prompterHeight"></app-sprprompter>
   `,
-    styles: [`:host {
+  styles: [`:host {
 
     flex: 3; /* the container consumes all available space */
     padding: 10pt;
@@ -290,7 +294,10 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
     width: 100%;
   }
   `],
-    standalone: false
+  imports: [
+    Prompter
+  ],
+  standalone: true
 })
 export class PromptContainer implements OnInit,AfterContentChecked {
   @Input() projectName: string | undefined;
@@ -448,15 +455,15 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
 
 @Component({
-    selector: 'app-sprpromptingcontainer',
-    template: `
+  selector: 'app-sprpromptingcontainer',
+  template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
                          [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
     <app-sprpromptcontainer [projectName]="projectName"
                             [mediaitems]="showPrompt?(promptItem?promptItem.mediaitems:null):null"></app-sprpromptcontainer>
 
   `,
-    styles: [`:host {
+  styles: [`:host {
     position: relative;
     flex: 3; /* the container consumes all available space */
     padding: 10pt;
@@ -469,7 +476,11 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     min-height: 0px;
   }
   `],
-    standalone: false
+  imports: [
+    Recinstructions,
+    PromptContainer
+  ],
+  standalone: true
 })
 export class PromptingContainer {
   @Input() projectName: string | undefined;
@@ -600,8 +611,8 @@ export class PromptingContainer {
 
 
 @Component({
-    selector: 'app-sprprompting',
-    template: `
+  selector: 'app-sprprompting',
+  template: `
 
     <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
     <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
@@ -624,7 +635,7 @@ export class PromptingContainer {
 
 
   `,
-    styles: [`:host {
+  styles: [`:host {
     position: relative;
     margin: 0;
     padding: 0;
@@ -687,8 +698,15 @@ export class PromptingContainer {
       background-color: rgba(0, 0, 0, 0)
 
     }`
-    ],
-    standalone: false
+  ],
+  imports: [
+    SimpleTrafficLight,
+    PromptingContainer,
+    Progress,
+    AudioDisplay,
+    NgIf
+  ],
+  standalone: true
 })
 export class Prompting extends ResponsiveComponent{
 

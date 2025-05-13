@@ -35,6 +35,11 @@ import {IndexedDbAudioBuffer, PersistentAudioStorageTarget} from "../../audio/in
 import {AudioStorageFormatEncoding, AudioStorageType} from "../project/project";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {WarningBar} from "./warning_bar";
+import {MatProgressBar} from "@angular/material/progress-bar";
+import {RecordingItemControls} from "../../ui/recordingitem_display";
+import {ReadyStateIndicator, StatusDisplay, TransportPanel, UploadStatus, WakeLockIndicator} from "./controlpanel";
+import {NgIf} from "@angular/common";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -44,28 +49,32 @@ export const enum Status {
 }
 
 @Component({
-    selector: 'app-sprrecordingsession',
-    providers: [SessionService],
-    template: `
+  selector: 'app-sprrecordingsession',
+  providers: [SessionService],
+  template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
-    <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [projectName]="projectName"
-                        [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
-                        [items]="items?.items"
-                        [transportActions]="transportActions"
-                        [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
-                        [playStartAction]="controlAudioPlayer?.startAction"
-                        [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
-                        [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
-                        [playStopAction]="controlAudioPlayer?.stopAction">
+    <app-warningbar [show]="isDefaultAudioTestSession()"
+                    warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
+    <app-sprprompting [projectName]="projectName"
+                      [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
+                      [items]="items?.items"
+                      [transportActions]="transportActions"
+                      [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()"
+                      (onPrevItem)="prevItem()"
+                      [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
+                      [playStartAction]="controlAudioPlayer?.startAction"
+                      [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+                      [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
+                      [playStopAction]="controlAudioPlayer?.stopAction">
 
     </app-sprprompting>
-    <mat-progress-bar [value]="progressPercentValue()" *ngIf="screenXs" ></mat-progress-bar>
+    <mat-progress-bar [value]="progressPercentValue()" *ngIf="screenXs"></mat-progress-bar>
 
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel"
+                      [displayLevelInfos]="displayAudioClip?.levelInfos"
+                      [state]="liveLevelDisplayState"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="display:flex;flex:10 0 1px"
                                    [audioLoaded]="audioLoaded"
@@ -77,26 +86,36 @@ export const enum Status {
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
-        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
+        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark" style="flex:0 0 0"
+                          [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0"
+                               [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0"
+                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
     <div #controlpanel class="controlpanel">
       <div style="flex:1 1 30%;justify-content: flex-start;align-items: center; align-content: center">
-        <app-sprstatusdisplay *ngIf="!screenXs" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
+        <app-sprstatusdisplay *ngIf="!screenXs" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+                              [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
       </div>
-      <app-sprtransport style="display:flex;flex:10 0 30%;justify-content: center;align-items: center; align-content: center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
-      <div style="display:flex;flex:1 1 30%;flex-direction:row;justify-content: flex-end;align-items: center; align-content: center">
-        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings"  class="ricontrols"  [value]="uploadProgress"
+      <app-sprtransport
+        style="display:flex;flex:10 0 30%;justify-content: center;align-items: center; align-content: center"
+        [readonly]="readonly" [actions]="transportActions"
+        [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
+      <div
+        style="display:flex;flex:1 1 30%;flex-direction:row;justify-content: flex-end;align-items: center; align-content: center">
+        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols" [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator *ngIf="!screenXs" class="ricontrols" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        <app-wakelockindicator *ngIf="!screenXs" class="ricontrols"
+                               [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-readystateindicator *ngIf="!screenXs" class="ricontrols"
+                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
   `,
-    styles: [`:host {
+  styles: [`:host {
     flex: 2;
     background: lightgrey;
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
@@ -105,38 +124,53 @@ export const enum Status {
     padding: 0;
     min-height: 0px;
 
-      /* Prevents horizontal scroll bar on swipe right */
-      overflow: hidden;
+    /* Prevents horizontal scroll bar on swipe right */
+    overflow: hidden;
   }`, `.ricontrols {
-        display:flex;
-        padding: 4px;
-        box-sizing: border-box;
-        height: 100%;
-        flex-direction: row;
-        justify-content: flex-end;align-items: center; align-content: center;
-    }`, `.dark {
+    display: flex;
+    padding: 4px;
+    box-sizing: border-box;
+    height: 100%;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    align-content: center;
+  }`, `.dark {
     background: darkgray;
   }`, `.controlpanel {
-    display:flex;
+    display: flex;
     flex-direction: row;
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`, `.audioStatusDisplay{
-    display:flex;
+  }`, `.audioStatusDisplay {
+    display: flex;
     flex-direction: row;
-    height:100px;
+    height: 100px;
     min-height: 100px;
-  }`, `.audioStatusDisplayXs{
-    display:flex;
+  }`, `.audioStatusDisplayXs {
+    display: flex;
     flex-direction: column;
-    height:125px;
+    height: 125px;
     min-height: 125px;
   }`
-    ],
-    standalone: false
+  ],
+  imports: [
+    WarningBar,
+    Prompting,
+    MatProgressBar,
+    LevelBar,
+    RecordingItemControls,
+    UploadStatus,
+    WakeLockIndicator,
+    ReadyStateIndicator,
+    StatusDisplay,
+    TransportPanel,
+    NgIf
+  ],
+  standalone: true
 })
 export class SessionManager extends BasicRecorder implements AfterViewInit,OnDestroy, AudioCaptureListener,ChunkAudioBufferReceiver {
 

@@ -27,7 +27,7 @@ import {SessionService} from "./session.service";
       text-align: center;
     }
   `],
-    standalone: false
+    standalone: true
 })
 export class WarningBar {
   @Input() warningText!:string;

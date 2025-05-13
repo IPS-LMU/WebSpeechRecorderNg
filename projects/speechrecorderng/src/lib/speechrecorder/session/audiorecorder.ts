@@ -37,6 +37,10 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {WarningBar} from "./warning_bar";
+import {RecordingItemControls} from "../../ui/recordingitem_display";
+import {ReadyStateIndicator, StatusDisplay, UploadStatus, WakeLockIndicator} from "./controlpanel";
+import {MatIcon} from "@angular/material/icon";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -44,9 +48,9 @@ export const enum Status {
 
 
 @Component({
-    selector: 'app-audiorecorder',
-    providers: [SessionService],
-    template: `
+  selector: 'app-audiorecorder',
+  providers: [SessionService],
+  template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()"
                     warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
@@ -62,7 +66,8 @@ export const enum Status {
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel"
+                      [state]="liveLevelDisplayState"
                       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="flex:10 0 1px"
@@ -78,34 +83,39 @@ export const enum Status {
         <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark" style="flex:0 0 0"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0"
+                               [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
     <div #controlpanel class="controlpanel">
-      <app-sprstatusdisplay *ngIf="!screenXs" style="flex:0 1 30%;" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+      <app-sprstatusdisplay *ngIf="!screenXs" style="flex:0 1 30%;" [statusMsg]="statusMsg"
+                            [statusAlertType]="statusAlertType"
                             [statusWaiting]="statusWaiting"
                             class="hidden-xs"></app-sprstatusdisplay>
       <div [class.startstop]="!screenXs" [class.startstopscreenxs]="screenXs">
         <div style="align-content: center">
-          <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
-            <mat-icon class="bigbuttonicon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon>
-            <span class="bigbuttontext">{{startStopNextName()}}</span>
+          <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button
+                  class="bigbutton">
+            <mat-icon class="bigbuttonicon" [style.color]="startStopNextIconColor()">{{ startStopNextIconName() }}
+            </mat-icon>
+            <span class="bigbuttontext">{{ startStopNextName() }}</span>
           </button>
         </div>
       </div>
-      <div style="flex:0 1 30%;display:flex;justify-items: flex-end;justify-content:flex-end" >
+      <div style="flex:0 1 30%;display:flex;justify-items: flex-end;justify-content:flex-end">
         <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols"
                           [value]="uploadProgress"
                           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator  *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
+        <app-wakelockindicator *ngIf="!screenXs" class="ricontrols"
+                               [screenLocked]="screenLocked"></app-wakelockindicator>
         <app-readystateindicator *ngIf="!screenXs" class="ricontrols"
                                  [ready]="dataSaved && !isActive()"></app-readystateindicator>
       </div>
     </div>
   `,
-    styles: [`:host {
+  styles: [`:host {
     flex: 2;
     background: lightgrey;
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
@@ -114,16 +124,16 @@ export const enum Status {
     padding: 0;
     height: 100%;
     min-height: 0px;
-      /* Prevents horizontal scroll bar on swipe right */
-      overflow: hidden;
+    /* Prevents horizontal scroll bar on swipe right */
+    overflow: hidden;
   }`, `.ricontrols {
-        padding: 4px;
-        box-sizing: border-box;
-        height: 100%;
-    }`, `.dark {
+    padding: 4px;
+    box-sizing: border-box;
+    height: 100%;
+  }`, `.dark {
     background: darkgray;
   }`, `.controlpanel {
-    display:flex;
+    display: flex;
     flex-direction: row;
     align-content: center;
     align-items: center;
@@ -132,13 +142,13 @@ export const enum Status {
     min-height: min-content; /* important */
   }`, `.startstop {
     width: 100%;
-    flex:1 0 30%;
+    flex: 1 0 30%;
     align-items: center;
     text-align: center;
     align-content: center;
   }`, `.startstopscreenxs {
     width: 100%;
-    flex:1 0 100%;
+    flex: 1 0 100%;
     align-items: center;
     text-align: center;
     align-content: center;
@@ -156,23 +166,34 @@ export const enum Status {
     min-height: 50px;
     font-size: 50px;
   }`, `.bigbuttontext {
-      font-weight: bolder;
-      font-size: 14px;
-      vertical-align: middle;
+    font-weight: bolder;
+    font-size: 14px;
+    vertical-align: middle;
   }
-  `, `.audioStatusDisplay{
-    display:flex;
+  `, `.audioStatusDisplay {
+    display: flex;
     flex-direction: row;
-    height:100px;
+    height: 100px;
     min-height: 100px;
-  }`, `.audioStatusDisplayXs{
-    display:flex;
+  }`, `.audioStatusDisplayXs {
+    display: flex;
     flex-direction: column;
-    height:125px;
+    height: 125px;
     min-height: 125px;
   }`
-    ],
-    standalone: false
+  ],
+  imports: [
+    WarningBar,
+    LevelBar,
+    RecordingItemControls,
+    UploadStatus,
+    WakeLockIndicator,
+    ReadyStateIndicator,
+    StatusDisplay,
+    MatIcon,
+    RecorderCombiPane
+  ],
+  standalone: true
 })
 export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider,ChunkAudioBufferReceiver {
 
@@ -1127,20 +1148,23 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 }
 
 @Component({
-    selector: 'app-audiorecorder-comp',
-    providers: [SessionService],
-    template: `
+  selector: 'app-audiorecorder-comp',
+  providers: [SessionService],
+  template: `
     <app-audiorecorder [projectName]="_project?.name" [dataSaved]="dataSaved"></app-audiorecorder>
   `,
-    styles: [`:host{
+  styles: [`:host {
     flex: 2;
     display: flex;
-      height: 100%;
+    height: 100%;
     flex-direction: column;
-    min-height:0;
+    min-height: 0;
 
   }`],
-    standalone: false
+  imports: [
+    AudioRecorder
+  ],
+  standalone: true
 })
 export class AudioRecorderComponent extends RecorderComponent  implements OnInit,OnDestroy,AfterViewInit,ReadyStateProvider {
 

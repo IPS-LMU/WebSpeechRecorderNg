@@ -5,7 +5,7 @@ import {Component, Inject} from '@angular/core';
     selector: 'app-start',
     templateUrl: 'start.html',
     styleUrls: ['start.css'],
-    standalone: false
+    standalone: true
 })
 export class StartComponent {
 

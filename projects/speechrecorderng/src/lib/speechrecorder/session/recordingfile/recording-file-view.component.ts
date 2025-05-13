@@ -24,6 +24,9 @@ import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
 import {MessageDialog} from "../../../ui/message_dialog";
 import {ErrorHelper} from "../../../utils/utils";
+import {AudioDisplayControl} from "../../../audio/ui/audio_display_control";
+import {RecordingFileMetaComponent} from "./recording-file-meta.component";
+import {RecordingFileNaviComponent} from "./recording-file-navi.component";
 
 
 export class ItemcodeIndex{
@@ -31,14 +34,15 @@ export class ItemcodeIndex{
 }
 
 @Component({
-    selector: 'app-audiodisplayplayer',
-    template: `
+  selector: 'app-audiodisplayplayer',
+  template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
-      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile" [stateLoading]="audioFetching"></app-recording-file-meta>
+      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"
+                               [stateLoading]="audioFetching"></app-recording-file-meta>
 
-    <audio-display-control [audioClip]="audioClip"
+      <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
@@ -46,35 +50,44 @@ export class ItemcodeIndex{
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
-                           [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
-      </div>
+                             [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
+      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion"
+                               [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction"
+                               [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction"
+                               [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+    </div>
   `,
-    styles: [
-        `:host {
-               flex: 2;
-               display: flex;
-               flex-direction: column;
-               min-height:0;
-               overflow: hidden;
-           padding: 20px;
-           z-index: 5;
-           box-sizing: border-box;
-           background-color: white;
-         }`, `
-        .ctrlview{
-          display: flex;
-          flex-direction: row;
+  styles: [
+    `:host {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      padding: 20px;
+      z-index: 5;
+      box-sizing: border-box;
+      background-color: white;
+    }`, `
+      .ctrlview {
+        display: flex;
+        flex-direction: row;
 
-        }
+      }
     `, `
-      audio-display-control{
+      audio-display-control {
 
         flex: 3;
       }
     `
-    ],
-    standalone: false
+  ],
+  imports: [
+    AudioDisplayScrollPane,
+    AudioDisplayControl,
+    RecordingFileMetaComponent,
+    RecordingFileNaviComponent
+  ],
+  standalone: true
 })
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
 

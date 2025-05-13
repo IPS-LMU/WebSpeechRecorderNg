@@ -9,46 +9,53 @@ import {AudioClip, Selection} from './persistor'
 import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioDataHolder} from "./audio_data_holder";
+import {AudioDisplayControl} from "./ui/audio_display_control";
 
 @Component({
-    selector: 'app-audiodisplay',
-    template: `
+  selector: 'app-audiodisplay',
+  template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
     <audio-display-control [audioClip]="audioClip"
-                             [playStartAction]="playStartAction"
-                             [playSelectionAction]="playSelectionAction"
-                            [playStopAction]="playStopAction"
-    [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
-    [zoomInAction]="zoomInAction"
-    [zoomOutAction]="zoomOutAction"
-    [zoomSelectedAction]="zoomSelectedAction"
-    [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
+                           [playStartAction]="playStartAction"
+                           [playSelectionAction]="playSelectionAction"
+                           [playStopAction]="playStopAction"
+                           [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
+                           [zoomInAction]="zoomInAction"
+                           [zoomOutAction]="zoomOutAction"
+                           [zoomSelectedAction]="zoomSelectedAction"
+                           [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
   `,
-    styles: [
-        `:host {
-             display: flex;
-             flex-direction: column;
-             position: absolute;
-             bottom: 0px;
-             height: 100%;
-             width: 100%;
-             overflow: hidden;
-             padding: 20px;
-             z-index: 5;
-             box-sizing: border-box;
-             background-color: rgba(230, 230, 230, 1.0)
-           }`, `
-          legend{
-              margin-left: 1em; padding: 0.2em 0.8em;font-size: 0.8em;
+  styles: [
+    `:host {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      bottom: 0px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      padding: 20px;
+      z-index: 5;
+      box-sizing: border-box;
+      background-color: rgba(230, 230, 230, 1.0)
+    }`, `
+      legend {
+        margin-left: 1em;
+        padding: 0.2em 0.8em;
+        font-size: 0.8em;
       }`, `
-        fieldset{
-            border: 1px darkgray solid
+      fieldset {
+        border: 1px darkgray solid
       }
-      `
-    ],
-    standalone: false
+    `
+  ],
+  imports: [
+    AudioDisplayScrollPane,
+    AudioDisplayControl
+  ],
+  standalone: true
 })
 export class AudioDisplay implements OnInit,AfterViewInit {
 

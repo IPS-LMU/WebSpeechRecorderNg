@@ -14,7 +14,7 @@ import {Component} from "@angular/core";
            overflow-y: auto;
          }`
     ],
-    standalone: false
+    standalone: true
 })
 export class ScrollPaneHorizontal{
 

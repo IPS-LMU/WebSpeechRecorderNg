@@ -9,12 +9,13 @@ import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
 
 @Component({
-    selector: 'app-recordercombipane',
-    template: `
+  selector: 'app-recordercombipane',
+  template: `
     <div class="scrollList">
-        <app-recordinglist [selectedRecordingFile]="selectedRecordingFile" [selectDisabled]="selectDisabled" (selectedRecordingFileChanged)="selectRecordingFile($event)"></app-recordinglist>
+      <app-recordinglist [selectedRecordingFile]="selectedRecordingFile" [selectDisabled]="selectDisabled"
+                         (selectedRecordingFileChanged)="selectRecordingFile($event)"></app-recordinglist>
     </div>
-    <div class="collapsable"  #asCt [class.active]="!audioSignalCollapsed && !screenXs">
+    <div class="collapsable" #asCt [class.active]="!audioSignalCollapsed && !screenXs">
       <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
                         [audioClip]="displayAudioClip"
                         [playStartAction]="playStartAction"
@@ -23,8 +24,8 @@ import {BreakpointObserver} from "@angular/cdk/layout";
                         [playStopAction]="playStopAction"></app-audiodisplay>
     </div>
   `,
-    styles: [`:host {
-   background-color: yellow;
+  styles: [`:host {
+    background-color: yellow;
     position: relative;
     margin: 0;
     padding: 0;
@@ -38,7 +39,7 @@ import {BreakpointObserver} from "@angular/cdk/layout";
     */
     min-height: 0px;
 
-  }`, `.scrollList{
+  }`, `.scrollList {
     margin: 0;
     padding: 0;
     background: lightgrey;
@@ -59,12 +60,16 @@ import {BreakpointObserver} from "@angular/cdk/layout";
       width: 100%;
       overflow: hidden;
       padding: 0px;
-      z-index: 200;  /* Needs a higher value then the sticky Material table header (which is z-index: 100) */
+      z-index: 200; /* Needs a higher value then the sticky Material table header (which is z-index: 100) */
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0)
     }`],
-    styleUrls: ['../../speechrecorder_mat.scss'],
-    standalone: false
+  styleUrls: ['../../speechrecorder_mat.scss'],
+  imports: [
+    RecordingList,
+    AudioDisplay
+  ],
+  standalone: true
 })
 export class RecorderCombiPane extends ResponsiveComponent implements AfterViewInit{
 

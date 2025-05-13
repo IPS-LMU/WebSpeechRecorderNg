@@ -16,17 +16,23 @@ import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
 import {ErrorHelper} from "../../../utils/utils";
+import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
+import {RecordingFileMetaComponent} from "./recording-file-meta.component";
+import {AudioDisplayControl} from "../../../audio/ui/audio_display_control";
+import {RecordingFileNaviComponent} from "./recording-file-navi.component";
 
 @Component({
-    selector: 'app-audiodisplayplayer',
-    template: `
-      <h1>Recording file editing</h1>
-      <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
+  selector: 'app-audiodisplayplayer',
+  template: `
+    <h1>Recording file editing</h1>
+    <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied
+      the original file is exported.</p>
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
-      <div class="ctrlview">
-        <app-recording-file-meta [sessionId]="sessionId"  [recordingFile]="recordingFile" [stateLoading]="audioFetching"></app-recording-file-meta>
-    <audio-display-control [audioClip]="audioClip"
+    <div class="ctrlview">
+      <app-recording-file-meta [sessionId]="sessionId" [recordingFile]="recordingFile"
+                               [stateLoading]="audioFetching"></app-recording-file-meta>
+      <audio-display-control [audioClip]="audioClip"
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
@@ -34,36 +40,47 @@ import {ErrorHelper} from "../../../utils/utils";
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
-                           [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
-        <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
-      </div>
+                             [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control>
+      <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion"
+                               [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction"
+                               [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction"
+                               [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
+    </div>
 
-      <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
+    <button mat-raised-button color="accent" (click)="applySelection()"
+            [disabled]="editSaved">{{ this.applyButtonText() }}
+    </button>
   `,
-    styles: [
-        `:host {
-               flex: 2;
-               display: flex;
-               flex-direction: column;
-               min-height:0;
-               overflow: hidden;
-           padding: 20px;
-           z-index: 5;
-           box-sizing: border-box;
-           background-color: white;
-         }`, `
-        .ctrlview{
-          display: flex;
-          flex-direction: row;
-        }
+  styles: [
+    `:host {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      padding: 20px;
+      z-index: 5;
+      box-sizing: border-box;
+      background-color: white;
+    }`, `
+      .ctrlview {
+        display: flex;
+        flex-direction: row;
+      }
     `, `
-      audio-display-control{
+      audio-display-control {
 
         flex: 3;
       }
     `
-    ],
-    standalone: false
+  ],
+  imports: [
+    AudioDisplayScrollPane,
+    RecordingFileMetaComponent,
+    AudioDisplayControl,
+    RecordingFileNaviComponent
+  ],
+  standalone: true
 })
 export class RecordingFileUI extends RecordingFileViewComponent implements AfterViewInit {
 

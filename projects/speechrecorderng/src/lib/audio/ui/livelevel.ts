@@ -45,7 +45,7 @@ export enum State {LOADING,RENDERING,READY}
     height: 100%;
     position: absolute;
   }`],
-    standalone: false
+    standalone: true
 })
 export class LevelBar implements LevelListener,AfterViewInit {
 

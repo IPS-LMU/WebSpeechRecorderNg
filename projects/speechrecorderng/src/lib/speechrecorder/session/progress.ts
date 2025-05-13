@@ -1,11 +1,13 @@
 import {Component, ElementRef, EventEmitter, Input, Output} from '@angular/core'
 import {Item} from './item';
 import {IntersectionObserverDirective} from "../../ui/intersection-observer.directive";
+import {MatIcon} from "@angular/material/icon";
+import {NgForOf, NgIf} from "@angular/common";
 
 
 @Component({
-    selector: 'app-sprprogress',
-    template: `
+  selector: 'app-sprprogress',
+  template: `
 
     <table class="mat-typography">
       <thead>
@@ -21,10 +23,10 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
         <tr *ngFor="let item of items; let itIdx=index;"
             (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
             [updateObservation]="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
-          <td>{{itIdx}}</td>
-          <td class="promptDescriptor">{{item.promptAsString}}</td>
+          <td>{{ itIdx }}</td>
+          <td class="promptDescriptor">{{ item.promptAsString }}</td>
           <td>
-            <mat-icon  *ngIf="item.itemDone()">done</mat-icon>
+            <mat-icon *ngIf="item.itemDone()">done</mat-icon>
             <!--<mat-icon *ngIf="latestRecordingAvail(item)===false" style="font-size:0.6em;width:0.6em;height:0.6em">cloud_download</mat-icon>-->
 
           </td>
@@ -34,7 +36,7 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
       </tbody>
     </table>
   `,
-    styles: [`:host {
+  styles: [`:host {
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 10pt;
@@ -50,32 +52,38 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
     /* min-height:0px; */
     min-height: 1px;
   }`,
-        `table {
-             min-height: 1px;
-             border-collapse: collapse;
-                 /* Tables do not have a natural min size */
-                 /*min-width: 300px; */
-       
-           }
-       
-           table, th, td {
-             border: 1px solid lightgrey;
-             padding: 0.5em;
-       
-           }
-       
-           `, `
+    `table {
+      min-height: 1px;
+      border-collapse: collapse;
+      /* Tables do not have a natural min size */
+      /*min-width: 300px; */
+
+    }
+
+    table, th, td {
+      border: 1px solid lightgrey;
+      padding: 0.5em;
+
+    }
+
+    `, `
       .selRow {
         background: lightblue;
       }
-    `, `.promptDescriptor{
+    `, `.promptDescriptor {
 
       max-width: 200px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
     }`],
-    standalone: false
+  imports: [
+    MatIcon,
+    IntersectionObserverDirective,
+    NgIf,
+    NgForOf
+  ],
+  standalone: true
 })
 export class Progress {
   isObs:IntersectionObserver;

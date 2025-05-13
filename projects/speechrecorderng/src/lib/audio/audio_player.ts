@@ -12,39 +12,44 @@ import {Action} from "../action/action";
 import {AudioDisplayScrollPane} from "./ui/audio_display_scroll_pane";
 import {AudioContextProvider} from "./context";
 import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
+import {AudioDisplayControl} from "./ui/audio_display_control";
 
 @Component({
-    selector: 'app-audiodisplayplayer',
-    template: `
+  selector: 'app-audiodisplayplayer',
+  template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
     <audio-display-control [audioClip]="audioClip"
-                             [playStartAction]="playStartAction"
-                             [playSelectionAction]="playSelectionAction"
-                             [playStopAction]="playStopAction"
-                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
-                             [zoomInAction]="zoomInAction"
-                             [zoomOutAction]="zoomOutAction"
-                             [zoomSelectedAction]="zoomSelectedAction"
-                             [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control><p>{{status}}
+                           [playStartAction]="playStartAction"
+                           [playSelectionAction]="playSelectionAction"
+                           [playStopAction]="playStopAction"
+                           [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                           [zoomInAction]="zoomInAction"
+                           [zoomOutAction]="zoomOutAction"
+                           [zoomSelectedAction]="zoomSelectedAction"
+                           [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control><p>{{ status }}
   `,
-    styles: [
-        `:host {
-             display: flex;
-             flex-direction: column;
-             position: absolute;
-             bottom: 0px;
-             height: 100%;
-             width: 100%;
-             overflow: hidden;
-             padding: 20px;
-             z-index: 5;
-             box-sizing: border-box;
-             background-color: rgba(0, 0, 0, 0.75)
-           }`
-    ],
-    standalone: false
+  styles: [
+    `:host {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      bottom: 0px;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      padding: 20px;
+      z-index: 5;
+      box-sizing: border-box;
+      background-color: rgba(0, 0, 0, 0.75)
+    }`
+  ],
+  imports: [
+    AudioDisplayScrollPane,
+    AudioDisplayControl
+  ],
+  standalone: true
 })
 export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterViewInit {
   private _audioUrl: string|null=null;

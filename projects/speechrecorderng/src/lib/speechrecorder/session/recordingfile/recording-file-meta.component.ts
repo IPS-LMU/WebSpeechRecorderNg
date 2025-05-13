@@ -1,46 +1,56 @@
 import {Component, Input} from '@angular/core';
 import {RecordingFileUtil} from "./recording-file";
 import {SprRecordingFile} from "../../recording";
+import {MatCard, MatCardContent, MatCardTitle} from "@angular/material/card";
+import {MatProgressSpinner} from "@angular/material/progress-spinner";
+import {NgIf} from "@angular/common";
 
 @Component({
-    selector: 'app-recording-file-meta',
-    template: `
+  selector: 'app-recording-file-meta',
+  template: `
     <mat-card appearance="outlined">
-      <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
+      <mat-card-title>Recording file ID: {{ recordingFile?.recordingFileId }}</mat-card-title>
       <mat-card-content>
         <mat-progress-spinner *ngIf="stateLoading" mode="indeterminate" [diameter]="20"></mat-progress-spinner>
         <table>
           <tr *ngIf="itemCode">
             <td>Itemcode:</td>
-            <td>{{itemCode}}</td>
+            <td>{{ itemCode }}</td>
           </tr>
           <tr *ngIf="uuid && !itemCode">
             <td>UUID:</td>
-            <td>{{uuid}}</td>
+            <td>{{ uuid }}</td>
           </tr>
           <tr *ngIf="recordingFile?.startedDate">
             <td>Started:</td>
-            <td>{{recordingFile?.startedDate}}</td>
+            <td>{{ recordingFile?.startedDate }}</td>
           </tr>
           <tr *ngIf="!recordingFile?.startedDate && recordingFile?.date">
             <td>Date:</td>
-            <td>{{recordingFile?.date}}</td>
+            <td>{{ recordingFile?.date }}</td>
           </tr>
           <tr *ngIf="itemCode">
             <td>Prompt:</td>
-            <td>{{recordingAsPlainText()}}</td>
+            <td>{{ recordingAsPlainText() }}</td>
           </tr>
 
           <tr *ngIf="sessionId">
             <td>Session:</td>
-            <td>{{sessionId}}</td>
+            <td>{{ sessionId }}</td>
           </tr>
         </table>
       </mat-card-content>
     </mat-card>
   `,
-    styles: [],
-    standalone: false
+  styles: [],
+  imports: [
+    MatCard,
+    MatCardTitle,
+    MatCardContent,
+    MatProgressSpinner,
+    NgIf
+  ],
+  standalone: true
 })
 export class RecordingFileMetaComponent{
 

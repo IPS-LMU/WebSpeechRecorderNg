@@ -3,7 +3,7 @@
 import {Directive, ElementRef, Input} from "@angular/core";
 @Directive({
     selector: "[scrollIntoViewToBottom]",
-    standalone: false
+    standalone: true
 })
 export class ScrollIntoViewDirective{
 

@@ -1,13 +1,17 @@
 import {AfterViewInit, Component, EventEmitter, Input, Output} from "@angular/core";
 import {RecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
-import {MatTableDataSource} from "@angular/material/table";
+import {MatTable, MatTableDataSource} from "@angular/material/table";
 import {RecFilesCache} from "./recording_file_cache";
 import {AudioDataHolder} from "../../audio/audio_data_holder";
+import {MatIcon} from "@angular/material/icon";
+import {MatCard, MatCardContent, MatCardHeader} from "@angular/material/card";
+import {ScrollIntoViewDirective} from "../../utils/scrollIntoViewToBottom";
+import {DatePipe} from "@angular/common";
 
 @Component({
-    selector: 'app-recordinglist',
-    template: `
+  selector: 'app-recordinglist',
+  template: `
     <mat-card appearance="outlined">
       <mat-card-header>
         <h2>Recording list</h2>
@@ -16,20 +20,23 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
         <table mat-table [dataSource]="recordingListDataSource" class="mat-elevation-z0">
           <tr mat-header-row *matHeaderRowDef="cols;sticky:true"></tr>
           <tr mat-row *matRowDef="let element; columns: cols;"
-              [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid" [class.selected]="element.uuid===selectedRecordingFile?.uuid"></tr>
+              [scrollIntoViewToBottom]="element.uuid===selectedRecordingFile?.uuid"
+              [class.selected]="element.uuid===selectedRecordingFile?.uuid"></tr>
           <ng-container matColumnDef="index">
             <th mat-header-cell *matHeaderCellDef mat-header>#</th>
             <td mat-cell class="monospaced"
-                *matCellDef="let element;let i = index">{{recordingListDataSource.data.length - i}}</td>
+                *matCellDef="let element;let i = index">{{ recordingListDataSource.data.length - i }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="startedDate">
             <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
             <td mat-cell class="monospaced"
-                *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
+                *matCellDef="let element">{{ element.startedDate | date:'YYYY-MM-dd HH:mm:ss' }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="length">
             <th mat-header-cell *matHeaderCellDef mat-header>Length</th>
-            <td mat-cell class="monospaced" *matCellDef="let element">{{lengthTimeFormatted(element)}}</td>
+            <td mat-cell class="monospaced" *matCellDef="let element">{{ lengthTimeFormatted(element) }}</td>
           </ng-container>
           <ng-container matColumnDef="action">
             <th mat-header-cell *matHeaderCellDef>Action</th>
@@ -52,7 +59,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
     </mat-card>
 
   `,
-    styles: [`:host {
+  styles: [`:host {
     position: relative;
     margin: 0;
     padding: 0;
@@ -69,12 +76,21 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
     min-height: 0px;
 
   }`, `
-    .selected{
+    .selected {
       font-weight: bold;
     }
   `],
-    styleUrls: ['../../speechrecorder_mat.scss'],
-    standalone: false
+  styleUrls: ['../../speechrecorder_mat.scss'],
+  imports: [
+    MatIcon,
+    MatCard,
+    MatCardHeader,
+    MatCardContent,
+    MatTable,
+    ScrollIntoViewDirective,
+    DatePipe
+  ],
+  standalone: true
 })
 export class RecordingList implements AfterViewInit{
   //private recordingList:Array<RecordingFile>=new Array<RecordingFile>();
