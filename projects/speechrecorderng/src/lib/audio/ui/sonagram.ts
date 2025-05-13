@@ -28,7 +28,7 @@ const DEFAULT_DFT_SIZE = 1024;
       min-height: 0px;
         position: absolute;
     }`],
-    standalone: false
+    standalone: true
 })
 export class Sonagram extends AudioCanvasLayerComponent {
 

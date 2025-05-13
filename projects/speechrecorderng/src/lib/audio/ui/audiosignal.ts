@@ -24,7 +24,7 @@ declare function postMessage(message: any, transfer: Array<any>): void;
     min-height: 0px;
     position: absolute;
   }`],
-    standalone: false
+    standalone: true
 })
 export class AudioSignal extends AudioCanvasLayerComponent{
 
