@@ -8,6 +8,7 @@ export enum ApiType {
 }
 @Injectable()
 export class SpeechRecorderConfig{
+  pubApiEndPoint?: string | null=null;
   apiEndPoint?: string | null=null;
   apiType?: ApiType | null=null;
   apiVersion: number=1;

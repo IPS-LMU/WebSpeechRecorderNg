@@ -7,6 +7,7 @@ import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 import {ResponsiveComponent} from "./responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {TranslateService} from "@ngx-translate/core";
 
 
 export const MIN_DB_LEVEL = -40.0;
@@ -25,7 +26,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button *ngIf="!screenXs" i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
+        <button *ngIf="!screenXs" [matTooltip]="'spr.audio.display.toggle.detailed' | translate" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
@@ -103,8 +104,12 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
 
   warnDbLevel = DEFAULT_WARN_DB_LEVEL;
 
-  constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
+  constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef,private translate: TranslateService) {
     super(bpo);
+    const browserLang = translate.getBrowserLang();
+    if (browserLang) {
+      translate.use(browserLang);
+    }
   }
 
   ngOnDestroy() {

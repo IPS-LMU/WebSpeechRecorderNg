@@ -6,6 +6,8 @@
     "declaration": true,
     "declarationMap": true,
     "inlineSources": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "types": [
       "@angular/localize"
     ],

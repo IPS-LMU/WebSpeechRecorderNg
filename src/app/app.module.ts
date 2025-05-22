@@ -21,6 +21,10 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
+import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
+import {SprTranslateLoader} from "../../projects/speechrecorderng/src/lib/i18n/spr.translate.loader";
+import {HttpClient} from "@angular/common/http";
+import {SPEECHRECORDER_CONFIG} from "../../projects/speechrecorderng/src/lib/spr.config";
 
 
 
@@ -44,6 +48,16 @@ const appRoutes: Routes = [
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {}),
+    TranslateModule.forRoot({
+      loader: {
+        provide: TranslateLoader,
+        useClass: SprTranslateLoader,
+        deps: [HttpClient,SPEECHRECORDER_CONFIG]
+      },
+      //missingTranslationHandler: {provide: MissingTranslationHandler, useClass: SprMissingTranslationHandler},
+      useDefaultLang: true,
+      defaultLanguage: 'en'
+    }),
     BrowserAnimationsModule,
     MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
     BrowserModule,

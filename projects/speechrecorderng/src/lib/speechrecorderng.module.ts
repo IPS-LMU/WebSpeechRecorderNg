@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
+import {inject, ModuleWithProviders, NgModule, provideAppInitializer} from '@angular/core';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
@@ -17,7 +17,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import {HttpClient, provideHttpClient, withInterceptorsFromDi} from "@angular/common/http";
 import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
@@ -71,6 +71,10 @@ import {
 } from "./speechrecorder/session/recordingfile/recording-file_delete_confirm_dialog";
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
+import {MissingTranslationHandler, TranslateLoader, TranslateModule, TranslateService} from "@ngx-translate/core";
+import {SprTranslateLoader} from "./i18n/spr.translate.loader";
+import {SprMissingTranslationHandler} from "./i18n/spr.missing.translation.handler";
+
 
 
 
@@ -140,18 +144,52 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
-@NgModule({ declarations: [ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
-        ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator, ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder, SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent, AudioRecorderComponent,RecordingFilesComponent,RecordingFileViewComponent, RecordingFileUI,
+@NgModule(
+  {
+    declarations: [
+      ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
+      ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator, ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder, SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent, AudioRecorderComponent,RecordingFilesComponent,RecordingFileViewComponent, RecordingFileUI,
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent, RecordingList, RecorderCombiPane, AudioRecorder
     ],
-    exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder], imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective], providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader, provideHttpClient(withInterceptorsFromDi())] })
+    exports: [
+      MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder
+    ],
+    imports: [
+    RouterModule.forChild(SPR_ROUTES),
+    TranslateModule.forChild({
+      loader: {
+        provide: TranslateLoader,
+        useClass: SprTranslateLoader,
+        deps: [HttpClient,SPEECHRECORDER_CONFIG]
+      },
+      missingTranslationHandler: {provide: MissingTranslationHandler, useClass: SprMissingTranslationHandler},
+      extend: true,
+      isolate: false,
+      useDefaultLang: true,
+      defaultLanguage: 'en'
+    }),
+      CommonModule,
+      MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective],
+    providers: [
+      provideHttpClient(withInterceptorsFromDi()),
+      ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader,
+      provideAppInitializer(()=>{
+        const translate=inject(TranslateService);
+        if(translate) {
+          translate.currentLoader.
+        }else{
+          console.error("Could not initialize translate service: Service not injected.");
+        }
+      })
+  ]
+})
 export class SpeechrecorderngModule{
 
   static forRoot(config: SpeechRecorderConfig): ModuleWithProviders<SpeechrecorderngModule> {
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
-        {provide: SPEECHRECORDER_CONFIG, useValue: config },
+        { provide: SPEECHRECORDER_CONFIG, useValue: config },
         provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'}))
       ]
     };
