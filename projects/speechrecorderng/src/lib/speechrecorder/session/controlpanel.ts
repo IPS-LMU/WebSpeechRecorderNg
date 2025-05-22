@@ -155,8 +155,8 @@ export class TransportActions {
   stopNonrecordingAction:Action<void>;
 
   constructor() {
-    const locStart=$localize `Start`;
-    this.startAction = new Action(locStart);
+    //const locStart=$localize `Start`;
+    this.startAction = new Action('Start');
     this.stopAction = new Action('Stop');
     this.nextAction = new Action('Next');
     this.pauseAction = new Action('Pause');

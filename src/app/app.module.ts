@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import {inject, NgModule, provideAppInitializer} from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -21,11 +21,12 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
-import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
-import {SprTranslateLoader} from "../../projects/speechrecorderng/src/lib/i18n/spr.translate.loader";
+import {provideTransloco, TranslocoModule, TranslocoService} from "@jsverse/transloco";
+import {SprTranslocoLoader} from "../../projects/speechrecorderng/src/lib/i18n/sprTranslocoLoader";
 import {HttpClient} from "@angular/common/http";
 import {SPEECHRECORDER_CONFIG} from "../../projects/speechrecorderng/src/lib/spr.config";
 
+import { getBrowserLang } from '@jsverse/transloco';
 
 
 const appRoutes: Routes = [
@@ -48,23 +49,47 @@ const appRoutes: Routes = [
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {}),
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useClass: SprTranslateLoader,
-        deps: [HttpClient,SPEECHRECORDER_CONFIG]
-      },
-      //missingTranslationHandler: {provide: MissingTranslationHandler, useClass: SprMissingTranslationHandler},
-      useDefaultLang: true,
-      defaultLanguage: 'en'
-    }),
+    // TranslocoModule.forRoot({
+    //   loader: {
+    //     provide: TranslateLoader,
+    //     useClass: SprTranslateLoader,
+    //     deps: [HttpClient,SPEECHRECORDER_CONFIG]
+    //   },
+    //   //missingTranslationHandler: {provide: MissingTranslationHandler, useClass: SprMissingTranslationHandler},
+    //   useDefaultLang: true,
+    //   defaultLanguage: 'en'
+    // }),
+    TranslocoModule,
     BrowserAnimationsModule,
     MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
     BrowserModule,
     SpeechrecorderngModule.forRoot(SPR_CFG)
   ],
   providers: [
-    provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'}))
+    provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'})),
+    provideTransloco({
+      config: {
+        availableLangs: ['en', 'de'],
+        // Remove this option if your application doesn't support changing language in runtime.
+        reRenderOnLangChange: false
+        //prodMode: !isDevMode(),
+      },
+      loader: SprTranslocoLoader
+    }),
+    provideAppInitializer(()=>{
+      const translate=inject(TranslocoService);
+      if(translate) {
+        const browserLang = getBrowserLang();
+        if (browserLang) {
+          translate.setActiveLang(browserLang);
+          console.info("Transloco service language to use set to: "+browserLang);
+        }else{
+          console.error("Could not initialize transloco service language to use: Browser language not set.");
+        }
+      }else{
+        console.error("Could not initialize transloco service: Service not injected.");
+      }
+    }),
   ],
   bootstrap: [AppComponent]
 })

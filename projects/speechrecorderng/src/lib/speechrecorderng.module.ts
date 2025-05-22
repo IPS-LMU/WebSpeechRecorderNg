@@ -71,9 +71,8 @@ import {
 } from "./speechrecorder/session/recordingfile/recording-file_delete_confirm_dialog";
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
-import {MissingTranslationHandler, TranslateLoader, TranslateModule, TranslateService} from "@ngx-translate/core";
-import {SprTranslateLoader} from "./i18n/spr.translate.loader";
-import {SprMissingTranslationHandler} from "./i18n/spr.missing.translation.handler";
+import {SprTranslocoLoader} from "./i18n/sprTranslocoLoader";
+import {provideTransloco, translocoConfig, TranslocoModule} from "@jsverse/transloco";
 
 
 
@@ -144,6 +143,7 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
+
 @NgModule(
   {
     declarations: [
@@ -152,35 +152,27 @@ export const SPR_ROUTES: Routes = [
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent, RecordingList, RecorderCombiPane, AudioRecorder
     ],
     exports: [
-      MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder
+      MessageDialog, SpeechrecorderngComponent, TranslocoModule,
+      ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder
     ],
     imports: [
     RouterModule.forChild(SPR_ROUTES),
-    TranslateModule.forChild({
-      loader: {
-        provide: TranslateLoader,
-        useClass: SprTranslateLoader,
-        deps: [HttpClient,SPEECHRECORDER_CONFIG]
-      },
-      missingTranslationHandler: {provide: MissingTranslationHandler, useClass: SprMissingTranslationHandler},
-      extend: true,
-      isolate: false,
-      useDefaultLang: true,
-      defaultLanguage: 'en'
-    }),
+    TranslocoModule,
       CommonModule,
       MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective],
     providers: [
       provideHttpClient(withInterceptorsFromDi()),
+      provideTransloco({
+        config: {
+          availableLangs: ['en', 'de'],
+          // Remove this option if your application doesn't support changing language in runtime.
+          reRenderOnLangChange: false
+          //prodMode: !isDevMode(),
+        },
+        loader: SprTranslocoLoader,
+      }),
       ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader,
-      provideAppInitializer(()=>{
-        const translate=inject(TranslateService);
-        if(translate) {
-          translate.currentLoader.
-        }else{
-          console.error("Could not initialize translate service: Service not injected.");
-        }
-      })
+
   ]
 })
 export class SpeechrecorderngModule{

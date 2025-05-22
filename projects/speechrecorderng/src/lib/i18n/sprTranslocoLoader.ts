@@ -1,15 +1,17 @@
-import {TranslateLoader, TranslationObject} from "@ngx-translate/core";
+
 import {Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-import {Inject} from "@angular/core";
+import {inject, Inject, Injectable} from "@angular/core";
 import {SpeechRecorderConfig} from "../spr.config";
 import {SPEECHRECORDER_CONFIG} from "../spr.config";
 
 import translationsEN from "./en.json";
 import translationsDE from "./de.json";
+import {Translation, TranslocoLoader} from "@jsverse/transloco";
 
-
-export class SprTranslateLoader extends TranslateLoader {
+@Injectable()
+export class SprTranslocoLoader implements TranslocoLoader {
+  private http = inject(HttpClient);
   public static readonly TRANSLATE_API_CTX='application/translate/i18n'
 
   private translateCtxUrl:string;
@@ -17,8 +19,8 @@ export class SprTranslateLoader extends TranslateLoader {
   private withCredentials:boolean=false;
 
 
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
-    super();
+  constructor(@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
+
     let apiEndPoint = '';
     let pubApiEndPoint='';
 
@@ -39,10 +41,11 @@ export class SprTranslateLoader extends TranslateLoader {
       this.withCredentials=config.withCredentials;
     }
 
-    this.translateCtxUrl = pubApiEndPoint + SprTranslateLoader.TRANSLATE_API_CTX;
+    this.translateCtxUrl = pubApiEndPoint + SprTranslocoLoader.TRANSLATE_API_CTX;
   }
-    override getTranslation(lang: string): Observable<TranslationObject> {
-      let obs: Observable<TranslationObject>;
+
+  getTranslation(lang: string): Observable<Translation> {
+      let obs: Observable<Translation>;
       if (lang === 'en') {
         console.debug("getTranslation: Return embedded translation en");
         obs = new Observable(observer => {
