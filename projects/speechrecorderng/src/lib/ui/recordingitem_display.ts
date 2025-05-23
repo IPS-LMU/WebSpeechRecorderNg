@@ -1,12 +1,13 @@
 import {
-    ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
-    ViewChild
+  ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, OnDestroy, Output,
+  ViewChild
 } from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
 import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 import {ResponsiveComponent} from "./responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {BundleI18nService} from "../../../../bundle-i18n/src/lib/bundle-i18n.service";
 
 
 export const MIN_DB_LEVEL = -40.0;
@@ -15,6 +16,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemcontrols',
     template: `
+      <p>{{bundleI18nService.translate('testbundle','test')}}</p>
         <button i18n-matTooltip matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
@@ -102,6 +104,8 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
   private destroyed = false;
 
   warnDbLevel = DEFAULT_WARN_DB_LEVEL;
+
+  protected bundleI18nService=inject(BundleI18nService);
 
   constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
     super(bpo);

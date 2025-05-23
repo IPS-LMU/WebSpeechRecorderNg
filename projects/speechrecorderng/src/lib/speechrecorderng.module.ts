@@ -72,7 +72,7 @@ import {
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 
-
+import {BundleI18nService,BundleI18nServiceFactory} from "../../../bundle-i18n/src/lib/bundle-i18n.service"
 
 
 export const SPR_ROUTES: Routes = [
@@ -140,10 +140,13 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
-@NgModule({ declarations: [ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
+@NgModule({
+  declarations: [
+    ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
         ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator, ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder, SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent, AudioRecorderComponent,RecordingFilesComponent,RecordingFileViewComponent, RecordingFileUI,
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent, RecordingList, RecorderCombiPane, AudioRecorder
     ],
+
     exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder], imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective], providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader, provideHttpClient(withInterceptorsFromDi())] })
 export class SpeechrecorderngModule{
 
@@ -152,7 +155,8 @@ export class SpeechrecorderngModule{
       ngModule: SpeechrecorderngModule,
       providers: [
         {provide: SPEECHRECORDER_CONFIG, useValue: config },
-        provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'}))
+        provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'})),
+        {provide: BundleI18nService,useFactory: BundleI18nServiceFactory.createBundleI18Service}
       ]
     };
   }

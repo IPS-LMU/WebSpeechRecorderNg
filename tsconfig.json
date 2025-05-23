@@ -16,6 +16,9 @@
     "importHelpers": true,
     "target": "ES2022",
     "paths": {
+      "bundle-i18n": [
+        "./dist/bundle-i18n"
+      ],
       "speechrecorderng": [
         "dist/speechrecorderng/speechrecorderng",
         "dist/speechrecorderng"
