@@ -48,4 +48,5 @@ export {RecordingFileViewComponent} from './lib/speechrecorder/session/recording
 export {RecordingFilesComponent} from './lib/speechrecorder/session/recordingfile/recording-files.component'
 export {RecordingFileUI} from './lib/speechrecorder/session/recordingfile/recording-file-u-i.component'
 export {SpeechRecorderConfig,ApiType} from './lib/spr.config'
+export {SprTranslocoLoader} from './lib/i18n/sprTranslocoLoader'
 export {SpeechrecorderngComponent} from './lib/speechrecorderng.component'
