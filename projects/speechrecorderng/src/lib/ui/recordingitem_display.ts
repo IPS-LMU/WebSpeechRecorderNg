@@ -16,6 +16,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemcontrols',
     template: `
+        <ng-container *transloco="let t"></ng-container>
         <button i18n-matTooltip matTooltip="Start playback" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">

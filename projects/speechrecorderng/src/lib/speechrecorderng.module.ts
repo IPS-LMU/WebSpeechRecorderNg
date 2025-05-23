@@ -72,7 +72,14 @@ import {
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 import {SprTranslocoLoader} from "./i18n/sprTranslocoLoader";
-import {provideTransloco, translocoConfig, TranslocoModule} from "@jsverse/transloco";
+import {
+  InlineLoader,
+  provideTransloco,
+  provideTranslocoScope,
+  translocoConfig,
+  TranslocoModule
+} from "@jsverse/transloco";
+
 
 
 
@@ -143,6 +150,23 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
+  export const sprInlineLoader:InlineLoader = ['en', 'de'].reduce((acc, lang) => {
+
+    // @ts-ignore
+    acc[lang] = () =>
+      // Causes compiler errors
+      //import(`./i18n/${lang}.json`);
+    {
+      if (lang === 'de') {
+        import(`./i18n/de.json`);
+      } else {
+        import(`./i18n/en.json`);
+      }
+      console.log("Transloco inline loaded: " + lang);
+    }
+      return acc;
+
+  }, {});
 
 @NgModule(
   {
@@ -162,14 +186,18 @@ export const SPR_ROUTES: Routes = [
       MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective],
     providers: [
       provideHttpClient(withInterceptorsFromDi()),
+      provideTranslocoScope({
+        scope: 'spr',
+        loader: sprInlineLoader
+      }),
       provideTransloco({
         config: {
           availableLangs: ['en', 'de'],
           // Remove this option if your application doesn't support changing language in runtime.
           reRenderOnLangChange: false
           //prodMode: !isDevMode(),
-        },
-        loader: SprTranslocoLoader,
+        }
+        //loader: SprTranslocoLoader,
       }),
       ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader,
 

@@ -71,7 +71,8 @@ const appRoutes: Routes = [
       config: {
         availableLangs: ['en', 'de'],
         // Remove this option if your application doesn't support changing language in runtime.
-        reRenderOnLangChange: false
+        reRenderOnLangChange: false,
+
         //prodMode: !isDevMode(),
       },
       loader: SprTranslocoLoader
