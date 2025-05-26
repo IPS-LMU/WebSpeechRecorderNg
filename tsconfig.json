@@ -19,6 +19,9 @@
       "bundle-i18n": [
         "./dist/bundle-i18n"
       ],
+      "common": [
+        "./dist/common"
+      ],
       "speechrecorderng": [
         "dist/speechrecorderng/speechrecorderng",
         "dist/speechrecorderng"
