@@ -45,13 +45,14 @@ const appRoutes: Routes = [
 
 function createBundleI18Service():BundleI18nService {
   // See https://stackoverflow.com/a/78570386
-  let bs = inject(BundleI18nService,{optional:true,self:true});
-  if (bs) {
-    console.info("Bundle service already exists");
-  }else{
+  // let bs = inject(BundleI18nService,{optional:true,self:true});
+  // if (bs) {
+  //   console.info("Bundle service already exists");
+  // }else{
     console.info("Spr app: Initialize bundle service...");
-    bs = new BundleI18nService();
-  }
+    let bs = new BundleI18nService();
+    bs.name='App-Module Bundle-service';
+  //}
   bs.putMultiLangBundleData(commonBundle);
   bs.fallBackLanguage='en';
   return bs;

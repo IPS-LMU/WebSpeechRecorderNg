@@ -146,10 +146,17 @@ export class Bundle{
 
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class BundleI18nService {
+  get name(): string {
+    return this._name;
+  }
+
+  set name(value: string) {
+    this._name = value;
+  }
+
+  private _name:string='(default)';
   get fallBackLanguage(): string | null {
     return this._fallBackLanguage;
   }

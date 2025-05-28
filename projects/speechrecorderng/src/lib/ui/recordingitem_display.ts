@@ -8,6 +8,7 @@ import {Action} from "../action/action";
 import {ResponsiveComponent} from "./responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {BundleI18nService} from "../../../../bundle-i18n/src/lib/bundle-i18n.service";
+import {SprBundleService} from "../i18n/spr.bundle.service";
 
 
 export const MIN_DB_LEVEL = -40.0;
@@ -105,7 +106,7 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
 
   warnDbLevel = DEFAULT_WARN_DB_LEVEL;
 
-  protected bundleI18nService=inject(BundleI18nService);
+  protected bundleI18nService=inject(SprBundleService);
 
   constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
     super(bpo);
