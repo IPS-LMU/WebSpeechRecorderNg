@@ -1,7 +1,8 @@
-import {Component} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import { VERSION } from '../../projects/speechrecorderng/src/lib/spr.module.version'
 import {ResponsiveComponent} from "../../projects/speechrecorderng/src/lib/ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {BundleI18nService} from "../../projects/bundle-i18n/src/lib/bundle-i18n.service";
 
 
 @Component({
@@ -15,8 +16,9 @@ export class AppComponent extends ResponsiveComponent{
   sprVersion=VERSION;
   title='SpeechRecorder Angular Demo'
   shortTitle='SpeechRecorder'
-
+  bs=inject(BundleI18nService);
   constructor(protected bpo:BreakpointObserver) {
     super(bpo);
+
   }
 }

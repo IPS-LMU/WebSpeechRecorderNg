@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import {inject, NgModule} from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -21,6 +21,11 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
+import {BundleI18nService} from "../../projects/bundle-i18n/src/lib/bundle-i18n.service";
+import testBundleEn from "../../projects/speechrecorderng/src/lib/i18n/testbundle_en.json";
+import testBundleDe from "../../projects/speechrecorderng/src/lib/i18n/testbundle_de.json";
+import commonBundle from "../../projects/speechrecorderng/src/lib/i18n/common.json";
+import sprAudioBundle from "../../projects/speechrecorderng/src/lib/i18n/spr.audio.json";
 
 
 
@@ -38,6 +43,20 @@ const appRoutes: Routes = [
   { path: '**', component: StartComponent  }
 ];
 
+function createBundleI18Service():BundleI18nService {
+  // See https://stackoverflow.com/a/78570386
+  let bs = inject(BundleI18nService,{optional:true,self:true});
+  if (bs) {
+    console.info("Bundle service already exists");
+  }else{
+    console.info("Spr app: Initialize bundle service...");
+    bs = new BundleI18nService();
+  }
+  bs.putMultiLangBundleData(commonBundle);
+  bs.fallBackLanguage='en';
+  return bs;
+}
+
 @NgModule({
   declarations: [
     AppComponent,SessionsComponent,StartComponent
@@ -50,7 +69,8 @@ const appRoutes: Routes = [
     SpeechrecorderngModule.forRoot(SPR_CFG)
   ],
   providers: [
-    provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'}))
+    provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'})),
+    {provide:BundleI18nService,useFactory:createBundleI18Service}
   ],
   bootstrap: [AppComponent]
 })

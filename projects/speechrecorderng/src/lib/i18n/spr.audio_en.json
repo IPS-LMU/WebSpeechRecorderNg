@@ -1,0 +1,7 @@
+{
+  "name":"spr.audio",
+  "lang":"en",
+  "translations":[
+    {"key": "display.toggle.detailed","translation":"Toggle detailed audio display"}
+  ]
+}

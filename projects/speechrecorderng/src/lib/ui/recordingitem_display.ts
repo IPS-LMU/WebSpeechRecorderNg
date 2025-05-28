@@ -16,22 +16,22 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemcontrols',
     template: `
-      <p>{{bundleI18nService.translate('testbundle','test')}}</p>
-        <button i18n-matTooltip matTooltip="Start playback" (click)="playStartAction?.perform()"
+
+        <button i18n-matTooltip [matTooltip]="bundleI18nService.translate('spr.audio','playback.start')" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
-        <button i18n-matTooltip matTooltip="Stop playback" (click)="playStopAction?.perform()"
+        <button i18n-matTooltip [matTooltip]="bundleI18nService.translate('spr.audio','playback.stop')" (click)="playStopAction?.perform()"
                 [disabled]="playStopAction?.disabled"
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
         </button>
-        <button *ngIf="!screenXs" i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
+        <button *ngIf="!screenXs" [matTooltip]="bundleI18nService.translate('spr.audio','display.toggle.detailed')" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
-        <button i18n-matTooltip matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
+        <button i18n-matTooltip [matTooltip]="bundleI18nService.translate('spr.audio','recording.current.download')" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>

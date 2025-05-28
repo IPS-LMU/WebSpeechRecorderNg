@@ -1,0 +1,33 @@
+{
+  "name":"spr.audio",
+  "translations":[
+    {
+      "key": "display.toggle.detailed",
+      "translations": [
+        {"lang": "en","translation": "Toggle detailed audio display"},
+        {"lang": "de", "translation": "Detailierte Audio-Anzeige anzeigen/verstecken"}
+      ]
+    },
+    {
+      "key": "playback.start",
+      "translations": [
+        {"lang": "en","translation": "Start playback"},
+        {"lang": "de", "translation": "Starte Wiedergabe"}
+      ]
+    },
+    {
+      "key": "playback.stop",
+      "translations": [
+        {"lang": "en","translation": "Stop playback"},
+        {"lang": "de", "translation": "Wiedergabe anhalten"}
+      ]
+    },
+    {
+      "key": "recording.current.download",
+      "translations": [
+        {"lang": "en","translation": "Download current recording"},
+        {"lang": "de", "translation": "Momentane Aufnahme herunteeladen"}
+      ]
+    }
+  ]
+}

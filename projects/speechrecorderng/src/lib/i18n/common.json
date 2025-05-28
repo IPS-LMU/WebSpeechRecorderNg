@@ -1,0 +1,19 @@
+{
+  "name":"common",
+  "translations":[
+    {
+      "key": "help",
+      "translations": [
+        {"lang": "en", "translation": "Help"},
+        {"lang": "de", "translation": "Hilfe"}
+      ]
+    },
+    {
+      "key": "start",
+      "translations": [
+        {"lang": "en", "translation": "Start"},
+        {"lang": "de", "translation": "Start"}
+      ]
+    }
+  ]
+}

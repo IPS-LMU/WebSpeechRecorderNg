@@ -1,4 +1,6 @@
 import {Injectable} from '@angular/core';
+import {resolve} from "@angular/compiler-cli";
+import {Locale} from "./locale.utils";
 
 
 export interface BundleI18nConfig {
@@ -27,7 +29,7 @@ export class BundleI18nMapProvider implements BundleI18nProvider{
       translations.forEach((val,key)=>{
         translationsArr.push({key:key,translation:val});
       })
-      this.bundle=new Bundle(bundlename,lang,translationsArr);
+      this.bundle=Bundle.fromBundleData(new BundleData(bundlename,lang,translationsArr));
     }
 
     load(lang:string,bundlename:string):Promise<Bundle>{
@@ -37,12 +39,29 @@ export class BundleI18nMapProvider implements BundleI18nProvider{
     }
 }
 
-export class BundleI18nServiceFactory {
-  static createBundleI18Service():BundleI18nService{
-    return new BundleI18nService()
-  }
-}
-
+// export class BundleI18nServiceFactory {
+//   static createBundleI18Service():BundleI18nService{
+//     const bs=new BundleI18nService();
+//
+//     return bs;
+//   }
+//   static createBundleI18ServiceTest():BundleI18nService{
+//     const bs=new BundleI18nService();
+//     let ba=new Array<BundleEntry>();
+//     ba.push({key:'test',translation:'Test (en)'});
+//     ba.push({key:'test2',translation:'Test2 (en)'});
+//     //const bId={name:'testbundle',lang:'en'};
+//     const bd=new BundleData('testbundle','en',ba);
+//     let b=Bundle.fromBundleData(bd);
+//     console.debug(JSON.stringify(bd));
+//     const bm:BundlesMap=new Map<string,Bundle>();
+//     bm.set('en',b);
+//     bs.putBundle(b);
+//     //this.bundles.set('testbundle',bm);
+//     return bs;
+//   }
+// }
+//
 
 
 // @Pipe({  name: 'tr',})
@@ -53,27 +72,72 @@ export class BundleI18nServiceFactory {
 //   }
 // }
 
-type BundleEntry ={key:string,translation:string};
+export type BundleEntry ={key:string,translation:string};
+
+export type TranslateValue={lang:string,translation:string};
+export type MultiLangBundleEntry ={key:string,translations:Array<TranslateValue>};
+
+
+
+export class BundleData{
+  constructor(
+    public readonly name:string,
+    public readonly lang:string,
+    public readonly translations:Array<BundleEntry>){
+  }
+
+}
+
+export class MultiLangBundleData{
+  constructor(
+    public readonly name:string,
+
+    public readonly translations:Array<MultiLangBundleEntry>){
+  }
+
+}
+
 
 export class Bundle{
-  get translations(): Array<BundleEntry> {
-    return this._translations;
+
+  private translationsMap:Map<string,string>=new Map<string,string>();
+
+  constructor(private _name:string,private _lang:string){
   }
-  get name(): string {
+
+  static fromBundleData(bundleData:BundleData):Bundle{
+    const b=new Bundle(bundleData.name,bundleData.lang);
+    for(let be of bundleData.translations){
+      b.translationsMap.set(be.key,be.translation);
+    }
+    return b;
+  }
+
+  static fromMultiLangBundleData(multiLangBundleData:MultiLangBundleData):Map<string,Bundle>{
+    const bundleMap=new Map<string,Bundle>();
+    const mlTransls=multiLangBundleData.translations;
+    mlTransls.forEach(mlBe=>{
+        const key=mlBe.key;
+        mlBe.translations.forEach(trans=>{
+          const ln=trans.lang;
+          let bdl=bundleMap.get(ln);
+          if(!bdl){
+            bdl=new Bundle(multiLangBundleData.name,ln);
+            bundleMap.set(ln,bdl);
+          }
+          bdl.translationsMap.set(key,trans.translation);
+        });
+    });
+
+    return bundleMap;
+  }
+
+  get name():string{
     return this._name;
   }
 
-  get lang(): string {
+  get lang():string{
     return this._lang;
-  }
-  private translationsMap:Map<string,string>=new Map<string,string>();
-  constructor(
-    private _name:string,
-    private _lang:string,
-    private _translations:Array<BundleEntry>){
-    for(let be of this._translations){
-      this.translationsMap.set(be.key,be.translation);
-    }
   }
 
   getTranslation(key:string):string|undefined{
@@ -86,28 +150,55 @@ export class Bundle{
   providedIn: 'root'
 })
 export class BundleI18nService {
+  get fallBackLanguage(): string | null {
+    return this._fallBackLanguage;
+  }
+
+  set fallBackLanguage(value: string | null) {
+    this._fallBackLanguage = value;
+  }
+  get navigatorLang(): string | null {
+    return this._navigatorLang;
+  }
+  get activeLang(): string {
+    return this._activeLang;
+  }
+
+  set activeLang(value: string) {
+    this._activeLang = value;
+  }
   private bundleProviders:Map<string,BundleI18nProvider>=new Map<string, BundleI18nProvider>();
   //private bundles:Map<BundleId,Bundle>=new Map<BundleId,Bundle>();
   private bundles:Map<string,BundlesMap>=new Map<string,BundlesMap>();
 
-  private activeLang:string='en';
+  private _activeLang:string='en';
+  private _navigatorLang:string|null=null;
+
+  private _fallBackLanguage:string|null=null;
+
   constructor() {
-    // Test
-    // let b1m=new Map<string,string>();
-    // b1m.set('test','Test (en)');
-    // b1m.set('test2','Test2 (en)');
-    // let b=new Bundle('testbundle','en',b1m);
+    const nl=navigator.language;
+    if(nl){
+      const loc=Locale.parseLocaleStr(nl);
+      if(loc){
+        // Set navigator language
+        this._navigatorLang=loc.lang;
+        // ... and use as default active language
+        this.activeLang=this._navigatorLang;
+      }
+    }
+  }
 
-    let ba=new Array<BundleEntry>();
-    ba.push({key:'test',translation:'Test (en)'});
-    ba.push({key:'test2',translation:'Test2 (en)'});
-    //const bId={name:'testbundle',lang:'en'};
-    let b=new Bundle('testbundle','en',ba);
-    console.debug(JSON.stringify(b));
-    const bm:BundlesMap=new Map<string,Bundle>();
-    bm.set('en',b);
-    this.bundles.set('testbundle',bm);
+  putBundleData(bd:BundleData):void{
+    const b=Bundle.fromBundleData(bd);
+    this.putBundle(b);
+  }
 
+  putMultiLangBundleData(mlbd:MultiLangBundleData):void{
+    const bm=Bundle.fromMultiLangBundleData(mlbd)
+    bm.forEach((value)=>{
+      this.putBundle(value);
+    });
   }
 
   putBundle(b:Bundle):void{
@@ -136,7 +227,7 @@ export class BundleI18nService {
 
   fetchBundle(bundlename:string,lang?:string):Promise<Bundle|null>{
     if(!lang){
-      lang=this.activeLang;
+      lang=this._activeLang;
     }
     return new Promise<Bundle|null>((resolve, reject) => {
       //const reqBundleId:BundleId={name:bundlename,lang:lang};
@@ -169,7 +260,7 @@ export class BundleI18nService {
   }
   translate(bundlename:string,key:string,lang?:string):string {
     if(!lang){
-      lang=this.activeLang;
+      lang=this._activeLang;
     }
     let tr = "[" + bundlename + ":" + key + "]";
 
@@ -180,14 +271,25 @@ export class BundleI18nService {
         tr = btr;
       }
     } else {
+      if(this._fallBackLanguage){
+        const fbBundle=this.getBundle(bundlename,this._fallBackLanguage);
+        if(fbBundle) {
+          const fbBtr = fbBundle.getTranslation(key);
+          if (fbBtr) {
+            tr = fbBtr;
+          }
+        }
+      }
+
+      // Prevent Loop
       // fetch to cache
-      this.translateAsync(bundlename,key,lang);
+      //this.translateAsync(bundlename,key,lang);
     }
     return tr;
   }
   translateAsync(bundlename:string,key:string,lang?:string):Promise<string>{
     if(!lang){
-      lang=this.activeLang;
+      lang=this._activeLang;
     }
     return new Promise<string>((resolve, reject) => {
 

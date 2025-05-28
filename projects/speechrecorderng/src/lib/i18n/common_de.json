@@ -1,0 +1,7 @@
+{
+  "name":"common",
+  "lang":"de",
+  "translations":[
+    {"key": "help","translation":"Hilfe"}
+  ]
+}

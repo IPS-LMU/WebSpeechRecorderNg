@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
+import {inject, ModuleWithProviders, NgModule} from '@angular/core';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
@@ -72,8 +72,19 @@ import {
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 
-import {BundleI18nService,BundleI18nServiceFactory} from "../../../bundle-i18n/src/lib/bundle-i18n.service"
+import {
+  BundleI18nService
+} from "../../../bundle-i18n/src/lib/bundle-i18n.service"
 
+import testBundleEn from "./i18n/testbundle_en.json";
+import testBundleDe from "./i18n/testbundle_de.json";
+
+import commonBundle from "./i18n/common.json";
+
+//import sprAudioBundleEn from "./i18n/spr.audio_en.json";
+//import sprAudioBundleDe from "./i18n/spr.audio_de.json";
+
+import sprAudioBundle from "./i18n/spr.audio.json";
 
 export const SPR_ROUTES: Routes = [
   {
@@ -140,6 +151,27 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
+function createBundleI18Service():BundleI18nService {
+  let bs = inject(BundleI18nService,{optional:true,self:true});
+  if (bs) {
+    console.info("Bundle service already exists");
+  }else{
+    console.info("Spr: Initialize bundle service...");
+    bs = new BundleI18nService();
+  }
+
+  bs.putBundleData(testBundleEn)
+  bs.putBundleData(testBundleDe);
+
+  bs.putMultiLangBundleData(commonBundle);
+
+  bs.putMultiLangBundleData(sprAudioBundle);
+
+  bs.fallBackLanguage='en';
+  //bs.activeLang='de';
+  return bs;
+}
+
 @NgModule({
   declarations: [
     ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
@@ -156,7 +188,7 @@ export class SpeechrecorderngModule{
       providers: [
         {provide: SPEECHRECORDER_CONFIG, useValue: config },
         provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'})),
-        {provide: BundleI18nService,useFactory: BundleI18nServiceFactory.createBundleI18Service}
+        {provide: BundleI18nService,useFactory: createBundleI18Service}
       ]
     };
   }

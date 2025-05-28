@@ -1,0 +1,7 @@
+{
+  "name":"spr.audio",
+  "lang":"de",
+  "translations":[
+    {"key": "display.toggle.detailed","translation":"Detailierte Audio-Anzeige anzeigen/verstecken"}
+  ]
+}
