@@ -8,7 +8,7 @@ describe('SpeechrecorderngService', () => {
   }));
 
   it('should be created', () => {
-    const service: SpeechrecorderngService = TestBed.get(SpeechrecorderngService);
+    const service: SpeechrecorderngService = TestBed.inject(SpeechrecorderngService);
     expect(service).toBeTruthy();
   });
 });
