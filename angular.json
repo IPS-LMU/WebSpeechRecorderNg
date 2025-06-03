@@ -17,10 +17,7 @@
       "sourceRoot": "src",
       "prefix": "app",
       "i18n": {
-        "sourceLocale": "en-US",
-        "locales": {
-          "de": "src/locale/messages.de.xlf"
-        }
+        "sourceLocale": "en-US"
       },
       "architect": {
         "build": {
@@ -98,12 +95,6 @@
           },
           "defaultConfiguration": "development"
         },
-        "extract-i18n": {
-          "builder": "@angular/build:extract-i18n",
-          "options": {
-            "buildTarget": "WebSpeechRecorderNg:build"
-          }
-        },
         "test": {
           "builder": "@angular/build:karma",
           "options": {
@@ -131,10 +122,7 @@
       "sourceRoot": "projects/speechrecorderng/src",
       "prefix": "lib",
       "i18n": {
-        "sourceLocale": "en-US",
-        "locales": {
-          "de": "src/locale/messages.de.xlf"
-        }
+        "sourceLocale": "en-US"
       },
       "architect": {
         "build": {
@@ -142,7 +130,6 @@
           "options": {
             "project": "projects/speechrecorderng/ng-package.json"
           },
-          "localize": true,
           "configurations": {
             "production": {
               "tsConfig": "projects/speechrecorderng/tsconfig.lib.prod.json"
