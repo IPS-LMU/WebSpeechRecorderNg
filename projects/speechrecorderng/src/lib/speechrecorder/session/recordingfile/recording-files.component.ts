@@ -1,7 +1,7 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Inject, Input, OnInit, Renderer2, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Inject, Input, OnInit, Renderer2, ViewChild, DOCUMENT} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 
-import {DOCUMENT} from "@angular/common";
+
 
 import { MatSort } from "@angular/material/sort";
 import { MatTableDataSource } from "@angular/material/table";
