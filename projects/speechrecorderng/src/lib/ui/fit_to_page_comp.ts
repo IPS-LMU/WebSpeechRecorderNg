@@ -1,5 +1,5 @@
-import {Directive, Inject, Injector, OnDestroy, OnInit, Renderer2} from "@angular/core";
-import {DOCUMENT} from "@angular/common";
+import {Directive, Inject, Injector, OnDestroy, OnInit, Renderer2, DOCUMENT} from "@angular/core";
+
 
 @Directive()
 export class FitToPageComponent implements OnInit,OnDestroy{
