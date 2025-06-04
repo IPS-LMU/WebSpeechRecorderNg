@@ -48,7 +48,6 @@
     "@angular/build": "^20.0.0",
     "@angular/cli": "~20.0.0",
     "@angular/compiler-cli": "~20.0.0",
-    "@angular/localize": "~20.0.0",
     "@types/dom-screen-wake-lock": "~1.0.3",
     "@types/jasmine": "~5.1.8",
     "@types/node": "~22.15.18",

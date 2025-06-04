@@ -17,12 +17,6 @@
     "resolveJsonModule": true,
     "target": "ES2022",
     "paths": {
-      "bundle-i18n": [
-        "./dist/bundle-i18n"
-      ],
-      "common": [
-        "./dist/common"
-      ],
       "speechrecorderng": [
         "dist/speechrecorderng/speechrecorderng",
         "dist/speechrecorderng"
@@ -36,7 +30,6 @@
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
-    "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true

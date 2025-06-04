@@ -16,9 +16,6 @@
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
-      "i18n": {
-        "sourceLocale": "en-US"
-      },
       "architect": {
         "build": {
           "builder": "@angular/build:application",
@@ -28,11 +25,9 @@
             },
             "index": "src/index.html",
             "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
+              "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
-            "localize": true,
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/assets",
@@ -71,11 +66,7 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true,
-              "localize": ["en-US"]
-            },
-            "en-US": {
-              "localize": ["en-US"]
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
@@ -88,9 +79,6 @@
             },
             "development": {
               "buildTarget": "WebSpeechRecorderNg:build:development"
-            },
-            "en-US": {
-              "buildTarget": "WebSpeechRecorderNg:build:en-US"
             }
           },
           "defaultConfiguration": "development"
@@ -99,7 +87,7 @@
           "builder": "@angular/build:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": ["zone.js","@angular/localize/init"],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
@@ -121,9 +109,6 @@
       "root": "projects/speechrecorderng",
       "sourceRoot": "projects/speechrecorderng/src",
       "prefix": "lib",
-      "i18n": {
-        "sourceLocale": "en-US"
-      },
       "architect": {
         "build": {
           "builder": "@angular/build:ng-packagr",
@@ -146,72 +131,6 @@
             "main": "projects/speechrecorderng/src/test.ts",
             "tsConfig": "projects/speechrecorderng/tsconfig.spec.json",
             "karmaConfig": "projects/speechrecorderng/karma.conf.js"
-          }
-        }
-      }
-    },
-    "bundle-i18n": {
-      "projectType": "library",
-      "root": "projects/bundle-i18n",
-      "sourceRoot": "projects/bundle-i18n/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "options": {
-            "project": "projects/bundle-i18n/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/bundle-i18n/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/bundle-i18n/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "tsConfig": "projects/bundle-i18n/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
-        }
-      }
-    },
-    "common": {
-      "projectType": "library",
-      "root": "projects/common",
-      "sourceRoot": "projects/common/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular/build:ng-packagr",
-          "options": {
-            "project": "projects/common/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/common/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/common/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "tsConfig": "projects/common/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
           }
         }
       }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {BundleI18nService} from "../../../../bundle-i18n/src/lib/bundle-i18n.service";
+import {BundleI18nService} from "./bundle-i18n.service";
 
 import commonBundle from "./common.json";
 import sprAudioBundle from "./spr.audio.json";

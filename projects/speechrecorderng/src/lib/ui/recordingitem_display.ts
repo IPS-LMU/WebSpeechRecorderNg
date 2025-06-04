@@ -7,7 +7,6 @@ import {LevelBar} from "../audio/ui/livelevel";
 import {Action} from "../action/action";
 import {ResponsiveComponent} from "./responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
-import {BundleI18nService} from "../../../../bundle-i18n/src/lib/bundle-i18n.service";
 import {SprBundleService} from "../i18n/spr.bundle.service";
 
 
@@ -18,12 +17,12 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     selector: 'spr-recordingitemcontrols',
     template: `
 
-        <button i18n-matTooltip [matTooltip]="bundleI18nService.translate('spr.audio','playback.start')" (click)="playStartAction?.perform()"
+        <button [matTooltip]="bundleI18nService.translate('spr.audio','playback.start')" (click)="playStartAction?.perform()"
                 [disabled]="playStartAction?playStartAction.disabled:true"
                 [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
             <mat-icon>play_arrow</mat-icon>
         </button>
-        <button i18n-matTooltip [matTooltip]="bundleI18nService.translate('spr.audio','playback.stop')" (click)="playStopAction?.perform()"
+        <button [matTooltip]="bundleI18nService.translate('spr.audio','playback.stop')" (click)="playStopAction?.perform()"
                 [disabled]="playStopAction?.disabled"
                 [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
             <mat-icon>stop</mat-icon>
@@ -32,11 +31,11 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
                 (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
         </button>
-        <button i18n-matTooltip [matTooltip]="bundleI18nService.translate('spr.audio','recording.current.download')" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
+        <button [matTooltip]="bundleI18nService.translate('spr.audio','recording.current.download')" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
                 (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
         </button>
-        <div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span i18n-matTooltip  matTooltip="Peak level"
+        <div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span  matTooltip="Peak level"
                                                                         [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
           <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
     `,
@@ -203,7 +202,6 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
 
     warnDbLevel = DEFAULT_WARN_DB_LEVEL;
 
-    //localizeVarTest=$localize `Hello world!`;
 
     constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
         super(bpo);

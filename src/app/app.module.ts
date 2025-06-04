@@ -21,11 +21,10 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
-import {BundleI18nService} from "../../projects/bundle-i18n/src/lib/bundle-i18n.service";
-import testBundleEn from "../../projects/speechrecorderng/src/lib/i18n/testbundle_en.json";
-import testBundleDe from "../../projects/speechrecorderng/src/lib/i18n/testbundle_de.json";
+import {BundleI18nService} from "../../projects/speechrecorderng/src/lib/i18n/bundle-i18n.service";
+
 import commonBundle from "../../projects/speechrecorderng/src/lib/i18n/common.json";
-import sprAudioBundle from "../../projects/speechrecorderng/src/lib/i18n/spr.audio.json";
+
 
 
 

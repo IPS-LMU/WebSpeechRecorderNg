@@ -72,19 +72,6 @@ import {
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 
-import {
-  BundleI18nService
-} from "../../../bundle-i18n/src/lib/bundle-i18n.service"
-
-import testBundleEn from "./i18n/testbundle_en.json";
-import testBundleDe from "./i18n/testbundle_de.json";
-
-import commonBundle from "./i18n/common.json";
-
-//import sprAudioBundleEn from "./i18n/spr.audio_en.json";
-//import sprAudioBundleDe from "./i18n/spr.audio_de.json";
-
-import sprAudioBundle from "./i18n/spr.audio.json";
 import {SprBundleService} from "./i18n/spr.bundle.service";
 
 export const SPR_ROUTES: Routes = [
