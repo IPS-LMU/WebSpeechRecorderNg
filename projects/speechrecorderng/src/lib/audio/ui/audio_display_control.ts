@@ -9,9 +9,9 @@ import {AudioClip} from "../persistor";
     template: `
         <div #controlPanel style="display:flex;flex-direction: row;">
           <fieldset>
-        
+
             <legend>Play</legend>
-        
+
             <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled"
               [style.color]="playStartAction?.disabled ? 'grey' : 'green'" matTooltip="Play all">
               <mat-icon>play_arrow</mat-icon>
@@ -28,7 +28,7 @@ import {AudioClip} from "../persistor";
             </mat-checkbox>
           </fieldset>
           <fieldset>
-        
+
             <legend>Zoom</legend>
             <button (click)="zoomFitToPanelAction?.perform()"
             [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button>
@@ -49,13 +49,13 @@ import {AudioClip} from "../persistor";
               [style.color]="hasSelection() ? 'red' : 'grey'" matTooltip="Clear selection">
               <mat-icon>clear</mat-icon>
             </button>
-        
+
           </fieldset>
         </div>`,
     styles: [
         `:host {
                  flex: 0;
-         
+
                }`
     ],
     standalone: false

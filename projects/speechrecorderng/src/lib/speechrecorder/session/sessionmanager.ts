@@ -68,13 +68,13 @@ export const enum Status {
       [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
       [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
       [playStopAction]="controlAudioPlayer?.stopAction">
-    
+
     </app-sprprompting>
     @if (screenXs) {
       <mat-progress-bar [value]="progressPercentValue()" ></mat-progress-bar>
     }
-    
-    
+
+
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
@@ -87,7 +87,7 @@ export const enum Status {
           [agc]="this.ac?.agcStatus"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-    
+
         @if (screenXs && enableUploadRecordings) {
           <app-uploadstatus class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
