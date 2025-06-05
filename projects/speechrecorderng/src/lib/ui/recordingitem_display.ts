@@ -17,28 +17,34 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     selector: 'spr-recordingitemcontrols',
     template: `
 
-        <button [matTooltip]="bundleI18nService.translate('spr.audio','playback.start')" (click)="playStartAction?.perform()"
-                [disabled]="playStartAction?playStartAction.disabled:true"
-                [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
-            <mat-icon>play_arrow</mat-icon>
-        </button>
-        <button [matTooltip]="bundleI18nService.translate('spr.audio','playback.stop')" (click)="playStopAction?.perform()"
-                [disabled]="playStopAction?.disabled"
-                [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
-            <mat-icon>stop</mat-icon>
-        </button>
-        <button *ngIf="!screenXs" [matTooltip]="bundleI18nService.translate('spr.audio','display.toggle.detailed')" [disabled]="disableAudioDetails || !audioLoaded"
-                (click)="showRecordingDetails()">
-            <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
-        </button>
-        <button [matTooltip]="bundleI18nService.translate('spr.audio','recording.current.download')" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
-                (click)="downloadRecording()">
-            <mat-icon>file_download</mat-icon>
-        </button>
-        <div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span  matTooltip="Peak level"
-                                                                        [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
-          <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
-    `,
+<button [matTooltip]="bundleI18nService.translate('spr.audio','playback.start')" (click)="playStartAction?.perform()"
+  [disabled]="playStartAction?playStartAction.disabled:true"
+  [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
+  <mat-icon>play_arrow</mat-icon>
+</button>
+<button [matTooltip]="bundleI18nService.translate('spr.audio','playback.stop')" (click)="playStopAction?.perform()"
+  [disabled]="playStopAction?.disabled"
+  [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
+  <mat-icon>stop</mat-icon>
+</button>
+@if (!screenXs) {
+  <button [matTooltip]="bundleI18nService.translate('spr.audio','display.toggle.detailed')" [disabled]="disableAudioDetails || !audioLoaded"
+    (click)="showRecordingDetails()">
+    <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
+  </button>
+}
+@if (enableDownload) {
+  <button [matTooltip]="bundleI18nService.translate('spr.audio','recording.current.download')" [disabled]="disableAudioDetails || !audioLoaded"
+    (click)="downloadRecording()">
+    <mat-icon>file_download</mat-icon>
+  </button>
+}
+<div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span  matTooltip="Peak level"
+[style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
+@if (_agc) {
+  <tr><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr>
+}</table></div>
+`,
     styles: [`:host {
         flex: 0; /* only required vertical space */
         width: 100%;

@@ -7,33 +7,35 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
     selector: 'app-sprprogress',
     template: `
 
-    <table class="mat-typography">
-      <thead>
-      <tr>
-        <th>#</th><!--<th>Code</th>-->
-        <th>Prompt</th>
-        <th>Status</th>
-      </tr>
-      </thead>
-      <tbody>
-      <ng-container *ngIf="items">
-
-        <tr *ngFor="let item of items; let itIdx=index;"
-            (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
-            [updateObservation]="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
+<table class="mat-typography">
+  <thead>
+    <tr>
+      <th>#</th><!--<th>Code</th>-->
+      <th>Prompt</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    @if (items) {
+      @for (item of items; track item; let itIdx = $index) {
+        <tr
+          (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
+          [updateObservation]="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
           <td>{{itIdx}}</td>
           <td class="promptDescriptor">{{item.promptAsString}}</td>
           <td>
-            <mat-icon  *ngIf="item.itemDone()">done</mat-icon>
+            @if (item.itemDone()) {
+              <mat-icon >done</mat-icon>
+            }
             <!--<mat-icon *ngIf="latestRecordingAvail(item)===false" style="font-size:0.6em;width:0.6em;height:0.6em">cloud_download</mat-icon>-->
-
           </td>
         </tr>
-      </ng-container>
+      }
+    }
 
-      </tbody>
-    </table>
-  `,
+  </tbody>
+</table>
+`,
     styles: [`:host {
     overflow-x: hidden;
     overflow-y: scroll;

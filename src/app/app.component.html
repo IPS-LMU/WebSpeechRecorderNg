@@ -1,15 +1,19 @@
 <mat-toolbar color="primary">
 
-    <button mat-button [matMenuTriggerFor]="menu">
-      <mat-icon style="font-size: 24px">menu</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu" yPosition="below" [overlapTrigger]="false">
-      <button mat-menu-item  [matMenuTriggerFor]="helpMenu">{{bs.translate('common','help')}}</button>
-      <mat-menu #helpMenu="matMenu" xPosition="after" [overlapTrigger]="false">
-        <p>WebSpeechRecorderNg {{sprVersion}}</p>
-      </mat-menu>
+  <button mat-button [matMenuTriggerFor]="menu">
+    <mat-icon style="font-size: 24px">menu</mat-icon>
+  </button>
+  <mat-menu #menu="matMenu" yPosition="below" [overlapTrigger]="false">
+    <button mat-menu-item  [matMenuTriggerFor]="helpMenu">{{bs.translate('common','help')}}</button>
+    <mat-menu #helpMenu="matMenu" xPosition="after" [overlapTrigger]="false">
+      <p>WebSpeechRecorderNg {{sprVersion}}</p>
     </mat-menu>
-    &nbsp;<span *ngIf="!screenXs">{{title}}</span><span *ngIf="screenXs">{{shortTitle}}</span>
+  </mat-menu>
+  &nbsp;@if (!screenXs) {
+  <span>{{title}}</span>
+  }@if (screenXs) {
+  <span>{{shortTitle}}</span>
+}
 
 
 </mat-toolbar>

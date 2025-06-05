@@ -15,10 +15,14 @@ import {ThemePalette} from "@angular/material/core";
     selector: 'app-sprstatusdisplay',
     template: `
     <p matTooltip="Status">
-      <mat-progress-spinner *ngIf="statusWaiting" color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
+      @if (statusWaiting) {
+        <mat-progress-spinner color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner>
+        }@if (statusAlertType==='error') {
+        <mat-icon style="color:red">report_problem</mat-icon>
+      }
       {{statusMsg}}
     </p>
-  `,
+    `,
     styles: [`:host {
     display: inline;
     text-align: left;
@@ -170,26 +174,40 @@ export class TransportActions {
 @Component({
     selector: 'app-sprtransport',
     template: `
-    <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
-            mat-raised-button class="transport-button-icon">
-      <span><mat-icon>chevron_left</mat-icon></span>
-    </button>
+    @if (navigationEnabled) {
+      <button id="bwdBtn"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
+        mat-raised-button class="transport-button-icon">
+        <span><mat-icon>chevron_left</mat-icon></span>
+      </button>
+    }
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled() && stopNonrecordingDisabled()"  mat-raised-button  class="transport-button-icon">
-      <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon class="transport-button-icon" *ngIf="!nextDisabled() || !stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
-      <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
+      <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon>@if (!nextDisabled() || !stopNonrecordingDisabled()) {
+      <mat-icon class="transport-button-icon" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
+    }</span>
+    @if (!screenXs) {
+      <span class="transport-button-text">{{startStopNextName()}}</span>
+    }
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
-      <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
-      <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
-    </button>
-    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
-      <span><mat-icon>redo</mat-icon></span>
-    </button>
-    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
-      <span><mat-icon>chevron_right</mat-icon></span>
-    </button>
-
-  `,
+    @if (pausingEnabled) {
+      <button (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
+        <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
+        @if (!screenXs) {
+          <span class="transport-button-text">Pause</span>
+        }
+      </button>
+    }
+    @if (navigationEnabled && !screenXs) {
+      <button id="fwdNextBtn" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
+        <span><mat-icon>redo</mat-icon></span>
+      </button>
+    }
+    @if (navigationEnabled) {
+      <button id="fwdBtn"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
+        <span><mat-icon>chevron_right</mat-icon></span>
+      </button>
+    }
+    
+    `,
     styles: [`:host {
     flex: 20;
     align-self: center;
@@ -314,8 +332,10 @@ export class TransportPanel extends ResponsiveComponent{
 @Component({
     selector: 'app-wakelockindicator',
     template: `
-    <mat-icon *ngIf="_screenLocked">screen_lock_portrait</mat-icon>
-  `,
+    @if (_screenLocked) {
+      <mat-icon>screen_lock_portrait</mat-icon>
+    }
+    `,
     styles: [],
     standalone: false
 })
@@ -358,26 +378,33 @@ export class ReadyStateIndicator {
 @Component({
     selector: 'app-sprcontrolpanel',
     template: `
-    <div *ngIf="!screenXs" style="flex-direction: row" >
-     <app-sprstatusdisplay style="flex:0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
-                          class="hidden-xs"></app-sprstatusdisplay>
-      <app-sprtransport style="flex:10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-      <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-      <app-readystateindicator [ready]="_ready"></app-readystateindicator>
-    </div>
-    <div *ngIf="screenXs" style="flex-direction: column">
-      <div style="flex-direction: row" class="flexFill" >
-       <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
-                            class="hidden-xs"></app-sprstatusdisplay>
-       <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+    @if (!screenXs) {
+      <div style="flex-direction: row" >
+        <app-sprstatusdisplay style="flex:0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+        class="hidden-xs"></app-sprstatusdisplay>
+        <app-sprtransport style="flex:10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+        @if (enableUploadRecordings) {
+          <app-uploadstatus style="flex:0 0 0" [value]="uploadProgress"
+          [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+        }
         <app-readystateindicator [ready]="_ready"></app-readystateindicator>
       </div>
-      <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-
-    </div>
-  `,
+    }
+    @if (screenXs) {
+      <div style="flex-direction: column">
+        <div style="flex-direction: row" class="flexFill" >
+          <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+          class="hidden-xs"></app-sprstatusdisplay>
+          @if (enableUploadRecordings) {
+            <app-uploadstatus style="flex:0 0 0" [value]="uploadProgress"
+            [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+          }
+          <app-readystateindicator [ready]="_ready"></app-readystateindicator>
+        </div>
+        <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      </div>
+    }
+    `,
     styles: [`div {
     align-content: center;
     align-items: center;

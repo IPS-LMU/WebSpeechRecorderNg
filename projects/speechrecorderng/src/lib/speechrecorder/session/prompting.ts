@@ -655,26 +655,28 @@ export class ProgressAndSpeakerContainer{
     selector: 'app-sprprompting',
     template: `
 
-    <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
-                               [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
-                               [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <spr-progress-speaker-container *ngIf="!screenXs" [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
-    <div #asCt [class.active]="!audioSignalCollapsed && !screenXs">
+<app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
+<app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
+  [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
+[transportActions]="transportActions"></app-sprpromptingcontainer>
+@if (!screenXs) {
+  <spr-progress-speaker-container [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>
+}
+<div #asCt [class.active]="!audioSignalCollapsed && !screenXs">
 
-      <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                        [audioClip]="displayAudioClip"
-                        [playStartAction]="playStartAction"
-                        [playSelectionAction]="playSelectionAction"
-                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
-                        [playStopAction]="playStopAction"></app-audiodisplay>
-
-
-    </div>
-
+  <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
+    [audioClip]="displayAudioClip"
+    [playStartAction]="playStartAction"
+    [playSelectionAction]="playSelectionAction"
+    [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
+  [playStopAction]="playStopAction"></app-audiodisplay>
 
 
-  `,
+</div>
+
+
+
+`,
     styles: [`:host {
     position: relative;
     margin: 0;
