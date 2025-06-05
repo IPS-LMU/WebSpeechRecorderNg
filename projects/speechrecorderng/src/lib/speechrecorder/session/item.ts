@@ -11,7 +11,7 @@ export class Item {
       let done=false;
       if(this.recs){
         for(let rf of this.recs){
-          if(rf.recordingFileDone()){
+          if(rf && rf.recordingFileDone()){
             done=true;
             break;
           }
