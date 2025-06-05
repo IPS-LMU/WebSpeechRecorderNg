@@ -56,55 +56,71 @@ export const enum Status {
     template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
-      <app-sprprompting [project]="project"
-                        [projectName]="projectName"
-                        [speakerIds]="_session?.speakers"
-                        [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
-                        [items]="items?.items"
-                        [transportActions]="transportActions"
-                        [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
-                        [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
-                        [playStartAction]="controlAudioPlayer?.startAction"
-                        [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
-                        [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
-                        [playStopAction]="controlAudioPlayer?.stopAction">
-
+    <app-sprprompting [project]="project"
+      [projectName]="projectName"
+      [speakerIds]="_session?.speakers"
+      [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
+      [items]="items?.items"
+      [transportActions]="transportActions"
+      [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
+      [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
+      [playStartAction]="controlAudioPlayer?.startAction"
+      [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+      [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
+      [playStopAction]="controlAudioPlayer?.stopAction">
+    
     </app-sprprompting>
-    <mat-progress-bar [value]="progressPercentValue()" *ngIf="screenXs" ></mat-progress-bar>
-
-
+    @if (screenXs) {
+      <mat-progress-bar [value]="progressPercentValue()" ></mat-progress-bar>
+    }
+    
+    
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="display:flex;flex:10 0 1px"
-                                   [audioLoaded]="audioLoaded"
-                                   [disableAudioDetails]="disableAudioDetails"
-                                   [playStartAction]="controlAudioPlayer?.startAction"
-                                   [playStopAction]="controlAudioPlayer?.stopAction"
-                                   [peakDbLvl]="peakLevelInDb"
-                                   [agc]="this.ac?.agcStatus"
-                                   (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
+          [audioLoaded]="audioLoaded"
+          [disableAudioDetails]="disableAudioDetails"
+          [playStartAction]="controlAudioPlayer?.startAction"
+          [playStopAction]="controlAudioPlayer?.stopAction"
+          [peakDbLvl]="peakLevelInDb"
+          [agc]="this.ac?.agcStatus"
+          (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-
-        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
-                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+    
+        @if (screenXs && enableUploadRecordings) {
+          <app-uploadstatus class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
+          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        }
+        @if (screenXs) {
+          <app-wakelockindicator class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+        }
+        @if (screenXs) {
+          <app-readystateindicator class="ricontrols dark" style="flex:0 0 0" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        }
       </div>
     </div>
     <div #controlpanel class="controlpanel">
       <div style="flex:1 1 30%;justify-content: flex-start;align-items: center; align-content: center">
-        <app-sprstatusdisplay *ngIf="!screenXs" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
+        @if (!screenXs) {
+          <app-sprstatusdisplay [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"></app-sprstatusdisplay>
+        }
       </div>
       <app-sprtransport style="display:flex;flex:10 0 30%;justify-content: center;align-items: center; align-content: center" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="!items || items.length()>1"></app-sprtransport>
       <div style="display:flex;flex:1 1 30%;flex-direction:row;justify-content: flex-end;align-items: center; align-content: center">
-        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings"  class="ricontrols"  [value]="uploadProgress"
-                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator *ngIf="!screenXs" class="ricontrols" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        @if (!screenXs && enableUploadRecordings) {
+          <app-uploadstatus  class="ricontrols"  [value]="uploadProgress"
+          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        }
+        @if (!screenXs) {
+          <app-wakelockindicator class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
+        }
+        @if (!screenXs) {
+          <app-readystateindicator class="ricontrols" [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        }
       </div>
     </div>
-  `,
+    `,
     styles: [`:host {
     flex: 2;
     background: lightgrey;

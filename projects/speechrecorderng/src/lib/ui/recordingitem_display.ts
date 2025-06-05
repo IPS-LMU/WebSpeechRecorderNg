@@ -16,27 +16,33 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
     selector: 'spr-recordingitemcontrols',
     template: `
         <button i18n-matTooltip matTooltip="Start playback" (click)="playStartAction?.perform()"
-                [disabled]="playStartAction?playStartAction.disabled:true"
-                [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
-            <mat-icon>play_arrow</mat-icon>
+          [disabled]="playStartAction?playStartAction.disabled:true"
+          [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
+          <mat-icon>play_arrow</mat-icon>
         </button>
         <button i18n-matTooltip matTooltip="Stop playback" (click)="playStopAction?.perform()"
-                [disabled]="playStopAction?.disabled"
-                [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
-            <mat-icon>stop</mat-icon>
+          [disabled]="playStopAction?.disabled"
+          [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
+          <mat-icon>stop</mat-icon>
         </button>
-        <button *ngIf="!screenXs" i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
-                (click)="showRecordingDetails()">
+        @if (!screenXs) {
+          <button i18n-matTooltip matTooltip="Toggle detailed audio display" [disabled]="disableAudioDetails || !audioLoaded"
+            (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
-        </button>
-        <button i18n-matTooltip matTooltip="Download current recording" *ngIf="enableDownload" [disabled]="disableAudioDetails || !audioLoaded"
-                (click)="downloadRecording()">
+          </button>
+        }
+        @if (enableDownload) {
+          <button i18n-matTooltip matTooltip="Download current recording" [disabled]="disableAudioDetails || !audioLoaded"
+            (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
-        </button>
+          </button>
+        }
         <div style="min-width: 14ch;padding:2px"><table style="border-style: none"><tr><td>Peak:</td><td><span i18n-matTooltip  matTooltip="Peak level"
-                                                                        [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
-          <tr *ngIf="_agc"><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr></table></div>
-    `,
+        [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{peakDbLvl | number:'1.1-1'}} dB </span></td></tr>
+        @if (_agc) {
+          <tr><td>AGC:</td><td><span matTooltip="Auto gain control">{{agcString}}</span></td></tr>
+        }</table></div>
+        `,
     styles: [`:host {
         flex: 0; /* only required vertical space */
         width: 100%;

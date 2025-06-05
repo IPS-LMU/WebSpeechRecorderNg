@@ -6,14 +6,24 @@ import {SpeakerService} from "./speaker.service";
     selector: 'spr-speakerinfo',
     template: `
     <table matTooltip="Speakers data info">
-      <tr *ngFor="let spk of speakers">
-        <td>Speaker:</td>
-        <td style="text-align: right"><span *ngIf="spk.code"> {{spk?.code}}</span> <span
-          *ngIf="spk.name"> {{spk.name}}</span> <span *ngIf="spk.forename"> {{spk.forename}}</span> <span
-          *ngIf="spk.dateOfBirth"> {{spk.dateOfBirth | date}}</span></td>
-      </tr>
+      @for (spk of speakers; track spk) {
+        <tr>
+          <td>Speaker:</td>
+          <td style="text-align: right">@if (spk.code) {
+            <span> {{spk?.code}}</span>
+            } @if (spk.name) {
+            <span
+            > {{spk.name}}</span>
+            } @if (spk.forename) {
+            <span> {{spk.forename}}</span>
+            } @if (spk.dateOfBirth) {
+            <span
+            > {{spk.dateOfBirth | date}}</span>
+          }</td>
+        </tr>
+      }
     </table>
-  `,
+    `,
     styles: [`:host {
     flex: 0;
     background-color: white;

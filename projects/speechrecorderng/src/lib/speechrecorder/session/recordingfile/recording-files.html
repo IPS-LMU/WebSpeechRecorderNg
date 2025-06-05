@@ -1,24 +1,28 @@
 <mat-card>
-    <mat-card-header>
-        <mat-card-title>Recording files of session <span class="monospaced">{{sessionId}} of project "{{projectName}}"</span></mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div *ngIf="waitingForRfs"><mat-progress-spinner color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner> Loading recording file(s)... Please wait.</div>
-        <table mat-table matSort [dataSource]="dataSource">
-            <ng-container matColumnDef="recordingFileId">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                <td mat-cell class="monospaced" *matCellDef="let element">{{element.recordingFileId}}</td>
-            </ng-container>
-          <ng-container matColumnDef="itemCode">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Item code</th>
-            <td mat-cell class="monospaced" *matCellDef="let element">{{element.recording?.itemcode}}</td>
-          </ng-container>
-            <ng-container matColumnDef="action">
-                <th mat-header-cell *matHeaderCellDef>Action</th>
-                <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" matToolTip="Show recording file details" (click)="toRecordingFileDetail(element)"><mat-icon>view_stream</mat-icon></button> <button *ngIf="deleteEnabled" mat-stroked-button color="primary" matTooltip="Delete recording file" (click)="deleteRecordingFileRequest(element)"><mat-icon [style.color]="'red'">delete</mat-icon></button></td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-    </mat-card-content>
+  <mat-card-header>
+    <mat-card-title>Recording files of session <span class="monospaced">{{sessionId}} of project "{{projectName}}"</span></mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    @if (waitingForRfs) {
+      <div><mat-progress-spinner color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner> Loading recording file(s)... Please wait.</div>
+    }
+    <table mat-table matSort [dataSource]="dataSource">
+      <ng-container matColumnDef="recordingFileId">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+        <td mat-cell class="monospaced" *matCellDef="let element">{{element.recordingFileId}}</td>
+      </ng-container>
+      <ng-container matColumnDef="itemCode">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Item code</th>
+        <td mat-cell class="monospaced" *matCellDef="let element">{{element.recording?.itemcode}}</td>
+      </ng-container>
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef>Action</th>
+        <td mat-cell *matCellDef="let element"><button mat-stroked-button color="primary" matToolTip="Show recording file details" (click)="toRecordingFileDetail(element)"><mat-icon>view_stream</mat-icon></button> @if (deleteEnabled) {
+        <button mat-stroked-button color="primary" matTooltip="Delete recording file" (click)="deleteRecordingFileRequest(element)"><mat-icon [style.color]="'red'">delete</mat-icon></button>
+      }</td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</mat-card-content>
 </mat-card>
