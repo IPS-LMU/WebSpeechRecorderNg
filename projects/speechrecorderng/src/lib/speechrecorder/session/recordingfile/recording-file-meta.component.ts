@@ -8,37 +8,51 @@ import {SprRecordingFile} from "../../recording";
     <mat-card appearance="outlined">
       <mat-card-title>Recording file ID: {{recordingFile?.recordingFileId}}</mat-card-title>
       <mat-card-content>
-        <mat-progress-spinner *ngIf="stateLoading" mode="indeterminate" [diameter]="20"></mat-progress-spinner>
+        @if (stateLoading) {
+          <mat-progress-spinner mode="indeterminate" [diameter]="20"></mat-progress-spinner>
+        }
         <table>
-          <tr *ngIf="itemCode">
-            <td>Itemcode:</td>
-            <td>{{itemCode}}</td>
-          </tr>
-          <tr *ngIf="uuid && !itemCode">
-            <td>UUID:</td>
-            <td>{{uuid}}</td>
-          </tr>
-          <tr *ngIf="recordingFile?.startedDate">
-            <td>Started:</td>
-            <td>{{recordingFile?.startedDate}}</td>
-          </tr>
-          <tr *ngIf="!recordingFile?.startedDate && recordingFile?.date">
-            <td>Date:</td>
-            <td>{{recordingFile?.date}}</td>
-          </tr>
-          <tr *ngIf="itemCode">
-            <td>Prompt:</td>
-            <td>{{recordingAsPlainText()}}</td>
-          </tr>
-
-          <tr *ngIf="sessionId">
-            <td>Session:</td>
-            <td>{{sessionId}}</td>
-          </tr>
+          @if (itemCode) {
+            <tr>
+              <td>Itemcode:</td>
+              <td>{{itemCode}}</td>
+            </tr>
+          }
+          @if (uuid && !itemCode) {
+            <tr>
+              <td>UUID:</td>
+              <td>{{uuid}}</td>
+            </tr>
+          }
+          @if (recordingFile?.startedDate) {
+            <tr>
+              <td>Started:</td>
+              <td>{{recordingFile?.startedDate}}</td>
+            </tr>
+          }
+          @if (!recordingFile?.startedDate && recordingFile?.date) {
+            <tr>
+              <td>Date:</td>
+              <td>{{recordingFile?.date}}</td>
+            </tr>
+          }
+          @if (itemCode) {
+            <tr>
+              <td>Prompt:</td>
+              <td>{{recordingAsPlainText()}}</td>
+            </tr>
+          }
+    
+          @if (sessionId) {
+            <tr>
+              <td>Session:</td>
+              <td>{{sessionId}}</td>
+            </tr>
+          }
         </table>
       </mat-card-content>
     </mat-card>
-  `,
+    `,
     styles: [],
     standalone: false
 })

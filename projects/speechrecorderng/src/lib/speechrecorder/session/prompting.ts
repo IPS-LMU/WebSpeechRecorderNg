@@ -603,27 +603,29 @@ export class PromptingContainer {
     selector: 'app-sprprompting',
     template: `
 
-    <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
-    <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
-                               [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
-                               [transportActions]="transportActions"></app-sprpromptingcontainer>
-    <app-sprprogress *ngIf="!screenXs" [items]="items" [selectedItemIdx]="selectedItemIdx"
-                     (onRowSelect)="itemSelect($event)"></app-sprprogress>
-    <div #asCt [class.active]="!audioSignalCollapsed && !screenXs">
+<app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
+<app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
+  [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
+[transportActions]="transportActions"></app-sprpromptingcontainer>
+@if (!screenXs) {
+  <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx"
+  (onRowSelect)="itemSelect($event)"></app-sprprogress>
+}
+<div #asCt [class.active]="!audioSignalCollapsed && !screenXs">
 
-      <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
-                        [audioClip]="displayAudioClip"
-                        [playStartAction]="playStartAction"
-                        [playSelectionAction]="playSelectionAction"
-                        [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
-                        [playStopAction]="playStopAction"></app-audiodisplay>
-
-
-    </div>
-
+  <app-audiodisplay #audioSignalContainer [class.active]="!audioSignalCollapsed"
+    [audioClip]="displayAudioClip"
+    [playStartAction]="playStartAction"
+    [playSelectionAction]="playSelectionAction"
+    [autoPlayOnSelectToggleAction]="autoPlayOnSelectToggleAction"
+  [playStopAction]="playStopAction"></app-audiodisplay>
 
 
-  `,
+</div>
+
+
+
+`,
     styles: [`:host {
     position: relative;
     margin: 0;
