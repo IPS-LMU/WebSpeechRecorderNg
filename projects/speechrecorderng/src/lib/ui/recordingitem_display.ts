@@ -16,7 +16,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemcontrols',
     template: `
-
+<p>{{bundleI18nService.translate('common','items.of',['234-567','1234'])}}</p>
 <button [matTooltip]="bundleI18nService.translate('spr.audio','playback.start')" (click)="playStartAction?.perform()"
   [disabled]="playStartAction?playStartAction.disabled:true"
   [style.color]="playStartAction?.disabled ? 'grey' : 'green'">

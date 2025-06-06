@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
-import {BundleI18nService} from "./bundle-i18n.service";
+import {BundleI18nServiceImpl} from "./bundle-i18n-service.service";
 
 import commonBundle from "./common.json";
 import sprAudioBundle from "./spr.audio.json";
 
 @Injectable()
-export class SprBundleService extends BundleI18nService{
+export class SprBundleService extends BundleI18nServiceImpl{
 
   constructor() {
     super();

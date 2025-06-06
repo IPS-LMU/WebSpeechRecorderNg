@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "4.1.0-alpha.2",
+  "version": "4.1.0-alpha.5",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -59,6 +59,5 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "ng-packagr": "~20.0.0",
     "typescript": "~5.8.3"
-
   }
 }

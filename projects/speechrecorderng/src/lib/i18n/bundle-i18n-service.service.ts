@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {resolve} from "@angular/compiler-cli";
 import {Locale} from "./locale.utils";
+import {QuoteParserService, TextPart} from "../utils/text/quote.parser.service";
 
 
 export interface BundleI18nConfig {
@@ -13,6 +14,8 @@ export interface KeyId{
   bundle:string;
   key:string;
 }
+
+export type Params =Map<string, string>|Array<string>;
 
 export type BundlesMap=Map<string,Bundle>;
 
@@ -146,8 +149,38 @@ export class Bundle{
 
 }
 
+export interface BundleI18nService {
+  get name(): string;
+
+  set name(value: string);
+
+  set fallBackLanguage(value: string | null);
+
+  get navigatorLang(): string | null;
+
+  get activeLang(): string;
+
+  set activeLang(value: string);
+
+  putBundleData(bd: BundleData): void;
+
+  putMultiLangBundleData(mlbd: MultiLangBundleData): void;
+
+  putBundle(b: Bundle): void;
+
+  putBundleProvider(bundleName: string, bundleProvider: BundleI18nProvider): void;
+
+  getBundle(bundlename: string, lang: string): Bundle | undefined;
+
+  fetchBundle(bundlename: string, lang?: string): Promise<Bundle | null>;
+
+  translate(bundlename: string, key: string,params?:Params, lang?: string): string;
+
+  translateAsync(bundlename: string, key: string,params?:Params, lang?: string): Promise<string>;
+}
+
 @Injectable()
-export class BundleI18nService {
+export class BundleI18nServiceImpl implements BundleI18nService{
   get name(): string {
     return this._name;
   }
@@ -265,7 +298,60 @@ export class BundleI18nService {
 
     });
   }
-  translate(bundlename:string,key:string,lang?:string):string {
+
+  private replaceParamsInTextPart(textPart:TextPart,params:Params|undefined):string{
+    let repTxt='';
+    const t=textPart.text;
+    if(textPart.quoted){
+      repTxt=t;
+    }else{
+      const tps=QuoteParserService.parseText(t,'{','}',null,true);
+      for(let tp of tps){
+        if(tp.quoted) {
+          if (params) {
+            const paramName = tp.text.trim();
+            let paramValue;
+            if(params instanceof Map){
+              paramValue = params.get(paramName);
+            }else if(params instanceof Array){
+              const paramIdx=parseInt(paramName);
+              paramValue = params[paramIdx];
+            }
+
+            if (paramValue) {
+              repTxt = repTxt.concat(paramValue);
+            } else {
+              // handle error ?
+              repTxt = repTxt.concat(tp.text);
+            }
+          } else {
+            repTxt = repTxt.concat(tp.text);
+          }
+        }else{
+          repTxt = repTxt.concat(tp.text);
+        }
+      }
+    }
+    return repTxt
+  }
+
+  private replaceParamsInTextParts(textParts:TextPart[],params:Params|undefined):string {
+    let repTxt='';
+      for(let tp of textParts) {
+        const partTxt=this.replaceParamsInTextPart(tp,params);
+        repTxt=repTxt.concat(partTxt);
+      }
+      return repTxt;
+  }
+
+  private replaceParams(translation:string,params:Params|undefined):string {
+    let repTxt='';
+
+    const tps=QuoteParserService.parseTextOneQuoteChar(translation,"\'",'\\',true);
+    return this.replaceParamsInTextParts(tps,params);
+  }
+
+  translate(bundlename:string,key:string,params?:Params,lang?:string):string {
     if(!lang){
       lang=this._activeLang;
     }
@@ -292,9 +378,10 @@ export class BundleI18nService {
       // fetch to cache
       //this.translateAsync(bundlename,key,lang);
     }
-    return tr;
+    const resTxt=this.replaceParams(tr,params);
+    return resTxt;
   }
-  translateAsync(bundlename:string,key:string,lang?:string):Promise<string>{
+  translateAsync(bundlename:string,key:string,params?:Params,lang?:string):Promise<string>{
     if(!lang){
       lang=this._activeLang;
     }

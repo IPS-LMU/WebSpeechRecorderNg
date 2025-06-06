@@ -21,7 +21,7 @@ import {AudioDisplayPlayer} from "../../projects/speechrecorderng/src/lib/audio/
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/router";
-import {BundleI18nService} from "../../projects/speechrecorderng/src/lib/i18n/bundle-i18n.service";
+import {BundleI18nServiceImpl} from "../../projects/speechrecorderng/src/lib/i18n/bundle-i18n-service.service";
 
 import commonBundle from "../../projects/speechrecorderng/src/lib/i18n/common.json";
 
@@ -42,14 +42,14 @@ const appRoutes: Routes = [
   { path: '**', component: StartComponent  }
 ];
 
-function createBundleI18Service():BundleI18nService {
+function createBundleI18Service():BundleI18nServiceImpl {
   // See https://stackoverflow.com/a/78570386
   // let bs = inject(BundleI18nService,{optional:true,self:true});
   // if (bs) {
   //   console.info("Bundle service already exists");
   // }else{
     console.info("Spr app: Initialize bundle service...");
-    let bs = new BundleI18nService();
+    let bs = new BundleI18nServiceImpl();
     bs.name='App-Module Bundle-service';
   //}
   bs.putMultiLangBundleData(commonBundle);
@@ -70,7 +70,7 @@ function createBundleI18Service():BundleI18nService {
   ],
   providers: [
     provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'})),
-    {provide:BundleI18nService,useFactory:createBundleI18Service}
+    {provide:BundleI18nServiceImpl,useFactory:createBundleI18Service}
   ],
   bootstrap: [AppComponent]
 })
