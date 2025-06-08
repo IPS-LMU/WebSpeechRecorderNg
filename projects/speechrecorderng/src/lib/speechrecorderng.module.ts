@@ -73,6 +73,7 @@ import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 
 import {SprBundleService} from "./i18n/spr.bundle.service";
+import {Locale} from "./i18n/locale.utils";
 
 export const SPR_ROUTES: Routes = [
   {
@@ -153,7 +154,6 @@ export class SpeechrecorderngModule{
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
-        {provide: LOCALE_ID, useValue: navigator.language},
         {provide: SPEECHRECORDER_CONFIG, useValue: config },
         provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'})),
         {provide: SprBundleService}

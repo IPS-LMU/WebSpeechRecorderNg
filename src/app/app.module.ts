@@ -24,6 +24,7 @@ import {provideRouter, RouterModule, Routes, withRouterConfig} from "@angular/ro
 import {BundleI18nServiceImpl} from "../../projects/speechrecorderng/src/lib/i18n/bundle-i18n-service.service";
 
 import commonBundle from "../../projects/speechrecorderng/src/lib/i18n/common.json";
+import {Locale} from "../../projects/speechrecorderng/src/lib/i18n/locale.utils";
 
 
 
@@ -56,6 +57,22 @@ function createBundleI18Service():BundleI18nServiceImpl {
   bs.fallBackLanguage='en';
   return bs;
 }
+const SUPPORTED_LANGUAGES=['en','de'];
+
+function localeProvider():string{
+  const nlStr=navigator.language;
+  const nl=Locale.parseLocaleStr(nlStr);
+  const nlLang=nl.lang;
+  if(SUPPORTED_LANGUAGES.includes(nlLang)){
+    console.info("Language \'"+nlLang+"’\' supported. Providing locale: "+nlStr);
+    return nlStr;
+  }else{
+    // Fallback to en-US to keep Angular pipes working
+    console.info("Language \'"+nlLang+"’\' not supported. Falling back to 'en-US'");
+    return 'en-US';
+  }
+}
+
 
 @NgModule({
   declarations: [
@@ -70,7 +87,7 @@ function createBundleI18Service():BundleI18nServiceImpl {
   ],
   providers: [
     provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'})),
-    {provide: LOCALE_ID, useValue: navigator.language},
+    {provide: LOCALE_ID, useFactory:localeProvider},
     {provide:BundleI18nServiceImpl,useFactory:createBundleI18Service}
   ],
   bootstrap: [AppComponent]

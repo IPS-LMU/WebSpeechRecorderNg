@@ -15,13 +15,13 @@ describe('QuoteParserService', () => {
   });
   it('passes unquoted text (single quote char)',()=>{
     const t='Lorem ipsum';
-    const ptps=service.parseTextOneQuoteChar(t, "'", '\\', false);
+    const ptps=QuoteParserService.parseTextOneQuoteChar(t, "'", '\\', false);
     expect(ptps.length==1 && ptps[0].text===t).toBeTruthy();
   });
 
   it('separates quoted text (single quote char)',()=>{
     const t='Lorem ipsum \'dolor\' sit amet';
-    const ptps=service.parseTextOneQuoteChar(t, "'", '\\', true);
+    const ptps=QuoteParserService.parseTextOneQuoteChar(t, "'", '\\', true);
     expect(ptps.length==3).toBeTruthy();
     const tp0=ptps[0];
     expect(tp0.text==='Lorem ipsum ' && !tp0.quoted).toBeTruthy();
@@ -33,7 +33,7 @@ describe('QuoteParserService', () => {
 
   it('separates quoted text',()=>{
     const t='Lorem ipsum {dolor} sit amet';
-    const ptps=service.parseText(t, "{", "}",'\\', true);
+    const ptps=QuoteParserService.parseText(t, "{", "}",'\\', true);
     expect(ptps.length==3).toBeTruthy();
     const tp0=ptps[0];
     expect(tp0.text==='Lorem ipsum ' && !tp0.quoted).toBeTruthy();
