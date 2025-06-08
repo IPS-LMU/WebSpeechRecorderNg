@@ -854,7 +854,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.status = Status.RECORDING;
     super.started();
     this.statusAlertType = 'info';
-    this.statusMsg = 'Recording...';
+    this.statusMsg = this.bs.m('spr.audio','status.recording');
 
     let sessId: string | number = 0;
     if(this._session){

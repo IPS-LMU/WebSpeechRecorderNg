@@ -22,6 +22,7 @@ import {ReadyStateProvider, RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
 import {SprDb} from "./db/inddb";
 import {LocationStrategy} from "@angular/common";
+import {SprBundleService} from "./i18n/spr.bundle.service";
 
 export enum Mode {SINGLE_SESSION,DEMO}
 
@@ -56,6 +57,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
   constructor(protected injector:Injector,private route: ActivatedRoute,
               private router: Router,
               private changeDetectorRef: ChangeDetectorRef,
+              protected bs:SprBundleService,
               private sessionsService:SessionService,
               private projectService:ProjectService,
               private scriptService:ScriptService,
@@ -168,7 +170,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
   fetchScript(sess: Session) {
     if (sess.script) {
       this.sm.statusAlertType = 'info';
-      this.sm.statusMsg = 'Fetching recording script...';
+      this.sm.statusMsg = this.bs.m('spr','status.fetching_rec_script');
       this.sm.statusWaiting = true;
       this.scriptService.scriptObservable(sess.script).subscribe({
         next: (script) => {
@@ -428,10 +430,10 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
   audioPlayerUpdate(e:AudioPlayerEvent){
     if(PlaybackEventType.STARTED===e.type){
       this.sm.statusAlertType='info';
-      this.sm.statusMsg='Playback...';
+      this.sm.statusMsg=this.bs.m('spr.audio','status.playback');
     } else if (PlaybackEventType.ENDED === e.type) {
       this.sm.statusAlertType='info';
-      this.sm.statusMsg='Ready.';
+      this.sm.statusMsg=this.bs.m('spr','status.ready');
     }else if(PlaybackEventType.ERROR=== e.type){
       this.sm.statusAlertType='error';
       this.sm.statusMsg='Playback error.';

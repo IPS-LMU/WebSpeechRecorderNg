@@ -1102,7 +1102,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.applyPrompt();
     }
     this.statusAlertType = 'info';
-    this.statusMsg = 'Recording...';
+    this.statusMsg = this.bs.m('spr.audio','status.recording');
 
     let preDelay = DEFAULT_PRE_REC_DELAY;
     if (this.promptItem.prerecdelay!=null) {
@@ -1251,7 +1251,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.statusAlertType = 'info';
-    this.statusMsg = 'Recorded.';
+    this.statusMsg = this.bs.m('spr.audio','status.recorded');
     this.startStopSignalState = StartStopSignalState.IDLE;
 
       let adh:AudioDataHolder|null=null;
@@ -1414,7 +1414,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.sessionService.patchSessionObserver(this._session, body).subscribe()
         }
       }
-      this.statusMsg = 'Session complete!';
+      this.statusMsg = this.bs.m('spr','status.session_complete');
       this.updateWakeLock();
       if(this.showSessionCompleteMessage) {
         this.dialog.open(SessionFinishedDialog, {});

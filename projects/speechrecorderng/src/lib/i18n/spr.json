@@ -1,0 +1,52 @@
+{
+  "name":"spr",
+  "translations":[
+
+    {
+      "key": "status.ready",
+      "translations": [
+        {"lang": "en","translation": "Ready."},
+        {"lang": "de", "translation": "Bereit."}
+      ]
+    }
+  ,
+    {
+      "key": "status.fetching_rec_script",
+      "translations": [
+        {"lang": "en","translation": "Fetching recording script..."},
+        {"lang": "de", "translation": "Hole Aufnahmeskript..."}
+      ]
+    }
+  ,
+    {
+      "key": "status.session_sealed",
+      "translations": [
+        {"lang": "en","translation": "Session is sealed!"},
+        {"lang": "de", "translation": "Sitzung ist versiegelt"}
+      ]
+    },
+    {
+      "key": "status.session_complete",
+      "translations": [
+        {"lang": "en","translation": "Session complete!"},
+        {"lang": "de", "translation": "Sitzung komplett!"}
+      ]
+    },
+    {
+      "key": "ready_state.done",
+      "translations": [
+        {"lang": "en","translation": "Audio processing and upload done. You can leave the page without data loss."},
+        {"lang": "de", "translation": "Audio-Verarbeitung und Hochladen abgeschlossen. Sie können die Seite ohne Datenverlust verlassen."}
+      ]
+    },
+    {
+      "key": "ready_state.wait",
+      "translations": [
+        {"lang": "en","translation": "Please wait until audio processing and upload have finished. Please do not leave the page."},
+        {"lang": "de", "translation": "Bitte warten, bis die Verarbeitung und das Hochladen der Audio-Daten abgeschlossen sind. Bitte die Seite nicht verlassen."}
+      ]
+    }
+
+
+  ]
+}

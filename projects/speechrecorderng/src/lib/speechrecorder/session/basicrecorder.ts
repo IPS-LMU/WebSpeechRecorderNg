@@ -294,7 +294,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
       console.debug("Detected browser: " +detBr+detBrVersStr);
     }
     this.transportActions = new TransportActions(bs);
-    this.playStartAction = new Action('Play');
+    this.playStartAction = new Action(this.bs.m('spr.audio','play'));
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
     this.selCaptureDeviceId = null;
@@ -369,7 +369,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   enableStartUserGesture() {
     this.statusAlertType = 'info';
-    this.statusMsg = 'Ready.';
+    this.statusMsg = this.bs.m('spr','status.ready');
   }
 
   configureStreamCaptureStream() {
@@ -672,7 +672,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
       });
     }
-    this.statusMsg='Ready.';
+    this.statusMsg=this.bs.m('spr','status.ready');
   }
 
   startItem() {
