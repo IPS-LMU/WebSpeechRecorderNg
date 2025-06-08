@@ -174,9 +174,9 @@ export interface BundleI18nService {
 
   fetchBundle(bundlename: string, lang?: string): Promise<Bundle | null>;
 
-  translate(bundlename: string, key: string,params?:Params, lang?: string): string;
+  m(bundlename: string, key: string, params?:Params, lang?: string): string;
 
-  translateAsync(bundlename: string, key: string,params?:Params, lang?: string): Promise<string>;
+  mAsync(bundlename: string, key: string, params?:Params, lang?: string): Promise<string>;
 }
 
 @Injectable()
@@ -351,7 +351,7 @@ export class BundleI18nServiceImpl implements BundleI18nService{
     return this.replaceParamsInTextParts(tps,params);
   }
 
-  translate(bundlename:string,key:string,params?:Params,lang?:string):string {
+  m(bundlename:string, key:string, params?:Params, lang?:string):string {
     if(!lang){
       lang=this._activeLang;
     }
@@ -381,7 +381,7 @@ export class BundleI18nServiceImpl implements BundleI18nService{
     const resTxt=this.replaceParams(tr,params);
     return resTxt;
   }
-  translateAsync(bundlename:string,key:string,params?:Params,lang?:string):Promise<string>{
+  mAsync(bundlename:string, key:string, params?:Params, lang?:string):Promise<string>{
     if(!lang){
       lang=this._activeLang;
     }
