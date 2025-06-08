@@ -8,5 +8,8 @@ if (environment.production) {
   enableProdMode();
 }
 
+import '@angular/common/locales/global/en';
+import '@angular/common/locales/global/de';
+
 platformBrowserDynamic().bootstrapModule(AppModule)
   .catch(err => console.error(err));
