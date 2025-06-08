@@ -16,7 +16,6 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemcontrols',
     template: `
-      <p>{{ bundleI18nService.m('common', 'items.of', ['234-567', '1234']) }}</p>
       <button [matTooltip]="bundleI18nService.m('spr.audio','playback.start')" (click)="playStartAction?.perform()"
               [disabled]="playStartAction?playStartAction.disabled:true"
               [style.color]="playStartAction?.disabled ? 'grey' : 'green'">
@@ -45,7 +44,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         <table style="border-style: none">
           <tr>
             <td>Peak:</td>
-            <td><span matTooltip="Peak level"
+            <td><span [matTooltip]="bs.m('spr.audio','level.peak')"
                       [style.color]="(peakDbLvl > warnDbLevel)?'red':'black'">{{ peakDbLvl | number:'1.1-1' }}
               dB </span></td>
           </tr>
@@ -125,7 +124,11 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
 
   protected bundleI18nService=inject(SprBundleService);
 
-  constructor(protected bpo:BreakpointObserver,private ref: ElementRef, private changeDetectorRef: ChangeDetectorRef) {
+  constructor(
+    protected bpo:BreakpointObserver,
+    private ref: ElementRef,
+    private changeDetectorRef: ChangeDetectorRef,
+    protected bs:SprBundleService) {
     super(bpo);
   }
 

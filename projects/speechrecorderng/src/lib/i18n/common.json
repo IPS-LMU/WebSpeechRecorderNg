@@ -1,5 +1,5 @@
 {
-  "name":"common",
+  "name":"c",
   "translations":[
     {
       "key": "help",
@@ -13,6 +13,14 @@
       "translations": [
         {"lang": "en", "translation": "Start"},
         {"lang": "de", "translation": "Start"}
+      ]
+    },
+
+    {
+      "key": "pause",
+      "translations": [
+        {"lang": "en", "translation": "Pause"},
+        {"lang": "de", "translation": "Pause"}
       ]
     },
     {

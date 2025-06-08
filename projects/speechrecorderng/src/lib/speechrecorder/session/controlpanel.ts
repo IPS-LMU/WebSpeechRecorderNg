@@ -8,6 +8,7 @@ import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 
 
@@ -158,11 +159,11 @@ export class TransportActions {
   bwdAction: Action<void>;
   stopNonrecordingAction:Action<void>;
 
-  constructor() {
-    this.startAction = new Action('Start');
+  constructor(private bs:SprBundleService) {
+    this.startAction = new Action(this.bs.m('c','start'));
     this.stopAction = new Action('Stop');
     this.nextAction = new Action('Next');
-    this.pauseAction = new Action('Pause');
+    this.pauseAction = new Action(this.bs.m('c','pause'));
     this.fwdNextAction = new Action('Next recording');
     this.fwdAction = new Action('Forward');
     this.bwdAction = new Action('Backward');
@@ -206,7 +207,7 @@ export class TransportActions {
         <span><mat-icon>chevron_right</mat-icon></span>
       </button>
     }
-    
+
     `,
     styles: [`:host {
     flex: 20;

@@ -23,6 +23,20 @@
       ]
     },
     {
+      "key": "permissions.requesting",
+      "translations": [
+        {"lang": "en","translation": "Requesting audio permissions..."},
+        {"lang": "de", "translation": "Audio-Berechtigung anfragen..."}
+      ]
+    },
+    {
+      "key": "level.peak",
+      "translations": [
+        {"lang": "en","translation": "Peak level"},
+        {"lang": "de", "translation": "Maximal-Pegel"}
+      ]
+    },
+    {
       "key": "recording.current.download",
       "translations": [
         {"lang": "en","translation": "Download current recording"},

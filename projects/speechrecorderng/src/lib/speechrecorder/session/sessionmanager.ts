@@ -42,6 +42,7 @@ import {AudioStorageFormatEncoding, AudioStorageType} from "../project/project";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {Project} from "../project/project";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -233,8 +234,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               sessionService:SessionService,
               private recFileService:RecordingService,
               uploader: SpeechRecorderUploader,
+              protected bs:SprBundleService,
               @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
-    super(bpo,changeDetectorRef,dialog,sessionService,uploader,config);
+    super(bpo,changeDetectorRef,dialog,sessionService,uploader,bs,config);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {
