@@ -1,4 +1,4 @@
-import {inject, ModuleWithProviders, NgModule} from '@angular/core';
+import {inject, LOCALE_ID, ModuleWithProviders, NgModule} from '@angular/core';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
@@ -153,6 +153,7 @@ export class SpeechrecorderngModule{
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
+        {provide: LOCALE_ID, useValue: navigator.language},
         {provide: SPEECHRECORDER_CONFIG, useValue: config },
         provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'})),
         {provide: SprBundleService}

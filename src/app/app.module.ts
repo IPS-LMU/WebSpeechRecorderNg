@@ -1,4 +1,4 @@
-import {inject, NgModule} from '@angular/core';
+import {inject, LOCALE_ID, NgModule} from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -70,6 +70,7 @@ function createBundleI18Service():BundleI18nServiceImpl {
   ],
   providers: [
     provideRouter(appRoutes, withRouterConfig({canceledNavigationResolution:'computed'})),
+    {provide: LOCALE_ID, useValue: navigator.language},
     {provide:BundleI18nServiceImpl,useFactory:createBundleI18Service}
   ],
   bootstrap: [AppComponent]
