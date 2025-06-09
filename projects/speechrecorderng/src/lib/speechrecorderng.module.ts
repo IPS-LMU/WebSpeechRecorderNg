@@ -140,6 +140,22 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
+const SUPPORTED_LANGUAGES=['en','de'];
+
+function localeProvider():string{
+  const nlStr=navigator.language;
+  const nl=Locale.parseLocaleStr(nlStr);
+  const nlLang=nl.lang;
+  if(SUPPORTED_LANGUAGES.includes(nlLang)){
+    console.info("Language \'"+nlLang+"\' supported. Providing locale: "+nlStr);
+    return nlStr;
+  }else{
+    // Fallback to en-US to keep Angular pipes working
+    console.info("Language \'"+nlLang+"\' not supported. Falling back to 'en-US'");
+    return 'en-US';
+  }
+}
+
 @NgModule({
   declarations: [
     ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
@@ -154,6 +170,7 @@ export class SpeechrecorderngModule{
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
+        {provide: LOCALE_ID, useFactory:localeProvider},
         {provide: SPEECHRECORDER_CONFIG, useValue: config },
         provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'})),
         {provide: SprBundleService}
