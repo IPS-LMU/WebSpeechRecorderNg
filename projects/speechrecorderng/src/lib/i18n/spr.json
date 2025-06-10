@@ -46,6 +46,21 @@
         {"lang": "de", "translation": "Bitte warten, bis die Verarbeitung und das Hochladen der Audio-Daten abgeschlossen sind. Bitte die Seite nicht verlassen."}
       ]
     }
+  ,
+    {
+      "key": "speaker",
+      "translations": [
+        {"lang": "en","translation": "Speaker"},
+        {"lang": "de", "translation": "Sprecher"}
+      ]
+    },
+    {
+      "key": "speakers.data_info",
+      "translations": [
+        {"lang": "en","translation": "Speakers data info"},
+        {"lang": "de", "translation": "Sprecher-Daten Info"}
+      ]
+    }
 
 
   ]
