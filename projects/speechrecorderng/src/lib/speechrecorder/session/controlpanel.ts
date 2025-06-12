@@ -68,6 +68,7 @@ export class StatusDisplay {
     standalone: false
 })
 export class UploadStatus {
+  private bs=inject(SprBundleService);
   private _awaitNewUpload=false;
   spinnerMode:ProgressSpinnerMode = 'determinate';
   _status!:string;
@@ -82,14 +83,16 @@ export class UploadStatus {
     if (this._awaitNewUpload || this._value === 0) {
       this.spinnerMode = 'indeterminate'
       this.displayValue='&nbsp;&nbsp;&nbsp;&nbsp;'
-      uplMsg='Preparing upload.'
+      uplMsg=this.bs.m('spr','upload.preparing');
     } else {
       this.spinnerMode = 'determinate'
       this.displayValue=this._value+'%'
       if(this._value===100){
-        uplMsg = 'Upload complete'
+        //uplMsg = 'Upload complete'
+        uplMsg=this.bs.m('spr','upload.complete');
       }else {
-        uplMsg = 'Upload progress: ' + this.displayValue
+        //uplMsg = 'Upload progress: ' + this.displayValue
+        uplMsg=this.bs.m('spr','upload.progress',[this.displayValue]);
       }
     }
     if(this.status==='warn'){

@@ -60,8 +60,28 @@
         {"lang": "en","translation": "Speakers data info"},
         {"lang": "de", "translation": "Sprecher-Daten Info"}
       ]
+    },
+    {
+      "key": "upload.preparing",
+      "translations": [
+        {"lang": "en","translation": "Preparing upload."},
+        {"lang": "de", "translation": "Bereite Hochladen vor."}
+      ]
+    },
+    {
+      "key": "upload.progress",
+      "translations": [
+        {"lang": "en","translation": "Upload progress: {0}"},
+        {"lang": "de", "translation": "Hochladen Fortschritt: {0}"}
+      ]
+    },
+
+    {
+      "key": "upload.complete",
+      "translations": [
+        {"lang": "en","translation": "Upload complete."},
+        {"lang": "de", "translation": "Hochladen vollständig."}
+      ]
     }
-
-
   ]
 }
