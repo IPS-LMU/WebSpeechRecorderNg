@@ -41,3 +41,21 @@ $candy-app-theme: mat.m2-define-light-theme((
 // that you are using.
 @include mat.all-component-themes($candy-app-theme);
 
+// Tutorial dim/highlight experiments. Works, but some SpeechRecorder components have fixed z-index, e.g. simple traffic light z:index:3
+.tut_blanket{
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 0.7;
+  z-index: 1000;
+}
+
+.tut_hl{
+  position: relative;
+  z-index: 2000;
+}
+
+
