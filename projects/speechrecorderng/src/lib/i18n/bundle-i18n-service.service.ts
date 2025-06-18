@@ -149,6 +149,11 @@ export class Bundle{
 
 }
 
+export interface MessagePartI18n{
+  message:string;
+  paramName:null|string;
+}
+
 export interface BundleI18nService {
   get name(): string;
 
@@ -177,6 +182,8 @@ export interface BundleI18nService {
   m(bundlename: string, key: string, params?:Params, lang?: string): string;
 
   mAsync(bundlename: string, key: string, params?:Params, lang?: string): Promise<string>;
+
+  mps(bundlename: string, key: string, params?:Params, lang?: string): MessagePartI18n[];
 }
 
 @Injectable()
@@ -299,6 +306,66 @@ export class BundleI18nServiceImpl implements BundleI18nService{
     });
   }
 
+  private toMessageParts(textParts:TextPart[],params:Params|undefined):MessagePartI18n[] {
+    let mps:MessagePartI18n[] = [];
+    for(let tp of textParts) {
+      const tpMps=this.textPartToMessageParts(tp,params);
+      mps=mps.concat(tpMps);
+    }
+    return mps;
+  }
+
+  private messageParts(translation:string,params:Params|undefined):MessagePartI18n[]{
+    let repTxt='';
+
+    const tps=QuoteParserService.parseTextOneQuoteChar(translation,"\'",'\\',true);
+    return this.toMessageParts(tps,params);
+  }
+
+  private textPartToMessageParts(textPart:TextPart,params:Params|undefined):Array<MessagePartI18n>{
+    const mps:MessagePartI18n[] = [];
+    const t=textPart.text;
+    if(textPart.quoted){
+      // Text part is quoted (with single quotes) and has to be handled literally
+      mps.push({message:t,paramName:null});
+    }else{
+      // Divide to plain text and parameter placeholder parts
+      const tps=QuoteParserService.parseText(t,'{','}',null,true);
+      for(let tp of tps){
+        if(tp.quoted) {
+          // Text part is a parameter placeholder
+          if (params) {
+            const paramName = tp.text.trim();
+            let paramValue;
+            if(params instanceof Map){
+              // If params is a map lookup param by name
+              paramValue = params.get(paramName);
+            }else if(params instanceof Array){
+              // If params is an array lookup param by index
+              const paramIdx=parseInt(paramName);
+              paramValue = params[paramIdx];
+            }
+            if (paramValue) {
+              // Replace placeholder with param value
+              mps.push({message:paramValue,paramName:paramName});
+            } else {
+              // No param value, fallback: do not replace
+              // handle error ?
+              mps.push({message:tp.text,paramName:null});
+            }
+          } else {
+            // No params given, fallback: do not replace
+            mps.push({message:tp.text,paramName:null});
+          }
+        }else{
+          // No placeholder, pass text through, no replacement
+          mps.push({message:tp.text,paramName:null});
+        }
+      }
+    }
+    return mps;
+  }
+
   private replaceParamsInTextPart(textPart:TextPart,params:Params|undefined):string{
     let repTxt='';
     const t=textPart.text;
@@ -381,6 +448,45 @@ export class BundleI18nServiceImpl implements BundleI18nService{
     const resTxt=this.replaceParams(tr,params);
     return resTxt;
   }
+
+  /**
+   *
+   * @param bundlename
+   * @param key
+   * @param params
+   * @param lang
+   */
+  mps(bundlename:string, key:string, params?:Params, lang?:string):Array<MessagePartI18n> {
+    if(!lang){
+      lang=this._activeLang;
+    }
+    let tr = "[" + bundlename + ":" + key + "]";
+
+    const bundle=this.getBundle(bundlename,lang);
+    if (bundle) {
+      const btr = bundle.getTranslation(key);
+      if (btr) {
+        tr = btr;
+      }
+    } else {
+      if(this._fallBackLanguage){
+        const fbBundle=this.getBundle(bundlename,this._fallBackLanguage);
+        if(fbBundle) {
+          const fbBtr = fbBundle.getTranslation(key);
+          if (fbBtr) {
+            tr = fbBtr;
+          }
+        }
+      }
+
+      // Prevent Loop
+      // fetch to cache
+      //this.translateAsync(bundlename,key,lang);
+    }
+    const resMps=this.messageParts(tr,params);
+    return resMps;
+  }
+
   mAsync(bundlename:string, key:string, params?:Params, lang?:string):Promise<string>{
     if(!lang){
       lang=this._activeLang;
