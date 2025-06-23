@@ -163,7 +163,7 @@ function localeProvider():string{
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent, RecordingList, RecorderCombiPane, AudioRecorder
     ],
 
-  exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder, TransportPanel, Progress],
+  exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder],
   imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective],
   providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader, provideHttpClient(withInterceptorsFromDi())] })
 export class SpeechrecorderngModule{
