@@ -16,12 +16,6 @@
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
-      "i18n": {
-        "sourceLocale": "en-US",
-        "locales": {
-          "de": "src/locale/messages.de.xlf"
-        }
-      },
       "architect": {
         "build": {
           "builder": "@angular/build:application",
@@ -31,11 +25,9 @@
             },
             "index": "src/index.html",
             "polyfills": [
-              "zone.js",
-              "@angular/localize/init"
+              "zone.js"
             ],
             "tsConfig": "tsconfig.app.json",
-            "localize": true,
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/assets",
@@ -74,11 +66,7 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true,
-              "localize": ["en-US"]
-            },
-            "en-US": {
-              "localize": ["en-US"]
+              "namedChunks": true
             }
           },
           "defaultConfiguration": "production"
@@ -91,24 +79,15 @@
             },
             "development": {
               "buildTarget": "WebSpeechRecorderNg:build:development"
-            },
-            "en-US": {
-              "buildTarget": "WebSpeechRecorderNg:build:en-US"
             }
           },
           "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular/build:extract-i18n",
-          "options": {
-            "buildTarget": "WebSpeechRecorderNg:build"
-          }
         },
         "test": {
           "builder": "@angular/build:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": ["zone.js","@angular/localize/init"],
+            "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
@@ -130,19 +109,12 @@
       "root": "projects/speechrecorderng",
       "sourceRoot": "projects/speechrecorderng/src",
       "prefix": "lib",
-      "i18n": {
-        "sourceLocale": "en-US",
-        "locales": {
-          "de": "src/locale/messages.de.xlf"
-        }
-      },
       "architect": {
         "build": {
           "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/speechrecorderng/ng-package.json"
           },
-          "localize": true,
           "configurations": {
             "production": {
               "tsConfig": "projects/speechrecorderng/tsconfig.lib.prod.json"

@@ -1,7 +1,8 @@
-import {Component, Input, ViewChild} from '@angular/core'
+import {Component, inject, Input, ViewChild} from '@angular/core'
 import {Action} from "../../action/action";
 import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
 import {AudioClip} from "../persistor";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 
   @Component({
@@ -9,27 +10,26 @@ import {AudioClip} from "../persistor";
     template: `
         <div #controlPanel style="display:flex;flex-direction: row;">
           <fieldset>
-        
-            <legend>Play</legend>
-        
+
+            <legend>{{bs.m('spr.audio','play')}}</legend>
+
             <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled"
-              [style.color]="playStartAction?.disabled ? 'grey' : 'green'" matTooltip="Play all">
+              [style.color]="playStartAction?.disabled ? 'grey' : 'green'" [matTooltip]="bs.m('spr.audio','play.all')">
               <mat-icon>play_arrow</mat-icon>
             </button>
             <button (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
-              [style.color]="playSelectionAction?.disabled ? 'grey' : 'green'" matTooltip="Play selection">
+              [style.color]="playSelectionAction?.disabled ? 'grey' : 'green'" [matTooltip]="bs.m('spr.audio','play.selection')">
               <mat-icon>play_circle_outline</mat-icon>
             </button>
             <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled"
               [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
               <mat-icon>stop</mat-icon>
             </button>&nbsp;
-            <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">Autoplay on select
-            </mat-checkbox>
+            <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">{{bs.m('spr.audio','autoplay.on_select.abbr')}}</mat-checkbox>
           </fieldset>
           <fieldset>
-        
-            <legend>Zoom</legend>
+
+            <legend>{{bs.m('c','zoom')}}</legend>
             <button (click)="zoomFitToPanelAction?.perform()"
             [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button>
             <button (click)="zoomOutAction?.perform()"
@@ -40,28 +40,28 @@ import {AudioClip} from "../persistor";
             [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
           </fieldset>
           <fieldset>
-            <legend>Selection</legend>
+            <legend>{{bs.m('c','selection')}}</legend>
             {{audioClip?.selection?.leftFrame}} @if (audioClip?.selection) {
-            <span
-            >to</span>
+            <span>{{bs.m('c','to')}}</span>
             } {{audioClip?.selection?.rightFrame}}
             <button (click)="clearSelection()" [disabled]="audioClip?.selection==null"
-              [style.color]="hasSelection() ? 'red' : 'grey'" matTooltip="Clear selection">
+              [style.color]="hasSelection() ? 'red' : 'grey'" [matTooltip]="bs.m('c','selection.clear')">
               <mat-icon>clear</mat-icon>
             </button>
-        
+
           </fieldset>
         </div>`,
     styles: [
         `:host {
                  flex: 0;
-         
+
                }`
     ],
     standalone: false
 })
 	export class AudioDisplayControl {
 
+    protected bs=inject(SprBundleService);
     @Input() audioClip: AudioClip|null=null;
 
     @ViewChild(MatCheckbox, { static: true })

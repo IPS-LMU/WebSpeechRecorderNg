@@ -42,6 +42,7 @@ import {AudioStorageFormatEncoding, AudioStorageType} from "../project/project";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {Project} from "../project/project";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 const DEFAULT_PRE_REC_DELAY=1000;
 const DEFAULT_POST_REC_DELAY=500;
@@ -68,13 +69,13 @@ export const enum Status {
       [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
       [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
       [playStopAction]="controlAudioPlayer?.stopAction">
-    
+
     </app-sprprompting>
     @if (screenXs) {
       <mat-progress-bar [value]="progressPercentValue()" ></mat-progress-bar>
     }
-    
-    
+
+
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
@@ -87,7 +88,7 @@ export const enum Status {
           [agc]="this.ac?.agcStatus"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-    
+
         @if (screenXs && enableUploadRecordings) {
           <app-uploadstatus class="ricontrols dark"  style="flex:0 0 0" [value]="uploadProgress"
           [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
@@ -233,8 +234,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
               sessionService:SessionService,
               private recFileService:RecordingService,
               uploader: SpeechRecorderUploader,
+              protected bs:SprBundleService,
               @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
-    super(bpo,changeDetectorRef,dialog,sessionService,uploader,config);
+    super(bpo,changeDetectorRef,dialog,sessionService,uploader,bs,config);
     this.status = Status.IDLE;
     this.audio = document.getElementById('audio');
     if (this.config && this.config.enableUploadRecordings !== undefined) {
@@ -1100,7 +1102,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.applyPrompt();
     }
     this.statusAlertType = 'info';
-    this.statusMsg = 'Recording...';
+    this.statusMsg = this.bs.m('spr.audio','status.recording');
 
     let preDelay = DEFAULT_PRE_REC_DELAY;
     if (this.promptItem.prerecdelay!=null) {
@@ -1249,7 +1251,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.transportActions.nextAction.disabled = true;
     this.transportActions.pauseAction.disabled = true;
     this.statusAlertType = 'info';
-    this.statusMsg = 'Recorded.';
+    this.statusMsg = this.bs.m('spr.audio','status.recorded');
     this.startStopSignalState = StartStopSignalState.IDLE;
 
       let adh:AudioDataHolder|null=null;
@@ -1412,7 +1414,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
           this.sessionService.patchSessionObserver(this._session, body).subscribe()
         }
       }
-      this.statusMsg = 'Session complete!';
+      this.statusMsg = this.bs.m('spr','status.session_complete');
       this.updateWakeLock();
       if(this.showSessionCompleteMessage) {
         this.dialog.open(SessionFinishedDialog, {});

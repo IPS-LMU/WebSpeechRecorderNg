@@ -10,6 +10,7 @@ import {Action} from "../../action/action";
 import {Position,Dimension, Rectangle} from "../../math/2d/geometry";
 import {AudioClip, Selection} from "../persistor";
 import {AudioDataHolder} from "../audio_data_holder";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 @Component({
     selector: 'audio-display-scroll-pane',
@@ -30,14 +31,14 @@ import {AudioDataHolder} from "../audio_data_holder";
            overflow-y: auto;
          }`,
         `app-audio {
-     
+
          margin: 0;
          padding: 0;
          top: 0;
          left: 0;
          width: 100%;
          height: 100%;
-     
+
          /*position: absolute;*/
          box-sizing: border-box;
        }`
@@ -50,9 +51,9 @@ export class AudioDisplayScrollPane {
 
   @Output() zoomInAction:Action<void>=new Action('+');
   @Output() zoomOutAction:Action<void>=new Action('-');
-  @Output() zoomSelectedAction:Action<void>=new Action("Selected");
-  @Output() zoomFitToPanelAction:Action<void>=new Action("Fit to panel");
-  zoomFixFitToPanelAction:Action<void>=new Action("Fix fit to panel");
+  @Output() zoomSelectedAction:Action<void>=new Action(this.bs.m('c','zoom.selected'));
+  @Output() zoomFitToPanelAction:Action<void>=new Action(this.bs.m('c','zoom.fit_to_panel'));
+  zoomFixFitToPanelAction:Action<void>=new Action(this.bs.m('c','zoom.fix_fit_to_panel'));
 
 
   @ViewChild(AudioClipUIContainer, { static: true })
@@ -60,7 +61,10 @@ export class AudioDisplayScrollPane {
 
 
 
-  constructor( private ref: ElementRef) {
+  constructor(
+    private ref: ElementRef,
+    protected bs:SprBundleService
+    ) {
       this.spEl = this.ref.nativeElement;
 
       this.zoomInAction.onAction = (e) => {

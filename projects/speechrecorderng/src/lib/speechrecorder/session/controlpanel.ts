@@ -1,6 +1,6 @@
 import {Action} from '../../action/action'
 import {
-  Component, ViewChild, Input
+  Component, ViewChild, Input, inject
 } from "@angular/core";
 
 import { MatDialog} from "@angular/material/dialog";
@@ -8,6 +8,7 @@ import {ProgressSpinnerMode} from "@angular/material/progress-spinner";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {ThemePalette} from "@angular/material/core";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 
 
@@ -67,6 +68,7 @@ export class StatusDisplay {
     standalone: false
 })
 export class UploadStatus {
+  private bs=inject(SprBundleService);
   private _awaitNewUpload=false;
   spinnerMode:ProgressSpinnerMode = 'determinate';
   _status!:string;
@@ -81,14 +83,16 @@ export class UploadStatus {
     if (this._awaitNewUpload || this._value === 0) {
       this.spinnerMode = 'indeterminate'
       this.displayValue='&nbsp;&nbsp;&nbsp;&nbsp;'
-      uplMsg='Preparing upload.'
+      uplMsg=this.bs.m('spr','upload.preparing');
     } else {
       this.spinnerMode = 'determinate'
       this.displayValue=this._value+'%'
       if(this._value===100){
-        uplMsg = 'Upload complete'
+        //uplMsg = 'Upload complete'
+        uplMsg=this.bs.m('spr','upload.complete');
       }else {
-        uplMsg = 'Upload progress: ' + this.displayValue
+        //uplMsg = 'Upload progress: ' + this.displayValue
+        uplMsg=this.bs.m('spr','upload.progress',[this.displayValue]);
       }
     }
     if(this.status==='warn'){
@@ -158,12 +162,11 @@ export class TransportActions {
   bwdAction: Action<void>;
   stopNonrecordingAction:Action<void>;
 
-  constructor() {
-    const locStart=$localize `Start`;
-    this.startAction = new Action(locStart);
+  constructor(private bs:SprBundleService) {
+    this.startAction = new Action(this.bs.m('c','start'));
     this.stopAction = new Action('Stop');
     this.nextAction = new Action('Next');
-    this.pauseAction = new Action('Pause');
+    this.pauseAction = new Action(this.bs.m('c','pause'));
     this.fwdNextAction = new Action('Next recording');
     this.fwdAction = new Action('Forward');
     this.bwdAction = new Action('Backward');
@@ -207,7 +210,7 @@ export class TransportActions {
         <span><mat-icon>chevron_right</mat-icon></span>
       </button>
     }
-    
+
     `,
     styles: [`:host {
     flex: 20;
@@ -359,6 +362,7 @@ export class WakeLockIndicator {
     standalone: false
 })
 export class ReadyStateIndicator {
+  protected bs=inject(SprBundleService);
   _ready=true;
   hourGlassIconName='hourglass_empty'
   readyStateToolTip:string=''
@@ -368,7 +372,7 @@ export class ReadyStateIndicator {
   @Input() set ready(ready:boolean){
     this._ready=ready
     this.hourGlassIconName=this._ready?'hourglass_empty':'hourglass_full'
-    this.readyStateToolTip=this._ready?'Audio processing and upload done. You can leave the page without data loss.':'Please wait until audio processing and upload have finished. Please do not leave the page.'
+    this.readyStateToolTip=this._ready?this.bs.m('spr','ready_state.done'):this.bs.m('spr','ready_state.wait')
   }
 
   get ready():boolean{

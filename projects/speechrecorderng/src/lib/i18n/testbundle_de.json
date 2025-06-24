@@ -1,0 +1,8 @@
+{
+  "name":"testbundle",
+  "lang":"de",
+  "translations":[
+    {"key":"test","translation":"Test (de) (als JSON Dateiimport)"},
+    {"key":"test2","translation":"Test2 (de)"}
+  ]
+}

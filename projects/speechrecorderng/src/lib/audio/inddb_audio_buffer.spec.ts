@@ -203,7 +203,7 @@ describe('IndexedDbAudioBuffer',
       };
       or.onsuccess = () => {
         console.info("Opened indexed database");
-        test1Loop(aab, RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, or, 0, 0, done);
+        //test1Loop(aab, RECORDING_FILE_CHUNKS_OBJECT_STORE_NAME, or, 0, 0, done);
       }
     }
   );

@@ -31,6 +31,7 @@ import {PersistentAudioStorageTarget} from "../../audio/inddb_audio_buffer";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {SampleSize} from "../../audio/impl/wavwriter";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 export const FORCE_REQUEST_AUDIO_PERMISSIONS=false;
 export const RECFILE_API_CTX = 'recfile';
@@ -277,8 +278,9 @@ export abstract class BasicRecorder extends ResponsiveComponent{
   protected constructor(protected bpo:BreakpointObserver,protected changeDetectorRef: ChangeDetectorRef,
                 public dialog: MatDialog,
                 protected sessionService:SessionService,
-                protected uploader: SpeechRecorderUploader,
-                @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig) {
+                protected uploader: SpeechRecorderUploader, protected bs:SprBundleService,
+                @Inject(SPEECHRECORDER_CONFIG) public config?: SpeechRecorderConfig,
+                        ) {
     super(bpo);
     this.userAgent=UserAgentBuilder.userAgent();
     const detPfm=this.userAgent.detectedPlatform;
@@ -291,8 +293,8 @@ export abstract class BasicRecorder extends ResponsiveComponent{
       let detBrVersStr=(detBrVers)?' '+detBrVers:'';
       console.debug("Detected browser: " +detBr+detBrVersStr);
     }
-    this.transportActions = new TransportActions();
-    this.playStartAction = new Action('Play');
+    this.transportActions = new TransportActions(bs);
+    this.playStartAction = new Action(this.bs.m('spr.audio','play'));
     this.levelMeasure = new LevelMeasure();
     this.streamLevelMeasure = new StreamLevelMeasure();
     this.selCaptureDeviceId = null;
@@ -367,7 +369,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
   enableStartUserGesture() {
     this.statusAlertType = 'info';
-    this.statusMsg = 'Ready.';
+    this.statusMsg = this.bs.m('spr','status.ready');
   }
 
   configureStreamCaptureStream() {
@@ -502,7 +504,8 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     this._selectedDeviceId=undefined;
 
     if (!this.readonly && this.ac && (FORCE_REQUEST_AUDIO_PERMISSIONS || (this._audioDevices && this._audioDevices.length > 0))) {
-      this.statusMsg = 'Requesting audio permissions...';
+      //this.statusMsg = 'Requesting audio permissions...';
+      this.statusMsg=this.bs.m('spr.audio','permissions.requesting');
       this.statusAlertType = 'info';
 
       this.ac.deviceInfos((mdis) => {
@@ -669,7 +672,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
 
       });
     }
-    this.statusMsg='Ready.';
+    this.statusMsg=this.bs.m('spr','status.ready');
   }
 
   startItem() {

@@ -1,4 +1,4 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
+import {inject, LOCALE_ID, ModuleWithProviders, NgModule} from '@angular/core';
 import {SpeechrecorderngComponent} from "./speechrecorderng.component";
 import {SimpleTrafficLight} from "./speechrecorder/startstopsignal/ui/simpletrafficlight";
 
@@ -72,8 +72,8 @@ import {
 import {MatMenuModule} from "@angular/material/menu";
 import {IntersectionObserverDirective} from "./ui/intersection-observer.directive";
 
-
-
+import {SprBundleService} from "./i18n/spr.bundle.service";
+import {Locale} from "./i18n/locale.utils";
 
 export const SPR_ROUTES: Routes = [
   {
@@ -140,19 +140,42 @@ export const SPR_ROUTES: Routes = [
   }
 ];
 
-@NgModule({ declarations: [ProjectInfo,SpeakerInfo,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
+const SUPPORTED_LANGUAGES=['en','de'];
+
+function localeProvider():string{
+  const nlStr=navigator.language;
+  const nl=Locale.parseLocaleStr(nlStr);
+  const nlLang=nl.lang;
+  if(SUPPORTED_LANGUAGES.includes(nlLang)){
+    console.info("Language \'"+nlLang+"\' supported. Providing locale: "+nlStr);
+    return nlStr;
+  }else{
+    // Fallback to en-US to keep Angular pipes working
+    console.info("Language \'"+nlLang+"\' not supported. Falling back to 'en-US'");
+    return 'en-US';
+  }
+}
+
+@NgModule({
+  declarations: [
+    ProjectInfo,SpeakerInfo,TransportPanel,ControlPanel,ProgressAndSpeakerContainer,AudioSignal, Sonagram, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, Progress, SimpleTrafficLight, Recinstructions, Prompter, PromptContainer, PromptingContainer, Prompting, StatusDisplay,
         ProgressDisplay, RecordingItemDisplay, RecordingItemControls, UploadStatus, TransportPanel, WakeLockIndicator, ReadyStateIndicator, ControlPanel, WarningBar, AudioRecorder, SessionManager, MessageDialog, SessionFinishedDialog, SpeechrecorderngComponent, AudioRecorderComponent,RecordingFilesComponent,RecordingFileViewComponent, RecordingFileUI,
       RecordingFileDeleteConfirmDialog, ScrollIntoViewDirective, RecordingFileNaviComponent, RecordingFileMetaComponent, RecordingList, RecorderCombiPane, AudioRecorder
     ],
-    exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder], imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective], providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader, provideHttpClient(withInterceptorsFromDi())] })
+
+  exports: [MessageDialog, SpeechrecorderngComponent, ScrollPaneHorizontal, AudioClipUIContainer, AudioDisplayScrollPane, AudioDisplay, AudioDisplayPlayer, AudioDisplayControl, LevelBar, AudioRecorder],
+  imports: [RouterModule.forChild(SPR_ROUTES), CommonModule, MatIconModule, MatButtonModule, MatDialogModule, MatProgressBarModule, MatProgressSpinnerModule, MatTooltipModule, MatCheckboxModule, MatCardModule, MatDividerModule, MatGridListModule, MatTableModule, MatInputModule, MatSelectModule, MatSnackBarModule, MatMenuModule, IntersectionObserverDirective],
+  providers: [ ProjectService, SessionService,SpeakerService,ScriptService, RecordingService, RecordingFileService, SpeechRecorderUploader, provideHttpClient(withInterceptorsFromDi())] })
 export class SpeechrecorderngModule{
 
   static forRoot(config: SpeechRecorderConfig): ModuleWithProviders<SpeechrecorderngModule> {
     return {
       ngModule: SpeechrecorderngModule,
       providers: [
+        {provide: LOCALE_ID, useFactory:localeProvider},
         {provide: SPEECHRECORDER_CONFIG, useValue: config },
-        provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'}))
+        provideRouter(SPR_ROUTES, withRouterConfig({canceledNavigationResolution:'computed'})),
+        {provide: SprBundleService}
       ]
     };
   }

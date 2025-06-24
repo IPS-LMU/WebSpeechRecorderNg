@@ -1,14 +1,15 @@
 import {Component, Input} from "@angular/core";
 import {Speaker} from "./speaker";
 import {SpeakerService} from "./speaker.service";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 @Component({
     selector: 'spr-speakerinfo',
     template: `
-    <table matTooltip="Speakers data info">
+    <table [matTooltip]="bs.m('spr','speakers.data_info')">
       @for (spk of speakers; track spk) {
         <tr>
-          <td>Speaker:</td>
+          <td>{{bs.m('spr','speakers.data_info')}}:</td>
           <td style="text-align: right">@if (spk.code) {
             <span> {{spk?.code}}</span>
             } @if (spk.name) {
@@ -36,7 +37,9 @@ import {SpeakerService} from "./speaker.service";
     standalone: false
 })
 export class SpeakerInfo {
-    constructor(private speakerService:SpeakerService) {}
+    constructor(
+      private speakerService:SpeakerService,
+      protected bs:SprBundleService) {}
     speakers:Array<Speaker>=new Array();
     private _speakerIds:Array<string|number>|undefined;
 

@@ -1,0 +1,97 @@
+{
+  "name":"spr.audio",
+  "translations":[
+    {
+      "key": "display.toggle.detailed",
+      "translations": [
+        {"lang": "en","translation": "Toggle detailed audio display"},
+        {"lang": "de", "translation": "Detailierte Audio-Anzeige anzeigen/verstecken"}
+      ]
+    },
+    {
+      "key": "play",
+      "translations": [
+        {"lang": "en","translation": "Play"},
+        {"lang": "de", "translation": "Wiedergabe"}
+      ]
+    },
+    {
+      "key": "play.all",
+      "translations": [
+        {"lang": "en","translation": "Play all"},
+        {"lang": "de", "translation": "Alles wiedergeben"}
+      ]
+    },
+    {
+      "key": "play.selection",
+      "translations": [
+        {"lang": "en","translation": "Play selection"},
+        {"lang": "de", "translation": "Auswahl wiedergeben"}
+      ]
+    },
+    {
+      "key": "autoplay.on_select.abbr",
+      "translations": [
+        {"lang": "en","translation": "Autoplay on select"},
+        {"lang": "de", "translation": "Autom. Wiederg. bei Auswahl"}
+      ]
+    },
+    {
+      "key": "playback.start",
+      "translations": [
+        {"lang": "en","translation": "Start playback"},
+        {"lang": "de", "translation": "Starte Wiedergabe"}
+      ]
+    },
+    {
+      "key": "playback.stop",
+      "translations": [
+        {"lang": "en","translation": "Stop playback"},
+        {"lang": "de", "translation": "Wiedergabe anhalten"}
+      ]
+    },
+    {
+      "key": "permissions.requesting",
+      "translations": [
+        {"lang": "en","translation": "Requesting audio permissions..."},
+        {"lang": "de", "translation": "Audio-Berechtigung anfragen..."}
+      ]
+    },
+    {
+      "key": "level.peak",
+      "translations": [
+        {"lang": "en","translation": "Peak level"},
+        {"lang": "de", "translation": "Maximal-Pegel"}
+      ]
+    },
+    {
+      "key": "recording.current.download",
+      "translations": [
+        {"lang": "en","translation": "Download current recording"},
+        {"lang": "de", "translation": "Momentane Aufnahme herunteeladen"}
+      ]
+    },
+    {
+      "key": "status.playback",
+      "translations": [
+        {"lang": "en","translation": "Playback..."},
+        {"lang": "de", "translation": "Wiedergabe..."}
+      ]
+    },
+    {
+      "key": "status.recording",
+      "translations": [
+        {"lang": "en","translation": "Recording..."},
+        {"lang": "de", "translation": "Aufnahme..."}
+      ]
+    },
+    {
+      "key": "status.recorded",
+      "translations": [
+        {"lang": "en","translation": "Recorded."},
+        {"lang": "de", "translation": "Aufgenommen."}
+      ]
+    }
+
+  ]
+}

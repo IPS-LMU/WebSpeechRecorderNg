@@ -1,0 +1,84 @@
+{
+  "name":"c",
+  "translations":[
+    {
+      "key": "help",
+      "translations": [
+        {"lang": "en", "translation": "Help"},
+        {"lang": "de", "translation": "Hilfe"}
+      ]
+    },
+    {
+      "key": "start",
+      "translations": [
+        {"lang": "en", "translation": "Start"},
+        {"lang": "de", "translation": "Start"}
+      ]
+    },
+
+    {
+      "key": "pause",
+      "translations": [
+        {"lang": "en", "translation": "Pause"},
+        {"lang": "de", "translation": "Pause"}
+      ]
+    },
+    {
+      "key": "items.of",
+      "translations": [
+        {"lang": "en", "translation": "Items {0} of {1}"},
+        {"lang": "de", "translation": "Einträge {0} von {1}"}
+      ]
+    },
+    {
+      "key": "selection",
+      "translations": [
+        {"lang": "en", "translation": "Selection"},
+        {"lang": "de", "translation": "Auswahl"}
+      ]
+    },
+    {
+      "key": "selection.clear",
+      "translations": [
+        {"lang": "en", "translation": "Clear selection"},
+        {"lang": "de", "translation": "Auswahl löschen"}
+      ]
+    },
+    {
+      "key": "to",
+      "translations": [
+        {"lang": "en", "translation": "to"},
+        {"lang": "de", "translation": "bis"}
+      ]
+    },
+    {
+      "key": "zoom",
+      "translations": [
+        {"lang": "en", "translation": "Zoom"},
+        {"lang": "de", "translation": "Zoom"}
+      ]
+    }
+    ,
+    {
+      "key": "zoom.selected",
+      "translations": [
+        {"lang": "en", "translation": "Selected"},
+        {"lang": "de", "translation": "Auswahl"}
+      ]
+    },
+    {
+      "key": "zoom.fit_to_panel",
+      "translations": [
+        {"lang": "en", "translation": "Fit to panel"},
+        {"lang": "de", "translation": "In Panel einpassen"}
+      ]
+    },
+    {
+      "key": "zoom.fix_fit_to_panel",
+      "translations": [
+        {"lang": "en", "translation": "Fix fit to panel"},
+        {"lang": "de", "translation": "Fest in Panel einpassen"}
+      ]
+    }
+  ]
+}

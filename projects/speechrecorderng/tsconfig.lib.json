@@ -6,9 +6,7 @@
     "declaration": true,
     "declarationMap": true,
     "inlineSources": true,
-    "types": [
-      "@angular/localize"
-    ],
+    "resolveJsonModule": true,
     "lib": [
       "dom",
       "es2018"

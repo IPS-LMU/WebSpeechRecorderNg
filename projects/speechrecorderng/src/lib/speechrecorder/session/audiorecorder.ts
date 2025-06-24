@@ -45,6 +45,7 @@ import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {IndexedDbAudioBuffer} from "../../audio/inddb_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {SprBundleService} from "../../i18n/spr.bundle.service";
 
 export const enum Status {
   BLOCKED, IDLE,STARTING, RECORDING,  STOPPING_STOP, ERROR
@@ -68,7 +69,7 @@ export const enum Status {
       [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
       [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
-    
+
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
@@ -82,7 +83,7 @@ export const enum Status {
           [agc]="this.ac?.agcStatus"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-    
+
         @if (screenXs && enableUploadRecordings) {
           <app-uploadstatus class="ricontrols dark" style="flex:0 0 0"
             [value]="uploadProgress"
@@ -224,8 +225,9 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               sessionService:SessionService,
               private recFileService:RecordingService,
               protected uploader: SpeechRecorderUploader,
+              protected bs:SprBundleService,
               @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
-    super(bpo,changeDetectorRef,dialog,sessionService,uploader,config);
+    super(bpo,changeDetectorRef,dialog,sessionService,uploader,bs,config);
 
     //super(injector);
     this.status = Status.IDLE;
@@ -852,7 +854,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.status = Status.RECORDING;
     super.started();
     this.statusAlertType = 'info';
-    this.statusMsg = 'Recording...';
+    this.statusMsg = this.bs.m('spr.audio','status.recording');
 
     let sessId: string | number = 0;
     if(this._session){
