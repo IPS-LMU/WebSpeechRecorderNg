@@ -33,7 +33,8 @@ export {AudioDisplayControl} from "./lib/audio/ui/audio_display_control"
 export {LevelBar} from './lib/audio/ui/livelevel'
 
 export {BasicService} from './lib/net/basic_service'
-export {Project} from './lib/speechrecorder/project/project'
+export {Project,AudioStorageType, AudioDevice,MediaCaptureFormat,AudioFormat,AudioStorageFormatEncoding,MediaStorageFormat} from './lib/speechrecorder/project/project'
+
 export {ProjectService} from './lib/speechrecorder/project/project.service'
 export {GlobSession,Session} from './lib/speechrecorder/session/session'
 export {SessionService} from './lib/speechrecorder/session/session.service'
