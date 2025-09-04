@@ -152,7 +152,7 @@ export enum SampleSize {INT16=16,INT32=32}
        });
      }
 
-     writeAsync(audioBuffer:AudioBuffer,callback: (wavFileData:Uint8Array)=> any){
+     writeAsync(audioBuffer:AudioBuffer,callback: (wavFileData:ArrayBuffer)=> any){
 
        const dataChkByteLen=this.writeHeader(audioBuffer);
        if (!this.workerURL) {
