@@ -17,6 +17,24 @@ export interface KeyId{
 
 export type Params =Map<string, string>|Array<string>;
 
+export  class LocalizableMessage{
+    private constructor(
+      readonly mlb:MultiLangBundleEntry|null=null,
+      readonly keyId:KeyId|null=null,
+      readonly standardMessage:string|null=null) {
+    }
+  static fromStandardMessage(standardMessage:string):LocalizableMessage{
+    return new LocalizableMessage(null,null,standardMessage);
+  }
+    static fromMultiLangBundle(mlb:MultiLangBundleEntry):LocalizableMessage{
+      return new LocalizableMessage(mlb);
+    }
+  static fromKeyId(keyid:KeyId):LocalizableMessage{
+    return new LocalizableMessage(null,keyid);
+  }
+}
+
+
 export type BundlesMap=Map<string,Bundle>;
 
 export interface BundleI18nProvider {
@@ -78,7 +96,10 @@ export class BundleI18nMapProvider implements BundleI18nProvider{
 export type BundleEntry ={key:string,translation:string};
 
 export type TranslateValue={lang:string,translation:string};
-export type MultiLangBundleEntry ={key:string,translations:Array<TranslateValue>};
+export class MultiLangBundleEntry {
+  constructor(readonly key:string,readonly translations:Array<TranslateValue>) {}
+
+}
 
 
 
@@ -181,7 +202,11 @@ export interface BundleI18nService {
 
   m(bundlename: string, key: string, params?:Params, lang?: string): string;
 
+  mLm(lm:LocalizableMessage,params?:Params, lang?: string):string;
+
   mAsync(bundlename: string, key: string, params?:Params, lang?: string): Promise<string>;
+
+  //mLmAsync(lm:LocalizableMessage,params?:Params, lang?: string):Promise<string>;
 
   mps(bundlename: string, key: string, params?:Params, lang?: string): MessagePartI18n[];
 }
@@ -449,6 +474,55 @@ export class BundleI18nServiceImpl implements BundleI18nService{
     return resTxt;
   }
 
+  mLm(lm: LocalizableMessage,params?:Params, lang?: string): string {
+
+    if(!lang){
+      lang=this._activeLang;
+    }
+    let tr:string|null = "[]";
+    let resTxt:string|null=null
+
+    if(lm.mlb){
+      const trValMatch=lm.mlb.translations.find((value:TranslateValue)=>(value.lang===lang));
+      if (trValMatch) {
+        tr = trValMatch.translation;
+      }else{
+        if(this._fallBackLanguage){
+          const trValFbMatch=lm.mlb.translations.find((value:TranslateValue)=>(value.lang===this._fallBackLanguage));
+          if (trValFbMatch) {
+            tr = trValFbMatch.translation;
+          }
+        }
+      }
+    } else {
+      if (lm.keyId) {
+        let b = this.getBundle(lm.keyId.bundle, lang);
+        if (!b && this._fallBackLanguage) {
+          let b = this.getBundle(lm.keyId.bundle, this._fallBackLanguage);
+        }
+        if (b) {
+          const btr = b.getTranslation(lm.keyId.key);
+          if (btr) {
+            tr = btr;
+          }
+        }else{
+          tr='['+lm.keyId.bundle+'.'+lm.keyId.key+']';
+        }
+      }else if(lm.standardMessage) {
+        tr=null;
+        resTxt=lm.standardMessage;
+      }
+    }
+    if(tr) {
+      resTxt = this.replaceParams(tr, params);
+    }else{
+      if(!resTxt){
+        resTxt='[]';
+      }
+    }
+    return resTxt;
+  }
+
   /**
    *
    * @param bundlename
@@ -519,4 +593,11 @@ export class BundleI18nServiceImpl implements BundleI18nService{
     });
   }
 
+  mLmAsync(lm: LocalizableMessage,params?:Params, lang?: string): Promise<string> {
+
+      return new Promise<string>((resolve, reject) => {
+        // Not implemnted yet
+      });
+
+  }
 }

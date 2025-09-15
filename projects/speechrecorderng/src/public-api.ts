@@ -10,7 +10,7 @@ export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
 
 export {ErrorHelper} from './lib/utils/utils'
 export {UUID} from "./lib/utils/utils"
-export {BundleI18nService,BundleI18nServiceImpl} from "./lib/i18n/bundle-i18n-service.service"
+export {BundleI18nService,BundleI18nServiceImpl,LocalizableMessage} from "./lib/i18n/bundle-i18n-service.service"
 export {Action} from "./lib/action/action";
 export {ClassDescriptor,PropertyDescriptor,DataType,UiFieldHint,LocalizedMessage} from './lib/reflect/class_descriptor'
 
