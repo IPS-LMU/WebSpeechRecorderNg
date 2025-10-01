@@ -20,6 +20,12 @@ export interface PropertyDescriptor {
   enumConstantDescriptors: Array<EnumConstantDescriptor>
 }
 
+export interface FormProperties {
+  constraint?: string,
+  propertyNames: Array<string>
+}
+
 export interface ClassDescriptor{
   propertyDescriptors:Array<PropertyDescriptor>;
+  formProperties?:Array<FormProperties>;
 }
