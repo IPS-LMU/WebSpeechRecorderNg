@@ -4,7 +4,7 @@ export interface LocalizedMessage{
 }
 
 export enum DataType {String='STRING',Integer='INTEGER',Float='FLOAT',Timestamp ='TIMESTAMP',Boolean='BOOLEAN',Enum='ENUM'}
-export enum UiFieldHint {TextField='TEXTFIELD',TextArea='TEXTAREA',Select='SELECT'}
+export enum UiFieldHint {TextField='TEXTFIELD',TextArea='TEXTAREA',Select='SELECT',Checkbox='CHECKBOX'}
 
 export interface EnumConstantDescriptor{
   name: string,
