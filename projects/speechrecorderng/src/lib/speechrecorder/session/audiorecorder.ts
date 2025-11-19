@@ -60,7 +60,7 @@ export const enum Status {
       [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
       [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
-    
+
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
       [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
@@ -74,7 +74,7 @@ export const enum Status {
           [agc]="this.ac?.agcStatus"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
-    
+
         @if (screenXs && enableUploadRecordings) {
           <app-uploadstatus class="ricontrols dark" style="flex:0 0 0"
             [value]="uploadProgress"
@@ -1070,7 +1070,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.updateStartActionDisableState();
   }
 
-  postRecordingMultipart(wavFile: Uint8Array,recUrl: string,rf:RecordingFile) {
+  postRecordingMultipart(wavFile: ArrayBuffer,recUrl: string,rf:RecordingFile) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
 
     let fd=new FormData();

@@ -82,7 +82,7 @@ export class ChunkManager implements SequenceAudioFloat32OutStream{
     this.sampleRate=sampleRate;
   }
 
-  write(buffers: Array<Float32Array>): number {
+  write(buffers: Array<Float32Array<ArrayBuffer>>): number {
     let aCtx=AudioContextProvider.audioContextInstance();
     let bChs=buffers.length;
     let frameLen=0;
@@ -699,7 +699,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
     this.transportActions.startAction.disabled = true;
   }
 
-  postRecording(wavFile: Uint8Array, recUrl: string,rf:RecordingFile|null,uploadHolder?:UploadHolder) {
+  postRecording(wavFile: ArrayBuffer, recUrl: string,rf:RecordingFile|null,uploadHolder?:UploadHolder) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
     let ul = new Upload(wavBlob, recUrl,rf);
     if(uploadHolder){

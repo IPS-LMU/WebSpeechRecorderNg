@@ -128,10 +128,10 @@ import { BinaryByteReader } from '../../io/BinaryReader'
             return pcmAf;
         }
 
-        private readData():Array<Float32Array> | null{
+        private readData():Array<Float32Array<ArrayBuffer>> | null{
             let chsArr=null;
             if(this.format) {
-              chsArr = new Array<Float32Array>(this.format.channelCount);
+              chsArr = new Array<Float32Array<ArrayBuffer>>(this.format.channelCount);
               const sampleCount = this.totalLength / this.format.channelCount / this.format.sampleSize;
               for (let ch = 0; ch < this.format.channelCount; ch++) {
                 chsArr[ch] = new Float32Array(sampleCount);
