@@ -23,10 +23,6 @@
       ]
     },
     "module": "es2020",
-    "lib": [
-      "es2018",
-      "dom"
-    ],
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
