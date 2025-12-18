@@ -249,7 +249,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
     this.streamLevelMeasure.peakLevelListener=(peakLvlInDb)=>{
       this.peakLevelInDb=peakLvlInDb;
-      this.changeDetectorRef.detectChanges();
+      this.changeDetectorRef.markForCheck();
     }
     //let wakeLockSupp=('wakeLock' in navigator);
     //alert('Wake lock API supported: '+wakeLockSupp);
@@ -459,7 +459,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       this.uploadProgress = percentUpl;
     }
 
-    this.changeDetectorRef.detectChanges()
+    this.changeDetectorRef.markForCheck();
   }
 
   set controlAudioPlayer(controlAudioPlayer: AudioPlayer|null) {
@@ -663,7 +663,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                   this.liveLevelDisplayState = LiveLevelState.READY;
                   this.statusMsg = 'Recording file could not be loaded: ' + err;
                   this.statusAlertType = 'error';
-                  this.changeDetectorRef.detectChanges();
+                  this.changeDetectorRef.markForCheck();
                 }
               });
             }
@@ -709,7 +709,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 this.liveLevelDisplayState = LiveLevelState.READY;
                 this.statusMsg = 'Recording file could not be loaded: ' + err;
                 this.statusAlertType = 'error';
-                this.changeDetectorRef.detectChanges();
+                this.changeDetectorRef.markForCheck();
               }
             });
 
@@ -1053,7 +1053,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
             this.postRecordingMultipart(wavFile,recUrl,rf);
             this.processingRecording = false;
             this.updateWakeLock();
-            this.changeDetectorRef.detectChanges();
+            this.changeDetectorRef.markForCheck();
           });
         }
       }
@@ -1063,7 +1063,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.navigationDisabled = false;
     this.updateNavigationActions();
     this.updateWakeLock();
-    this.changeDetectorRef.detectChanges();
+    this.changeDetectorRef.markForCheck();
   }
 
   error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
@@ -1138,7 +1138,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
     }
     if(!this.destroyed) {
-        this.changeDetectorRef.detectChanges();
+        this.changeDetectorRef.markForCheck();
     }
   }
 }
@@ -1296,7 +1296,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
       this.ar.uploadProgress = percentUpl;
     }
     this.ar.updateWakeLock(this.dataSaved);
-    this.changeDetectorRef.detectChanges()
+    this.changeDetectorRef.markForCheck();
   }
 
 

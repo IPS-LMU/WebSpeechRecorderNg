@@ -307,7 +307,7 @@ export class SpeechrecorderngComponent extends  RecorderComponent implements OnI
     }
     //console.debug("Upload update, update wake lock.")
     this.sm.updateWakeLock(this.dataSaved);
-    this.changeDetectorRef.detectChanges()
+    this.changeDetectorRef.markForCheck();
   }
 
   configure() {

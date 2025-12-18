@@ -254,7 +254,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.streamLevelMeasure.levelListener = this.liveLevelDisplay;
     this.streamLevelMeasure.peakLevelListener=(peakLvlInDb)=>{
       this.peakLevelInDb=peakLvlInDb;
-      this.changeDetectorRef.detectChanges();
+      this.changeDetectorRef.markForCheck();
     }
   }
     ngOnDestroy() {
@@ -634,7 +634,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     //this.prompting.promptContainer.prompter.promptText='';
     //this.mediaitem = null;
     this.showPrompt = false;
-    this.changeDetectorRef.detectChanges()
+    this.changeDetectorRef.markForCheck();
   }
 
   applyPrompt() {
@@ -642,7 +642,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     //this.promptText = this.promptUnit.mediaitems[0].text;
     //this.mediaitem=this.promptUnit.mediaitems[0];
     this.showPrompt = true;
-    this.changeDetectorRef.detectChanges()
+    this.changeDetectorRef.markForCheck();
   }
 
   downloadRecording() {
@@ -764,7 +764,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                     this.liveLevelDisplayState = LiveLevelState.READY;
                     this.statusMsg = 'Recording file could not be loaded: ' + err;
                     this.statusAlertType = 'error';
-                    this.changeDetectorRef.detectChanges();
+                    this.changeDetectorRef.markForCheck();
                   }
                 });
               }
@@ -806,7 +806,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
                   this.liveLevelDisplayState = LiveLevelState.READY;
                   this.statusMsg = 'Recording file could not be loaded: ' + err;
                   this.statusAlertType = 'error';
-                  this.changeDetectorRef.detectChanges();
+                  this.changeDetectorRef.markForCheck();
                 }
               });
 
@@ -1442,7 +1442,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if(startNext){
       this.startItem();
     }
-    this.changeDetectorRef.detectChanges();
+    this.changeDetectorRef.markForCheck();
   }
 
   error(msg='An unknown error occured during recording.',advice:string='Please retry.') {
@@ -1509,7 +1509,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
 
     if(!this.destroyed) {
-        this.changeDetectorRef.detectChanges();
+        this.changeDetectorRef.markForCheck();
     }
 
   }

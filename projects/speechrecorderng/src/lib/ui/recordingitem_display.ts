@@ -274,7 +274,7 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
         if (this.peakDbLvl < peakDBVal) {
             this.peakDbLvl = peakDBVal;
             // the event comes from outside an Angular zone
-            this.changeDetectorRef.detectChanges();
+            this.changeDetectorRef.markForCheck();
         }
         this.liveLevel.update(levelInfo);
     }
@@ -289,7 +289,7 @@ export class RecordingItemDisplay extends ResponsiveComponent implements LevelLi
 
     reset() {
         this.peakDbLvl = MIN_DB_LEVEL;
-        this.changeDetectorRef.detectChanges();
+        this.changeDetectorRef.markForCheck();
     }
 
 

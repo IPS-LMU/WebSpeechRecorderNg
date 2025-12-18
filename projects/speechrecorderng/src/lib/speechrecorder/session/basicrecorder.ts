@@ -428,12 +428,12 @@ export abstract class BasicRecorder extends ResponsiveComponent{
               //console.debug("Level infos: levelInfos number size: "+levelInfos.numberSize());
               dap.levelInfos = levelInfos;
               this.liveLevelDisplayState = LiveLevelState.READY;
-              this.changeDetectorRef.detectChanges();
+              this.changeDetectorRef.markForCheck();
             });
           }
           this.playStartAction.disabled = false;
           this.audioLoaded=true;
-          this.changeDetectorRef.detectChanges();
+          this.changeDetectorRef.markForCheck();
         });
         //console.debug("Audio data holder added onReady.")
       }
@@ -447,7 +447,7 @@ export abstract class BasicRecorder extends ResponsiveComponent{
         this.audioSignalCollapsed = true;
       }
     }
-    this.changeDetectorRef.detectChanges();
+    this.changeDetectorRef.markForCheck();
   }
 
   start() {

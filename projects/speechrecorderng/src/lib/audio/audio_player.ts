@@ -282,7 +282,7 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
     }
 
 
-    this.ref.detectChanges();
+    this.ref.markForCheck();
 
   }
 

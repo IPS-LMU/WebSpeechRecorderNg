@@ -167,7 +167,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
       //console.debug("Update level info frameLength: "+levelInfos.frameLength+", total streaming frame length: "+this._streamingFrameLength);
       if (this.peakDbLvl < peakDBVal) {
         this.peakDbLvl = peakDBVal;
-        this.changeDetectorRef.detectChanges();
+        this.changeDetectorRef.markForCheck();
       }
       this.dbValues.push(dbVals);
       let i = this.dbValues.length - 1;

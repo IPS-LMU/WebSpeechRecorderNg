@@ -358,7 +358,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
     }
 
     this.updatePos();
-    this.ref.detectChanges();
+    this.ref.markForCheck();
   }
 
   private updateActions(){
@@ -456,7 +456,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
           }
           this.updatePos()
           this.naviInfoLoading=false;
-          this.ref.detectChanges();
+          this.ref.markForCheck();
         });
       });
       }
