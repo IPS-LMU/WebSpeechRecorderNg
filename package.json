@@ -44,8 +44,8 @@
     "zone.js": "~0.15.1"
   },
   "devDependencies": {
-    "@angular/build": "^20.3.14",
-    "@angular/cli": "~20.3.14",
+    "@angular/build": "^20.3.16",
+    "@angular/cli": "~20.3.16",
     "@angular/compiler-cli": "~20.3.16",
     "@types/dom-screen-wake-lock": "~1.0.3",
     "@types/jasmine": "~5.1.13",
