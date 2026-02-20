@@ -88,25 +88,6 @@
           "options": {
             "buildTarget": "WebSpeechRecorderNg:build"
           }
-        },
-        "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "main": "src/test.ts",
-            "polyfills": ["zone.js"],
-            "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/assets",
-              "src/favicon.ico",
-              "src/test"
-            ],
-            "styles": [
-              "src/main.scss"
-            ],
-            "scripts": []
-          }
         }
       }
     },
