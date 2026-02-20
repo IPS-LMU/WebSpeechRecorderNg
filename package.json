@@ -52,12 +52,7 @@
     "@types/node": "~24.10.1",
     "baseline-browser-mapping": "^2.9.17",
     "core-js": "~3.47.0",
-    "karma": "~6.4.4",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.1",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "ng-packagr": "~21.0.0",
+    "ng-packagr": "~21.1.0",
     "typescript": "~5.9.3"
   }
 }
