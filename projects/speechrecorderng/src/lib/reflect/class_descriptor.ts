@@ -26,6 +26,7 @@ export interface FormProperties {
 }
 
 export interface ClassDescriptor{
+  propertyClassId:string;
   propertyDescriptors:Array<PropertyDescriptor>;
   formProperties?:Array<FormProperties>;
 }
