@@ -4,7 +4,7 @@ import {ProjectService} from "../speechrecorder/project/project.service";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {UUID} from "../utils/utils";
 import {HttpClient, HttpParams} from "@angular/common/http";
-import {Inject} from "@angular/core";
+import {Directive, inject, Inject} from "@angular/core";
 
 export class Selection{
     position:number=0;
@@ -22,12 +22,15 @@ export class Order{
     }
 }
 
+@Directive()
 export class BasicService<T> {
 
     protected apiEndPoint='';
     protected withCredentials:boolean=false;
 
-    constructor(protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+    protected http=inject(HttpClient);
+
+    constructor(@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
 
         if(config && config.apiEndPoint) {
             this.apiEndPoint=config.apiEndPoint;

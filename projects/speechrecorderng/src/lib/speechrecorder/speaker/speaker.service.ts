@@ -10,8 +10,8 @@ import {Observable} from "rxjs";
 export class SpeakerService extends BasicService<Speaker>{
   public static readonly SPEAKER_API_CTX='speaker';
 
-  constructor(protected http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
-    super(http,config);
+  constructor(@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+    super(config);
   }
 
   speakerObservable(speakerId:number|string):Observable<Speaker>{
