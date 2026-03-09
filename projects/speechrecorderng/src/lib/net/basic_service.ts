@@ -29,17 +29,20 @@ export class BasicService<T> {
     protected withCredentials:boolean=false;
 
     protected http=inject(HttpClient);
+    protected config?:SpeechRecorderConfig=inject(SPEECHRECORDER_CONFIG);
 
-    constructor(@Inject(SPEECHRECORDER_CONFIG) protected config?:SpeechRecorderConfig) {
+    constructor() {
 
-        if(config && config.apiEndPoint) {
-            this.apiEndPoint=config.apiEndPoint;
+      //this.config=
+
+        if(this.config && this.config.apiEndPoint) {
+            this.apiEndPoint=this.config.apiEndPoint;
         }
         if(this.apiEndPoint !== ''){
             this.apiEndPoint=this.apiEndPoint+'/'
         }
-        if(config!=null && config.withCredentials!=null){
-            this.withCredentials=config.withCredentials;
+        if(this.config!=null && this.config.withCredentials!=null){
+            this.withCredentials=this.config.withCredentials;
         }
     }
 
