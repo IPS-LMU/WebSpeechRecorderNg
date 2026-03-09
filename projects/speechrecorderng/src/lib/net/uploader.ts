@@ -1,6 +1,7 @@
 
     import { HttpClient, HttpErrorResponse } from "@angular/common/http";
     import { timeout } from 'rxjs/operators'
+    import {inject} from "@angular/core";
 
     // state of an upload
     export enum UploadStatus {IDLE = 1, UPLOADING = 2,  ABORT = 3, DONE = 0, ERR = -1}
@@ -232,7 +233,9 @@
 
         private te:TextEncoder=new TextEncoder();
 
-        constructor(private http: HttpClient, private withCredentials: boolean = false) {
+        private http=inject(HttpClient);
+
+        constructor(private withCredentials: boolean = false) {
             this.que = new Array<Upload>();
         }
 

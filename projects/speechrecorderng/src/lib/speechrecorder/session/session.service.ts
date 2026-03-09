@@ -1,35 +1,26 @@
-import {Inject, Injectable} from '@angular/core';
-import { HttpClient , HttpParams} from "@angular/common/http";
-import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
+import {Injectable} from '@angular/core';
+import {HttpParams} from "@angular/common/http";
+import {ApiType} from "../../spr.config";
 import {Session} from "./session";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
 import {ProjectService} from "../project/project.service";
+import {BasicService} from "../../net/basic_service";
 
 
 
 @Injectable()
-export class SessionService {
+export class SessionService extends BasicService<Session>{
   get uploadCount(): number {
     return this._uploadCount;
   }
   public static readonly SESSION_API_CTX='session';
-  private apiEndPoint='';
+
   private readonly sessionsUrl:string;
-  private readonly withCredentials:boolean=false;
   private _uploadCount=0;
 
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
-
-    if(config && config.apiEndPoint) {
-      this.apiEndPoint=config.apiEndPoint;
-    }
-    if(this.apiEndPoint !== ''){
-      this.apiEndPoint=this.apiEndPoint+'/'
-    }
-    if(config!=null && config.withCredentials!=null){
-      this.withCredentials=config.withCredentials;
-    }
+  constructor() {
+    super();
     this.sessionsUrl = this.apiEndPoint + SessionService.SESSION_API_CTX;
   }
 

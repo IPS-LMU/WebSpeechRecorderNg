@@ -1,8 +1,6 @@
 import {BasicService} from "../../net/basic_service";
 import {Speaker} from "./speaker";
-import {HttpClient} from "@angular/common/http";
-import {Inject, Injectable} from "@angular/core";
-import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.config";
+import {Injectable} from "@angular/core";
 import {Observable} from "rxjs";
 
 

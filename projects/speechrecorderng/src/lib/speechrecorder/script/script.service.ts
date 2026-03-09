@@ -7,33 +7,20 @@ import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../../spr.co
 import {Script} from "./script";
 import {UUID} from "../../utils/utils";
 import {Observable} from "rxjs";
+import {BasicService} from "../../net/basic_service";
 
 
 @Injectable()
-export class ScriptService {
+export class ScriptService extends BasicService<Script>{
 
   public static readonly SCRIPT_API_CTX='script';
 
   private readonly scriptCtxUrl:string;
-  private readonly withCredentials:boolean=false;
 
-  constructor(private http:HttpClient,@Inject(SPEECHRECORDER_CONFIG) private config?:SpeechRecorderConfig) {
-
-    let apiEndPoint = ''
-
-    if(config && config.apiEndPoint) {
-      apiEndPoint=config.apiEndPoint;
-    }
-    if(apiEndPoint !== ''){
-      apiEndPoint=apiEndPoint+'/'
-    }
-    if(config!=null && config.withCredentials!=null){
-      this.withCredentials=config.withCredentials;
-    }
-    this.scriptCtxUrl = apiEndPoint + ScriptService.SCRIPT_API_CTX;
+  constructor() {
+    super();
+    this.scriptCtxUrl = this.apiEndPoint + ScriptService.SCRIPT_API_CTX;
   }
-
-
 
   scriptUrlString(id:string | number):string{
     let encScriptId=encodeURIComponent(id);
