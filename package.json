@@ -1,6 +1,6 @@
 {
   "name": "web-speech-recorder-ng",
-  "version": "4.1.0-alpha.59",
+  "version": "4.1.0-alpha.60",
   "author": {
     "name": "Klaus Jänsch",
     "email": "klausj@phonetik.uni-muenchen.de"
@@ -44,8 +44,8 @@
     "tslib": "~2.8.1"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.3",
-    "@angular/cli": "~21.2.3",
+    "@angular/build": "^21.2.5",
+    "@angular/cli": "~21.2.5",
     "@angular/compiler-cli": "~21.2.6",
     "@types/dom-screen-wake-lock": "~1.0.3",
     "@types/jasmine": "~5.1.13",
