@@ -1,7 +1,8 @@
-import {Component, Input} from "@angular/core";
+import {ChangeDetectorRef, Component, inject, Input} from "@angular/core";
 import {Speaker} from "./speaker";
 import {SpeakerService} from "./speaker.service";
 import {SprBundleService} from "../../i18n/spr.bundle.service";
+import {error} from "ng-packagr/src/lib/utils/log";
 
 @Component({
     selector: 'spr-speakerinfo',
@@ -37,6 +38,8 @@ import {SprBundleService} from "../../i18n/spr.bundle.service";
     standalone: false
 })
 export class SpeakerInfo {
+
+  protected chDetRef=inject(ChangeDetectorRef);
     constructor(
       private speakerService:SpeakerService,
       protected bs:SprBundleService) {}
@@ -48,11 +51,18 @@ export class SpeakerInfo {
         this.speakers=new Array<Speaker>();
         if(this._speakerIds) {
             this._speakerIds.forEach((spkId)=>{
-                this.speakerService.speakerObservable(spkId).subscribe((spk) => {
-                    this.speakers.push(spk);
-                }, (err) => {
-                    //
-                })
+                this.speakerService.speakerObservable(spkId).subscribe(
+                  {
+                    next: (spk) => {
+                      this.speakers.push(spk);
+                    }
+                  , error:(err) => {
+                   // TODO
+                      this.chDetRef.markForCheck();
+                  },complete:()=>{
+                      this.chDetRef.markForCheck();
+                    }
+                });
             })
 
         }
