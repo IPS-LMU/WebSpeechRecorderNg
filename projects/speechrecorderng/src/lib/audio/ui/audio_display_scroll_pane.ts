@@ -2,6 +2,7 @@ import {
   Component,
   ViewChild,
   HostListener, ElementRef, Output, Input,
+  ChangeDetectionStrategy
 } from '@angular/core'
 
 
@@ -43,6 +44,7 @@ import {SprBundleService} from "../../i18n/spr.bundle.service";
          box-sizing: border-box;
        }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioDisplayScrollPane {

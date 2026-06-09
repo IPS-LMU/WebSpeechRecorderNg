@@ -1,8 +1,9 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit, Input, OnInit, ElementRef,
+  Component,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit, Input, OnInit, ElementRef,
+  ChangeDetectionStrategy
 } from '@angular/core'
 
 import {AudioClip, Selection} from './persistor'
@@ -48,6 +49,7 @@ import {AudioDataHolder} from "./audio_data_holder";
       }
       `
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioDisplay implements OnInit,AfterViewInit {

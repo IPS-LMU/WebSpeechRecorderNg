@@ -1,4 +1,4 @@
-import {Component,Input} from '@angular/core'
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core'
 import {StartStopSignal, State} from '../startstopsignal'
 
 @Component({
@@ -43,6 +43,7 @@ import {StartStopSignal, State} from '../startstopsignal'
              flex: 0 0 content;
            }
            `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SimpleTrafficLight implements StartStopSignal {

@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, inject, Input} from "@angular/core";
+import {ChangeDetectorRef, Component, inject, Input, ChangeDetectionStrategy} from "@angular/core";
 import {Speaker} from "./speaker";
 import {SpeakerService} from "./speaker.service";
 import {SprBundleService} from "../../i18n/spr.bundle.service";
@@ -35,6 +35,7 @@ import {error} from "ng-packagr/src/lib/utils/log";
     background-color: lightgrey;
     font-weight: bold;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SpeakerInfo {

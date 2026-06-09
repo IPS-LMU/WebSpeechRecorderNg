@@ -11,6 +11,7 @@ import {
   ElementRef,
   Injector,
   OnDestroy,
+  ChangeDetectionStrategy
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -32,7 +33,7 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
-                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                             [autoPlayOnSelectToggleAction]="$safeNavigationMigration(ap?.autoPlayOnSelectToggleAction)"
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
@@ -53,6 +54,7 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
              background-color: rgba(0, 0, 0, 0.75)
            }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlayerListener, OnInit,OnDestroy,AfterViewInit{

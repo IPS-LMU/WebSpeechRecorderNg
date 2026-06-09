@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {Action} from "../../../action/action";
 
 @Component({
@@ -56,6 +56,7 @@ import {Action} from "../../../action/action";
      
            }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecordingFileNaviComponent implements OnInit {

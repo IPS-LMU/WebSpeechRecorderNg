@@ -1,5 +1,5 @@
 
-import {Component, Inject} from "@angular/core";
+import {Component, Inject, ChangeDetectionStrategy} from "@angular/core";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import {RecordingFile} from "../../recording";
 
@@ -17,6 +17,7 @@ import {RecordingFile} from "../../recording";
     <button mat-button [style.color]="'red'" [mat-dialog-close]="data">Delete</button>
   </div>
   `,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 

@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild} from "@angular/core"
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, HostListener, Input, ViewChild, ChangeDetectionStrategy} from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../dsp/level_measure";
 
 export const DEFAULT_WARN_DB_LEVEL = -2;
@@ -45,6 +45,7 @@ export enum State {LOADING,RENDERING,READY}
     height: 100%;
     position: absolute;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LevelBar implements LevelListener,AfterViewInit {

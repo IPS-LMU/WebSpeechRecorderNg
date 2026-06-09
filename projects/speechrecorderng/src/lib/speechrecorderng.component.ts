@@ -1,4 +1,4 @@
-import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, OnDestroy, Injector} from '@angular/core'
+import {Component, ViewChild, ChangeDetectorRef, AfterViewInit, OnInit, OnDestroy, Injector, ChangeDetectionStrategy} from '@angular/core'
 import {
   AudioPlayerListener, AudioPlayerEvent, EventType as PlaybackEventType,
   AudioPlayer
@@ -30,7 +30,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
     selector: 'app-speechrecorder',
     providers: [SessionService],
     template: `
-    <app-sprrecordingsession [project]="project" [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
+    <app-sprrecordingsession [project]="project" [projectName]="$safeNavigationMigration(project?.name)" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
     styles: [`:host{
     flex: 2;
@@ -40,6 +40,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
     min-height:0;
 
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SpeechrecorderngComponent extends  RecorderComponent implements OnInit,OnDestroy,AfterViewInit,FitToPageComponent,AudioPlayerListener,ReadyStateProvider {

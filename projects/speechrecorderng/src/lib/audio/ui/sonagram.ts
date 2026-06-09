@@ -1,6 +1,6 @@
 import {DFTFloat32} from '../../math/dft';
 import {Marker, Point} from './common';
-import {Component, ElementRef, ViewChild} from "@angular/core";
+import {Component, ElementRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
@@ -28,6 +28,7 @@ const DEFAULT_DFT_SIZE = 1024;
       min-height: 0px;
         position: absolute;
     }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Sonagram extends AudioCanvasLayerComponent {

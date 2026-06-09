@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, Inject, Input, OnInit, Renderer2, ViewChild, DOCUMENT} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, Inject, Input, OnInit, Renderer2, ViewChild, DOCUMENT, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 
 
@@ -22,6 +22,7 @@ import {RecordingFileService} from "./recordingfile-service";
     selector: 'app-sessions',
     templateUrl: 'recording-files.html',
     styleUrls: ['recording-files.css'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecordingFilesComponent implements  OnInit,AfterViewInit {

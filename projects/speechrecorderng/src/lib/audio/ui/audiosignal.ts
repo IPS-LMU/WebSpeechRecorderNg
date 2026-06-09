@@ -1,4 +1,4 @@
-import {Component, ViewChild, ElementRef} from '@angular/core';
+import {Component, ViewChild, ElementRef, ChangeDetectionStrategy} from '@angular/core';
 import {AudioCanvasLayerComponent} from "./audio_canvas_layer_comp";
 import {WorkerHelper} from "../../utils/utils";
 import {AudioBufferSource, AudioDataHolder} from "../audio_data_holder";
@@ -24,6 +24,7 @@ declare function postMessage(message: any, transfer: Array<any>): void;
     min-height: 0px;
     position: absolute;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioSignal extends AudioCanvasLayerComponent{

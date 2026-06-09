@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {SessionService} from "./session.service";
 
 @Component({
@@ -27,6 +27,7 @@ import {SessionService} from "./session.service";
       text-align: center;
     }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WarningBar {

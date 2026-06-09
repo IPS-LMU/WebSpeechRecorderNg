@@ -1,4 +1,4 @@
-import {Component, Input} from "@angular/core";
+import {Component, Input, ChangeDetectionStrategy} from "@angular/core";
 import {Project} from "./project";
 
 
@@ -21,6 +21,7 @@ import {Project} from "./project";
     background-color: lightgrey;
     font-weight: bolder;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 

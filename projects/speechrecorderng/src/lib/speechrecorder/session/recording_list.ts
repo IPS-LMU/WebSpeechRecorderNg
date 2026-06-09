@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, EventEmitter, Input, Output} from "@angular/core";
+import {AfterViewInit, Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from "@angular/core";
 import {RecordingFile} from "../recording";
 import {MediaUtils} from "../../media/utils";
 import {MatTableDataSource} from "@angular/material/table";
@@ -74,6 +74,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
     }
   `],
     styleUrls: ['../../speechrecorder_mat.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecordingList implements AfterViewInit{
