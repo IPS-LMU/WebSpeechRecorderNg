@@ -206,7 +206,7 @@ export class TransportActions {
     }
     @if (navigationEnabled && !screenXs) {
       <button id="fwdNextBtn" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
-        <span><mat-icon>redo</mat-icon></span>
+        <span><mat-icon>step_over</mat-icon></span>
       </button>
     }
     @if (navigationEnabled) {
