@@ -9,7 +9,7 @@ import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 import { MatButtonModule } from "@angular/material/button";
 import { MatDialogModule } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatIconModule } from "@angular/material/icon";
+import {MatIconModule, MatIconRegistry} from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatMenuModule } from "@angular/material/menu";
 import { MatToolbarModule } from "@angular/material/toolbar";
@@ -92,4 +92,9 @@ function localeProvider():string{
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+  private iconRegistry=inject(MatIconRegistry);
+  constructor() {
+    this.iconRegistry.setDefaultFontSetClass('material-symbols-outlined','mat-ligature-font');
+  }
+}
