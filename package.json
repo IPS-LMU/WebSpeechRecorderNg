@@ -24,7 +24,7 @@
     "start_prod": "ng serve --host=127.0.0.1 --configuration production",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --browsers=chromiumHeadless"
+    "test": "ng test"
   },
   "private": true,
   "dependencies": {
