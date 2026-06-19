@@ -1,33 +1,29 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-
+import { TestBed } from '@angular/core/testing';
+import { describe, beforeEach,it, expect } from 'vitest';
 import { SpeechrecorderngComponent} from './speechrecorderng.component';
 import {RouterTestingModule} from "@angular/router/testing";
-import {SpeechrecorderngService} from "./speechrecorderng.service";
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import {SpeechrecorderngModule} from "./speechrecorderng.module";
 import {SPR_CFG} from "../../../../src/app/app.config";
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 
-describe('SpeechrecorderngComponent', () => {
-  let component: SpeechrecorderngComponent;
-  let fixture: ComponentFixture<SpeechrecorderngComponent>;
 
-  beforeEach(waitForAsync(() => {
-    TestBed.configureTestingModule({
-    declarations: [SpeechrecorderngComponent],
+describe('SpeechrecorderngComponent', () => {
+
+  beforeEach(async() => {
+    await TestBed.configureTestingModule({
     imports: [RouterTestingModule, SpeechrecorderngModule.forRoot(SPR_CFG)],
     providers: [provideHttpClient(withXhr(), withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
-  }));
-  //
-  beforeEach(() => {
-    fixture = TestBed.createComponent(SpeechrecorderngComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
   });
-  //
-  it('should create', () => {
+
+  it('should create the component', () => {
+    const fixture = TestBed.createComponent(SpeechrecorderngComponent);
+    const component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
+
+
+
 });

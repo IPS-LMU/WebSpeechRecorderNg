@@ -24,7 +24,7 @@
     "start_prod": "ng serve --host=127.0.0.1 --configuration production",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test --browsers=chromiumHeadless"
   },
   "private": true,
   "dependencies": {
@@ -49,11 +49,12 @@
     "@angular/compiler-cli": "~22.0.1",
     "@types/dom-screen-wake-lock": "~1.0.3",
     "@types/node": "~24.10.1",
+    "@vitest/browser-playwright": "^4.1.9",
     "baseline-browser-mapping": "^2.9.17",
     "core-js": "~3.47.0",
-    "istanbul-lib-instrument": "^6.0.3",
     "jsdom": "^29.1.1",
     "ng-packagr": "~22.0.0",
+    "playwright": "^1.61.0",
     "typescript": "~6.0.3",
     "vitest": "^4.1.9"
   }

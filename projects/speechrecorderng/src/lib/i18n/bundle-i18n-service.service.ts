@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, Service} from '@angular/core';
 import {resolve} from "@angular/compiler-cli";
 import {Locale} from "./locale.utils";
 import {QuoteParserService, TextPart} from "../utils/text/quote.parser.service";
@@ -211,7 +211,7 @@ export interface BundleI18nService {
   mps(bundlename: string, key: string, params?:Params, lang?: string): MessagePartI18n[];
 }
 
-@Injectable()
+@Service()
 export class BundleI18nServiceImpl implements BundleI18nService{
   get name(): string {
     return this._name;

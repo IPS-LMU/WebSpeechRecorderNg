@@ -8,9 +8,8 @@
     "inlineSources": true,
     "resolveJsonModule": true
   },
-  "exclude": [
-    "**/*.spec.ts"
-  ],
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/*.spec.ts"],
   "angularCompilerOptions": {
     "extendedDiagnostics": {
       "checks": {
