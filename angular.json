@@ -106,12 +106,7 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular/build:karma",
-          "options": {
-            "main": "projects/speechrecorderng/src/test.ts",
-            "tsConfig": "projects/speechrecorderng/tsconfig.spec.json",
-            "karmaConfig": "projects/speechrecorderng/karma.conf.js"
-          }
+          "builder": "@angular/build:unit-test"
         }
       }
     }
