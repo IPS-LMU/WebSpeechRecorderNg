@@ -23,7 +23,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
         <mat-icon>play_arrow</mat-icon>
       </button>
       <button [matTooltip]="bundleI18nService.m('spr.audio','playback.stop')" (click)="playStopAction?.perform()"
-              [disabled]="$safeNavigationMigration(playStopAction?.disabled)"
+              [disabled]="playStopAction?.disabled"
               [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
         <mat-icon>stop</mat-icon>
       </button>
