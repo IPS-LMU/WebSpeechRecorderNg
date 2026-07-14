@@ -60,16 +60,16 @@ export const enum Status {
     <app-warningbar [show]="isDefaultAudioTestSession()" warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
     <app-sprprompting [project]="project"
       [projectName]="projectName"
-      [speakerIds]="$safeNavigationMigration(_session?.speakers)"
+      [speakerIds]="_session?.speakers"
       [startStopSignalState]="startStopSignalState" [promptItem]="promptItem" [showPrompt]="showPrompt"
-      [items]="$safeNavigationMigration(items?.items)"
+      [items]="items?.items"
       [transportActions]="transportActions"
       [selectedItemIdx]="promptIndex" (onItemSelect)="itemSelect($event)" (onNextItem)="nextItem()" (onPrevItem)="prevItem()"
       [audioSignalCollapsed]="audioSignalCollapsed" [displayAudioClip]="displayAudioClip"
-      [playStartAction]="$safeNavigationMigration(controlAudioPlayer?.startAction)"
-      [playSelectionAction]="$safeNavigationMigration(controlAudioPlayer?.startSelectionAction)"
-      [autoPlayOnSelectToggleAction]="$safeNavigationMigration(controlAudioPlayer?.autoPlayOnSelectToggleAction)"
-      [playStopAction]="$safeNavigationMigration(controlAudioPlayer?.stopAction)">
+      [playStartAction]="controlAudioPlayer?.startAction"
+      [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+      [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
+      [playStopAction]="controlAudioPlayer?.stopAction">
 
     </app-sprprompting>
     @if (screenXs) {
@@ -78,15 +78,15 @@ export const enum Status {
 
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
-      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="$safeNavigationMigration(displayAudioClip?.levelInfos)"  [state]="liveLevelDisplayState"></audio-levelbar>
+      <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [displayLevelInfos]="displayAudioClip?.levelInfos"  [state]="liveLevelDisplayState"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="display:flex;flex:10 0 1px"
           [audioLoaded]="audioLoaded"
           [disableAudioDetails]="disableAudioDetails"
-          [playStartAction]="$safeNavigationMigration(controlAudioPlayer?.startAction)"
-          [playStopAction]="$safeNavigationMigration(controlAudioPlayer?.stopAction)"
+          [playStartAction]="controlAudioPlayer?.startAction"
+          [playStopAction]="controlAudioPlayer?.stopAction"
           [peakDbLvl]="peakLevelInDb"
-          [agc]="$safeNavigationMigration(this.ac?.agcStatus)"
+          [agc]="this.ac?.agcStatus"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 

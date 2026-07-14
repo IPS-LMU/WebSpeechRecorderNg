@@ -65,23 +65,23 @@ export const enum Status {
       [selectedRecordingFile]="displayRecFile"
       [selectDisabled]="isActive()"
       [displayAudioClip]="displayAudioClip"
-      [playStartAction]="$safeNavigationMigration(controlAudioPlayer?.startAction)"
-      [playStopAction]="$safeNavigationMigration(controlAudioPlayer?.stopAction)"
-      [playSelectionAction]="$safeNavigationMigration(controlAudioPlayer?.startSelectionAction)"
-      [autoPlayOnSelectToggleAction]="$safeNavigationMigration(controlAudioPlayer?.autoPlayOnSelectToggleAction)"
+      [playStartAction]="controlAudioPlayer?.startAction"
+      [playStopAction]="controlAudioPlayer?.stopAction"
+      [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+      [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
-      [displayLevelInfos]="$safeNavigationMigration(displayAudioClip?.levelInfos)"></audio-levelbar>
+      [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="flex:10 0 1px"
           [disableAudioDetails]="disableAudioDetails"
           [audioLoaded]="audioLoaded"
-          [playStartAction]="$safeNavigationMigration(controlAudioPlayer?.startAction)"
-          [playStopAction]="$safeNavigationMigration(controlAudioPlayer?.stopAction)"
+          [playStartAction]="controlAudioPlayer?.startAction"
+          [playStopAction]="controlAudioPlayer?.stopAction"
           [peakDbLvl]="peakLevelInDb"
-          [agc]="$safeNavigationMigration(this.ac?.agcStatus)"
+          [agc]="this.ac?.agcStatus"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
@@ -1149,7 +1149,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     selector: 'app-audiorecorder-comp',
     providers: [SessionService],
     template: `
-    <app-audiorecorder [projectName]="$safeNavigationMigration(_project?.name)" [dataSaved]="dataSaved"></app-audiorecorder>
+    <app-audiorecorder [projectName]="_project?.name" [dataSaved]="dataSaved"></app-audiorecorder>
   `,
     styles: [`:host{
     flex: 2;

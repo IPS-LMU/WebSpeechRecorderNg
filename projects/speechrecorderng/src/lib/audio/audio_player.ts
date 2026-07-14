@@ -33,7 +33,7 @@ import {FitToPageComponent, FitToPageUtil} from "../ui/fit_to_page_comp";
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
-                             [autoPlayOnSelectToggleAction]="$safeNavigationMigration(ap?.autoPlayOnSelectToggleAction)"
+                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"

@@ -456,7 +456,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     selector: 'app-sprpromptingcontainer',
     template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
-                         [recinstructions]="$safeNavigationMigration(promptItem?.recinstructions?.recinstructions)"></spr-recinstructions>
+                         [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
     <app-sprpromptcontainer [projectName]="projectName"
                             [mediaitems]="showPrompt?(promptItem?promptItem.mediaitems:null):null"></app-sprpromptcontainer>
 
@@ -663,7 +663,7 @@ export class ProgressAndSpeakerContainer{
 
 <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
 <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
-  [itemCount]="$safeNavigationMigration(items?.length)" [selectedItemIdx]="selectedItemIdx"
+  [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
 [transportActions]="transportActions"></app-sprpromptingcontainer>
 @if (!screenXs) {
   <spr-progress-speaker-container [project]="project" [speakerIds]="speakerIds" (onItemSelect)="itemSelect($event)" [items]="items" [selectedItemIdx]="selectedItemIdx"></spr-progress-speaker-container>

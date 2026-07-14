@@ -13,15 +13,15 @@ import {SprBundleService} from "../../i18n/spr.bundle.service";
 
             <legend>{{bs.m('spr.audio','play')}}</legend>
 
-            <button (click)="playStartAction?.perform()" [disabled]="$safeNavigationMigration(playStartAction?.disabled)"
+            <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled"
               [style.color]="playStartAction?.disabled ? 'grey' : 'green'" [matTooltip]="bs.m('spr.audio','play.all')">
               <mat-icon>play_arrow</mat-icon>
             </button>
-            <button (click)="playSelectionAction?.perform()" [disabled]="$safeNavigationMigration(playSelectionAction?.disabled)"
+            <button (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
               [style.color]="playSelectionAction?.disabled ? 'grey' : 'green'" [matTooltip]="bs.m('spr.audio','play.selection')">
               <mat-icon>play_circle_outline</mat-icon>
             </button>
-            <button (click)="playStopAction?.perform()" [disabled]="$safeNavigationMigration(playStopAction?.disabled)"
+            <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled"
               [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
               <mat-icon>stop</mat-icon>
             </button>&nbsp;
@@ -31,20 +31,20 @@ import {SprBundleService} from "../../i18n/spr.bundle.service";
 
             <legend>{{bs.m('c','zoom')}}</legend>
             <button (click)="zoomFitToPanelAction?.perform()"
-            [disabled]="$safeNavigationMigration(zoomFitToPanelAction?.disabled)">{{zoomFitToPanelAction?.name}}</button>
+            [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button>
             <button (click)="zoomOutAction?.perform()"
-            [disabled]="$safeNavigationMigration(zoomOutAction?.disabled)">{{zoomOutAction?.name}}</button>
+            [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
             <button (click)="zoomInAction?.perform()"
-            [disabled]="$safeNavigationMigration(zoomInAction?.disabled)">{{zoomInAction?.name}}</button>
+            [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
             <button (click)="zoomSelectedAction?.perform()"
-            [disabled]="$safeNavigationMigration(zoomSelectedAction?.disabled)">{{zoomSelectedAction?.name}}</button>
+            [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
           </fieldset>
           <fieldset>
             <legend>{{bs.m('c','selection')}}</legend>
             {{audioClip?.selection?.leftFrame}} @if (audioClip?.selection) {
             <span>{{bs.m('c','to')}}</span>
             } {{audioClip?.selection?.rightFrame}}
-            <button (click)="clearSelection()" [disabled]="$safeNavigationMigration(audioClip?.selection)==null"
+            <button (click)="clearSelection()" [disabled]="audioClip?.selection==null"
               [style.color]="hasSelection() ? 'red' : 'grey'" [matTooltip]="bs.m('c','selection.clear')">
               <mat-icon>clear</mat-icon>
             </button>

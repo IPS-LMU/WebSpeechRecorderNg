@@ -30,7 +30,7 @@ export enum Mode {SINGLE_SESSION,DEMO}
     selector: 'app-speechrecorder',
     providers: [SessionService],
     template: `
-    <app-sprrecordingsession [project]="project" [projectName]="$safeNavigationMigration(project?.name)" [dataSaved]="dataSaved"></app-sprrecordingsession>
+    <app-sprrecordingsession [project]="project" [projectName]="project?.name" [dataSaved]="dataSaved"></app-sprrecordingsession>
   `,
     styles: [`:host{
     flex: 2;
