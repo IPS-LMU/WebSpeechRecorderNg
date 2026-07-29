@@ -5,3 +5,10 @@ copy audio_display.ts to audio_player.ts and remove player from audio_display.ts
 On Android: Chromium based browsers (Chrome, Opera, Edge?):
 AGC cannot be turned on with echo cancellation off.
 https://bugs.chromium.org/p/chromium/issues/detail?id=1006565&q=EchoCancellation&can=1
+
+2026-07-28
+npm i -force:
+...
+npm warn deprecated @angular/platform-browser-dynamic@22.0.8: @angular/platform-browser-dynamic is deprecated. Use `@angular/platform-browser` instead.
+npm warn deprecated @angular/animations@22.0.8: @angular/animations is deprecated. Use `animate.enter` and `animate.leave` instead. For more information see: https://v2
+...
