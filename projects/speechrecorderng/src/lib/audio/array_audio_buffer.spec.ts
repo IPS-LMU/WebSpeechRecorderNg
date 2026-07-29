@@ -1,5 +1,6 @@
 // Straight Jasmine testing without Angular's testing support
 import {ArrayAudioBuffer} from "./array_audio_buffer";
+import {describe,beforeEach,it,expect} from "vitest";
 
 // describe("A suite is just a function", function() {
 //   var a;
