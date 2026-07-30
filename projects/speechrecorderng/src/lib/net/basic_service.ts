@@ -1,10 +1,8 @@
 import {Observable} from "rxjs";
-import {Session} from "../speechrecorder/session/session";
-import {ProjectService} from "../speechrecorder/project/project.service";
 import {ApiType, SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {UUID} from "../utils/utils";
 import {HttpClient, HttpParams} from "@angular/common/http";
-import {Directive, inject, Inject} from "@angular/core";
+import {Directive, inject} from "@angular/core";
 
 export class Selection{
     position:number=0;
