@@ -4,38 +4,39 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
 
 
 @Component({
+    selector: 'app-sprprogress',
+    template: `
 
-  selector: 'app-sprprogress',
-  template: `
-
-    <table class="mat-typography">
-      <thead>
-      <tr>
-        <th>#</th><!--<th>Code</th>-->
-        <th>Prompt</th>
-        <th>Status</th>
-      </tr>
-      </thead>
-      <tbody>
-      <ng-container *ngIf="items">
-
-        <tr *ngFor="let item of items; let itIdx=index;"
-            (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
-            updateObservation="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
+<table class="mat-typography">
+  <thead>
+    <tr>
+      <th>#</th><!--<th>Code</th>-->
+      <th>Prompt</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    @if (items) {
+      @for (item of items; track item; let itIdx = $index) {
+        <tr
+          (click)="rowSelect=itIdx" [class.selRow]="itIdx===selectedItemIdx"
+          updateObservation="{observer:isObs,observe:(itIdx===selectedItemIdx)}">
           <td>{{itIdx}}</td>
           <td class="promptDescriptor">{{item.promptAsString}}</td>
           <td>
-            <mat-icon  *ngIf="item.itemDone()">done</mat-icon>
+            @if (item.itemDone()) {
+              <mat-icon >done</mat-icon>
+            }
             <!--<mat-icon *ngIf="latestRecordingAvail(item)===false" style="font-size:0.6em;width:0.6em;height:0.6em">cloud_download</mat-icon>-->
-
           </td>
         </tr>
-      </ng-container>
+      }
+    }
 
-      </tbody>
-    </table>
-  `,
-  styles: [`:host {
+  </tbody>
+</table>
+`,
+    styles: [`:host {
     overflow-x: hidden;
     overflow-y: scroll;
     padding: 10pt;
@@ -51,7 +52,7 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
     /* min-height:0px; */
     min-height: 1px;
   }`,
-      `table {
+        `table {
              min-height: 1px;
              border-collapse: collapse;
                  /* Tables do not have a natural min size */
@@ -69,14 +70,14 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
       .selRow {
         background: lightblue;
       }
-    `,`.promptDescriptor{
+    `, `.promptDescriptor{
 
       max-width: 200px;
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
-    }`]
-
+    }`],
+    standalone: false
 })
 export class Progress {
   isObs:IntersectionObserver;

@@ -14,10 +14,8 @@ import {AudioContextProvider} from "./context";
 import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
 
 @Component({
-
-  selector: 'app-audiodisplayplayer',
-
-  template: `
+    selector: 'app-audiodisplayplayer',
+    template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
 
@@ -31,8 +29,8 @@ import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
                              [zoomSelectedAction]="zoomSelectedAction"
                              [zoomFitToPanelAction]="zoomFitToPanelAction"></audio-display-control><p>{{status}}
   `,
-  styles: [
-      `:host {
+    styles: [
+        `:host {
              display: flex;
              flex-direction: column;
              position: absolute;
@@ -44,8 +42,9 @@ import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
              z-index: 5;
              box-sizing: border-box;
              background-color: rgba(0, 0, 0, 0.75)
-           }`]
-
+           }`
+    ],
+    standalone: false
 })
 export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterViewInit {
   private _audioUrl: string|null=null;

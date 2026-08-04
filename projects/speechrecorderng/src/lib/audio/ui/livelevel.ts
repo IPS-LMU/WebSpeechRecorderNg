@@ -14,15 +14,14 @@ export const OVERFLOW_INCR_FACTOR = 0.5;
 export enum State {LOADING,RENDERING,READY}
 
 @Component({
-
-  selector: 'audio-levelbar',
-  template: `
+    selector: 'audio-levelbar',
+    template: `
     <div #virtualCanvas>
       <canvas #levelbar></canvas>
       <canvas #markerCanvas></canvas>
     </div>
   `,
-  styles: [`:host {
+    styles: [`:host {
 
     width: 100%;
     background: darkgray;
@@ -45,8 +44,8 @@ export enum State {LOADING,RENDERING,READY}
     width: 100%;
     height: 100%;
     position: absolute;
-  }`]
-
+  }`],
+    standalone: false
 })
 export class LevelBar implements LevelListener,AfterViewInit {
 

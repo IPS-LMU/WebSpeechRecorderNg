@@ -8,9 +8,10 @@ import {InfoComponent} from "../../projects/speechrecorderng/src/lib/ui/info/inf
 
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css'],
+    standalone: false
 })
 export class AppComponent extends ResponsiveComponent{
 

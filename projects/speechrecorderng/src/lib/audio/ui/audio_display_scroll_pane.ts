@@ -12,16 +12,14 @@ import {AudioClip, Selection} from "../persistor";
 import {AudioDataHolder} from "../audio_data_holder";
 
 @Component({
-
-  selector: 'audio-display-scroll-pane',
-
-  template: `
+    selector: 'audio-display-scroll-pane',
+    template: `
 
     <app-audio #audioSignalContainer (selectionEventEmitter)="selectionChanged($event)"></app-audio>
 
   `,
-  styles: [
-    `:host {
+    styles: [
+        `:host {
            flex: 2;
            width: 100%;
            background: darkgray;
@@ -31,7 +29,7 @@ import {AudioDataHolder} from "../audio_data_holder";
            overflow-x: scroll;
            overflow-y: auto;
          }`,
-    `app-audio {
+        `app-audio {
      
          margin: 0;
          padding: 0;
@@ -42,8 +40,9 @@ import {AudioDataHolder} from "../audio_data_holder";
      
          /*position: absolute;*/
          box-sizing: border-box;
-       }`]
-
+       }`
+    ],
+    standalone: false
 })
 export class AudioDisplayScrollPane {
 

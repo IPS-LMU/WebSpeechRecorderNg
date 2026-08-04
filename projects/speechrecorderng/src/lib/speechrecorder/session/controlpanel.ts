@@ -12,16 +12,18 @@ import {ThemePalette} from "@angular/material/core";
 
 
 @Component({
-
-  selector: 'app-sprstatusdisplay',
-
-  template: `
+    selector: 'app-sprstatusdisplay',
+    template: `
     <p matTooltip="Status">
-      <mat-progress-spinner *ngIf="statusWaiting" color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner><mat-icon *ngIf="statusAlertType==='error'" style="color:red">report_problem</mat-icon>
+      @if (statusWaiting) {
+        <mat-progress-spinner color="black"  mode="indeterminate" [diameter]="30" [strokeWidth]="5"></mat-progress-spinner>
+        }@if (statusAlertType==='error') {
+        <mat-icon style="color:red">report_problem</mat-icon>
+      }
       {{statusMsg}}
     </p>
-  `,
-  styles: [`:host {
+    `,
+    styles: [`:host {
     display: inline;
     text-align: left;
     font-size: smaller;
@@ -40,8 +42,8 @@ import {ThemePalette} from "@angular/material/core";
     span {
       color: red;
     }
-  `]
-
+  `],
+    standalone: false
 })
 
 export class StatusDisplay {
@@ -52,16 +54,17 @@ export class StatusDisplay {
 
 
 @Component({
-  selector: 'app-uploadstatus',
-  template: `
+    selector: 'app-uploadstatus',
+    template: `
     <mat-progress-spinner [mode]="spinnerMode" [color]="colorStatus" [diameter]="30" [strokeWidth]="5" [value]="_value"
                           [matTooltip]="toolTipText"></mat-progress-spinner>
   `,
-  styles: [`:host {
+    styles: [`:host {
     text-align: left;
-  }`,`mat-progress-spinner{
+  }`, `mat-progress-spinner{
       display: inline-block;
-  }`]
+  }`],
+    standalone: false
 })
 export class UploadStatus {
   private _awaitNewUpload=false;
@@ -125,17 +128,18 @@ export class UploadStatus {
 
 
 @Component({
-  selector: 'app-sprprogressdisplay',
-  template: `
+    selector: 'app-sprprogressdisplay',
+    template: `
     <p>{{progressMsg}}</p>
   `,
-  styles: [`:host {
+    styles: [`:host {
     flex: 1;
   /* align-self: flex-start; */
     /*display: inline; */
       width: 100%;
     text-align: left;
-  }`]
+  }`],
+    standalone: false
 })
 export class ProgressDisplay {
   progressMsg = '[itemcode]';
@@ -168,31 +172,43 @@ export class TransportActions {
 }
 
 @Component({
-
-  selector: 'app-sprtransport',
-
-  template: `
-    <button id="bwdBtn" *ngIf="navigationEnabled"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
-            mat-raised-button class="transport-button-icon">
-      <span><mat-icon>chevron_left</mat-icon></span>
-    </button>
+    selector: 'app-sprtransport',
+    template: `
+    @if (navigationEnabled) {
+      <button id="bwdBtn"  (click)="actions.bwdAction.perform()" [disabled]="bwdDisabled()"
+        mat-raised-button class="transport-button-icon">
+        <span><mat-icon>chevron_left</mat-icon></span>
+      </button>
+    }
     <button (click)="startStopNextPerform()" [disabled]="startDisabled() && stopDisabled() && nextDisabled() && stopNonrecordingDisabled()"  mat-raised-button  class="transport-button-icon">
-      <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon><mat-icon class="transport-button-icon" *ngIf="!nextDisabled() || !stopNonrecordingDisabled()" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon></span>
-      <span *ngIf="!screenXs" class="transport-button-text">{{startStopNextName()}}</span>
+      <span><mat-icon class="transport-button-icon" [style.color]="startStopNextIconColor()">{{startStopNextIconName()}}</mat-icon>@if (!nextDisabled() || !stopNonrecordingDisabled()) {
+      <mat-icon class="transport-button-icon" [style.color]="nextDisabled() ? 'grey' : 'black'">chevron_right</mat-icon>
+    }</span>
+    @if (!screenXs) {
+      <span class="transport-button-text">{{startStopNextName()}}</span>
+    }
     </button>
-    <button *ngIf="pausingEnabled" (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
-      <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
-      <span *ngIf="!screenXs" class="transport-button-text">Pause</span>
-    </button>
-    <button id="fwdNextBtn" *ngIf="navigationEnabled && !screenXs" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
-      <span><mat-icon>redo</mat-icon></span>
-    </button>
-    <button id="fwdBtn" *ngIf="navigationEnabled"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
-      <span><mat-icon>chevron_right</mat-icon></span>
-    </button>
-
-  `,
-  styles: [`:host {
+    @if (pausingEnabled) {
+      <button (click)="actions.pauseAction.perform()" [disabled]="pauseDisabled()" mat-raised-button  class="transport-button-icon">
+        <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
+        @if (!screenXs) {
+          <span class="transport-button-text">Pause</span>
+        }
+      </button>
+    }
+    @if (navigationEnabled && !screenXs) {
+      <button id="fwdNextBtn" (click)="actions.fwdNextAction.perform()" [disabled]="fwdNextDisabled()" mat-raised-button class="transport-button-icon">
+        <span><mat-icon>redo</mat-icon></span>
+      </button>
+    }
+    @if (navigationEnabled) {
+      <button id="fwdBtn"  (click)="actions.fwdAction.perform()" [disabled]="fwdDisabled()" mat-raised-button class="transport-button-icon">
+        <span><mat-icon>chevron_right</mat-icon></span>
+      </button>
+    }
+    
+    `,
+    styles: [`:host {
     flex: 20;
     align-self: center;
     width: 100%;
@@ -204,24 +220,24 @@ export class TransportActions {
     div {
       display: inline;
       flex: 0;
-    }`,`
+    }`, `
      button {
        touch-action: manipulation;
-     }`,`
+     }`, `
     .transport-button-icon{
       font-size: 24px;
       vertical-align: middle;
       overflow: hidden;
       text-overflow: clip;
       white-space: nowrap;
-    }`,`
+    }`, `
     .transport-button-text{
       font-size: 14px;
       letter-spacing: normal;
       vertical-align: baseline;
     }`
-  ]
-
+    ],
+    standalone: false
 })
 export class TransportPanel extends ResponsiveComponent{
 
@@ -314,11 +330,14 @@ export class TransportPanel extends ResponsiveComponent{
 }
 
 @Component({
-  selector: 'app-wakelockindicator',
-  template: `
-    <mat-icon *ngIf="_screenLocked">screen_lock_portrait</mat-icon>
-  `,
-  styles: []
+    selector: 'app-wakelockindicator',
+    template: `
+    @if (_screenLocked) {
+      <mat-icon>screen_lock_portrait</mat-icon>
+    }
+    `,
+    styles: [],
+    standalone: false
 })
 export class WakeLockIndicator {
   _screenLocked=false;
@@ -331,13 +350,12 @@ export class WakeLockIndicator {
 }
 
 @Component({
-
-  selector: 'app-readystateindicator',
-
-  template: `
+    selector: 'app-readystateindicator',
+    template: `
     <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
-  styles: []
+    styles: [],
+    standalone: false
 })
 export class ReadyStateIndicator {
   _ready=true;
@@ -358,37 +376,43 @@ export class ReadyStateIndicator {
 }
 
 @Component({
-
-  selector: 'app-sprcontrolpanel',
-
-  template: `
-    <div *ngIf="!screenXs" style="flex-direction: row" >
-     <app-sprstatusdisplay style="flex:0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
-                          class="hidden-xs"></app-sprstatusdisplay>
-      <app-sprtransport style="flex:10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-      <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                      [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
-      <app-readystateindicator [ready]="_ready"></app-readystateindicator>
-    </div>
-    <div *ngIf="screenXs" style="flex-direction: column">
-      <div style="flex-direction: row" class="flexFill" >
-       <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
-                            class="hidden-xs"></app-sprstatusdisplay>
-       <app-uploadstatus style="flex:0 0 0" *ngIf="enableUploadRecordings" [value]="uploadProgress"
-                        [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+    selector: 'app-sprcontrolpanel',
+    template: `
+    @if (!screenXs) {
+      <div style="flex-direction: row" >
+        <app-sprstatusdisplay style="flex:0 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+        class="hidden-xs"></app-sprstatusdisplay>
+        <app-sprtransport style="flex:10 0 0" [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+        @if (enableUploadRecordings) {
+          <app-uploadstatus style="flex:0 0 0" [value]="uploadProgress"
+          [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+        }
         <app-readystateindicator [ready]="_ready"></app-readystateindicator>
       </div>
-      <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
-
-    </div>
-  `,
-  styles: [`div {
+    }
+    @if (screenXs) {
+      <div style="flex-direction: column">
+        <div style="flex-direction: row" class="flexFill" >
+          <app-sprstatusdisplay style="flex:10 0 0" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType" [statusWaiting]="statusWaiting"
+          class="hidden-xs"></app-sprstatusdisplay>
+          @if (enableUploadRecordings) {
+            <app-uploadstatus style="flex:0 0 0" [value]="uploadProgress"
+            [status]="uploadStatus" [awaitNewUpload]="processing"></app-uploadstatus>
+          }
+          <app-readystateindicator [ready]="_ready"></app-readystateindicator>
+        </div>
+        <app-sprtransport [readonly]="readonly" [actions]="transportActions" [navigationEnabled]="navigationEnabled"></app-sprtransport>
+      </div>
+    }
+    `,
+    styles: [`div {
     align-content: center;
     align-items: center;
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`]
+  }`],
+    standalone: false
 })
 export class ControlPanel extends ResponsiveComponent {
   @ViewChild(StatusDisplay, { static: true }) statusDisplay!: StatusDisplay;

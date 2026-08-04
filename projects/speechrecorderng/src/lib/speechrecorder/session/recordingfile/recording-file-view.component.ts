@@ -14,7 +14,6 @@ import {MatDialog} from "@angular/material/dialog";
 import {AudioDisplayPlayer} from "../../../audio/audio_player";
 
 import {AudioDisplayScrollPane} from "../../../audio/ui/audio_display_scroll_pane";
-import {AudioContextProvider} from "../../../audio/context";
 import {AudioClip} from "../../../audio/persistor";
 import {Selection} from "../../../audio/persistor";
 
@@ -23,6 +22,8 @@ import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {SprRecordingFile} from "../../recording";
 import {RecordingFileUtil} from "./recording-file";
+import {MessageDialog} from "../../../ui/message_dialog";
+import {ErrorHelper} from "../../../utils/utils";
 
 
 export class ItemcodeIndex{
@@ -30,10 +31,8 @@ export class ItemcodeIndex{
 }
 
 @Component({
-
-  selector: 'app-audiodisplayplayer',
-
-  template: `
+    selector: 'app-audiodisplayplayer',
+    template: `
 
     <audio-display-scroll-pane #audioDisplayScrollPane></audio-display-scroll-pane>
     <div class="ctrlview">
@@ -51,8 +50,8 @@ export class ItemcodeIndex{
       <app-recording-file-navi [items]="availRecFiles?.length" [itemPos]="posInList" [version]="recordingFileVersion" [versions]="versions" [firstAction]="firstAction" [prevAction]="prevAction" [nextAction]="nextAction" [lastAction]="lastAction" [selectVersion]="toVersionAction" [naviInfoLoading]="naviInfoLoading"></app-recording-file-navi>
       </div>
   `,
-  styles: [
-    `:host {
+    styles: [
+        `:host {
                flex: 2;
                display: flex;
                flex-direction: column;
@@ -62,19 +61,20 @@ export class ItemcodeIndex{
            z-index: 5;
            box-sizing: border-box;
            background-color: white;
-         }`,`
+         }`, `
         .ctrlview{
           display: flex;
           flex-direction: row;
 
         }
-    `,`
+    `, `
       audio-display-control{
 
         flex: 3;
       }
-    `]
-
+    `
+    ],
+    standalone: false
 })
 export class RecordingFileViewComponent extends AudioDisplayPlayer implements OnInit,AfterViewInit {
 
@@ -185,10 +185,10 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
 
   toVersion(ae: ActionEvent<number>) {
     let toRfId = null;
-    let version = ae.value;
+    const version = ae.value;
     if(this.posInList!=null && this.availRecFiles) {
       let cRfs = this.availRecFiles[this.posInList];
-      let availVersionCnt = cRfs.length;
+      //let availVersionCnt = cRfs.length;
       for (let cRf of cRfs) {
         if(cRf.version !=null) {
           if (cRf.version === version) {
@@ -327,10 +327,19 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
               this.audioClip = clip
               this.loadedRecfile();
 
-            }, error:error1 =>
+            }, error:(err) =>
       {
         this.audioFetching = false;
-        this.status = 'Error loading audio file!';
+        this.status = 'Error loading audio file';
+        const errMsg=ErrorHelper.message('Could not load audio file',err);
+        this.dialog.open(MessageDialog, {
+          data: {
+            type: 'error',
+            title: this.status,
+            msg: errMsg,
+            advice: "Please check network connection and server state or contact application administrator."
+          }
+        })
       }
     });
 
@@ -379,8 +388,7 @@ export class RecordingFileViewComponent extends AudioDisplayPlayer implements On
             let rfd = rfds[rfdi];
             if (rfd.date) {
               // convert date string for faster sorting later
-              let rfdd = new Date(rfd.date);
-              rfd._dateAsDateObj = rfdd;
+              rfd._dateAsDateObj = new Date(rfd.date);
             }
             let ic = rfd.itemCode;
 

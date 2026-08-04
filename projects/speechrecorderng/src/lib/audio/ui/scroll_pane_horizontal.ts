@@ -1,11 +1,10 @@
 import {Component} from "@angular/core";
 
 @Component({
-
-  selector: 'scroll-pane-horizontal',
-  template: '',
-  styles: [
-    `:host {
+    selector: 'scroll-pane-horizontal',
+    template: '',
+    styles: [
+        `:host {
            width: 100%;
            background: darkgray;
            box-sizing: border-box;
@@ -13,8 +12,9 @@ import {Component} from "@angular/core";
            position: relative;
            overflow-x: scroll;
            overflow-y: auto;
-         }`]
-
+         }`
+    ],
+    standalone: false
 })
 export class ScrollPaneHorizontal{
 

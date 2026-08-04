@@ -15,12 +15,11 @@ import {RecordingFileViewComponent} from "./recording-file-view.component";
 import {SessionService} from "../session.service";
 import {RecordingService} from "../../recordings/recordings.service";
 import {MatSnackBar} from "@angular/material/snack-bar";
+import {ErrorHelper} from "../../../utils/utils";
 
 @Component({
-
-  selector: 'app-audiodisplayplayer',
-
-  template: `
+    selector: 'app-audiodisplayplayer',
+    template: `
       <h1>Recording file editing</h1>
       <p>On export or delivery the editing selection of the recording file is cut out. If no editing selection is applied the original file is exported.</p>
 
@@ -41,8 +40,8 @@ import {MatSnackBar} from "@angular/material/snack-bar";
 
       <button mat-raised-button color="accent" (click)="applySelection()" [disabled]="editSaved">{{this.applyButtonText()}}</button>
   `,
-  styles: [
-    `:host {
+    styles: [
+        `:host {
                flex: 2;
                display: flex;
                flex-direction: column;
@@ -52,18 +51,19 @@ import {MatSnackBar} from "@angular/material/snack-bar";
            z-index: 5;
            box-sizing: border-box;
            background-color: white;
-         }`,`
+         }`, `
         .ctrlview{
           display: flex;
           flex-direction: row;
         }
-    `,`
+    `, `
       audio-display-control{
 
         flex: 3;
       }
-    `]
-
+    `
+    ],
+    standalone: false
 })
 export class RecordingFileUI extends RecordingFileViewComponent implements AfterViewInit {
 
@@ -124,25 +124,28 @@ protected loadedRecfile() {
           sf = s.startFrame;
           ef = s.endFrame;
         }
-          this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe(
-              {next:(value) => {}
-      , error:() => {
-          this.dialog.open(MessageDialog, {
+        this.recordingFileService.saveEditSelection(this.recordingFile.recordingFileId, sr, sf, ef).subscribe(
+          {
+            next:() => {}
+            , error:(err) => {
 
-            data: {
-              type: 'error',
-              title: 'Save selection edit error',
-              msg: "Could not save edit selection to WikiSpeech server!",
-              advice: "Please check network connection and server state."
-            }
-          })
-        }, complete:() => {
+              const errMsg=ErrorHelper.message('Could not save edit selection to server',err);
+              this.dialog.open(MessageDialog, {
+
+                data: {
+                  type: 'error',
+                  title: 'Save selection edit error',
+                  msg: errMsg,
+                  advice: "Please check network connection and server state."
+                }
+              })
+            }, complete:() => {
               // Or use returned selection value from server?
               this.savedEditSelection = s
               this.editSaved = true
               this.snackBar.open('Selection edit saved successfully.', 'OK', {duration: 1500})
             }
-      });
+          });
       }
     }
   }

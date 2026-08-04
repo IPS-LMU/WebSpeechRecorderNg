@@ -45,54 +45,62 @@ export const enum Status {
 
 
 @Component({
-  selector: 'app-audiorecorder',
-  //providers: [SessionService],
-  template: `
+    selector: 'app-audiorecorder',
+    //providers: [SessionService],
+    template: `
     <app-warningbar [show]="isTestSession()" warningText="Test recording only!"></app-warningbar>
     <app-warningbar [show]="isDefaultAudioTestSession()"
-                    warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
+    warningText="This test uses default audio device! Regular sessions may require a particular audio device (microphone)!"></app-warningbar>
     <app-recordercombipane (selectedRecordingFileChanged)="selectRecordingFile($event)"
-                           [audioSignalCollapsed]="audioSignalCollapsed"
-                           [selectedRecordingFile]="displayRecFile"
-                           [selectDisabled]="isActive()"
-                           [displayAudioClip]="displayAudioClip"
-                           [playStartAction]="controlAudioPlayer?.startAction"
-                           [playStopAction]="controlAudioPlayer?.stopAction"
-                           [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
-                           [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
+      [audioSignalCollapsed]="audioSignalCollapsed"
+      [selectedRecordingFile]="displayRecFile"
+      [selectDisabled]="isActive()"
+      [displayAudioClip]="displayAudioClip"
+      [playStartAction]="controlAudioPlayer?.startAction"
+      [playStopAction]="controlAudioPlayer?.stopAction"
+      [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
+      [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
-                      [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
+      [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="flex:10 0 1px"
-                                   [disableAudioDetails]="disableAudioDetails"
-                                   [enableDownload]="enableDownloadRecordings"
+          [disableAudioDetails]="disableAudioDetails"
+          [enableDownload]="enableDownloadRecordings"
                                    [audioLoaded]="audioLoaded"
-                                   [playStartAction]="controlAudioPlayer?.startAction"
-                                   [playStopAction]="controlAudioPlayer?.stopAction"
-                                   [peakDbLvl]="peakLevelInDb"
-                                   [agc]="this.ac?.agcStatus"
-                                   [noiseSuppression]="this.ac?.nsStatus"
+          [playStartAction]="controlAudioPlayer?.startAction"
+          [playStopAction]="controlAudioPlayer?.stopAction"
+          [peakDbLvl]="peakLevelInDb"
+          [agc]="this.ac?.agcStatus"
+          [noiseSuppression]="this.ac?.nsStatus"
                                    [echoCancellation]="this.ac?.ecStatus"
                                    [gainDb]="this.ac?.gainDb"
                                    (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed"
                                    (onDownloadRecording)="downloadRecording()">
         </spr-recordingitemcontrols>
 
-        <app-uploadstatus *ngIf="screenXs && enableUploadRecordings" class="ricontrols dark" style="flex:0 0 0"
-                          [value]="uploadProgress"
-                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator *ngIf="screenXs" class="ricontrols dark" style="flex:0 0 0"
-                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        @if (screenXs && enableUploadRecordings) {
+          <app-uploadstatus class="ricontrols dark" style="flex:0 0 0"
+            [value]="uploadProgress"
+          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        }
+        @if (screenXs) {
+          <app-wakelockindicator class="ricontrols dark" style="flex:0 0 0" [screenLocked]="screenLocked"></app-wakelockindicator>
+        }
+        @if (screenXs) {
+          <app-readystateindicator class="ricontrols dark" style="flex:0 0 0"
+          [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        }
       </div>
     </div>
     <div #controlpanel class="controlpanel">
-      <app-sprstatusdisplay *ngIf="!screenXs" style="flex:0 1 30%;" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
-                            [statusWaiting]="statusWaiting"
-                            class="hidden-xs"></app-sprstatusdisplay>
+      @if (!screenXs) {
+        <app-sprstatusdisplay style="flex:0 1 30%;" [statusMsg]="statusMsg" [statusAlertType]="statusAlertType"
+          [statusWaiting]="statusWaiting"
+        class="hidden-xs"></app-sprstatusdisplay>
+      }
       <div [class.startstop]="!screenXs" [class.startstopscreenxs]="screenXs">
         <div style="align-content: center">
           <button (click)="startStopPerform()" [disabled]="startDisabled() && stopDisabled()" mat-raised-button class="bigbutton">
@@ -102,16 +110,22 @@ export const enum Status {
         </div>
       </div>
       <div style="flex:0 1 30%;display:flex;justify-items: flex-end;justify-content:flex-end" >
-        <app-uploadstatus *ngIf="!screenXs && enableUploadRecordings" class="ricontrols"
-                          [value]="uploadProgress"
-                          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
-        <app-wakelockindicator  *ngIf="!screenXs" class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
-        <app-readystateindicator *ngIf="!screenXs" class="ricontrols"
-                                 [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        @if (!screenXs && enableUploadRecordings) {
+          <app-uploadstatus class="ricontrols"
+            [value]="uploadProgress"
+          [status]="uploadStatus" [awaitNewUpload]="processingRecording"></app-uploadstatus>
+        }
+        @if (!screenXs) {
+          <app-wakelockindicator  class="ricontrols" [screenLocked]="screenLocked"></app-wakelockindicator>
+        }
+        @if (!screenXs) {
+          <app-readystateindicator class="ricontrols"
+          [ready]="dataSaved && !isActive()"></app-readystateindicator>
+        }
       </div>
     </div>
-  `,
-  styles: [`:host {
+    `,
+    styles: [`:host {
     flex: 2;
     background: lightgrey;
     display: flex; /* Vertical flex container: Bottom transport panel, above prompting panel */
@@ -122,13 +136,13 @@ export const enum Status {
     min-height: 0px;
       /* Prevents horizontal scroll bar on swipe right */
       overflow: hidden;
-  }`,`.ricontrols {
+  }`, `.ricontrols {
         padding: 4px;
         box-sizing: border-box;
         height: 100%;
-    }`,`.dark {
+    }`, `.dark {
     background: darkgray;
-  }`,`.controlpanel {
+  }`, `.controlpanel {
     display:flex;
     flex-direction: row;
     align-content: center;
@@ -136,19 +150,19 @@ export const enum Status {
     margin: 0;
     padding: 20px;
     min-height: min-content; /* important */
-  }`,`.startstop {
+  }`, `.startstop {
     width: 100%;
     flex:1 0 30%;
     align-items: center;
     text-align: center;
     align-content: center;
-  }`,`.startstopscreenxs {
+  }`, `.startstopscreenxs {
     width: 100%;
     flex:1 0 100%;
     align-items: center;
     text-align: center;
     align-content: center;
-  }`,`.bigbutton {
+  }`, `.bigbutton {
     vertical-align: middle;
     overflow: hidden;
     text-overflow: clip;
@@ -157,27 +171,28 @@ export const enum Status {
     min-width: 70px;
     min-height: 50px;
     border-radius: 20px;
-  }`,`.bigbuttonicon {
+  }`, `.bigbuttonicon {
     min-width: 50px;
     min-height: 50px;
     font-size: 50px;
-  }`,`.bigbuttontext {
+  }`, `.bigbuttontext {
       font-weight: bolder;
       font-size: 14px;
       vertical-align: middle;
   }
-  `,`.audioStatusDisplay{
+  `, `.audioStatusDisplay{
     display:flex;
     flex-direction: row;
     height:100px;
     min-height: 100px;
-  }`,`.audioStatusDisplayXs{
+  }`, `.audioStatusDisplayXs{
     display:flex;
     flex-direction: column;
     height:125px;
     min-height: 125px;
   }`
-   ]
+    ],
+    standalone: false
 })
 export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider,ChunkAudioBufferReceiver {
 
@@ -551,7 +566,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
   downloadRecording() {
     if (this.displayRecFile) {
       let ab: AudioDataHolder | null = this.displayRecFile.audioDataHolder;
-      let ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
+      const ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
       let as=ab?.audioSource;
       if(as instanceof AudioBufferSource) {
           ww.writeAsync(as.audioBuffer, (wavFile) => {
@@ -1046,7 +1061,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
           // TODO duplicate conversion for manual download
 
           this.processingRecording = true
-          let ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
+          const ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
           ww.writeAsync(ab, (wavFile) => {
             this.postRecordingMultipart(wavFile,recUrl,rf);
             this.processingRecording = false;
@@ -1071,7 +1086,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     this.updateStartActionDisableState();
   }
 
-  postRecordingMultipart(wavFile: Uint8Array,recUrl: string,rf:RecordingFile) {
+  postRecordingMultipart(wavFile: ArrayBuffer,recUrl: string,rf:RecordingFile) {
     let wavBlob = new Blob([wavFile], {type: 'audio/wav'});
 
     let fd=new FormData();
@@ -1091,7 +1106,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   postChunkAudioBuffer(audioBuffer: AudioBuffer, chunkIdx: number): void {
     this.processingRecording = true;
-    let ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
+    const ww = new WavWriter(this.project?.mediaStorageFormat?.audioEncoding===AudioStorageFormatEncoding.PCM_FLOAT,this.project?.mediaStorageFormat?.audioPCMsampleSizeInBits);
     let sessionsUrl = this.sessionsBaseUrl();
     let recUrl: string = sessionsUrl + '/' + this.session?.sessionId + '/' + RECFILE_API_CTX + '/' + this.rfUuid+'/'+chunkIdx;
     let rf=this._recordingFile;
@@ -1142,20 +1157,20 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 }
 
 @Component({
-  selector: 'app-audiorecorder-comp',
-  providers: [SessionService],
-  template: `
+    selector: 'app-audiorecorder-comp',
+    providers: [SessionService],
+    template: `
     <app-audiorecorder [projectName]="_project?.name" [dataSaved]="dataSaved"></app-audiorecorder>
   `,
-  styles: [`:host{
+    styles: [`:host{
     flex: 2;
     display: flex;
       height: 100%;
     flex-direction: column;
     min-height:0;
 
-  }`]
-
+  }`],
+    standalone: false
 })
 export class AudioRecorderComponent extends RecorderComponent  implements OnInit,OnDestroy,AfterViewInit,ReadyStateProvider {
 

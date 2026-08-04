@@ -11,7 +11,6 @@ declare function postMessage(message: any, transfer: Array<any>): void;
 const DEFAULT_DFT_SIZE = 1024;
 
 @Component({
-
     selector: 'audio-sonagram',
     template: `
         <canvas #sonagram height="10"></canvas>
@@ -19,18 +18,17 @@ const DEFAULT_DFT_SIZE = 1024;
         <canvas #cursor height="10" (mousedown)="selectionStart($event)" (mouseover)="updateCursorCanvas($event)" (mousemove)="updateCursorCanvas($event)"
                 (mouseleave)="updateCursorCanvas($event, false)"></canvas>
         <canvas #marker height="10"></canvas>`,
-
     styles: [`:host{
       min-height: 0px;
-    }`,`canvas {
+    }`, `canvas {
         top: 0;
         left: 0;
         width: 0;
         height: 0;
       min-height: 0px;
         position: absolute;
-    }`]
-
+    }`],
+    standalone: false
 })
 export class Sonagram extends AudioCanvasLayerComponent {
 
