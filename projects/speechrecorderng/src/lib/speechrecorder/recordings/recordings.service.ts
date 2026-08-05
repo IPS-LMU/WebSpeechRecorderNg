@@ -35,16 +35,15 @@ export class RecordingService extends BasicRecordingService{
   }
 
   private recordingFilesUrl():string{
-    let recFilesUrl = this.apiEndPoint  + RecordingService.RECORDING_API_CTX;
-    return recFilesUrl;
+    return this.apiEndPoint  + RecordingService.RECORDING_API_CTX;
   }
 
   private sessionRecordingFilesUrl(projectName: string, sessId: string | number):string{
-    let encPrjName=encodeURIComponent(projectName);
-    let encSessId=encodeURIComponent(sessId);
-    let recFilesUrl = this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
+    const encPrjName=encodeURIComponent(projectName);
+    const encSessId=encodeURIComponent(sessId);
+    return this.apiEndPoint + ProjectService.PROJECT_API_CTX + '/' + encPrjName + '/' +
       SessionService.SESSION_API_CTX + '/' + encSessId + '/' + RecordingService.RECORDING_API_CTX;
-    return recFilesUrl;
+
   }
 
   // private sessionRecordingFilesUrl(projectName: string, sessId: string | number):URL{
@@ -59,7 +58,7 @@ export class RecordingService extends BasicRecordingService{
 
   private sessionRecFilesUrl(projectName: string|null, sessId: string | number):string{
 
-    let encSessId=encodeURIComponent(sessId);
+    const encSessId=encodeURIComponent(sessId);
     let recFilesUrl=null;
     if(projectName) {
       const encPrjName=encodeURIComponent(projectName);
@@ -82,21 +81,18 @@ export class RecordingService extends BasicRecordingService{
   }
 
   recordingFileDescrList(projectName: string, sessId: string | number):Observable<Array<RecordingFileDescriptorImpl>> {
-    let recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
-    let wobs = this.http.get<Array<RecordingFileDescriptorImpl>>(recFilesReqUrl,{withCredentials:this.withCredentials});
-    return wobs;
+    const recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
+    return this.http.get<Array<RecordingFileDescriptorImpl>>(recFilesReqUrl,{withCredentials:this.withCredentials});
   }
 
   recordingFileList(projectName: string|null, sessId: string | number):Observable<Array<RecordingFile>> {
-    let recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
-    let wobs = this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
-    return wobs;
+    const recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
+    return this.http.get<Array<RecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
   }
 
   sprRecordingFileList(projectName: string|null, sessId: string | number):Observable<Array<SprRecordingFile>> {
-    let recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
-    let wobs = this.http.get<Array<SprRecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
-    return wobs;
+    const recFilesReqUrl = this.sessionRecordingFilesRequestURL(projectName,sessId);
+    return this.http.get<Array<SprRecordingFile>>(recFilesReqUrl,{withCredentials:this.withCredentials});
   }
 
   private audioRequest(audioUrl:string): Observable<HttpResponse<ArrayBuffer>> {
@@ -133,8 +129,10 @@ export class RecordingService extends BasicRecordingService{
       //audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
       ausps.set('requestUUID',UUID.generate());
     }
-    let obs=new Observable<IndexedDbAudioBuffer|null>(subscriber=> {
-      this.audioRequestByURL(baseAudioUrl,ausps).subscribe({next:(resp) => {
+    return new Observable<IndexedDbAudioBuffer|null>(subscriber=> {
+      const audioReqSubs=this.audioRequestByURL(baseAudioUrl,ausps).subscribe(
+        {
+          next:(resp) => {
           // Do not use Promise version, which does not work with Safari 13 (13.0.5)
           if (resp.body) {
             //console.debug("chunkAudioRequestToIndDb: subscriber.closed: "+subscriber.closed);
@@ -200,24 +198,24 @@ export class RecordingService extends BasicRecordingService{
           //subscriber.complete();
         }
       });
+      subscriber.add(audioReqSubs);
     });
-    return obs;
   }
 
 
 
 
   private chunkedAudioRequestToArrayBuffer(baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<ArrayAudioBuffer|null> {
-    let obs=new Observable<ArrayAudioBuffer|null>(subscriber => {
+    return new Observable<ArrayAudioBuffer|null>(subscriber => {
       let arrayAudioBuffer: ArrayAudioBuffer | null = null;
       let startFrame=0;
       let frameLength=orgSampleRate * Math.round(seconds); // Important: multiple of original sample rate to prevent numeric rounding errors on resampling.
       //console.debug("Chunk audio request startFrame 0");
-      let subscr=this.chunkAudioRequest(baseAudioUrl, startFrame, frameLength).pipe(
+      let audioReqSubs=this.chunkAudioRequest(baseAudioUrl, startFrame, frameLength).pipe(
 
         expand(value => {
           if(subscriber.closed){
-            subscr.unsubscribe();
+            audioReqSubs.unsubscribe();
           }
             if (value) {
               if (arrayAudioBuffer) {
@@ -297,12 +295,13 @@ export class RecordingService extends BasicRecordingService{
           }
         }
       });
+      subscriber.add(audioReqSubs)
     });
-    return obs;
+
   }
 
   private chunkedInddbAudioRequest(persistentAudioStorageTarget:PersistentAudioStorageTarget,baseAudioUrl:string,orgSampleRate:number,seconds:number): Observable<IndexedDbAudioBuffer|null> {
-    let obs=new Observable<IndexedDbAudioBuffer|null>(subscriber => {
+   return new Observable<IndexedDbAudioBuffer|null>(subscriber => {
       let inddbAudioBuffer: IndexedDbAudioBuffer | null = null;
       let startFrame=0;
       //let frameLength = DEFAULT_CHUNKED_DOWNLOAD_FRAMELENGTH;
@@ -378,7 +377,6 @@ export class RecordingService extends BasicRecordingService{
         }
       });
     });
-    return obs;
   }
 
 

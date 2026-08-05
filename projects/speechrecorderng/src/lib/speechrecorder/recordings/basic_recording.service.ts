@@ -85,8 +85,8 @@ export class BasicRecordingService{
             ausps.set('requestUUID',UUID.generate());
         }
 
-        let obs=new Observable<ChunkDownload|null>(observer=> {
-            this.audioRequestByURL(baseAudioUrl,ausps).subscribe(
+        return new Observable<ChunkDownload|null>(subscriber=> {
+            const audioReqSubs=this.audioRequestByURL(baseAudioUrl,ausps).subscribe(
                 {
                     next: resp => {
                         // Do not use Promise version, which does not work with Safari 13 (13.0.5)
@@ -95,7 +95,7 @@ export class BasicRecordingService{
                             //console.debug("Audio file bytes: "+resp.body.byteLength);
 
                             // Check original audio format
-                            let wr = new WavReader(resp.body);
+                            const wr = new WavReader(resp.body);
                             const pcmFmt = wr.readFormat();
                             const orgFl = wr.frameLength();
                             // if(pcmFmt){
@@ -113,8 +113,8 @@ export class BasicRecordingService{
                               AudioContextProvider.decodeAudioData(resp.body).then((ab)=>{
                                       //console.debug("Decoded audio chunk frames: "+ab.length);
                                       let chDl = new ChunkDownload(pcmFmt, orgFl, ab);
-                                      observer.next(chDl);
-                                      observer.complete();
+                                      subscriber.next(chDl);
+                                      subscriber.complete();
                                     }).catch(error => {
                                       //if(error instanceof HttpErrorResponse) {
                                       // if (error.status == 404) {
@@ -124,32 +124,32 @@ export class BasicRecordingService{
                                       // } else {
                                       //   // all other states are errors
                                       console.error("Recordings service chunkAudioRequest error decoding audio data: " + error.name + ": " + error.message);
-                                      observer.error(error);
+                                      subscriber.error(error);
                                       // }
                                       // }
                                     });
                             } else {
                                 const errMsg = 'Could not parse audio header for format and/or frame length of download.';
                                 console.error(errMsg);
-                                observer.error(errMsg);
+                                subscriber.error(errMsg);
                             }
                         } else {
                             const errMsg = 'Fetching audio file: response has no body';
                             console.error(errMsg);
-                            observer.error(errMsg);
+                            subscriber.error(errMsg);
                         }
                     }, error:
                         (error) => {
                             // all other states are errors
                             //const errMsg='Fetching audio file HTTP error: '+error;
                             //console.error(errMsg);
-                            observer.error(error);
+                            subscriber.error(error);
                             //observer.complete();
 
                         }
                 });
+            subscriber.add(audioReqSubs);
         });
-        return obs;
     }
 
 
@@ -161,7 +161,7 @@ export class BasicRecordingService{
         //   console.error(errMsg+' ('+frameLength+'%'+orgSampleRate+'=='+(frameLength%orgSampleRate)+')');
         //   throw Error(errMsg)
         // }
-        let frameLength:number=orgSampleRate*Math.round(seconds);
+        const frameLength:number=orgSampleRate*Math.round(seconds);
         let ausps=new URLSearchParams();
         ausps.set('startFrame',startFrame.toString());
         ausps.set('frameLength',frameLength.toString());
@@ -171,8 +171,10 @@ export class BasicRecordingService{
             //audioUrl = audioUrl + '.wav?requestUUID=' + UUID.generate();
             ausps.set('requestUUID',UUID.generate());
         }
-        let obs=new Observable<NetAudioBuffer|null>(subscriber=> {
-            this.audioRequestByURL(baseAudioUrl,ausps).subscribe({next:(resp) => {
+        return new Observable<NetAudioBuffer|null>(subscriber=> {
+            const audioReqSubs=this.audioRequestByURL(baseAudioUrl,ausps).subscribe(
+              {
+                next:(resp) => {
                     // Do not use Promise version, which does not work with Safari 13 (13.0.5)
                     if (resp.body) {
                         //console.debug("chunkAudioRequestTonetAb: subscriber.closed: "+subscriber.closed);
@@ -221,8 +223,8 @@ export class BasicRecordingService{
                     //subscriber.complete();
                 }
             });
+            subscriber.add(audioReqSubs);
         });
-        return obs;
     }
 
 }

@@ -11,7 +11,7 @@ export class ArrayAudioBufferRandomAccessStream implements RandomAccessAudioStre
 
   framesObs(framePos: number, frameLen: number, bufs: Float32Array[]): Observable<number> {
     return new Observable<number>(subscriber => {
-      let read = this._arrayBuffer.frames(framePos, frameLen, bufs);
+      const read = this._arrayBuffer.frames(framePos, frameLen, bufs);
       subscriber.next(read);
       subscriber.complete();
     });

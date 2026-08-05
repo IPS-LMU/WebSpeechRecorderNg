@@ -49,20 +49,20 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
 
   private fillBufferObs(frameOffset?:number):Observable<number|null> {
 
-      let obs = new Observable<number | null>(subscriber => {
+      return new Observable<number | null>(subscriber => {
         if(frameOffset){
           subscriber.error(new Error("Starting playback from position not equal zero not supported yet."));
         }else {
           let filled = this.filledFrames;
           let bufLen = 0;
           if (this._audioInputStream && this._aisBufs) {
-            this._audioInputStream.readObs(this._aisBufs).pipe(
+            const readSubs=this._audioInputStream.readObs(this._aisBufs).pipe(
               expand((read) => {
                   if (read && this._aisBufs) {
-                    let trBuffers = new Array<any>(this.channelCount);
+                    const trBuffers = new Array<any>(this.channelCount);
                     for (let ch = 0; ch < this.channelCount; ch++) {
-                      let adCh = this._aisBufs[ch];
-                      let adChCopy = new Float32Array(read);
+                      const adCh = this._aisBufs[ch];
+                      const adChCopy = new Float32Array(read);
                       bufLen = adChCopy.length;
                       if(read===adCh.length) {
                         adChCopy.set(adCh);
@@ -102,7 +102,6 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
           }
         }
       });
-      return obs;
   }
 
 
@@ -132,7 +131,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
     }
 
     if (this._inddbAudioBuffer) {
-      let arrAis=new IndexedDbAudioInputStream(this._inddbAudioBuffer);
+      const arrAis=new IndexedDbAudioInputStream(this._inddbAudioBuffer);
       if(offset===undefined && duration===undefined){
         this._audioInputStream = arrAis;
       }else{
@@ -148,7 +147,7 @@ export class IndexedDbAudioBufferSourceNode extends AudioSourceNode {
         this._audioInputStream=new AsyncEditFloat32ArrayInputStream(arrAis,offsetFrames,durationFrames);
       }
 
-      let chs=this._inddbAudioBuffer.channelCount;
+      const chs=this._inddbAudioBuffer.channelCount;
       this._aisBufs=new Array<Float32Array>(chs);
       for(let ch=0;ch<chs;ch++){
         this._aisBufs[ch]=new Float32Array(this._streamReadFrameLen);

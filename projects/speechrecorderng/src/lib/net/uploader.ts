@@ -285,9 +285,9 @@
                 this.status = UploaderStatus.UPLOADING;
             }
 
-            let dSize=this.dataSize(ul.data);
-            let timeoutForDataSize=dSize*this.POST_TIMEOUT_PER_KB/1000;
-            let timeoVal:number=Math.round(this.POST_MIN_TIMEOUT+timeoutForDataSize)
+            const dSize=this.dataSize(ul.data);
+            const timeoutForDataSize=dSize*this.POST_TIMEOUT_PER_KB/1000;
+            const timeoVal:number=Math.round(this.POST_MIN_TIMEOUT+timeoutForDataSize)
             // pipe(timeout()) is not the same as xhr.timeout
 
           let uploadedUpload:Upload|null=null;
@@ -331,7 +331,7 @@
             ul.status=UploadStatus.ERR
             this.status = UploaderStatus.ERR;
 
-            let ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);
+            const ue = new UploaderStatusChangeEvent(this._sizeQueued, this._sizeDone, this.status);
             if (this.listener) {
                 this.listener(ue);
             }
@@ -361,7 +361,7 @@
 
         //console.debug("Uploader status: "+this.status)
 
-        let s = this.que.length;
+        const s = this.que.length;
         //console.debug(s+" uploads are in the queue.")
 
         if (s>0 && UploaderStatus.UPLOADING != this.status && UploaderStatus.TRY_UPLOADING != this.status) {
@@ -381,7 +381,7 @@
             // now failed uploads
             //console.debug("No regular upload found. Looking for error state uploads.")
             for (let i = 0; i < s; i++) {
-              let ul = this.que[i];
+              const ul = this.que[i];
               //console.log("Upload "+ul+" status:"+ul.status)
               if (ul.status === UploadStatus.ERR) {
                 //console.log("Upload (ERR) "+ul+" startUpload")
@@ -405,7 +405,7 @@
 
         queueUpload(ul: Upload) {
             if (ul) {
-                let ulSize = this.dataSize(ul.data);
+                const ulSize = this.dataSize(ul.data);
                 this.que.push(ul);
                 this._sizeQueued += ulSize;
                 this.process();

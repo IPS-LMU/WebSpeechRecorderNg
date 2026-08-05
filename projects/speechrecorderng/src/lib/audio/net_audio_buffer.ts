@@ -264,14 +264,14 @@ export class NetRandomAccessAudioStream implements RandomAccessAudioStream{
 
     return new Observable<number>((subscriber)=>{
       // Positioning
-      let newCi=Math.floor(framePos/this._netAb.chunkFrameLen);
+      const newCi=Math.floor(framePos/this._netAb.chunkFrameLen);
       if(newCi!==this._currCi){
         this._currCi=newCi;
         this._ccCache=null;
       }
-      let srcFramePos=newCi*this._netAb.chunkFrameLen;
-      let trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
-      let srcState={orgSrcFramePos:0,srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
+      const srcFramePos=newCi*this._netAb.chunkFrameLen;
+      const trgState={framePos:framePos,frameLen:frameLen,trgBufs:bufs,filled:0};
+      const srcState={orgSrcFramePos:0,srcFramePos:srcFramePos,ci:newCi,ccPos:0,ccFilled:0};
       this.fillBufs(this._netAb.baseUrl,this._netAb.orgFetchChunkFrameLen,trgState,srcState,(val)=>{},(filled:number)=>{
         subscriber.next(filled);
         subscriber.complete();
@@ -302,8 +302,8 @@ export class NetAudioInputStream implements AsyncFloat32ArrayInputStream{
   readObs(buffers: Array<Float32Array>): Observable<number> {
     return new Observable<number>(subscr=> {
       if (buffers && buffers.length > 0) {
-        let fl = buffers[0].length;
-        this.netAbStr.framesObs(this.framePos, fl, buffers).subscribe({
+        const fl = buffers[0].length;
+        const framesSubs=this.netAbStr.framesObs(this.framePos, fl, buffers).subscribe({
           next: (read) => {
             this.framePos += read;
             subscr.next(read);
@@ -314,7 +314,8 @@ export class NetAudioInputStream implements AsyncFloat32ArrayInputStream{
           error: (err) => {
             subscr.error(err);
           }
-        })
+        });
+        subscr.add(framesSubs);
       }else{
         subscr.next(0);
         subscr.complete();

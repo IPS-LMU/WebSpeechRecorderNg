@@ -242,7 +242,7 @@ export class AudioDataHolder{
     return new Observable<void>(subscriber => {
       //if (this._audioSource instanceof  IndexedDbAudioBuffer) {
       if(this._audioSource) {
-        this._audioSource.releaseAudioData().subscribe({
+        const audioRelSubs=this._audioSource.releaseAudioData().subscribe({
           next: () => {
             subscriber.next();
           },
@@ -253,6 +253,7 @@ export class AudioDataHolder{
             subscriber.error(err);
           }
         });
+        subscriber.add(audioRelSubs);
       }else{
         subscriber.next();
         subscriber.complete();
