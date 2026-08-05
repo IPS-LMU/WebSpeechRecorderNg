@@ -19,7 +19,8 @@ import {SessionService} from "../../../speechrecorder/session/session.service";
 @Component({
   selector: 'lib-settings',
   templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.css']
+  styleUrls: ['./settings.component.css'],
+  standalone:false
 
 })
 export class SettingsComponent implements OnInit ,AfterViewInit{

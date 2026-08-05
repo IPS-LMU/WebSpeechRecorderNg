@@ -5,7 +5,8 @@ import {AudioConfig, ConstraintType} from "../../../../speechrecorder/project/pr
 @Component({
   selector: 'audio-config-switch',
   templateUrl: './audio-config-switch.component.html',
-  styleUrls: ['./audio-config-switch.component.css']
+  styleUrls: ['./audio-config-switch.component.css'],
+  standalone: false
 })
 export class AudioConfigSwitchComponent implements OnInit,AfterContentInit {
 

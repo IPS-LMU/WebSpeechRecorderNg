@@ -11,9 +11,7 @@ import {MatButton} from "@angular/material/button";
     imports: [
         MatCard,
         MatCardContent,
-        MatCardTitle,
         MatDialogTitle,
-        NgIf,
         MatButton,
         MatDialogActions,
         MatDialogClose
