@@ -187,7 +187,7 @@ import {AudioContextProvider} from "../context";
       this._loadSourceWorkletAndInitStart();
           if(this.context && this.sourceAudioWorkletNode) {
             this.sourceAudioWorkletNode.onprocessorerror = (ev: Event) => {
-              let msg = 'Unknwon error';
+              let msg = 'Unknown error';
               if (ev instanceof ErrorEvent) {
                 msg = ev.message;
               }
