@@ -30,14 +30,14 @@ import {AudioDataHolder} from "../audio_data_holder";
            overflow-y: auto;
          }`,
         `app-audio {
-     
+
          margin: 0;
          padding: 0;
          top: 0;
          left: 0;
          width: 100%;
          height: 100%;
-     
+
          /*position: absolute;*/
          box-sizing: border-box;
        }`
@@ -183,7 +183,7 @@ export class AudioDisplayScrollPane {
   }
 
 
-  set playFramePosition(framePos:number){
+  set playFramePosition(framePos:number|null){
     this.ac.playFramePosition=framePos;
   }
 

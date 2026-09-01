@@ -595,6 +595,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
 
   set displayRecFile(displayRecFile: RecordingFile | null) {
     //this.audioLoaded=false;
+    this.liveLevelDisplay.playFramePosition =null;
     this._displayRecFile = displayRecFile;
     if (this._displayRecFile) {
       let adh: AudioDataHolder| null = this._displayRecFile.audioDataHolder;
@@ -1133,8 +1134,10 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
       const ppFrames=this._controlAudioPlayer.playPositionFrames;
       if (ppFrames!==null) {
         this.recorderCombiPane.audioDisplay.playFramePosition = ppFrames;
-        this.liveLevelDisplay.playFramePosition = ppFrames;
       }
+      this.liveLevelDisplay.playFramePosition = ppFrames;
+    }else{
+      this.liveLevelDisplay.playFramePosition =null;
     }
   }
 
@@ -1148,6 +1151,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     } else if (EventType.ENDED === e.type) {
       //.status='Ready.';
       window.clearInterval(this.updateTimerId);
+      this.updateControlPlaybackPosition();
 
     }
     if(!this.destroyed) {

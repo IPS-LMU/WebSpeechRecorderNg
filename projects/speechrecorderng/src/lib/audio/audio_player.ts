@@ -240,6 +240,8 @@ export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterView
 
     if (this.ap && this.ap.playPositionFrames) {
       this.audioDisplayScrollPane.playFramePosition = this.ap.playPositionFrames;
+    }else{
+      this.audioDisplayScrollPane.playFramePosition = null;
     }
   }
 
