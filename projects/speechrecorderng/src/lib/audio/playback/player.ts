@@ -100,6 +100,13 @@ import {AudioContextProvider} from "../context";
             return this.context;
         }
 
+        private _resetPlayPosition(){
+          this.playStartTime=null;
+          if(this.sourceAudioWorkletNode){
+            this.sourceAudioWorkletNode.resetPlayPositionTime();
+          }
+        }
+
         get startAction() {
             return this._startAction;
         }
