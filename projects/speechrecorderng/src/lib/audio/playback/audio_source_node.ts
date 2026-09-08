@@ -5,6 +5,9 @@ export abstract class AudioSourceNode extends AudioWorkletNode {
   protected _playStartTime:number|null=null;
   public abstract start(when?: number | undefined,offset?: number | undefined,duration?: number | undefined): void;
   public abstract stop():void;
+  public resetPlayPositionTime():void {
+    this._playStartTime=null;
+  }
 
   get playPositionTime():number|null {
     let ppt=null;

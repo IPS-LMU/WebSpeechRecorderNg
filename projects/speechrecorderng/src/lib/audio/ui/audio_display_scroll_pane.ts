@@ -189,7 +189,7 @@ export class AudioDisplayScrollPane {
   }
 
 
-  set playFramePosition(framePos:number){
+  set playFramePosition(framePos:number|null){
     this.ac.playFramePosition=framePos;
   }
 

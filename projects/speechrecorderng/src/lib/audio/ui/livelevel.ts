@@ -132,7 +132,7 @@ export class LevelBar implements LevelListener,AfterViewInit {
     this.reset();
   }
 
-  set playFramePosition(playFramePosition: number) {
+  set playFramePosition(playFramePosition: number|null) {
     this._playFramePosition = playFramePosition;
     this.drawPlayPosition();
   }

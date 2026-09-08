@@ -259,6 +259,8 @@ export class AudioDisplayPlayer extends FitToPageComponent implements AudioPlaye
 
     if (this.ap && this.ap.playPositionFrames) {
       this.audioDisplayScrollPane.playFramePosition = this.ap.playPositionFrames;
+    }else{
+      this.audioDisplayScrollPane.playFramePosition = null;
     }
   }
 

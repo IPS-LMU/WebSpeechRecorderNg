@@ -685,6 +685,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   }
 
   protected updateDisplayRecFile(displayRecFile: SprRecordingFile | null,fetchAndApplyRecordingFile:boolean=true) {
+    this.liveLevelDisplay.playFramePosition =null;
     this.displayRecFile=displayRecFile;
     if (this._displayRecFile) {
       if(this.items) {
