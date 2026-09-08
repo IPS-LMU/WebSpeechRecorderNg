@@ -25,7 +25,7 @@ import {AudioDataHolder} from "../../audio/audio_data_holder";
           <ng-container matColumnDef="startedDate">
             <th mat-header-cell *matHeaderCellDef mat-header>Started</th>
             <td mat-cell class="monospaced"
-                *matCellDef="let element">{{element.startedDate | date:'YYYY-MM-dd HH:mm:ss'}}</td>
+                *matCellDef="let element">{{element.startedDate | date:'yyyy-MM-dd HH:mm:ss'}}</td>
           </ng-container>
           <ng-container matColumnDef="length">
             <th mat-header-cell *matHeaderCellDef mat-header>Length</th>

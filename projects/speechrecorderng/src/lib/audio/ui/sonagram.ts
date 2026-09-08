@@ -157,8 +157,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
             if (g) {
                 g.clearRect(0, 0, w, h);
                 if(this._playFramePosition!=null) {
-                    let pixelPos = this.frameToViewPortXPixelPosition(this._playFramePosition);
-                    if (pixelPos) {
+                    const pixelPos = this.frameToViewPortXPixelPosition(this._playFramePosition);
+                    if (pixelPos!=null) {
                         g.fillStyle = 'red';
                         g.strokeStyle = 'red';
                         g.beginPath();
@@ -589,7 +589,8 @@ export class Sonagram extends AudioCanvasLayerComponent {
             }
         }
         this.startRender();
-        this.drawCursorLayer()
+        this.drawCursorLayer();
+        this.drawPlayPosition();
     }
 
     private startRender() {
@@ -1029,7 +1030,7 @@ export class Sonagram extends AudioCanvasLayerComponent {
 
     setData(audioData: AudioDataHolder | null) {
         this._audioDataHolder = audioData;
-        this.playFramePosition = 0;
+        this.playFramePosition = null;
     }
 
 }

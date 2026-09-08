@@ -85,14 +85,14 @@ export class AudioSignal extends AudioCanvasLayerComponent{
 
   drawPlayPosition() {
     if (this.markerCanvas) {
-      let w = this.markerCanvas.width;
-      let h = this.markerCanvas.height;
-      let g = this.markerCanvas.getContext("2d");
+      const w = this.markerCanvas.width;
+      const h = this.markerCanvas.height;
+      const g = this.markerCanvas.getContext("2d");
       if (g) {
         g.clearRect(0, 0, w, h);
-        if(this._playFramePosition) {
-          let pixelPos = this.frameToViewPortXPixelPosition(this._playFramePosition);
-          if (pixelPos) {
+        if(this._playFramePosition!=null) {
+          const pixelPos = this.frameToViewPortXPixelPosition(this._playFramePosition);
+          if (pixelPos!=null) {
             g.fillStyle = 'red';
             g.strokeStyle = 'red';
             g.beginPath();
@@ -184,7 +184,7 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         this.signalCanvas.width = Math.round(this.bounds.dimension.width);
         this.signalCanvas.height = Math.round(this.bounds.dimension.height);
 
-        let g = this.signalCanvas.getContext("2d");
+        const g = this.signalCanvas.getContext("2d");
         if (g) {
           //g.clearRect(0, 0,w, h);
           g.fillStyle = "black";
@@ -193,7 +193,8 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       }
     }
     this.startRender();
-    this.drawCursorLayer()
+    this.drawCursorLayer();
+    this.drawPlayPosition();
   }
 
 
@@ -209,9 +210,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
       if (this._audioDataHolder) {
         this._audioDataHolder.addOnReadyListener(()=>{
           if(this._audioDataHolder && this.bounds && this.bounds.dimension) {
-            let w = Math.round(this.bounds.dimension.width);
-            let h = Math.round(this.bounds.dimension.height);
-            let vw = Math.round(this.virtualDimension.width);
+            const w = Math.round(this.bounds.dimension.width);
+            const h = Math.round(this.bounds.dimension.height);
+            const vw = Math.round(this.virtualDimension.width);
 
             if (w > 0 && h > 0 && vw > 0) {
 
@@ -220,17 +221,17 @@ export class AudioSignal extends AudioCanvasLayerComponent{
               //this.wo = new Worker('worker/audiosignal.worker.ts');
 
               //let Worker = require('worker!../../../workers/uploader/main');
-              let chs = this._audioDataHolder.numberOfChannels;
-              let leftPos = Math.round(this.bounds.position.left);
+              const chs = this._audioDataHolder.numberOfChannels;
+              const leftPos = Math.round(this.bounds.position.left);
               let renderPos = leftPos;
 
-              let frameLength = this._audioDataHolder.frameLen;
-              let framesPerPixel = Math.ceil(frameLength / vw);
+              const frameLength = this._audioDataHolder.frameLen;
+              const framesPerPixel = Math.ceil(frameLength / vw);
               //console.debug("Chs: " + chs + ", vw: " + vw + ", frameLength: " + frameLength + ", framesPerPixel: " + framesPerPixel);
               let ad: Float32Array = new Float32Array(chs * framesPerPixel);
-              let raAs = this._audioDataHolder.randomAccessAudioStream();
+              const raAs = this._audioDataHolder.randomAccessAudioStream();
               let audioBuffer: AudioBuffer | null = null;
-              let audioSource = this._audioDataHolder.audioSource;
+              const audioSource = this._audioDataHolder.audioSource;
               if (audioSource instanceof AudioBufferSource) {
                 audioBuffer = audioSource.audioBuffer;
               }
@@ -261,12 +262,12 @@ export class AudioSignal extends AudioCanvasLayerComponent{
                     const pointsLen = chs * w;
                     for (let ch = 0; ch < chs; ch++) {
                       if (psMinMax) {
-                        let rBasePos = ch * rw;
-                        let basePos = ch * w;
-                        let rPosMin = rBasePos;
-                        let rPosMax = rPointsLen + rPosMin;
-                        let posMin = basePos + (renderPos - leftPos);
-                        let posMax = pointsLen + posMin;
+                        const rBasePos = ch * rw;
+                        const basePos = ch * w;
+                        const rPosMin = rBasePos;
+                        const rPosMax = rPointsLen + rPosMin;
+                        const posMin = basePos + (renderPos - leftPos);
+                        const posMax = pointsLen + posMin;
 
                         psMinMax[posMin] = me.data.psMinMax[rPosMin];
                         //console.debug('Min: ('+posMin+'): '+me.data.psMinMax[rPosMin]);
@@ -419,9 +420,9 @@ export class AudioSignal extends AudioCanvasLayerComponent{
         });
       } else {
         if (this.bounds && this.bounds.dimension) {
-          let w = Math.round(this.bounds.dimension.width);
-          let h = Math.round(this.bounds.dimension.height);
-          let g = this.signalCanvas.getContext("2d");
+          const w = Math.round(this.bounds.dimension.width);
+          const h = Math.round(this.bounds.dimension.height);
+          const g = this.signalCanvas.getContext("2d");
           if (g) {
             g.clearRect(0, 0, w, h);
           }
@@ -451,7 +452,7 @@ drawStateText(stateText:string) {
     let g = this.signalCanvas.getContext("2d");
     if (g) {
       g.clearRect(0, 0, w, h);
-      let pointsLen = w * chs;
+      const pointsLen = w * chs;
       // one for min one for max
       //const arrLen = pointsLen * 2;
       if (this._audioDataHolder) {
@@ -600,7 +601,7 @@ drawStateText(stateText:string) {
 
   setData(audioData: AudioDataHolder | null) {
     this._audioDataHolder = audioData;
-    this.playFramePosition = 0;
+    this.playFramePosition = null;
   }
 }
 
