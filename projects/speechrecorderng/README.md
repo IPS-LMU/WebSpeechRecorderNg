@@ -212,7 +212,7 @@ files: an application points at its own assets.
 const SPR_CFG: SpeechRecorderConfig = {
   apiEndPoint: 'api/v1',
   branding: {
-    promptStage: {src: 'assets/img/visp_slogan_sv.svg', alt: 'VISP — Visible Speech', height: 28},
+    promptStage: {src: 'assets/img/visp_slogan_sv.svg', alt: 'VISP — Visible Speech', height: 32},
     controlsLeft: [{src: 'assets/img/sweclarin_logo.png', alt: 'SweCLARIN logo',
                     href: 'https://www.sweclarin.se/', height: 24}],
     controls: [{src: 'assets/img/bas.png', alt: 'Bavarian Archive for Speech Signals logo',
@@ -225,7 +225,7 @@ const SPR_CFG: SpeechRecorderConfig = {
 
 | Slot | Where | Notes |
 |---|---|---|
-| `promptStage` | bottom left of the prompt stage, below the prompt | single mark; costs ~3 px of the auto-fit prompt size at 1568×1334 |
+| `promptStage` | bottom left of the prompt stage, below the prompt | single mark; at 1568×1334 it costs 4 px of the auto-fit prompt size (74 px against 78 px without it) |
 | `progressFooter` | below the prompt list, sticky at the bottom of the rail | list of marks, centred; hidden below 768 px, like the rail itself; unused by the demo |
 | `controlsLeft` | left of the transport bar, before the status message | list of marks; stays at laptop widths, because nothing but the status message shares that end |
 | `controls` | right of the transport bar, before the state indicators | the marks step aside one at a time as the row narrows: a third from 1250 px, the second from 1100 px, none below 768 px |
