@@ -120,6 +120,26 @@ node bin/theme_audit.mjs --url http://127.0.0.1:4200/spr \
   --prepare bin/audit/use-dark-scheme.js
 ```
 
+* `bin/layout_probe.mjs` measures what a screenshot cannot: where the instruction line's text sits
+  against the centre line of the header it is in — it belongs centred, in the operator's window and
+  in the respondent mirror, whose caption is larger — and which branding mark each slot shows at a
+  given width. It drives Chrome over the DevTools protocol like the audit, or Safari over WebDriver,
+  and exits non-zero when the line leaves `--tolerance` (1px) or a page overflows its viewport:
+
+```
+node bin/layout_probe.mjs --url http://127.0.0.1:4200/spr/session/2 \
+  --mirror http://127.0.0.1:4200/spr/respondent/2 --viewports 1568x986,1280x800
+
+# Safari: allow remote automation in the Develop menu, quit Safari first (the driver starts its
+# own instance and an already running one never answers), then
+/usr/bin/safaridriver -p 4459 &
+node bin/layout_probe.mjs --browser safari --url http://127.0.0.1:4200/spr/session/2 \
+  --mirror http://127.0.0.1:4200/spr/respondent/2
+```
+
+`--mirror` opens the recorder first, because the mirror renders only while a recorder publishes a
+stage. Both tools read the same running dev server, so run one at a time.
+
 The dark scheme is opt-in with `<html data-spr-scheme="dark">`; the demo application ships its
 tokens, and the audio canvases repaint on the switch (`theme.ts` watches the attribute).
 
