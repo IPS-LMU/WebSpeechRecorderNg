@@ -28,6 +28,7 @@
     "start_prod": "ng serve --host=127.0.0.1 --configuration production",
     "prebuild": "node bin/ensure_env.mjs",
     "build": "ng build",
+    "serve:api": "node server/server.mjs",
     "watch": "ng build --watch --configuration development"
   },
   "private": true,

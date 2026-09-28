@@ -220,6 +220,37 @@ The package only contains a minimal file structure for testing. The files reside
 
 Versions 2.x.x of WebSpeechRecorderNg use the REST API version v1, Versions 3.x.x may use API version v1 and  v2. Set environment property apiVersion accordingly (default: `apiVersion: 1`) 
 
+#### Evaluation receiver
+
+`server/` contains a receiver for evaluating the recorder without writing a backend first: it
+serves the built application and implements the API described below (v1 and v2), writing every
+upload into a data directory.
+
+```
+npm run build          # production build, configured by src/environments/environment.prod.ts
+npm run serve:api      # http://127.0.0.1:8080, API base /api/v1
+```
+
+Then open `http://127.0.0.1:8080/spr/session/2` (the recordings of the seeded fixture session), or
+any other session id, and `http://127.0.0.1:8080/recorder/session/2` for the UUID keyed recorder.
+Sessions that do not exist yet are created on first load for the project and script of the seeded
+fixtures (`--no-auto-create` turns that off). Recordings, their metadata, the chunk upload state and
+the idempotency journal are written to `server/data` (`--data <dir>`), in the same layout as the
+`src/test` fixtures the directory is seeded from. `node server/server.mjs --help` lists the options,
+among them `--port`, `--api-base` (must equal the `apiEndPoint` of the environment file), `--seed`
+and `--app none` when only the API is wanted. Every request is logged to stdout with status, size
+and duration, uploads additionally with the recording file id and chunk count.
+
+The receiver tolerates the upload order of the current client, which queues the
+`concatChunksRequest` of a stopped recording *before* the chunk it encodes asynchronously: a concat
+that is still missing chunks is answered with `{"stored":true,"pending":true}` (after
+`--concat-wait-ms`, for chunks that are merely in flight) and the recording is concatenated and
+published as soon as the remaining chunks have arrived. A chunk session that never completes stays
+in the data directory and is reported in the log instead of being published truncated.
+
+To run the application from `ng serve` against the receiver instead, set `apiEndPoint` to
+`http://127.0.0.1:8080/api/v1`; the receiver answers cross origin requests.
+
 ## Configuration
 
 By default the API Endpoint ({apiEndPoint}) is an empty string, the API is then expected to be relative to the base path of the application. 
