@@ -19,7 +19,8 @@ export function provideAppTransloco() {
   return provideTransloco({
     config: {
       availableLangs: ['en', 'sv'],
-      defaultLang: 'en',
+      // Swedish is the application's default; English stays the fallback for a missing key.
+      defaultLang: 'sv',
       fallbackLang: 'en',
       missingHandler: {
         useFallbackTranslation: true,

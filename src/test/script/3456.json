@@ -20,7 +20,7 @@
               "mediaitems": [
                 {
                   "annotationTemplate": false,
-                  "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                  "text": "Välkommen till talinspelningen!"
                 }
               ]
             }
@@ -33,13 +33,13 @@
               "recduration": 8000,
               "postrecording": 2000,
               "recinstructions": {
-                "recinstructions": "Hier finden Sie kurze Anleitungen"
+                "recinstructions": "Här hittar du korta instruktioner"
               },
               "mediaitems": [
                 {
                   "annotationTemplate": false,
                   "mimetype": "text/plain",
-                  "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                  "text": "Här står prompten; en kort text som du ska läsa, en fråga som du ska besvara eller en bild som du ska beskriva."
                 }
               ]
             }
@@ -68,7 +68,7 @@
                 {
                   "annotationTemplate": false,
                   "mimetype": "text/plain",
-                  "text": "Jetzt geht's los!"
+                  "text": "Nu börjar vi!"
                 }
               ]
             }
@@ -82,7 +82,7 @@
                 {
                   "annotationTemplate": false,
                   "mimetype": "text/plain",
-                  "text": "Heute ist schönes Frühlingswetter!"
+                  "text": "I dag är det vackert vårväder!"
                 }
               ]
             }
@@ -252,7 +252,7 @@
             {
               "itemcode": "PRO",
               "recinstructions":{
-                "recinstructions": "Bitte lesen:"
+                "recinstructions": "Läs:"
               },
               "mediaitems": [
                 {

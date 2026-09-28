@@ -13,19 +13,19 @@
                   "texts": [
                     {
                       "type": "text",
-                      "text": "Heute ist "
+                      "text": "I dag är det "
                     },
                     {
                       "type": "font",
                       "style": "italic",
                       "text": {
                         "type": "text",
-                        "text": "schönes"
+                        "text": "vackert"
                       }
                     },
                     {
                       "type": "text",
-                      "text": " Frühlingswetter!"
+                      "text": " vårväder!"
                     }
                   ]
                 }

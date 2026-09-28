@@ -10,7 +10,7 @@ export const LANGUAGE_STORAGE_KEY = 'spr.lang';
 export const LANGUAGES = ['en', 'sv'] as const;
 export type Language = typeof LANGUAGES[number];
 
-/** Persisted choice, else the browser's, else English. */
+/** Persisted choice, else the browser's, else Swedish — the application's default. */
 export function initialLanguage(): Language {
   if (typeof localStorage !== 'undefined') {
     const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -19,12 +19,12 @@ export function initialLanguage(): Language {
     }
   }
   if (typeof navigator !== 'undefined') {
-    const preferred = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    const preferred = (navigator.language || 'sv').slice(0, 2).toLowerCase();
     if ((LANGUAGES as readonly string[]).includes(preferred)) {
       return preferred as Language;
     }
   }
-  return 'en';
+  return 'sv';
 }
 
 /** Catalogue of one language, flattened to the dotted keys the recorder uses. */

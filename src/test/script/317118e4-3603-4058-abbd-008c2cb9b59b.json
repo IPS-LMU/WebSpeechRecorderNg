@@ -15,7 +15,7 @@
                 "autoplay": false,
                 "mediaitemId": 1248,
                 "scope": "APPLICATION",
-                "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                "text": "Välkommen till talinspelningen!"
               }
             ],
             "recpromptId": 1247
@@ -29,7 +29,7 @@
                 "mediaitemId": 1250,
                 "mimetype": "text/plain",
                 "scope": "APPLICATION",
-                "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                "text": "Här står prompten; en kort text som du ska läsa, en fråga som du ska besvara eller en bild som du ska beskriva."
               }
             ],
             "recpromptId": 1249
@@ -43,7 +43,7 @@
                 "mediaitemId": 1255,
                 "mimetype": "text/plain",
                 "scope": "APPLICATION",
-                "text": "Jetzt geht's los!"
+                "text": "Nu börjar vi!"
               }
             ],
             "recpromptId": 1254

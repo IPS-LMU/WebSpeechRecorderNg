@@ -47,7 +47,7 @@
     "recording" : {
       "mediaitems" : [ {
         "annotationTemplate" : true,
-        "text" : "Heute ist schönes Frühlingswetter!"
+        "text" : "I dag är det vackert vårväder!"
       } ],
       "itemcode" : "demo_99",
       "recduration" : 4000,

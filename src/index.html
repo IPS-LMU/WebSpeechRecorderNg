@@ -1,5 +1,5 @@
 <!doctype html>
-<html translate="no" style="height:100%; margin: 0;padding: 0">
+<html lang="sv" translate="no" style="height:100%; margin: 0;padding: 0">
 <head>
   <meta charset="utf-8">
   <title>WebSpeechRecorderNg</title>
@@ -33,21 +33,23 @@
 </head>
 <body style="height:100%; margin: 0;padding: 0">
 
-<app-root class="mat-typography"><div class="spr-boot"><h1>Loading SpeechRecorder... Please wait.</h1></div></app-root>
+<app-root class="mat-typography"><div class="spr-boot"><h1>Laddar SpeechRecorder… vänta.</h1></div></app-root>
 
 <script>
   /* Before the application boots there is no translator: localize the placeholder and the document
      language from the stored choice, resolving it exactly as `initialLanguage()` does (see
-     `src/app/i18n/i18n.providers.ts`), so a Swedish user never sees an English flash. The
-     application repeats both at bootstrap; this only covers the window before it runs. */
+     `src/app/i18n/i18n.providers.ts`), so an English user never sees a Swedish flash. Swedish is
+     the default, so the markup above is already Swedish; this only switches to English for an
+     explicit `en` choice. The application repeats both at bootstrap; this covers the window
+     before it runs. */
   (function () {
     try {
       var stored = localStorage.getItem('spr.lang');
-      var preferred = (stored || (navigator.language || 'en')).slice(0, 2).toLowerCase();
-      if (preferred !== 'sv') return;
-      document.documentElement.setAttribute('lang', 'sv');
+      var preferred = (stored || (navigator.language || 'sv')).slice(0, 2).toLowerCase();
+      if (preferred !== 'en') return;
+      document.documentElement.setAttribute('lang', 'en');
       var splash = document.querySelector('app-root > .spr-boot h1');
-      if (splash) splash.textContent = 'Laddar SpeechRecorder… vänta.';
+      if (splash) splash.textContent = 'Loading SpeechRecorder… please wait.';
     } catch (e) { /* storage unavailable (private mode) — keep the default */ }
   })();
 </script>

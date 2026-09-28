@@ -154,8 +154,9 @@ unmodified and in proportion.
 
 The demo application ships English and Swedish: Transloco loads `src/assets/i18n/<lang>.json`,
 the toolbar menu switches language, the choice is remembered in `localStorage` under `spr.lang`,
-and `<html lang>` follows. The recorder's own strings come from the library's catalogue through
-the `SPEECHRECORDER_STRINGS` token (see
+and `<html lang>` follows. Swedish is the default: a stored choice wins, then a browser that
+prefers English or Swedish, then Swedish. The recorder's own strings come from the library's
+catalogue through the `SPEECHRECORDER_STRINGS` token (see
 [Translations in the module README](projects/speechrecorderng/README.md#translations)) — one
 switch covers the whole application.
 
@@ -346,7 +347,7 @@ Example script:
               "itemcode": "I0",
               "mediaitems": [
                 {
-                  "text": "Willkommen bei der IPS-Sprachaufnahme!"
+                  "text": "Välkommen till talinspelningen!"
                 }
               ],
               
@@ -355,7 +356,7 @@ Example script:
               "itemcode": "I1",
               "mediaitems": [
                 {
-                  "text": "Hier steht der Prompt; ein kurzer Text, den Sie lesen, eine Frage, die Sie beantworten oder ein Bild, das Sie beschreiben sollen."
+                  "text": "Här står prompten; en kort text som du ska läsa, en fråga som du ska besvara eller en bild som du ska beskriva."
                 }
               ],
               
@@ -493,7 +494,7 @@ A server response might look like this:
     "recording" : {
       "mediaitems" : [ {
         "annotationTemplate" : true,
-        "text" : "Heute ist schönes Frühlingswetter!"
+        "text" : "I dag är det vackert vårväder!"
       } ],
       "itemcode" : "demo_99",
       "recduration" : 4000,
