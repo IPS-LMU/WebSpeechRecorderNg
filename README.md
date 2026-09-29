@@ -104,7 +104,8 @@ Short version:
 * `bin/theme_audit.mjs` verifies the result (legacy literals, WCAG AA contrast, minimum
   text size, token pin integrity, no document scrollbars) against a running dev server:
 
-```
+```sh
+npm run serve:api   # the API the development server proxies /api/v1 to
 npm start
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --remote-debugging-port=9333 about:blank &
 node bin/theme_audit.mjs --url http://127.0.0.1:4200/spr --viewports 1024x768,1366x768,1568x1334,1920x1080
@@ -248,8 +249,19 @@ that is still missing chunks is answered with `{"stored":true,"pending":true}` (
 published as soon as the remaining chunks have arrived. A chunk session that never completes stays
 in the data directory and is reported in the log instead of being published truncated.
 
-To run the application from `ng serve` against the receiver instead, set `apiEndPoint` to
-`http://127.0.0.1:8080/api/v1`; the receiver answers cross origin requests.
+`ng serve` uses the receiver as well: `src/environments/environment.ts` (the tracked default of
+`ng serve` and `ng build --configuration development`) sets `apiType: 'normal'` and
+`apiEndPoint: '/api/v1'`, and `proxy.conf.json` forwards `/api/v1` to `http://127.0.0.1:8080`.
+Start the receiver in one terminal and the development server in another:
+
+```sh
+npm run serve:api   # terminal 1: the API, storing uploads in server/data
+npm start           # terminal 2: http://127.0.0.1:4200/spr/session/2
+```
+
+The endpoint stays relative and the browser only ever talks to the origin it loaded the
+application from, so no cross origin configuration is needed. Without the receiver the proxy
+answers 504 — sessions, scripts and uploads all come from the API.
 
 ## Configuration
 
@@ -257,7 +269,7 @@ By default the API Endpoint ({apiEndPoint}) is an empty string, the API is then 
 
 The application takes its settings from the environment files in `src/environments`:
 
-* `environment.ts` — tracked defaults, used by `ng serve` and `ng build --configuration development`.
+* `environment.ts` — tracked defaults, used by `ng serve` and `ng build --configuration development`. It records against the evaluation receiver (`apiEndPoint: '/api/v1'`, proxied by `proxy.conf.json`) and uploads every recording; `environment.demo.sample.ts` is the variant that only reads the `src/test` fixtures.
 * `environment.prod.sample.ts` — the template for a deployment.
 * `environment.prod.ts` — deployment specific and **not tracked by git**. Production builds (`npm run build`/`ng build`, the default configuration) replace `environment.ts` with it, see the `fileReplacements` entry of `WebSpeechRecorderNg:build:production` in `angular.json`.
 
@@ -630,6 +642,13 @@ Run `ng serve` for a development server.
 Navigate to `http://localhost:4200/spr/session/2` start a demo recording session. 
 Or edit/view a test recording file ID 1234 from the demo database:
 `http://localhost:4200/spr/db/recordingfile/1234`
+
+The development server takes its data from the evaluation receiver and stores what it records
+there: start `npm run serve:api` (terminal 1) before `npm start` (terminal 2). `/api/v1` requests
+are proxied to `http://127.0.0.1:8080` by `proxy.conf.json`, and the receiver writes every
+recording to `server/data/recordingfile`. See
+[Evaluation receiver](#evaluation-receiver). To run without a backend on the `src/test` fixtures,
+copy `src/environments/environment.demo.sample.ts` over `src/environments/environment.ts`.
 
 The app will automatically reload if you change any of the source files.
 
