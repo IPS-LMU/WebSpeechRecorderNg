@@ -381,7 +381,7 @@ export class TransportPanel extends ResponsiveComponent{
     return !this.actions || this.actions.pauseAction.disabled || !this.pausingEnabled;
   }
 
-  /** Hidden rather than disabled: only prompts that carry a sound offer the control. */
+  /** Hidden rather than disabled: only prompts whose sound the script lets the operator play offer it. */
   playPromptDisabled() {
     return !this.actions || this.actions.playPromptAction.disabled;
   }

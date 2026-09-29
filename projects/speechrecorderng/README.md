@@ -482,6 +482,10 @@ Properties (supported properties only):
    for a sound prompt and what the prompt list shows for any item.
  * autoplay: boolean: `audio/*` only. Play the sound when the prompt is presented. Default: `true`;
    `false` leaves the sound to the operator's play control.
+ * replay: boolean: `audio/*` only. Let the operator play the sound again — the *Prompt sound*
+   control in the transport bar and the `R` key. Default: `true`; `false` is what a test section
+   wants: the stimulus is played once when the take starts and cannot be repeated. A sound with
+   `autoplay: false` **and** `replay: false` is never played; the stage logs that.
  * defaultVirtualViewBox: object: `{height}` the prompt is scaled against.
 
 Example script:
@@ -565,9 +569,24 @@ played to the respondent when the take starts. The traffic light waits for it:
 | `prerecdelay` is over | the light turns **Recording** and the voice is recorded |
 
 Neither the gold cue nor the green recording lamp comes up while the respondent is still
-listening, so nobody starts speaking over the prompt. `autoplay: false` skips the wait: the take
-runs as for a text prompt and the operator starts the sound with the *Prompt sound* control in the
-transport bar (key `R`), which also repeats a sound during a take or a replay.
+listening, so nobody starts speaking over the prompt. Two flags of the media item decide what the
+script allows:
+
+| `autoplay` | `replay` | What happens |
+|---|---|---|
+| `true` (default) | `true` (default) | the sound plays when the take starts, the light waits for it, and the operator may repeat it with the *Prompt sound* control (key `R`) |
+| `true` | `false` | played once when the take starts; no control and `R` does nothing — the stimulus of a test item |
+| `false` | `true` | nothing plays automatically; the operator starts the sound with the control, before or during the take |
+| `false` | `false` | never played; the stage logs that the item stays silent |
+
+While a take is waiting for its sound, a replay restarts the sound and with it the wait — with the
+clocks the take was started with, so it cannot shorten the recording window. `replay: false` turns
+that off as well, so a supervised session cannot hold the recording back or repeat a stimulus that
+a test wants played exactly once.
+
+The setting is per sound (`Mediaitem.replay`). A section wide default — a training section that
+allows repeats, a test section that does not — would sit on `Section` and override the item; the
+per item flag is what is implemented today.
 
 The microphone is already capturing when the sound plays (that is what `prerecording` means), so
 a sound played over loudspeakers is part of the recording — which is what a shadowing task wants.
@@ -587,7 +606,8 @@ already picks the sound out of a list, so lifting the restriction in the stage i
 step).
 
 `src/test/script/3457.json` (session 9) is a small sound-prompt script: one item that plays a
-sound automatically, one that leaves it to the play control (`autoplay: false`) and one text item.
+sound automatically and repeatably, one that leaves it to the play control (`autoplay: false`),
+one that is played once without a replay (`replay: false`) and one text item.
 
 ### Recording file
 

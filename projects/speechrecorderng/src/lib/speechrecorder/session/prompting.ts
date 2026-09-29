@@ -319,6 +319,12 @@ export class Prompter {
     this.renderer.addClass(hint, 'spr-prompt-audio-hint');
     this.renderer.appendChild(hint, this.renderer.createText(this.i18n.t('spr.prompt.audioHint')));
     this.renderer.appendChild(wrapper, hint);
+    if (!MediaitemUtil.isAutoplayedAudio(mi) && !MediaitemUtil.isReplayableAudio(mi)) {
+      // Nothing would ever play this sound: the script forbids the automatic playback and the
+      // replay, which leaves the respondent listening to a caption.
+      SprLogger.warn("Prompt sound '" + (mi.src ?? '') + "' is neither played when the take starts"
+        + " nor replayable (autoplay and replay are false) — it will stay silent.");
+    }
     return wrapper;
   }
 }

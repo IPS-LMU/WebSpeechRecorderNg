@@ -35,6 +35,15 @@ describe('MediaitemUtil', () => {
     expect(MediaitemUtil.isAutoplayedAudio(mediaitem({mimetype: 'image/jpg'}))).toBe(false);
   });
 
+  it('offers a sound for a replay unless the script forbids it', () => {
+    expect(MediaitemUtil.isReplayableAudio(mediaitem({mimetype: 'audio/wav'}))).toBe(true);
+    expect(MediaitemUtil.isReplayableAudio(mediaitem({mimetype: 'audio/wav', replay: true}))).toBe(true);
+    expect(MediaitemUtil.isReplayableAudio(mediaitem({mimetype: 'audio/wav', replay: false}))).toBe(false);
+    expect(MediaitemUtil.isReplayableAudio(mediaitem({mimetype: 'text/plain'}))).toBe(false);
+    expect(MediaitemUtil.isReplayableAudio(mediaitem({mimetype: 'image/jpg'}))).toBe(false);
+    expect(MediaitemUtil.isReplayableAudio(null)).toBe(false);
+  });
+
 });
 
 describe('PromptitemUtil.autoplayAudioitem', () => {
@@ -63,10 +72,22 @@ describe('PromptitemUtil.autoplayAudioitem', () => {
   it('finds a sound that is left to the play control, which the autoplay lookup skips', () => {
     const onDemand = mediaitem({mimetype: 'audio/wav', src: 'resources/audio/cue.wav', autoplay: false});
     const promptItem = {itemcode: 'A1', mediaitems: [onDemand]};
-    expect(PromptitemUtil.audioitem(promptItem)).toBe(onDemand);
     expect(PromptitemUtil.autoplayAudioitem(promptItem)).toBeNull();
-    expect(PromptitemUtil.audioitem({itemcode: 'T0', mediaitems: [mediaitem({text: 'read'})]})).toBeNull();
-    expect(PromptitemUtil.audioitem(null)).toBeNull();
+    expect(PromptitemUtil.replayAudioitem(promptItem)).toBe(onDemand);
+  });
+
+  it('offers no replay for a sound the script plays exactly once', () => {
+    const once = mediaitem({mimetype: 'audio/wav', src: 'resources/audio/cue.wav', replay: false});
+    const promptItem = {itemcode: 'A2', mediaitems: [once]};
+    expect(PromptitemUtil.autoplayAudioitem(promptItem)).toBe(once);
+    expect(PromptitemUtil.replayAudioitem(promptItem)).toBeNull();
+  });
+
+  it('has no lookup for a sound that is neither played nor replayable', () => {
+    const silent = mediaitem({mimetype: 'audio/wav', src: 'resources/audio/cue.wav', autoplay: false, replay: false});
+    const promptItem = {itemcode: 'A3', mediaitems: [silent]};
+    expect(PromptitemUtil.autoplayAudioitem(promptItem)).toBeNull();
+    expect(PromptitemUtil.replayAudioitem(promptItem)).toBeNull();
   });
 
 });

@@ -47,7 +47,15 @@ export interface Mediaitem {
    * Start this media item (only audio is played) when its prompt is presented. A script that
    * sets `false` leaves the sound to the operator's play action. Default: true.
    */
-  autoplay?: boolean
+  autoplay?: boolean,
+  /**
+   * Let the operator play this sound again — with the play control of the transport bar and the
+   * `R` key, before a take, during one, or while a take is still waiting for the sound.
+   *
+   * Only meaningful for audio; `false` is what a test section wants: the stimulus is played once
+   * when the take starts and cannot be repeated. Default: true.
+   */
+  replay?: boolean
 }
 
 /**
@@ -161,6 +169,11 @@ export class MediaitemUtil {
     return MediaitemUtil.kind(mediaitem) === 'audio' && mediaitem?.autoplay !== false;
   }
 
+  /** An audio media item the operator may play again (unless the script sets `replay: false`). */
+  static isReplayableAudio(mediaitem: Mediaitem|null|undefined): boolean {
+    return MediaitemUtil.kind(mediaitem) === 'audio' && mediaitem?.replay !== false;
+  }
+
   static toPlainTextString(mediaitem: Mediaitem): string|null {
 
     let txt = mediaitem.text;
@@ -217,19 +230,14 @@ export class MediaitemUtil {
 }
 
 export class PromptitemUtil {
-  /**
-   * The first audio media item of a prompt, played or not — the play control offers it.
-   *
-   * A prompt carries one media item today; scanning the list keeps the stage working when a
-   * script ships a text and a sound item side by side.
-   */
-  static audioitem(promptItem: PromptItem|null|undefined): Mediaitem|null {
-    return PromptitemUtil.firstOfKind(promptItem, (mediaitem) => MediaitemUtil.kind(mediaitem) === 'audio');
-  }
-
   /** The audio media item a take starts with, or `null` (`autoplay: false` leaves it to the operator). */
   static autoplayAudioitem(promptItem: PromptItem|null|undefined): Mediaitem|null {
     return PromptitemUtil.firstOfKind(promptItem, (mediaitem) => MediaitemUtil.isAutoplayedAudio(mediaitem));
+  }
+
+  /** The audio media item the operator may play, or `null` when the script does not allow a replay. */
+  static replayAudioitem(promptItem: PromptItem|null|undefined): Mediaitem|null {
+    return PromptitemUtil.firstOfKind(promptItem, (mediaitem) => MediaitemUtil.isReplayableAudio(mediaitem));
   }
 
   private static firstOfKind(promptItem: PromptItem|null|undefined, matches: (mediaitem: Mediaitem) => boolean): Mediaitem|null {

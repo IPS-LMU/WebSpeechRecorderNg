@@ -1364,9 +1364,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
-  /** The operator's play action: replays the prompt sound, restarting the wait of a pending take. */
+  /**
+   * The operator's play action: replays the prompt sound, restarting the wait of a pending take.
+   * The script decides whether an item offers it at all (`Mediaitem.replay`).
+   */
   private playPromptAudio() {
-    const mediaitem = PromptitemUtil.audioitem(this.promptItem);
+    const mediaitem = PromptitemUtil.replayAudioitem(this.promptItem);
     if (mediaitem === null) {
       return;
     }
@@ -1391,13 +1394,14 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.updatePromptAudioActionState();
   }
 
-  /** The play action only exists for items that carry a sound. */
+  /** The play action only exists where the script lets the operator play the sound. */
   private updatePromptAudioActionState() {
-    this.transportActions.playPromptAction.disabled = PromptitemUtil.audioitem(this.promptItem) === null;
+    this.transportActions.playPromptAction.disabled = PromptitemUtil.replayAudioitem(this.promptItem) === null;
   }
 
+  /** Warms the cache for a sound the take will play or the operator may play. */
   private prefetchPromptAudio() {
-    const mediaitem = PromptitemUtil.audioitem(this.promptItem);
+    const mediaitem = PromptitemUtil.autoplayAudioitem(this.promptItem) ?? PromptitemUtil.replayAudioitem(this.promptItem);
     if (mediaitem !== null) {
       this.promptAudio.prefetch(this.projectName, mediaitem);
     }
