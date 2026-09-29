@@ -15,8 +15,11 @@ export class WakeLockManager {
     return this._behaviorSubject;
   }
 
-  // @ts-ignore
-  private wakeLockSentinel:WakeLockSentinel;
+  private wakeLockSentinel:WakeLockSentinel|null = null;
+  /** A request is in flight; the API rejects when the document is hidden or the lock is denied. */
+  private wakeLockRequestPending=false;
+  /** Whether a caller currently wants the lock, so a late grant can be released again. */
+  private wakeLockWanted=false;
   private mp4VideoElement?:HTMLVideoElement;
   private wakeLockApiSupported=false;
   private wakeLockRetryCount=0;
@@ -34,17 +37,48 @@ export class WakeLockManager {
     this.randomSeekRequired=(this.userAgent?.detectedBrowser===Browser.Safari);
   }
 
+  /**
+   * Asks the browser for the screen wake lock.
+   *
+   * A rejected request (permission policy, hidden document, low power) is a normal answer, not an
+   * error of the stream: the indicator goes off and the next take asks again. The state subject is
+   * therefore never completed — `error` would terminate it and the indicator could never turn on
+   * again in that session (the video fallback below keeps its own error handling).
+   *
+   * One lock per manager: a take that starts while the previous lock is still held (for example
+   * before the upload of the last one finished) must not request a second sentinel, or the first
+   * one would be left released by nobody.
+   */
   enableWakeLock(){
       if(this.wakeLockApiSupported) {
-          //@ts-ignore
+          this.wakeLockWanted=true;
+          if (this.wakeLockSentinel !== null || this.wakeLockRequestPending) {
+            return;
+          }
+          this.wakeLockRequestPending=true;
           navigator.wakeLock.request('screen').then((wls)=>{
+            this.wakeLockRequestPending=false;
+            if (!this.wakeLockWanted) {
+              // The take was stopped while the browser was deciding: do not hold a lock nobody wants.
+              this.releaseSentinel(wls);
+              return;
+            }
             this.wakeLockSentinel=wls;
+            // The browser revokes the lock itself when the document becomes hidden; the indicator
+            // must not keep claiming that the screen is locked.
+            wls.addEventListener('release', () => {
+              if (this.wakeLockSentinel === wls) {
+                this.wakeLockSentinel=null;
+                this._behaviorSubject.next(false);
+              }
+            });
             this.wakeLockRetryCount=0;
             SprLogger.debug('Wake lock screen request successful.');
             this._behaviorSubject.next(true);
           }).catch((reason:any)=>{
-            SprLogger.error('Wakelock failed: '+reason)
-            this._behaviorSubject.error(reason);
+            this.wakeLockRequestPending=false;
+            SprLogger.warn('Wake lock screen request failed: '+reason)
+            this._behaviorSubject.next(false);
 
           });
 
@@ -112,20 +146,40 @@ export class WakeLockManager {
   }
 
 
+  /**
+   * Releases the lock, if one is held. Called between takes and on destroy, so it must also be
+   * safe when the browser never granted the lock (the denied case) — the sentinel is `null` then
+   * and there is nothing to release.
+   */
   disableWakeLock(){
     if(this.wakeLockApiSupported) {
-        this.wakeLockSentinel.release().then(()=>{
+        this.wakeLockWanted=false;
+        const sentinel=this.wakeLockSentinel;
+        this.wakeLockSentinel=null;
+        if (sentinel === null) {
+          // Never granted, already revoked by the browser, or a request that is still in flight
+          // (that one releases itself when it arrives).
+          this._behaviorSubject.next(false);
+          return;
+        }
+        sentinel.release().then(()=>{
           SprLogger.debug('Wake lock release successful.');
           this._behaviorSubject.next(false);
         }).catch((reason:any)=>{
-          SprLogger.error('Wakelock release failed: '+reason)
-          this._behaviorSubject.error(reason);
+          SprLogger.warn('Wake lock release failed: '+reason)
+          this._behaviorSubject.next(false);
         });
     }else {
       if (this.mp4VideoElement) {
         this.mp4VideoElement.pause();
       }
     }
+  }
+
+  private releaseSentinel(sentinel:WakeLockSentinel){
+    sentinel.release().catch((reason:any)=>{
+      SprLogger.warn('Wake lock release failed: '+reason);
+    });
   }
 
 }
