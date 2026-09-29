@@ -642,6 +642,8 @@ Run `ng serve` for a development server.
 Navigate to `http://localhost:4200/spr/session/2` start a demo recording session. 
 Or edit/view a test recording file ID 1234 from the demo database:
 `http://localhost:4200/spr/db/recordingfile/1234`
+`http://localhost:4200/spr/session/9` runs script 3457, whose prompts are sounds played to the
+respondent — see [Prompt audio](projects/speechrecorderng/README.md#prompt-audio).
 
 The development server takes its data from the evaluation receiver and stores what it records
 there: start `npm run serve:api` (terminal 1) before `npm start` (terminal 2). `/api/v1` requests

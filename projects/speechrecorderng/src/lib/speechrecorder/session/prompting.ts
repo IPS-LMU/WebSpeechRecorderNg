@@ -17,7 +17,7 @@ import {
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {Item} from "./item";
-import {Block, Text, Mediaitem, PromptItem} from "../script/script";
+import {Block, Text, Mediaitem, MediaitemKind, MediaitemUtil, PromptItem} from "../script/script";
 import {TransportActions} from "./controlpanel";
 import {Action} from "../../action/action";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig, SprLogo} from "../../spr.config";
@@ -26,6 +26,8 @@ import {ProjectService} from "../project/project.service";
 import {AudioClip} from "../../audio/persistor";
 import {ResponsiveComponent} from "../../ui/responsive_component";
 import {BreakpointObserver} from "@angular/cdk/layout";
+import {SprTranslator} from "../../i18n/translate";
+import {SprLogger} from "../../utils/logger";
 
 
 @Component({
@@ -100,6 +102,24 @@ export class Recinstructions {
     max-width: 100%;
     /* A separate flex container might be necessayr to alighn centered */
     vertical-align: middle; /* TODO does not work, image is not vertically centered */
+  }`, `
+  /* A sound prompt: the stage names it and asks the respondent to listen. */
+  .spr-prompt-audio {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  .spr-prompt-audio-label {
+    font-weight: bold;
+  }
+
+  .spr-prompt-audio-hint {
+    font-weight: normal;
+    font-size: var(--spr-type-section, 17.28px);
+    color: var(--spr-ink-muted, #4A6288);
   }`],
     standalone: false
 })
@@ -116,9 +136,7 @@ export class Prompter {
 
   @HostBinding('class.fill') public prompterStyleFill = false;
 
-  constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService) {
-
-  }
+  constructor(private elRef: ElementRef, private renderer: Renderer2, private projectService: ProjectService, private i18n: SprTranslator) {}
 
   get text() {
     return this._text;
@@ -179,10 +197,7 @@ export class Prompter {
     }
     if (this._promptMediaItems && this._promptMediaItems.length == 1) {
       let mi = this._promptMediaItems[0]
-      this.mimetype = 'text/plain'
-      if (mi.mimetype) {
-        this.mimetype = mi.mimetype.trim();
-      }
+      this.mimetype = MediaitemUtil.mimeType(mi);
       if (this.mimetype === 'text/plain') {
         this._text = mi.text
         this._src = null;
@@ -264,12 +279,47 @@ export class Prompter {
         if(srcUrl) {
           promptImage.src = srcUrl;
         }
+      } else if (MediaitemUtil.kind(mi) === 'audio') {
+        this._text = null;
+        this._src = mi.src ?? null;
+        this.prompterStyleFill = false;
+        this.currPromptChild = this.audioPromptElement(mi);
+        this.renderer.appendChild(this.elRef.nativeElement, this.currPromptChild);
+      } else {
+        this._text = null;
+        this._src = null;
+        this.prompterStyleFill = false;
+        SprLogger.warn("Prompt media item of mimetype '" + this.mimetype + "' is not supported and not shown.");
       }
 
     } else {
       this._text = null
       this._src = null
     }
+  }
+
+  /**
+   * The stage of a sound prompt: names the sound and tells the respondent to listen.
+   *
+   * The sound itself is played by the session manager through `PromptAudioService`, which also
+   * holds the traffic light back until it has been played to the end — a "get ready" or
+   * "recording" lamp while the respondent is still listening would be wrong.
+   */
+  private audioPromptElement(mi: Mediaitem): HTMLElement {
+    const wrapper = this.renderer.createElement('div');
+    this.renderer.addClass(wrapper, 'spr-prompt-audio');
+    const label = MediaitemUtil.description(mi);
+    if (label !== '') {
+      const caption = this.renderer.createElement('span');
+      this.renderer.addClass(caption, 'spr-prompt-audio-label');
+      this.renderer.appendChild(caption, this.renderer.createText(label));
+      this.renderer.appendChild(wrapper, caption);
+    }
+    const hint = this.renderer.createElement('span');
+    this.renderer.addClass(hint, 'spr-prompt-audio-hint');
+    this.renderer.appendChild(hint, this.renderer.createText(this.i18n.t('spr.prompt.audioHint')));
+    this.renderer.appendChild(wrapper, hint);
+    return wrapper;
   }
 }
 
@@ -360,13 +410,10 @@ export class PromptContainer implements OnInit,AfterContentChecked {
 
     this._mediaitems = mediaitems
 
-    let mimetype:string|null=null;
+    let kind:MediaitemKind|null=null;
     if (this._mediaitems && this._mediaitems.length == 1) {
       let mi = this._mediaitems[0]
-      mimetype = 'text/plain'
-      if (mi.mimetype) {
-        mimetype = mi.mimetype.trim();
-      }
+      kind = MediaitemUtil.kind(mi);
       if(mi.defaultVirtualViewBox){
         this.prompterHeight=mi.defaultVirtualViewBox.height
       }
@@ -374,7 +421,8 @@ export class PromptContainer implements OnInit,AfterContentChecked {
       this.prompterHeight=VIRTUAL_HEIGHT
     }
     this.prompter.promptMediaItems=this._mediaitems
-    this.autoFontSize=(mimetype!=null && mimetype.startsWith('text/'));
+    // Text is scaled into the stage; images and sounds keep their own size.
+    this.autoFontSize=(kind === 'text' || kind === 'prompt');
 
     this.layout();
 

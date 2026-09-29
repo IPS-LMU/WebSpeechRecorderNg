@@ -466,7 +466,23 @@ Properties:
 ### Embedded entity Media item
 
 Properties (supported properties only):
+
+ * mimetype: string: How the item is presented. A missing mimetype means `text/plain`.
+   * `text/plain` — `text` is shown as the prompt.
+   * `text/x-prompt` — `promptDoc` is rendered as decorated prompt blocks.
+   * `image/*` — `src` names a project resource that is shown as the prompt.
+   * `audio/*` — `src` names a project resource that is played as the prompt (see
+     [Prompt audio](#prompt-audio)).
+   * anything else is not rendered; the stage logs a warning.
  * text: string: Text to prompt
+ * src: string: Project resource of an image or a sound, e.g. `resources/images/item.jpg`,
+   `resources/audio/stimulus.wav`. Resolved as `{apiEndPoint}project/{projectId}/{src}`.
+ * promptDoc: object: Decorated prompt document for `text/x-prompt`.
+ * alt: string: Accessible, human readable description of the item. It is what the stage shows
+   for a sound prompt and what the prompt list shows for any item.
+ * autoplay: boolean: `audio/*` only. Play the sound when the prompt is presented. Default: `true`;
+   `false` leaves the sound to the operator's play control.
+ * defaultVirtualViewBox: object: `{height}` the prompt is scaled against.
 
 Example script:
 ```
@@ -535,7 +551,43 @@ Example script:
   ]
 }
            
-```  
+```
+
+### Prompt audio
+
+A prompt item whose media item is a sound (`mimetype: 'audio/*'`, `src` a project resource) is
+played to the respondent when the take starts. The traffic light waits for it:
+
+| Item clock | What happens |
+|---|---|
+| the take is started | the prompt is presented (caption, image or the sound) and the sound is played; the light stays at **Stop** |
+| the sound has played to the end | the light turns **Get ready** and `prerecdelay` (default 1000 ms) starts |
+| `prerecdelay` is over | the light turns **Recording** and the voice is recorded |
+
+Neither the gold cue nor the green recording lamp comes up while the respondent is still
+listening, so nobody starts speaking over the prompt. `autoplay: false` skips the wait: the take
+runs as for a text prompt and the operator starts the sound with the *Prompt sound* control in the
+transport bar (key `R`), which also repeats a sound during a take or a replay.
+
+The microphone is already capturing when the sound plays (that is what `prerecording` means), so
+a sound played over loudspeakers is part of the recording — which is what a shadowing task wants.
+Headphones keep it out of the recording. The sound is loaded from
+`{apiEndPoint}project/{projectId}/{src}`, the same route as image prompts (the evaluation receiver
+serves it from `<data>/project/<id>/<src>`), and is fetched once per session, so a repeating
+stimulus is played from the cache. A sound that cannot be fetched, decoded or started is reported
+in the status line and the take continues without it — the light never waits forever.
+
+The sound is played by the recorder window; the [respondent display](#respondent-display) mirrors
+the stage and the signal (so its traffic light waits as well) but plays no sound of its own.
+
+A prompt carries one media item today, so a sound prompt shows the sound's `alt` text and the
+localised "Listen to the prompt." hint on the stage instead of a text prompt. A script that needs
+both a text and a sound for one item is not supported yet (`PromptitemUtil.autoplayAudioitem`
+already picks the sound out of a list, so lifting the restriction in the stage is the remaining
+step).
+
+`src/test/script/3457.json` (session 9) is a small sound-prompt script: one item that plays a
+sound automatically, one that leaves it to the play control (`autoplay: false`) and one text item.
 
 ### Recording file
 

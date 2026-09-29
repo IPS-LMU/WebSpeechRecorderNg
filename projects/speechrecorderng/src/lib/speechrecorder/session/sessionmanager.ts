@@ -1,7 +1,7 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
-import {Group, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
+import {Group, Mediaitem, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
 import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {Upload, UploadHolder} from '../../net/uploader';
 import {
@@ -13,11 +13,13 @@ import {
   Input,
   OnDestroy,
   Renderer2,
-  ViewChild
+  ViewChild,
+  inject
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {State as StartStopSignalState} from "../startstopsignal/startstopsignal";
 import {KEY, collidingBinding, isEditableTarget, keyLabel} from "./keybindings";
+import {PromptAudioResult, PromptAudioService} from "../../audio/prompt_audio";
 import {buildRespondentSnapshot} from "../respondent/respondent-snapshot";
 import {SCHEME_ATTRIBUTE} from "../../theme/theme";
 import {MatDialog} from "@angular/material/dialog";
@@ -223,6 +225,15 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   private preRecTimerId: number|null=null;
   private preRecTimerRunning: boolean|null=null;
+
+  private readonly promptAudio = inject(PromptAudioService);
+  /** Invalidates a playback that a stop, a pause or a new item has overtaken. */
+  private promptAudioToken = 0;
+  /**
+   * Set while a take waits for its prompt sound to be played to the end, holding the clocks
+   * (and the traffic light) of the item the sound belongs to.
+   */
+  private promptAudioPending: {preDelay: number, maxRecordingTimeMs: number}|null = null;
   private postDelay:number=DEFAULT_POST_REC_DELAY;
   private postRecTimerId: number|null=null;
   private postRecTimerRunning: boolean|null=null;
@@ -378,7 +389,12 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.transportActions.fwdNextAction.onAction = () => this.nextUnrecordedItem();
       this.transportActions.bwdAction.onAction = () => this.prevItem();
       this.transportActions.respondentAction.onAction = () => this.openRespondentDisplay();
-      this.playStartAction.onAction = () => this.controlAudioPlayer?.start();
+      this.transportActions.playPromptAction.onAction = () => this.playPromptAudio();
+      this.playStartAction.onAction = () => {
+        // Reviewing a recording is the other playback: never both at once.
+        this.cancelPromptAudio();
+        this.controlAudioPlayer?.start();
+      };
 
     this.startStopSignalState = StartStopSignalState.OFF;
 
@@ -511,6 +527,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     if (ke.key == KEY.PLAY) {
       this.playStartAction.perform();
+    }
+    if (ke.key === KEY.PLAY_PROMPT && !ke.repeat && !isEditableTarget(ke)) {
+      this.transportActions.playPromptAction.perform();
     }
     if (ke.key === KEY.FORWARD) {
       this.transportActions.fwdAction.perform();
@@ -1046,6 +1065,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   updateStartActionDisableState(){
     this.transportActions.startAction.disabled=!(this.ac  && this.isRecordingItem());
+    this.updatePromptAudioActionState();
   }
 
   applyItem(temporary=false) {
@@ -1055,6 +1075,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.promptItem = this.group._shuffledPromptItems[this.promptItemIdxInGroup];
 
     //this.selectedItemIdx = this.promptIndex;
+
+    this.cancelPromptAudio();
+    this.prefetchPromptAudio();
 
     if(this.audioFetchSubscription){
       //console.debug("Unsubscribe from audio fetch.");
@@ -1220,7 +1243,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.status = Status.PRE_RECORDING;
     super.started();
 
-    this.startStopSignalState = StartStopSignalState.PRERECORDING;
     if(this._session) {
       if (this._session.status === "LOADED") {
         let body: any = {};
@@ -1246,7 +1268,6 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.applyPrompt();
     }
     this.statusAlertType = 'info';
-    this.statusMsg = this.i18n.t('spr.status.recording');
 
     let preDelay = DEFAULT_PRE_REC_DELAY;
     if (this.promptItem.prerecdelay!=null) {
@@ -1266,12 +1287,35 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if (this.promptItem.recduration!==null && this.promptItem.recduration!==undefined) {
       maxRecordingTimeMs = preDelay+this.promptItem.recduration+this.postDelay;
     }
+
+    const promptAudio = PromptitemUtil.autoplayAudioitem(this.promptItem);
+    if (promptAudio !== null) {
+      // The sound is the prompt: the item's clocks start when it has been played to the end, so
+      // neither the cue lamp nor the recording lamp can come up while the respondent is listening.
+      this.statusMsg = this.i18n.t('spr.status.promptAudio');
+      this.startPromptAudio(promptAudio, preDelay, maxRecordingTimeMs);
+    } else {
+      this.beginPrerecording(preDelay, maxRecordingTimeMs);
+    }
+  }
+
+  /**
+   * Starts the item's clocks: the pre-recording cue (traffic light gold), then the recording
+   * window (green) after `preDelay`, and the item's maximum recording time from here on.
+   *
+   * Called when the take starts, or after the prompt sound has ended (see `startPromptAudio`).
+   */
+  private beginPrerecording(preDelay: number, maxRecordingTimeMs: number) {
+    this.statusMsg = this.i18n.t('spr.status.recording');
+    this.startStopSignalState = StartStopSignalState.PRERECORDING;
+
+    // `super.started()` arms a generic safety timer; the item's own window replaces it. The
+    // previous one is cleared, or it would stop a take an hour later.
+    this.clearMaxRecTimer();
     this.maxRecTimerId = window.setTimeout(() => {
       this.stopRecordingMaxRec()
     }, maxRecordingTimeMs);
     this.maxRecTimerRunning = true;
-
-
 
     this.preRecTimerId = window.setTimeout(() => {
 
@@ -1295,9 +1339,74 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.preRecTimerRunning = true;
   }
 
+  /** Plays the prompt sound of the running take and holds its clocks until the sound has ended. */
+  private startPromptAudio(mediaitem: Mediaitem, preDelay: number, maxRecordingTimeMs: number) {
+    const token = ++this.promptAudioToken;
+    this.promptAudioPending = {preDelay: preDelay, maxRecordingTimeMs: maxRecordingTimeMs};
+    this.promptAudio.play(this.projectName, mediaitem).then((result) => {
+      this.finishPromptAudio(token, result);
+    });
+  }
+
+  /** The prompt sound stopped playing: the take continues, with or without it. */
+  private finishPromptAudio(token: number, result: PromptAudioResult) {
+    if (token !== this.promptAudioToken || this.promptAudioPending === null) {
+      return;   // the take was stopped, left the item, or the operator replayed the sound
+    }
+    const pending = this.promptAudioPending;
+    this.promptAudioPending = null;
+    this.updatePromptAudioActionState();
+    this.beginPrerecording(pending.preDelay, pending.maxRecordingTimeMs);
+    if (result === 'failed') {
+      // The session must not stall on a broken or missing file; the operator sees why it was quiet.
+      this.statusAlertType = 'error';
+      this.statusMsg = this.i18n.t('spr.status.promptAudioError');
+    }
+  }
+
+  /** The operator's play action: replays the prompt sound, restarting the wait of a pending take. */
+  private playPromptAudio() {
+    const mediaitem = PromptitemUtil.audioitem(this.promptItem);
+    if (mediaitem === null) {
+      return;
+    }
+    const pending = this.promptAudioPending;
+    if (pending !== null) {
+      // The take is waiting for this sound: the replay restarts the sound and with it the wait,
+      // with the clocks the take was started with, so it cannot shorten the recording window.
+      this.startPromptAudio(mediaitem, pending.preDelay, pending.maxRecordingTimeMs);
+      return;
+    }
+    this.promptAudio.play(this.projectName, mediaitem);
+  }
+
+  /**
+   * Drops a prompt sound that is playing or awaited: the take is over, paused, or another item
+   * was selected. The playback resolves as 'stopped' and is ignored by the finished callback.
+   */
+  private cancelPromptAudio() {
+    this.promptAudioToken++;
+    this.promptAudioPending = null;
+    this.promptAudio.stop();
+    this.updatePromptAudioActionState();
+  }
+
+  /** The play action only exists for items that carry a sound. */
+  private updatePromptAudioActionState() {
+    this.transportActions.playPromptAction.disabled = PromptitemUtil.audioitem(this.promptItem) === null;
+  }
+
+  private prefetchPromptAudio() {
+    const mediaitem = PromptitemUtil.audioitem(this.promptItem);
+    if (mediaitem !== null) {
+      this.promptAudio.prefetch(this.projectName, mediaitem);
+    }
+  }
+
   stopItem() {
     this.status = Status.POST_REC_STOP;
     this.startStopSignalState = StartStopSignalState.POSTRECORDING;
+    this.cancelPromptAudio();
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     //this.transportActions.stopNonrecordingAction.disabled=true;
@@ -1321,6 +1430,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.status = Status.POST_REC_PAUSE;
     this.transportActions.pauseAction.disabled = true;
     this.startStopSignalState = StartStopSignalState.POSTRECORDING;
+    this.cancelPromptAudio();
     this.transportActions.stopAction.disabled = true;
     this.transportActions.nextAction.disabled = true;
     this.transportActions.stopNonrecordingAction.disabled=true;
@@ -1336,6 +1446,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
   stopRecording() {
     this.clearMaxRecTimer();
+    this.cancelPromptAudio();
     if(this.ac) {
       this.ac.stop();
     }

@@ -96,6 +96,10 @@ const SV = {
 
   'spr.transport.respondent': 'Respondentvy',
   'spr.transport.tooltip.respondent': 'Visa promptscenen på respondentens skärm ({{key}})',
+  'spr.transport.playPrompt': 'Promptljud',
+  'spr.transport.tooltip.playPrompt': 'Spela upp ljudet för aktuell prompt igen ({{key}})',
+  // library — prompt stage
+  'spr.prompt.audioHint': 'Lyssna på prompten.',
   // library — signal
   'spr.signal.stop': 'Stopp',
   'spr.signal.getReady': 'Gör dig beredd',
@@ -237,6 +241,8 @@ const SV = {
   'spr.status.fetchingRecordings': 'Hämtar information om inspelningarna…',
   'spr.status.recordingsReceived': 'Information om inspelningarna har tagits emot.',
   'spr.status.recording': 'Spelar in…',
+  'spr.status.promptAudio': 'Spelar upp promptljudet…',
+  'spr.status.promptAudioError': 'Promptljudet kunde inte spelas upp.',
   'spr.status.playerCreated': 'Uppspelaren är skapad.',
   'spr.status.audioFileLoaded': 'Ljudfilen är inläst.',
   'spr.status.playing': 'Spelar upp…',
@@ -282,6 +288,7 @@ const SV = {
   'spr.keybinding.pause': 'Pausa inspelningen',
   'spr.keybinding.stop': 'Stoppa inspelningen och fäll in ljudvyn',
   'spr.keybinding.play': 'Spela upp inspelningen',
+  'spr.keybinding.playPrompt': 'Spela upp ljudet för aktuell prompt igen',
   'spr.keybinding.forward': 'Gå till nästa prompt',
   'spr.keybinding.backward': 'Gå till föregående prompt',
   'spr.keybinding.respondent': 'Öppna eller fokusera respondentfönstret',

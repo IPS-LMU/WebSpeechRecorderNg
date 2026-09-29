@@ -189,6 +189,8 @@ export class TransportActions {
   bwdAction: Action<void>;
   stopNonrecordingAction:Action<void>;
   respondentAction: Action<void>;
+  /** Plays the sound of the current prompt; disabled for prompts without one. */
+  playPromptAction: Action<void>;
 
   constructor(i18n: SprTranslator = new SprTranslator()) {
     this.startAction = new Action(i18n.t('spr.transport.start'));
@@ -200,6 +202,8 @@ export class TransportActions {
     this.bwdAction = new Action(i18n.t('spr.transport.backward'));
     this.stopNonrecordingAction=new Action(i18n.t('spr.transport.next'));
     this.respondentAction = new Action(i18n.t('spr.transport.respondent'));
+    this.playPromptAction = new Action(i18n.t('spr.transport.playPrompt'));
+    this.playPromptAction.disabled = true;
 
   }
 }
@@ -226,6 +230,14 @@ export class TransportActions {
         <span><mat-icon class="transport-button-icon">pause</mat-icon></span>
         @if (!screenXs) {
           <span class="transport-button-text">{{i18n.t('spr.transport.pause')}}</span>
+        }
+      </button>
+    }
+    @if (!playPromptDisabled()) {
+      <button id="playPromptBtn" (click)="actions.playPromptAction.perform()" mat-stroked-button class="transport-button-icon" [matTooltip]="playPromptTooltip" [attr.aria-label]="playPromptTooltip">
+        <span><mat-icon class="transport-button-icon">volume_up</mat-icon></span>
+        @if (!screenXs) {
+          <span class="transport-button-text">{{i18n.t('spr.transport.playPrompt')}}</span>
         }
       </button>
     }
@@ -337,6 +349,10 @@ export class TransportPanel extends ResponsiveComponent{
     return this.i18n.t('spr.transport.tooltip.pause', {key: keyLabel(KEY.PAUSE)});
   }
 
+  get playPromptTooltip():string {
+    return this.i18n.t('spr.transport.tooltip.playPrompt', {key: keyLabel(KEY.PLAY_PROMPT)});
+  }
+
   get fwdTooltip():string {
     return this.i18n.t('spr.transport.tooltip.forward', {key: keyLabel(KEY.FORWARD)});
   }
@@ -363,6 +379,11 @@ export class TransportPanel extends ResponsiveComponent{
 
   pauseDisabled() {
     return !this.actions || this.actions.pauseAction.disabled || !this.pausingEnabled;
+  }
+
+  /** Hidden rather than disabled: only prompts that carry a sound offer the control. */
+  playPromptDisabled() {
+    return !this.actions || this.actions.playPromptAction.disabled;
   }
 
   fwdDisabled() {

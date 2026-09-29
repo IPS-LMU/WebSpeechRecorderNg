@@ -53,9 +53,14 @@
         "startStopNext": "Start / Stopp / Nästa ({{key}})",
         "pause": "Paus ({{key}})",
         "forward": "Framåt ({{key}})",
-        "respondent": "Visa promptscenen på respondentens skärm ({{key}})"
+        "respondent": "Visa promptscenen på respondentens skärm ({{key}})",
+        "playPrompt": "Spela upp ljudet för aktuell prompt igen ({{key}})"
       },
-      "respondent": "Respondentvy"
+      "respondent": "Respondentvy",
+      "playPrompt": "Promptljud"
+    },
+    "prompt": {
+      "audioHint": "Lyssna på prompten."
     },
     "signal": {
       "stop": "Stopp",
@@ -235,6 +240,8 @@
       "fetchingRecordings": "Hämtar information om inspelningarna…",
       "recordingsReceived": "Information om inspelningarna har tagits emot.",
       "recording": "Spelar in…",
+      "promptAudio": "Spelar upp promptljudet…",
+      "promptAudioError": "Promptljudet kunde inte spelas upp.",
       "playerCreated": "Uppspelaren är skapad.",
       "audioFileLoaded": "Ljudfilen är inläst.",
       "playing": "Spelar upp…",
@@ -269,6 +276,7 @@
       "pause": "Pausa inspelningen",
       "stop": "Stoppa inspelningen och fäll in ljudvyn",
       "play": "Spela upp inspelningen",
+      "playPrompt": "Spela upp ljudet för aktuell prompt igen",
       "forward": "Gå till nästa prompt",
       "backward": "Gå till föregående prompt",
       "respondent": "Öppna eller fokusera respondentfönstret"

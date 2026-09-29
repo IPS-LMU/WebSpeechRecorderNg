@@ -28,6 +28,11 @@ export const SPR_STRINGS: Record<string, string> = {
   'spr.transport.tooltip.forward': 'Forward ({{key}})',
   'spr.transport.respondent': 'Respondent display',
   'spr.transport.tooltip.respondent': 'Show the prompt stage on the second screen ({{key}})',
+  'spr.transport.playPrompt': 'Prompt sound',
+  'spr.transport.tooltip.playPrompt': 'Play the sound of the current prompt again ({{key}})',
+
+  // Prompt stage --------------------------------------------------------------
+  'spr.prompt.audioHint': 'Listen to the prompt.',
 
   // Traffic light -------------------------------------------------------------
   'spr.signal.stop': 'Stop',
@@ -176,6 +181,8 @@ export const SPR_STRINGS: Record<string, string> = {
   'spr.status.fetchingRecordings': 'Fetching infos of recordings...',
   'spr.status.recordingsReceived': 'Received infos of recordings.',
   'spr.status.recording': 'Recording...',
+  'spr.status.promptAudio': 'Playing the prompt sound...',
+  'spr.status.promptAudioError': 'The prompt sound could not be played.',
   'spr.status.playerCreated': 'Player created.',
   'spr.status.audioFileLoaded': 'Audio file loaded.',
   'spr.status.playing': 'Playing...',
@@ -221,6 +228,7 @@ export const SPR_STRINGS: Record<string, string> = {
   'spr.keybinding.pause': 'Pause recording',
   'spr.keybinding.stop': 'Stop recording and collapse the audio view',
   'spr.keybinding.play': 'Play back the recording',
+  'spr.keybinding.playPrompt': 'Play the sound of the current prompt again',
   'spr.keybinding.forward': 'Go to the next prompt',
   'spr.keybinding.backward': 'Go to the previous prompt',
   'spr.keybinding.respondent': 'Open or focus the respondent display',

@@ -42,8 +42,20 @@ export interface Mediaitem {
   promptDoc?: PromptDoc,
   mimetype?:string,
   defaultVirtualViewBox?:VirtualViewBox,
-  alt?:string
+  alt?:string,
+  /**
+   * Start this media item (only audio is played) when its prompt is presented. A script that
+   * sets `false` leaves the sound to the operator's play action. Default: true.
+   */
+  autoplay?: boolean
 }
+
+/**
+ * How a media item is presented. The `mimetype` decides: `text/plain` is plain text,
+ * `text/x-prompt` is a decorated prompt document, `image/*` an image and `audio/*` a sound
+ * that is played as the prompt. Anything else is not rendered (and logged by the stage).
+ */
+export type MediaitemKind = 'text' | 'prompt' | 'image' | 'audio' | 'unsupported';
 
 export interface PromptItem {
   type?:string;
@@ -118,6 +130,37 @@ export class PromptDocUtil{
 }
 
 export class MediaitemUtil {
+  /** Mimetype of a media item, normalised; a missing one means plain text (the script default). */
+  static mimeType(mediaitem: Mediaitem|null|undefined): string {
+    const mimetype = mediaitem?.mimetype;
+    return (mimetype === null || mimetype === undefined || mimetype.trim() === '') ? 'text/plain' : mimetype.trim();
+  }
+
+  static kind(mediaitem: Mediaitem|null|undefined): MediaitemKind {
+    if (mediaitem === null || mediaitem === undefined) {
+      return 'unsupported';
+    }
+    const mimetype = MediaitemUtil.mimeType(mediaitem);
+    if (mimetype === 'text/plain') {
+      return 'text';
+    }
+    if (mimetype === 'text/x-prompt') {
+      return 'prompt';
+    }
+    if (mimetype.startsWith('image')) {
+      return 'image';
+    }
+    if (mimetype.startsWith('audio')) {
+      return 'audio';
+    }
+    return 'unsupported';
+  }
+
+  /** An audio media item that is played when its prompt is presented (unless `autoplay: false`). */
+  static isAutoplayedAudio(mediaitem: Mediaitem|null|undefined): boolean {
+    return MediaitemUtil.kind(mediaitem) === 'audio' && mediaitem?.autoplay !== false;
+  }
+
   static toPlainTextString(mediaitem: Mediaitem): string|null {
 
     let txt = mediaitem.text;
@@ -140,10 +183,7 @@ export class MediaitemUtil {
       description = description.concat(mi.alt)
     } else {
       let src = mi.src;
-      let mimeType = mi.mimetype;
-      if (!mimeType) {
-        mimeType = 'text/plain';
-      }
+      let mimeType = MediaitemUtil.mimeType(mi);
       if (mimeType.startsWith("image")) {
         description = description.concat("IMAGE: ");
       } else if (mimeType.startsWith("audio")) {
@@ -177,6 +217,34 @@ export class MediaitemUtil {
 }
 
 export class PromptitemUtil {
+  /**
+   * The first audio media item of a prompt, played or not — the play control offers it.
+   *
+   * A prompt carries one media item today; scanning the list keeps the stage working when a
+   * script ships a text and a sound item side by side.
+   */
+  static audioitem(promptItem: PromptItem|null|undefined): Mediaitem|null {
+    return PromptitemUtil.firstOfKind(promptItem, (mediaitem) => MediaitemUtil.kind(mediaitem) === 'audio');
+  }
+
+  /** The audio media item a take starts with, or `null` (`autoplay: false` leaves it to the operator). */
+  static autoplayAudioitem(promptItem: PromptItem|null|undefined): Mediaitem|null {
+    return PromptitemUtil.firstOfKind(promptItem, (mediaitem) => MediaitemUtil.isAutoplayedAudio(mediaitem));
+  }
+
+  private static firstOfKind(promptItem: PromptItem|null|undefined, matches: (mediaitem: Mediaitem) => boolean): Mediaitem|null {
+    const mediaitems = promptItem?.mediaitems;
+    if (!mediaitems) {
+      return null;
+    }
+    for (const mediaitem of mediaitems) {
+      if (matches(mediaitem)) {
+        return mediaitem;
+      }
+    }
+    return null;
+  }
+
   static toPlainTextString(promptItem: PromptItem): string {
 
     let mis = promptItem.mediaitems;

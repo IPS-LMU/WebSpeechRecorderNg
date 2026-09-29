@@ -12,6 +12,7 @@ export const KEY = {
   PAUSE: 'p',
   STOP: 'Escape',
   PLAY: 'MediaPlayPause',
+  PLAY_PROMPT: 'r',
   FORWARD: 'ArrowRight',
   BACKWARD: 'ArrowLeft',
   RESPONDENT: 'd',
@@ -44,6 +45,10 @@ export const KEY_BINDINGS: KeyBinding[] = [
   {
     key: KEY.PLAY, label: 'Media Play/Pause', description: 'Play back the recording',
     descriptionKey: 'spr.keybinding.play',
+  },
+  {
+    key: KEY.PLAY_PROMPT, label: 'R', description: 'Play the prompt sound again',
+    descriptionKey: 'spr.keybinding.playPrompt',
   },
   {
     key: KEY.FORWARD, label: '→', description: 'Go to the next prompt',

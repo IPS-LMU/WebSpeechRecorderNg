@@ -53,9 +53,14 @@
         "startStopNext": "Start / Stop / Next ({{key}})",
         "pause": "Pause ({{key}})",
         "forward": "Forward ({{key}})",
-        "respondent": "Show the prompt stage on the second screen ({{key}})"
+        "respondent": "Show the prompt stage on the second screen ({{key}})",
+        "playPrompt": "Play the sound of the current prompt again ({{key}})"
       },
-      "respondent": "Respondent display"
+      "respondent": "Respondent display",
+      "playPrompt": "Prompt sound"
+    },
+    "prompt": {
+      "audioHint": "Listen to the prompt."
     },
     "signal": {
       "stop": "Stop",
@@ -235,6 +240,8 @@
       "fetchingRecordings": "Fetching infos of recordings...",
       "recordingsReceived": "Received infos of recordings.",
       "recording": "Recording...",
+      "promptAudio": "Playing the prompt sound...",
+      "promptAudioError": "The prompt sound could not be played.",
       "playerCreated": "Player created.",
       "audioFileLoaded": "Audio file loaded.",
       "playing": "Playing...",
@@ -269,6 +276,7 @@
       "pause": "Pause recording",
       "stop": "Stop recording and collapse the audio view",
       "play": "Play back the recording",
+      "playPrompt": "Play the sound of the current prompt again",
       "forward": "Go to the next prompt",
       "backward": "Go to the previous prompt",
       "respondent": "Open or focus the respondent display"
