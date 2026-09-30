@@ -7,7 +7,6 @@
     {
       "name": "Kortversion av dysartribedömning",
       "mode": "MANUAL",
-      "promptphase": "PRERECORDING",
       "training": false,
       "groups": [
         {
@@ -155,8 +154,41 @@
               "recinstructions": { "recinstructions": "Läs:" },
               "mediaitems": [
                 {
-                  "mimetype": "text/plain",
-                  "text": "Ett svårt fall\n\nEn pojke kom en dag inspringande på en bondgård och undrade om han kunde få låna en spade. Bonden frågade vad han skulle ha spaden till. Pojken svarade att hans bror hade ramlat ner i ett träsk och att han måste gräva upp honom.\n\n”Hur djupt har han ramlat i?” frågade bonden. ”Upp till vristerna”, blev svaret. ”Men då kan han väl gå därifrån utan din hjälp, så då behöver du väl ingen spade?” Pojken såg förtvivlad ut och sa: ”Jo, ni förstår, han ramlade i med huvudet före.”"
+                  "mimetype": "text/x-prompt",
+                  "promptDoc": {
+                    "body": {
+                      "blocks": [
+                        {
+                          "type": "p",
+                          "texts": [
+                            { "type": "text", "text": "Ett svårt fall" }
+                          ]
+                        },
+                        {
+                          "type": "p",
+                          "texts": [
+                            { "type": "text", "text": "En pojke kom en dag inspringande på en bondgård och undrade om han kunde få låna en spade." },
+                            { "type": "linebreak" },
+                            { "type": "text", "text": "Bonden frågade vad han skulle ha spaden till." },
+                            { "type": "linebreak" },
+                            { "type": "text", "text": "Pojken svarade att hans bror hade ramlat ner i ett träsk och att han måste gräva upp honom." }
+                          ]
+                        },
+                        {
+                          "type": "p",
+                          "texts": [
+                            { "type": "text", "text": "”Hur djupt har han ramlat i?” frågade bonden." },
+                            { "type": "linebreak" },
+                            { "type": "text", "text": "”Upp till vristerna”, blev svaret." },
+                            { "type": "linebreak" },
+                            { "type": "text", "text": "”Men då kan han väl gå därifrån utan din hjälp, så då behöver du väl ingen spade?” Pojken såg förtvivlad ut och sa:" },
+                            { "type": "linebreak" },
+                            { "type": "text", "text": "”Jo, ni förstår, han ramlade i med huvudet före.”" }
+                          ]
+                        }
+                      ]
+                    }
+                  }
                 }
               ]
             }
