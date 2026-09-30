@@ -123,6 +123,11 @@ export const SPR_STRINGS: Record<string, string> = {
   // Session and dialogs -------------------------------------------------------
   'spr.session.finishedTitle': 'Session finished',
   'spr.session.finishedBody': 'Thank you! The recording session is complete.',
+  'spr.session.exportRecordings': 'Export recordings',
+  'spr.session.exportInProgress': 'Exporting recordings…',
+  'spr.session.exportDone': 'Recordings exported.',
+  'spr.session.exportError': 'The recordings could not be exported.',
+  'spr.session.exportNone': 'There are no recordings to export.',
   'spr.dialog.ok': 'OK',
   'spr.dialog.error': 'Error',
   'spr.dialog.recordingError': 'Recording error',

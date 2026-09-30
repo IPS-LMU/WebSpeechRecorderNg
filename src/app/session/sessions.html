@@ -1,10 +1,38 @@
 <section class="spr-session">
-  <form class="spr-session-card">
+  <form class="spr-session-card" (ngSubmit)="openManual()">
     <h1 class="spr-session-title">{{ 'app.session.title' | transloco }}</h1>
     <p class="spr-session-lead">{{ 'app.session.lead' | transloco }}</p>
+
+    @if (!loadError) {
+      <mat-form-field appearance="outline" class="spr-session-config">
+        <mat-label>{{ 'app.session.pickConfiguration' | transloco }}</mat-label>
+        <mat-select [(ngModel)]="selected" name="configuration">
+          @for (configuration of configurations; track configuration.id) {
+            <mat-option [value]="configuration">{{ labelOf(configuration) }}</mat-option>
+          }
+        </mat-select>
+        @if (selected) {
+          <mat-hint>{{ descriptionOf(selected) }}</mat-hint>
+        }
+      </mat-form-field>
+
+      <button mat-raised-button type="button" class="spr-session-cta" [disabled]="!selected" (click)="openSelected()">
+        {{ 'app.session.open' | transloco }}
+      </button>
+
+      <p class="spr-session-or">{{ 'app.session.orEnterId' | transloco }}</p>
+    }
+
     <mat-form-field appearance="outline">
       <mat-label>{{ 'app.session.id' | transloco }}</mat-label>
-      <input matInput [placeholder]="'app.session.idPlaceholder' | transloco">
+      <input matInput [(ngModel)]="manualId" name="sessionId" [placeholder]="'app.session.idPlaceholder' | transloco">
     </mat-form-field>
+    <button mat-stroked-button type="submit" class="spr-session-cta" [disabled]="!manualId.trim()">
+      {{ 'app.session.open' | transloco }}
+    </button>
+
+    @if (loadError) {
+      <p class="spr-session-error">{{ 'app.session.noConfigurations' | transloco }}</p>
+    }
   </form>
 </section>

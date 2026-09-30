@@ -12,7 +12,9 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
 import { MatInputModule } from "@angular/material/input";
 import { MatMenuModule } from "@angular/material/menu";
+import { MatSelectModule } from "@angular/material/select";
 import { MatToolbarModule } from "@angular/material/toolbar";
+import { FormsModule } from "@angular/forms";
 import {SpeechrecorderngModule} from "../../projects/speechrecorderng/src/lib/speechrecorderng.module";
 import {SPR_CFG} from "./app.config";
 //import {FlexLayoutModule} from "@angular/flex-layout";
@@ -48,8 +50,9 @@ const appRoutes: Routes = [
   imports: [
     RouterModule.forRoot(appRoutes, {}),
     BrowserAnimationsModule,
-    MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,
+    MatMenuModule,MatFormFieldModule,MatInputModule, MatToolbarModule,MatMenuModule,MatIconModule,MatButtonModule,MatDialogModule,MatSelectModule,
     BrowserModule,
+    FormsModule,
     TranslocoModule,
     SpeechrecorderngModule.forRoot(SPR_CFG)
   ],

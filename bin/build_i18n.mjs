@@ -45,12 +45,16 @@ const APP_STRINGS = {
   'app.session.lead': 'Enter the session id to load its script and recordings.',
   'app.session.id': 'Session ID',
   'app.session.idPlaceholder': 'e.g. 1234',
+  'app.session.pickConfiguration': 'Choose a stored configuration to try out',
+  'app.session.open': 'Open',
+  'app.session.orEnterId': '…or enter a session id',
+  'app.session.noConfigurations': 'No stored configurations found. Enter a session id to continue.',
 };
 
 /** Swedish wording. Terminology follows the sibling application's catalogue (inspelning, uppspelning, …). */
 const SV = {
   // shell
-  'app.title': 'Cavox – demoprogram',
+  'app.title': 'Cavox',
   'app.shortTitle': 'Cavox',
   'app.menu': 'Meny',
   'app.menuHelp': 'Hjälp',
@@ -79,6 +83,10 @@ const SV = {
   'app.session.lead': 'Ange sessions-id för att läsa in dess manus och inspelningar.',
   'app.session.id': 'Sessions-id',
   'app.session.idPlaceholder': 't.ex. 1234',
+  'app.session.pickConfiguration': 'Välj en lagrad konfiguration att testa',
+  'app.session.open': 'Öppna',
+  'app.session.orEnterId': '…eller ange ett sessions-id',
+  'app.session.noConfigurations': 'Inga lagrade konfigurationer hittades. Ange ett sessions-id för att fortsätta.',
 
   // library — transport
   'spr.transport.start': 'Starta',
@@ -185,6 +193,11 @@ const SV = {
   // library — session and dialogs
   'spr.session.finishedTitle': 'Sessionen är klar',
   'spr.session.finishedBody': 'Tack! Inspelningssessionen är slutförd.',
+  'spr.session.exportRecordings': 'Exportera inspelningarna',
+  'spr.session.exportInProgress': 'Exporterar inspelningar…',
+  'spr.session.exportDone': 'Inspelningarna har exporterats.',
+  'spr.session.exportError': 'Inspelningarna kunde inte exporteras.',
+  'spr.session.exportNone': 'Det finns inga inspelningar att exportera.',
   'spr.dialog.ok': 'OK',
   'spr.dialog.error': 'Fel',
   'spr.dialog.recordingError': 'Inspelningsfel',

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Cavox – demoprogram",
+    "title": "Cavox",
     "shortTitle": "Cavox",
     "menu": "Meny",
     "menuHelp": "Hjälp",
@@ -35,7 +35,11 @@
       "title": "Session",
       "lead": "Ange sessions-id för att läsa in dess manus och inspelningar.",
       "id": "Sessions-id",
-      "idPlaceholder": "t.ex. 1234"
+      "idPlaceholder": "t.ex. 1234",
+      "pickConfiguration": "Välj en lagrad konfiguration att testa",
+      "open": "Öppna",
+      "orEnterId": "…eller ange ett sessions-id",
+      "noConfigurations": "Inga lagrade konfigurationer hittades. Ange ett sessions-id för att fortsätta."
     }
   },
   "spr": {
@@ -179,7 +183,12 @@
     },
     "session": {
       "finishedTitle": "Sessionen är klar",
-      "finishedBody": "Tack! Inspelningssessionen är slutförd."
+      "finishedBody": "Tack! Inspelningssessionen är slutförd.",
+      "exportRecordings": "Exportera inspelningarna",
+      "exportInProgress": "Exporterar inspelningar…",
+      "exportDone": "Inspelningarna har exporterats.",
+      "exportError": "Inspelningarna kunde inte exporteras.",
+      "exportNone": "Det finns inga inspelningar att exportera."
     },
     "dialog": {
       "ok": "OK",

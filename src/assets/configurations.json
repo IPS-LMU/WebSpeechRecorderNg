@@ -1,0 +1,32 @@
+[
+  {
+    "id": "introduction",
+    "sessionId": 2,
+    "project": "Demo1",
+    "name": { "en": "Introduction", "sv": "Introduktion" },
+    "description": {
+      "en": "Level check, text prompts and an image prompt.",
+      "sv": "Nivåkontroll, textprompter och en bildprompt."
+    }
+  },
+  {
+    "id": "sound-prompts",
+    "sessionId": 9,
+    "project": "Demo1",
+    "name": { "en": "Sound prompts", "sv": "Ljudprompter" },
+    "description": {
+      "en": "Prompts that are played as sound, with the start signal waiting for them.",
+      "sv": "Prompter som spelas upp som ljud, med startsignalen som väntar på dem."
+    }
+  },
+  {
+    "id": "random-test",
+    "sessionId": 3,
+    "project": "Demo1",
+    "name": { "en": "Randomised prompts", "sv": "Slumpade prompter" },
+    "description": {
+      "en": "A script whose prompt order is shuffled.",
+      "sv": "Ett manus vars promptordning blandas."
+    }
+  }
+]

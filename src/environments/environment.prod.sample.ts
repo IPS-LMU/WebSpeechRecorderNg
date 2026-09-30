@@ -16,5 +16,11 @@ export const environment = {
   apiEndPoint: 'api/v1',
   apiVersion:1,
   enableDownloadRecordings:false,
-  enableUploadRecordings: true
+  enableUploadRecordings: true,
+  // The recording session the "Open the recorder" action leads to. Unset: the start page opens
+  // the configuration picker, which offers the bundled configurations in
+  // src/assets/configurations.json. A deployment that always runs one script sets its session id:
+  //   defaultSessionId: 2,
+  defaultSessionId: undefined,
+  configurationCatalogUrl: 'assets/configurations.json'
 };

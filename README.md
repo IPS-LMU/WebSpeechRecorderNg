@@ -652,6 +652,20 @@ recording to `server/data/recordingfile`. See
 [Evaluation receiver](#evaluation-receiver). To run without a backend on the `src/test` fixtures,
 copy `src/environments/environment.demo.sample.ts` over `src/environments/environment.ts`.
 
+### Standalone mode
+
+With no recording procedure configured (`defaultSessionId` unset in `environment.ts`), the start
+page's "Open the recorder" action opens the configuration picker instead of a session: a dropdown
+of the stored configurations in `src/assets/configurations.json`, each naming a session the app is
+served with. Pick one — or type a session id — and the recorder loads it, so a fresh install can be
+tried out end to end. A deployment that always runs one script sets `defaultSessionId` and the
+action goes straight to that session.
+
+When `enableDownloadRecordings` is on, the completion dialog offers **Export recordings**: every
+recording the session holds client side is packed into a zip — one WAVE and one metadata file per
+recording under `recfiles/<itemcode>/`, plus `session.json` — and downloaded. That is how a
+standalone install gets its recordings out without a server.
+
 The app will automatically reload if you change any of the source files.
 
 ### Build

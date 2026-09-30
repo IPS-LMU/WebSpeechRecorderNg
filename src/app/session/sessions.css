@@ -38,3 +38,26 @@
   font-size: var(--spr-type-caption, 13.6px);
   line-height: 1.5;
 }
+
+.spr-session-config {
+  width: 100%;
+}
+
+.spr-session-cta {
+  margin-top: 12px;
+}
+
+.spr-session-or {
+  margin: 12px 0 0;
+  color: var(--spr-ink-muted, #4A6288);
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.spr-session-error {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--spr-r-sm, 6px);
+  background: var(--spr-alert, #EABAB9);
+  color: var(--spr-alert-ink, #000000);
+  font-size: var(--spr-type-caption, 13.6px);
+}

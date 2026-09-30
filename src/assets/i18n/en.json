@@ -35,7 +35,11 @@
       "title": "Session",
       "lead": "Enter the session id to load its script and recordings.",
       "id": "Session ID",
-      "idPlaceholder": "e.g. 1234"
+      "idPlaceholder": "e.g. 1234",
+      "pickConfiguration": "Choose a stored configuration to try out",
+      "open": "Open",
+      "orEnterId": "…or enter a session id",
+      "noConfigurations": "No stored configurations found. Enter a session id to continue."
     }
   },
   "spr": {
@@ -179,7 +183,12 @@
     },
     "session": {
       "finishedTitle": "Session finished",
-      "finishedBody": "Thank you! The recording session is complete."
+      "finishedBody": "Thank you! The recording session is complete.",
+      "exportRecordings": "Export recordings",
+      "exportInProgress": "Exporting recordings…",
+      "exportDone": "Recordings exported.",
+      "exportError": "The recordings could not be exported.",
+      "exportNone": "There are no recordings to export."
     },
     "dialog": {
       "ok": "OK",

@@ -1,6 +1,6 @@
 import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
-import {WavWriter} from '../../audio/impl/wavwriter'
+import {WavWriter, SampleSize} from '../../audio/impl/wavwriter'
 import {Group, Mediaitem, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
 import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {Upload, UploadHolder} from '../../net/uploader';
@@ -26,7 +26,8 @@ import {MatDialog} from "@angular/material/dialog";
 import {SpeechRecorderUploader} from "../spruploader";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig, SprLogo} from "../../spr.config";
 import {Prompting} from "./prompting";
-import {SessionFinishedDialog} from "./session_finished_dialog";
+import {SessionFinishedDialog, SessionFinishedDialogData} from "./session_finished_dialog";
+import {SessionExportEncoding, SessionExportService} from "./session_export";
 import {MessageDialog} from "../../ui/message_dialog";
 import {RecordingService} from "../recordings/recordings.service";
 import {AudioClip} from "../../audio/persistor";
@@ -227,6 +228,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private preRecTimerRunning: boolean|null=null;
 
   private readonly promptAudio = inject(PromptAudioService);
+  private readonly sessionExport = inject(SessionExportService);
   /** Invalidates a playback that a stop, a pause or a new item has overtaken. */
   private promptAudioToken = 0;
   /**
@@ -1394,6 +1396,35 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     this.updatePromptAudioActionState();
   }
 
+  /**
+   * The completion dialog's data. A deployment that lets its users keep their recordings
+   * (`enableDownloadRecordings`) gets an export action: it packs every client-side recording of
+   * the session into a zip and downloads it, which is how a standalone install gets its data out.
+   */
+  private finishedDialogData(): SessionFinishedDialogData {
+    if (this.config?.enableDownloadRecordings !== true) {
+      return {};
+    }
+    return {
+      exportRecordings: async () => {
+        const blob = await this.sessionExport.exportSession(this.items, this._session, this.sessionExportEncoding());
+        if (blob === null) {
+          return 'none';
+        }
+        SessionExportService.download(blob, `cavox_${this._session?.sessionId ?? 'session'}.zip`);
+        return 'exported';
+      }
+    };
+  }
+
+  private sessionExportEncoding(): SessionExportEncoding {
+    const float = this._clientMediaStorageFormat?.audioEncoding === AudioStorageFormatEncoding.PCM_FLOAT;
+    return {
+      float,
+      sampleSize: this._clientMediaStorageFormat?.audioPCMsampleSizeInBits ?? SampleSize.INT16
+    };
+  }
+
   /** The play action only exists where the script lets the operator play the sound. */
   private updatePromptAudioActionState() {
     this.transportActions.playPromptAction.disabled = PromptitemUtil.replayAudioitem(this.promptItem) === null;
@@ -1679,7 +1710,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.statusMsg = this.i18n.t('spr.status.sessionComplete');
       this.updateWakeLock();
       if(this.showSessionCompleteMessage) {
-        this.dialog.open(SessionFinishedDialog, {});
+        this.dialog.open(SessionFinishedDialog, {data: this.finishedDialogData()});
       }
       // enable navigation
       this.transportActions.fwdAction.disabled = false

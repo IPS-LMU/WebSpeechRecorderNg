@@ -3,6 +3,6 @@
   <h1 class="spr-start-title">{{ 'app.start.titleLine1' | transloco }}<br>{{ 'app.start.titleLine2' | transloco }}</h1>
   <p class="spr-start-lead">{{ 'app.start.lead' | transloco }}</p>
   <div class="spr-start-actions">
-    <a mat-raised-button class="spr-start-cta" routerLink="/spr">{{ 'app.start.openRecorder' | transloco }}</a>
+    <a mat-raised-button class="spr-start-cta" [routerLink]="openRecorderLink">{{ 'app.start.openRecorder' | transloco }}</a>
   </div>
 </section>

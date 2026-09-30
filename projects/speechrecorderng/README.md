@@ -613,6 +613,12 @@ one that is played once without a replay (`replay: false`) and one text item.
 
 Cavox stores the recording in browser memory first. The recordings are then uploaded to the server as binary encoded WAVE files.
 
+When `enableDownloadRecordings` is set, the completion dialog offers **Export recordings**: the
+session's client-side recordings are packed into a zip (one WAVE and one metadata file per
+recording, plus `session.json`) and downloaded — the way a standalone install gets its recordings
+out without a server. Recordings held on the server instead of the client (`NET_CHUNKED`) are not
+included.
+
 Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
 
 Content-Type: audio/wav
