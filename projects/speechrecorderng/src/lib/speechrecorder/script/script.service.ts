@@ -33,6 +33,16 @@ export class ScriptService {
   }
 
   scriptObservable(id:string | number):Observable<Script>{
+    return this.scriptResourceObservable<Script>(id)
+   }
+
+  /**
+   * Fetches a resource of the script bank, resolved against the same endpoint the script was
+   * loaded from (`{apiEndPoint}script/{id}`). Prefill sources are fetched with this method, so
+   * they travel with the script bank and work unchanged in the `files` demo mode (which
+   * appends the `.json` suffix).
+   */
+  scriptResourceObservable<T>(id:string | number):Observable<T>{
     let encScriptId=encodeURIComponent(id);
     let scriptUrl = this.scriptCtxUrl + '/' + encScriptId;
     if (this.config && this.config.apiType === ApiType.FILES) {
@@ -40,7 +50,7 @@ export class ScriptService {
       // append UUID to make request URL unique to avoid localhost server caching
       scriptUrl = scriptUrl + '.json?requestUUID='+UUID.generate();
     }
-    return  this.http.get<Script>(scriptUrl,{withCredentials: this.withCredentials })
+    return  this.http.get<T>(scriptUrl,{withCredentials: this.withCredentials })
 
    }
 

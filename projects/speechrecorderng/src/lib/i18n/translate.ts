@@ -204,6 +204,7 @@ export const SPR_STRINGS: Record<string, string> = {
   'spr.status.recordingFileDecodeFailed': 'Recording file could not be decoded. Audio context unavailable.',
   'spr.status.noScript': 'No recording script is defined for this session with ID {{value}}',
   'spr.status.scriptFetchError': 'Error fetching recording script: {{value}}',
+  'spr.status.scriptPrefillError': 'Error resolving the script prefill sources: {{value}}',
   'spr.status.uploadErrorDetail': 'Upload error: {{value}}',
   'spr.status.uploadFailed': 'Upload failed: {{value}}',
   'spr.status.uploadPartial': 'Some uploads failed. Recordings were not stored on the server.',

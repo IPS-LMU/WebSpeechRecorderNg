@@ -269,7 +269,8 @@
       "scriptFetchError": "Kunde inte hämta inspelningsmanuset: {{value}}",
       "uploadErrorDetail": "Uppladdningsfel: {{value}}",
       "uploadFailed": "Uppladdningen misslyckades: {{value}}",
-      "uploadPartial": "Vissa uppladdningar misslyckades. Inspelningarna sparades inte på servern."
+      "uploadPartial": "Vissa uppladdningar misslyckades. Inspelningarna sparades inte på servern.",
+      "scriptPrefillError": "Kunde inte fylla i inspelningsmanuset från externa källor: {{value}}"
     },
     "respondent": {
       "windowTitle": "Cavox – respondentvy (session {{session}})",

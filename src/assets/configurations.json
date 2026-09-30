@@ -38,5 +38,15 @@
       "en": "Sustained sounds, DDK repetition, sentence reading and a text passage.",
       "sv": "Uthållna ljud, DDK-repetition, meningsläsning och en lästext."
     }
+  },
+  {
+    "id": "dysartri-kortversion-sti",
+    "script": "dysartri-kortversion-sti",
+    "project": "Demo1",
+    "name": {"en":"Dysarthria assessment (short) with STI lists","sv":"Kortversion av dysartribedömning med STI-listor"},
+    "description": {
+      "en": "Like the short dysarthria assessment, but the word and sentence reading items are filled with a randomly drawn STI list at load time.",
+      "sv": "Som kortversionen av dysartribedömningen, men ord- och meningsläsningen fylls med en slumpmässigt dragen STI-lista när sessionen laddas."
+    }
   }
 ]

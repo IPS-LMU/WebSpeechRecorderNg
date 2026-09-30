@@ -368,6 +368,60 @@ Properties:
  * recpromptId: Unique ID of this recording prompt 
  * itemcode: string: In the scope of the script unique identifier of an recording item
  * mediaitems: array: List of media items for this prompt. Currently only a single mediaitem element in the array is supported.
+ * prefill: object: Optional declaration that replaces this prompt item, when the script is loaded, by one generated item per entry of a list drawn from an external source.
+
+### Prompt unit prefill
+
+A prompt item with a `prefill` declaration is a placeholder: it keeps the recording
+properties of the generated items (`prerecdelay`, `recduration`, `postrecdelay`, ...), but its
+own media items are never shown. When the script is loaded, the recorder fetches the source,
+draws one list, and generates one prompt item per list entry. `select: "random"` draws a fresh
+list per session; the drawn list is stored on the session record (field `prefills`, keyed by the
+placeholder's `itemcode`) so the session can be traced back to its lists and a later reload
+reproduces the same generated items — and therefore matches the recordings that were already
+made against them.
+
+```json
+{
+  "itemcode": "6",
+  "prerecdelay": 800,
+  "recduration": 30000,
+  "prefill": {
+    "source": "sti-wordlists",
+    "select": "random",
+    "itemcodeFormat": "6.{n}",
+    "recinstructions": "Läs ordet",
+    "mediaitems": [{"mimetype": "text/plain", "text": "{entry}"}]
+  }
+}
+```
+
+Properties (all required unless noted):
+
+ * source: string: Resource id of the source, fetched from the same endpoint as the script
+   (`GET {apiEndPoint}script/{source}`), so the source travels with the script bank.
+ * select: enum: `random` — draw one of the source's lists per session.
+ * itemcodeFormat: string: Item code of every generated item; `{n}` is replaced by the 1-based
+   position of the entry in the drawn list (`"6.{n}"` yields `6.1` ... `6.N`).
+ * mediaitems: array: Media items of every generated item; `{entry}` in `text`, `src` or `alt`
+   is replaced by the drawn list entry.
+ * recinstructions: string: Optional operator instruction of every generated item. Not set: the
+   placeholder's own instruction is kept.
+
+The source document has this shape (see the demo fixtures `src/test/script/sti-wordlists.json`
+and `sti-sentencelists.json`):
+
+```json
+{
+  "lists": [
+    {"id": "1", "entries": ["apa", "bil", "... 33 entries total ..."]},
+    "... one entry per word (or sentence) list ..."
+  ]
+}
+```
+
+If the source cannot be fetched, or holds no lists, the script load fails with
+`spr.status.scriptPrefillError` instead of presenting a half-filled session.
 
 ### Embedded entity Media item
 

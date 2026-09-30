@@ -9,6 +9,8 @@ import { UploaderStatusChangeEvent, UploaderStatus } from './net/uploader';
 import {ActivatedRoute, Params, Router} from "@angular/router";
 import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
+import {ScriptPrefillService} from "./speechrecorder/script/prefill.service";
+import {PrefillChoices} from "./speechrecorder/script/prefill";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {Session} from "./speechrecorder/session/session";
 import {AudioStorageType, Project, ProjectUtil} from "./speechrecorder/project/project";
@@ -58,6 +60,7 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
                 private sessionsService:SessionService,
                 private projectService:ProjectService,
                 private scriptService:ScriptService,
+                private prefillService:ScriptPrefillService,
                 private recFilesService:RecordingService,
                 protected uploader:SpeechRecorderUploader,
                 private i18n: SprTranslator) {
@@ -168,9 +171,20 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
           this.sm.statusAlertType = 'info';
           this.sm.statusMsg = this.i18n.t('spr.status.scriptReceived');
           this.sm.statusWaiting = false;
-          this.setScript(script)
-          this.sm.session = sess;
-          this.fetchRecordings(sess, this.script)
+          this.prefillService.resolve(script, sess).subscribe({
+            next: (resolved) => {
+              this.storePrefillChoices(sess, resolved.choices);
+              this.setScript(resolved.script)
+              this.sm.session = sess;
+              this.fetchRecordings(sess, this.script)
+            },
+            error: (reason) => {
+              const errMsg = this.i18n.t('spr.status.scriptPrefillError', {value: reason})
+              SprLogger.error(errMsg)
+              this.sm.statusMsg = errMsg;
+              this.sm.statusAlertType = 'error';
+            }
+          });
         }, error: (reason) => {
           let errMsg = this.i18n.t('spr.status.scriptFetchError', {value: reason})
           SprLogger.error(errMsg)
@@ -186,6 +200,31 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       this.sm.statusAlertType = 'error';
 
     }
+  }
+
+  /**
+   * Keeps the drawn lists on the session record: the local object (exported with the session and
+   * handed to the session manager) and, via PATCH, the stored session. The stored choices make a
+   * reload reproduce the same generated items, and trace the drawn lists back afterwards.
+   */
+  private storePrefillChoices(sess: Session, choices: PrefillChoices) {
+    if (Object.keys(choices).length === 0) {
+      return;
+    }
+    const known = sess.prefills ?? {};
+    sess.prefills = {...known, ...choices};
+    const unchanged = Object.keys(choices).every((itemcode) =>
+      known[itemcode] !== undefined &&
+      known[itemcode].source === choices[itemcode].source &&
+      known[itemcode].list === choices[itemcode].list);
+    if (unchanged) {
+      return;
+    }
+    this.sessionsService.patchSessionObserver(sess, {prefills: sess.prefills}).subscribe({
+      error: (err) => {
+        SprLogger.warn('Could not store the drawn script lists on the session: ' + err);
+      }
+    });
   }
 
   fetchRecordings(sess: Session, script: Script) {

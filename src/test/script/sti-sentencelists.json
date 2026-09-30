@@ -1,0 +1,33 @@
+{
+  "_comment": "Demo fixture (src/test is the fixture bank): 2 lists of 33 sentences each. A deployment drops in the real file with all 150 STI sentence lists in the same shape: {\"lists\":[{\"id\":\"<list id>\",\"entries\":[33 sentences]}, ...]}. The drawn list id is stored on the session record (Session.prefills).",
+  "lists": [
+    {
+      "id": "demo-1",
+      "entries": [
+        "Apan klättrar i trädet.", "Bilen kör på vägen.", "Huset har ett rött tak.", "Solen skiner idag.",
+        "Båten ligger vid bryggan.", "Kon betar på ängen.", "Målet står vid planen.", "Nålen sitter i tyget.",
+        "Rosen doftar gott.", "Skogen är grön och tät.", "Vännen kommer på besök.", "Taket läcker när det regnar.",
+        "Isen ligger på sjön.", "Ön ligger långt ut.", "Yran lade sig på natten.", "Duken ligger på bordet.",
+        "Foten gör ont när jag går.", "Hagen är full av blommor.", "Julen kommer med snö.", "Korgen står i hallen.",
+        "Löken skärs i bitar.", "Månen lyser i natt.", "Nöten är svår att knäcka.", "Pilen pekar åt höger.",
+        "Ramen sitter på väggen.", "Salen fylls av folk.", "Tåren rinner nerför kinden.", "Ugnen är varm.",
+        "Våren kommer tidigt i år.", "Valen simmar i havet.", "Zonen är avspärrad.", "Spelet börjar klockan tre.",
+        "Bordet står mitt i rummet."
+      ]
+    },
+    {
+      "id": "demo-2",
+      "entries": [
+        "Armen är i gips.", "Bäret är moget.", "Damen läser en bok.", "Eken står på gården.",
+        "Flyget landar snart.", "Golvet är nyskurad.", "Häradet gränsar till sjön.", "Ilen tar oss fram fort.",
+        "Jakten börjar i gryningen.", "Klon river i marken.", "Låten spelas på radion.", "Mormor bakar bullar.",
+        "Näset sticker ut i vattnet.", "Osten ligger i kylen.", "Priset stiger varje år.", "Räven smyger i skogen.",
+        "Snön faller tyst.", "Torget fylls av människor.", "Ut och gå en stund.", "Vredet sitter fast.",
+        "Xylofonen klingar klart.", "Ylet hörs över nejden.", "Zinken glänser i solen.", "Åsen sträcker sig norrut.",
+        "Ägget kokar i grytan.", "Ögat ser skarpt.", "Blomman slår ut i maj.", "Grönsaken läggs i korgen.",
+        "Stenen väger tungt.", "Ljuset tänds i fönstret.", "Vägen slingrar sig fram.", "Handen vinkar adjö.",
+        "Molnet seglar förbi."
+      ]
+    }
+  ]
+}

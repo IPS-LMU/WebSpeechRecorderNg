@@ -65,6 +65,39 @@ export interface Mediaitem {
  */
 export type MediaitemKind = 'text' | 'prompt' | 'image' | 'audio' | 'unsupported';
 
+/**
+ * Fills a prompt item from an external source when the script is loaded.
+ *
+ * The item the spec is declared on is a placeholder: it is replaced by one generated
+ * prompt item per entry of the chosen list. The placeholder's own recording properties
+ * (`prerecdelay`, `recduration`, `postrecdelay`, ...) carry over to every generated item.
+ *
+ * `select: "random"` draws one list of the source per session; the drawn list is kept in
+ * the session record (`Session.prefills`) so a later reload reproduces the same items.
+ */
+export interface PromptItemPrefill {
+  /**
+   * Resource id of the source, fetched from the script endpoint (`{apiEndPoint}script/{source}`)
+   * — the same location the script itself was loaded from, so the source travels with the
+   * script bank.
+   */
+  source: string;
+  /** How the list is drawn. Only `"random"` is supported. */
+  select: 'random';
+  /**
+   * Item code of each generated item; `{n}` is replaced by the 1-based position of the entry
+   * in the list (e.g. `"6.{n}"` yields `6.1` … `6.N`).
+   */
+  itemcodeFormat: string;
+  /** Operator instruction of every generated item. Not set: the placeholder's instruction. */
+  recinstructions?: string;
+  /**
+   * Media items of every generated item; `{entry}` in `text`, `src` or `alt` is replaced by
+   * the list entry (e.g. `{"mimetype": "text/plain", "text": "{entry}"}` shows the word).
+   */
+  mediaitems: Array<Mediaitem>;
+}
+
 export interface PromptItem {
   type?:string;
   itemcode?: string,
@@ -75,7 +108,8 @@ export interface PromptItem {
   postrecording?: number,
   postrecdelay?: number,
   recinstructions?: Recinstructions,
-  mediaitems: Array<Mediaitem>
+  mediaitems: Array<Mediaitem>,
+  prefill?: PromptItemPrefill
 }
 
 export interface Group {

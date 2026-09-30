@@ -269,7 +269,8 @@
       "scriptFetchError": "Error fetching recording script: {{value}}",
       "uploadErrorDetail": "Upload error: {{value}}",
       "uploadFailed": "Upload failed: {{value}}",
-      "uploadPartial": "Some uploads failed. Recordings were not stored on the server."
+      "uploadPartial": "Some uploads failed. Recordings were not stored on the server.",
+      "scriptPrefillError": "Error resolving the script prefill sources: {{value}}"
     },
     "respondent": {
       "windowTitle": "Cavox — respondent display (session {{session}})",
