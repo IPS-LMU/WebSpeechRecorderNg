@@ -16,8 +16,8 @@ const OUT_DIR = 'src/assets/i18n';
 
 /** The shell's own strings. */
 const APP_STRINGS = {
-  'app.title': 'SpeechRecorder Angular Demo',
-  'app.shortTitle': 'SpeechRecorder',
+  'app.title': 'Cavox — Capture your voice',
+  'app.shortTitle': 'Cavox',
   'app.menu': 'Menu',
   'app.menuHelp': 'Help',
   'app.language': 'Language',
@@ -36,10 +36,10 @@ const APP_STRINGS = {
   'app.help.keyboard': 'Keyboard',
   'app.help.key': 'Key',
   'app.help.action': 'Action',
-  'app.start.badge': 'Umeå University · SpeechRecorder',
+  'app.start.badge': 'Umeå University · Cavox',
   'app.start.titleLine1': 'Record speech,',
   'app.start.titleLine2': 'against scripted prompts.',
-  'app.start.lead': 'SpeechRecorderNg runs a recording session in the browser: it presents the prompts of the loaded script, captures audio from the selected device, and keeps every recording with its metadata.',
+  'app.start.lead': 'Cavox runs a recording session in the browser: it presents the prompts of the loaded script, captures audio from the selected device, and keeps every recording with its metadata.',
   'app.start.openRecorder': 'Open the recorder',
   'app.session.title': 'Session',
   'app.session.lead': 'Enter the session id to load its script and recordings.',
@@ -50,8 +50,8 @@ const APP_STRINGS = {
 /** Swedish wording. Terminology follows the sibling application's catalogue (inspelning, uppspelning, …). */
 const SV = {
   // shell
-  'app.title': 'SpeechRecorder – demoprogram',
-  'app.shortTitle': 'SpeechRecorder',
+  'app.title': 'Cavox – demoprogram',
+  'app.shortTitle': 'Cavox',
   'app.menu': 'Meny',
   'app.menuHelp': 'Hjälp',
   'app.language': 'Språk',
@@ -70,10 +70,10 @@ const SV = {
   'app.help.keyboard': 'Tangentbord',
   'app.help.key': 'Tangent',
   'app.help.action': 'Åtgärd',
-  'app.start.badge': 'Umeå universitet · SpeechRecorder',
+  'app.start.badge': 'Umeå universitet · Cavox',
   'app.start.titleLine1': 'Spela in tal,',
   'app.start.titleLine2': 'mot manusbundna prompter.',
-  'app.start.lead': 'SpeechRecorderNg genomför en inspelningssession i webbläsaren: det visar prompterna i det inlästa manuset, tar upp ljud från vald enhet och bevarar varje inspelning med dess metadata.',
+  'app.start.lead': 'Cavox genomför en inspelningssession i webbläsaren: det visar prompterna i det inlästa manuset, tar upp ljud från vald enhet och bevarar varje inspelning med dess metadata.',
   'app.start.openRecorder': 'Öppna inspelaren',
   'app.session.title': 'Session',
   'app.session.lead': 'Ange sessions-id för att läsa in dess manus och inspelningar.',
@@ -264,7 +264,7 @@ const SV = {
   'spr.status.uploadPartial': 'Vissa uppladdningar misslyckades. Inspelningarna sparades inte på servern.',
 
   // library — respondent display
-  'spr.respondent.windowTitle': 'SpeechRecorder – respondentvy (session {{session}})',
+  'spr.respondent.windowTitle': 'Cavox – respondentvy (session {{session}})',
   'spr.respondent.waitingTitle': 'Väntar på inspelaren',
   'spr.respondent.waitingBody': 'Det här fönstret visar promptscenen för den pågående sessionen. Det ansluter så snart inspelarfönstret skickar den.',
   'spr.respondent.unsupportedTitle': 'Respondentvyn stöds inte',

@@ -1,5 +1,5 @@
 /**
- * SpeechRecorder REST API receiver.
+ * Cavox REST API receiver.
  *
  * Implements the server side of the API the recorder client speaks (REST API v1 and v2), as
  * described in `projects/speechrecorderng/README.md` and as the client actually calls it:

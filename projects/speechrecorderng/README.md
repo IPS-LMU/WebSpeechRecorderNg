@@ -1,6 +1,6 @@
-# SpeechRecorderNg
+# Cavox
 
-A Speech Recording Tool implemented as an Angular 20 module.
+Capture your voice — a speech recording tool implemented as an Angular 20 module. This module is published as the `speechrecorderng` npm package.
 
 ## Migrate from version 2.x.x to 3.x.x
 For backwards compatibility to server REST API v1 set the property `apiVersion: 1` in your environment file.
@@ -352,10 +352,10 @@ Copy the dist folder to ```/wsr/ng/``` on your Web-Server and setup the fallback
    
 ### Server REST API
 
-SpeechRecorder requires a HTTP server providing a REST API. The server code is not part of this package.
+Cavox requires a HTTP server providing a REST API. The server code is not part of this package.
 The package only contains a minimal file structure for testing. The files reside in `src/test`.
 
-Versions 2.x.x of WebSpeechRecorderNg use the REST API version v1, Versions 3.x.x may use API version v1 and  v2. Set environment property apiVersion accordingly (default: `apiVersion: 1`) 
+Versions 2.x.x of the recorder (then WebSpeechRecorderNg) use the REST API version v1, Versions 3.x.x may use API version v1 and  v2. Set environment property apiVersion accordingly (default: `apiVersion: 1`) 
 
 ## Configuration
 
@@ -374,7 +374,7 @@ All library log output goes through a level gated logger. The level is configure
 * Recording files and their metadata are considered personal data; the server should apply access control, transport encryption and retention policies accordingly.
 * When recordings are stored client side in IndexedDB (`DB_CHUNKED` storage), they are plaintext by default. Set `encryptPersistentRecordings: true` in `SpeechRecorderConfig` to encrypt chunks at rest with AES-GCM (WebCrypto). The key is session scoped: a page reload in the same browser session can still decrypt, a browser restart cannot (stale encrypted chunks become unreadable and should be cleaned up server side). Playback and download of encrypted recordings work transparently.
 
-## SpeechRecorder REST API description
+## Cavox REST API description
 
 ### Entity Project
 
@@ -611,7 +611,7 @@ one that is played once without a replay (`replay: false`) and one text item.
 
 ### Recording file
 
-SpeechRecorder stores the recording in browser memory first. The recordings are then uploaded to the server as binary encoded WAVE files.
+Cavox stores the recording in browser memory first. The recordings are then uploaded to the server as binary encoded WAVE files.
 
 Path: POST {apiEndPoint}session/{sessionId}/recfile/{itemcode}
 
@@ -689,7 +689,7 @@ A recording is only marked as server persisted after the server acknowledges the
 ### Start a recording session
 
 The default routing path to start a recording session is `/spr/session/{sessionId}`. If you call this router link from your Angular application
-WebSpeechRecorderNg should start and will try to load the session data from the REST API first.
+Cavox should start and will try to load the session data from the REST API first.
  
 ## GUI components to view and edit your recording database
 

@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "WebSpeechRecorderNg": {
+    "Cavox": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -21,7 +21,7 @@
           "builder": "@angular/build:application",
           "options": {
             "outputPath": {
-              "base": "dist/WebSpeechRecorderNg"
+              "base": "dist/cavox"
             },
             "index": "src/index.html",
             "polyfills": [
@@ -78,10 +78,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "WebSpeechRecorderNg:build:production"
+              "buildTarget": "Cavox:build:production"
             },
             "development": {
-              "buildTarget": "WebSpeechRecorderNg:build:development"
+              "buildTarget": "Cavox:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -89,7 +89,7 @@
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n",
           "options": {
-            "buildTarget": "WebSpeechRecorderNg:build"
+            "buildTarget": "Cavox:build"
           }
         }
       }

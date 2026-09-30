@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "SpeechRecorder Angular Demo",
-    "shortTitle": "SpeechRecorder",
+    "title": "Cavox — Capture your voice",
+    "shortTitle": "Cavox",
     "menu": "Menu",
     "menuHelp": "Help",
     "language": "Language",
@@ -25,10 +25,10 @@
       "action": "Action"
     },
     "start": {
-      "badge": "Umeå University · SpeechRecorder",
+      "badge": "Umeå University · Cavox",
       "titleLine1": "Record speech,",
       "titleLine2": "against scripted prompts.",
-      "lead": "SpeechRecorderNg runs a recording session in the browser: it presents the prompts of the loaded script, captures audio from the selected device, and keeps every recording with its metadata.",
+      "lead": "Cavox runs a recording session in the browser: it presents the prompts of the loaded script, captures audio from the selected device, and keeps every recording with its metadata.",
       "openRecorder": "Open the recorder"
     },
     "session": {
@@ -263,7 +263,7 @@
       "uploadPartial": "Some uploads failed. Recordings were not stored on the server."
     },
     "respondent": {
-      "windowTitle": "SpeechRecorder — respondent display (session {{session}})",
+      "windowTitle": "Cavox — respondent display (session {{session}})",
       "waitingTitle": "Waiting for the recorder",
       "waitingBody": "This window shows the prompt stage of the running session. It connects as soon as the recorder window sends it.",
       "unsupportedTitle": "Respondent display not supported",

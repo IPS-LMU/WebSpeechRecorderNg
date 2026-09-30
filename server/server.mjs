@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Evaluation receiver for WebSpeechRecorderNg: serves the built application and implements the
+ * Evaluation receiver for Cavox: serves the built application and implements the
  * REST API the recorder uploads to.
  *
  *   node server/server.mjs                       # http://127.0.0.1:8080
@@ -176,7 +176,7 @@ function parseArgs(argv) {
     apiBase: '/api/v1',
     data: join(ROOT, 'server', 'data'),
     seed: join(ROOT, 'src', 'test'),
-    app: join(ROOT, 'dist', 'WebSpeechRecorderNg', 'browser'),
+    app: join(ROOT, 'dist', 'cavox', 'browser'),
     project: null,
     script: null,
     autoCreate: true,
@@ -240,7 +240,7 @@ function usage() {
                        apiEndPoint of the application's environment file
   --data <dir>         data directory, seeded on first run (default server/data)
   --seed <dir|none>    fixture tree copied into an empty data directory (default src/test)
-  --app <dir|none>     built application to serve (default dist/WebSpeechRecorderNg/browser)
+  --app <dir|none>     built application to serve (default dist/cavox/browser)
   --project <id>       project of sessions created on demand (default: the only project)
   --script <id>        script of sessions created on demand
   --no-auto-create     answer 404 for sessions that do not exist

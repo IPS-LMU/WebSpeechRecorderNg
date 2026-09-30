@@ -11,7 +11,7 @@
  *
  * It then creates the untracked `src/environments/environment.prod.ts`: production builds replace
  * `src/environments/environment.ts` with it (see the `fileReplacements` entry of
- * `WebSpeechRecorderNg:build:production` in angular.json). The file is deployment specific and
+ * `Cavox:build:production` in angular.json). The file is deployment specific and
  * therefore not tracked by git, so a fresh checkout has none and the build fails before it starts.
  * It is created from the sample when missing and never touched when it exists, so a deployment's
  * own values survive every build.

@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "SpeechRecorder – demoprogram",
-    "shortTitle": "SpeechRecorder",
+    "title": "Cavox – demoprogram",
+    "shortTitle": "Cavox",
     "menu": "Meny",
     "menuHelp": "Hjälp",
     "language": "Språk",
@@ -25,10 +25,10 @@
       "action": "Åtgärd"
     },
     "start": {
-      "badge": "Umeå universitet · SpeechRecorder",
+      "badge": "Umeå universitet · Cavox",
       "titleLine1": "Spela in tal,",
       "titleLine2": "mot manusbundna prompter.",
-      "lead": "SpeechRecorderNg genomför en inspelningssession i webbläsaren: det visar prompterna i det inlästa manuset, tar upp ljud från vald enhet och bevarar varje inspelning med dess metadata.",
+      "lead": "Cavox genomför en inspelningssession i webbläsaren: det visar prompterna i det inlästa manuset, tar upp ljud från vald enhet och bevarar varje inspelning med dess metadata.",
       "openRecorder": "Öppna inspelaren"
     },
     "session": {
@@ -263,7 +263,7 @@
       "uploadPartial": "Vissa uppladdningar misslyckades. Inspelningarna sparades inte på servern."
     },
     "respondent": {
-      "windowTitle": "SpeechRecorder – respondentvy (session {{session}})",
+      "windowTitle": "Cavox – respondentvy (session {{session}})",
       "waitingTitle": "Väntar på inspelaren",
       "waitingBody": "Det här fönstret visar promptscenen för den pågående sessionen. Det ansluter så snart inspelarfönstret skickar den.",
       "unsupportedTitle": "Respondentvyn stöds inte",

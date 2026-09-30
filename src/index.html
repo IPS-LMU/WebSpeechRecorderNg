@@ -2,7 +2,7 @@
 <html lang="sv" translate="no" style="height:100%; margin: 0;padding: 0">
 <head>
   <meta charset="utf-8">
-  <title>WebSpeechRecorderNg</title>
+  <title>Cavox — Capture your voice</title>
   <base href="/">
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,7 +33,7 @@
 </head>
 <body style="height:100%; margin: 0;padding: 0">
 
-<app-root class="mat-typography"><div class="spr-boot"><h1>Laddar SpeechRecorder… vänta.</h1></div></app-root>
+<app-root class="mat-typography"><div class="spr-boot"><h1>Laddar Cavox… vänta.</h1></div></app-root>
 
 <script>
   /* Before the application boots there is no translator: localize the placeholder and the document
@@ -49,7 +49,7 @@
       if (preferred !== 'en') return;
       document.documentElement.setAttribute('lang', 'en');
       var splash = document.querySelector('app-root > .spr-boot h1');
-      if (splash) splash.textContent = 'Loading SpeechRecorder… please wait.';
+      if (splash) splash.textContent = 'Loading Cavox… please wait.';
     } catch (e) { /* storage unavailable (private mode) — keep the default */ }
   })();
 </script>

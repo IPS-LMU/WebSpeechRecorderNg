@@ -204,7 +204,7 @@ export const SPR_STRINGS: Record<string, string> = {
   'spr.status.uploadPartial': 'Some uploads failed. Recordings were not stored on the server.',
 
   // Respondent display --------------------------------------------------------
-  'spr.respondent.windowTitle': 'SpeechRecorder — respondent display (session {{session}})',
+  'spr.respondent.windowTitle': 'Cavox — respondent display (session {{session}})',
   'spr.respondent.waitingTitle': 'Waiting for the recorder',
   'spr.respondent.waitingBody': 'This window shows the prompt stage of the running session. It connects as soon as the recorder window sends it.',
   'spr.respondent.unsupportedTitle': 'Respondent display not supported',
