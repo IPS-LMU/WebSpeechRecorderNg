@@ -145,6 +145,11 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
      * The API has no endpoint to create a session: sessions are planned outside the recorder.
      * For evaluating the recorder, an unknown id is created on first load with the configured
      * project and script, so any session id in the URL can be recorded.
+     *
+     * A session id of the form `{scriptId}--{anything}` picks that script instead of the
+     * configured default: the configuration picker (`src/app/session/sessions.ts`) mints ids
+     * this way so choosing a protocol from the bank starts a fresh session bound to it, without
+     * the API needing an actual "create session" endpoint.
      */
     function autoCreate(sessionId) {
       if (!autoCreateSession.enabled) {
@@ -153,9 +158,19 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       if (autoCreateSession.project === null) {
         throw new RequestError(404, `session ${sessionId} does not exist and no --project is configured to create one`);
       }
-      const session = store.createSession(sessionId, {project: autoCreateSession.project, script: autoCreateSession.script});
-      log(`created session ${sessionId} (project ${autoCreateSession.project}, script ${autoCreateSession.script ?? 'none'})`);
+      const script = scriptRequestedBy(sessionId) ?? autoCreateSession.script;
+      const session = store.createSession(sessionId, {project: autoCreateSession.project, script});
+      log(`created session ${sessionId} (project ${autoCreateSession.project}, script ${script ?? 'none'})`);
       return session;
+    }
+
+    function scriptRequestedBy(sessionId) {
+      const sepIdx = sessionId.indexOf('--');
+      if (sepIdx <= 0) {
+        return null;
+      }
+      const candidate = sessionId.slice(0, sepIdx);
+      return store.scriptIds().includes(candidate) ? candidate : null;
     }
 
     async function sessionPatch(req, res, sessionId, projectId) {

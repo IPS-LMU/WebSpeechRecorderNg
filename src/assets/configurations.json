@@ -28,5 +28,15 @@
       "en": "A script whose prompt order is shuffled.",
       "sv": "Ett manus vars promptordning blandas."
     }
+  },
+  {
+    "id": "dysartri-kortversion",
+    "script": "dysartri-kortversion",
+    "project": "Demo1",
+    "name": { "en": "Dysarthria assessment (short)", "sv": "Kortversion av dysartribedömning" },
+    "description": {
+      "en": "Sustained sounds, DDK repetition, sentence reading and a text passage.",
+      "sv": "Uthållna ljud, DDK-repetition, meningsläsning och en lästext."
+    }
   }
 ]

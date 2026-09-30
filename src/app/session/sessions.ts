@@ -9,11 +9,15 @@ import {environment} from '../../environments/environment';
  *
  * The catalogue lives next to the application (`assets/configurations.json`), so a standalone
  * install — one that is not served with a recording procedure script — still offers something to
- * record against. Each entry names a session that exists in the data the app is served with.
+ * record against. An entry either names a session that already exists in the data the app is
+ * served with (`sessionId`), or names a script from the bank (`script`), in which case a fresh
+ * session bound to that script is started on every pick (see `freshSessionId` and the
+ * evaluation receiver's `autoCreate`, `server/api.mjs`).
  */
 export interface RecordingConfiguration {
   id: string;
-  sessionId: string | number;
+  sessionId?: string | number;
+  script?: string;
   project?: string;
   name: Record<string, string>;
   description?: Record<string, string>;
@@ -64,9 +68,20 @@ export class SessionsComponent implements OnInit {
   }
 
   openSelected(): void {
-    if (this.selected) {
-      this.router.navigate(['/spr/session', this.selected.sessionId]);
+    if (!this.selected) {
+      return;
     }
+    const target = this.selected.sessionId ?? this.freshSessionId(this.selected);
+    this.router.navigate(['/spr/session', target]);
+  }
+
+  /**
+   * A session id the evaluation receiver has never seen, encoding which script it should bind to
+   * (`{scriptId}--{uuid}`, decoded by `autoCreate` in `server/api.mjs`) — a protocol picked from
+   * the bank always starts a clean session instead of reusing one shared slot.
+   */
+  private freshSessionId(configuration: RecordingConfiguration): string {
+    return `${configuration.script}--${crypto.randomUUID()}`;
   }
 
   openManual(): void {
