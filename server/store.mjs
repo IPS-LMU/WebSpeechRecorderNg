@@ -17,6 +17,7 @@ import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rm
 import {dirname, join, resolve, sep} from 'node:path';
 import {RequestError} from './body.mjs';
 import {etagOf} from './etag.mjs';
+import {MEDIA_DIR, mimeTypeFor, referencedResources} from './media.mjs';
 
 const ID_SEQUENCE = 'sequence.json';
 const JOURNAL = 'journal.json';
@@ -669,6 +670,108 @@ export class Store {
       });
     }
     return out;
+  }
+
+  // ---------------------------------------------------------------- project media
+
+  mediaDir(projectId) {
+    return join(this.dataDir, 'project', this.segment(projectId), 'media');
+  }
+
+  mediaPath(projectId, name) {
+    return join(this.mediaDir(projectId), this.segment(name));
+  }
+
+  mediaIndexPath(projectId) {
+    return join(this.mediaDir(projectId), 'index.json');
+  }
+
+  mediaIndex(projectId) {
+    return this.readJson(this.mediaIndexPath(projectId))?.files ?? [];
+  }
+
+  /** The project's media files, merged with the recorded metadata (duration, MIME type). */
+  listMedia(projectId) {
+    const dir = this.mediaDir(projectId);
+    if (!existsSync(dir)) {
+      return [];
+    }
+    const recorded = new Map(this.mediaIndex(projectId).map((entry) => [entry.name, entry]));
+    return readdirSync(dir)
+      .filter((name) => name !== 'index.json' && statSync(join(dir, name)).isFile())
+      .sort()
+      .map((name) => {
+        const meta = recorded.get(name) ?? {};
+        return {
+          src: `${MEDIA_DIR}/${name}`,
+          name,
+          mimetype: meta.mimetype ?? mimeTypeFor(name),
+          durationMs: meta.durationMs ?? null,
+          bytes: statSync(join(dir, name)).size,
+          updated: meta.updated ?? null,
+        };
+      });
+  }
+
+  ensureMediaDir(projectId) {
+    mkdirSync(this.mediaDir(projectId), {recursive: true});
+  }
+
+  recordMedia(projectId, entry) {
+    const files = this.mediaIndex(projectId).filter((item) => item.name !== entry.name);
+    files.push(entry);
+    files.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    this.writeJson(this.mediaIndexPath(projectId), {files});
+    return entry;
+  }
+
+  removeMedia(projectId, name) {
+    const files = this.mediaIndex(projectId).filter((item) => item.name !== name);
+    this.writeJson(this.mediaIndexPath(projectId), {files});
+  }
+
+  /**
+   * The project resources a script draft or published version refers to, mapped to their owners:
+   * `{scriptId, draft: true}` for a draft and `{scriptId, version: n}` for a published version.
+   * Legacy flat scripts have no versions yet and are reported as version 1.
+   */
+  resourceReferences(projectId = null) {
+    const refs = new Map();
+    const add = (src, owner) => {
+      const owners = refs.get(src) ?? [];
+      owners.push(owner);
+      refs.set(src, owners);
+    };
+    for (const id of this.scriptIds()) {
+      const meta = this.scriptMeta(id);
+      if (projectId !== null && meta !== null && meta.project !== null && meta.project !== undefined && meta.project !== projectId) {
+        continue;
+      }
+      const scriptId = meta?.scriptId ?? coerceId(id);
+      const draft = this.draft(id);
+      if (draft !== null) {
+        for (const src of referencedResources(draft)) {
+          add(src, {scriptId, draft: true});
+        }
+      }
+      for (const version of this.versions(id)) {
+        const doc = this.version(id, version);
+        if (doc !== null) {
+          for (const src of referencedResources(doc)) {
+            add(src, {scriptId, version});
+          }
+        }
+      }
+      if (meta === null) {
+        const legacy = this.readJson(this.scriptPath(id));
+        if (legacy !== null) {
+          for (const src of referencedResources(legacy)) {
+            add(src, {scriptId, version: 1});
+          }
+        }
+      }
+    }
+    return refs;
   }
 
   // ---------------------------------------------------------------- banks

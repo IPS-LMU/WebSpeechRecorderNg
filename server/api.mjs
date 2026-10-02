@@ -39,6 +39,7 @@ import {RequestError, readJsonBody, readTextBody, streamToFile} from './body.mjs
 import {bankIdFor, csvToItems, queryBank} from './bank.mjs';
 import {etagOf} from './etag.mjs';
 import {minRecorderVersionFor} from './feature-versions.mjs';
+import {durationMsOf, MEDIA_DIR, mimeTypeFor, sanitiseMediaName} from './media.mjs';
 import {validateScript} from './validate.mjs';
 import {multipartBoundary, readMultipart} from './multipart.mjs';
 import {concatWavFiles, probeWav, readWavSection, WavError} from './wav.mjs';
@@ -130,6 +131,9 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       }
       if (rest[1] === 'bank') {
         return await bankRoutes(req, res, url, rest.slice(2), projectId);
+      }
+      if (rest[1] === 'media') {
+        return await mediaRoutes(req, res, rest.slice(2), projectId);
       }
       return await sendProjectResource(projectId, rest.slice(1).join('/'));
     }
@@ -505,6 +509,116 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       const {items: imported, errors} = csvToItems(text, bank);
       store.writeBank(bank.bankId, {...bank, items: [...(bank.items ?? []), ...imported], updated: new Date().toISOString()});
       return await sendJson(res, 200, {imported: imported.length, skipped: errors.length, errors});
+    }
+
+    // -------------------------------------------------------------- project media
+
+    /** Playback clips and image prompts: list with usage, upload (raw or multipart) and delete. */
+    async function mediaRoutes(req, res, rest, projectId) {
+      if (rest.length === 0) {
+        if (req.method === 'GET') {
+          return await sendJson(res, 200, listMediaWithUsage(projectId));
+        }
+        if (req.method === 'POST') {
+          return await uploadMedia(req, res, projectId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on project/{p}/media`);
+      }
+      const name = rest[0];
+      if (rest.length === 1 && req.method === 'GET') {
+        const path = store.mediaPath(projectId, name);
+        if (!existsSync(path) || !statSync(path).isFile()) {
+          throw new RequestError(404, `media ${name} does not exist`);
+        }
+        return sendFile(res, 200, path, mimeTypeFor(name));
+      }
+      if (rest.length === 1 && req.method === 'DELETE') {
+        return await deleteMedia(res, projectId, name);
+      }
+      throw new RequestError(405, `${req.method} is not supported on project/{p}/media/{name}`);
+    }
+
+    function listMediaWithUsage(projectId) {
+      const references = store.resourceReferences(projectId);
+      return store.listMedia(projectId).map((entry) => ({...entry, usedBy: references.get(entry.src) ?? []}));
+    }
+
+    /** Uploads a clip; a file a published version uses cannot be replaced. */
+    async function uploadMedia(req, res, projectId) {
+      const contentType = String(req.headers['content-type'] ?? '');
+      let tmpPath;
+      let name;
+      let declared;
+      if (multipartBoundary(contentType) !== null) {
+        const {files} = await readMultipart(req, {tmpDir: store.tmpDir, maxBytes: maxBody});
+        const file = [...files.values()][0];
+        if (file === undefined) {
+          throw new RequestError(400, 'no file part in the request');
+        }
+        tmpPath = file.path;
+        // The part's own type, not the multipart envelope's.
+        declared = String(file.contentType ?? '').split(';')[0].trim();
+        name = sanitiseMediaName(file.filename, declared);
+      } else {
+        const requested = req.headers['x-filename'];
+        if (typeof requested !== 'string' || requested.trim() === '') {
+          throw new RequestError(400, 'X-Filename is required for a raw media upload');
+        }
+        declared = contentType.split(';')[0].trim();
+        name = sanitiseMediaName(requested, declared);
+        tmpPath = tmpFile('media');
+        await streamToFile(req, tmpPath, {maxBytes: maxBody});
+      }
+      const src = `${MEDIA_DIR}/${name}`;
+      const published = (store.resourceReferences(projectId).get(src) ?? []).filter((owner) => owner.version !== undefined);
+      if (published.length > 0) {
+        unlinkSync(tmpPath);
+        throw new RequestError(409, `${src} is in use by a published script`, {code: 'MEDIA_IN_USE', details: {usedBy: published}});
+      }
+      try {
+        store.ensureMediaDir(projectId);
+        store.move(tmpPath, store.mediaPath(projectId, name));
+      } catch (err) {
+        unlinkSync(tmpPath);
+        throw err;
+      }
+      const mimetype = declared === '' || declared === 'application/octet-stream' || declared.startsWith('multipart/')
+        ? mimeTypeFor(name)
+        : declared;
+      let durationMs = null;
+      if (mimetype === 'audio/wav' || name.toLowerCase().endsWith('.wav')) {
+        try {
+          durationMs = durationMsOf(probeWav(store.mediaPath(projectId, name)));
+        } catch (err) {
+          if (!(err instanceof WavError)) {
+            throw err;
+          }
+        }
+      }
+      const entry = store.recordMedia(projectId, {
+        name,
+        mimetype,
+        durationMs,
+        bytes: statSync(store.mediaPath(projectId, name)).size,
+        updated: new Date().toISOString(),
+      });
+      return await sendJson(res, 201, {src, mimetype: entry.mimetype, durationMs, bytes: entry.bytes});
+    }
+
+    async function deleteMedia(res, projectId, name) {
+      const target = store.mediaPath(projectId, name);
+      if (!existsSync(target) || !statSync(target).isFile()) {
+        throw new RequestError(404, `media ${name} does not exist`);
+      }
+      const src = `${MEDIA_DIR}/${name}`;
+      const usedBy = store.resourceReferences(projectId).get(src) ?? [];
+      const published = usedBy.filter((owner) => owner.version !== undefined);
+      if (published.length > 0) {
+        throw new RequestError(409, `${src} is in use by a published script`, {code: 'MEDIA_IN_USE', details: {usedBy}});
+      }
+      unlinkSync(target);
+      store.removeMedia(projectId, name);
+      return await sendJson(res, 200, {src, deleted: true, usedBy});
     }
 
     async function createScript(req, res, projectId) {

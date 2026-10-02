@@ -330,6 +330,14 @@ reference does not block but is listed in the refusal body. Uploads are immediat
 draft's undo stack, so the editor warns while a newly uploaded file is unreferenced; orphans are
 harmless and cleared by a deployment job outside this feature.
 
+`usedBy` entries are `{scriptId, version: n}` for a published version and `{scriptId, draft: true}`
+for a draft. An upload carries `X-Filename`, or a filename in the multipart part; the stored name is
+the basename, so a path cannot escape the media directory. Uploading under a name a published
+version references is refused like a delete, so a session's clip cannot be swapped underneath it;
+otherwise the upload replaces the file. The receiver measures `durationMs` for WAVE (`probeWav`) and
+reports `null` for other types; the measured metadata lives in `<data>/project/{p}/media/index.json`,
+which is an implementation detail and not part of the API.
+
 ## 6. Preview sessions (tier 2 dry run)
 
 ```
