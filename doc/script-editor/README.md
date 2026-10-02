@@ -78,15 +78,20 @@ An application upgrade may add items to a shipped bank, which widens later draws
 changes a draw a session has already made (D2). Bank identity carries its source
 (`bankSource: 'PROJECT' | 'BUILTIN'`).
 
-### D4 — Playback is its own block on the prompt item
+### D4 — Playback extends the prompt audio
 
-**Decision.** What the speaker **hears** is a `playback` object on the prompt item, separate from
-`mediaitems`, which is what the speaker **sees**.
+**Decision.** The sound a speaker hears is the item's **audio mediaitem**, which the recorder
+already plays as the prompt (`Mediaitem.autoplay`, repeat via `Mediaitem.replay`). The editor adds
+an optional `playback` modifier on the item that takes over placement (`when`), repeats (`repeats`,
+`gap`), the replay rule (`replayable`, `maxReplays`) and the headphone requirement; when absent, the
+mediaitem flags keep their shipped meaning (owner decision, 2026-10-02; see
+[implementation-plan.md](implementation-plan.md) §10.3).
 
-**Consequences.** An item can show nothing and still play something (listen-and-repeat), or show
-a text and play a cue. Playback carries its own timing, which the recorder must honour before the
-editor is useful (see milestone M1). Playback files are project resources, fetched the way image
-prompts already are, so the recorder needs no new fetch mechanism.
+**Consequences.** An item can show one thing and play another (text or image in `mediaitems[0]`,
+audio elsewhere in `mediaitems`), or show nothing and play. The recorder must honour the four extra
+placements before the editor is useful (M1); the default `WITH_PROMPT` is the shipped behaviour, so
+existing scripts need no migration. Playback files are project resources, fetched the way image
+prompts already are.
 
 ### D5 — Scripts have drafts and published versions
 

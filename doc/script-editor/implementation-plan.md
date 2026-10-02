@@ -38,8 +38,8 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 | Receiver surface today: `GET project/{p}`, `GET project/{p}/{resource}`, `GET script/{id}` (read-only, any method), `GET/PATCH/PUT session/{id}`, project-scoped session PATCH, recfile list/audio, `GET/POST/PATCH recordingfile/{id}`, raw and chunked upload with an `Idempotency-Key` journal. No create/list/write for scripts, no banks, media, draws, ETag or validation. | `server/api.mjs` header and route switch | Track R is additive: every editor endpoint in [rest-api.md](rest-api.md) is new server work. |
 | Receiver error body is `{"error": message}`; `sendJson(res, status, body, headers)` accepts extra headers; CORS/credentials are CLI flags; there is no auth; `.json`/`.wav` URL suffixes are stripped for `apiType: 'files'` clients. | `server/api.mjs` `respondToError`/`sendJson`, `server/server.mjs` | Extend to `{error, message, details}` additively; ETag needs only the headers parameter (R1). |
 | `wav.mjs` probes and concatenates WAVE; `multipart.mjs` parses uploads; `store.mjs` writes through temp+rename and keeps ids/journal under `<data>/uploads`; `projectResourcePath` refuses traversal. | `server/wav.mjs`, `multipart.mjs`, `store.mjs` | Media `durationMs`, multipart and atomic writes reuse existing code (R1/R6); the ETag is safe only because writes are atomic. |
-| **Upstream already ships an audio-prompt playback model**: an audio `mediaitems[0]` is played as the prompt (`Mediaitem.autoplay`, `Mediaitem.replay`), with `audio/prompt_audio.ts`, a held traffic light, a replay control and the `R` key (commits `99f4ff42`, `cb1d360f`). No `PromptItem.playback`, `PlaybackWhen`, `repeats`, `gap`, `headphones` or `maxReplays` exists in the tree. | `script.ts`, `sessionmanager.ts:1293/1435`, `prompting.ts:326`, `lib/audio/prompt_audio.ts` | L1/L3 as written would add a second, competing playback representation: reconcile before M1 coding (D-V, §10.3). |
-| **Upstream already ships load-time prefill**: `PromptItemPrefill` (`source`, `select:'random'`, `itemcodeFormat`, templated `mediaitems`), `ScriptPrefillService`, `prefill.ts`, `Session.prefills`; sources are fetched through the new `ScriptService.scriptResourceObservable` (`ba81bcf8`). | `prefill.ts`, `prefill.service.ts`, `session.ts`, `script.service.ts` | The design's `Draw`/item-bank resolution is a second randomised-item mechanism: reconcile before M4 (D-W, §10.4). |
+| **Upstream already ships an audio-prompt playback model**: an audio `mediaitems[0]` is played as the prompt (`Mediaitem.autoplay`, `Mediaitem.replay`), with `audio/prompt_audio.ts`, a held traffic light, a replay control and the `R` key (commits `99f4ff42`, `cb1d360f`). No `PromptItem.playback`, `PlaybackWhen`, `repeats`, `gap`, `headphones` or `maxReplays` exists in the tree. | `script.ts`, `sessionmanager.ts:1293/1435`, `prompting.ts:326`, `lib/audio/prompt_audio.ts` | Reconciled by **D-V = C** (§10.3): `playback` becomes an optional modifier over the shipped audio mediaitem. |
+| **Upstream already ships load-time prefill**: `PromptItemPrefill` (`source`, `select:'random'`, `itemcodeFormat`, templated `mediaitems`), `ScriptPrefillService`, `prefill.ts`, `Session.prefills`; sources are fetched through the new `ScriptService.scriptResourceObservable` (`ba81bcf8`). | `prefill.ts`, `prefill.service.ts`, `session.ts`, `script.service.ts` | Reconciled by **D-W = A** (§10.4): the item bank becomes a prefill source type, resolved server-side where session state is needed. |
 | i18n moved into the library: `@jsverse/transloco`, `SPR_STRINGS`/`SprTranslator`, `bin/build_i18n.mjs`, `src/assets/i18n/{en,sv}.json`. `master` also renamed the app to `Cavox` and added `src/assets/configurations.json` plus a configuration picker in `src/app/session/sessions.ts`; the recorder records against the receiver by default (`fecbd8ac`). | `package.json`, `lib/i18n/translate.ts`, `src/app/session/sessions.ts` | The editor reuses the library catalogs and the picker naming; the "script bank" here is scripts/configurations, not the item bank — do not conflate the terms. |
 | Fixtures changed on master: `1245.json` rewritten (net −58), new `dysartri-*`/`sti-*` scripts using prefill and prompt audio, `1.json` still legacy `promptUnits` | `git diff 0c1de418 origin/master -- src/test/script` | M2's fixture set is re-checked; the legacy-shape test (A4/N06) still applies. |
 
@@ -68,8 +68,8 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 | D-S | A draft's ETag is a strong validator over the **stored bytes** (sha256), and every draft write goes through temp+rename. No canonicalisation, so unknown keys and order survive (D-F). | `If-Match` forbids weak validators, and a torn file must not get an ETag. `store.mjs` already writes atomically. |
 | D-T | Server-side validation lives in `server/validate.mjs` and is kept in step with the editor's TS catalogue by **shared conformance fixtures** (`doc/script-editor/checks/*.json`: draft + expected ids), run by `node --test` and by the editor's V1 specs. | Two runtimes (Node and the browser) cannot share the TS directly; fixtures are the cheap honest contract, and publishing must not trust the client. |
 | D-U | Draw resolution, the PRNG and materialised session scripts are server-owned. The editor's example draw is independent, labelled, and never presented as the session's draw (D-J). | D2 requires byte-identical reproducibility across re-draws; one implementation owns the algorithm, the editor only previews. |
-| D-V | **Playback model, open (owner decision, §10.3).** Options: (A) adopt the shipped audio-prompt model (`mediaitems[].autoplay/replay`) and drop the separate `playback` block; (B) keep the design's `PromptItem.playback` and migrate the shipped flags into it; (C) treat the audio mediaitem as the source and `playback` as an optional placement/repeat modifier. | `master` already ships audio prompts and replay (`99f4ff42`, `cb1d360f`); the design was written before that. L1/L3 cannot start until this is chosen. |
-| D-W | **Randomised items, open (owner decision, §10.4).** Options: (A) generalise prefill into the item bank (one mechanism, server-side resolution where identity matters); (B) keep prefill and draw side by side; (C) replace prefill with draw and migrate the shipped scripts. | `master` ships load-time prefill with `Session.prefills` (`ba81bcf8`); the design's draw resolves at session creation with `ResolvedDraw`. Two mechanisms would both exist unless reconciled. |
+| D-V | **Playback model — decided: C (owner, 2026-10-02, §10.3).** The audio mediaitem stays the sound source and the default placement; `PromptItem.playback` is an optional modifier that sets `when`, `repeats`, `gap`, `headphones` and `replayable`/`maxReplays`, overriding the shipped `Mediaitem.autoplay`/`replay` when present. | Keeps `master`'s tested audio-prompt code and needs no script migration, while preserving the design's placements and repeat controls. |
+| D-W | **Randomised items — decided: A (owner, 2026-10-02, §10.4).** The item bank becomes a **prefill source type**: plain lists keep the shipped load-time, client-side path; bank sources are resolved server-side at session creation where session state is needed, and the resolution is recorded in one session trace. | One UI concept and one reproducibility story instead of two mechanisms; M0 freezes the exact unified schema. |
 
 ## 3. Dependency graph and parallel tracks
 
@@ -133,11 +133,14 @@ inventory (§4 M2).
 - [] Add the **media endpoints rest-api is missing** (B1): `GET project/{p}/media` with `usedBy`,
       `DELETE project/{p}/media/{src}`, the draft-vs-published reference rule, and the orphan
       policy for uploads the undo stack cannot remove.
-- [] Freeze draw resolution: seeds per `fixedBy`, the refill rule and where it is recorded,
-      `ResolvedDraw` storage, `_redraw` status rule, itemcode padding and count cap,
-      `order:SEQUENTIAL` meaning, and the PRNG spec the receiver implements (one implementation,
-      the editor never resolves a session draw).
-- [] Freeze the persisted draw-filter semantics (D-O), including a `filterVersion`.
+- [] Freeze the unified randomised-items schema (D-W, §10.4): the source reference (list vs bank),
+      the client/server resolution split, the single session trace (extended `Session.prefills`,
+      `ResolvedDraw` dropped), `_redraw` and its status rule, itemcode padding and count cap,
+      seeds per `fixedBy`, the refill rule, and the PRNG spec the receiver implements.
+- [] Freeze the `Playback` modifier (D-V, §10.3): fields and defaults, the override of
+      `Mediaitem.autoplay`/`replay`, the check for both being set, and the non-recording `when`
+      restriction.
+- [] Freeze the bank-source filter semantics (D-O, §10.4), including a `filterVersion`.
 - [] Freeze `/media` upload (`X-Filename`, `durationMs` advisory), media-in-use refusal, and the
       source of truth for W10's "deployment runs {actual}" (B7).
 - [] Freeze the auth surface: cookie vs bearer, XSRF strategy, and the 401 → login → return-URL
@@ -157,11 +160,11 @@ inventory (§4 M2).
 
 | Task | Files | Content |
 |---|---|---|
-| L1 types | `lib/speechrecorder/script/script.ts`, `public-api.ts` | **Gated on D-V (§10.3).** Then `PlaybackWhen`, `Playback` (+`durationMs?`), `Draw*`, `Bank`, `BankItem`, `ResolvedDraw`; extend `PromptItem`, `Group`, `Script`, `Section` (D-I); export everything, **including the pure utilities the editor reuses** (`PromptitemUtil`, `MediaitemUtil`, `PromptDocUtil`, `Order`, `VirtualViewBox`). No recorder behaviour change. |
+| L1 types | `lib/speechrecorder/script/script.ts`, `public-api.ts` | `Playback` as the optional modifier of §10.3 (the prompt's audio mediaitem stays the source; `Mediaitem.autoplay/replay` unchanged); the bank source descriptor and the extended prefill trace of §10.4; extend `PromptItem`, `Group`, `Script`, `Section` (D-I); export everything, **including the pure utilities the editor reuses** (`PromptitemUtil`, `MediaitemUtil`, `PromptDocUtil`, `Order`, `VirtualViewBox`). No recorder behaviour change. |
 | L2 extraction | new `lib/speechrecorder/script/phases.ts`; `sessionmanager.ts` | Characterisation tests first (`phases.spec.ts` or spec beside manager): every default and fallback from §1, the max-timer arithmetic with and without playback (C1), non-recording items (`NON_RECORDING_WAIT`, the `duration` path), and AUTORECORDING auto-advance. Then `promptVisibleAt(promptphase, phase, itemType)`, `effectiveTiming(item)` — returning pre/rec/post **and the playback span with its sequencing** — and the phase-transition table the preview needs (D8). The manager calls them; no behaviour change. |
-| L3 playback | `sessionmanager.ts`, `prompting.ts`, `audio/prompt_audio.ts` | **Gated on D-V (§10.3).** Then all four `when` values with their **end-of-item behaviour pinned**: `BEFORE` plays to the end, then the pre-delay, then recording, and the max timer includes the playback span (C1); `PRERECORDING` starts with the delay and never extends the timer (W05 is a warning, not a runtime fix); `DURING` starts at `RECORDING` and its overrun past the stop is defined; `ONDEMAND` adds a play control. Preload the next clip; route playback so capture cannot double-count it; surface fetch/decode failure in the UI and the session log (never silent); block with a clear message when the service worker has not cached the file offline (C2/C3). Next/Prev/Stop/Pause stop playback and cancel its timers (C4). `playback.alt` joins the item label/description (C5). |
-| L3 replay | `sessionmanager.ts`, `item.ts`, session upload | **Gated on D-V.** Upstream already ships the replay control and `R` key (`cb1d360f`), so this shrinks to what the design adds (a cap via `maxReplays`, a persisted count). **Replay counts get a defined persistence path** (session PATCH or a log entry) with a test — naming `Item` alone loses them (C4). |
-| L3 headphones | prompting UI + `sessionmanager.start()` | **Gated on D-V.** If any item in the section has `playback.headphones`, require a confirmation before the section starts. |
+| L3 playback | `sessionmanager.ts`, `prompting.ts`, `audio/prompt_audio.ts` | The `playback` modifier of §10.3: all `when` values with their **end-of-item behaviour pinned** (`BEFORE` plays to the end, then the pre-delay, then recording, and the max timer includes the playback span (C1); `PRERECORDING` starts with the delay and never extends the timer — W05 warns; `DURING` starts at `RECORDING` and its overrun past the stop is defined; `ONDEMAND` adds a play control; the default `WITH_PROMPT` is today's autoplay), `repeats`/`gap`, and `playback` overriding `Mediaitem.autoplay/replay`. Preload the next clip; route playback so capture cannot double-count it; surface fetch/decode failure in the UI and the session log (never silent); block with a clear message when the service worker has not cached the file offline (C2/C3). Next/Prev/Stop/Pause stop playback and cancel its timers (C4). `playback.alt` joins the item label/description (C5). |
+| L3 replay | `sessionmanager.ts`, `item.ts`, session upload | `replayable`/`maxReplays` build on the shipped replay control and `R` key (`cb1d360f`): `playback.replayable` overrides `Mediaitem.replay`, and the cap plus a **persisted replay count** (session PATCH or a log entry) get a test (C4). |
+| L3 headphones | prompting UI + `sessionmanager.start()` | If any item in the section has `playback.headphones`, require a confirmation before the section starts. |
 | L4 version gate | `feature-versions.ts`, `speechrecorderng.component.ts` (script load) | Recorder refuses a script whose `minRecorderVersion` is above `VERSION` with a clear message. **Write a numeric segment comparator** with tests for `"3.10" > "3.9"`, missing segments and pre-release suffixes. The server applies the same gate at session creation, because a stale cached recorder bundle cannot check anything (C8). |
 | L5 resolved script | `speechrecorderng.component.ts` (load path), session API per D-K | Land the mechanism frozen in M0: the recorder reads the materialised id from `Session.script` unchanged, or calls the new session-scoped endpoint. Prove it with a drawn fixture end to end; the receiver serves the same shape (R7). |
 | Fixture | `src/test/script/playback.json` | Hand-written script exercising all four `when` values, one non-recording item with playback, and a drawn group. |
@@ -197,10 +200,11 @@ inventory (§4 M2).
 
 | Task | Files | Content |
 |---|---|---|
-| E4 bank browser | `app/bank/` | **Gated on D-W (§10.4).** Grouped picker (project/builtin), origin chip, read-only state + "Copy to this project", filter builder with live `matchCount`, item table with audition and pagination, project-bank item editing, CSV import result UI. The browse filter and the persisted rule filter are visibly distinct; only the rule filter writes `draw.filter` (D-O). |
-| E4 rule builder | `app/bank/` (rule panel) | **Gated on D-W (§10.4).** `count` vs `matchCount` (E04, suspended when the count is unknown per ui-spec §9), `fixedBy`, `skipRecordedBySpeaker`, `itemcodePrefix` preview (padding and cap per M0), `playBankAudio` + settings + `itemDefaults`, example draw (D-J) **labelled as ignoring `fixedBy`/`skipRecordedBySpeaker` and sampled fairly, not from page one** (D4). |
-| E4 draws view | `app/draws/` | **Gated on D-W (§10.4).** Table + detail, CSV export (`Accept: text/csv`), re-draw enabled only for `CREATED` with the disabled reason shown; the "draw is fixed at session creation" sentence stays. Preview (`type:"TEST"`) sessions are excluded or badged per M0 (D-P). |
-| E4 tier-2 preview | editor config + recorder | **Gated on D-W (§10.4).** `POST …/preview-session`, open `/wsr/ng/spr/session/{id}` in a new tab; editor config needs the recorder base URL. The recorder honours `session.type === 'TEST'` by disabling uploads in that tab, or the deployment running the preview has `enableUploadRecordings:false` (D-P) — state which one the plan relies on. |
+| E4 bank browser | `app/bank/` | **Per D-W (§10.4).** Grouped picker (project/builtin), origin chip, read-only state + "Copy to this project", filter builder with live `matchCount`, item table with audition and pagination, project-bank item editing, CSV import result UI. The browse filter and the persisted bank-source filter are visibly distinct; only the latter is written to the draft (D-O). |
+| E4 rule builder | `app/bank/` (rule panel) | **Per D-W.** The bank-source fields: `count` vs `matchCount` (E04, suspended when the count is unknown per ui-spec §9), `fixedBy`, `skipRecordedBySpeaker`, `itemcodePrefix` preview (padding and cap per M0), `playBankAudio` + settings + `itemDefaults`, example draw (D-J) **labelled as ignoring `fixedBy`/`skipRecordedBySpeaker` and sampled fairly, not from page one** (D4). |
+| E4 randomised items panel | `app/editor/`, `app/bank/` | **Per D-W.** One panel with a source picker — word list, sentence list, item bank — showing whether the source is drawn when the script loads or when the session starts; the list sources are the shipped `PromptItemPrefill`, the bank source carries the fields above. |
+| E4 draws view | `app/draws/` | **Per D-W.** Reads the **unified session trace** (extended `Session.prefills`: list draws and bank draws): table + detail, CSV export (`Accept: text/csv`), re-draw enabled only for `CREATED` with the disabled reason shown. Preview (`type:"TEST"`) sessions are excluded or badged per M0 (D-P). |
+| E4 tier-2 preview | editor config + recorder | `POST …/preview-session`, open `/wsr/ng/spr/session/{id}` in a new tab; editor config needs the recorder base URL. The recorder honours `session.type === 'TEST'` by disabling uploads in that tab, or the deployment running the preview has `enableUploadRecordings:false` (D-P) — state which one the plan relies on. |
 | Gate | A drawn group produces a session in the recorder whose items are traceable to bank items **through the mechanism frozen in M0/D-K, not a shortcut**; re-opening that session shows identical items (D2); a preview session cannot upload anything (R8); CSV matches the detail view. |
 
 ### M5 — Hardening
@@ -233,7 +237,7 @@ and new modules `server/{etag,validate,bank,draw,media}.mjs`.
 | R4 validation and publish gate | new `server/validate.mjs`; the catalogue in the library (`lib/speechrecorder/script/checks.ts`, dependency-free) with a generated `server/checks.generated.mjs` (esbuild, committed, regeneration test in R10); `doc/script-editor/checks/*.json` | E01–E11 and the data-model §4 invariants over a draft, returning `details.checks`; publish refuses with 409. One implementation, one corpus (§10.2). | M3/M4 |
 | R5 banks | new `server/bank.mjs`, `server/api.mjs` | Project banks plus a seeded builtin set; list/query with the frozen filter semantics (`matchCount`, `withoutAudio`, `limit`/`offset`), item CRUD, CSV `_import`, `copyFrom`, `BANK_READ_ONLY`. The same module answers E04. | M4 |
 | R6 media | new `server/media.mjs`, `server/api.mjs` | `POST` (raw `X-Filename`, or multipart through `multipart.mjs`; `durationMs` from `probeWav` for WAVE), `GET` list with `usedBy`, `DELETE` with `MEDIA_IN_USE`; files under `<data>/project/<p>/media/`. | M3 |
-| R7 draws and sessions | new `server/draw.mjs`, `server/store.mjs` (`createSession`), `server/api.mjs` | Resolve each `draw` at creation: filter, skip/refill, deterministic PRNG, itemcode padding; materialise an internal script and point `Session.script` at it (D-K/D-U); store `ResolvedDraw`; `GET …/draw` at session and script scope, CSV, `_redraw` for `CREATED` only. | M4 |
+| R7 randomised sources and sessions | new `server/draw.mjs`, `server/store.mjs` (`createSession`), `server/api.mjs` | Resolve each **bank source** at creation: filter, skip/refill, deterministic PRNG, itemcode padding; materialise an internal script and point `Session.script` at it (D-K/D-U); record the draw in the **unified session trace** (extended `Session.prefills`, `ResolvedDraw` dropped, §10.4); `GET …/draws` at session and script scope, CSV, `_redraw` for `CREATED` only. | M4 |
 | R8 preview sessions | `server/api.mjs`, `server/store.mjs` | `POST …/preview-session` → a `type:"TEST"` session plus resolved script and `expires`; the server **refuses uploads and recordingfile writes for TEST sessions**; TEST sessions stay out of draw and usage listings. | M4 |
 | R9 fixtures and dev loop | `src/test/**`, `README` §Testing | New fixtures (playback, drawn group, legacy `promptUnits`, ~500 items, a bank tree, media clips) usable as `--seed`; document `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` stays gitignored runtime state. | M2/M4 |
 | R10 tests and CI | `server/*.test.mjs`, `.github/workflows/` | `node --test server/`: store atomicity/ids, ETag/428/412, the check fixtures, bank filter, draw determinism and skip/refill, media in-use, multipart, WAV duration, TEST upload refusal. Add a workflow running them plus the karma jobs (only CodeQL/OSV exist today). | M5 |
@@ -509,8 +513,30 @@ audio.
 
 C is additive to what is already tested (the `prompt_audio` and `mediaitem` specs), keeps
 `GET script/{id}` compatible, and makes the editor's playback block an extension of the field
-researchers already have. If the four placements are not needed by any protocol, A is simpler and
-the design's §2.1 shrinks to a note.
+researchers already have.
+
+**Chosen (owner, 2026-10-02): C.** The concrete model:
+
+```ts
+export interface Playback {
+  /** Where the prompt's audio plays. Default 'WITH_PROMPT' — the shipped autoplay behaviour. */
+  when?: 'WITH_PROMPT' | 'BEFORE' | 'PRERECORDING' | 'DURING' | 'ONDEMAND';
+  repeats?: number;      // default 1
+  gap?: number;          // ms between repeats, default 500
+  headphones?: boolean;  // default false
+  replayable?: boolean;  // overrides Mediaitem.replay when present
+  maxReplays?: number;   // unset = uncapped
+  durationMs?: number;   // advisory, server-measured
+}
+// The sound source is the prompt's first audio mediaitem (PromptitemUtil.autoplayAudioitem).
+// Mediaitem.autoplay/replay keep their shipped meaning when `playback` is absent.
+```
+
+Rules to freeze in M0: `playback` present ⇒ the item's `Mediaitem.autoplay`/`replay` are ignored
+(and flagged by a check when both are set, so the intent is explicit); `when` on a non-recording
+item is `WITH_PROMPT`/`BEFORE`/`ONDEMAND` only; `repeats`/`gap` apply inside whichever phase `when`
+selects; `maxReplays` is enforced where the shipped `replay` control already lives. The traffic
+light keeps waiting for the prompt audio exactly as `prompt_audio.ts` does today.
 
 ### 10.4 Randomised items: prefill and draw are two mechanisms
 
@@ -538,3 +564,20 @@ They answer one product question with different shapes, resolution times and tra
 
 A is the smallest step that avoids two mechanisms; if the item bank is not wanted at all, the
 existing prefill already covers word/sentence lists and the design's bank becomes optional.
+
+**Chosen (owner, 2026-10-02): A.** The concrete shape, to be frozen in M0:
+
+- The **source** of a randomised prefill is a discriminated reference: a script-resource list
+  (shipped `source` + `select:'random'`) or a **bank source** (`bank`, `bankSource`, `filter`,
+  `count`, `order`, `fixedBy`, `skipRecordedBySpeaker`, `itemcodePrefix`, `playBankAudio`,
+  `itemDefaults`).
+- **Resolution split**: plain lists stay client-side at load, exactly as `ScriptPrefillService`
+  does today. Bank sources, and any source needing speaker or recording state, resolve **server-side
+  at session creation** (which also gives D-K its materialised script).
+- **One trace**: the session records every drawn source — the shipped `Session.prefills` for
+  lists, extended to carry the bank draws (list ids, bank item ids, counts, the refill flag). The
+  separate `ResolvedDraw` type is dropped; the draw record view reads the unified trace.
+- **Editor**: one "randomised items" panel with a source picker (word list, sentence list, item
+  bank); the wording distinguishes "drawn when the script loads" from "drawn when the session
+  starts" only where the researcher must know.
+- The shipped `sti-*`/`dysartri-*` scripts keep working unchanged.

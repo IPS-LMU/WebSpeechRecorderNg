@@ -48,10 +48,11 @@ cannot be fetched. The server still enforces the error checks on publish.
 | W06 | `type: 'nonrecording'` carries `recduration`, or a recording item carries `duration` | {field} has no effect on this kind of item. |
 | W07 | a training section contains a drawn group | Training items are exempt from the completeness check, so a draw here consumes bank items without producing required recordings. |
 | W08 | `mediaitems` longer than one entry | Only the first media item is shown by the recorder. The others are ignored. |
-| W09 | `playback.replayable` with no `maxReplays` in an `AUTORECORDING` section | The speaker can replay without limit while the section advances on its own. |
+| W09 | `playback.replayable` (or `Mediaitem.replay` when no `playback` is set) with no `maxReplays` in an `AUTORECORDING` section | The speaker can replay without limit while the section advances on its own. |
 | W10 | `minRecorderVersion` higher than the version this deployment reports | This script needs recorder {required}; the deployment runs {actual}. Playback would be skipped silently. |
 | W11 | a playback or image file referenced by the draft is missing from the project's media; suspended when the media index cannot be fetched | {src} is not in the project's media. |
-| W12 | `playback.when` is `PRERECORDING` or `DURING` on a `type: 'nonrecording'` item | The item has no recording phase, so the clip plays at the wrong moment; use `BEFORE` or `ONDEMAND`. |
+| W12 | `playback.when` is `PRERECORDING` or `DURING` on a `type: 'nonrecording'` item | The item has no recording phase, so the clip plays at the wrong moment; use `WITH_PROMPT`, `BEFORE` or `ONDEMAND`. |
+| W13 | `playback` is set together with `Mediaitem.autoplay` or `Mediaitem.replay` | The item declares its placement twice; `playback` wins and the mediaitem flags are ignored. |
 
 W08 carries the fix described in [data-model.md](data-model.md) §6; it stays a warning because the
 extra entries may be deliberate data a future recorder will use.

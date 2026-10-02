@@ -109,7 +109,9 @@ as a select with help text that changes with the value; `order` (Sequential, Ran
 and "Ships with SpeechRecorder" plus an origin chip; the filter as a read-only summary with a link
 to §6; `count` with live validation against `matchCount`; `fixedBy` as a select with help text;
 `skipRecordedBySpeaker`; `itemcodePrefix` with a preview of the generated codes; and the sentence
-that the draw happens once, at session creation.
+that the draw happens once, at session creation. **Per D-W** this is the bank source type of the
+single randomised-items mechanism: the panel is reached from the placeholder prompt item, whose
+source picker also offers word and sentence lists (which are drawn when the script loads).
 
 **Prompt item**:
 
@@ -125,12 +127,13 @@ that the draw happens once, at session creation.
 | Pre-rec delay, Rec duration, Post-rec delay | `prerecdelay`, `recduration`, `postrecdelay` |
 | Display duration (information items) | `duration` |
 
-The **playback block** is a bordered fieldset titled "Media played to the speaker". Empty state:
-one sentence and an "Add audio or video…" button. Filled: an audition player (an editor-local
-`<audio>` element — the library's Web Audio player needs `SpeechrecorderngModule` and is not
-imported, README §3), file name and duration, `when` as a select with help text per value, `repeats` and
-`gap`, `replayable`, `headphones`, an inline warning when `DURING` meets no headphones (W03), and
-Remove.
+The **playback block** is a bordered fieldset titled "Media played to the speaker". It edits the
+item's **audio mediaitem** — the file, its alt text, `autoplay` and `replay` — plus the optional
+placement modifier: `when` (default "With the prompt"), `repeats`, `gap`, `replayable`,
+`maxReplays`, `headphones`, and an inline warning when `DURING` meets no headphones (W03). Empty
+state: one sentence and an "Add audio or video…" button when the item has no audio; an audition
+player (an editor-local `<audio>` element — the library's Web Audio player needs
+`SpeechrecorderngModule` and is not imported, README §3), the file name and duration, and Remove.
 
 The **timing block** ends in a timeline bar on the dark canvas token: playback span, pre-recording
 delay, recording, post-recording delay, proportional to the real values from

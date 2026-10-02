@@ -35,59 +35,86 @@ detects it, opens read-only, and migrates only on request (N06).
 
 ### 2.1 Playback — what the speaker hears
 
+The sound source is the item's **first audio mediaitem**. Upstream plays it as the prompt
+(`Mediaitem.autoplay`), holds the traffic light for it and lets the operator repeat it
+(`Mediaitem.replay`; control and `R` key, `audio/prompt_audio.ts`). Per **D-V = C** the editor adds
+an optional **modifier** on the item: when present it takes over placement, repeats and the replay
+rule; when absent, the shipped mediaitem flags keep their meaning. The file, `mimetype` and `alt`
+stay on the mediaitem — `alt` is what screen readers and item labels use.
+
 ```ts
-export type PlaybackWhen = 'BEFORE' | 'PRERECORDING' | 'DURING' | 'ONDEMAND';
+export type PlaybackWhen =
+  | 'WITH_PROMPT'   // default — the shipped autoplay behaviour
+  | 'BEFORE'
+  | 'PRERECORDING'
+  | 'DURING'
+  | 'ONDEMAND';
 
 export interface Playback {
-  /** Project-relative resource path, resolved like an image prompt's `src`. */
-  src: string;
-  mimetype?: string;
-  /** Advisory clip length in ms; the server measures it on upload and the timeline/W05 prefer it. */
-  durationMs?: number;
-  /** Required by the editor: used for the item label and for speakers who cannot hear it. */
-  alt?: string;
-  when: PlaybackWhen;
+  /** Where the prompt's audio plays. Default 'WITH_PROMPT'. */
+  when?: PlaybackWhen;
   /** Times the clip is played back to back. Default 1. */
   repeats?: number;
   /** Silence between repeats, ms. Default 500. */
   gap?: number;
-  /** Show a replay button on the stage. Default false. */
+  /** Overrides `Mediaitem.replay` when present. */
   replayable?: boolean;
   /** Cap on replays; unset means no cap. Counted in the session log. */
   maxReplays?: number;
   /** Ask the speaker to put on headphones before the section starts. */
   headphones?: boolean;
+  /** Advisory clip length in ms; the server measures it on upload and the timeline/W05 prefer it. */
+  durationMs?: number;
 }
 
 export interface PromptItem {
   // … existing fields …
   playback?: Playback;
-  /** Set by the server on a drawn item; traces it back to its bank item. */
+  /** Set by the server on an item drawn from a bank; traces it to its bank item. */
   bankItemId?: string;
 }
 ```
+
+Rules, frozen in M0: `playback` present ⇒ the item's `Mediaitem.autoplay`/`replay` are ignored, and
+a check flags an item that sets both (so the intent is explicit).
 
 `when` semantics, which the recorder implements in M1 and the editor's preview mirrors:
 
 | Value | Behaviour |
 |---|---|
+| `WITH_PROMPT` | **Default.** The audio plays when the prompt is presented and the traffic light waits for it — today's `prompt_audio.ts` behaviour. |
 | `BEFORE` | the clip plays to the end, then the pre-recording delay starts, then recording. The speaker cannot talk over it. |
 | `PRERECORDING` | the clip plays inside the pre-recording delay. The delay should be at least `repeats × duration + (repeats − 1) × gap`; the editor warns when it is shorter (W05). |
 | `DURING` | the clip plays while the microphone is open (shadowing, masking). Requires `headphones: true` or the loudspeaker is recorded (W03). |
 | `ONDEMAND` | the stage shows a play button; the speaker decides when to listen. Implies `replayable`. |
 
-On a `type: 'nonrecording'` item only `BEFORE` and `ONDEMAND` are meaningful; `PRERECORDING` and
-`DURING` have no phase to attach to and the editor warns (W12). The item's `duration`
-governs when the next item starts, not the clip.
+On a `type: 'nonrecording'` item only `WITH_PROMPT`, `BEFORE` and `ONDEMAND` are meaningful;
+`PRERECORDING` and `DURING` have no phase to attach to and the editor warns (W12). The item's
+`duration` governs when the next item starts, not the clip.
 
 Timing: `effectiveTiming(item)` in the library (see README §5) returns the playback span, the
 pre-recording delay, the recording length and the post-recording delay, applying every fallback
 in §1. Both the recorder's timers and the editor's timeline bar use it.
 
-### 2.2 Draw — items chosen from a bank
+### 2.2 Randomised items — list and bank sources (D-W)
 
-A group holds **either** `promptItems` **or** a `draw` rule. In a published script a drawn group's
-`promptItems` is an empty array; in a session's resolved script it holds the drawn items (§2.4).
+Upstream ships **prefill**: a placeholder prompt item (`PromptItem.prefill`) is replaced, when the
+script loads, by one generated item per entry of the chosen list source (`source` fetched from
+`script/{source}`, `select:'random'`, `itemcodeFormat` with `{n}`, `mediaitems` templated with
+`{entry}`); the choice is stored in `Session.prefills` so a reload reproduces the items. Per
+**D-W = A** the item bank is the **second source type of the same mechanism**, not a parallel draw
+system: a script has one way to randomise items.
+
+A **bank source** carries the fields below (the former `Draw`), and resolution is split:
+
+- **list sources** stay client-side at load — the shipped `ScriptPrefillService` path, unchanged;
+- **bank sources**, and anything needing speaker or recording state, resolve **server-side at
+  session creation**: the server picks the items, materialises the session's script (§2.4, D-K) and
+  appends the draw to the **unified session trace** (extended `Session.prefills`; the former
+  `ResolvedDraw` is dropped).
+
+The exact discriminated schema (where the bank source is referenced from, and how the trace is
+shaped) is frozen in M0 — implementation-plan §10.4.
 
 ```ts
 export type DrawFixedBy = 'SESSION' | 'SPEAKER' | 'SCRIPT';
@@ -105,6 +132,8 @@ export interface DrawFilter {
   tags?: Array<string>;
 }
 
+/** The bank source descriptor. Referenced from a placeholder item's `prefill` (D-W); M0 freezes the
+    exact discriminated shape. */
 export interface Draw {
   bank: string;
   bankSource: BankSource;
@@ -122,15 +151,16 @@ export interface Draw {
   itemcodePrefix: string;
   /** Play each drawn item's own model recording instead of one fixed file. */
   playBankAudio?: boolean;
-  /** Playback settings applied to every drawn item when `playBankAudio` is set. */
-  playback?: Omit<Playback, 'src' | 'mimetype' | 'alt'>;
+  /** Applied to every drawn item; the sound is the bank item's own model recording. */
+  playback?: Omit<Playback, 'replayable' | 'maxReplays' | 'durationMs'>;
   /** Timing applied to every drawn item. */
   itemDefaults?: Pick<PromptItem, 'prerecdelay' | 'recduration' | 'postrecdelay' | 'recinstructions'>;
 }
 
 export interface Group {
   order?: Order;
-  draw?: Draw;
+  /** Superseded by D-W: a bank source is referenced from the placeholder item's `prefill`; M0
+      freezes the exact discriminated shape. */
   promptItems: Array<PromptItem>;
   _shuffledPromptItems: Array<PromptItem>;
 }
@@ -177,7 +207,7 @@ export interface BankItem {
   src?: string;
   mimetype?: string;
   alt?: string;
-  /** Model recording, played when the draw rule sets playBankAudio. */
+  /** Model recording, played when the bank source sets `playBankAudio`. */
   audioSrc?: string;
   audioMimetype?: string;
   /** Filterable metadata. */
@@ -191,34 +221,25 @@ A `BankItem` becomes a `PromptItem` at resolution: `text`/`promptDoc`/`src` move
 `mediaitems[0]`, `audioSrc` becomes `playback.src` when `playBankAudio` is set, `itemDefaults`
 supply the timing, and `bankItemId` is carried for traceability.
 
-### 2.4 Resolved draws
+### 2.4 The session trace
 
-What the server stores with a session, and what the editor reads for the draw record view.
+What the server writes when a session is created, and what the editor reads for the record view.
 
-```ts
-export interface ResolvedDrawItem {
-  itemcode: string;
-  bankItemId: string;
-}
+Materialisation is unchanged: the server builds a plain script for the session (the drawn items in
+place, no bank-source key) and points `Session.script` at its id, so the recorder's existing
+`GET script/{sess.script}` returns plain items and needs no call-site change. Materialised scripts
+are internal: the library list and the record view exclude them from their default listings.
 
-export interface ResolvedDraw {
-  /** Position of the drawn group in the script. */
-  sectionIdx: number;
-  groupIdx: number;
-  bank: string;
-  bankSource: BankSource;
-  drawnDate: string;
-  /** Script version the draw was made against. */
-  scriptVersion: number;
-  items: Array<ResolvedDrawItem>;
-}
-```
+The trace is the shipped `Session.prefills`, extended (D-W, implementation-plan §10.4) to carry bank
+draws too, so one structure answers "which list, or which items, did this session get — and why":
 
-At creation the server materialises a plain script for the session — the drawn group's
-`promptItems` filled in, no `draw` key — and points `Session.script` at its id. The
-recorder's existing `GET script/{sess.script}` therefore returns plain items and needs no
-call-site change. Materialised scripts are internal: the library list and the draw record exclude
-them from their default listings.
+- list sources: the source id and the chosen list id (shipped behaviour);
+- bank sources: bank and bank source, the chosen bank item ids with their generated itemcodes, and
+  the refill flag when `skipRecordedBySpeaker` forced a top-up;
+- the script version the draw was made against.
+
+The former `ResolvedDraw`/`ResolvedDrawItem` types are dropped; their fields move into the trace.
+The exact shape is frozen in M0.
 
 ### 2.5 Script metadata
 
