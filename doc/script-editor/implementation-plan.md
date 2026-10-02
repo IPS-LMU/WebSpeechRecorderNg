@@ -6,17 +6,17 @@ file-level targets, ordering and gates. Grounded against commit `0c1de418` in wo
 
 **Gate** = the observable proof that closes a milestone. A milestone is not closed on
 code-complete alone. Tasks named `L…` touch the library/recorder, `E…` the editor, `V…`
-validation, `S…` local server/fixtures. There are no time estimates here; only order and
-dependencies. Bracketed labels (`A1`, `B4`, `C2`, `D3`) index the plan review that drove an
-amendment; §9 maps each one to where it lands.
+validation, `S…` fixtures, `R…` the server in `server/` (track R, §4). There are no time
+estimates here; only order and dependencies. Bracketed labels (`A1`, `B4`, `C2`, `D3`) index the
+plan review that drove an amendment; §9 maps each one to where it lands.
 
 ## 1. Ground truth (verified in the repository)
 
 | Fact | Verified in | Consequence for the plan |
 |---|---|---|
 | Angular 20.3.x, CLI 20.3.36, `@angular/build` builders; Material 20.2, CDK 20.2.14, forms 20.3, TS 5.9.3 | `package.json` | CDK is already a dependency: drag-drop and virtual scroll need no new package. |
-| Two projects only: `WebSpeechRecorderNg` (application), `speechrecorderng` (library) | `angular.json` | M2's project block is additive; no restructuring. |
-| Library tests: `@angular/build:karma`, `src/test.ts`, `tsconfig.spec.json`, `karma.conf.js` (Chrome, `singleRun:false`) | `angular.json`, `projects/speechrecorderng/*` | Copy the pattern for the editor; CI must pass `--watch=false --browsers=ChromeHeadless`. |
+| Two projects on this branch: `WebSpeechRecorderNg` (application), `speechrecorderng` (library); **`master` has renamed the application to `Cavox`** (`angular.json` projects `Cavox`, `speechrecorderng`; `package.json` name `cavox`) | `angular.json` in this worktree and on `origin/master` | M2's project block is a third project; re-base first (R0). |
+| `master` does have CI, but only security scans (`codeql.yml`, `osv-scanner.yml`) — no build/test workflow; `bin/theme_audit.mjs` drives an already-running Chrome over CDP (port 9333, `--url`, `--viewports`, `--prepare`) | `origin/master:.github/workflows`, `bin/theme_audit.mjs` | "Add editor routes to the CI list" means the audit command list; adding a test workflow is server work (R10). |
 | Demo app imports the library by **relative source path**; root `tsconfig.json` maps `speechrecorderng` → `dist/speechrecorderng` | `src/app/app.module.ts`, `tsconfig.json:...` | `from 'speechrecorderng'` imports in the editor are ambiguous until D-A (§2) is decided. |
 | Library is one eager `NgModule` declaring every recorder component and registering `SPR_ROUTES` | `speechrecorderng.module.ts` | D1 confirmed; the editor must not import it and must not rely on its routes. |
 | Timing facts: defaults `1000`/`500` ms; `prerecdelay` falls back to `prerecording` (`sessionmanager.ts:1120-1122`), `postrecdelay` to `postrecording` (`:1127`); max timer `pre+recduration+post` (`:1133`); prompt applied at start for `PRERECORDING`/`PRERECORDINGONLY`, at pre-delay end for `RECORDING`, cleared at pre-delay end for `PRERECORDINGONLY` (`:1113-1163`) | `sessionmanager.ts` | L2 can only be correct if these exact behaviours are pinned as characterisation tests first. |
@@ -24,7 +24,7 @@ amendment; §9 maps each one to where it lands.
 | Library types lag the JSON: `Section` has no `name`, `Script` has no `name`/`type`/`minRecorderVersion`, yet fixtures carry `name`, `type`, `scriptId`; `1.json` still uses legacy `promptUnits` | `script.ts:63-81`, `src/test/script/*.json` | Additive type extensions (D-I); the loader must tolerate keys the types do not describe and keep them untouched. |
 | `Group._shuffledPromptItems` / `Section._shuffledGroups` are **required, non-optional** fields | `script.ts:67-76` | The editor's loader fills them; the serialiser strips them (never make the recorder null-check). |
 | Fixtures: `1.json` 1.8 kB (legacy), `1245.json` 26.6 kB, `3456.json` 6.5 kB, `3171…json` 16.7 kB | `src/test/script/` | Enough for M2; M1/M4 need new fixtures (playback, draw, 500-item perf). |
-| No CI configuration in the repo (`.github`, `.gitlab-ci.yml`, … absent); `bin/theme_audit.mjs` drives an already-running Chrome over CDP (port 9333, `--url`, `--viewports`, `--prepare`) | repo root, `bin/theme_audit.mjs` | "Add editor routes to the CI list" means the audit command list, wherever CI lives; define it in `README` §Testing, not `.github`. |
+| Library tests: `@angular/build:karma`, `src/test.ts`, `tsconfig.spec.json`, `karma.conf.js` (Chrome, `singleRun:false`) | `angular.json`, `projects/speechrecorderng/*` | Copy the pattern for the editor; headless runs pass `--watch=false --browsers=ChromeHeadless`. |
 | Design-doc defects: README §4.1 test `tsConfig` is malformed (`"projects/spr-script-editor:tsconfig.spec.json"`); data-model §2.1 has no `Playback.durationMs` although the timeline/W05 need it; README §8.2 script-name question is open while fixtures already carry `name` | this directory | Fix while touching those files (M0/M1). |
 | Design tension: README §3 forbids `AudioContext` in the editor; rest-api §5 allows client-side decode of clip duration | README §3, rest-api §5 | Use `HTMLMediaElement` metadata (no Web Audio), server `durationMs` authoritative (D-G). |
 | The recorder loads a session's script as `GET script/{sess.script}` — the published, unresolved script | `speechrecorderng.component.ts:164`, rest-api §1 | A1: a published drawn group reaches the recorder empty; a delivery mechanism must be frozen (D-K). |
@@ -34,13 +34,17 @@ amendment; §9 maps each one to where it lands.
 | `public-api.ts` exports the model types but not `PromptitemUtil`/`MediaitemUtil`/`PromptDocUtil`, `Order`, `VirtualViewBox` | `public-api.ts` | L1 must export them or the editor duplicates item labels and drifts. |
 | rest-api has no media list or delete endpoint, only `POST /media` and the in-use refusal rule | rest-api §5, §7 | B1: add `GET`/`DELETE media` before W11 and the delete path are implementable. |
 | `VERSION='3.11.26'`; three numeric segments today | `spr.module.version.ts` | The L4 comparator must define missing-segment and pre-release behaviour, not only `3.10` vs `3.9`. |
+| **The server is in the repo**, on `master` (`b0d04f60`): a Node-builtins evaluation receiver, `server/{server,api,store,body,multipart,wav}.mjs` (~2 000 lines), `npm run serve:api`, file store under `--data` (gitignored `server/data`) seeded from `src/test`. This branch (`dc04a94c`) predates it. | `git ls-tree origin/master`, `package.json`, `server/*.mjs` | Re-base before M2; extend `server/` instead of writing a stub (D-B rewritten, R0). |
+| Receiver surface today: `GET project/{p}`, `GET project/{p}/{resource}`, `GET script/{id}` (read-only, any method), `GET/PATCH/PUT session/{id}`, project-scoped session PATCH, recfile list/audio, `GET/POST/PATCH recordingfile/{id}`, raw and chunked upload with an `Idempotency-Key` journal. No create/list/write for scripts, no banks, media, draws, ETag or validation. | `server/api.mjs` header and route switch | Track R is additive: every editor endpoint in [rest-api.md](rest-api.md) is new server work. |
+| Receiver error body is `{"error": message}`; `sendJson(res, status, body, headers)` accepts extra headers; CORS/credentials are CLI flags; there is no auth; `.json`/`.wav` URL suffixes are stripped for `apiType: 'files'` clients. | `server/api.mjs` `respondToError`/`sendJson`, `server/server.mjs` | Extend to `{error, message, details}` additively; ETag needs only the headers parameter (R1). |
+| `wav.mjs` probes and concatenates WAVE; `multipart.mjs` parses uploads; `store.mjs` writes through temp+rename and keeps ids/journal under `<data>/uploads`; `projectResourcePath` refuses traversal. | `server/wav.mjs`, `multipart.mjs`, `store.mjs` | Media `durationMs`, multipart and atomic writes reuse existing code (R1/R6); the ETag is safe only because writes are atomic. |
 
 ## 2. Decisions this plan takes (review points, not silently assumed)
 
 | # | Decision | Why / alternative |
 |---|---|---|
 | D-A | The editor imports the library **from source**: editor `tsconfig.app.json` overrides `baseUrl` to `../..` and `paths: {"speechrecorderng": ["projects/speechrecorderng/src/public-api.ts"]}`. | The dist mapping forces `ng build speechrecorderng` before every `ng serve` and kills HMR in library code. The demo app already consumes source. Alternative (npm semantics) costs only the developer loop; production build is identical. |
-| D-B | A **stub write server** in `bin/` (Node builtins only) implements rest-api §2–§6 shapes: ETag/`If-Match`/428/412, publish gate, versions, PATCH, media upload, banks, draws, preview-session. Seeded from `src/test/script`, persists to a temp dir. | M0 can stall on server ownership (open Q1); M3/M4 must not. The app targets the contract, never the stub. |
+| D-B | **Extend the in-repo receiver** (`server/*.mjs`) rather than write a separate stub: rest-api §2–§7 land as new modules there (`validate.mjs`, `bank.mjs`, `draw.mjs`, `media.mjs`), behind the existing handler and store. Development runs it with `--data /tmp/… --seed src/test`, so runtime state never enters the repo. | The server exists, is the recorder's contract reference, and already owns the upload half. A parallel stub would duplicate the store, upload and WAV code and drift (Q1 is answered: the server is local). Alternative: a stub in `bin/` only if the receiver turns out to be evaluation-only and the production service is elsewhere. |
 | D-C | Undo = whole-draft snapshots (`structuredClone`), coalesced per focused field, history capped (~50). The pending edit is also captured as a small **edit intent** (JSON-Patch-style ops per save window); on 412 the intent is re-applied once over the server copy with index guards, then a visible conflict state. | A snapshot stack alone cannot re-apply a structural edit (move/delete/add) — only text. Snapshots serve undo, the intent serves rest-api §2.3's reapply; the intent must cover structure, not only typing. |
 | D-D | Validation is pure functions with an injected context (bank `matchCount`, media index, deployment `VERSION`, feature→version map); publishing re-checks server-side. | Editor is catalogue owner (validation.md); the server is the only trusted gate. |
 | D-E | JSON path → line mapping via an in-repo tokenizer (`core/validation/json-lines.ts`), no code-editor dependency. | ui-spec §5 says a textarea is enough; a dependency for gutter dots is not. |
@@ -55,6 +59,11 @@ amendment; §9 maps each one to where it lands.
 | D-N | Drafts get server-side revision history (keep the last N saves) plus a local backup of unacked changes in `localStorage`, restored on load. | Published versions are recoverable; drafts are otherwise overwrite-only, so a bad merge/PUT or a crash loses everything since the last publish (D2/D3). |
 | D-O | The persisted draw filter gets frozen semantics and a `q` field: tags are AND, `hasAudio:false` means "items without a model recording", category is exact, word bounds are inclusive and case-insensitive, and a `filterVersion` lets those semantics change without silently reinterpreting old rules. The bank page's browse filter is visually distinct from the rule filter. | The filter is persisted and D2 promises reproducibility, yet rest-api/ui-spec and `DrawFilter` disagree about free text and say nothing about the rest (B4). |
 | D-P | A preview session (`type: "TEST"`) is what disables uploads: the recorder honours it. If it cannot, tier-2 requires its own recorder deployment with `enableUploadRecordings:false`. | rest-api §6 assumes such a deployment exists but the plan never schedules it; recordings from a preview must be impossible, not merely discarded (B5). |
+| D-Q | The receiver is the target server for M2–M4; the editor's base URL points at it in development and at the deployment's service in production. No editor code knows which it is. | The receiver already implements the recorder's read/upload API and its store mirrors `src/test`; the editor endpoints are added to it (D-B). |
+| D-R | The error body becomes `{error, message, details}` everywhere, additively: `error` keeps its current string value, so the recorder client is untouched. | rest-api documents the envelope; the receiver answers `{error}` only, and the recorder reads it. |
+| D-S | A draft's ETag is a strong validator over the **stored bytes** (sha256), and every draft write goes through temp+rename. No canonicalisation, so unknown keys and order survive (D-F). | `If-Match` forbids weak validators, and a torn file must not get an ETag. `store.mjs` already writes atomically. |
+| D-T | Server-side validation lives in `server/validate.mjs` and is kept in step with the editor's TS catalogue by **shared conformance fixtures** (`doc/script-editor/checks/*.json`: draft + expected ids), run by `node --test` and by the editor's V1 specs. | Two runtimes (Node and the browser) cannot share the TS directly; fixtures are the cheap honest contract, and publishing must not trust the client. |
+| D-U | Draw resolution, the PRNG and materialised session scripts are server-owned. The editor's example draw is independent, labelled, and never presented as the session's draw (D-J). | D2 requires byte-identical reproducibility across re-draws; one implementation owns the algorithm, the editor only previews. |
 
 ## 3. Dependency graph and parallel tracks
 
@@ -67,9 +76,9 @@ flowchart LR
   L2 --> E2[E2 preview tier 1]
   E0[E0 scaffold] --> E1
   E1 --> E3[E3 draft/undo/publish]
-  S1[S1 stub server] --> E3
+  R[R2-R6 server endpoints] --> E3
   S2[S2 fixtures] --> E1
-  S1 --> E4[E4 banks/draws/draw record]
+  R --> E4[E4 banks/draws/draw record]
   L3 --> M1[recorder dry run]
   E3 --> P[P publish -> recorder]
   E4 --> D[draw -> session -> recorder]
@@ -78,25 +87,28 @@ flowchart LR
 * **Track L (library/recorder)**: L1 → L2 → L3/L4. `sessionmanager.ts` has exactly one writer at a
   time; the L2 refactor must land before L3 edits the same flow.
 * **Track E (editor)**: E0 starts immediately (needs nothing new from L). E1 waits only for L1.
-  E3/E4 additionally wait for S1.
+  E3/E4 additionally wait for the server endpoints (R2–R8).
 * **Track V (validation)**: starts after L1; independent of the editor shell.
-* **Track S (stub/fixtures)**: starts immediately; nothing depends on new library code.
+* **Track S (fixtures)**: starts immediately; nothing depends on new library code.
+* **Track R (server)**: R1 → R2 → R3/R4/R6 → R5/R7/R8, with R10 alongside; the editor's write path
+  cannot close without R2–R4.
 
 E0 and V1 can run in parallel with L1; they share only type definitions, which are additive.
 
 Additions to the tracks: **L5** (resolved-script delivery, D-K) starts once L1 lands and gates the
-M1 dry run and M4; **E0** also owns the `src/test` asset mapping (A3); **S1** also owns the frozen
-JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES fixture inventory
-(§4 M2).
+M1 dry run and M4; **E0** also owns the `src/test` asset mapping (A3); **R4/R10** own the shared
+check fixtures and the server conformance tests (M0/M3); **S2** owns the full FILES fixture
+inventory (§4 M2).
 
 ## 4. Milestones, tasks, gates
 
 ### M0 — API agreement (documents, no application code)
 
-- [] Answer open Q1 (server owner). Splits the work: scripts upstream vs banks/draws local.
+- [] Close open Q1: the receiver is in-repo and is extended (D-B); confirm with the owner whether
+      it is evaluation-only or becomes the production service (auth, retention).
 - [] Freeze **how the recorder obtains a resolved script** (A1, D-K): a materialised script id on
-      `Session.script`, or a session-scoped endpoint plus one recorder call site. The stub and the
-      M4 gate must exercise this exact path, not a shortcut.
+      `Session.script`, or a session-scoped endpoint plus one recorder call site. The receiver and
+      the M4 gate must exercise this exact path, not a shortcut.
 - [] Freeze the draft protocol: **strong** ETag (rest-api's `"w/4-17"` example is weak and
       weak validators are not valid for `If-Match`; use `"4-17"` or specify comparison), 428/412,
       `details.current` **including the current ETag**, `details.checks`, idempotent PUT, whether
@@ -116,7 +128,8 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
       policy for uploads the undo stack cannot remove.
 - [] Freeze draw resolution: seeds per `fixedBy`, the refill rule and where it is recorded,
       `ResolvedDraw` storage, `_redraw` status rule, itemcode padding and count cap,
-      `order:SEQUENTIAL` meaning, and the PRNG spec the stub and server share.
+      `order:SEQUENTIAL` meaning, and the PRNG spec the receiver implements (one implementation,
+      the editor never resolves a session draw).
 - [] Freeze the persisted draw-filter semantics (D-O), including a `filterVersion`.
 - [] Freeze `/media` upload (`X-Filename`, `durationMs` advisory), media-in-use refusal, and the
       source of truth for W10's "deployment runs {actual}" (B7).
@@ -126,11 +139,12 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
       mapping, data-model `durationMs`, script `name`), the README §4.4 audit URL
       (`/edit/script/1245` vs ui-spec §1), README §4.3 `express/json-server` vs D-B's Node
       builtins, README §5's `BankService`/`DrawService` placement (kept editor-local; the recorder
-      never uses them), and ui-spec §8's M5-vs-per-milestone a11y wording.
+      never uses them), and ui-spec §8's M5-vs-per-milestone a11y wording. **The doc-level items in
+      this bullet are applied in this worktree**; the API items above are not.
 - [] Pseudonymity decision (Q4) — it changes the draws view only.
-- Gate: endpoint list and JSON shapes frozen in this directory **as JSON Schemas** that `S1` tests
-  and the editor specs import; `S1` matches them; the open questions above either answered or
-  explicitly deferred with a default marked in this file.
+- Gate: endpoint list and JSON shapes frozen in this directory, exercised by the check fixtures
+  and the server's conformance tests (R4/R10) and imported by the editor specs; the open questions
+  above either answered or explicitly deferred with a default marked in this file.
 
 ### M1 — Recorder honours playback (library + recorder, no editor)
 
@@ -142,7 +156,7 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
 | L3 replay | `sessionmanager.ts`, `item.ts`, session upload | Replay button for `replayable`, cap via `maxReplays`; **replay counts get a defined persistence path** (session PATCH or a log entry) with a test — naming `Item` alone loses them (C4). |
 | L3 headphones | prompting UI + `sessionmanager.start()` | If any item in the section has `playback.headphones`, require a confirmation before the section starts. |
 | L4 version gate | `feature-versions.ts`, `speechrecorderng.component.ts` (script load) | Recorder refuses a script whose `minRecorderVersion` is above `VERSION` with a clear message. **Write a numeric segment comparator** with tests for `"3.10" > "3.9"`, missing segments and pre-release suffixes. The server applies the same gate at session creation, because a stale cached recorder bundle cannot check anything (C8). |
-| L5 resolved script | `speechrecorderng.component.ts` (load path), session API per D-K | Land the mechanism frozen in M0: the recorder reads the materialised id from `Session.script` unchanged, or calls the new session-scoped endpoint. Prove it with a drawn fixture end to end; the stub serves the same shape. |
+| L5 resolved script | `speechrecorderng.component.ts` (load path), session API per D-K | Land the mechanism frozen in M0: the recorder reads the materialised id from `Session.script` unchanged, or calls the new session-scoped endpoint. Prove it with a drawn fixture end to end; the receiver serves the same shape (R7). |
 | Fixture | `src/test/script/playback.json` | Hand-written script exercising all four `when` values, one non-recording item with playback, and a drawn group. |
 | Gate | Manual dry run in the recorder with `playback.json`: clip plays at the right moment for each `when`; replay counted **and persisted**; headphone gate appears; navigation during playback is safe; a drawn fixture runs its items through the L5 path. `npm run test_module -- --watch=false --browsers=ChromeHeadless` green, including the extraction tests **and the fake-clock `when` tests** (C7). |
 
@@ -150,7 +164,7 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
 
 | Task | Files | Content |
 |---|---|---|
-| E0 project block | `angular.json`, `projects/spr-script-editor/**` | Project block per README §4.1 with the test `tsConfig` path fixed **and an asset entry serving `src/test` at `/test`** (A3); `tsconfig.json`/`tsconfig.app.json`/`tsconfig.spec.json` (D-A); `index.html`; `main.ts` (`bootstrapApplication`, providers from README §4.3 + `BankService`/`DrawService`); `main.scss` mirroring `src/main.scss` (palette → `mat.theme` → token + role pins, light and dark); budgets deliberately larger than the recorder's (measure at M2 and set explicit numbers); **no service worker**. The editor imports neither `SpeechrecorderngModule` nor any component it declares (A2). |
+| E0 project block | `angular.json`, `projects/spr-script-editor/**` | Project block per README §4.1 with the test `tsConfig` path fixed **and an asset entry serving `src/test` at `/test`** (A3); `tsconfig.json`/`tsconfig.app.json`/`tsconfig.spec.json` (D-A); `index.html`; `main.ts` (`bootstrapApplication`, providers from README §4.3 plus the editor's `bank-api`/`draw-api`/`media` services); `main.scss` mirroring `src/main.scss` (palette → `mat.theme` → token + role pins, light and dark); budgets deliberately larger than the recorder's (measure at M2 and set explicit numbers); **no service worker**. The editor imports neither `SpeechrecorderngModule` nor any component it declares (A2). |
 | E0 routes/shell | `app/app.routes.ts`, `app/shell/`, `app/editor.config.ts` | Routes of ui-spec §1 with selection in `?sel=`; shell: breadcrumb, save state, warning count link, Preview, Publish, undo/redo. `?sel=` indices are sanitised and fall back to the nearest node after reorder/delete/undo (D9). |
 | E1 services | `app/core/script-api.service.ts`, `bank-api.service.ts`, `draw-api.service.ts`, `media.service.ts`, `load.ts` | Read endpoints now, write endpoints in M3. URL building mirrors `ProjectService` (`apiEndPoint` + `project/{p}/…`, `withCredentials`, FILES-mode `.json?requestUUID=`). `load.ts` fills `_shuffled*` **with `groups` verbatim** (never shuffled) and keeps unknown keys; when `groups` is absent it never fabricates an empty array over a legacy `promptUnits` section (A4/D-M). S2 lists every FILES path this needs. |
 | E1 library list | `app/library/` | Table, filter row, legend cards, empty/loading/error states (ui-spec §2, §9). |
@@ -169,8 +183,8 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
 | E3 checks panel | `app/validation` UI | Severity groups, `line · subject`, consequence sentence, deep link into the editor, one-click fixes; errors block Publish, warnings are listed to the publisher; **server-returned `details.checks` render here too** (B3), so a publish-time race appears as findings, not a bare 409. |
 | E3 publish/versions | `script-api.service.ts`, shell | Publish with gate; version list + restore (`draft/_restore`) **with a designed surface — ui-spec has no version-history screen (D5): add a panel to the script inspector and amend ui-spec §3.3**; PATCH name/archive; create/duplicate from the library; `minRecorderVersion` derived from the feature map and shown as N04. |
 | E3 media | `script-api.service.ts`, `media.service.ts`, playback block | `POST project/{p}/media`, capture `durationMs` (D-G), attach to `playback.src`; `GET` the media list for the picker and W11; `DELETE` surfaces `MEDIA_IN_USE`; orphan uploads are called out because undo cannot remove them (B1). |
-| S1 stub | `bin/script_editor_stub.mjs`, npm script | Complete the write surface + ETag semantics so E3 can be exercised without the real server; add the media list/delete endpoints; add **conformance tests for seed determinism, skip/refill, itemcode generation, ETag/412, the publish gate and multipart**, validated against the schemas frozen in M0. |
-| Gate | Create → edit in two browsers without silent loss (412 path exercised with a **structural** edit) → publish blocked by an error, allowed with warnings → the recorder loads the published version. Unit specs: draft undo/redo/conflict, edit-intent reapply, invalid-JSON save rules, normaliser idempotence, fixes, **editor→library round-trip byte-stability over every fixture**, stub conformance, and a smoke run against the real server once it exists. |
+| R2–R4 server write surface | `server/{api,store,etag,validate}.mjs` (track R) | R1–R4 land here; the M3 gate runs against the receiver, not FILES. Conformance fixtures under `doc/script-editor/checks/` are shared with V1. |
+| Gate | Create → edit in two browsers without silent loss (412 path exercised with a **structural** edit) → publish blocked by an error, allowed with warnings → the recorder loads the published version. Unit specs: draft undo/redo/conflict, edit-intent reapply, invalid-JSON save rules, normaliser idempotence, fixes, **editor→library round-trip byte-stability over every fixture**, server conformance, all run against the receiver. |
 
 ### M4 — Banks and draws
 
@@ -180,7 +194,7 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
 | E4 rule builder | `app/bank/` (rule panel) | `count` vs `matchCount` (E04, suspended when the count is unknown per ui-spec §9), `fixedBy`, `skipRecordedBySpeaker`, `itemcodePrefix` preview (padding and cap per M0), `playBankAudio` + settings + `itemDefaults`, example draw (D-J) **labelled as ignoring `fixedBy`/`skipRecordedBySpeaker` and sampled fairly, not from page one** (D4). |
 | E4 draws view | `app/draws/` | Table + detail, CSV export (`Accept: text/csv`), re-draw enabled only for `CREATED` with the disabled reason shown; the "draw is fixed at session creation" sentence stays. Preview (`type:"TEST"`) sessions are excluded or badged per M0 (D-P). |
 | E4 tier-2 preview | editor config + recorder | `POST …/preview-session`, open `/wsr/ng/spr/session/{id}` in a new tab; editor config needs the recorder base URL. The recorder honours `session.type === 'TEST'` by disabling uploads in that tab, or the deployment running the preview has `enableUploadRecordings:false` (D-P) — state which one the plan relies on. |
-| Gate | A drawn group produces a session in the recorder whose items are traceable to bank items **through the mechanism frozen in M0/D-K, not a stub shortcut**; re-opening that session shows identical items (D2); a preview session cannot upload anything; CSV matches the detail view. |
+| Gate | A drawn group produces a session in the recorder whose items are traceable to bank items **through the mechanism frozen in M0/D-K, not a shortcut**; re-opening that session shows identical items (D2); a preview session cannot upload anything (R8); CSV matches the detail view. |
 
 ### M5 — Hardening
 
@@ -194,8 +208,33 @@ JSON Schemas and the stub conformance tests (M0/M3); **S2** owns the full FILES 
   retrofit is mechanical.
 - Preview (`type:"TEST"`) sessions: exclusion from draws/reports and cleanup verified (D-P).
 - Update README/data-model/rest-api/validation where M0–M4 changed them — including the
-  audition-player decision (D-L), the legacy-shape rule (D-M) and the media endpoints (B1); note
-  the stub server's status (dev-only) and how to run it.
+  audition-player decision (D-L), the legacy-shape rule (D-M) and the media endpoints (B1); record
+  the receiver's status (evaluation vs production) and how to run it (track R).
+
+### Track R — server implementation (`server/`)
+
+The receiver is Node-builtins only and stays that way; none of this runs in the browser. Files:
+`server/api.mjs` (routes), `server/store.mjs` (persistence), `server/server.mjs` (startup/seeding),
+and new modules `server/{etag,validate,bank,draw,media}.mjs`.
+
+| Task | Files | Content | Milestone |
+|---|---|---|---|
+| R0 re-base and contract | — | Re-base the editor branch onto `master` (`b0d04f60`+), adopt the `Cavox` naming in README §4.1/§4.5, and freeze the store layout plus the error envelope in this directory before coding. | M0 |
+| R1 HTTP primitives | `server/api.mjs` (`sendJson`, `respondToError`), new `server/etag.mjs` | `ETag`/`If-Match` helpers, 428/412 with `details.current`, strong sha256 over the stored bytes, and the additive `{error, message, details}` envelope that keeps `error` a string for the recorder. | M2 |
+| R2 draft store and endpoints | `server/store.mjs`, `server/api.mjs` | `draftPath`, `readDraft`/`writeDraft` (temp+rename), draft revisions; `GET/PUT project/{p}/script/{id}/draft`; `POST project/{p}/script` seeds a minimal script and returns its ETag; `PATCH project/{p}/script/{id}`. | M2/M3 |
+| R3 publish and versions | `server/store.mjs`, `server/api.mjs`, new `server/feature-versions.mjs` | Freeze a draft into `<data>/script/<id>/versions/<n>.json`, list/read versions, `_restore` (with `If-Match`), compute `minRecorderVersion` from a feature map that mirrors the library's. `GET script/{id}` keeps returning the published version. | M3 |
+| R4 validation and publish gate | new `server/validate.mjs`, `doc/script-editor/checks/*.json` | E01–E11 and the data-model §4 invariants over a draft, returning `details.checks`; publish refuses with 409. Conformance fixtures shared with the editor's V1 specs (D-T). | M3/M4 |
+| R5 banks | new `server/bank.mjs`, `server/api.mjs` | Project banks plus a seeded builtin set; list/query with the frozen filter semantics (`matchCount`, `withoutAudio`, `limit`/`offset`), item CRUD, CSV `_import`, `copyFrom`, `BANK_READ_ONLY`. The same module answers E04. | M4 |
+| R6 media | new `server/media.mjs`, `server/api.mjs` | `POST` (raw `X-Filename`, or multipart through `multipart.mjs`; `durationMs` from `probeWav` for WAVE), `GET` list with `usedBy`, `DELETE` with `MEDIA_IN_USE`; files under `<data>/project/<p>/media/`. | M3 |
+| R7 draws and sessions | new `server/draw.mjs`, `server/store.mjs` (`createSession`), `server/api.mjs` | Resolve each `draw` at creation: filter, skip/refill, deterministic PRNG, itemcode padding; materialise an internal script and point `Session.script` at it (D-K/D-U); store `ResolvedDraw`; `GET …/draw` at session and script scope, CSV, `_redraw` for `CREATED` only. | M4 |
+| R8 preview sessions | `server/api.mjs`, `server/store.mjs` | `POST …/preview-session` → a `type:"TEST"` session plus resolved script and `expires`; the server **refuses uploads and recordingfile writes for TEST sessions**; TEST sessions stay out of draw and usage listings. | M4 |
+| R9 fixtures and dev loop | `src/test/**`, `README` §Testing | New fixtures (playback, drawn group, legacy `promptUnits`, ~500 items, a bank tree, media clips) usable as `--seed`; document `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` stays gitignored runtime state. | M2/M4 |
+| R10 tests and CI | `server/*.test.mjs`, `.github/workflows/` | `node --test server/`: store atomicity/ids, ETag/428/412, the check fixtures, bank filter, draw determinism and skip/refill, media in-use, multipart, WAV duration, TEST upload refusal. Add a workflow running them plus the karma jobs (only CodeQL/OSV exist today). | M5 |
+| R11 fixture parity | `server/api.mjs`, `src/test/**` | FILES mode and the receiver answer the same shapes for the editor's read paths, so the M2 FILES gate and the M3 server-backed gate test one contract. | M2 |
+
+Gate: `node --test server/` green; the M3/M4 gates run **against the receiver**, not FILES; a drawn
+session's items are traceable to bank items through the materialised script; a TEST session cannot
+upload.
 
 ## 5. Verification commands
 
@@ -204,8 +243,8 @@ npm run test_module -- --watch=false --browsers=ChromeHeadless   # library, incl
 ng test spr-script-editor --watch=false --browsers=ChromeHeadless
 ng build spr-script-editor --configuration development           # typecheck + template strictness
 ng serve spr-script-editor --host=127.0.0.1 --configuration development
-node bin/script_editor_stub.mjs --port 4301                      # M3/M4, D-B
-node --test bin/script_editor_stub.test.mjs                      # stub conformance + frozen schemas
+node --test server/                                              # server unit tests (R10)
+npm run serve:api -- --port 4301 --data /tmp/spr-server --seed src/test   # the receiver (track R)
 node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/test/script/1245/edit \
   --viewports 1366x768,1920x1080 --prepare bin/audit/open-draw-inspector.js
 ```
@@ -227,23 +266,26 @@ the editor's output is only useful if another application interprets it (README 
 10. `feat(editor): outline, centre, inspector incl. editor-local audition` — E1 (can split outline / inspector).
 11. `feat(editor): validation catalogue incl. N06 and the added checks` — V1 (can land with 8).
 12. `feat(editor): tier-1 preview on the shared phase table` — E2.
-13. `feat(bin): stub server, media endpoints, contract schemas, conformance tests, fixtures` — S1/S2.
+13. `feat(server): draft store, ETag/If-Match, publish, versions, validation fixtures` — R1–R4/R9/R10 (before 14 and 16).
 14. `feat(editor): draft service, edit intents, local backup, save state` — E3 part 1.
 15. `feat(editor): source view, checks panel (incl. server findings), fixes` — E3 part 2.
 16. `feat(editor): publish, versions + history surface, media list/upload/delete` — E3 part 3.
 17. `feat(editor): banks, draw rule, draw record, tier-2 preview` — E4.
 18. `chore(editor): a11y passes, perf, audit list, docs` — M5.
+19. `feat(server): banks, media endpoints, draw resolution, materialised sessions, preview` — R5–R8 (with 16).
+20. `chore(ci): run the server tests and the karma jobs` — R10 (with 18).
 
 L1 must land first (2–8 depend on it for types). 7–12 can run in parallel with 2–6 once 1 lands.
 `sessionmanager.ts` is edited by 3 and 5 only, sequentially; 4 touches the component's load path.
+R1–R4 must land before 14–16; R5–R8 before 17.
 
 ## 7. Risks
 
 | Risk | Mitigation |
 |---|---|
-| M0 stalls on server ownership (Q1). | Stub server (D-B) + adapter services keep the editor on the frozen contract; no editor code reads the stub directly. |
+| The receiver is evaluation-only, not the production service. | D-Q: the editor knows only a base URL; `server/` is extended for development (D-B). If it becomes production, auth, CSRF, retention and backup are a separate workstream (open question). |
 | Extraction changes recorder behaviour. | Characterisation tests first (L2), refactor second; the recorder's current code is the oracle. |
-| ETag conflict handling loses an edit. | Edit intents (D-C) reapply once with index guards, including structural edits, then a visible conflict state that keeps both texts accessible; test with two clients against the stub. |
+| ETag conflict handling loses an edit. | Edit intents (D-C) reapply once with index guards, including structural edits, then a visible conflict state that keeps both texts accessible; test with two clients against the receiver. |
 | Virtual scroll + CDK drag-drop interaction. | Fixed row height; keyboard reorder (`Alt+↑/↓`) is the guaranteed path; if drag proves unstable above N rows, disable drag there and say why in the outline help. |
 | Legacy scripts (`1.json`, `317118e4…json`: `promptUnits`, no `groups`) load into a typed model. | Detect the shape (N06), migrate only on request with confirmation, open read-only until then; never fabricate `groups: []` (A4/D-M); a spec proves load→save is byte-identical unless migrated. |
 | `minRecorderVersion` comparisons wrong (`"3.10"` vs `"3.9"`, missing segments, pre-release). | Segment comparator with tests (L4); W10/N04 use the same function; the server gates at session creation too (C8). |
@@ -251,7 +293,7 @@ L1 must land first (2–8 depend on it for types). 7–12 can run in parallel wi
 | Accessibility debt discovered late. | Outline tree semantics and keyboard map are M2 acceptance, not M5 cleanup; VoiceOver/NVDA passes run per milestone from M2 (ui-spec §8; D7). |
 | i18n retrofit. | Centralise chrome strings from M2. |
 | File duration unknown → W05/timeline degrade. | Server `durationMs`, else `HTMLMediaElement` (D-G); when unknown, W05 is suspended with "unknown", never silently passed. |
-| **A1** Drawn sessions reach the recorder unresolved. | D-K delivery mechanism, L5, and the M4 gate exercised through the recorder's real load path — never a stub shortcut. |
+| **A1** Drawn sessions reach the recorder unresolved. | D-K delivery mechanism, L5, and the M4 gate exercised through the recorder's real load path — never a shortcut. |
 | **A2** Audition player cannot be the library's (non-standalone, Web Audio). | D-L: editor-local `HTMLMediaElement` player; README §5/ui-spec §3.3 amended. |
 | **A3** FILES-mode fixtures/assets absent → M2 gate cannot pass. | E0 asset mapping for `src/test`; S2 inventory of every read path; the M2 gate requires the list fixtures. |
 | **C1** Playback breaks the max-timer arithmetic. | L2 characterisation tests include the max timer with and without playback; `effectiveTiming` returns sequencing, not just spans. |
@@ -261,16 +303,23 @@ L1 must land first (2–8 depend on it for types). 7–12 can run in parallel wi
 | **C8** A stale cached recorder bundle skips playback and ignores `minRecorderVersion`. | The server applies the version gate at session creation; deployments keep the bundle current. |
 | **D1** 412 reapply cannot cover a structural edit. | Edit intents (D-C) with index guards and a structural-edit test. |
 | **D3** A bad draft merge/PUT loses everything since the last publish. | Draft revision history + local backup (D-N). |
-| **B1** Media list/delete endpoints missing. | M0 freeze + S1 stub + E3 media task and fixtures. |
+| **B1** Media list/delete endpoints missing. | M0 freeze + R6 + E3 media task and fixtures. |
 | **B3** Publish-time server findings never shown. | E3 checks panel renders `details.checks`. |
 | **B4** Persisted filter semantics drift. | D-O freeze + `filterVersion`. |
 | **D4** Example draw read as the real draw. | Labelled as ignoring `fixedBy`/`skipRecordedBySpeaker`; fair sample. |
+| Re-base drift: `master` renamed the app to `Cavox` and added a session picker while this branch sat on `0c1de418`. | R0 re-bases first; §1 names and README §4.1/§4.5 follow the new project name; the design docs are re-checked against master before M2. |
+| A draft write is interrupted and the ETag describes a torn file. | Writes go through temp+rename (already the store's pattern); the ETag is the hash of the stored bytes only (D-S, R1/R2). |
+| The server's checks drift from the editor's catalogue. | Shared conformance fixtures run by `node --test` and by the V1 specs (D-T, R4); the server owns the publish gate. |
+| `usedBy` for media costs a scan of drafts and versions. | Acceptable at the current scale; if it bites, cache an index beside the media list (R6). |
+| Runtime data (`server/data`) committed by accident. | Gitignored; development uses `--data /tmp/…`; R9 documents the loop. |
+| A TEST session accepts an upload. | The server refuses uploads and recordingfile writes for `type:"TEST"` (R8), independent of the recorder's UI. |
+| The draw PRNG changes and breaks D2 reproducibility. | One implementation (D-U), frozen in M0 with fixtures that re-run a draw twice and compare item ids. |
 
 ## 8. Open questions and the gate that must close them
 
 | Question (README §8) | Gate | Plan default until answered |
 |---|---|---|
-| 1. Server ownership (upstream vs local) | M0 | Stub server for development; contract unchanged. |
+| 1. Server ownership (upstream vs local) | M0 | **Answered: the receiver is in this repo** (`server/`, `npm run serve:api`) and is extended (D-B). Open: evaluation-only or production service? |
 | 2. Script `name` ownership (entity vs index) | M0/M3 | `Script.name?` on the entity (D-I); fixtures already carry it. |
 | 3. Shipped-bank delivery | M0/M4 | Server resolves `audioSrc` for `BUILTIN`; client uses what it is given (rest-api §3.4). |
 | 4. Speaker pseudonymity in the draw record | M4 | Show what the API returns; keep speaker rendering isolated so a pseudonym mapping is a one-file change. |
@@ -288,6 +337,10 @@ L1 must land first (2–8 depend on it for types). 7–12 can run in parallel wi
 | New: bank/media write concurrency (B8) | M0 | Last-write-wins stated explicitly, or ETag per bank/resource. |
 | New: draft history retention (D3) | M0/M3 | Keep N revisions server-side + local backup of unacked changes (D-N). |
 | New: preview session handling (D-P) | M4 | Recorder honours `type:"TEST"`, or a dedicated preview deployment. |
+| New: receiver readiness for production (auth, CSRF, retention, backup) | M0 | Evaluation-only until answered (D-Q); the editor needs only a base URL. |
+| New: draft store layout and revision retention | M0 | `<data>/draft/<id>.json` plus `<n>` revisions; keep ~20 (D-N, R2). |
+| New: error-envelope extension | M0 | Additive `{error, message, details}`; `error` stays a string for the recorder (D-R, R1). |
+| New: server-side check scope | M0 | E01–E11 plus the data-model §4 invariants; warnings stay client-side (D-T, R4). |
 
 ## 9. Review findings index
 
@@ -300,7 +353,7 @@ editor/validation weak point. Each line names where the amendment lands.
 | A2 | The library's `AudioPlayer`/`AudioDisplay` are non-standalone NgModule components using Web Audio; the editor cannot import them without the module. | D-L, E0, E1 inspector |
 | A3 | FILES mode needs the `src/test` asset mapping and list-endpoint fixtures; the M2 gate cannot pass without them. | E0, S2, M2 gate |
 | A4 | Legacy `promptUnits` sections have no library support; a save that adds `groups: []` silently changes what the recorder runs. | D-M, N06, V1, M2 gate |
-| B1 | rest-api has no media list/delete endpoint. | M0, E3 media, S1 |
+| B1 | rest-api has no media list/delete endpoint. | M0, E3 media, R6 |
 | B2 | Draft create/seed/id semantics undefined. | M0 |
 | B3 | Publish-gate ownership and the rendering of server-returned checks. | M0, E3 checks panel |
 | B4 | Persisted draw-filter semantics (incl. free text) undefined. | D-O, M0 |
@@ -326,3 +379,8 @@ editor/validation weak point. Each line names where the amendment lands.
 | D8 | Tier-1 preview needs the phase-transition rules, not a copy. | L2, E2 |
 | D9 | `?sel=` indices are unstable under reorder/delete/undo. | E0 routes |
 | D10 | `BankService`/`DrawService` placement differs from README §5. | M0 doc fixes, E1 |
+
+Track R (server) is new in this revision: the receiver was found on `master` after the review, so
+R0–R11 carry no A–D label. They answer open question 1 and the endpoint catalogue in
+[rest-api.md](rest-api.md), and they are the reason D-B changed from "write a stub" to "extend the
+receiver".

@@ -10,6 +10,9 @@ Every endpoint follows the conventions already in the library
 - Editor requests carry `withCredentials` when the deployment sets it. Authentication is the
   server's, not the application's: the editor ships no login UI and treats 401 as "go to the
   deployment's login" and 403 as "you may read but not change this".
+- Writes are protected the deployment's way: a session cookie with the deployment's CSRF scheme
+  (the XSRF cookie/header Angular already supports) or a bearer token. `401` redirects to the
+  deployment's login with a return URL; the editor never renders a login form.
 - Project-scoped resources live under `project/{projectId}/…`, as sessions and recording files
   already do.
 - `Content-Type: application/json` unless stated otherwise.
@@ -19,15 +22,25 @@ Every endpoint follows the conventions already in the library
 Error body for every 4xx and 5xx:
 
 ```json
-{ "error": "SCRIPT_DRAFT_CONFLICT", "message": "The draft changed since you loaded it.", "details": {} }
+{"error":"SCRIPT_DRAFT_CONFLICT","message":"The draft changed since you loaded it.","details":{}}
 ```
+
+The reference implementation is the repository's receiver ([server/](../../server), `npm run
+serve:api`). It already speaks the recorder's read and upload subset; the editor endpoints in this
+file are the amendment (track R of [implementation-plan.md](implementation-plan.md)). The receiver
+answers `{"error": <message>}` today, so the envelope above is extended additively: `error` keeps
+its string value, which is the only field the recorder reads.
 
 ## 1. What must not change
 
 `GET {apiEndPoint}script/{scriptId}` keeps working exactly as today
 ([script.service.ts](../../projects/speechrecorderng/src/lib/speechrecorder/script/script.service.ts)):
 it returns the **latest published version** of the script, with drawn groups left unresolved. The
-recorder never sees a draft. Sessions reference scripts as they already do.
+recorder never sees a draft. Sessions do **not** read this unresolved form: at creation the server
+materialises the resolved script and stores its id in `Session.script`, so the recorder's existing
+`GET script/{sess.script}` returns plain items ([data-model.md](data-model.md) §2.4). The
+alternative — a session-scoped script endpoint plus one changed call site in the recorder — is an
+M0 decision; the materialised id is the plan's default.
 
 ## 2. Scripts
 
@@ -66,19 +79,27 @@ POST project/{projectId}/script
 { "name": "Repetition and read speech", "from": { "scriptId": "1250", "version": 2 } }
 ```
 
-`from` is optional and duplicates an existing script into a new draft. Responds `201` with
-`Location: project/{projectId}/script/{newId}/draft` and the draft body.
+`from` is optional and duplicates an existing script into a new draft. A create with no body seeds
+a minimal valid script (one section, one group, one item) so E10 cannot block the first publish.
+Create, duplicate and Import JSON always assign a new `scriptId`; a `scriptId` in the body is
+ignored. Responds `201` with `Location: project/{projectId}/script/{newId}/draft`, the draft body
+and its `ETag`, so the editor can write without an extra GET.
 
 ### 2.3 Read and write the draft
 
 ```
-GET project/{projectId}/script/{scriptId}/draft      → 200, ETag: "w/4-17"
-PUT project/{projectId}/script/{scriptId}/draft      If-Match: "w/4-17"
+GET project/{projectId}/script/{scriptId}/draft      → 200, ETag: "4-17"
+PUT project/{projectId}/script/{scriptId}/draft      If-Match: "4-17"
 ```
 
+The validator is **strong** (`"4-17"`, not `W/"4-17"`): RFC 7232 forbids a weak validator in
+`If-Match`. It covers the stored bytes, so the server stores the draft as received without
+canonicalising it — unknown keys and their order survive round trips. An identical `PUT` is
+idempotent and returns the same `ETag`; a changed body returns the new one.
+
 The body is a `Script` ([data-model.md](data-model.md) §2.5). `PUT` without `If-Match` is rejected
-with `428`; a stale `If-Match` returns `412` with the current draft in `details.current`, which the
-editor uses to show a conflict and re-apply the pending edit once.
+with `428`; a stale `If-Match` returns `412` with the current draft **and its `ETag`** in
+`details.current`, which the editor uses to show a conflict and re-apply the pending edit once.
 
 Autosave: the editor debounces writes (2 s idle, or on blur of a field) and sends the whole draft.
 Partial `PATCH` is deliberately not specified — a script is small and whole-document writes keep
@@ -88,7 +109,7 @@ the server simple and the conflict story honest.
 
 ```
 POST project/{projectId}/script/{scriptId}/publish
-{ "fromDraftEtag": "w/4-17", "note": "added the repetition section" }
+{ "fromDraftEtag": "4-17", "note": "added the repetition section" }
 ```
 
 `201` with `{ "version": 4, "publishedDate": "…", "minRecorderVersion": "3.12" }`.
@@ -97,6 +118,11 @@ The server re-runs the invariants in [data-model.md](data-model.md) §4 and the 
 checks in [validation.md](validation.md). Any failure returns `409` with
 `details.checks: [{ "id": "E02", "path": "sections[2].groups[0].promptItems[1].itemcode" }]`.
 Warnings never block.
+
+The server enforces every error-severity id the editor shows, with the same ids, and recomputes
+`E04`'s `matchCount` atomically at publish time — a count that passed in the editor can still be
+refused if the bank changed. The editor renders returned `details.checks` in its own panel, not as
+a bare error.
 
 Publishing never touches running sessions: they keep the version they were created with.
 
@@ -111,6 +137,10 @@ POST project/{projectId}/script/{scriptId}/draft/_restore        { "version": 3 
 ```json
 [{ "version": 3, "publishedDate": "…", "publishedBy": "nylen", "note": "", "sessions": 14 }]
 ```
+
+`_restore` copies version `n` into the draft — a new draft, not a publish. It replaces the current
+draft, so it requires `If-Match`, and responds with the new draft and its `ETag`; published
+versions are untouched.
 
 ### 2.6 Metadata
 
@@ -165,6 +195,11 @@ GET project/{projectId}/bank/{bankId}/item
 raises W04 when the rule sets `playBankAudio`. `usedInSessions` is optional; omit it if counting
 is expensive, and the UI hides the column.
 
+Filter semantics are frozen ([data-model.md](data-model.md) §2.2): `tag` is repeatable and
+ANDed; `hasAudio=false` selects items **without** a model recording; `minWords`/`maxWords` are
+inclusive; `category` is an exact match; `q` is a case-insensitive substring over the item text.
+`Draw.filterVersion` pins these semantics so a later change cannot reinterpret an old rule.
+
 ### 3.3 Edit a project bank
 
 ```
@@ -178,6 +213,9 @@ POST   project/{projectId}/bank/{bankId}/_import     Content-Type: text/csv
 Every write against a `BUILTIN` bank returns `405` with `error: "BANK_READ_ONLY"`. `copyFrom`
 with a builtin id is how a researcher gets an editable copy, and the copy records
 `{ "copiedFrom": "std-passages", "copiedFromRelease": "3.12" }`.
+
+Bank writes carry no validator: concurrent edits to one bank are last-write-wins, and the editor
+reloads the bank after each write. (An `ETag` per bank is an M0 option.)
 
 CSV import columns: `text,category,words,tags,audio` — `audio` naming a file in a multipart part
 or an already-uploaded project resource. Respond `200` with
@@ -197,17 +235,27 @@ When a session is created against a script version, the server, for each group t
 
 1. Applies `filter` to the bank, and removes items this speaker already recorded in this project
    when `skipRecordedBySpeaker` is set. When that leaves fewer than `count`, it refills from the
-   skipped set, newest-recorded last, and records that it had to.
+   skipped set, newest-recorded last, and records in the `ResolvedDraw` that it had to.
 2. Picks `count` items without repeats, keyed by `fixedBy`: a session-specific seed, a
-   speaker-stable seed, or a script-version-stable seed.
+   speaker-stable seed, or a script-version-stable seed. Seeds come from a documented,
+   deterministic PRNG the server implements (the editor never resolves a session draw), so the same
+   session and `fixedBy` reproduce the same items.
 3. Materialises prompt items ([data-model.md](data-model.md) §2.4): itemcodes from
-   `itemcodePrefix`, media from the bank item, `playback` from `draw.playback` plus the item's
-   `audioSrc` when `playBankAudio` is set, timing from `itemDefaults`, and `bankItemId` carried
-   through.
-4. Stores the resolved script with the session and a `ResolvedDraw` record per drawn group.
+   `itemcodePrefix` (padding and count cap in data-model §4), media from the bank item,
+   `playback` from `draw.playback` plus the item's `audioSrc` when `playBankAudio` is set, timing
+   from `itemDefaults`, and `bankItemId` carried through. `order: "RANDOM"` shuffles once here;
+   `SEQUENTIAL` keeps the order the filter returned.
+4. **Materialises the resolved script** — the drawn group's `promptItems` filled in, no `draw` key
+   — stores it and points `Session.script` at its id. The recorder's existing
+   `GET script/{sess.script}` therefore returns plain items and needs no call-site change.
+   Materialised scripts are internal: the library list and the draw record exclude them from their
+   default listings.
+5. Stores a `ResolvedDraw` record per drawn group with the bank, source, filter, chosen item ids
+   and the refill flag.
 
-From then on the session is a plain script with plain items. `GET session/{id}` and the script the
-recorder loads show the resolved form, which is why the recorder needs no change (D2).
+From then on the session is a plain script with plain items; re-opening it never reshuffles (D2).
+Preview sessions (`type: "TEST"`, §6) resolve draws the same way but are excluded from reports,
+usage counts and the draw record's default listing.
 
 ### 4.2 Read the record
 
@@ -215,6 +263,9 @@ recorder loads show the resolved form, which is why the recorder needs no change
 GET project/{projectId}/session/{sessionId}/draw        → ResolvedDraw[]
 GET project/{projectId}/script/{scriptId}/draw?version=3&limit=50&offset=0
 ```
+
+Preview (`type: "TEST"`) sessions are omitted from the default listing; `?includePreview=true`
+shows them.
 
 The script-scoped form powers the draw record view (ui-spec §7):
 
@@ -260,8 +311,19 @@ pre-recording delay). If the server cannot measure it, the editor decodes the fi
 upload and sends it back in the draft, and the field is documented as advisory.
 
 `GET` uses the existing project resource path, so no new fetch mechanism appears in the recorder.
-Deleting a file that a published version references must be refused (`409`,
-`error: "MEDIA_IN_USE"`).
+
+GET project/{projectId}/media                                          → list
+[{"src":"media/model-01.wav","mimetype":"audio/wav","durationMs":4200,"bytes":134,
+  "usedBy":[{"scriptId":"1245","version":3}]}]
+
+DELETE project/{projectId}/media/media/model-01.wav
+
+`GET` returns the project's media with `usedBy` — the draft and published versions referencing it —
+so the editor can offer a picker and check W11. `DELETE` is refused with `409` and
+`error: "MEDIA_IN_USE"` while any **published** version references the file; a draft-only
+reference does not block but is listed in the refusal body. Uploads are immediate and outside the
+draft's undo stack, so the editor warns while a newly uploaded file is unreferenced; orphans are
+harmless and cleared by a deployment job outside this feature.
 
 ## 6. Preview sessions (tier 2 dry run)
 
@@ -270,11 +332,13 @@ POST project/{projectId}/script/{scriptId}/preview-session
 { "version": "draft" }
 ```
 
-`201` with `{ "sessionId": "preview-9f2c", "expires": "…" }`. The session has
-`type: "TEST"`, is excluded from every report, resolves draws like any other session, and its
-recordings are discarded. The editor opens the recorder application at
-`/wsr/ng/spr/session/preview-9f2c` in a new tab; that deployment is configured with
-`enableUploadRecordings: false`, so nothing can reach storage even if the server forgets.
+`201` with `{"sessionId":"preview-9f2c","expires":"…"}`. The session has
+`type: "TEST"`, resolves draws like any other session, and its recordings are discarded. The
+editor opens the recorder application at `/wsr/ng/spr/session/preview-9f2c` in a new tab. The
+recorder honours `session.type === "TEST"` by disabling uploads in that tab; where a cached older
+build cannot, the deployment serving the preview must set `enableUploadRecordings: false`, so
+nothing can reach storage even if the server forgets. Preview sessions are excluded from reports,
+usage counts and the draw record's default listing, and expire at `expires`.
 
 This is the only endpoint that lets the editor exercise a draft through the real recorder. Without
 it, tier-2 preview cannot exist and only the editor-side mock remains.
@@ -283,7 +347,7 @@ it, tier-2 preview cannot exist and only the editor-side mock remains.
 
 | Method | Path | Purpose | Milestone |
 |---|---|---|---|
-| GET | `script/{id}` | unchanged, recorder reads published | — |
+| GET | `script/{id}` | published script; a session's script is a materialised id (see §4.1) | — |
 | GET | `project/{p}/script` | library list | M2 |
 | POST | `project/{p}/script` | create or duplicate | M3 |
 | GET/PUT | `project/{p}/script/{id}/draft` | read and autosave the draft, ETag | M3 |
@@ -297,4 +361,6 @@ it, tier-2 preview cannot exist and only the editor-side mock remains.
 | GET | `project/{p}/script/{id}/draw` | draw record, CSV | M4 |
 | POST | `project/{p}/session/{s}/draw/_redraw` | unstarted sessions only | M4 |
 | POST | `project/{p}/media` | upload a playback clip | M3 |
+| GET | `project/{p}/media` | media list with `usedBy` | M3 |
+| DELETE | `project/{p}/media/{src}` | refused while published versions reference it | M3 |
 | POST | `project/{p}/script/{id}/preview-session` | tier-2 dry run | M4 |

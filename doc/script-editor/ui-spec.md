@@ -97,7 +97,8 @@ Four variants. Fields map to the model one to one
 ([data-model.md](data-model.md)); the table below is the contract.
 
 **Script**: id (read-only), name, `virtualViewBox.height`, counts (sections, fixed items, drawn
-per session), a note about which versions sessions use, a link to §7.
+per session), a note about which versions sessions use, a **version history panel** (list, note
+and session count per version, restore into the draft), and a link to §7.
 
 **Section**: `name`; `mode` as three radio cards each with its consequence in one line; `promptphase`
 as a select with help text that changes with the value; `order` (Sequential, Random — never
@@ -125,8 +126,9 @@ that the draw happens once, at session creation.
 | Display duration (information items) | `duration` |
 
 The **playback block** is a bordered fieldset titled "Media played to the speaker". Empty state:
-one sentence and an "Add audio or video…" button. Filled: an audition player (the library's
-`AudioPlayer`), file name and duration, `when` as a select with help text per value, `repeats` and
+one sentence and an "Add audio or video…" button. Filled: an audition player (an editor-local
+`<audio>` element — the library's Web Audio player needs `SpeechrecorderngModule` and is not
+imported, README §3), file name and duration, `when` as a select with help text per value, `repeats` and
 `gap`, `replayable`, `headphones`, an inline warning when `DURING` meets no headphones (W03), and
 Remove.
 
@@ -150,8 +152,8 @@ drift from the recorder (README §5).
 - **Headphone notice** above the frame when the item requires them.
 - **Session order list** on the right with the drawn items folded in at their place, marked as
   drawn, plus a Re-draw button that reshuffles the example.
-- Prompt visibility and timing come from the library functions, never from a local copy of the
-  rules.
+- Prompt visibility, timing and phase order come from the library functions and the shared
+  phase-transition table, never from a local copy of the rules.
 - A banner states what this is: "Nothing is recorded or uploaded", and the full dry run (tier 2,
   rest-api §6) is one button away.
 
@@ -162,7 +164,9 @@ drift from the recorder (README §5).
 - **Left**: the draft as formatted JSON with line numbers, read-write, gutter dots for lines
   carrying a check, and a Format action. Edits apply to the draft when the JSON parses and the
   invariants hold; while it does not parse, the structure view is frozen and the error is shown at
-  its line. A plain textarea with validation is enough — do not pull in a code-editor dependency
+  its line. Text that does not parse is never sent to the server: the saved draft stays at the last
+  valid version, the shell reads "unsaved changes", and the text survives a reload from a local
+  backup. A plain textarea with validation is enough — do not pull in a code-editor dependency
   for this.
 - **Right**: counts (errors, warnings, notes) and the check cards. Each card: severity chip,
   `line · subject`, one sentence of consequence, and either a deep link into the editor or the
@@ -178,9 +182,11 @@ drift from the recorder (README §5).
   under it. A shipped bank shows "read-only", disables item editing and offers "Copy to this
   project to edit"; the explanatory paragraph states the trade (travels between installations
   versus editable here).
-- **Filter**: category, length, has model recording, tag, free text. The live count reads
-  "{matchCount} of {total} items match". A warning appears when the rule plays bank audio and some
-  matching items have none (W04).
+- **Filter**: category, length, has model recording, tag, free text. This filter is the persistable
+  `draw.filter`: free text is `q`, tags are ANDed, word bounds are inclusive. The live count
+  reads "{matchCount} of {total} items match". A warning appears when the rule plays bank audio and
+  some matching items have none (W04). A separate browse filter, when offered, is visually
+  distinct and is never written to the draft.
 - **Item table**: bank id, item, words, model audio (with an audition button), times used.
   Paginated through `limit`/`offset`; the footer says how many of the matches are shown.
 - **Rule panel**: `count` validated against `matchCount` (E04), `order`, `fixedBy` with help,
@@ -194,6 +200,7 @@ drift from the recorder (README §5).
 *Artboard: Draws.* Read-only, except re-draw.
 
 - **Table**: session, speaker, drawn and recorded counts, the first itemcodes, status chip.
+  Preview (`type: "TEST"`) sessions are hidden by default and carry a "Preview" chip when shown.
 - **Detail panel**: session id and status, speaker, script version, when the draw was made, the
   bank and its origin, a note explaining this session's case (for example that items were skipped
   because the speaker recorded them before), and the full item list with itemcode, bank id, text
@@ -206,7 +213,7 @@ drift from the recorder (README §5).
 
 ## 8. Accessibility and keyboard
 
-Required, not optional, and checked at M5:
+Required, not optional: verified at each milestone and closed at M5:
 
 - Tab order follows the visual order in all three columns. The outline, the table and the
   inspector are each a tab stop that then uses arrow keys internally.
@@ -234,4 +241,5 @@ Required, not optional, and checked at M5:
 
 A note on the draw-rule editor: when `matchCount` cannot be fetched, do **not** fall back to
 "valid". Suspend the check, say the count is unknown, and let Publish proceed with a warning — the
-server re-checks on publish anyway (rest-api §2.4).
+server re-checks on publish anyway (rest-api §2.4). The same applies to W05 on a drawn group when
+the bank's clip durations are unknown and to W11 when the media list cannot be fetched.

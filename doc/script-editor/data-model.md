@@ -27,7 +27,9 @@ suggest.
 | `Script.virtualViewBox` | scales image prompts to a fixed virtual height |
 
 Consequences for the editor: offer only `SEQUENTIAL` and `RANDOM`; show one delay field per side
-and treat the legacy name as an alias to be fixed on request (D7); edit `mediaitems[0]` only.
+and treat the legacy name as an alias to be fixed on request (D7); edit `mediaitems[0]` only. A
+section that predates `groups` and carries `promptUnits` is a legacy tree shape: the editor
+detects it, opens read-only, and migrates only on request (N06).
 
 ## 2. Additions
 
@@ -40,6 +42,8 @@ export interface Playback {
   /** Project-relative resource path, resolved like an image prompt's `src`. */
   src: string;
   mimetype?: string;
+  /** Advisory clip length in ms; the server measures it on upload and the timeline/W05 prefer it. */
+  durationMs?: number;
   /** Required by the editor: used for the item label and for speakers who cannot hear it. */
   alt?: string;
   when: PlaybackWhen;
@@ -72,6 +76,10 @@ export interface PromptItem {
 | `DURING` | the clip plays while the microphone is open (shadowing, masking). Requires `headphones: true` or the loudspeaker is recorded (W03). |
 | `ONDEMAND` | the stage shows a play button; the speaker decides when to listen. Implies `replayable`. |
 
+On a `type: 'nonrecording'` item only `BEFORE` and `ONDEMAND` are meaningful; `PRERECORDING` and
+`DURING` have no phase to attach to and the editor warns (W12). The item's `duration`
+governs when the next item starts, not the clip.
+
 Timing: `effectiveTiming(item)` in the library (see README §5) returns the playback span, the
 pre-recording delay, the recording length and the post-recording delay, applying every fallback
 in §1. Both the recorder's timers and the editor's timeline bar use it.
@@ -89,8 +97,11 @@ export interface DrawFilter {
   category?: string;
   /** Inclusive word-count range, e.g. [6, 12]. */
   words?: [number, number];
-  /** Only items that carry a model recording. */
+  /** true = only items with a model recording, false = only items without, absent = either. */
   hasAudio?: boolean;
+  /** Free-text, case-insensitive substring over `text` and `promptDoc`'s plain text. */
+  q?: string;
+  /** All listed tags must be present (AND). */
   tags?: Array<string>;
 }
 
@@ -98,13 +109,16 @@ export interface Draw {
   bank: string;
   bankSource: BankSource;
   filter?: DrawFilter;
+  /** Pins the filter semantics in §2.2; absent means version 1. */
+  filterVersion?: number;
   count: number;
-  /** Order of the drawn items in the session. Default RANDOM. */
+  /** Order of the drawn items. Default RANDOM: shuffled once at creation. SEQUENTIAL keeps the
+      order the filter returned. */
   order?: Order;
   fixedBy: DrawFixedBy;
   /** Skip items this speaker already recorded in this project. Default false. */
   skipRecordedBySpeaker?: boolean;
-  /** Drawn itemcodes are `${itemcodePrefix}001` upwards. */
+  /** Drawn itemcodes are `${itemcodePrefix}001`, zero-padded to three digits; `count` ≤ 999. */
   itemcodePrefix: string;
   /** Play each drawn item's own model recording instead of one fixed file. */
   playBankAudio?: boolean;
@@ -129,6 +143,14 @@ export interface Group {
 | `SESSION` | every session draws its own items. Covers a large bank. |
 | `SPEAKER` | a returning speaker gets the same items again. Suits repeated measurements. |
 | `SCRIPT` | one draw per script version; everyone recorded with that version gets the same items. |
+
+Filter semantics are frozen: `tags` are ANDed, `hasAudio: false` means items **without** a model
+recording, `words` bounds are inclusive, `category` is exact and `q` is a case-insensitive
+substring; `filterVersion` pins them so a later change cannot reinterpret an old rule. Resolution
+is deterministic — a documented PRNG seeds the draw, so re-drawing the same session, or resolving
+with a stable `fixedBy`, reproduces the items. `order: "RANDOM"` shuffles once at creation;
+`SEQUENTIAL` keeps the filter's order. The editor's example draw is labelled as such and never
+claims to be the session's draw.
 
 ### 2.3 Item banks
 
@@ -192,8 +214,11 @@ export interface ResolvedDraw {
 }
 ```
 
-The session's script, as served to the recorder, has the drawn group's `promptItems` filled in
-and no `draw` key. That is why the recorder needs no change (D2).
+At creation the server materialises a plain script for the session — the drawn group's
+`promptItems` filled in, no `draw` key — and points `Session.script` at its id. The
+recorder's existing `GET script/{sess.script}` therefore returns plain items and needs no
+call-site change. Materialised scripts are internal: the library list and the draw record exclude
+them from their default listings.
 
 ### 2.5 Script metadata
 
@@ -290,6 +315,11 @@ The editor enforces these; the server must re-check them, because a client canno
    want the bleed).
 6. `type: 'nonrecording'` items never carry `recduration`; `duration` is meaningless elsewhere.
 7. `mediaitems` holds at most one entry, because the recorder reads only the first.
+8. Playback numbers are sane: `repeats` ≥ 1, `gap` ≥ 0, `maxReplays` ≥ 0, and every virtual view
+   box height is > 0.
+9. `playback.when` on a `type: 'nonrecording'` item is only `BEFORE` or `ONDEMAND`.
+10. A section with legacy `promptUnits` and no `groups` is never written back with an added
+    `groups: []`; it migrates explicitly (N06) or stays read-only.
 
 ## 5. Version handshake
 
@@ -304,6 +334,9 @@ runs without the clip and nobody is told. Prevent that:
   load and refuses with a clear message rather than running a silently different session.
 - The editor's checks panel raises N04 whenever an edit lifts the floor above the version the
   project's deployment reports.
+- The server applies the same comparison when a session is created: a recorder bundle cached in a
+  browser cannot be trusted to check anything. Materialised session scripts (§2.4) carry the same
+  floor as the script they came from.
 
 ## 6. Normalisation (D7)
 
@@ -314,6 +347,7 @@ Offered as one-click fixes in the checks panel, never applied on save:
 | `prerecording` set, `prerecdelay` unset | rename to `prerecdelay` | N01 |
 | `postrecording` set, `postrecdelay` unset | rename to `postrecdelay` | N01 |
 | `order: "RANDOMIZED"` | replace with `RANDOM` or `SEQUENTIAL`, explicitly chosen | N02 |
+| section has `promptUnits` and no `groups` | convert to `groups`, explicitly chosen | N06 |
 | `mediaitems` longer than 1 | keep the first, move the rest to a new item or drop, explicitly chosen | W08 |
 
 `normalise.ts` must be idempotent and must never touch a key it was not asked about: an imported

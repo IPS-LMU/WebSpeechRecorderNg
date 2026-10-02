@@ -30,9 +30,11 @@ Unit-test one spec per id, including the clean case.
 | E08 | group has both `draw` and non-empty `promptItems` | A group is either a fixed list or a draw. | keep one, explicitly chosen |
 | E09 | `draw.count` < 1, or a timing field is negative or not a number | {field} must be a positive number of milliseconds. | — |
 | E10 | script has no section, or a section has no group | A script needs at least one section with one group. | add one |
+| E11 | `repeats` < 1, `gap` or `maxReplays` negative, a virtual view box height ≤ 0, or `draw.count` > 999 | `repeats` must be at least 1; `gap` and `maxReplays` must not be negative; view box heights must be > 0; a draw holds at most 999 items. | — |
 
-E04 is suspended, not passed, when the bank cannot be reached (ui-spec §9). The server still
-enforces it on publish.
+E04 is suspended, not passed, when the bank cannot be reached (ui-spec §9). The same applies to
+W05 on a drawn group when the bank's clip durations are unknown, and to W11 when the media index
+cannot be fetched. The server still enforces the error checks on publish.
 
 ## Warnings
 
@@ -40,15 +42,16 @@ enforces it on publish.
 |---|---|---|
 | W01 | `AUTORECORDING` section, recording item, no `recduration` | The section records automatically, but this item has no duration. The recording runs until the speaker presses Next. |
 | W02 | image prompt without `alt` | Image prompt has no alt text. Screen-reader users get no prompt, and lists show only the file name. |
-| W03 | `playback.when: 'DURING'` without `headphones` | Playing while recording captures the sound through the microphone unless headphones are required. |
+| W03 | `playback.when: 'DURING'` without `headphones`, on a prompt item or a `draw.playback` | Playing while recording captures the sound through the microphone unless headphones are required. |
 | W04 | `draw.playBankAudio` and `withoutAudio > 0` for the filter | {withoutAudio} of the {matchCount} matching items have no model recording. Those items would appear without sound. |
-| W05 | `when: 'PRERECORDING'` and the clip (with repeats and gaps) is longer than the pre-recording delay | The clip is {clip} ms but the pre-recording delay is {delay} ms, so recording starts while it still plays. |
+| W05 | `when: 'PRERECORDING'` and the clip (with repeats and gaps) is longer than the pre-recording delay; on a drawn group only when the bank reports clip durations | The clip is {clip} ms but the pre-recording delay is {delay} ms, so recording starts while it still plays. |
 | W06 | `type: 'nonrecording'` carries `recduration`, or a recording item carries `duration` | {field} has no effect on this kind of item. |
 | W07 | a training section contains a drawn group | Training items are exempt from the completeness check, so a draw here consumes bank items without producing required recordings. |
 | W08 | `mediaitems` longer than one entry | Only the first media item is shown by the recorder. The others are ignored. |
 | W09 | `playback.replayable` with no `maxReplays` in an `AUTORECORDING` section | The speaker can replay without limit while the section advances on its own. |
 | W10 | `minRecorderVersion` higher than the version this deployment reports | This script needs recorder {required}; the deployment runs {actual}. Playback would be skipped silently. |
-| W11 | a playback or image file referenced by the draft is missing from the project's media | {src} is not in the project's media. |
+| W11 | a playback or image file referenced by the draft is missing from the project's media; suspended when the media index cannot be fetched | {src} is not in the project's media. |
+| W12 | `playback.when` is `PRERECORDING` or `DURING` on a `type: 'nonrecording'` item | The item has no recording phase, so the clip plays at the wrong moment; use `BEFORE` or `ONDEMAND`. |
 
 W08 carries the fix described in [data-model.md](data-model.md) §6; it stays a warning because the
 extra entries may be deliberate data a future recorder will use.
@@ -62,6 +65,7 @@ extra entries may be deliberate data a future recorder will use.
 | N03 | the script contains a draw rule | {drawn} items are drawn per session, on top of {fixed} fixed items, so a session runs {total} items. | — |
 | N04 | an edit lifts `minRecorderVersion` | This script now needs recorder {version} or newer, because it uses {feature}. | — |
 | N05 | a drawn group's `fixedBy: 'SPEAKER'` while `skipRecordedBySpeaker` is also set | A speaker-stable draw repeats the same items, so skipping what the speaker recorded can empty the draw. | — |
+| N06 | a section has `promptUnits` and no `groups` | This section predates groups. The editor opens it read-only until it is converted, so saving never adds an empty `groups`. | convert to groups, explicitly chosen |
 
 ## Publish gate
 
