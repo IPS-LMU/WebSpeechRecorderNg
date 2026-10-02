@@ -35,7 +35,8 @@ import {createReadStream, existsSync, statSync, unlinkSync} from 'node:fs';
 import {unlink} from 'node:fs/promises';
 import {extname, join} from 'node:path';
 import {randomBytes} from 'node:crypto';
-import {RequestError, readJsonBody, streamToFile} from './body.mjs';
+import {RequestError, readJsonBody, readTextBody, streamToFile} from './body.mjs';
+import {checkIfMatch, etagOf} from './etag.mjs';
 import {multipartBoundary, readMultipart} from './multipart.mjs';
 import {concatWavFiles, probeWav, readWavSection, WavError} from './wav.mjs';
 
@@ -60,7 +61,12 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       // 404 is the documented answer of several endpoints (no recording yet, chunk not stored).
       log(`${req.method} ${req.url} rejected with ${status}: ${message}`);
     }
-    sendJson(res, status, {error: message});
+    sendJson(res, status, {
+      error: message,
+      message,
+      ...(err instanceof RequestError && err.code !== undefined ? {code: err.code} : {}),
+      ...(err instanceof RequestError && err.details !== undefined ? {details: err.details} : {}),
+    });
   }
 
   /** @returns true when the request was handled by the API. */
@@ -116,7 +122,105 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
         }
         throw new RequestError(404, `unsupported session route ${rest.join('/')}`);
       }
+      if (rest[1] === 'script') {
+        return await scriptRoutes(req, res, rest.slice(2), projectId);
+      }
       return await sendProjectResource(projectId, rest.slice(1).join('/'));
+    }
+
+    // -------------------------------------------------------------- scripts (editor)
+
+    /**
+     * The editor's script endpoints, project scoped. `GET script/{id}` (the recorder's view) stays
+     * untouched; these add the library list, create/patch and the draft with its ETag rules.
+     */
+    async function scriptRoutes(req, res, rest, projectId) {
+      if (rest.length === 0) {
+        if (req.method === 'GET') {
+          return await sendJson(res, 200, store.listScripts(projectId));
+        }
+        if (req.method === 'POST') {
+          return await createScript(req, res, projectId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on project/{p}/script`);
+      }
+      const scriptId = stripJsonSuffix(rest[0]);
+      if (rest.length === 1) {
+        if (req.method === 'GET') {
+          return await sendJson(res, 200, requireFound(store.script(scriptId), `script ${scriptId}`));
+        }
+        if (req.method === 'PATCH' || req.method === 'PUT') {
+          return await patchScript(req, res, scriptId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on project/{p}/script/{id}`);
+      }
+      if (stripJsonSuffix(rest[1]) === 'draft' && rest.length === 2) {
+        if (req.method === 'GET') {
+          return getDraft(res, scriptId);
+        }
+        if (req.method === 'PUT') {
+          return await putDraft(req, res, scriptId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on script/{id}/draft`);
+      }
+      throw new RequestError(404, `unsupported script route ${rest.join('/')}`);
+    }
+
+    /** Serves the stored draft bytes verbatim, so the ETag is a byte comparison (D-S). */
+    function getDraft(res, scriptId) {
+      const bytes = store.draftBytes(scriptId);
+      if (bytes === null) {
+        throw new RequestError(404, `script ${scriptId} has no draft`);
+      }
+      return sendBytes(res, 200, bytes, etagOf(bytes));
+    }
+
+    async function putDraft(req, res, scriptId) {
+      const text = await readTextBody(req, {maxBytes: maxBody});
+      let value;
+      try {
+        value = JSON.parse(text);
+      } catch {
+        throw new RequestError(400, 'draft is not valid JSON');
+      }
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+        throw new RequestError(400, 'draft must be a JSON object');
+      }
+      const bytes = store.draftBytes(scriptId);
+      const currentEtag = bytes === null ? null : etagOf(bytes);
+      // A script without a draft (legacy or imported) cannot offer a validator; the client may
+      // assert emptiness with `If-None-Match: *` instead of `If-Match`.
+      const verdict = currentEtag === null && req.headers['if-none-match'] === '*'
+        ? 'ok'
+        : checkIfMatch(req, currentEtag);
+      if (verdict === 'missing') {
+        throw new RequestError(428, 'If-Match is required for a draft write', {code: 'PRECONDITION_REQUIRED'});
+      }
+      if (verdict === 'stale') {
+        throw new RequestError(412, 'The draft changed since you loaded it.', {
+          code: 'SCRIPT_DRAFT_CONFLICT',
+          details: {current: bytes === null ? null : JSON.parse(bytes.toString('utf8')), currentEtag},
+        });
+      }
+      const stored = store.writeDraft(scriptId, text, value);
+      res.setHeader('ETag', stored.etag);
+      return await sendJson(res, 200, {scriptId, draftVersion: stored.draftVersion, etag: stored.etag});
+    }
+
+    async function createScript(req, res, projectId) {
+      const body = await readJsonBody(req).catch(() => ({}));
+      const name = typeof body.name === 'string' && body.name.trim() !== '' ? body.name : null;
+      const value = seedScript(name);
+      const text = `${JSON.stringify(value, null, 2)}\n`;
+      const created = store.createScript({name, project: projectId, value, text});
+      res.setHeader('ETag', created.etag);
+      res.setHeader('Location', `project/${projectId}/script/${created.scriptId}/draft`);
+      return await sendJson(res, 201, {scriptId: created.scriptId, draftVersion: created.draftVersion, etag: created.etag});
+    }
+
+    async function patchScript(req, res, scriptId) {
+      const patch = await readJsonBody(req).catch(() => ({}));
+      return await sendJson(res, 200, store.patchScriptMeta(scriptId, patch));
     }
 
     function sessionRoutes(req, res, url, rest) {
@@ -650,6 +754,17 @@ function sendJson(res, status, body, headers = {}) {
   return status;
 }
 
+function sendBytes(res, status, payload, etag) {
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Length': payload.length,
+    'Cache-Control': 'no-store',
+    ...(etag === null || etag === undefined ? {} : {ETag: etag}),
+  });
+  res.end(payload);
+  return status;
+}
+
 function sendFile(res, status, path, contentType) {
   const size = statSync(path).size;
   res.writeHead(status, {
@@ -698,6 +813,38 @@ function two(segments, index, what) {
 function splitSuffix(segment) {
   const match = /^(.*)\.(json|wav)$/.exec(segment);
   return match === null ? {id: segment, suffix: null} : {id: match[1], suffix: match[2]};
+}
+
+/** Strips the `.json` suffix the files-mode client appends to editor GETs. */
+function stripJsonSuffix(segment) {
+  return segment.endsWith('.json') ? segment.slice(0, -'.json'.length) : segment;
+}
+
+/** The body a newly created script starts as: one section, one group, one item (so E10 holds). */
+function seedScript(name) {
+  const script = {
+    type: 'script',
+    virtualViewBox: {height: 600},
+    sections: [{
+      mode: 'MANUAL',
+      promptphase: 'IDLE',
+      order: 'SEQUENTIAL',
+      training: false,
+      groups: [{
+        order: 'SEQUENTIAL',
+        promptItems: [{
+          itemcode: '1',
+          prerecdelay: 1000,
+          postrecdelay: 500,
+          mediaitems: [{mimetype: 'text/plain', text: ''}],
+        }],
+      }],
+    }],
+  };
+  if (name !== null) {
+    script.name = name;
+  }
+  return script;
 }
 
 function wantsAudio(req) {

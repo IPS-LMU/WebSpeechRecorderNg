@@ -22,15 +22,19 @@ Every endpoint follows the conventions already in the library
 Error body for every 4xx and 5xx:
 
 ```json
-{"error":"SCRIPT_DRAFT_CONFLICT","message":"The draft changed since you loaded it.","details":{}}
+{"error":"The draft changed since you loaded it.","message":"The draft changed since you loaded it.","code":"SCRIPT_DRAFT_CONFLICT","details":{"current":{"scriptId":1245},"currentEtag":"\"4c1f…\""}}
 ```
+
+`error` keeps the human message, because that is the only field the recorder client reads; `code` is
+the machine-readable selector the editor switches on, and `details` carries what a caller needs to
+recover. Both are omitted when absent, so the body stays additive over the original `{error}` shape.
+The receiver implements this in `respondToError` (`server/api.mjs`).
 
 The reference implementation is the repository's receiver ([server/](../../server), `npm run
 serve:api`) — the draft of the production server, so this file and the store layout are contracts
 and changes are transferred ([implementation-plan.md](implementation-plan.md) §10.1). It already
 speaks the recorder's read and upload subset; the editor endpoints in this file are the amendment
-(track R of the plan). The receiver answers `{"error": <message>}` today, so the envelope above is
-extended additively: `error` keeps its string value, which is the only field the recorder reads.
+(track R of the plan).
 
 ## 1. What must not change
 

@@ -16,6 +16,7 @@
 import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve, sep} from 'node:path';
 import {RequestError} from './body.mjs';
+import {etagOf} from './etag.mjs';
 
 const ID_SEQUENCE = 'sequence.json';
 const JOURNAL = 'journal.json';
@@ -91,8 +92,9 @@ export class Store {
     return this.readJson(this.projectPath(id));
   }
 
+  /** The published script: `published.json` in the script directory, else the legacy flat file. */
   script(id) {
-    return this.readJson(this.scriptPath(id));
+    return this.readJson(this.scriptPublishedPath(id)) ?? this.readJson(this.scriptPath(id));
   }
 
   session(id) {
@@ -189,7 +191,16 @@ export class Store {
   }
 
   scriptIds() {
-    return this.listJsonIds('script');
+    const dir = join(this.dataDir, 'script');
+    const ids = new Set();
+    for (const name of readdirSync(dir)) {
+      if (name.endsWith('.json')) {
+        ids.add(name.slice(0, -'.json'.length));
+      } else if (statSync(join(dir, name)).isDirectory()) {
+        ids.add(name);
+      }
+    }
+    return [...ids].sort(compareIds);
   }
 
   /** The prompt item of a recording script, used to embed the prompt in the metadata. */
@@ -399,6 +410,191 @@ export class Store {
     return this._journal;
   }
 
+  // ---------------------------------------------------------------- scripts and drafts
+
+  /**
+   * One directory per script (layout §10.1 of the doc/script-editor plan): meta, published, draft,
+   * versions and revisions. The legacy flat `script/<id>.json` is still read as the published
+   * script and is never written again after migration.
+   */
+  scriptDir(id) {
+    return join(this.dataDir, 'script', this.segment(id));
+  }
+
+  scriptPublishedPath(id) {
+    return join(this.scriptDir(id), 'published.json');
+  }
+
+  scriptDraftPath(id) {
+    return join(this.scriptDir(id), 'draft.json');
+  }
+
+  scriptMetaPath(id) {
+    return join(this.scriptDir(id), 'meta.json');
+  }
+
+  scriptVersionPath(id, n) {
+    return join(this.scriptDir(id), 'versions', `${this.segment(n)}.json`);
+  }
+
+  scriptRevisionPath(id, n) {
+    return join(this.scriptDir(id), 'revisions', `${this.segment(n)}.json`);
+  }
+
+  scriptMeta(id) {
+    return this.readJson(this.scriptMetaPath(id));
+  }
+
+  /** The current draft as raw text, for the ETag; null when the script has no draft. */
+  draftBytes(id) {
+    const path = this.scriptDraftPath(id);
+    return existsSync(path) ? readFileSync(path) : null;
+  }
+
+  draft(id) {
+    return this.readJson(this.scriptDraftPath(id));
+  }
+
+  /** Published version numbers, ascending. */
+  versions(id) {
+    const dir = join(this.scriptDir(id), 'versions');
+    if (!existsSync(dir)) {
+      return [];
+    }
+    return readdirSync(dir)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => Number(name.slice(0, -'.json'.length)))
+      .filter((n) => Number.isInteger(n))
+      .sort((a, b) => a - b);
+  }
+
+  version(id, n) {
+    return this.readJson(this.scriptVersionPath(id, n));
+  }
+
+  /** Creates the metadata for a script, importing a legacy flat file as published version 1. */
+  ensureScriptMeta(id) {
+    const existing = this.scriptMeta(id);
+    if (existing !== null) {
+      return existing;
+    }
+    const legacy = this.readJson(this.scriptPath(id));
+    mkdirSync(join(this.scriptDir(id), 'revisions'), {recursive: true});
+    if (legacy !== null) {
+      mkdirSync(join(this.scriptDir(id), 'versions'), {recursive: true});
+      if (!existsSync(this.scriptVersionPath(id, 1))) {
+        this.writeJson(this.scriptVersionPath(id, 1), legacy);
+      }
+    }
+    const now = new Date().toISOString();
+    const meta = {
+      scriptId: coerceId(id),
+      name: legacy?.name ?? null,
+      project: legacy?.project ?? null,
+      archived: false,
+      publishedVersion: legacy === null ? 0 : 1,
+      draftVersion: 0,
+      layoutVersion: 1,
+      created: now,
+      modified: now,
+    };
+    this.writeJson(this.scriptMetaPath(id), meta);
+    return meta;
+  }
+
+  /**
+   * Stores the draft bytes verbatim (D-S: the ETag hashes exactly what was sent), snapshots a
+   * revision and bumps `draftVersion`.
+   *
+   * @returns {{etag: string, draftVersion: number}}
+   */
+  writeDraft(id, text, value) {
+    const meta = this.ensureScriptMeta(id);
+    mkdirSync(join(this.scriptDir(id), 'revisions'), {recursive: true});
+    const target = this.scriptDraftPath(id);
+    const tmp = `${target}.tmp-${process.pid}`;
+    writeFileSync(tmp, text);
+    renameSync(tmp, target);
+    const draftVersion = (meta.draftVersion ?? 0) + 1;
+    this.writeJson(this.scriptRevisionPath(id, draftVersion), value);
+    this.writeJson(this.scriptMetaPath(id), {...meta, draftVersion, modified: new Date().toISOString()});
+    return {etag: etagOf(text), draftVersion};
+  }
+
+  /** The next free numeric script id; non-numeric fixture ids are ignored. */
+  nextScriptId() {
+    const highest = this.scriptIds()
+      .map((id) => Number(id))
+      .filter((n) => Number.isFinite(n))
+      .reduce((max, n) => Math.max(max, n), 1000);
+    return String(highest + 1);
+  }
+
+  /** Creates a script with its first draft; nothing is published yet. */
+  createScript({name = null, project = null, value, text}) {
+    const id = this.nextScriptId();
+    const now = new Date().toISOString();
+    this.writeJson(this.scriptMetaPath(id), {
+      scriptId: coerceId(id),
+      name,
+      project,
+      archived: false,
+      publishedVersion: 0,
+      draftVersion: 0,
+      layoutVersion: 1,
+      created: now,
+      modified: now,
+    });
+    const stored = this.writeDraft(id, text, value);
+    return {scriptId: coerceId(id), ...stored};
+  }
+
+  /** Name and archive flag live on the metadata and are mirrored into the script documents. */
+  patchScriptMeta(id, patch) {
+    const meta = this.ensureScriptMeta(id);
+    const updated = {
+      ...meta,
+      ...(patch.name === undefined ? {} : {name: patch.name}),
+      ...(patch.archived === undefined ? {} : {archived: patch.archived === true}),
+      modified: new Date().toISOString(),
+    };
+    this.writeJson(this.scriptMetaPath(id), updated);
+    if (patch.name !== undefined) {
+      for (const path of [this.scriptPublishedPath(id), this.scriptDraftPath(id)]) {
+        const doc = this.readJson(path);
+        if (doc !== null) {
+          this.writeJson(path, {...doc, name: patch.name});
+        }
+      }
+    }
+    return updated;
+  }
+
+  /** The library list, optionally narrowed to one project. */
+  listScripts(project = null) {
+    const out = [];
+    for (const id of this.scriptIds()) {
+      const meta = this.scriptMeta(id) ?? this.ensureScriptMeta(id);
+      if (project !== null && meta.project !== null && meta.project !== project) {
+        continue;
+      }
+      const doc = this.script(id) ?? this.draft(id);
+      out.push({
+        scriptId: meta.scriptId,
+        name: meta.name,
+        archived: meta.archived === true,
+        status: meta.archived === true
+          ? 'ARCHIVED'
+          : (meta.publishedVersion > 0 && meta.draftVersion <= meta.publishedVersion ? 'PUBLISHED' : 'DRAFT'),
+        publishedVersion: meta.publishedVersion ?? 0,
+        draftVersion: meta.draftVersion ?? 0,
+        ...scriptCounts(doc),
+        modified: meta.modified ?? null,
+      });
+    }
+    return out;
+  }
+
   // ---------------------------------------------------------------- json io
 
   readJson(path) {
@@ -456,4 +652,17 @@ function compareIds(a, b) {
 /** Session and project ids that are all digits are numbers in the fixtures and in the client. */
 export function coerceId(id) {
   return /^\d+$/.test(String(id)) ? Number(id) : String(id);
+}
+
+/** Summary counts for the library list. Drawn sources are counted once the D-W schema lands. */
+function scriptCounts(doc) {
+  let sections = 0;
+  let fixedItems = 0;
+  for (const section of doc?.sections ?? []) {
+    sections += 1;
+    for (const group of section.groups ?? []) {
+      fixedItems += (group.promptItems ?? []).length;
+    }
+  }
+  return {sections, fixedItems, drawnItems: 0};
 }

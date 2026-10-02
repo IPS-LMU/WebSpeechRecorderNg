@@ -8,11 +8,20 @@ import {createWriteStream} from 'node:fs';
 import {unlink} from 'node:fs/promises';
 import {pipeline} from 'node:stream/promises';
 
-/** An error that the API layer answers with the given HTTP status and a JSON `{error}` body. */
+/**
+ * An error that the API layer answers with the given HTTP status and a JSON body.
+ *
+ * `error` carries the human message (the recorder client reads it); `code` is the machine-readable
+ * reason the editor switches on, and `details` carries the payload a caller needs to recover (for
+ * example the current draft on a 412). Both are optional and omitted when absent, so the body stays
+ * additive over the original `{error}` shape.
+ */
 export class RequestError extends Error {
-  constructor(status, message) {
+  constructor(status, message, {code, details} = {}) {
     super(message);
     this.status = status;
+    this.code = code;
+    this.details = details;
   }
 }
 
@@ -74,4 +83,22 @@ export async function readJsonBody(req, {maxBytes = 1 << 20} = {}) {
     }
     throw new RequestError(400, `request body is not valid JSON: ${err.message}`);
   }
+}
+
+/**
+ * Reads a small body as text, unparsed. Draft writes use this so the stored bytes — and therefore
+ * the ETag — are exactly what the client sent: no re-serialisation, so unknown keys and their order
+ * survive round trips (decision D-S). The caller still parses the text to validate it.
+ */
+export async function readTextBody(req, {maxBytes = 1 << 20} = {}) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > maxBytes) {
+      throw new RequestError(413, `request body exceeds ${maxBytes} bytes (raise --max-body)`);
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks).toString('utf8');
 }
