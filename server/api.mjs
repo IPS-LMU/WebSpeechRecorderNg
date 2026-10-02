@@ -36,6 +36,7 @@ import {unlink} from 'node:fs/promises';
 import {extname, join} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {RequestError, readJsonBody, readTextBody, streamToFile} from './body.mjs';
+import {bankIdFor, csvToItems, queryBank} from './bank.mjs';
 import {etagOf} from './etag.mjs';
 import {minRecorderVersionFor} from './feature-versions.mjs';
 import {validateScript} from './validate.mjs';
@@ -126,6 +127,9 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       }
       if (rest[1] === 'script') {
         return await scriptRoutes(req, res, rest.slice(2), projectId);
+      }
+      if (rest[1] === 'bank') {
+        return await bankRoutes(req, res, url, rest.slice(2), projectId);
       }
       return await sendProjectResource(projectId, rest.slice(1).join('/'));
     }
@@ -288,6 +292,219 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       const stored = store.restoreVersion(scriptId, String(body.version));
       res.setHeader('ETag', stored.etag);
       return await sendJson(res, 200, {scriptId, draftVersion: stored.draftVersion, etag: stored.etag});
+    }
+
+    // -------------------------------------------------------------- item banks
+
+    /** Library and query endpoints, plus item CRUD; only project-owned banks are writable. */
+    async function bankRoutes(req, res, url, rest, projectId) {
+      if (rest.length === 0) {
+        if (req.method === 'GET') {
+          const visible = store.banks().filter((bank) => bank.source === 'BUILTIN'
+            || bank.project === null
+            || bank.project === undefined
+            || bank.project === projectId);
+          return await sendJson(res, 200, visible);
+        }
+        if (req.method === 'POST') {
+          return await createBank(req, res, projectId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on project/{p}/bank`);
+      }
+      const bankId = stripJsonSuffix(rest[0]);
+      const bank = store.bank(bankId);
+      if (bank === null) {
+        throw new RequestError(404, `bank ${bankId} does not exist`);
+      }
+      if (rest.length === 1) {
+        if (req.method === 'GET') {
+          return await sendJson(res, 200, bank);
+        }
+        throw new RequestError(405, `${req.method} is not supported on bank/{b}`);
+      }
+      const leaf = stripJsonSuffix(rest[1]);
+      if (leaf === 'item') {
+        if (rest.length === 2 && req.method === 'GET') {
+          return await sendJson(res, 200, queryBank(bank, filterFromQuery(url), {
+            limit: numberParam(url, 'limit', 50),
+            offset: numberParam(url, 'offset', 0),
+          }));
+        }
+        if (rest.length === 2 && req.method === 'POST') {
+          return await writeBankItem(req, res, bank, projectId, null);
+        }
+        if (rest.length === 3 && req.method === 'PUT') {
+          return await writeBankItem(req, res, bank, projectId, stripJsonSuffix(rest[2]));
+        }
+        if (rest.length === 3 && req.method === 'DELETE') {
+          return await deleteBankItem(res, bank, projectId, stripJsonSuffix(rest[2]));
+        }
+        throw new RequestError(405, `${req.method} is not supported on bank/{b}/item`);
+      }
+      if (leaf === '_import' && rest.length === 2 && req.method === 'POST') {
+        return await importBankCsv(req, res, bank, projectId);
+      }
+      throw new RequestError(404, `unsupported bank route ${rest.join('/')}`);
+    }
+
+    function filterFromQuery(url) {
+      const params = url.searchParams;
+      const filter = {};
+      const category = params.get('category');
+      if (category !== null && category !== '') {
+        filter.category = category;
+      }
+      const minWords = params.get('minWords');
+      const maxWords = params.get('maxWords');
+      if ((minWords !== null && minWords !== '') || (maxWords !== null && maxWords !== '')) {
+        filter.words = [
+          minWords === null || minWords === '' ? undefined : Number(minWords),
+          maxWords === null || maxWords === '' ? undefined : Number(maxWords),
+        ];
+      }
+      const hasAudio = params.get('hasAudio');
+      if (hasAudio !== null && hasAudio !== '') {
+        filter.hasAudio = hasAudio === 'true';
+      }
+      const tags = params.getAll('tag').filter((tag) => tag !== '');
+      if (tags.length > 0) {
+        filter.tags = tags;
+      }
+      const q = params.get('q');
+      if (q !== null && q !== '') {
+        filter.q = q;
+      }
+      return filter;
+    }
+
+    function numberParam(url, name, fallback) {
+      const value = Number(url.searchParams.get(name));
+      return Number.isFinite(value) && value >= 0 ? value : fallback;
+    }
+
+    /** Builtin banks and other projects' banks are read-only here. */
+    function requireWritableBank(bank, projectId) {
+      if (bank.source === 'BUILTIN') {
+        throw new RequestError(405, 'builtin banks are read-only', {code: 'BANK_READ_ONLY'});
+      }
+      if (bank.project === undefined || bank.project === null) {
+        throw new RequestError(405, 'the bank is not owned by a project', {code: 'BANK_READ_ONLY'});
+      }
+      if (bank.project !== projectId) {
+        throw new RequestError(403, `bank ${bank.bankId} belongs to project ${bank.project}`);
+      }
+      return bank;
+    }
+
+    async function createBank(req, res, projectId) {
+      const body = await readJsonBody(req).catch(() => ({}));
+      const title = typeof body.title === 'string' && body.title.trim() !== '' ? body.title.trim() : null;
+      const taken = new Set(store.banks().map((bank) => String(bank.bankId)));
+      if (body.copyFrom !== undefined && body.copyFrom !== null) {
+        const source = store.bank(String(body.copyFrom));
+        if (source === null) {
+          throw new RequestError(404, `bank ${body.copyFrom} does not exist`);
+        }
+        const copyTitle = title ?? `${source.title} copy`;
+        const copy = {
+          title: copyTitle,
+          source: 'PROJECT',
+          project: projectId,
+          copiedFrom: source.bankId,
+          copiedFromRelease: source.shippedWith ?? null,
+          updated: new Date().toISOString(),
+          items: (source.items ?? []).map((item) => ({...item})),
+        };
+        return await sendJson(res, 201, store.writeBank(bankIdFor(copyTitle, taken), copy));
+      }
+      if (title === null) {
+        throw new RequestError(400, 'title is required');
+      }
+      return await sendJson(res, 201, store.writeBank(bankIdFor(title, taken), {
+        title,
+        source: 'PROJECT',
+        project: projectId,
+        updated: new Date().toISOString(),
+        items: [],
+      }));
+    }
+
+    async function writeBankItem(req, res, bank, projectId, itemId) {
+      requireWritableBank(bank, projectId);
+      // One item or an array (rest-api §3.3), so the body is parsed here rather than as an object.
+      const raw = await readTextBody(req, {maxBytes: maxBody});
+      let body;
+      try {
+        body = raw.trim() === '' ? {} : JSON.parse(raw);
+      } catch {
+        throw new RequestError(400, 'item body is not valid JSON');
+      }
+      const candidates = Array.isArray(body) ? body : [body];
+      if (candidates.length === 0) {
+        throw new RequestError(400, 'no items given');
+      }
+      const items = [...(bank.items ?? [])];
+      const saved = [];
+      for (const candidate of candidates) {
+        const patch = sanitiseBankItem(candidate);
+        if (itemId === null) {
+          const at = patch.bankItemId === undefined
+            ? -1
+            : items.findIndex((entry) => String(entry.bankItemId) === String(patch.bankItemId));
+          if (at >= 0) {
+            items[at] = {...items[at], ...patch};
+            saved.push(items[at]);
+          } else {
+            const item = {bankItemId: patch.bankItemId ?? store.nextBankItemId({items}), ...patch};
+            items.push(item);
+            saved.push(item);
+          }
+        } else {
+          const at = items.findIndex((entry) => String(entry.bankItemId) === String(itemId));
+          if (at < 0) {
+            throw new RequestError(404, `bank item ${itemId} does not exist`);
+          }
+          items[at] = {...items[at], ...patch, bankItemId: items[at].bankItemId};
+          saved.push(items[at]);
+        }
+      }
+      store.writeBank(bank.bankId, {...bank, items, updated: new Date().toISOString()});
+      return await sendJson(res, 200, Array.isArray(body) ? saved : saved[0]);
+    }
+
+    function sanitiseBankItem(candidate) {
+      const allowed = ['bankItemId', 'text', 'promptDoc', 'src', 'mimetype', 'alt', 'audioSrc', 'audioMimetype', 'category', 'words', 'tags'];
+      const out = {};
+      for (const key of allowed) {
+        if (candidate?.[key] !== undefined) {
+          out[key] = candidate[key];
+        }
+      }
+      if (typeof out.tags === 'string') {
+        out.tags = out.tags.split(/[|;]/).map((tag) => tag.trim()).filter((tag) => tag !== '');
+      }
+      return out;
+    }
+
+    async function deleteBankItem(res, bank, projectId, itemId) {
+      requireWritableBank(bank, projectId);
+      const items = (bank.items ?? []).filter((entry) => String(entry.bankItemId) !== String(itemId));
+      if (items.length === (bank.items ?? []).length) {
+        throw new RequestError(404, `bank item ${itemId} does not exist`);
+      }
+      store.writeBank(bank.bankId, {...bank, items, updated: new Date().toISOString()});
+      return await sendJson(res, 200, {bankId: bank.bankId, itemCount: items.length});
+    }
+
+    async function importBankCsv(req, res, bank, projectId) {
+      requireWritableBank(bank, projectId);
+      const contentType = String(req.headers['content-type'] ?? '');
+      const text = contentType.includes('text/csv')
+        ? await readTextBody(req, {maxBytes: maxBody})
+        : String((await readJsonBody(req).catch(() => ({}))).csv ?? '');
+      const {items: imported, errors} = csvToItems(text, bank);
+      store.writeBank(bank.bankId, {...bank, items: [...(bank.items ?? []), ...imported], updated: new Date().toISOString()});
+      return await sendJson(res, 200, {imported: imported.length, skipped: errors.length, errors});
     }
 
     async function createScript(req, res, projectId) {

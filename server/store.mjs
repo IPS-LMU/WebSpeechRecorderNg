@@ -40,7 +40,7 @@ export class Store {
       cpSync(this.seedDir, this.dataDir, {recursive: true});
       this.log(`seeded ${this.dataDir} from ${this.seedDir}`);
     }
-    for (const dir of ['project', 'script', 'session', 'recordingfile', 'uploads', 'uploads/tmp']) {
+    for (const dir of ['project', 'script', 'session', 'recordingfile', 'bank', 'uploads', 'uploads/tmp']) {
       mkdirSync(join(this.dataDir, dir), {recursive: true});
     }
     return this;
@@ -669,6 +669,46 @@ export class Store {
       });
     }
     return out;
+  }
+
+  // ---------------------------------------------------------------- banks
+
+  bankPath(id) {
+    return join(this.dataDir, 'bank', `${this.segment(id)}.json`);
+  }
+
+  /** One bank, with `itemCount` normalised from the stored items. */
+  bank(id) {
+    const doc = this.readJson(this.bankPath(id));
+    return doc === null ? null : {...doc, itemCount: (doc.items ?? []).length};
+  }
+
+  /** Every bank, with `itemCount` normalised. */
+  banks() {
+    const dir = join(this.dataDir, 'bank');
+    if (!existsSync(dir)) {
+      return [];
+    }
+    return readdirSync(dir)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => this.readJson(join(dir, name)))
+      .filter((doc) => doc !== null)
+      .map((doc) => ({...doc, itemCount: (doc.items ?? []).length}))
+      .sort((a, b) => String(a.bankId).localeCompare(String(b.bankId)));
+  }
+
+  writeBank(id, doc) {
+    this.writeJson(this.bankPath(id), {...doc, bankId: id});
+    return this.bank(id);
+  }
+
+  /** The next free `item-NNNN` id for a bank. */
+  nextBankItemId(bank) {
+    const highest = (bank?.items ?? [])
+      .map((item) => Number(/^item-(\d+)$/.exec(String(item.bankItemId ?? ''))?.[1] ?? NaN))
+      .filter((n) => Number.isFinite(n))
+      .reduce((max, n) => Math.max(max, n), 0);
+    return `item-${String(highest + 1).padStart(4, '0')}`;
   }
 
   // ---------------------------------------------------------------- json io
