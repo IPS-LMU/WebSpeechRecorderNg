@@ -1,0 +1,13 @@
+{
+  "note": "E07: the item shows nothing and plays nothing.",
+  "draft": {
+    "name": "Empty item",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "1", "mediaitems": []}
+        ]}]}
+    ]
+  },
+  "expect": [{"id": "E07", "path": "sections[0].groups[0].promptItems[0].mediaitems"}]
+}

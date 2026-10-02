@@ -472,6 +472,83 @@ export class Store {
     return this.readJson(this.scriptVersionPath(id, n));
   }
 
+  /** The published version index (newest first), stored beside the version files. */
+  scriptVersionsPath(id) {
+    return join(this.scriptDir(id), 'versions.json');
+  }
+
+  versionsIndex(id) {
+    return this.readJson(this.scriptVersionsPath(id))?.versions ?? [];
+  }
+
+  /** Raw published version bytes, or null. */
+  versionText(id, n) {
+    const path = this.scriptVersionPath(id, n);
+    return existsSync(path) ? readFileSync(path) : null;
+  }
+
+  /** Raw published-script bytes: `published.json`, else the legacy flat file, else null. */
+  publishedText(id) {
+    const published = this.scriptPublishedPath(id);
+    if (existsSync(published)) {
+      return readFileSync(published);
+    }
+    const legacy = this.scriptPath(id);
+    return existsSync(legacy) ? readFileSync(legacy) : null;
+  }
+
+  /**
+   * Freezes the current draft as the next published version: the version file first, then the
+   * recorder-facing `published.json` (atomic rename), then the metadata. A crash between the steps
+   * is repaired by publishing again, and the recorder's path is only ever swapped atomically.
+   *
+   * @returns {{version: number, publishedDate: string, minRecorderVersion: string|null}}
+   */
+  publish(id, {text, note = null, minRecorderVersion = null}) {
+    const meta = this.ensureScriptMeta(id);
+    const version = (meta.publishedVersion ?? 0) + 1;
+    this.writeText(this.scriptVersionPath(id, version), text);
+    this.writeText(this.scriptPublishedPath(id), text);
+    const publishedDate = new Date().toISOString();
+    const index = this.versionsIndex(id).filter((entry) => entry.version !== version);
+    index.push({version, publishedDate, note, minRecorderVersion});
+    index.sort((a, b) => b.version - a.version);
+    this.writeJson(this.scriptVersionsPath(id), {versions: index});
+    this.writeJson(this.scriptMetaPath(id), {
+      ...meta,
+      publishedVersion: version,
+      publishedDraftVersion: meta.draftVersion ?? 0,
+      publishedDate,
+      publishedNote: note,
+      minRecorderVersion,
+      modified: publishedDate,
+    });
+    return {version, publishedDate, minRecorderVersion};
+  }
+
+  /** Copies a published version back into the draft: a new draft revision, not a publish. */
+  restoreVersion(id, n) {
+    const text = this.versionText(id, n);
+    if (text === null) {
+      throw new RequestError(404, `version ${n} of script ${id} does not exist`);
+    }
+    let value;
+    try {
+      value = JSON.parse(text);
+    } catch {
+      throw new RequestError(500, `stored version ${n} of script ${id} is not valid JSON`);
+    }
+    return this.writeDraft(id, text, value);
+  }
+
+  /** Writes bytes verbatim through temp+rename; the ETag hashes exactly this text. */
+  writeText(path, text) {
+    mkdirSync(dirname(path), {recursive: true});
+    const tmp = `${path}.tmp-${process.pid}`;
+    writeFileSync(tmp, text);
+    renameSync(tmp, path);
+  }
+
   /** Creates the metadata for a script, importing a legacy flat file as published version 1. */
   ensureScriptMeta(id) {
     const existing = this.scriptMeta(id);
@@ -511,10 +588,7 @@ export class Store {
   writeDraft(id, text, value) {
     const meta = this.ensureScriptMeta(id);
     mkdirSync(join(this.scriptDir(id), 'revisions'), {recursive: true});
-    const target = this.scriptDraftPath(id);
-    const tmp = `${target}.tmp-${process.pid}`;
-    writeFileSync(tmp, text);
-    renameSync(tmp, target);
+    this.writeText(this.scriptDraftPath(id), text);
     const draftVersion = (meta.draftVersion ?? 0) + 1;
     this.writeJson(this.scriptRevisionPath(id, draftVersion), value);
     this.writeJson(this.scriptMetaPath(id), {...meta, draftVersion, modified: new Date().toISOString()});
@@ -585,7 +659,9 @@ export class Store {
         archived: meta.archived === true,
         status: meta.archived === true
           ? 'ARCHIVED'
-          : (meta.publishedVersion > 0 && meta.draftVersion <= meta.publishedVersion ? 'PUBLISHED' : 'DRAFT'),
+          : (meta.publishedVersion > 0 && (meta.publishedDraftVersion ?? 0) === (meta.draftVersion ?? 0)
+            ? 'PUBLISHED'
+            : 'DRAFT'),
         publishedVersion: meta.publishedVersion ?? 0,
         draftVersion: meta.draftVersion ?? 0,
         ...scriptCounts(doc),

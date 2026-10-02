@@ -36,7 +36,9 @@ import {unlink} from 'node:fs/promises';
 import {extname, join} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {RequestError, readJsonBody, readTextBody, streamToFile} from './body.mjs';
-import {checkIfMatch, etagOf} from './etag.mjs';
+import {etagOf} from './etag.mjs';
+import {minRecorderVersionFor} from './feature-versions.mjs';
+import {validateScript} from './validate.mjs';
 import {multipartBoundary, readMultipart} from './multipart.mjs';
 import {concatWavFiles, probeWav, readWavSection, WavError} from './wav.mjs';
 
@@ -163,6 +165,27 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
         }
         throw new RequestError(405, `${req.method} is not supported on script/{id}/draft`);
       }
+      if (stripJsonSuffix(rest[1]) === 'draft' && rest.length === 3 && stripJsonSuffix(rest[2]) === '_restore') {
+        if (req.method === 'POST') {
+          return await restoreDraft(req, res, scriptId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on script/{id}/draft/_restore`);
+      }
+      if (stripJsonSuffix(rest[1]) === 'publish' && rest.length === 2) {
+        if (req.method === 'POST') {
+          return await publishScript(req, res, scriptId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on script/{id}/publish`);
+      }
+      if (stripJsonSuffix(rest[1]) === 'version') {
+        if (req.method === 'GET' && rest.length === 2) {
+          return await sendJson(res, 200, store.versionsIndex(scriptId));
+        }
+        if (req.method === 'GET' && rest.length === 3) {
+          return getVersion(res, scriptId, stripJsonSuffix(rest[2]));
+        }
+        throw new RequestError(405, `${req.method} is not supported on script/{id}/version`);
+      }
       throw new RequestError(404, `unsupported script route ${rest.join('/')}`);
     }
 
@@ -173,6 +196,30 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
         throw new RequestError(404, `script ${scriptId} has no draft`);
       }
       return sendBytes(res, 200, bytes, etagOf(bytes));
+    }
+
+    /**
+     * Enforces the draft precondition. A script without a draft has no validator, so the client may
+     * assert emptiness with `If-None-Match: *`; otherwise `If-Match` is required (428) and must
+     * match the stored bytes (412 with the current draft, so the editor can retry once).
+     */
+    function requireDraftPrecondition(req, scriptId, provided = null) {
+      const bytes = store.draftBytes(scriptId);
+      const currentEtag = bytes === null ? null : etagOf(bytes);
+      if (currentEtag === null && req.headers['if-none-match'] === '*') {
+        return {bytes: null, currentEtag: null, value: null};
+      }
+      const candidate = provided ?? req.headers['if-match'];
+      if (candidate === undefined || candidate === null || candidate === '') {
+        throw new RequestError(428, 'If-Match is required for a draft write', {code: 'PRECONDITION_REQUIRED'});
+      }
+      if (candidate !== currentEtag) {
+        throw new RequestError(412, 'The draft changed since you loaded it.', {
+          code: 'SCRIPT_DRAFT_CONFLICT',
+          details: {current: bytes === null ? null : JSON.parse(bytes.toString('utf8')), currentEtag},
+        });
+      }
+      return {bytes, currentEtag, value: bytes === null ? null : JSON.parse(bytes.toString('utf8'))};
     }
 
     async function putDraft(req, res, scriptId) {
@@ -186,36 +233,102 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       if (value === null || typeof value !== 'object' || Array.isArray(value)) {
         throw new RequestError(400, 'draft must be a JSON object');
       }
-      const bytes = store.draftBytes(scriptId);
-      const currentEtag = bytes === null ? null : etagOf(bytes);
-      // A script without a draft (legacy or imported) cannot offer a validator; the client may
-      // assert emptiness with `If-None-Match: *` instead of `If-Match`.
-      const verdict = currentEtag === null && req.headers['if-none-match'] === '*'
-        ? 'ok'
-        : checkIfMatch(req, currentEtag);
-      if (verdict === 'missing') {
-        throw new RequestError(428, 'If-Match is required for a draft write', {code: 'PRECONDITION_REQUIRED'});
+      requireDraftPrecondition(req, scriptId);
+      const stored = store.writeDraft(scriptId, text, value);
+      res.setHeader('ETag', stored.etag);
+      return await sendJson(res, 200, {scriptId, draftVersion: stored.draftVersion, etag: stored.etag});
+    }
+
+    /** Publishes the draft: precondition, the error gate, the feature floor, then the freeze. */
+    async function publishScript(req, res, scriptId) {
+      const body = await readJsonBody(req).catch(() => ({}));
+      if (store.draftBytes(scriptId) === null) {
+        throw new RequestError(409, `script ${scriptId} has no draft to publish`, {code: 'NO_DRAFT'});
       }
-      if (verdict === 'stale') {
-        throw new RequestError(412, 'The draft changed since you loaded it.', {
-          code: 'SCRIPT_DRAFT_CONFLICT',
-          details: {current: bytes === null ? null : JSON.parse(bytes.toString('utf8')), currentEtag},
+      const provided = typeof body.fromDraftEtag === 'string' && body.fromDraftEtag !== '' ? body.fromDraftEtag : null;
+      const {bytes} = requireDraftPrecondition(req, scriptId, provided);
+      const text = bytes.toString('utf8');
+      const value = JSON.parse(text);
+      const findings = validateScript(value);
+      if (findings.length > 0) {
+        throw new RequestError(409, 'The script has errors and was not published.', {
+          code: 'PUBLISH_REJECTED',
+          details: {checks: findings},
         });
       }
-      const stored = store.writeDraft(scriptId, text, value);
+      const {minRecorderVersion, unknownFeatures} = minRecorderVersionFor(value);
+      if (unknownFeatures.length > 0) {
+        throw new RequestError(409, `The script uses features with no recorder floor: ${unknownFeatures.join(', ')}`, {
+          code: 'FEATURE_FLOOR_UNKNOWN',
+          details: {features: unknownFeatures},
+        });
+      }
+      return await sendJson(res, 201, store.publish(scriptId, {
+        text,
+        note: typeof body.note === 'string' ? body.note : null,
+        minRecorderVersion,
+      }));
+    }
+
+    /** Serves one published version verbatim, with its own strong validator. */
+    function getVersion(res, scriptId, version) {
+      const text = store.versionText(scriptId, version);
+      if (text === null) {
+        throw new RequestError(404, `version ${version} of script ${scriptId} does not exist`);
+      }
+      return sendBytes(res, 200, Buffer.from(text), etagOf(text));
+    }
+
+    async function restoreDraft(req, res, scriptId) {
+      const body = await readJsonBody(req).catch(() => ({}));
+      if (body.version === undefined || body.version === null || body.version === '') {
+        throw new RequestError(400, 'version is required');
+      }
+      requireDraftPrecondition(req, scriptId);
+      const stored = store.restoreVersion(scriptId, String(body.version));
       res.setHeader('ETag', stored.etag);
       return await sendJson(res, 200, {scriptId, draftVersion: stored.draftVersion, etag: stored.etag});
     }
 
     async function createScript(req, res, projectId) {
       const body = await readJsonBody(req).catch(() => ({}));
-      const name = typeof body.name === 'string' && body.name.trim() !== '' ? body.name : null;
-      const value = seedScript(name);
-      const text = `${JSON.stringify(value, null, 2)}\n`;
+      const source = duplicateSource(body.from);
+      const requestedName = typeof body.name === 'string' && body.name.trim() !== '' ? body.name : null;
+      const name = requestedName
+        ?? (source?.name === null || source?.name === undefined ? null : `${source.name} (copy)`);
+      const text = source?.text ?? `${JSON.stringify(seedScript(name), null, 2)}\n`;
+      const value = source?.value ?? JSON.parse(text);
       const created = store.createScript({name, project: projectId, value, text});
       res.setHeader('ETag', created.etag);
       res.setHeader('Location', `project/${projectId}/script/${created.scriptId}/draft`);
       return await sendJson(res, 201, {scriptId: created.scriptId, draftVersion: created.draftVersion, etag: created.etag});
+    }
+
+    /** `{from: {scriptId, version?}}` duplicates a version, the published script or the draft. */
+    function duplicateSource(from) {
+      if (from === undefined || from === null || typeof from !== 'object' || from.scriptId === undefined) {
+        return null;
+      }
+      const sourceId = String(from.scriptId);
+      const name = store.scriptMeta(sourceId)?.name ?? store.script(sourceId)?.name ?? null;
+      if (from.version !== undefined && from.version !== null && from.version !== '') {
+        const text = store.versionText(sourceId, String(from.version));
+        if (text === null) {
+          throw new RequestError(404, `version ${from.version} of script ${sourceId} does not exist`);
+        }
+        return {text, value: JSON.parse(text), name};
+      }
+      const published = store.publishedText(sourceId);
+      if (published !== null) {
+        const text = published.toString('utf8');
+        return {text, value: JSON.parse(text), name};
+      }
+      const draft = store.draftBytes(sourceId);
+      if (draft !== null) {
+        const text = draft.toString('utf8');
+        return {text, value: JSON.parse(text), name};
+      }
+      throw new RequestError(404, `script ${sourceId} has nothing to duplicate`);
     }
 
     async function patchScript(req, res, scriptId) {

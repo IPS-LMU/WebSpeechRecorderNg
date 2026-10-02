@@ -1,0 +1,17 @@
+{
+  "note": "E11 on the playback modifier of D-V = C: repeats below 1 and a negative gap. The audio mediaitem satisfies E06.",
+  "draft": {
+    "name": "Playback bounds",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "1", "playback": {"when": "DURING", "headphones": true, "repeats": 0, "gap": -5},
+            "mediaitems": [{"mimetype": "audio/wav", "src": "media/a.wav"}]}
+        ]}]}
+    ]
+  },
+  "expect": [
+    {"id": "E11", "path": "sections[0].groups[0].promptItems[0].playback.gap"},
+    {"id": "E11", "path": "sections[0].groups[0].promptItems[0].playback.repeats"}
+  ]
+}

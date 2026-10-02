@@ -1,0 +1,13 @@
+{
+  "note": "E01 on a blank itemcode.",
+  "draft": {
+    "name": "Missing code",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "  ", "mediaitems": [{"mimetype": "text/plain", "text": "x"}]}
+        ]}]}
+    ]
+  },
+  "expect": [{"id": "E01", "path": "sections[0].groups[0].promptItems[0].itemcode"}]
+}

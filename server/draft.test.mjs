@@ -1,50 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createServer} from 'node:http';
-import {mkdtempSync, readdirSync, writeFileSync} from 'node:fs';
+import {readdirSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {tmpdir} from 'node:os';
-import {Store} from './store.mjs';
-import {createApiHandler} from './api.mjs';
-
-/** Starts the API on an ephemeral port over a fresh data directory. */
-async function withServer(run) {
-  const dataDir = mkdtempSync(join(tmpdir(), 'spr-draft-'));
-  const store = new Store({dataDir, seedDir: null, log: () => {}}).open();
-  const api = createApiHandler({
-    store,
-    base: '/api',
-    maxBody: 1 << 20,
-    log: () => {},
-    autoCreateSession: {enabled: false, project: null, script: null},
-    concatWaitMs: 0,
-  });
-  const server = createServer((req, res) => {
-    const url = new URL(req.url, 'http://localhost');
-    api(req, res, url).then((handled) => {
-      if (!handled && !res.headersSent) {
-        res.writeHead(404);
-        res.end();
-      }
-    });
-  });
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-  try {
-    await run({base: `http://127.0.0.1:${server.address().port}/api`, store, dataDir});
-  } finally {
-    await new Promise((resolve) => server.close(resolve));
-  }
-}
-
-const json = (body) => ({
-  method: 'POST',
-  headers: {'content-type': 'application/json'},
-  body: JSON.stringify(body),
-});
+import {withServer, jsonRequest} from './api-harness.mjs';
 
 test('draft lifecycle: create, ETag, 428, 412, byte-preserving writes, revisions', async () => {
   await withServer(async ({base, store, dataDir}) => {
-    const created = await fetch(`${base}/project/demo/script`, json({name: 'Test script'}));
+    const created = await fetch(`${base}/project/demo/script`, jsonRequest('POST', {name: 'Test script'}));
     assert.equal(created.status, 201);
     const etag1 = created.headers.get('etag');
     assert.match(etag1, /^"[0-9a-f]{64}"$/);
@@ -63,11 +25,7 @@ test('draft lifecycle: create, ETag, 428, 412, byte-preserving writes, revisions
     assert.equal(first.headers.get('etag'), etag1);
     assert.equal((await first.json()).name, 'Test script');
 
-    const noPrecondition = await fetch(`${base}/project/demo/script/${scriptId}/draft`, {
-      method: 'PUT',
-      headers: {'content-type': 'application/json'},
-      body: '{"sections":[]}',
-    });
+    const noPrecondition = await fetch(`${base}/project/demo/script/${scriptId}/draft`, jsonRequest('PUT', {sections: []}));
     assert.equal(noPrecondition.status, 428);
     assert.equal((await noPrecondition.json()).code, 'PRECONDITION_REQUIRED');
 
@@ -112,11 +70,7 @@ test('draft lifecycle: create, ETag, 428, 412, byte-preserving writes, revisions
     const unpublished = await fetch(`${base}/script/${scriptId}`);
     assert.equal(unpublished.status, 404, 'nothing is published yet');
 
-    const patched = await fetch(`${base}/project/demo/script/${scriptId}`, {
-      method: 'PATCH',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify({name: 'Renamed', archived: true}),
-    });
+    const patched = await fetch(`${base}/project/demo/script/${scriptId}`, jsonRequest('PATCH', {name: 'Renamed', archived: true}));
     assert.equal(patched.status, 200);
     const after = await (await fetch(`${base}/project/demo/script`)).json();
     assert.equal(after.find((s) => String(s.scriptId) === String(scriptId)).status, 'ARCHIVED');

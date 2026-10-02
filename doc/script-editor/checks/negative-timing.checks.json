@@ -1,0 +1,17 @@
+{
+  "note": "E09 on a negative delay and a non-numeric duration.",
+  "draft": {
+    "name": "Negative timing",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "1", "prerecdelay": -1, "recduration": "8000",
+            "mediaitems": [{"mimetype": "text/plain", "text": "x"}]}
+        ]}]}
+    ]
+  },
+  "expect": [
+    {"id": "E09", "path": "sections[0].groups[0].promptItems[0].prerecdelay"},
+    {"id": "E09", "path": "sections[0].groups[0].promptItems[0].recduration"}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "note": "A minimal valid script: two items, distinct codes, display text. No findings.",
+  "draft": {
+    "name": "Clean",
+    "sections": [
+      {
+        "mode": "MANUAL",
+        "promptphase": "IDLE",
+        "order": "SEQUENTIAL",
+        "training": false,
+        "groups": [
+          {
+            "order": "SEQUENTIAL",
+            "promptItems": [
+              {"itemcode": "1", "mediaitems": [{"mimetype": "text/plain", "text": "eins"}]},
+              {"itemcode": "2", "mediaitems": [{"mimetype": "text/plain", "text": "zwei"}]}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "expect": []
+}

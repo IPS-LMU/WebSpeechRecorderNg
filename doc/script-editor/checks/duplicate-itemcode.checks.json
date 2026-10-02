@@ -1,0 +1,14 @@
+{
+  "note": "E02 fires on the second occurrence, whose path the editor deep-links.",
+  "draft": {
+    "name": "Duplicate",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "a", "mediaitems": [{"mimetype": "text/plain", "text": "first"}]},
+          {"itemcode": "a", "mediaitems": [{"mimetype": "text/plain", "text": "second"}]}
+        ]}]}
+    ]
+  },
+  "expect": [{"id": "E02", "path": "sections[0].groups[0].promptItems[1].itemcode"}]
+}
