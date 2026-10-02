@@ -417,9 +417,10 @@ rule).
 
 ## 8. Open questions
 
-1. The server endpoints are local: the repo's evaluation receiver (`server/`) is the reference
-   implementation and is extended (track R). The open part is whether it also becomes the
-   production service — auth, CSRF, retention and backup would then be a workstream of its own.
+1. The server endpoints are local: the repo's receiver (`server/`) is the draft of the production
+   server and changes are transferred to it (track R). What production adds around it — auth,
+   CSRF, retention, backup and the migration of the store layout — is in
+   [implementation-plan.md](implementation-plan.md) §10.
 2. The script entity has no name field today
    ([session.ts](../../projects/speechrecorderng/src/lib/speechrecorder/session/session.ts) and
    the script JSON carry only ids). The library list needs one; agree whether it lives on the

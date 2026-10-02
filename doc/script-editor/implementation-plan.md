@@ -34,7 +34,7 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 | `public-api.ts` exports the model types but not `PromptitemUtil`/`MediaitemUtil`/`PromptDocUtil`, `Order`, `VirtualViewBox` | `public-api.ts` | L1 must export them or the editor duplicates item labels and drifts. |
 | rest-api has no media list or delete endpoint, only `POST /media` and the in-use refusal rule | rest-api §5, §7 | B1: add `GET`/`DELETE media` before W11 and the delete path are implementable. |
 | `VERSION='3.11.26'`; three numeric segments today | `spr.module.version.ts` | The L4 comparator must define missing-segment and pre-release behaviour, not only `3.10` vs `3.9`. |
-| **The server is in the repo**, on `master` (`b0d04f60`): a Node-builtins evaluation receiver, `server/{server,api,store,body,multipart,wav}.mjs` (~2 000 lines), `npm run serve:api`, file store under `--data` (gitignored `server/data`) seeded from `src/test`. This branch (`dc04a94c`) predates it. | `git ls-tree origin/master`, `package.json`, `server/*.mjs` | Re-base before M2; extend `server/` instead of writing a stub (D-B rewritten, R0). |
+| **The server is in the repo**, on `master` (`b0d04f60`): a Node-builtins receiver — the draft of the production server — in `server/{server,api,store,body,multipart,wav}.mjs` (~2 000 lines), `npm run serve:api`, file store under `--data` (gitignored `server/data`) seeded from `src/test`. This branch (`dc04a94c`) predates it. | `git ls-tree origin/master`, `package.json`, `server/*.mjs` | Re-base before M2; extend `server/` instead of writing a stub (D-B rewritten, R0); changes transfer to production (D-Q). |
 | Receiver surface today: `GET project/{p}`, `GET project/{p}/{resource}`, `GET script/{id}` (read-only, any method), `GET/PATCH/PUT session/{id}`, project-scoped session PATCH, recfile list/audio, `GET/POST/PATCH recordingfile/{id}`, raw and chunked upload with an `Idempotency-Key` journal. No create/list/write for scripts, no banks, media, draws, ETag or validation. | `server/api.mjs` header and route switch | Track R is additive: every editor endpoint in [rest-api.md](rest-api.md) is new server work. |
 | Receiver error body is `{"error": message}`; `sendJson(res, status, body, headers)` accepts extra headers; CORS/credentials are CLI flags; there is no auth; `.json`/`.wav` URL suffixes are stripped for `apiType: 'files'` clients. | `server/api.mjs` `respondToError`/`sendJson`, `server/server.mjs` | Extend to `{error, message, details}` additively; ETag needs only the headers parameter (R1). |
 | `wav.mjs` probes and concatenates WAVE; `multipart.mjs` parses uploads; `store.mjs` writes through temp+rename and keeps ids/journal under `<data>/uploads`; `projectResourcePath` refuses traversal. | `server/wav.mjs`, `multipart.mjs`, `store.mjs` | Media `durationMs`, multipart and atomic writes reuse existing code (R1/R6); the ETag is safe only because writes are atomic. |
@@ -59,7 +59,7 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 | D-N | Drafts get server-side revision history (keep the last N saves) plus a local backup of unacked changes in `localStorage`, restored on load. | Published versions are recoverable; drafts are otherwise overwrite-only, so a bad merge/PUT or a crash loses everything since the last publish (D2/D3). |
 | D-O | The persisted draw filter gets frozen semantics and a `q` field: tags are AND, `hasAudio:false` means "items without a model recording", category is exact, word bounds are inclusive and case-insensitive, and a `filterVersion` lets those semantics change without silently reinterpreting old rules. The bank page's browse filter is visually distinct from the rule filter. | The filter is persisted and D2 promises reproducibility, yet rest-api/ui-spec and `DrawFilter` disagree about free text and say nothing about the rest (B4). |
 | D-P | A preview session (`type: "TEST"`) is what disables uploads: the recorder honours it. If it cannot, tier-2 requires its own recorder deployment with `enableUploadRecordings:false`. | rest-api §6 assumes such a deployment exists but the plan never schedules it; recordings from a preview must be impossible, not merely discarded (B5). |
-| D-Q | The receiver is the target server for M2–M4; the editor's base URL points at it in development and at the deployment's service in production. No editor code knows which it is. | The receiver already implements the recorder's read/upload API and its store mirrors `src/test`; the editor endpoints are added to it (D-B). |
+| D-Q | The receiver is the **draft of the production server**: changes to `server/` are transferred to production, so its API shape, store layout and behaviour are production contracts. The editor's base URL points at it in development and at production elsewhere; no editor code knows which. | Owner decision (2026-10-02). A draft copied forward must not break the recorder-facing paths, and layout changes ship with migrations (§10.1). |
 | D-R | The error body becomes `{error, message, details}` everywhere, additively: `error` keeps its current string value, so the recorder client is untouched. | rest-api documents the envelope; the receiver answers `{error}` only, and the recorder reads it. |
 | D-S | A draft's ETag is a strong validator over the **stored bytes** (sha256), and every draft write goes through temp+rename. No canonicalisation, so unknown keys and order survive (D-F). | `If-Match` forbids weak validators, and a torn file must not get an ETag. `store.mjs` already writes atomically. |
 | D-T | Server-side validation lives in `server/validate.mjs` and is kept in step with the editor's TS catalogue by **shared conformance fixtures** (`doc/script-editor/checks/*.json`: draft + expected ids), run by `node --test` and by the editor's V1 specs. | Two runtimes (Node and the browser) cannot share the TS directly; fixtures are the cheap honest contract, and publishing must not trust the client. |
@@ -104,8 +104,9 @@ inventory (§4 M2).
 
 ### M0 — API agreement (documents, no application code)
 
-- [] Close open Q1: the receiver is in-repo and is extended (D-B); confirm with the owner whether
-      it is evaluation-only or becomes the production service (auth, retention).
+- [] Close open Q1: the receiver is in-repo and is the draft of the production server, so changes
+      are transferred (D-Q); record the transfer and migration process, and who owns the
+      production-side auth/backup (R12, §10.1).
 - [] Freeze **how the recorder obtains a resolved script** (A1, D-K): a materialised script id on
       `Session.script`, or a session-scoped endpoint plus one recorder call site. The receiver and
       the M4 gate must exercise this exact path, not a shortcut.
@@ -209,7 +210,7 @@ inventory (§4 M2).
 - Preview (`type:"TEST"`) sessions: exclusion from draws/reports and cleanup verified (D-P).
 - Update README/data-model/rest-api/validation where M0–M4 changed them — including the
   audition-player decision (D-L), the legacy-shape rule (D-M) and the media endpoints (B1); record
-  the receiver's status (evaluation vs production) and how to run it (track R).
+  the receiver's transfer process, migration notes and how to run it (track R).
 
 ### Track R — server implementation (`server/`)
 
@@ -221,9 +222,9 @@ and new modules `server/{etag,validate,bank,draw,media}.mjs`.
 |---|---|---|---|
 | R0 re-base and contract | — | Re-base the editor branch onto `master` (`b0d04f60`+), adopt the `Cavox` naming in README §4.1/§4.5, and freeze the store layout plus the error envelope in this directory before coding. | M0 |
 | R1 HTTP primitives | `server/api.mjs` (`sendJson`, `respondToError`), new `server/etag.mjs` | `ETag`/`If-Match` helpers, 428/412 with `details.current`, strong sha256 over the stored bytes, and the additive `{error, message, details}` envelope that keeps `error` a string for the recorder. | M2 |
-| R2 draft store and endpoints | `server/store.mjs`, `server/api.mjs` | `draftPath`, `readDraft`/`writeDraft` (temp+rename), draft revisions; `GET/PUT project/{p}/script/{id}/draft`; `POST project/{p}/script` seeds a minimal script and returns its ETag; `PATCH project/{p}/script/{id}`. | M2/M3 |
-| R3 publish and versions | `server/store.mjs`, `server/api.mjs`, new `server/feature-versions.mjs` | Freeze a draft into `<data>/script/<id>/versions/<n>.json`, list/read versions, `_restore` (with `If-Match`), compute `minRecorderVersion` from a feature map that mirrors the library's. `GET script/{id}` keeps returning the published version. | M3 |
-| R4 validation and publish gate | new `server/validate.mjs`, `doc/script-editor/checks/*.json` | E01–E11 and the data-model §4 invariants over a draft, returning `details.checks`; publish refuses with 409. Conformance fixtures shared with the editor's V1 specs (D-T). | M3/M4 |
+| R2 draft store and endpoints | `server/store.mjs`, `server/api.mjs` | The per-script directory of §10.1 (`meta.json`, `published.json`, `draft.json`, `versions/`, `revisions/`) plus a legacy read of `script/<id>.json`; `writeDraft` by temp+rename; `GET/PUT project/{p}/script/{id}/draft`; `POST project/{p}/script` seeds a minimal script and returns its ETag; `PATCH project/{p}/script/{id}`. | M2/M3 |
+| R3 publish and versions | `server/store.mjs`, `server/api.mjs`, new `server/feature-versions.mjs` | Publish writes `versions/<n>.json`, then atomically renames `published.json`, then updates `meta.json` (idempotent on retry); list/read versions, `_restore` (with `If-Match`), `minRecorderVersion` from a feature map that mirrors the library's. `GET script/{id}` keeps returning the published version. | M3 |
+| R4 validation and publish gate | new `server/validate.mjs`, `shared/script-checks.mjs` + generated artifact, `doc/script-editor/checks/*.json` | E01–E11 and the data-model §4 invariants over a draft, returning `details.checks`; publish refuses with 409. One checked implementation with the editor (§10.2: option C, fixtures as the cross-runtime test). | M3/M4 |
 | R5 banks | new `server/bank.mjs`, `server/api.mjs` | Project banks plus a seeded builtin set; list/query with the frozen filter semantics (`matchCount`, `withoutAudio`, `limit`/`offset`), item CRUD, CSV `_import`, `copyFrom`, `BANK_READ_ONLY`. The same module answers E04. | M4 |
 | R6 media | new `server/media.mjs`, `server/api.mjs` | `POST` (raw `X-Filename`, or multipart through `multipart.mjs`; `durationMs` from `probeWav` for WAVE), `GET` list with `usedBy`, `DELETE` with `MEDIA_IN_USE`; files under `<data>/project/<p>/media/`. | M3 |
 | R7 draws and sessions | new `server/draw.mjs`, `server/store.mjs` (`createSession`), `server/api.mjs` | Resolve each `draw` at creation: filter, skip/refill, deterministic PRNG, itemcode padding; materialise an internal script and point `Session.script` at it (D-K/D-U); store `ResolvedDraw`; `GET …/draw` at session and script scope, CSV, `_redraw` for `CREATED` only. | M4 |
@@ -232,9 +233,11 @@ and new modules `server/{etag,validate,bank,draw,media}.mjs`.
 | R10 tests and CI | `server/*.test.mjs`, `.github/workflows/` | `node --test server/`: store atomicity/ids, ETag/428/412, the check fixtures, bank filter, draw determinism and skip/refill, media in-use, multipart, WAV duration, TEST upload refusal. Add a workflow running them plus the karma jobs (only CodeQL/OSV exist today). | M5 |
 | R11 fixture parity | `server/api.mjs`, `src/test/**` | FILES mode and the receiver answer the same shapes for the editor's read paths, so the M2 FILES gate and the M3 server-backed gate test one contract. | M2 |
 
+| R12 transfer discipline | `server/store.mjs`, `server/server.mjs`, `server/README` | A layout version in `meta.json`, a `--migrate` path that reads legacy flat trees, a `--gc` subcommand for draft revisions, expired previews and orphan media, and a short runbook for backup, restore and transfer to production. | M0/M5 |
+
 Gate: `node --test server/` green; the M3/M4 gates run **against the receiver**, not FILES; a drawn
 session's items are traceable to bank items through the materialised script; a TEST session cannot
-upload.
+upload; a store-layout change is proven by a migration test on a legacy tree.
 
 ## 5. Verification commands
 
@@ -283,7 +286,8 @@ R1–R4 must land before 14–16; R5–R8 before 17.
 
 | Risk | Mitigation |
 |---|---|
-| The receiver is evaluation-only, not the production service. | D-Q: the editor knows only a base URL; `server/` is extended for development (D-B). If it becomes production, auth, CSRF, retention and backup are a separate workstream (open question). |
+| Receiver changes are copied to a production server. | D-Q: the API and store are production contracts; layout changes ship with a migration and a version marker (§10.1); the recorder-facing `GET script/{id}` path never breaks. |
+| Production adds auth, retention and backup around a receiver that has none. | M0 requirement list (§8); the production deployment owns auth/CSRF/backup, `--gc` covers retention and pruning (R12). |
 | Extraction changes recorder behaviour. | Characterisation tests first (L2), refactor second; the recorder's current code is the oracle. |
 | ETag conflict handling loses an edit. | Edit intents (D-C) reapply once with index guards, including structural edits, then a visible conflict state that keeps both texts accessible; test with two clients against the receiver. |
 | Virtual scroll + CDK drag-drop interaction. | Fixed row height; keyboard reorder (`Alt+↑/↓`) is the guaranteed path; if drag proves unstable above N rows, disable drag there and say why in the outline help. |
@@ -319,7 +323,7 @@ R1–R4 must land before 14–16; R5–R8 before 17.
 
 | Question (README §8) | Gate | Plan default until answered |
 |---|---|---|
-| 1. Server ownership (upstream vs local) | M0 | **Answered: the receiver is in this repo** (`server/`, `npm run serve:api`) and is extended (D-B). Open: evaluation-only or production service? |
+| 1. Server ownership (upstream vs local) | M0 | **Answered**: the receiver is in this repo (`server/`, `npm run serve:api`) and is the draft of the production server; changes transfer (D-Q). |
 | 2. Script `name` ownership (entity vs index) | M0/M3 | `Script.name?` on the entity (D-I); fixtures already carry it. |
 | 3. Shipped-bank delivery | M0/M4 | Server resolves `audioSrc` for `BUILTIN`; client uses what it is given (rest-api §3.4). |
 | 4. Speaker pseudonymity in the draw record | M4 | Show what the API returns; keep speaker rendering isolated so a pseudonym mapping is a one-file change. |
@@ -335,10 +339,10 @@ R1–R4 must land before 14–16; R5–R8 before 17.
 | New: auth surface (B8) | M0 | Cookie vs bearer, XSRF, 401 → login → return-URL contract documented. |
 | New: W10's "deployment runs {actual}" (B7) | M0 | Co-deployment assumption, else an endpoint reporting the recorder version. |
 | New: bank/media write concurrency (B8) | M0 | Last-write-wins stated explicitly, or ETag per bank/resource. |
-| New: draft history retention (D3) | M0/M3 | Keep N revisions server-side + local backup of unacked changes (D-N). |
+| New: draft history retention (D3) | M0/M3 | Draft revisions in `<data>/script/<id>/revisions/`, keep 50 / 30 days, plus a local backup (D-N, §10.1). |
 | New: preview session handling (D-P) | M4 | Recorder honours `type:"TEST"`, or a dedicated preview deployment. |
-| New: receiver readiness for production (auth, CSRF, retention, backup) | M0 | Evaluation-only until answered (D-Q); the editor needs only a base URL. |
-| New: draft store layout and revision retention | M0 | `<data>/draft/<id>.json` plus `<n>` revisions; keep ~20 (D-N, R2). |
+| New: production transfer requirements (auth, CSRF, retention, backup, migrations) | M0 | §10.1: the store layout is a contract with migrations; auth/CSRF/backup belong to the production deployment; `--gc` covers retention (R12). |
+| New: draft store layout and revision retention | M0 | Per-script directory `script/<id>/{meta,published,draft,versions,revisions}` with a legacy read (§10.1, R2). |
 | New: error-envelope extension | M0 | Additive `{error, message, details}`; `error` stays a string for the recorder (D-R, R1). |
 | New: server-side check scope | M0 | E01–E11 plus the data-model §4 invariants; warnings stay client-side (D-T, R4). |
 
@@ -384,3 +388,94 @@ Track R (server) is new in this revision: the receiver was found on `master` aft
 R0–R11 carry no A–D label. They answer open question 1 and the endpoint catalogue in
 [rest-api.md](rest-api.md), and they are the reason D-B changed from "write a stub" to "extend the
 receiver".
+
+## 10. Decision context: draft storage and check ownership
+
+Two M0 decisions need the owner's call; this section is the reasoning behind the defaults in §2 and
+§8. Both are load-bearing for the production server, not only for the receiver (D-Q).
+
+### 10.1 Draft storage and revision retention
+
+Constraints, in priority order:
+
+1. `GET script/{id}` keeps returning the published script from the path the recorder reads today.
+   Publishing must never leave that path pointing at a half-written version.
+2. Drafts are written every ~2 s of editing; the store must survive a crash without a torn file
+   (temp+rename) and produce a stable strong ETag per accepted write.
+3. Published versions are provenance — sessions reference `scriptVersion` — so a version is never
+   pruned. Draft revisions are recovery material and are pruned.
+4. The layout must be copyable for backup and transfer (rsync/tar) and inspectable: that is the
+   receiver's purpose and production inherits it.
+
+**Layout (recommended default).** One directory per script; the recorder's path is a fixed file
+inside it, and a legacy read keeps old trees working:
+
+```
+<data>/script/<id>/meta.json           name, archived, publishedVersion, draftVersion, counts
+<data>/script/<id>/published.json      the recorder's script (GET script/{id})
+<data>/script/<id>/versions/<n>.json   immutable published versions
+<data>/script/<id>/draft.json          current draft (ETag = sha256 of these bytes)
+<data>/script/<id>/revisions/<n>.json  coalesced draft snapshots, pruned
+<data>/script/<id>.json                legacy: read as published v1, never written again after migration
+```
+
+Alternatives: (a) flat namespaces (`<data>/draft/<id>.json`, `<data>/script-versions/…`) — fewer
+nested dirs, but a script's data is scattered and selective export is harder; (b) the live published
+file stays `script/<id>.json` with history beside it — least code, but publishing overwrites the
+one path that must never break and a crash mid-write is fatal; (c) a database — better concurrency,
+worse inspectability and a heavier transfer story.
+
+**Versions.** Immutable, numbered from 1, kept forever. `publish` writes the version file first,
+then atomically renames `published.json`, then updates `meta.json`; a crash between steps is
+repaired by re-running publish with the same draft (idempotent).
+
+**Draft revisions.** Snapshots of accepted writes, coalesced by save window (the editor already
+debounces), deduplicated by content hash, keep the last **50** and at most **30 days**. Recovery
+material only — the UI does not list them; they answer a bad merge or a crash (D-N).
+
+**ETag.** Strong, `sha256` of the current draft bytes, computed from the bytes read (no cached
+validator to drift). An identical body returns the same ETag; `If-Match` compares bytes. The
+`draftVersion` counter is for display and the version-number UI, not the validator.
+
+**Concurrency.** One writer per script is the invariant. A single process with temp+rename and
+`If-Match` is safe; multiple replicas need a shared filesystem with atomic rename (best-effort) or
+a database, and then `draftVersion` becomes the DB sequence — the API does not change. `--gc`
+prunes draft revisions, expired preview sessions and orphaned media; it never touches published
+versions or recordings.
+
+**Transfer.** The layout is a contract: any change ships with a migration (read-old/write-new on
+start, or `--migrate`) and a layout version in `meta.json` (R12). Never change the recorder-facing
+path in a way an older process could misread.
+
+### 10.2 Check ownership: server-authoritative validation
+
+What must be shared is smaller than "the catalogue": `details.checks` carries `{id, path,
+severity}` and the editor renders its own message text by id (rest-api §2.4, validation.md). The
+server must reproduce **which** checks fire and **where**, not their prose. E01–E11 and the
+[data-model.md](data-model.md) §4 invariants block a publish; W01–W12 and N01–N06 stay client-side
+except where the owner wants a warning visible to the publisher too.
+
+Split by data needed: script-local (E01–E03, E05–E11), bank-dependent (E04); W11 is client-side and
+suspended when the media index is unavailable.
+
+| Option | How | Cost | Risk |
+|---|---|---|---|
+| A. Duplicate + fixtures | Server implements in `server/validate.mjs`; a corpus of (draft, expected ids/paths) runs in both suites | lowest build cost | drift between releases unless the corpus covers the boundaries |
+| B. Shared plain-ESM module | `shared/script-checks.mjs` (dependency-free, JSDoc types) imported by the server and by the editor (`allowJs`) | one runtime implementation | the editor build must accept JS; types need a shim |
+| C. Library owns the TS | Checks live beside `feature-versions.ts`; the server imports a generated ESM artifact built by esbuild at build time | one typed source, no duplication | a build step and an artifact to keep fresh; keep it dependency-free so Angular is not dragged in |
+| D. Server loads the editor artifact | Server imports the editor's built validation bundle | one implementation | couples the server deployment to an editor build and a stable artifact path |
+
+**Recommendation: C with A's corpus.** One typed source (the catalogue already lives in
+validation.md and the editor), a generated `server/checks.generated.mjs` the server imports without
+touching TypeScript, and the fixture corpus as the cross-runtime test that fails when one side
+changes alone. The generation step is the only new build piece and it shows up in the diff.
+
+**Corpus scope (minimum):** per E id, one positive and one negative draft; E05 boundaries (reserved
+ranges across sections, two draws sharing a prefix); E11 boundaries (cap 999, zero/negative);
+E04 against a bank fixture; every `path` asserted byte-for-byte, because the editor deep-links by
+it.
+
+**Production concerns beyond drift:** the server validates hostile input, so it caps the body
+(`--max-body` already), bounds array walks, and never mutates the draft it validates. A publish
+rejected server-side returns the same ids the editor shows, so a client that skipped a check cannot
+publish around it.

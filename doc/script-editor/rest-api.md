@@ -26,10 +26,11 @@ Error body for every 4xx and 5xx:
 ```
 
 The reference implementation is the repository's receiver ([server/](../../server), `npm run
-serve:api`). It already speaks the recorder's read and upload subset; the editor endpoints in this
-file are the amendment (track R of [implementation-plan.md](implementation-plan.md)). The receiver
-answers `{"error": <message>}` today, so the envelope above is extended additively: `error` keeps
-its string value, which is the only field the recorder reads.
+serve:api`) — the draft of the production server, so this file and the store layout are contracts
+and changes are transferred ([implementation-plan.md](implementation-plan.md) §10.1). It already
+speaks the recorder's read and upload subset; the editor endpoints in this file are the amendment
+(track R of the plan). The receiver answers `{"error": <message>}` today, so the envelope above is
+extended additively: `error` keeps its string value, which is the only field the recorder reads.
 
 ## 1. What must not change
 
