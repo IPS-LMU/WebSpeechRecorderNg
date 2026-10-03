@@ -19,7 +19,9 @@ test('every corpus case matches the server catalogue', () => {
   assert.ok(files.length >= 5, `corpus is too small: ${files.length} case(s)`);
   for (const file of files) {
     const corpusCase = JSON.parse(readFileSync(join(CORPUS_DIR, file), 'utf8'));
-    const actual = validateScript(corpusCase.draft).map(key).sort();
+    const banks = corpusCase.banks ?? {};
+    const lookupBank = (bankId) => (Object.prototype.hasOwnProperty.call(banks, bankId) ? banks[bankId] : null);
+    const actual = validateScript(corpusCase.draft, {lookupBank}).map(key).sort();
     const expected = corpusCase.expect.map(key).sort();
     assert.deepEqual(actual, expected, `${file}: ${corpusCase.note ?? ''}`);
   }

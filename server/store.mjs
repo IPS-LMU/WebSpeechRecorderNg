@@ -14,8 +14,10 @@
  *   <data>/uploads/...                  runtime state: idempotency journal, chunk sessions, ids
  */
 import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync} from 'node:fs';
+import {randomBytes} from 'node:crypto';
 import {dirname, join, resolve, sep} from 'node:path';
 import {RequestError} from './body.mjs';
+import {resolveBankSources} from './draw.mjs';
 import {etagOf} from './etag.mjs';
 import {MEDIA_DIR, mimeTypeFor, referencedResources} from './media.mjs';
 
@@ -235,17 +237,87 @@ export class Store {
     return updated;
   }
 
-  createSession(id, {project, script, type = 'NORM'}) {
-    const session = {
+  createSession(id, {project, script, type = 'NORM', speaker = null}) {
+    let session = {
       sessionId: coerceId(id),
       type,
       project,
       script,
       status: 'CREATED',
       debugMode: false,
+      ...(speaker === null || speaker === undefined ? {} : {speaker}),
     };
+    const resolved = this.resolveSessionDraws(session);
+    if (resolved !== null) {
+      session = {...session, ...resolved};
+    }
     this.writeJson(this.sessionPath(id), session);
     return session;
+  }
+
+  /**
+   * Resolves the bank sources of the session's script (D-W): the chosen items go into a
+   * materialised script the recorder reads, and the trace is stored on the session. Returns null
+   * when the script has no bank source.
+   */
+  resolveSessionDraws(session) {
+    // Re-resolution (for example a redraw) must start from the original script, not the
+    // materialised copy, which no longer carries the bank sources.
+    const scriptId = session?.scriptSource ?? session?.script;
+    if (scriptId === null || scriptId === undefined) {
+      return null;
+    }
+    const doc = this.script(scriptId);
+    if (doc === null) {
+      return null;
+    }
+    const meta = this.scriptMeta(String(scriptId));
+    const recorded = session.speaker === null || session.speaker === undefined
+      ? new Set()
+      : this.recordedBankItemIds({project: session.project, speaker: session.speaker});
+    let resolved;
+    try {
+      resolved = resolveBankSources(doc, {
+        lookupBank: (bankId) => this.bank(bankId),
+        sessionId: session.sessionId,
+        speaker: session.speaker ?? null,
+        scriptId: coerceId(scriptId),
+        scriptVersion: meta?.publishedVersion ?? null,
+        recordedBankItemIds: recorded,
+      });
+    } catch (err) {
+      throw new RequestError(409, `cannot resolve the session's bank sources: ${err.message}`, {code: 'BANK_SOURCE_UNRESOLVED'});
+    }
+    if (resolved.trace === null) {
+      return null;
+    }
+    return {
+      script: coerceId(this.materialiseScript(session.sessionId, resolved.script)),
+      bankDraws: resolved.trace,
+      scriptSource: coerceId(scriptId),
+    };
+  }
+
+  /** The bank item ids this speaker already has a recording for, within the project. */
+  recordedBankItemIds({project = null, speaker = null}) {
+    if (speaker === null || speaker === undefined) {
+      return new Set();
+    }
+    const sessions = new Set(this.sessionIds().filter((id) => {
+      const candidate = this.session(id);
+      return candidate?.speaker === speaker && (project === null || candidate?.project === project);
+    }));
+    const ids = new Set();
+    for (const meta of this.recordingFiles()) {
+      if (!sessions.has(String(meta.session ?? ''))) {
+        continue;
+      }
+      const bankItemId = meta.recording?.bankItemId ?? meta.bankItemId;
+      if (bankItemId !== undefined && bankItemId !== null) {
+        ids.add(String(bankItemId));
+      }
+    }
+    return ids;
   }
 
   /** Merges the patch into the stored metadata and returns the stored object. */
@@ -645,10 +717,14 @@ export class Store {
     return updated;
   }
 
-  /** The library list, optionally narrowed to one project. */
+  /** The library list, optionally narrowed to one project. Materialised session scripts are internal. */
   listScripts(project = null) {
     const out = [];
     for (const id of this.scriptIds()) {
+      const flat = this.readJson(this.scriptPath(id));
+      if (flat !== null && flat.internal === true) {
+        continue;
+      }
       const meta = this.scriptMeta(id) ?? this.ensureScriptMeta(id);
       if (project !== null && meta.project !== null && meta.project !== project) {
         continue;
@@ -670,6 +746,56 @@ export class Store {
       });
     }
     return out;
+  }
+
+  // ---------------------------------------------------------------- sessions
+
+  /**
+   * Writes the script a session runs to the path the recorder reads (`script/<id>`), so nothing in
+   * the recorder changes: `Session.script` points at this materialised document, which is internal
+   * and therefore kept out of the library list.
+   */
+  materialiseScript(sessionId, doc) {
+    const id = `sess-${this.segment(sessionId)}`;
+    this.writeJson(this.scriptPath(id), {
+      ...doc,
+      scriptId: coerceId(id),
+      internal: true,
+      materialisedFor: coerceId(sessionId),
+    });
+    return id;
+  }
+
+  /**
+   * A tier-2 dry run: an ephemeral `TEST` session bound to a materialised copy of a draft or a
+   * published version. Recordings are refused for it (see the API guard), so nothing can reach
+   * storage even if the recorder ignores the flag.
+   */
+  createPreviewSession({project, scriptId, version = 'draft', ttlMs = 2 * 60 * 60 * 1000}) {
+    const source = version === 'draft' || version === null || version === undefined
+      ? this.draft(scriptId)
+      : this.version(scriptId, String(version));
+    if (source === null || source === undefined) {
+      throw new RequestError(404, `script ${scriptId} has no ${version} to preview`);
+    }
+    const sessionId = `preview-${randomBytes(6).toString('hex')}`;
+    const expires = new Date(Date.now() + ttlMs).toISOString();
+    const session = {
+      sessionId,
+      type: 'TEST',
+      project,
+      script: coerceId(this.materialiseScript(sessionId, source)),
+      status: 'CREATED',
+      previewOf: {scriptId: coerceId(scriptId), version: version ?? 'draft'},
+      expires,
+    };
+    this.writeJson(this.sessionPath(sessionId), session);
+    return session;
+  }
+
+  /** Sessions that may be listed: preview (`TEST`) sessions are excluded unless asked for. */
+  sessionIdsExceptPreview(includePreview = false) {
+    return this.sessionIds().filter((id) => includePreview || this.session(id)?.type !== 'TEST');
   }
 
   // ---------------------------------------------------------------- project media

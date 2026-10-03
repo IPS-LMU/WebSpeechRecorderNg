@@ -49,6 +49,29 @@ test('E09 timing fields must be non-negative numbers', () => {
   ]);
 });
 
+test('E03/E04/E05 for bank sources', () => {
+  const bank = {bankId: 'b', items: [{bankItemId: '1'}, {bankItemId: '2'}]};
+  const withSource = (source) => ({sections: [{groups: [{promptItems: [
+    {itemcode: 'RB', mediaitems: [{mimetype: 'text/plain', text: 'ph'}], prefill: {bank: source}},
+  ]}]}]});
+  assert.deepEqual(paths(validateScript(withSource({bank: '', count: 1, itemcodePrefix: 'RB'}), {lookupBank: () => bank}), 'E03'),
+    ['sections[0].groups[0].promptItems[0].prefill.bank.bank']);
+  assert.deepEqual(paths(validateScript(withSource({bank: 'b', count: 5, itemcodePrefix: 'RB'}), {lookupBank: () => bank}), 'E04'),
+    ['sections[0].groups[0].promptItems[0].prefill.bank.count']);
+  assert.deepEqual(paths(validateScript(withSource({bank: 'b', count: 5, itemcodePrefix: 'RB'})), 'E04'), [],
+    'E04 is suspended without a bank lookup');
+
+  // A fixed itemcode inside the reserved range is reported at the fixed item.
+  const clash = {
+    sections: [{groups: [{promptItems: [
+      {itemcode: 'RB002', mediaitems: [{mimetype: 'text/plain', text: 'fixed'}]},
+      {itemcode: 'RB', mediaitems: [{mimetype: 'text/plain', text: 'ph'}],
+        prefill: {bank: {bank: 'b', count: 5, itemcodePrefix: 'RB'}}},
+    ]}]}],
+  };
+  assert.deepEqual(paths(validateScript(clash), 'E05'), ['sections[0].groups[0].promptItems[0].itemcode']);
+});
+
 test('E10 needs a section and a section needs a group', () => {
   assert.deepEqual(paths(validateScript({sections: []}), 'E10'), ['sections']);
   assert.deepEqual(paths(validateScript({sections: [{groups: []}]}), 'E10'), ['sections[0].groups']);

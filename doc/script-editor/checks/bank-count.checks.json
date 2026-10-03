@@ -1,0 +1,25 @@
+{
+  "note": "E04: the filter matches two items but five are drawn.",
+  "banks": {
+    "small": {
+      "bankId": "small",
+      "title": "Small",
+      "source": "PROJECT",
+      "items": [
+        {"bankItemId": "s1", "text": "ett", "category": "sentence", "words": 1},
+        {"bankItemId": "s2", "text": "två", "category": "sentence", "words": 1}
+      ]
+    }
+  },
+  "draft": {
+    "name": "Bank count",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "S", "mediaitems": [{"mimetype": "text/plain", "text": "placeholder"}],
+            "prefill": {"bank": {"bank": "small", "bankSource": "PROJECT", "count": 5, "itemcodePrefix": "S", "filter": {"category": "sentence"}}}}
+        ]}]}
+    ]
+  },
+  "expect": [{"id": "E04", "path": "sections[0].groups[0].promptItems[0].prefill.bank.count"}]
+}

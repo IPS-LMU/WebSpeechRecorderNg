@@ -1,0 +1,14 @@
+{
+  "note": "E03: the item declares a bank source but names no bank.",
+  "draft": {
+    "name": "Bank missing",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "RB", "mediaitems": [{"mimetype": "text/plain", "text": "placeholder"}],
+            "prefill": {"bank": {"bank": "", "bankSource": "PROJECT", "count": 3, "itemcodePrefix": "RB"}}}
+        ]}]}
+    ]
+  },
+  "expect": [{"id": "E03", "path": "sections[0].groups[0].promptItems[0].prefill.bank.bank"}]
+}

@@ -1,0 +1,27 @@
+{
+  "note": "E05: two bank sources reserve the same itemcode prefix.",
+  "banks": {
+    "small": {
+      "bankId": "small",
+      "title": "Small",
+      "source": "PROJECT",
+      "items": [
+        {"bankItemId": "s1", "text": "ett"},
+        {"bankItemId": "s2", "text": "två"}
+      ]
+    }
+  },
+  "draft": {
+    "name": "Prefix clash",
+    "sections": [
+      {"mode": "MANUAL", "promptphase": "IDLE", "order": "SEQUENTIAL", "training": false,
+        "groups": [{"order": "SEQUENTIAL", "promptItems": [
+          {"itemcode": "A", "mediaitems": [{"mimetype": "text/plain", "text": "one"}],
+            "prefill": {"bank": {"bank": "small", "bankSource": "PROJECT", "count": 1, "itemcodePrefix": "RB"}}},
+          {"itemcode": "B", "mediaitems": [{"mimetype": "text/plain", "text": "two"}],
+            "prefill": {"bank": {"bank": "small", "bankSource": "PROJECT", "count": 1, "itemcodePrefix": "RB"}}}
+        ]}]}
+    ]
+  },
+  "expect": [{"id": "E05", "path": "sections[0].groups[0].promptItems[1].prefill.bank.itemcodePrefix"}]
+}

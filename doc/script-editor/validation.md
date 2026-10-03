@@ -22,12 +22,12 @@ Unit-test one spec per id, including the clean case.
 |---|---|---|---|
 | E01 | `itemcode` empty or whitespace | Itemcode is required. | focus the field |
 | E02 | two items share an `itemcode` (drawn codes included) | Another item already uses this itemcode. | offer the next free code |
-| E03 | group has `draw` but no `bank` | The group draws items but no bank is chosen. | open the bank picker |
-| E04 | `draw.count` > `matchCount` for the current filter | The filter matches only {matchCount} items. Widen the filter or draw fewer. | set `count` to `matchCount` |
-| E05 | a fixed itemcode falls inside a draw's reserved range, or two draws share `itemcodePrefix` | Itemcodes {prefix}001–{prefix}{n} are reserved for the draw in {section}, group {g}. | suggest a free prefix |
+| E03 | a bank source names no bank (`prefill.bank.bank` empty), or the named bank does not exist | The item draws from a bank but no bank is chosen. | open the bank picker |
+| E04 | a bank source's `count` exceeds the filter's `matchCount`; suspended when the bank cannot be read | The filter matches only {matchCount} items. Widen the filter or draw fewer. | set `count` to `matchCount` |
+| E05 | a fixed itemcode falls inside a bank source's reserved range, or two bank sources share `itemcodePrefix` | Itemcodes {prefix}001–{prefix}{n} are reserved by the bank source in {section}, item {code}. | suggest a free prefix |
 | E06 | `playback` without `src` | The item plays media but no file is chosen. | open the file picker |
 | E07 | `mediaitems[0]` has none of `text`, `promptDoc`, `src`, and the item has no `playback` | The item shows nothing and plays nothing. | — |
-| E08 | group has both `draw` and non-empty `promptItems` | A group is either a fixed list or a draw. | keep one, explicitly chosen |
+| E08 | retired by D-W: a group can no longer hold both a rule and a fixed list, so the condition is unrepresentable | — | — |
 | E09 | `draw.count` < 1, or a timing field is negative or not a number | {field} must be a positive number of milliseconds. | — |
 | E10 | script has no section, or a section has no group | A script needs at least one section with one group. | add one |
 | E11 | `repeats` < 1, `gap` or `maxReplays` negative, a virtual view box height ≤ 0, or `draw.count` > 999 | `repeats` must be at least 1; `gap` and `maxReplays` must not be negative; view box heights must be > 0; a draw holds at most 999 items. | — |

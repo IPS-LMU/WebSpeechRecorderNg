@@ -113,8 +113,42 @@ A **bank source** carries the fields below (the former `Draw`), and resolution i
   appends the draw to the **unified session trace** (extended `Session.prefills`; the former
   `ResolvedDraw` is dropped).
 
-The exact discriminated schema (where the bank source is referenced from, and how the trace is
-shaped) is frozen in M0 — implementation-plan §10.4.
+**Frozen schema (M0).** A placeholder prompt item references exactly one source: the shipped
+`source` (a script-resource list) or the new `bank`:
+
+```ts
+export interface PrefillBankSource {
+  bank: string;
+  bankSource: BankSource;
+  filter?: DrawFilter;
+  filterVersion?: number;
+  count: number;                      // 1…999
+  order?: Order;                      // default RANDOM: shuffled once, at resolution
+  fixedBy?: DrawFixedBy;              // default SESSION
+  skipRecordedBySpeaker?: boolean;
+  itemcodePrefix: string;             // generated codes are `${prefix}001`, zero-padded
+  playBankAudio?: boolean;
+  playback?: Omit<Playback, 'replayable' | 'maxReplays' | 'durationMs'>;
+  itemDefaults?: Pick<PromptItem, 'prerecdelay' | 'recduration' | 'postrecdelay' | 'recinstructions'>;
+}
+
+export interface PromptItemPrefill {
+  source?: string;                    // list source — exactly one of source/bank
+  bank?: PrefillBankSource;
+  select?: 'random';                  // list sources
+  itemcodeFormat?: string;            // list sources (`{n}`)
+  recinstructions?: string;
+  mediaitems?: Array<Mediaitem>;
+}
+```
+
+A bank source is resolved **once, at session creation**: each chosen bank item becomes a prompt item —
+`itemcode` from the prefix, the bank item's `text`/`promptDoc`/`src` as `mediaitems[0]`, its model
+recording appended when `playBankAudio` is set, `bankItemId` carried, timing from `itemDefaults`.
+The seed is what `fixedBy` names — the session, the speaker, or the script version; `SPEAKER`
+without a session speaker falls back to the session seed, and the trace records that it did.
+`skipRecordedBySpeaker` removes what the speaker already recorded and refills from the skipped items,
+recording that it did.
 
 ```ts
 export type DrawFixedBy = 'SESSION' | 'SPEAKER' | 'SCRIPT';
@@ -230,16 +264,12 @@ place, no bank-source key) and points `Session.script` at its id, so the recorde
 `GET script/{sess.script}` returns plain items and needs no call-site change. Materialised scripts
 are internal: the library list and the record view exclude them from their default listings.
 
-The trace is the shipped `Session.prefills`, extended (D-W, implementation-plan §10.4) to carry bank
-draws too, so one structure answers "which list, or which items, did this session get — and why":
-
-- list sources: the source id and the chosen list id (shipped behaviour);
-- bank sources: bank and bank source, the chosen bank item ids with their generated itemcodes, and
-  the refill flag when `skipRecordedBySpeaker` forced a top-up;
-- the script version the draw was made against.
-
-The former `ResolvedDraw`/`ResolvedDrawItem` types are dropped; their fields move into the trace.
-The exact shape is frozen in M0.
+The trace lives on the session: the shipped `Session.prefills` (upstream's `PrefillChoices`) for
+list sources, plus **`Session.bankDraws`** for bank sources — one entry per placeholder itemcode with
+`bank`, `bankSource`, `filter`, `count`, `fixedBy`, `key`, `itemcodePrefix`, the chosen
+`{itemcode, bankItemId}` pairs, `refilled`, `skippedRecorded`, `speakerFallback` and
+`drawnForVersion`. `GET …/draws` (session and script scope) merges both for the record view; the
+former `ResolvedDraw` type is dropped. The exact shape is frozen in M0.
 
 ### 2.5 Script metadata
 

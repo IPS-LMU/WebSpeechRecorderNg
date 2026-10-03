@@ -185,6 +185,12 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
         }
         throw new RequestError(405, `${req.method} is not supported on script/{id}/publish`);
       }
+      if (stripJsonSuffix(rest[1]) === 'preview-session' && rest.length === 2) {
+        if (req.method === 'POST') {
+          return await createPreviewSession(req, res, scriptId, projectId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on script/{id}/preview-session`);
+      }
       if (stripJsonSuffix(rest[1]) === 'version') {
         if (req.method === 'GET' && rest.length === 2) {
           return await sendJson(res, 200, store.versionsIndex(scriptId));
@@ -257,7 +263,7 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       const {bytes} = requireDraftPrecondition(req, scriptId, provided);
       const text = bytes.toString('utf8');
       const value = JSON.parse(text);
-      const findings = validateScript(value);
+      const findings = validateScript(value, {lookupBank: (bankId) => store.bank(bankId)});
       if (findings.length > 0) {
         throw new RequestError(409, 'The script has errors and was not published.', {
           code: 'PUBLISH_REJECTED',
@@ -621,6 +627,14 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       return await sendJson(res, 200, {src, deleted: true, usedBy});
     }
 
+    /** Tier-2 dry run: an ephemeral session over a materialised draft or version. */
+    async function createPreviewSession(req, res, scriptId, projectId) {
+      const body = await readJsonBody(req).catch(() => ({}));
+      const version = body.version === undefined || body.version === null || body.version === '' ? 'draft' : String(body.version);
+      const session = store.createPreviewSession({project: projectId, scriptId, version});
+      return await sendJson(res, 201, {sessionId: session.sessionId, expires: session.expires});
+    }
+
     async function createScript(req, res, projectId) {
       const body = await readJsonBody(req).catch(() => ({}));
       const source = duplicateSource(body.from);
@@ -744,6 +758,7 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
 
     async function recFileItem(req, res, url, projectId, sessionId, segments) {
       requireFound(store.session(sessionId), `session ${sessionId}`);
+      requireRecordingWritable(sessionId, req.method);
       if (segments.length === 1) {
         return await sendRecordingAudio(req, res, url, resolveRecordingInSession(segments[0], sessionId));
       }
@@ -768,7 +783,18 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
 
     // -------------------------------------------------------------- uploads
 
+    /** A preview (`TEST`) session is a dry run: nothing may be stored for it. */
+    function requireRecordingWritable(sessionId, method) {
+      if (method === 'GET' || method === 'HEAD') {
+        return;
+      }
+      if (store.session(sessionId)?.type === 'TEST') {
+        throw new RequestError(409, `session ${sessionId} is a preview session and does not accept recordings`, {code: 'TEST_SESSION_READ_ONLY'});
+      }
+    }
+
     async function recFileUploadOrAudio(req, res, url, sessionId, segments) {
+      requireRecordingWritable(sessionId, req.method);
       if (segments.length === 0) {
         throw new RequestError(404, 'recording file id missing');
       }

@@ -255,8 +255,11 @@ When a session is created against a script version, the server, for each group t
    `GET script/{sess.script}` therefore returns plain items and needs no call-site change.
    Materialised scripts are internal: the library list and the draw record exclude them from their
    default listings.
-5. Stores a `ResolvedDraw` record per drawn group with the bank, source, filter, chosen item ids
-   and the refill flag.
+5. Stores a `ResolvedDraw`-style record per drawn source in the session trace — the shipped
+   `Session.prefills` for list sources plus `Session.bankDraws` for bank sources (data-model §2.4).
+   Materialised scripts are internal: the library list and the script-scope record exclude them.
+   `GET …/draws` merges the trace for the record view; `POST …/draws/_redraw` re-resolves from the
+   **original** script id (`session.scriptSource`) while the session is `CREATED`.
 
 From then on the session is a plain script with plain items; re-opening it never reshuffles (D2).
 Preview sessions (`type: "TEST"`, §6) resolve draws the same way but are excluded from reports,
@@ -265,8 +268,8 @@ usage counts and the draw record's default listing.
 ### 4.2 Read the record
 
 ```
-GET project/{projectId}/session/{sessionId}/draw        → ResolvedDraw[]
-GET project/{projectId}/script/{scriptId}/draw?version=3&limit=50&offset=0
+GET project/{projectId}/session/{sessionId}/draws       → the session trace (prefills + bankDraws)
+GET project/{projectId}/script/{scriptId}/draws?version=3&limit=50&offset=0
 ```
 
 Preview (`type: "TEST"`) sessions are omitted from the default listing; `?includePreview=true`
@@ -292,7 +295,7 @@ With `Accept: text/csv` the same URL returns one row per drawn item
 ### 4.3 Re-draw
 
 ```
-POST project/{projectId}/session/{sessionId}/draw/_redraw
+POST project/{projectId}/session/{sessionId}/draws/_redraw
 ```
 
 `200` with the new `ResolvedDraw[]` when the session status is `CREATED`. Any other status returns
@@ -370,9 +373,9 @@ it, tier-2 preview cannot exist and only the editor-side mock remains.
 | GET | `project/{p}/bank` | banks, project and builtin | M4 |
 | GET | `project/{p}/bank/{b}/item` | filtered items, `matchCount` | M4 |
 | POST/PUT/DELETE | `project/{p}/bank[/{b}/item…]` | project banks only | M4 |
-| GET | `project/{p}/session/{s}/draw` | one session's draw | M4 |
-| GET | `project/{p}/script/{id}/draw` | draw record, CSV | M4 |
-| POST | `project/{p}/session/{s}/draw/_redraw` | unstarted sessions only | M4 |
+| GET | `project/{p}/session/{s}/draws` | the session trace (prefills + bankDraws) | M4 |
+| GET | `project/{p}/script/{id}/draws` | draw record, CSV | M4 |
+| POST | `project/{p}/session/{s}/draws/_redraw` | unstarted sessions only | M4 |
 | POST | `project/{p}/media` | upload a playback clip | M3 |
 | GET | `project/{p}/media` | media list with `usedBy` | M3 |
 | DELETE | `project/{p}/media/{src}` | refused while published versions reference it | M3 |
