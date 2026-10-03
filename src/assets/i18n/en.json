@@ -201,6 +201,8 @@
       "retryAdvice": "Please retry.",
       "sessionSealedMsg": "This session is sealed. Recordings cannot be added anymore.",
       "sessionSealedAdvice": "Please ask your experimenter what to do (e.g start a new session).",
+      "headphonesTitle": "Headphones required",
+      "headphonesMsg": "This section plays sound. Put on headphones before the take starts, or the recording will capture the loudspeaker.",
       "requiredAudioDeviceTitle": "Required audio device",
       "requiredAudioDeviceMsg": "Required audio device not found",
       "requiredAudioDeviceAdvice": "Please connect a suitable audio device for this project and retry (press the browser reload button).",
@@ -251,6 +253,7 @@
       "recording": "Recording...",
       "promptAudio": "Playing the prompt sound...",
       "promptAudioError": "The prompt sound could not be played.",
+      "promptAudioOffline": "The prompt sound is not available offline.",
       "playerCreated": "Player created.",
       "audioFileLoaded": "Audio file loaded.",
       "playing": "Playing...",
@@ -267,10 +270,10 @@
       "recordingFileDecodeFailed": "Recording file could not be decoded. Audio context unavailable.",
       "noScript": "No recording script is defined for this session with ID {{value}}",
       "scriptFetchError": "Error fetching recording script: {{value}}",
+      "scriptPrefillError": "Error resolving the script prefill sources: {{value}}",
       "uploadErrorDetail": "Upload error: {{value}}",
       "uploadFailed": "Upload failed: {{value}}",
-      "uploadPartial": "Some uploads failed. Recordings were not stored on the server.",
-      "scriptPrefillError": "Error resolving the script prefill sources: {{value}}"
+      "uploadPartial": "Some uploads failed. Recordings were not stored on the server."
     },
     "respondent": {
       "windowTitle": "Cavox — respondent display (session {{session}})",

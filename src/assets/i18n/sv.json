@@ -201,6 +201,8 @@
       "retryAdvice": "Försök igen.",
       "sessionSealedMsg": "Sessionen är låst. Fler inspelningar kan inte läggas till.",
       "sessionSealedAdvice": "Fråga din försöksledare vad du ska göra (till exempel starta en ny session).",
+      "headphonesTitle": "Hörlurar krävs",
+      "headphonesMsg": "Det här avsnittet spelar upp ljud. Sätt på hörlurar innan tagningen startar, annars fångar inspelningen högtalaren.",
       "requiredAudioDeviceTitle": "Obligatorisk ljudenhet",
       "requiredAudioDeviceMsg": "Den obligatoriska ljudenheten hittades inte",
       "requiredAudioDeviceAdvice": "Anslut en lämplig ljudenhet för projektet och försök igen (ladda om sidan i webbläsaren).",
@@ -251,6 +253,7 @@
       "recording": "Spelar in…",
       "promptAudio": "Spelar upp promptljudet…",
       "promptAudioError": "Promptljudet kunde inte spelas upp.",
+      "promptAudioOffline": "Promptljudet är inte tillgängligt offline.",
       "playerCreated": "Uppspelaren är skapad.",
       "audioFileLoaded": "Ljudfilen är inläst.",
       "playing": "Spelar upp…",
@@ -267,10 +270,10 @@
       "recordingFileDecodeFailed": "Inspelningsfilen kunde inte avkodas. Ljudkontexten är inte tillgänglig.",
       "noScript": "Inget inspelningsmanus är definierat för sessionen med ID {{value}}",
       "scriptFetchError": "Kunde inte hämta inspelningsmanuset: {{value}}",
+      "scriptPrefillError": "Fel vid upplösning av manusets förifyllnadskällor: {{value}}",
       "uploadErrorDetail": "Uppladdningsfel: {{value}}",
       "uploadFailed": "Uppladdningen misslyckades: {{value}}",
-      "uploadPartial": "Vissa uppladdningar misslyckades. Inspelningarna sparades inte på servern.",
-      "scriptPrefillError": "Kunde inte fylla i inspelningsmanuset från externa källor: {{value}}"
+      "uploadPartial": "Vissa uppladdningar misslyckades. Inspelningarna sparades inte på servern."
     },
     "respondent": {
       "windowTitle": "Cavox – respondentvy (session {{session}})",

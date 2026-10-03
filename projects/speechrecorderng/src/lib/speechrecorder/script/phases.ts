@@ -143,6 +143,21 @@ export function replayAllowed(plan: PlaybackPlan | null, used: number): boolean 
   return plan.maxReplays === null || used < plan.maxReplays;
 }
 
+/** Whether any item of the section asks the speaker to put on headphones (D-V = C). */
+export function sectionNeedsHeadphones(
+  section: {groups?: Array<{promptItems?: Array<PromptItem>}>} | null | undefined,
+): boolean {
+  for (const group of section?.groups ?? []) {
+    for (const item of group?.promptItems ?? []) {
+      // A drawn placeholder asks on behalf of every item it will generate.
+      if (item?.playback?.headphones === true || item?.prefill?.bank?.playback?.headphones === true) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** How the item's sound is played (D-V = C). */
 export interface PlaybackPlan {
   /** The prompt's audio mediaitem: the sound source and the shipped default placement. */

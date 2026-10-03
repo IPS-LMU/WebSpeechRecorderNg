@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter, SampleSize} from '../../audio/impl/wavwriter'
 import {Group, Mediaitem, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {DEFAULT_POST_REC_DELAY, effectiveTiming, playbackPlan, playbackStart, promptVisibleAt, replayAllowed} from '../script/phases';
+import {DEFAULT_POST_REC_DELAY, effectiveTiming, playbackPlan, playbackStart, promptVisibleAt, replayAllowed, sectionNeedsHeadphones} from '../script/phases';
 import type {PlaybackPlan} from '../script/phases';
 import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {Upload, UploadHolder} from '../../net/uploader';
@@ -240,6 +240,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   /** Operator replays of the current item, and the per-itemcode log sent to the session. */
   private promptAudioReplays = 0;
   private readonly replayLog: {[itemcode: string]: number} = {};
+  /** The section whose headphone reminder the operator has already dismissed. */
+  private headphonesConfirmedFor: Section|null = null;
   private postDelay:number=DEFAULT_POST_REC_DELAY;
   private postRecTimerId: number|null=null;
   private postRecTimerRunning: boolean|null=null;
@@ -685,6 +687,37 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
+  /**
+   * Shows the headphone reminder once per section when the script asks for it (D-V = C). The take
+   * starts when the operator dismisses the dialog, and not before.
+   */
+  private requireHeadphonesBeforeStart(): boolean {
+    if (!sectionNeedsHeadphones(this.section) || this.headphonesConfirmedFor === this.section) {
+      return false;
+    }
+    const section = this.section;
+    this.dialog.open(MessageDialog, {
+      data: {
+        type: 'warning',
+        title: this.i18n.t('spr.dialog.headphonesTitle'),
+        msg: this.i18n.t('spr.dialog.headphonesMsg'),
+        advice: '',
+      }
+    }).afterClosed().subscribe(() => {
+      if (this.section !== section) {
+        return;   // the operator moved on while the reminder was open
+      }
+      this.headphonesConfirmedFor = section;
+      this.startItem();
+    });
+    return true;
+  }
+
+  /** The message for a sound that could not be played; offline is called out (C2). */
+  private promptAudioFailureMessage(): string {
+    return this.i18n.t(navigator.onLine === false ? 'spr.status.promptAudioOffline' : 'spr.status.promptAudioError');
+  }
+
   startItem() {
     this.transportActions.fwdAction.disabled = true
     this.transportActions.fwdNextAction.disabled = true
@@ -716,6 +749,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       this.status=Status.NON_RECORDING_WAIT;
       this.transportActions.stopNonrecordingAction.disabled = false;
     }else {
+      if (this.requireHeadphonesBeforeStart()) {
+        return;
+      }
       this.status = Status.STARTING;
       super.startItem();
       if (this.readonly) {
@@ -1393,7 +1429,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if (result === 'failed') {
       // The session must not stall on a broken or missing file; the operator sees why it was quiet.
       this.statusAlertType = 'error';
-      this.statusMsg = this.i18n.t('spr.status.promptAudioError');
+      this.statusMsg = this.promptAudioFailureMessage();
     }
   }
 
@@ -1404,7 +1440,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
     if (result === 'failed') {
       this.statusAlertType = 'error';
-      this.statusMsg = this.i18n.t('spr.status.promptAudioError');
+      this.statusMsg = this.promptAudioFailureMessage();
     }
   }
 

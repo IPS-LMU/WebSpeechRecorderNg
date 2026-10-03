@@ -6,7 +6,7 @@
  * editor's preview and timeline share the same arithmetic.
  */
 import {MAX_RECORDING_TIME_MS} from '../session/basicrecorder';
-import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, promptVisibleAt, replayAllowed} from './phases';
+import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, promptVisibleAt, replayAllowed, sectionNeedsHeadphones} from './phases';
 import {PromptItem} from './script';
 
 const item = (overrides: Partial<PromptItem> = {}): PromptItem => ({
@@ -186,6 +186,23 @@ describe('phases', () => {
     it('has no replays without a sound', () => {
       expect(replayAllowed(null, 0)).toBe(false);
       expect(replayAllowed(playbackPlan(item()), 0)).toBe(false);
+    });
+  });
+
+  describe('headphone reminder', () => {
+    const sectionOf = (promptItems: Array<PromptItem>) => ({groups: [{promptItems}]});
+
+    it('asks when an item requires headphones, directly or through a bank source', () => {
+      expect(sectionNeedsHeadphones(sectionOf([item({mediaitems: [audio], playback: {when: 'DURING', headphones: true}})]))).toBe(true);
+      expect(sectionNeedsHeadphones(sectionOf([item({mediaitems: [audio], playback: {when: 'DURING'}})]))).toBe(false);
+      const bankPlaceholder = item({prefill: {bank: {bank: 'b', bankSource: 'PROJECT', count: 1, itemcodePrefix: 'R', playback: {when: 'DURING', headphones: true}}}});
+      expect(sectionNeedsHeadphones(sectionOf([bankPlaceholder]))).toBe(true);
+    });
+
+    it('is false for an empty or missing section', () => {
+      expect(sectionNeedsHeadphones(sectionOf([]))).toBe(false);
+      expect(sectionNeedsHeadphones(null)).toBe(false);
+      expect(sectionNeedsHeadphones(undefined)).toBe(false);
     });
   });
 
