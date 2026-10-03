@@ -6,7 +6,7 @@
  * editor's preview and timeline share the same arithmetic.
  */
 import {MAX_RECORDING_TIME_MS} from '../session/basicrecorder';
-import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, promptVisibleAt} from './phases';
+import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, promptVisibleAt, replayAllowed} from './phases';
 import {PromptItem} from './script';
 
 const item = (overrides: Partial<PromptItem> = {}): PromptItem => ({
@@ -159,6 +159,33 @@ describe('phases', () => {
     it('keeps the shipped autoplay as the default placement', () => {
       expect(playbackStart(playbackPlan(item({mediaitems: [audio]})))).toBe('BEFORE_CLOCKS');
       expect(playbackStart(playbackPlan(item({mediaitems: [{...audio, autoplay: false}]})))).toBeNull();
+    });
+  });
+
+  describe('replay rule', () => {
+    it('follows the shipped replay flag when the item has no modifier', () => {
+      expect(replayAllowed(playbackPlan(item({mediaitems: [audio]})), 0)).toBe(true);
+      expect(replayAllowed(playbackPlan(item({mediaitems: [{...audio, replay: false}]})), 0)).toBe(false);
+    });
+
+    it('lets the modifier override the media item flag', () => {
+      const forced = playbackPlan(item({mediaitems: [{...audio, replay: false}], playback: {when: 'BEFORE', replayable: true}}));
+      expect(replayAllowed(forced, 0)).toBe(true);
+      const vetoed = playbackPlan(item({mediaitems: [audio], playback: {when: 'BEFORE', replayable: false}}));
+      expect(replayAllowed(vetoed, 0)).toBe(false);
+    });
+
+    it('always lets an ONDEMAND sound be played, and caps the repeats', () => {
+      expect(replayAllowed(playbackPlan(item({mediaitems: [audio], playback: {when: 'ONDEMAND'}})), 0)).toBe(true);
+      const capped = playbackPlan(item({mediaitems: [audio], playback: {when: 'BEFORE', maxReplays: 2}}));
+      expect(replayAllowed(capped, 0)).toBe(true);
+      expect(replayAllowed(capped, 1)).toBe(true);
+      expect(replayAllowed(capped, 2)).toBe(false);
+    });
+
+    it('has no replays without a sound', () => {
+      expect(replayAllowed(null, 0)).toBe(false);
+      expect(replayAllowed(playbackPlan(item()), 0)).toBe(false);
     });
   });
 

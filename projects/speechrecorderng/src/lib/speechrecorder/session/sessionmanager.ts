@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter, SampleSize} from '../../audio/impl/wavwriter'
 import {Group, Mediaitem, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {DEFAULT_POST_REC_DELAY, effectiveTiming, playbackPlan, playbackStart, promptVisibleAt} from '../script/phases';
+import {DEFAULT_POST_REC_DELAY, effectiveTiming, playbackPlan, playbackStart, promptVisibleAt, replayAllowed} from '../script/phases';
 import type {PlaybackPlan} from '../script/phases';
 import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {Upload, UploadHolder} from '../../net/uploader';
@@ -237,6 +237,9 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private promptAudioPending: {preDelay: number, maxRecordingTimeMs: number}|null = null;
   /** The placement of the current item's sound (D-V = C). */
   private promptAudioPlan: PlaybackPlan|null = null;
+  /** Operator replays of the current item, and the per-itemcode log sent to the session. */
+  private promptAudioReplays = 0;
+  private readonly replayLog: {[itemcode: string]: number} = {};
   private postDelay:number=DEFAULT_POST_REC_DELAY;
   private postRecTimerId: number|null=null;
   private postRecTimerRunning: boolean|null=null;
@@ -1080,6 +1083,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     //this.selectedItemIdx = this.promptIndex;
 
     this.cancelPromptAudio();
+    this.promptAudioReplays = 0;
     this.promptAudioPlan = playbackPlan(this.promptItem);
     this.prefetchPromptAudio();
 
@@ -1404,15 +1408,34 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     }
   }
 
+  /** Sends the replay log to the session, so the count survives the take (C4). */
+  private recordReplay() {
+    const itemcode = this.promptItem?.itemcode;
+    if (itemcode === null || itemcode === undefined) {
+      return;
+    }
+    this.replayLog[itemcode] = this.promptAudioReplays;
+    if (this._session !== null && this._session !== undefined) {
+      this.sessionService.patchSessionObserver(this._session, {replayLog: {...this.replayLog}}).subscribe();
+    }
+  }
+
   /**
    * The operator's play action: replays the prompt sound, restarting the wait of a pending take.
    * The script decides whether an item offers it at all (`Mediaitem.replay`).
    */
   private playPromptAudio() {
     const plan = this.promptAudioPlan ?? playbackPlan(this.promptItem);
-    if (plan === null || !(plan.replayable || plan.when === 'ONDEMAND')) {
+    if (!replayAllowed(plan, this.promptAudioReplays)) {
       return;
     }
+    this.promptAudioReplays += 1;
+    const item = this.items?.getItem(this.promptIndex);
+    if (item !== null && item !== undefined) {
+      item.replays = this.promptAudioReplays;
+    }
+    this.recordReplay();
+    this.updatePromptAudioActionState();
     const pending = this.promptAudioPending;
     if (pending !== null) {
       // The take is waiting for this sound: the replay restarts the sound and with it the wait,
@@ -1466,7 +1489,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   /** The play action only exists where the script lets the operator play the sound. */
   private updatePromptAudioActionState() {
     const plan = this.promptAudioPlan ?? playbackPlan(this.promptItem);
-    this.transportActions.playPromptAction.disabled = plan === null || !(plan.replayable || plan.when === 'ONDEMAND');
+    this.transportActions.playPromptAction.disabled = !replayAllowed(plan, this.promptAudioReplays);
   }
 
   /** Warms the cache for a sound the take will play or the operator may play. */

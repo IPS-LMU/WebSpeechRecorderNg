@@ -2,6 +2,8 @@ import {SprRecordingFile} from "../recording";
 
 export class Item {
     recs: Array<SprRecordingFile> | null;
+    /** How often the operator replayed this item's sound; the session log records it too. */
+    replays = 0;
 
     constructor(private _promptAsString: string, private _training: boolean,private _recording:boolean) {
         this.recs = null;

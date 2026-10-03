@@ -135,6 +135,14 @@ export function playbackStart(plan: PlaybackPlan | null): PlaybackStart | null {
   }
 }
 
+/** Whether the operator may still play the item's sound, given the repeats used so far. */
+export function replayAllowed(plan: PlaybackPlan | null, used: number): boolean {
+  if (plan === null || !(plan.replayable || plan.when === 'ONDEMAND')) {
+    return false;
+  }
+  return plan.maxReplays === null || used < plan.maxReplays;
+}
+
 /** How the item's sound is played (D-V = C). */
 export interface PlaybackPlan {
   /** The prompt's audio mediaitem: the sound source and the shipped default placement. */
