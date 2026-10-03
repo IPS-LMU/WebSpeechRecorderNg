@@ -215,7 +215,7 @@ inventory (§4 M2).
 | E2 preview tier 1 | `app/preview/` | **Done.** `preview-order.ts` (the session walk: section/group rows, the drawn placeholder's rule row, and the example items folded in at its place, marked drawn), `preview-steps.ts` (Idle/Listening/Pre-rec/Recording/Post-rec, derived from `ITEM_PHASES`/`nextPhase`; `promptVisibleAt` per step; `playbackStart`/`playbackTiming` place the sound; a step the item cannot reach is disabled with the reason, never hidden), `preview-stage.ts` (the beige stage; a declared `src` the media list does not know becomes a labelled "Playback file not found" placeholder — ui-spec §9 — and a drawn example's model recording is labelled, never a fabricated URL), `preview-draw.ts` (the local example draw; **seed** = a fixed constant XOR an FNV-1a hash of `scriptId:section:group:placeholder:generation`, so load is stable and Re-draw is a fixed sequence — no `Math.random`, no clock), `script-preview.*` (the speaker frame: section name, Practice/"Drawn item" chips, progress, stage, playing state with a level display and a `replayAllowed`-gated replay control, the three-lamp traffic light **plus the fourth playback lamp**, status line, transport; the "Nothing is recorded or uploaded" banner; the tier-2 dry run is present but disabled with a title naming M4 and `POST project/{p}/script/{id}/preview-session`; a headphone notice from `sectionNeedsHeadphones`; `?item=`/`?step=` are the deep-linkable state). Use of the recorder's rules is exclusively through the library imports (D8). Specs: order folding/legacy `promptUnits`/keys, step enablement and prompt visibility per item, the seed and re-draw determinism, the stage's missing-file placeholder, and a `TestBed` + `RouterTestingHarness` mount of the real route (frame, chips, order list, Re-draw, replay cap, lamps, URL). Route: `app.routes.ts` now lazily loads `preview/script-preview` instead of the `NotYetBuilt` placeholder. The screen is decomposed so no component stylesheet approaches the `anyComponentStyle` budget: `script-preview` (chrome, banner, states, frame header, timing) plus `preview-stage-panel`, `preview-playback-panel`, `preview-transport-bar`, `preview-step-simulation` and `preview-order-panel`, each owning its elements and styles (largest sheet 3.30 kB compiled, 4 kB warning). | M2 |
 | V1 catalogue | `app/core/validation/**`, `app/core/normalise.ts` | **Done.** `validation/types.ts` + `walk.ts` (JSON paths byte-identical to `server/validate.mjs`) + one module per severity (`errors.ts` E01–E11 with E08 a retired no-op, `warnings.ts` W01–W13, `notes.ts` N01–N06) + `index.ts` (`runChecks`, `checkCounts`, `publishGate`, `findingsUnder`, `findingsBySeverity`) + `filter.ts` (mirrors `server/bank.mjs`'s `queryBank`, so E04/W04 agree with the server) + `json-lines.ts` + `normalise.ts`. Context is injected (D-D) and includes the deployment version and the feature map imported from the library — nothing re-derived. Specs: **109** (one `describe` per id with the clean case, json-lines escapes/`\t`/CRLF/duplicate keys/unicode, normalise idempotence per fix) plus the shared corpus: all **9** `doc/script-editor/checks/*.checks.json` cases pass the editor's implementation, matching the server's expectation. Trigger drift found while implementing was fixed in [validation.md](validation.md) (E05 empty prefix, E06 audio mediaitem, E07 whole `mediaitems` list, E09 whole-number `count`); message text is free by design (§intro). | M2 |
 | S2 fixtures | `src/test/project/Demo1/{script,media,bank}.json`, `src/test/project/Demo1/bank/*/item.json` | **Done.** The library-list fixture carries the 12 rows of rest-api §2.1 (status, versions, counts, `sessions {total, started, byVersion}`, modified/modifiedBy, archived — one row deliberately ARCHIVED so the filter is exercisable) and every row resolves to `src/test/script/<id>.json`. Media list + `media/index.json` carry the measured `durationMs` a seeded receiver cannot measure; bank lists and filtered item pages match what the receiver returns. The drawn-group script (`bank-draw.json`), legacy `promptUnits` scripts (`1.json`, `317118e4-…`), the ~500-item script and `playback.json` were already in the tree and are verified untouched. Verified: all JSON parses, a receiver seeded from the tree answers `200` for the list, one script by id and one bank item page, and its `GET media` matches `media.json` value for value. The list fixture also exposed a REST/FILES divergence, fixed in `server/store.mjs` (see `server/list.test.mjs`). | M2 |
-| Gate | **Proven:** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` **229 pass** (109 validation, services/load/draft, selection/outline/markers/timeline/example-draw, preview order/steps/stage/draw, outline rendering), `npm run test_module` **137 pass**, `npm run build_editor` green (447.90 kB raw / 122.26 kB estimated, **no budget warning**), and `node bin/theme_audit.mjs` passes at 1366×768 and 1920×1080 on four routes: the library list, `script/1245/edit`, `script/playback/preview`, and `script/bank-draw/edit` **with `bin/audit/open-draw-rule.js`**, which clicks the drawn-group row so the audit measures the draw-rule inspector (the fixture is pure DOM, so it also works on a production build). The 500-item script is exercised over CDP: 561 flattened rows, `virtual()` true, **7–8 rows in the DOM at a time**, scrolling to the end renders section 10's rows and clicking one selects `?sel=i:9:4:9` — the branch was broken until this pass and is now pinned by three component specs (`editor-outline.spec.ts`, which fail without the CDK fixed-size directive). **Remaining:** the legacy read-only round-trip (needs M3's write path, since "byte-identical until migrated" is a save-path property) and the VoiceOver pass #1 — both after M3. | M2 |
+| Gate | **Proven:** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` **229 pass** (109 validation, services/load/draft, selection/outline/markers/timeline/example-draw, preview order/steps/stage/draw, outline rendering), `npm run test_module` **137 pass**, `npm run build_editor` green (447.90 kB raw / 122.26 kB estimated, **no budget warning**), and `node bin/theme_audit.mjs` passes at 1366×768 and 1920×1080 on four routes: the library list, `script/1245/edit`, `script/playback/preview`, and `script/bank-draw/edit` **with `bin/audit/open-draw-rule.js`**, which clicks the drawn-group row so the audit measures the draw-rule inspector (the fixture is pure DOM, so it also works on a production build). The 500-item script is exercised over CDP: 561 flattened rows, `virtual()` true, **7–8 rows in the DOM at a time**, scrolling to the end renders section 10's rows and clicking one selects `?sel=i:9:4:9` — the branch was broken until this pass and is now pinned by three component specs (`editor-outline.spec.ts`, which fail without the CDK fixed-size directive). **Remaining:** the VoiceOver pass #1 (a human step, now tracked in M5). The legacy read-only round-trip landed with M3: `core/round-trip.spec.ts` loads every fixture, writes it back and asserts no key is lost, no `groups` is fabricated over a legacy `promptUnits` section and the loader's `_shuffled*` mirrors are never persisted. | M2 |
 
 ### M3 — Write path
 
@@ -246,18 +246,46 @@ Delivered: `app/bank/**` (the grouped picker with origin chips, the browse filte
 
 ### M5 — Hardening
 
-- Keyboard map and tree semantics from ui-spec §8 done in M2's outline; VoiceOver (Safari) and
-  NVDA (Firefox) passes run **per milestone from M2** (ui-spec §8), M5 verifies the whole map.
-- Empty/loading/error states of ui-spec §9 revisited as a checklist across all screens.
-- Perf: 500-item script, outline, tables, validation on debounce rather than per keystroke.
-- Editor routes + interaction state in the theme-audit command list; document the list (there is
-  no CI config in-repo — put commands in `README` §7 or `bin/`).
-- i18n of editor chrome only if the project needs it; keep strings centralised from M2 so a
-  retrofit is mechanical.
-- Preview (`type:"TEST"`) sessions: exclusion from draws/reports and cleanup verified (D-P).
-- Update README/data-model/rest-api/validation where M0–M4 changed them — including the
-  audition-player decision (D-L), the legacy-shape rule (D-M) and the media endpoints (B1); record
-  the receiver's transfer process, migration notes and how to run it (track R).
+Each item with what it rests on. The only one that is not machine-verifiable is the screen-reader
+pass, which needs a person in front of the machine.
+
+- **Keyboard map and tree semantics (ui-spec §8).** Complete, and verified over CDP on
+  `/project/Demo1/script/1245/edit` (11/11 assertions): `↑`/`↓` move focus, `Home`/`End`, `Enter`
+  selects (`?sel=s:0`, `aria-current` on the row), `→`/`←` collapse and expand with `aria-expanded`
+  on the row and a twisty (50 → 38 rows and back, `→` steps into the first child, `←` steps out),
+  `Alt+↑/↓` reorder and `Delete` both through the draft service (the script row is never
+  deletable; disabled with the FILES-mode reason), `/` focuses the outline filter behind an
+  `isTypingTarget` guard, and the shell owns `Cmd/Ctrl+Z`, `Shift+Cmd/Ctrl+Z`, `Cmd/Ctrl+S`. Every
+  key has a spec (`editor/keyboard.spec.ts`, `editor/outline*.spec.ts`).
+  **Remaining: the VoiceOver (Safari) and NVDA (Firefox) passes** — a human step, per §8's rule
+  that they run each milestone.
+- **Empty/loading/error states (ui-spec §9).** Every screen's row is pinned: the library list
+  (skeleton, empty, error with the server message and Retry, no-match and re-widen) and the editor
+  (loading, section-less invite card, blocking draft failure that never shows a real-looking empty
+  editor, and `?sel=` reaching the right inspector variant) were the last two without component
+  specs and now have them; the drawn group with no bank (E03 + suspended E04/W04), the preview's
+  labelled missing clip, the bank's "no match: widen the filter" and the draws view's "no sessions
+  yet" were already covered. Reading the library spec also surfaced a real gap — §2's usage column
+  was never rendered — now fixed and pinned.
+- **Perf on the 500-item script.** The outline virtualises (6 rows in the DOM out of 561 flattened,
+  256 nodes). Validation runs **debounced** (250 ms) instead of per keystroke: a 20-edit burst went
+  from 20 catalogue runs / ~20.6 ms per keystroke to **1 run / ~6.3 ms**, with a generation guard so
+  a stale queued run cannot overwrite newer findings; a publish attempt, a one-click fix and adding
+  a section recompute immediately (`core/editor-findings.service.spec.ts` counts the runs, and the
+  shell refreshes the gate before opening the publish dialog).
+- **Theme-audit list.** The commands are in [README.md](README.md) §7, and CI runs exactly that list
+  (`.github/workflows/tests.yml`, the `audit` job) including one interaction state via
+  `bin/audit/open-draw-rule.js`.
+- **i18n.** Chrome strings are centralised per screen — `core/editor-strings.ts` for the shell,
+  library, editor and validation, and one `…-strings.ts` per screen built later — so a retrofit is a
+  mechanical move.
+- **`TEST` sessions.** Excluded from reports, usage counts and the draw record's default listing
+  (`server/store.mjs`), pruned with their materialised scripts by `--gc`, and refused every recording
+  write with `409 TEST_SESSION_READ_ONLY` (`server/preview.test.mjs`).
+- **Doc updates.** README (this section, §4.1, §4.5, §7, §8), data-model (§5), rest-api (§1.1, §1.2,
+  §2.1, §2.4, §4.1, §4.2, §6, §7), validation.md (the E02/E05/E06/E07/E09 triggers) and the plan's own
+  rows match what shipped; the receiver's run/backup/transfer process is `server/README.md` (R12), and
+  the audition-player decision (D-L) and the legacy-shape rule (D-M) are in README §3/§5.
 
 ### Track R — server implementation (`server/`)
 
