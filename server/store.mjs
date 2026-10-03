@@ -249,7 +249,7 @@ export class Store {
     };
     const resolved = this.resolveSessionDraws(session);
     if (resolved !== null) {
-      session = {...session, ...resolved};
+      session = {...session, ...resolved, drawnDate: new Date().toISOString()};
     }
     this.writeJson(this.sessionPath(id), session);
     return session;
@@ -260,14 +260,15 @@ export class Store {
    * materialised script the recorder reads, and the trace is stored on the session. Returns null
    * when the script has no bank source.
    */
-  resolveSessionDraws(session) {
+  resolveSessionDraws(session, {sourceDoc = null} = {}) {
     // Re-resolution (for example a redraw) must start from the original script, not the
-    // materialised copy, which no longer carries the bank sources.
+    // materialised copy, which no longer carries the bank sources. A preview passes the draft or
+    // version it copied, because that document may carry a bank source the published one lacks.
     const scriptId = session?.scriptSource ?? session?.script;
     if (scriptId === null || scriptId === undefined) {
       return null;
     }
-    const doc = this.script(scriptId);
+    const doc = sourceDoc ?? this.script(scriptId);
     if (doc === null) {
       return null;
     }
@@ -279,7 +280,10 @@ export class Store {
     try {
       resolved = resolveBankSources(doc, {
         lookupBank: (bankId) => this.bank(bankId),
-        sessionId: session.sessionId,
+        // A redraw bumps `session.redraw`, which changes the seed (the stored trace stays the truth).
+        sessionId: session.redraw === undefined || session.redraw === null || session.redraw === 0
+          ? session.sessionId
+          : `${session.sessionId}#${session.redraw}`,
         speaker: session.speaker ?? null,
         scriptId: coerceId(scriptId),
         scriptVersion: meta?.publishedVersion ?? null,
@@ -780,15 +784,20 @@ export class Store {
     }
     const sessionId = `preview-${randomBytes(6).toString('hex')}`;
     const expires = new Date(Date.now() + ttlMs).toISOString();
-    const session = {
+    let session = {
       sessionId,
       type: 'TEST',
       project,
       script: coerceId(this.materialiseScript(sessionId, source)),
+      scriptSource: coerceId(scriptId),
       status: 'CREATED',
       previewOf: {scriptId: coerceId(scriptId), version: version ?? 'draft'},
       expires,
     };
+    const resolved = this.resolveSessionDraws(session, {sourceDoc: source});
+    if (resolved !== null) {
+      session = {...session, ...resolved, drawnDate: new Date().toISOString()};
+    }
     this.writeJson(this.sessionPath(sessionId), session);
     return session;
   }

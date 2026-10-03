@@ -121,13 +121,25 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
         if (rest.length > 4 && rest[3] === 'recfile') {
           return recFileItem(req, res, url, projectId, sessionId, rest.slice(4));
         }
+        if (rest.length === 4 && stripJsonSuffix(rest[3]) === 'draws') {
+          if (req.method === 'GET') {
+            return await sendJson(res, 200, sessionTrace(sessionId));
+          }
+          throw new RequestError(405, `${req.method} is not supported on session/{s}/draws`);
+        }
+        if (rest.length === 5 && stripJsonSuffix(rest[3]) === 'draws' && stripJsonSuffix(rest[4]) === '_redraw') {
+          if (req.method === 'POST') {
+            return await sendJson(res, 200, redrawSession(sessionId));
+          }
+          throw new RequestError(405, `${req.method} is not supported on session/{s}/draws/_redraw`);
+        }
         if (rest.length === 3 && (req.method === 'PATCH' || req.method === 'PUT')) {
           return sessionPatch(req, res, sessionId, projectId);
         }
         throw new RequestError(404, `unsupported session route ${rest.join('/')}`);
       }
       if (rest[1] === 'script') {
-        return await scriptRoutes(req, res, rest.slice(2), projectId);
+        return await scriptRoutes(req, res, url, rest.slice(2), projectId);
       }
       if (rest[1] === 'bank') {
         return await bankRoutes(req, res, url, rest.slice(2), projectId);
@@ -144,7 +156,7 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
      * The editor's script endpoints, project scoped. `GET script/{id}` (the recorder's view) stays
      * untouched; these add the library list, create/patch and the draft with its ETag rules.
      */
-    async function scriptRoutes(req, res, rest, projectId) {
+    async function scriptRoutes(req, res, url, rest, projectId) {
       if (rest.length === 0) {
         if (req.method === 'GET') {
           return await sendJson(res, 200, store.listScripts(projectId));
@@ -190,6 +202,12 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
           return await createPreviewSession(req, res, scriptId, projectId);
         }
         throw new RequestError(405, `${req.method} is not supported on script/{id}/preview-session`);
+      }
+      if (stripJsonSuffix(rest[1]) === 'draws' && rest.length === 2) {
+        if (req.method === 'GET') {
+          return await scriptDraws(req, res, url, scriptId, projectId);
+        }
+        throw new RequestError(405, `${req.method} is not supported on script/{id}/draws`);
       }
       if (stripJsonSuffix(rest[1]) === 'version') {
         if (req.method === 'GET' && rest.length === 2) {
@@ -388,7 +406,11 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
     }
 
     function numberParam(url, name, fallback) {
-      const value = Number(url.searchParams.get(name));
+      const raw = url.searchParams.get(name);
+      if (raw === null || raw === '') {
+        return fallback;
+      }
+      const value = Number(raw);
       return Number.isFinite(value) && value >= 0 ? value : fallback;
     }
 
@@ -633,6 +655,101 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       const version = body.version === undefined || body.version === null || body.version === '' ? 'draft' : String(body.version);
       const session = store.createPreviewSession({project: projectId, scriptId, version});
       return await sendJson(res, 201, {sessionId: session.sessionId, expires: session.expires});
+    }
+
+    // -------------------------------------------------------------- draw record
+
+    /** The session's trace: shipped `prefills` for list sources plus `bankDraws` for bank sources. */
+    function sessionTrace(sessionId) {
+      const session = requireFound(store.session(sessionId), `session ${sessionId}`);
+      return {
+        sessionId: session.sessionId,
+        script: session.scriptSource ?? session.script ?? null,
+        scriptVersion: (session.bankDraws ?? [])[0]?.drawnForVersion ?? null,
+        drawnDate: session.drawnDate ?? null,
+        redraw: session.redraw ?? 0,
+        prefills: session.prefills ?? {},
+        bankDraws: session.bankDraws ?? [],
+      };
+    }
+
+    /** Re-draws a session that has not started: a new seed, a new trace, the same session. */
+    function redrawSession(sessionId) {
+      const session = requireFound(store.session(sessionId), `session ${sessionId}`);
+      if (session.status !== 'CREATED') {
+        throw new RequestError(409, `session ${sessionId} has started; its draw is fixed`, {code: 'SESSION_ALREADY_STARTED'});
+      }
+      const candidate = {...session, redraw: (session.redraw ?? 0) + 1};
+      const resolved = store.resolveSessionDraws(candidate);
+      if (resolved === null) {
+        throw new RequestError(409, `session ${sessionId} has no bank sources to redraw`, {code: 'NO_BANK_SOURCES'});
+      }
+      store.patchSession(sessionId, {...resolved, redraw: candidate.redraw, drawnDate: new Date().toISOString()});
+      return sessionTrace(sessionId);
+    }
+
+    /** Draw rows across the sessions of one script, for the record view and the CSV export. */
+    function collectDrawRows(url, scriptId, projectId) {
+      const includePreview = url.searchParams.get('includePreview') === 'true';
+      const versionParam = url.searchParams.get('version');
+      const rows = [];
+      for (const id of store.sessionIdsExceptPreview(includePreview)) {
+        const session = store.session(id);
+        if (session === null) {
+          continue;
+        }
+        if (projectId !== null && session.project !== undefined && session.project !== null && String(session.project) !== String(projectId)) {
+          continue;
+        }
+        const source = session.scriptSource ?? session.script;
+        if (String(source) !== String(scriptId)) {
+          continue;
+        }
+        const recorded = new Set(store.recordingFilesOfSession(id)
+          .map((meta) => meta.recording?.itemcode)
+          .filter((itemcode) => itemcode !== undefined && itemcode !== null));
+        for (const draw of session.bankDraws ?? []) {
+          if (versionParam !== null && versionParam !== '' && String(draw.drawnForVersion ?? '') !== String(versionParam)) {
+            continue;
+          }
+          const items = (draw.items ?? []).map((item) => ({...item, recorded: recorded.has(item.itemcode)}));
+          rows.push({
+            sessionId: session.sessionId,
+            speaker: session.speaker ?? null,
+            status: session.status,
+            preview: session.type === 'TEST',
+            scriptVersion: draw.drawnForVersion ?? null,
+            drawnDate: session.drawnDate ?? null,
+            bank: draw.bank,
+            bankSource: draw.bankSource ?? null,
+            drawn: items.length,
+            recorded: items.filter((item) => item.recorded).length,
+            items,
+          });
+        }
+      }
+      return rows;
+    }
+
+    async function scriptDraws(req, res, url, scriptId, projectId) {
+      const rows = collectDrawRows(url, scriptId, projectId);
+      if (String(req.headers.accept ?? '').includes('text/csv')) {
+        return sendBuffer(res, 200, Buffer.from(drawCsv(rows), 'utf8'), 'text/csv; charset=utf-8');
+      }
+      const offset = numberParam(url, 'offset', 0);
+      const limit = numberParam(url, 'limit', 50);
+      return await sendJson(res, 200, {total: rows.length, offset, rows: rows.slice(offset, offset + limit)});
+    }
+
+    function drawCsv(rows) {
+      const lines = ['sessionId,speaker,itemcode,bankItemId,recorded'];
+      for (const row of rows) {
+        for (const item of row.items) {
+          lines.push([row.sessionId, row.speaker ?? '', item.itemcode, item.bankItemId ?? '', item.recorded ? 'true' : 'false']
+            .map(csvField).join(','));
+        }
+      }
+      return `${lines.join('\n')}\n`;
     }
 
     async function createScript(req, res, projectId) {
@@ -1233,6 +1350,12 @@ function sendBytes(res, status, payload, etag) {
   });
   res.end(payload);
   return status;
+}
+
+/** Quotes a CSV field when it contains a comma, a quote or a newline. */
+function csvField(value) {
+  const text = String(value ?? '');
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
 function sendFile(res, status, path, contentType) {

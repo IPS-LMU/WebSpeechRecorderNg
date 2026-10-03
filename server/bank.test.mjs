@@ -92,6 +92,10 @@ test('bank endpoints: list, query, CRUD, builtin read-only, copyFrom, CSV import
     assert.equal(query.withoutAudio, 1);
     assert.equal(query.items.length, 1);
 
+    // No limit means the default page, not an empty one.
+    const unpaged = await (await fetch(`${base}/project/demo/bank/builtin/item`)).json();
+    assert.equal(unpaged.items.length, unpaged.matchCount);
+
     // Write item(s) to the project bank.
     const created = await (await fetch(`${base}/project/demo/bank/project-one/item`, jsonRequest('POST', {text: 'Ny mening.', category: 'sentence', words: 2, tags: 'demo|short'}))).json();
     assert.equal(created.bankItemId, 'item-0001');

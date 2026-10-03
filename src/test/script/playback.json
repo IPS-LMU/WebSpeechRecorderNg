@@ -1,0 +1,66 @@
+{
+  "type": "script",
+  "scriptId": "playback",
+  "name": "Playback: prompt audio and placement",
+  "virtualViewBox": {"height": 600},
+  "sections": [
+    {
+      "mode": "MANUAL",
+      "promptphase": "RECORDING",
+      "order": "SEQUENTIAL",
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "P1",
+              "prerecdelay": 1500,
+              "recduration": 3000,
+              "postrecdelay": 500,
+              "recinstructions": {"recinstructions": "Listen, then repeat the sentence."},
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "The cat sleeps in the sun."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Model sentence"}
+              ],
+              "playback": {"when": "BEFORE", "repeats": 1, "gap": 500, "headphones": true}
+            },
+            {
+              "itemcode": "P2",
+              "prerecdelay": 1000,
+              "recduration": 3000,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "The bird sings."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Model sentence"}
+              ],
+              "playback": {"when": "DURING", "headphones": true, "replayable": true, "maxReplays": 2}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "promptphase": "PRERECORDING",
+      "order": "SEQUENTIAL",
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "P3",
+              "type": "nonrecording",
+              "duration": 2000,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "Take a short break."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Break"}
+              ],
+              "playback": {"when": "ONDEMAND"}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

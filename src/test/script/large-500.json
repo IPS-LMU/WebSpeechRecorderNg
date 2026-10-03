@@ -1,0 +1,6340 @@
+{
+ "type": "script",
+ "scriptId": "large-500",
+ "name": "Large script (500 items)",
+ "virtualViewBox": {
+  "height": 600
+ },
+ "sections": [
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S1G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S1G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S1G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S1G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S1G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S1G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 1, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S2G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S2G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S2G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S2G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S2G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S2G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 2, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S3G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S3G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S3G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S3G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S3G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S3G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 3, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S4G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S4G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S4G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S4G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S4G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S4G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 4, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S5G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S5G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S5G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S5G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S5G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S5G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 5, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S6G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S6G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S6G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S6G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S6G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S6G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 6, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S7G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S7G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S7G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S7G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S7G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S7G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 7, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S8G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S8G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S8G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S8G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S8G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S8G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 8, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S9G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S9G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S9G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S9G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S9G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S9G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 9, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "mode": "MANUAL",
+   "promptphase": "RECORDING",
+   "order": "SEQUENTIAL",
+   "training": false,
+   "groups": [
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S10G1I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G1I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 1, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S10G2I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G2I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 2, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S10G3I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G3I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 3, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S10G4I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G4I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 4, item 10."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "order": "SEQUENTIAL",
+     "promptItems": [
+      {
+       "itemcode": "S10G5I01",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 1."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I02",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 2."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I03",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 3."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I04",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 4."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I05",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 5."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I06",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 6."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I07",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 7."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I08",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 8."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I09",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 9."
+        }
+       ]
+      },
+      {
+       "itemcode": "S10G5I10",
+       "prerecdelay": 1000,
+       "recduration": 4000,
+       "postrecdelay": 500,
+       "mediaitems": [
+        {
+         "mimetype": "text/plain",
+         "text": "Section 10, group 5, item 10."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

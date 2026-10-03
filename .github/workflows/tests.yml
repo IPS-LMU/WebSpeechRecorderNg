@@ -1,0 +1,39 @@
+# Tests for the receiver and the library. The two jobs are independent so a receiver
+# failure does not hide a library regression (and the reverse).
+#
+# The editor jobs (karma for `spr-script-editor`, `ng build`) are added with the editor
+# project itself; until then only the library and the server run here.
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  server:
+    name: Server (node --test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The receiver is Node builtins only: no install step is needed.
+      - name: Receiver tests
+        run: node --test server/
+
+  library:
+    name: Library (karma)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      # The runner image ships Chrome, which `ChromeHeadless` picks up.
+      - name: Library suite
+        run: npm run test_module -- --watch=false --browsers=ChromeHeadless

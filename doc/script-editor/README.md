@@ -416,6 +416,8 @@ rule).
   ETag/428/412, the shared check fixtures, bank filter semantics, draw determinism, media in-use,
   multipart and WAV duration, and that a `TEST` session cannot upload. Development runs the
   receiver with `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` is gitignored.
+  CI runs this in `.github/workflows/tests.yml` beside the library karma job; the editor jobs join
+  the workflow at M2.
 - **Theme audit.** Editor routes in the CI list, light and dark, including one interaction state.
 - **Manual, per milestone.** Dry-run a session end to end in the recorder after every change to
   the model, because the editor's job is to produce files another application must interpret.
