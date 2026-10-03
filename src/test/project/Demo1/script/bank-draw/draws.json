@@ -1,0 +1,54 @@
+{
+  "total": 2,
+  "offset": 0,
+  "rows": [
+    {
+      "sessionId": "bank-draw--files",
+      "speaker": null,
+      "status": "CREATED",
+      "preview": false,
+      "scriptVersion": null,
+      "drawnDate": "2026-10-03T16:54:50.752Z",
+      "bank": "std-passages",
+      "bankSource": "BUILTIN",
+      "drawn": 2,
+      "recorded": 0,
+      "items": [
+        {
+          "itemcode": "RB001",
+          "bankItemId": "std-001",
+          "recorded": false
+        },
+        {
+          "itemcode": "RB002",
+          "bankItemId": "std-002",
+          "recorded": false
+        }
+      ]
+    },
+    {
+      "sessionId": "bank-draw--files-2",
+      "speaker": null,
+      "status": "CREATED",
+      "preview": false,
+      "scriptVersion": null,
+      "drawnDate": "2026-10-03T16:54:50.767Z",
+      "bank": "std-passages",
+      "bankSource": "BUILTIN",
+      "drawn": 2,
+      "recorded": 0,
+      "items": [
+        {
+          "itemcode": "RB001",
+          "bankItemId": "std-001",
+          "recorded": false
+        },
+        {
+          "itemcode": "RB002",
+          "bankItemId": "std-002",
+          "recorded": false
+        }
+      ]
+    }
+  ]
+}

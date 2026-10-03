@@ -1,0 +1,37 @@
+{
+  "sessionId": "bank-draw--files",
+  "script": "bank-draw",
+  "scriptVersion": null,
+  "drawnDate": "2026-10-03T16:54:50.752Z",
+  "redraw": 0,
+  "prefills": {},
+  "bankDraws": [
+    {
+      "kind": "bank",
+      "placeholderItemcode": "RB",
+      "bank": "std-passages",
+      "bankSource": "BUILTIN",
+      "filter": {
+        "category": "sentence"
+      },
+      "count": 2,
+      "fixedBy": "SESSION",
+      "key": "session:bank-draw--files",
+      "itemcodePrefix": "RB",
+      "items": [
+        {
+          "itemcode": "RB001",
+          "bankItemId": "std-001"
+        },
+        {
+          "itemcode": "RB002",
+          "bankItemId": "std-002"
+        }
+      ],
+      "refilled": false,
+      "skippedRecorded": false,
+      "speakerFallback": false,
+      "drawnForVersion": null
+    }
+  ]
+}
