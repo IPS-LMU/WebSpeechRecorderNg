@@ -14,6 +14,7 @@ import {createReadStream, existsSync, statSync} from 'node:fs';
 import {extname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createApiHandler} from './api.mjs';
+import {applyCors} from './cors.mjs';
 import {RECORDER_VERSION} from './feature-versions.mjs';
 import {Store} from './store.mjs';
 
@@ -158,28 +159,6 @@ function contentTypeOf(path) {
     '.wasm': 'application/wasm',
   };
   return types[extname(path).toLowerCase()] ?? 'application/octet-stream';
-}
-
-// ---------------------------------------------------------------- CORS
-
-/** Needed when the application is served by `ng serve` on another origin instead of by this server. */
-function applyCors(req, res, opts) {
-  if (!opts.cors) {
-    return;
-  }
-  const origin = req.headers.origin;
-  if (origin === undefined) {
-    return;
-  }
-  res.setHeader('Access-Control-Allow-Origin', opts.credentials ? origin : '*');
-  res.setHeader('Vary', 'Origin');
-  if (opts.credentials) {
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Idempotency-Key, X-Requested-With, Authorization');
-  res.setHeader('Access-Control-Expose-Headers', 'Idempotency-Replayed');
-  res.setHeader('Access-Control-Max-Age', '600');
 }
 
 // ---------------------------------------------------------------- command line
