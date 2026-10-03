@@ -42,7 +42,7 @@ export type PrefillChoices = Record<string, PrefillChoice>;
 /** A placeholder item and its prefill declaration, in script order. */
 export interface PrefillSpec {
   itemcode: string;
-  spec: PromptItemPrefill;
+  spec: PromptItemPrefill & {source: string};
 }
 
 const ENTRY_TOKEN = '{entry}';
@@ -62,8 +62,8 @@ export class ScriptPrefillUtil {
     for (const section of script.sections ?? []) {
       for (const group of section.groups ?? []) {
         for (const item of group.promptItems ?? []) {
-          if (item.prefill != null && item.itemcode != null) {
-            found.push({itemcode: item.itemcode, spec: item.prefill});
+          if (item.prefill != null && item.prefill.source != null && item.itemcode != null) {
+            found.push({itemcode: item.itemcode, spec: {...item.prefill, source: item.prefill.source}});
           }
         }
       }
@@ -122,7 +122,8 @@ export class ScriptPrefillUtil {
     const promptItems: Array<PromptItem> = [];
     for (const item of group.promptItems ?? []) {
       const spec = item.prefill;
-      if (spec == null) {
+      if (spec == null || spec.source == null) {
+        // No prefill, or a bank source: the server resolves those at session creation (D-W).
         promptItems.push(item);
         continue;
       }
@@ -146,8 +147,8 @@ export class ScriptPrefillUtil {
   private static generatedItem(template: Omit<PromptItem, 'prefill' | 'mediaitems' | 'itemcode'>, spec: PromptItemPrefill, entry: string, n: number): PromptItem {
     const item: PromptItem = {
       ...template,
-      itemcode: ScriptPrefillUtil.itemcodeOf(spec.itemcodeFormat, n),
-      mediaitems: spec.mediaitems.map((mediaitem) => ScriptPrefillUtil.fillMediaitem(mediaitem, entry)),
+      itemcode: ScriptPrefillUtil.itemcodeOf(spec.itemcodeFormat ?? '{n}', n),
+      mediaitems: (spec.mediaitems ?? []).map((mediaitem) => ScriptPrefillUtil.fillMediaitem(mediaitem, entry)),
     };
     if (spec.recinstructions !== undefined && spec.recinstructions !== null) {
       const recinstructions: Recinstructions = {recinstructions: spec.recinstructions};

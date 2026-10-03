@@ -75,27 +75,130 @@ export type MediaitemKind = 'text' | 'prompt' | 'image' | 'audio' | 'unsupported
  * `select: "random"` draws one list of the source per session; the drawn list is kept in
  * the session record (`Session.prefills`) so a later reload reproduces the same items.
  */
+/** Where the prompt audio plays (D-V = C: the item's audio mediaitem is the source). */
+export type PlaybackWhen = 'WITH_PROMPT' | 'BEFORE' | 'PRERECORDING' | 'DURING' | 'ONDEMAND';
+
+/**
+ * Optional placement modifier for the item's audio mediaitem. Absent: the shipped
+ * `Mediaitem.autoplay`/`replay` behaviour applies. Present: it takes over placement, repeats and
+ * the replay rule, and the mediaitem flags are ignored (a check flags an item that sets both).
+ */
+export interface Playback {
+  /** Default `WITH_PROMPT`, i.e. today's autoplay. */
+  when?: PlaybackWhen;
+  /** Times the clip is played back to back. Default 1. */
+  repeats?: number;
+  /** Silence between repeats, ms. Default 500. */
+  gap?: number;
+  /** Overrides `Mediaitem.replay` when present. */
+  replayable?: boolean;
+  /** Cap on replays; unset means no cap. */
+  maxReplays?: number;
+  /** Ask the speaker to put on headphones before the section starts. */
+  headphones?: boolean;
+  /** Advisory clip length in ms; the server measures it on upload. */
+  durationMs?: number;
+}
+
+export type DrawFixedBy = 'SESSION' | 'SPEAKER' | 'SCRIPT';
+export type BankSource = 'PROJECT' | 'BUILTIN';
+
+/** Which bank items a bank source may draw; the semantics are frozen (D-O). */
+export interface DrawFilter {
+  category?: string;
+  /** Inclusive word-count range, e.g. [6, 12]. */
+  words?: [number, number];
+  /** true = only items with a model recording, false = only items without, absent = either. */
+  hasAudio?: boolean;
+  /** Case-insensitive substring over the item text. */
+  q?: string;
+  /** All listed tags must be present (AND). */
+  tags?: Array<string>;
+}
+
+/**
+ * The bank source of a randomised prefill (D-W). It is resolved **server-side at session
+ * creation**, because the draw needs project state (what the speaker already recorded) and must be
+ * reproducible across reloads. A placeholder item carries exactly one of this or a list `source`.
+ */
+export interface PrefillBankSource {
+  /** Bank to draw from; `bankSource` says whether it belongs to the project or ships with the app. */
+  bank: string;
+  bankSource: BankSource;
+  filter?: DrawFilter;
+  /** Pins the filter semantics; absent means version 1. */
+  filterVersion?: number;
+  /** How many items are drawn, 1…999. */
+  count: number;
+  /** Default RANDOM: shuffled once, at resolution. */
+  order?: Order;
+  /** Default SESSION. */
+  fixedBy?: DrawFixedBy;
+  /** Skip items this speaker already recorded; the draw refills from them when it runs short. */
+  skipRecordedBySpeaker?: boolean;
+  /** Generated itemcodes are `${itemcodePrefix}001`, zero-padded to three digits. */
+  itemcodePrefix: string;
+  /** Play each drawn item's own model recording. */
+  playBankAudio?: boolean;
+  /** Playback settings applied to every drawn item when `playBankAudio` is set. */
+  playback?: Playback;
+  /** Timing applied to every drawn item. */
+  itemDefaults?: Pick<PromptItem, 'prerecdelay' | 'recduration' | 'postrecdelay' | 'recinstructions'>;
+}
+
+/** An item bank, as the editor's bank browser sees it. */
+export interface Bank {
+  bankId: string;
+  title: string;
+  source: BankSource;
+  /** Set for source PROJECT. */
+  project?: string;
+  itemCount?: number;
+  /** Application release a BUILTIN bank shipped with, e.g. "3.12". */
+  shippedWith?: string;
+  updated?: string;
+}
+
+/** One bank item. Exactly one of text, promptDoc or src describes what is shown. */
+export interface BankItem {
+  bankItemId: string;
+  text?: string;
+  promptDoc?: PromptDoc;
+  src?: string;
+  mimetype?: string;
+  alt?: string;
+  /** Model recording, played when the bank source sets `playBankAudio`. */
+  audioSrc?: string;
+  audioMimetype?: string;
+  category?: string;
+  words?: number;
+  tags?: Array<string>;
+}
+
 export interface PromptItemPrefill {
   /**
    * Resource id of the source, fetched from the script endpoint (`{apiEndPoint}script/{source}`)
    * — the same location the script itself was loaded from, so the source travels with the
    * script bank.
    */
-  source: string;
+  /** List source id — exactly one of `source` and `bank` is set. */
+  source?: string;
+  /** Bank source, resolved server-side at session creation (D-W). */
+  bank?: PrefillBankSource;
   /** How the list is drawn. Only `"random"` is supported. */
-  select: 'random';
+  select?: 'random';
   /**
    * Item code of each generated item; `{n}` is replaced by the 1-based position of the entry
    * in the list (e.g. `"6.{n}"` yields `6.1` … `6.N`).
    */
-  itemcodeFormat: string;
+  itemcodeFormat?: string;
   /** Operator instruction of every generated item. Not set: the placeholder's instruction. */
   recinstructions?: string;
   /**
    * Media items of every generated item; `{entry}` in `text`, `src` or `alt` is replaced by
    * the list entry (e.g. `{"mimetype": "text/plain", "text": "{entry}"}` shows the word).
    */
-  mediaitems: Array<Mediaitem>;
+  mediaitems?: Array<Mediaitem>;
 }
 
 export interface PromptItem {
@@ -109,7 +212,11 @@ export interface PromptItem {
   postrecdelay?: number,
   recinstructions?: Recinstructions,
   mediaitems: Array<Mediaitem>,
-  prefill?: PromptItemPrefill
+  prefill?: PromptItemPrefill,
+  /** Set by the server on an item drawn from a bank; traces it to its bank item. */
+  bankItemId?: string,
+  /** Optional placement modifier for the item's audio mediaitem (D-V = C). */
+  playback?: Playback
 }
 
 export interface Group {
