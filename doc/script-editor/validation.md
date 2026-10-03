@@ -21,7 +21,7 @@ Unit-test one spec per id, including the clean case.
 | Id | Trigger | Message | Fix |
 |---|---|---|---|
 | E01 | `itemcode` empty or whitespace | Itemcode is required. | focus the field |
-| E02 | two items share an `itemcode` (drawn codes included) | Another item already uses this itemcode. | offer the next free code |
+| E02 | two items share an `itemcode` — over the items that exist, fixed and placeholder together; a collision with a bank source's **reserved** range is E05, not E02 | Another item already uses this itemcode. | offer the next free code |
 | E03 | a bank source names no bank (`prefill.bank.bank` empty), or the named bank does not exist | The item draws from a bank but no bank is chosen. | open the bank picker |
 | E04 | a bank source's `count` exceeds the filter's `matchCount`; suspended when the bank cannot be read | The filter matches only {matchCount} items. Widen the filter or draw fewer. | set `count` to `matchCount` |
 | E05 | a fixed itemcode falls inside a bank source's reserved range, two bank sources share `itemcodePrefix`, or a bank source's `itemcodePrefix` is empty | Itemcodes {prefix}001–{prefix}{n} are reserved by the bank source in {section}, item {code}. | suggest a free prefix |

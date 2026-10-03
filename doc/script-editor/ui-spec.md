@@ -207,7 +207,9 @@ drift from the recorder (README §5).
 - **Detail panel**: session id and status, speaker, script version, when the draw was made, the
   bank and its origin, a note explaining this session's case (for example that items were skipped
   because the speaker recorded them before), and the full item list with itemcode, bank id, text
-  and a recorded dot.
+  and a recorded dot. The trace stores ids, not prose: the **text is looked up from the bank as it is
+  now** and is labelled as such, because an edited or retired bank item must not appear to rewrite
+  what a finished session recorded.
 - **Actions**: Download CSV; Re-draw, enabled only for `CREATED` sessions, with the reason shown
   when disabled.
 - The paragraph explaining that the draw is fixed at session creation stays on the page. It is the

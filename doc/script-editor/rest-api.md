@@ -328,6 +328,10 @@ The script-scoped form powers the draw record view (ui-spec §7):
 With `Accept: text/csv` the same URL returns one row per drawn item
 (`sessionId,speaker,itemcode,bankItemId,recorded`), which is what researchers need for analysis.
 
+A trace or record entry carries ids, not prose: `{itemcode, bankItemId, recorded}`. The item's text
+is the **bank's current** text, which the editor looks up by `bankItemId` and labels as such — an
+edited or retired bank item must not silently rewrite what a finished session recorded.
+
 ### 4.3 Re-draw
 
 ```
@@ -386,11 +390,14 @@ POST project/{projectId}/script/{scriptId}/preview-session
 
 `201` with `{"sessionId":"preview-9f2c","expires":"…"}`. The session has
 `type: "TEST"`, resolves draws like any other session, and its recordings are discarded. The
-editor opens the recorder application at `/wsr/ng/spr/session/preview-9f2c` in a new tab. The
-recorder honours `session.type === "TEST"` by disabling uploads in that tab; where a cached older
-build cannot, the deployment serving the preview must set `enableUploadRecordings: false`, so
-nothing can reach storage even if the server forgets. Preview sessions are excluded from reports,
-usage counts and the draw record's default listing, and expire at `expires`.
+editor opens the recorder at `<recorder base>/spr/session/preview-9f2c` in a new tab, where the
+base is a deployment setting (same origin by default; the editor never hard-codes a path) and the
+route is the recorder's own `spr/session/:sessionId`. The receiver refuses **every** recording write
+into a preview session with `409 TEST_SESSION_READ_ONLY`, so uploads are impossible and not merely
+discarded; a deployment whose cached recorder build predates `type: "TEST"` must additionally serve
+the preview with `enableUploadRecordings: false`. A script with no draft or version answers
+`404`. Preview sessions are excluded from reports, usage counts and the draw record's default
+listing, and expire at `expires`.
 
 This is the only endpoint that lets the editor exercise a draft through the real recorder. Without
 it, tier-2 preview cannot exist and only the editor-side mock remains.
