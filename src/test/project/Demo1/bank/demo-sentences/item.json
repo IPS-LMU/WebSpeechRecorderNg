@@ -1,0 +1,45 @@
+{
+  "matchCount": 4,
+  "withoutAudio": 4,
+  "offset": 0,
+  "items": [
+    {
+      "bankItemId": "demo-001",
+      "text": "Ställ klockan på sju.",
+      "category": "sentence",
+      "words": 4,
+      "tags": [
+        "demo"
+      ]
+    },
+    {
+      "bankItemId": "demo-002",
+      "text": "Katterna sover i solen på verandan.",
+      "category": "sentence",
+      "words": 6,
+      "tags": [
+        "demo",
+        "balanced"
+      ]
+    },
+    {
+      "bankItemId": "demo-003",
+      "text": "Han lyssnade på radion hela natten.",
+      "category": "sentence",
+      "words": 6,
+      "tags": [
+        "demo"
+      ]
+    },
+    {
+      "bankItemId": "demo-004",
+      "text": "Vi möttes vid torget klockan tre.",
+      "category": "sentence",
+      "words": 6,
+      "tags": [
+        "demo",
+        "read"
+      ]
+    }
+  ]
+}

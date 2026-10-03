@@ -1,0 +1,226 @@
+[
+  {
+    "scriptId": "1",
+    "name": "Test1",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 1,
+    "sections": 1,
+    "fixedItems": 0,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-06-01T09:00:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  },
+  {
+    "scriptId": "1245",
+    "name": "Test1",
+    "status": "DRAFT",
+    "publishedVersion": 3,
+    "draftVersion": 4,
+    "sections": 5,
+    "fixedItems": 22,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 14,
+      "started": 9,
+      "byVersion": {
+        "3": 14
+      }
+    },
+    "modified": "2026-09-30T09:12:00Z",
+    "modifiedBy": "nylen",
+    "archived": false
+  },
+  {
+    "scriptId": "3456",
+    "name": "Random-Test",
+    "status": "PUBLISHED",
+    "publishedVersion": 2,
+    "draftVersion": 2,
+    "sections": 4,
+    "fixedItems": 18,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 5,
+      "started": 5,
+      "byVersion": {
+        "1": 2,
+        "2": 3
+      }
+    },
+    "modified": "2026-08-14T11:05:00Z",
+    "modifiedBy": "nylen",
+    "archived": false
+  },
+  {
+    "scriptId": "3457",
+    "name": "Sound prompt demo",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 3,
+    "sections": 1,
+    "fixedItems": 4,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 1,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-09-02T13:20:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  },
+  {
+    "scriptId": "317118e4-3603-4058-abbd-008c2cb9b59b",
+    "name": "Test1",
+    "status": "ARCHIVED",
+    "publishedVersion": 1,
+    "draftVersion": 1,
+    "sections": 3,
+    "fixedItems": 0,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-05-10T08:00:00Z",
+    "modifiedBy": "klausj",
+    "archived": true
+  },
+  {
+    "scriptId": "bank-draw",
+    "name": "Bank draw: two seated sentences per session",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 1,
+    "sections": 1,
+    "fixedItems": 0,
+    "drawnItems": 2,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-10-01T08:00:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  },
+  {
+    "scriptId": "dysartri-kortversion",
+    "name": "Kortversion av dysartribedömning",
+    "status": "PUBLISHED",
+    "publishedVersion": 4,
+    "draftVersion": 4,
+    "sections": 1,
+    "fixedItems": 16,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 3,
+      "started": 2,
+      "byVersion": {
+        "3": 1,
+        "4": 2
+      }
+    },
+    "modified": "2026-09-20T10:00:00Z",
+    "modifiedBy": "nylen",
+    "archived": false
+  },
+  {
+    "scriptId": "dysartri-kortversion-sti",
+    "name": "Kortversion av dysartribedömning",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 2,
+    "sections": 1,
+    "fixedItems": 16,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-09-22T10:00:00Z",
+    "modifiedBy": "nylen",
+    "archived": false
+  },
+  {
+    "scriptId": "large-500",
+    "name": "Large script (500 items)",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 1,
+    "sections": 10,
+    "fixedItems": 500,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-10-02T12:00:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  },
+  {
+    "scriptId": "playback",
+    "name": "Playback: prompt audio placement",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 1,
+    "sections": 4,
+    "fixedItems": 5,
+    "drawnItems": 2,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-10-01T09:30:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  },
+  {
+    "scriptId": "sti-sentencelists",
+    "name": "STI sentence lists",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 1,
+    "sections": 0,
+    "fixedItems": 0,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-09-05T10:00:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  },
+  {
+    "scriptId": "sti-wordlists",
+    "name": "STI word lists",
+    "status": "DRAFT",
+    "publishedVersion": 0,
+    "draftVersion": 1,
+    "sections": 0,
+    "fixedItems": 0,
+    "drawnItems": 0,
+    "sessions": {
+      "total": 0,
+      "started": 0,
+      "byVersion": {}
+    },
+    "modified": "2026-09-05T10:00:00Z",
+    "modifiedBy": "klausj",
+    "archived": false
+  }
+]

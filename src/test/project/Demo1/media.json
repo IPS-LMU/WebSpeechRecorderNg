@@ -1,0 +1,34 @@
+[
+  {
+    "src": "media/model-01.wav",
+    "name": "model-01.wav",
+    "mimetype": "audio/wav",
+    "durationMs": 1000,
+    "bytes": 32044,
+    "updated": null,
+    "usedBy": [
+      {
+        "scriptId": "playback",
+        "version": 1
+      }
+    ]
+  },
+  {
+    "src": "media/std-vowel-a.wav",
+    "name": "std-vowel-a.wav",
+    "mimetype": "audio/wav",
+    "durationMs": 1000,
+    "bytes": 32044,
+    "updated": null,
+    "usedBy": []
+  },
+  {
+    "src": "media/std-vowel-i.wav",
+    "name": "std-vowel-i.wav",
+    "mimetype": "audio/wav",
+    "durationMs": 1000,
+    "bytes": 32044,
+    "updated": null,
+    "usedBy": []
+  }
+]

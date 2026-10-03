@@ -1,0 +1,67 @@
+{
+  "matchCount": 6,
+  "withoutAudio": 4,
+  "offset": 0,
+  "items": [
+    {
+      "bankItemId": "std-001",
+      "text": "Han satte sig på bänken vid stationen.",
+      "category": "sentence",
+      "words": 7,
+      "tags": [
+        "balanced",
+        "read"
+      ]
+    },
+    {
+      "bankItemId": "std-002",
+      "text": "Hon målade köket ljusblått i somras.",
+      "category": "sentence",
+      "words": 6,
+      "tags": [
+        "balanced"
+      ]
+    },
+    {
+      "bankItemId": "std-003",
+      "text": "Flyget landade sent på kvällen.",
+      "category": "sentence",
+      "words": 5,
+      "tags": [
+        "read"
+      ]
+    },
+    {
+      "bankItemId": "std-004",
+      "text": "a",
+      "category": "vowel",
+      "words": 1,
+      "tags": [
+        "prompt"
+      ],
+      "audioSrc": "media/std-vowel-a.wav",
+      "audioMimetype": "audio/wav"
+    },
+    {
+      "bankItemId": "std-005",
+      "text": "i",
+      "category": "vowel",
+      "words": 1,
+      "tags": [
+        "prompt"
+      ],
+      "audioSrc": "media/std-vowel-i.wav",
+      "audioMimetype": "audio/wav"
+    },
+    {
+      "bankItemId": "std-006",
+      "text": "Det var en gång en liten stuga vid sjön.",
+      "category": "passage",
+      "words": 9,
+      "tags": [
+        "read",
+        "long"
+      ]
+    }
+  ]
+}

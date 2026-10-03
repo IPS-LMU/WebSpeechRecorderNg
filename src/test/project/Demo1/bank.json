@@ -1,0 +1,18 @@
+[
+  {
+    "bankId": "demo-sentences",
+    "title": "Demo sentences",
+    "source": "PROJECT",
+    "project": "Demo1",
+    "updated": "2026-09-15T08:30:00Z",
+    "itemCount": 4
+  },
+  {
+    "bankId": "std-passages",
+    "title": "Standard passages and vowels",
+    "source": "BUILTIN",
+    "shippedWith": "3.12",
+    "updated": "2026-09-01T10:00:00Z",
+    "itemCount": 6
+  }
+]

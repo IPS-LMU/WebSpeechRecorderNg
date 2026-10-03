@@ -1,0 +1,22 @@
+{
+  "files": [
+    {
+      "name": "model-01.wav",
+      "mimetype": "audio/wav",
+      "durationMs": 1000,
+      "updated": null
+    },
+    {
+      "name": "std-vowel-a.wav",
+      "mimetype": "audio/wav",
+      "durationMs": 1000,
+      "updated": null
+    },
+    {
+      "name": "std-vowel-i.wav",
+      "mimetype": "audio/wav",
+      "durationMs": 1000,
+      "updated": null
+    }
+  ]
+}
