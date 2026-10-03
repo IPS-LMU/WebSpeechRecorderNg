@@ -35,8 +35,9 @@ export const APP_ROUTES: Routes = [
   // ui-spec §7
   {path: 'project/:p/script/:id/draws', loadComponent: drawsView, title: 'Resolved draws'},
 
-  // Project-scoped entry points that are not tied to one script (ui-spec §1/§2).
-  {path: 'project/:p/source', loadComponent: notYetBuilt, title: 'JSON source'},
+  // Project-scoped entry points that are not tied to one script (ui-spec §1/§2). A source view is
+  // always per script, so the project-scoped form goes to the library instead of a placeholder.
+  {path: 'project/:p/source', redirectTo: 'project/:p/script', pathMatch: 'full'},
   {path: 'project/:p/bank', loadComponent: bankBrowser, title: 'Item banks'},
   {path: 'project/:p/draws', loadComponent: drawsView, title: 'Resolved draws'},
 

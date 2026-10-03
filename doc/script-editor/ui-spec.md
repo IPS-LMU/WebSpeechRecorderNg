@@ -27,6 +27,9 @@ House rules for every screen:
 /project/:p/script/:id/source         JSON and checks                    §5
 /project/:p/script/:id/bank/:groupRef draw rule and bank browser         §6
 /project/:p/script/:id/draws          resolved draws                     §7
+/project/:p/bank                      banks across the project            §6
+/project/:p/draws                     draws across the project, picker    §7
+/project/:p/source                    → redirect to the library: a source view is per script
 ```
 
 The shell holds: project breadcrumb, script name (editable in place), save state, the warning
