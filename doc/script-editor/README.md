@@ -342,10 +342,16 @@ Reuse the SPA fallback pattern in
 server authorises every write regardless of what the frontend shows: the path restriction reduces
 attack surface, it is not the access control.
 
-Tier-2 preview opens the recorder at `/wsr/ng/spr/session/{id}`. That instance honours
-`type: "TEST"` to disable uploads in the preview tab; where a cached older build cannot, the
-deployment serving the preview is a separate one with `enableUploadRecordings: false`
-([rest-api.md](rest-api.md) §6).
+Tier-2 preview opens the recorder at `<recorder base>/spr/session/{id}`, where the base is a
+deployment setting (`EDITOR_RECORDER_BASE_URL`; empty means same origin as the editor, which is what
+the receiver serves locally) and the path is the recorder's own route — see [rest-api.md](rest-api.md)
+§6. That instance honours `type: "TEST"` to refuse uploads in the preview tab (the receiver answers
+`409 TEST_SESSION_READ_ONLY` for every recording write); where a cached older bundle cannot, the
+deployment serving the preview is a separate one with `enableUploadRecordings: false`.
+
+For local runs the receiver serves the built editor at the root
+(`node server/server.mjs --app dist/spr-script-editor/browser`), which is also how the write path is
+exercised end to end without CORS in the way.
 
 **No service worker.** The recorder has one so a participant can keep recording offline. The
 editor must never serve a stale script, and `ng build` must not register a worker for this
@@ -474,31 +480,38 @@ rule).
   [implementation-plan.md](implementation-plan.md) M1's gate row. VoiceOver (Safari) and NVDA
   (Firefox) passes per ui-spec §8.
 
-## 8. Open questions
+## 8. Open questions, and where each stands
 
-1. The server endpoints are local: the repo's receiver (`server/`) is the draft of the production
-   server and changes are transferred to it (track R). What production adds around it — auth,
-   CSRF, retention, backup and the migration of the store layout — is in
-   [implementation-plan.md](implementation-plan.md) §10.
-2. The script entity has no name field today
-   ([session.ts](../../projects/speechrecorderng/src/lib/speechrecorder/session/session.ts) and
-   the script JSON carry only ids). The library list needs one; agree whether it lives on the
-   script or in a project-level index.
-3. Do shipped banks ship inside the npm package, with the server, or as a separate data release?
-   This decides how `bankSource: 'BUILTIN'` items are fetched.
-4. The draw record shows which speaker recorded which item. Confirm with the data-protection
-   officer what the editor may display, and whether pseudonyms must replace speaker ids in the UI.
-5. Multi-project installations: is a bank ever shared between two projects of the same
-   installation? D3 says no; if that changes, the bank id needs a scope beyond the project.
-6. Resolved-script delivery (D2): the default materialises a script and points `Session.script` at
-   it. Confirm that against a session-scoped script endpoint plus one recorder call site.
-7. Authentication surface: session cookie with the deployment's CSRF scheme, or bearer tokens? And
-   the exact 401 → login → return-URL contract the shell implements.
-8. W10's "deployment runs {actual}": if the recorder and editor are ever deployed apart, an
-   endpoint must report the recorder's version, not the editor's bundle.
-9. Bank and media write concurrency: last-write-wins is stated today; decide whether either needs
-   an `ETag`.
-10. Draft revision retention: how many server-side revisions, and how long before pruning.
-11. Preview sessions: recorder-side handling of `type: "TEST"`, or a dedicated deployment with
-    `enableUploadRecordings: false`.
-12. Media orphan cleanup: whose job, and on what cadence.
+Answered during M0–M4; the deciding document is named, and the plan's §8 table is the index.
+
+1. **Server endpoints and transfer.** The repo's receiver is the draft of the production server
+   (D-Q); the run/backup/transfer runbook is `server/README.md`, and layout changes ship with
+   `layoutVersion` + `--migrate` (R12). Production owns auth, CSRF, retention and backup —
+   [implementation-plan.md](implementation-plan.md) §10.1.
+2. **The script name.** It lives on the script: `Script.name` (with `type` and
+   `minRecorderVersion`) is part of the library's model (D-I), and the editor writes the name.
+3. **Shipped banks.** The server decides where a `BUILTIN` bank's items and their model recordings
+   come from and hands the client the paths to use ([rest-api.md](rest-api.md) §3.4); the receiver
+   seeds them from `src/test/bank`. How production packages them stays a deployment decision.
+4. **Speaker pseudonymity.** Still a human decision: the view shows what the API returns and
+   speaker rendering is isolated in one file (`app/draws/draws-speaker.ts`), so a pseudonym
+   mapping is a local change. The data-protection answer is what is missing.
+5. **Multi-project banks.** Project-local (D3); sharing one between projects would need a scope
+   beyond the project id.
+6. **Resolved-script delivery.** The materialised script id on `Session.script` (D-K), exercised
+   end to end in `server/draw.test.mjs` and by the recorder dry run.
+7. **Authentication surface.** A session cookie with the deployment's CSRF scheme, or a bearer
+   token; `401` → the deployment's login → return URL; `403` reads but does not write — the
+   conventions in [rest-api.md](rest-api.md).
+8. **W10's "deployment runs {actual}".** `GET {api}version` → `{recorderVersion}`, the value the
+   receiver serves ([rest-api.md](rest-api.md) §1.1), so the editor never guesses from its own
+   bundle.
+9. **Bank and media write concurrency.** Last-write-wins with a re-read after write; media `DELETE`
+   alone refuses while a published version references the file ([rest-api.md](rest-api.md) §1.2).
+10. **Draft revision retention.** Keep 50 revisions / 30 days, pruned by `--gc`; published versions
+    are never pruned (D3/D-N).
+11. **Preview sessions.** The receiver refuses every recording write into a `TEST` session with
+    `409 TEST_SESSION_READ_ONLY` (D-P); a deployment whose cached recorder bundle predates
+    `type: "TEST"` must also serve that preview with `enableUploadRecordings: false`.
+12. **Media orphan cleanup.** `--gc` reports orphans and `--gc-media` deletes them (B1); uploads
+    the undo stack cannot remove are called out in the media UI.
