@@ -6,8 +6,10 @@
  * editor's preview and timeline share the same arithmetic.
  */
 import {MAX_RECORDING_TIME_MS} from '../session/basicrecorder';
-import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, promptVisibleAt, replayAllowed, sectionNeedsHeadphones} from './phases';
+import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, playbackTiming, promptVisibleAt, replayAllowed, sectionNeedsHeadphones} from './phases';
+import type {PlaybackStart, PlaybackTiming} from './phases';
 import {PromptItem} from './script';
+import type {PlaybackWhen} from './script';
 
 const item = (overrides: Partial<PromptItem> = {}): PromptItem => ({
   itemcode: '1',
@@ -159,6 +161,27 @@ describe('phases', () => {
     it('keeps the shipped autoplay as the default placement', () => {
       expect(playbackStart(playbackPlan(item({mediaitems: [audio]})))).toBe('BEFORE_CLOCKS');
       expect(playbackStart(playbackPlan(item({mediaitems: [{...audio, autoplay: false}]})))).toBeNull();
+    });
+
+    it('places every `when` against the clocks (C7)', () => {
+      // The manager switches on this relation, so this table is the placement contract: the sound
+      // either gates the clocks, runs alongside them from the take start, waits for the recording
+      // window, or is operator-only. Nothing else in the editor or the recorder may decide it.
+      const placements: Array<[PlaybackWhen, PlaybackStart, PlaybackTiming]> = [
+        ['WITH_PROMPT', 'BEFORE_CLOCKS', 'SOUND_GATES_CLOCKS'],
+        ['BEFORE', 'BEFORE_CLOCKS', 'SOUND_GATES_CLOCKS'],
+        ['PRERECORDING', 'PRE_RECORDING', 'SOUND_WITH_CLOCKS'],
+        ['DURING', 'RECORDING', 'SOUND_AT_WINDOW'],
+        ['ONDEMAND', 'OPERATOR', 'CLOCKS_ONLY'],
+      ];
+      for (const [when, start, timing] of placements) {
+        const plan = planOf({when});
+        expect(playbackStart(plan)).withContext(when).toBe(start);
+        expect(playbackTiming(playbackStart(plan))).withContext(when).toBe(timing);
+      }
+      // An item without audio leaves the clocks alone, whatever the section does.
+      expect(playbackTiming(playbackStart(null))).toBe('CLOCKS_ONLY');
+      expect(playbackTiming(null)).toBe('CLOCKS_ONLY');
     });
   });
 

@@ -135,6 +135,26 @@ export function playbackStart(plan: PlaybackPlan | null): PlaybackStart | null {
   }
 }
 
+/**
+ * Where the item's sound runs relative to its clocks (L3): the manager's placement decision, kept
+ * here so the contract is testable without a recording session.
+ */
+export type PlaybackTiming = 'CLOCKS_ONLY' | 'SOUND_GATES_CLOCKS' | 'SOUND_WITH_CLOCKS' | 'SOUND_AT_WINDOW';
+
+export function playbackTiming(start: PlaybackStart | null): PlaybackTiming {
+  switch (start) {
+    case 'BEFORE_CLOCKS':
+      return 'SOUND_GATES_CLOCKS';
+    case 'PRE_RECORDING':
+      return 'SOUND_WITH_CLOCKS';
+    case 'RECORDING':
+      return 'SOUND_AT_WINDOW';
+    case 'OPERATOR':
+    case null:
+      return 'CLOCKS_ONLY';
+  }
+}
+
 /** Whether the operator may still play the item's sound, given the repeats used so far. */
 export function replayAllowed(plan: PlaybackPlan | null, used: number): boolean {
   if (plan === null || !(plan.replayable || plan.when === 'ONDEMAND')) {

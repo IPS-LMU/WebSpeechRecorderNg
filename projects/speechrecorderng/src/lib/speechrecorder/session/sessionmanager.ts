@@ -2,7 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter, SampleSize} from '../../audio/impl/wavwriter'
 import {Group, Mediaitem, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
-import {DEFAULT_POST_REC_DELAY, effectiveTiming, playbackPlan, playbackStart, promptVisibleAt, replayAllowed, sectionNeedsHeadphones} from '../script/phases';
+import {DEFAULT_POST_REC_DELAY, effectiveTiming, playbackPlan, playbackStart, playbackTiming, promptVisibleAt, replayAllowed, sectionNeedsHeadphones} from '../script/phases';
 import type {PlaybackPlan} from '../script/phases';
 import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {Upload, UploadHolder} from '../../net/uploader';
@@ -1362,7 +1362,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.clearPrompt();
       }
 
-      if (playbackStart(this.promptAudioPlan) === 'RECORDING') {
+      if (playbackTiming(playbackStart(this.promptAudioPlan)) === 'SOUND_AT_WINDOW') {
         this.startPromptAudio(preDelay, maxRecordingTimeMs, false);
       }
     }, preDelay);
@@ -1373,23 +1373,25 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
   private startItemPlayback(preDelay: number, maxRecordingTimeMs: number) {
     const plan = playbackPlan(this.promptItem);
     this.promptAudioPlan = plan;
-    const start = playbackStart(plan);
-    if (start === null || start === 'OPERATOR') {
-      this.beginPrerecording(preDelay, maxRecordingTimeMs);
-      return;
-    }
-    if (start === 'BEFORE_CLOCKS') {
-      // The sound is the prompt: the clocks start when it has been played to the end, so neither
-      // the cue lamp nor the recording lamp can come up while the respondent is listening.
-      this.statusMsg = this.i18n.t('spr.status.promptAudio');
-      this.startPromptAudio(preDelay, maxRecordingTimeMs, true);
-      return;
-    }
-    // The clocks run and the sound plays alongside them: `PRERECORDING` from here, `DURING` when
-    // the recording window opens.
-    this.beginPrerecording(preDelay, maxRecordingTimeMs);
-    if (start === 'PRE_RECORDING') {
-      this.startPromptAudio(preDelay, maxRecordingTimeMs, false);
+    switch (playbackTiming(playbackStart(plan))) {
+      case 'SOUND_GATES_CLOCKS':
+        // The sound is the prompt: the clocks start when it has been played to the end, so neither
+        // the cue lamp nor the recording lamp can come up while the respondent is listening.
+        this.statusMsg = this.i18n.t('spr.status.promptAudio');
+        this.startPromptAudio(preDelay, maxRecordingTimeMs, true);
+        return;
+      case 'SOUND_WITH_CLOCKS':
+        // The clocks run and the sound plays alongside them from the take start.
+        this.beginPrerecording(preDelay, maxRecordingTimeMs);
+        this.startPromptAudio(preDelay, maxRecordingTimeMs, false);
+        return;
+      case 'SOUND_AT_WINDOW':
+        // The clocks run; the sound waits for the recording window (see the pre-recording timer).
+        this.beginPrerecording(preDelay, maxRecordingTimeMs);
+        return;
+      case 'CLOCKS_ONLY':
+        this.beginPrerecording(preDelay, maxRecordingTimeMs);
+        return;
     }
   }
 
