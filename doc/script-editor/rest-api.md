@@ -96,6 +96,12 @@ GET project/{projectId}/script
 `status` is `DRAFT` when a draft differs from the published version, `PUBLISHED` when they match,
 `ARCHIVED` when retired. Drives the library list and its filter (ui-spec §2).
 
+`fixedItems` counts the items that are not bank placeholders and `drawnItems` sums each placeholder's
+`count`, because one placeholder stands for however many items a session draws. `sessions.byVersion`
+counts by the version a session was **created from** (the server records `scriptVersion` at creation)
+and preview sessions never count. `modifiedBy` names the authenticated user, or is `null` where the
+deployment has none (the receiver).
+
 ### 2.2 Create
 
 ```

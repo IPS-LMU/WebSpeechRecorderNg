@@ -265,6 +265,11 @@ export class Store {
       script,
       status: 'CREATED',
       debugMode: false,
+      // Provenance (rest-api §2.1/§4.2): which published version this session ran, so the library
+      // list can say which versions sessions use.
+      scriptVersion: script === null || script === undefined
+        ? null
+        : (this.scriptMeta(String(script))?.publishedVersion ?? null),
       ...(speaker === null || speaker === undefined ? {} : {speaker}),
     };
     const resolved = this.resolveSessionDraws(session);
@@ -744,6 +749,7 @@ export class Store {
   /** The library list, optionally narrowed to one project. Materialised session scripts are internal. */
   listScripts(project = null) {
     const out = [];
+    const usage = this.sessionUsageByScript(project);
     for (const id of this.scriptIds()) {
       const flat = this.readJson(this.scriptPath(id));
       if (flat !== null && flat.internal === true) {
@@ -766,10 +772,46 @@ export class Store {
         publishedVersion: meta.publishedVersion ?? 0,
         draftVersion: meta.draftVersion ?? 0,
         ...scriptCounts(doc),
+        sessions: usage[String(meta.scriptId)] ?? {total: 0, started: 0, byVersion: {}},
         modified: meta.modified ?? null,
+        modifiedBy: meta.modifiedBy ?? null,
       });
     }
     return out;
+  }
+
+  /**
+   * How sessions are spread over scripts and script versions (rest-api §2.1), in one pass so the
+   * library list stays linear. Sessions of a materialised draw point at their source through
+   * `scriptSource`; preview sessions never count.
+   */
+  sessionUsageByScript(project = null) {
+    const usage = {};
+    for (const id of this.sessionIds()) {
+      const session = this.session(id);
+      if (session === null || session.type === 'TEST') {
+        continue;
+      }
+      if (project !== null && project !== undefined && session.project !== null && session.project !== undefined
+        && String(session.project) !== String(project)) {
+        continue;
+      }
+      const scriptId = String(session.scriptSource ?? session.script ?? '');
+      if (scriptId === '') {
+        continue;
+      }
+      const entry = usage[scriptId] ?? {total: 0, started: 0, byVersion: {}};
+      entry.total += 1;
+      if (session.status !== undefined && session.status !== null && session.status !== 'CREATED') {
+        entry.started += 1;
+      }
+      const version = session.scriptVersion;
+      if (version !== null && version !== undefined && version !== 0) {
+        entry.byVersion[String(version)] = (entry.byVersion[String(version)] ?? 0) + 1;
+      }
+      usage[scriptId] = entry;
+    }
+    return usage;
   }
 
   // ---------------------------------------------------------------- sessions
@@ -1147,11 +1189,20 @@ export function coerceId(id) {
 function scriptCounts(doc) {
   let sections = 0;
   let fixedItems = 0;
+  let drawnItems = 0;
   for (const section of doc?.sections ?? []) {
     sections += 1;
     for (const group of section.groups ?? []) {
-      fixedItems += (group.promptItems ?? []).length;
+      for (const item of group.promptItems ?? []) {
+        const drawn = item?.prefill?.bank;
+        if (drawn === undefined || drawn === null) {
+          fixedItems += 1;
+        } else {
+          // A placeholder stands for the items one session draws from that bank (rest-api §2.1).
+          drawnItems += Number.isFinite(Number(drawn.count)) ? Number(drawn.count) : 0;
+        }
+      }
     }
   }
-  return {sections, fixedItems, drawnItems: 0};
+  return {sections, fixedItems, drawnItems};
 }
