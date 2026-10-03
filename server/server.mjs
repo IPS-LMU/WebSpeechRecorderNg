@@ -22,6 +22,20 @@ const ROOT = resolve(HERE, '..');
 const options = parseArgs(process.argv.slice(2));
 const log = makeLogger();
 const store = new Store({dataDir: options.data, seedDir: options.seed, log}).open();
+
+// Maintenance subcommands run against the data directory and exit before serving.
+if (options.migrate || options.gc) {
+  if (options.migrate) {
+    const summary = store.migrateLegacyTrees();
+    log(`migrate: ${summary.scripts} script(s) examined, ${summary.imported} legacy script(s) imported as version 1`);
+  }
+  if (options.gc) {
+    const summary = store.gc({media: options.gcMedia});
+    log(`gc: ${summary.revisionsRemoved} draft revision(s) removed, ${summary.previewsRemoved} expired preview(s) removed, `
+      + `${summary.orphansFound} orphan media found${options.gcMedia ? `, ${summary.mediaRemoved} removed` : ' (pass --gc-media to remove)'}`);
+  }
+  process.exit(0);
+}
 const autoCreateSession = {
   enabled: options.autoCreate,
   project: options.project ?? defaultProject(store),
@@ -186,6 +200,9 @@ function parseArgs(argv) {
     concatWaitMs: 1500,
     quiet: false,
     verbose: false,
+    migrate: false,
+    gc: false,
+    gcMedia: false,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -206,6 +223,9 @@ function parseArgs(argv) {
       case '--concat-wait-ms': opts.concatWaitMs = Number(value); i++; break;
       case '--quiet': opts.quiet = true; break;
       case '--verbose': opts.verbose = true; break;
+      case '--migrate': opts.migrate = true; break;
+      case '--gc': opts.gc = true; break;
+      case '--gc-media': opts.gcMedia = true; break;
       case '--help': case '-h': usage(); process.exit(0); break;
       default:
         process.stderr.write(`unknown argument ${arg}\n`);
@@ -253,6 +273,9 @@ function usage() {
                        encodes asynchronously, see the README)
   --quiet              log uploads and errors only
   --verbose            log every request, including static files
+  --migrate            create the per-script layout for legacy flat scripts, then exit
+  --gc                 prune draft revisions and expired preview sessions, then exit
+  --gc-media           with --gc, also delete media that no draft or version references
   -h, --help           this text
 `);
 }

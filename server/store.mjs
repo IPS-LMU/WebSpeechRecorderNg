@@ -949,6 +949,120 @@ export class Store {
     return `item-${String(highest + 1).padStart(4, '0')}`;
   }
 
+  // ---------------------------------------------------------------- maintenance
+
+  /** Creates the per-script layout for every legacy flat script (idempotent). */
+  migrateLegacyTrees() {
+    const summary = {scripts: 0, imported: 0};
+    for (const id of this.scriptIds()) {
+      const before = this.scriptMeta(id);
+      const meta = this.ensureScriptMeta(id);
+      summary.scripts += 1;
+      if (before === null && meta.publishedVersion > 0) {
+        summary.imported += 1;
+      }
+    }
+    return summary;
+  }
+
+  /** Keeps the newest `keep` draft revisions per script and drops anything older than `maxAgeDays`. */
+  pruneDraftRevisions({keep = 50, maxAgeDays = 30} = {}) {
+    const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+    let removed = 0;
+    for (const id of this.scriptIds()) {
+      const dir = join(this.scriptDir(id), 'revisions');
+      if (!existsSync(dir)) {
+        continue;
+      }
+      const entries = readdirSync(dir)
+        .filter((name) => name.endsWith('.json'))
+        .map((name) => ({
+          name,
+          number: Number(name.slice(0, -'.json'.length)),
+          mtime: statSync(join(dir, name)).mtimeMs,
+        }))
+        .filter((entry) => Number.isFinite(entry.number))
+        .sort((a, b) => b.number - a.number);
+      entries.forEach((entry, index) => {
+        if (index < keep && entry.mtime >= cutoff) {
+          return;
+        }
+        rmSync(join(dir, entry.name), {force: true});
+        removed += 1;
+      });
+    }
+    return {removed};
+  }
+
+  /** Preview sessions whose `expires` has passed. */
+  expiredPreviews(now = Date.now()) {
+    const expired = [];
+    for (const id of this.sessionIds()) {
+      const session = this.session(id);
+      if (session?.type !== 'TEST' || session.expires === undefined || session.expires === null) {
+        continue;
+      }
+      const expiry = Date.parse(session.expires);
+      if (!Number.isFinite(expiry) || expiry > now) {
+        continue;
+      }
+      expired.push({sessionId: session.sessionId, script: session.script ?? null});
+    }
+    return expired;
+  }
+
+  /** Removes a session and its materialised script (the source script is never touched). */
+  removeSession(sessionId, {materialised = true} = {}) {
+    const session = this.session(sessionId);
+    rmSync(this.sessionPath(sessionId), {force: true});
+    if (materialised && session?.script !== null && session?.script !== undefined) {
+      rmSync(this.scriptPath(String(session.script)), {force: true});
+    }
+    return session;
+  }
+
+  /** Media no draft or published version references. */
+  orphanMedia(projectId = null) {
+    const references = this.resourceReferences(projectId);
+    const orphans = [];
+    for (const project of this.projectIds()) {
+      if (projectId !== null && String(project) !== String(projectId)) {
+        continue;
+      }
+      for (const entry of this.listMedia(String(project))) {
+        if ((references.get(entry.src) ?? []).length === 0) {
+          orphans.push({project: String(project), ...entry});
+        }
+      }
+    }
+    return orphans;
+  }
+
+  /**
+   * Housekeeping: draft revisions per policy, expired preview sessions, and (only when asked)
+   * unreferenced media. Published versions and recordings are never touched.
+   */
+  gc({keep = 50, maxAgeDays = 30, media = false, now = Date.now()} = {}) {
+    const revisions = this.pruneDraftRevisions({keep, maxAgeDays});
+    const expired = this.expiredPreviews(now);
+    for (const entry of expired) {
+      this.removeSession(entry.sessionId);
+    }
+    const orphans = this.orphanMedia();
+    if (media) {
+      for (const orphan of orphans) {
+        rmSync(this.mediaPath(orphan.project, orphan.name), {force: true});
+        this.removeMedia(orphan.project, orphan.name);
+      }
+    }
+    return {
+      revisionsRemoved: revisions.removed,
+      previewsRemoved: expired.length,
+      orphansFound: orphans.length,
+      mediaRemoved: media ? orphans.length : 0,
+    };
+  }
+
   // ---------------------------------------------------------------- json io
 
   readJson(path) {
