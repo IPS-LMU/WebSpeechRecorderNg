@@ -9,9 +9,9 @@ import {tmpdir} from 'node:os';
 import {Store} from './store.mjs';
 import {createApiHandler} from './api.mjs';
 
-export async function withServer(run, {seed = null} = {}) {
+export async function withServer(run, {seed = null, recorderVersion = undefined} = {}) {
   const dataDir = mkdtempSync(join(tmpdir(), 'spr-api-'));
-  const store = new Store({dataDir, seedDir: seed, log: () => {}}).open();
+  const store = new Store({dataDir, seedDir: seed, log: () => {}, ...(recorderVersion === undefined ? {} : {recorderVersion})}).open();
   const api = createApiHandler({
     store,
     base: '/api',

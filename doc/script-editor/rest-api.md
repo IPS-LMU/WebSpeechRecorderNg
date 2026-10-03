@@ -47,6 +47,25 @@ materialises the resolved script and stores its id in `Session.script`, so the r
 alternative — a session-scoped script endpoint plus one changed call site in the recorder — is an
 M0 decision; the materialised id is the plan's default.
 
+### 1.1 Deployment version
+
+```
+GET {api}version  ->  200 {"recorderVersion":"3.11.26"}
+```
+
+What the deployment serves, for the checks that compare against it: W10 ("the deployment runs
+{actual}") and N04 (an edit that lifts `minRecorderVersion`). Because the receiver and the recorder
+are co-deployed, the value is the receiver's truth (`--recorder-version`, default
+`RECORDER_VERSION`), not the editor's own build. The same value gates session creation
+(§4.1).
+
+### 1.2 Write concurrency for banks and media
+
+Scripts and drafts are ETag-protected (§2.3). Banks and media are not: a bank edit or a media
+`DELETE` is last-write-wins, and the editor re-reads the resource after a successful write. Media is
+the exception that matters — a `DELETE` refuses with `409 MEDIA_IN_USE` while a **published**
+script references the file, so a reference cannot be pulled out from under a runnable version (§5).
+
 ## 2. Scripts
 
 ### 2.1 List
@@ -374,6 +393,7 @@ it, tier-2 preview cannot exist and only the editor-side mock remains.
 
 | Method | Path | Purpose | Milestone |
 |---|---|---|---|
+| GET | `version` | recorder version the deployment serves (W10/N04, session gate) | M2 |
 | GET | `script/{id}` | published script; a session's script is a materialised id (see §4.1) | — |
 | GET | `project/{p}/script` | library list | M2 |
 | POST | `project/{p}/script` | create or duplicate | M3 |

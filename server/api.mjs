@@ -14,6 +14,7 @@
  *   GET    {base}project/{p}/session/{s}/recfile/{id}                 recording audio
  *   GET    {base}project/{p}/session/{s}/recfile/{itemcode}/{version} recording audio (v1)
  *   GET    {base}recordingfile/{id}                                   metadata, or WAVE with Accept: audio/wav
+ *   GET    {base}version                                             recorder version the deployment serves
  *   POST   {base}recordingfile/{id}                                   metadata
  *   PATCH  {base}recordingfile/{id}                                   edit selection
  *   POST   {base}session/{s}/recfile/{itemcode}                       upload a recording (v1, raw WAVE)
@@ -101,6 +102,10 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
           return sessionRoutes(req, res, url, rest);
         case 'recordingfile':
           return recordingFileRoutes(req, res, url, rest);
+        case 'version':
+          // What the deployment runs, so the editor's W10/N04 can compare against the recorder the
+          // receiver actually serves (B7) instead of a hard-coded value.
+          return await sendJson(res, 200, {recorderVersion: store.recorderVersion});
         default:
           throw new RequestError(404, `unknown API resource "${head ?? ''}"`);
       }

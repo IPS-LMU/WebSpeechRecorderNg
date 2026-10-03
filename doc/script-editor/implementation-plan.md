@@ -111,29 +111,46 @@ inventory (§4 M2).
 
 ### M0 — API agreement (documents, no application code)
 
-- [] Close open Q1: the receiver is in-repo and is the draft of the production server, so changes
+- [x] Close open Q1: the receiver is in-repo and is the draft of the production server, so changes
       are transferred (D-Q); record the transfer and migration process, and who owns the
-      production-side auth/backup (R12, §10.1).
-- [] Freeze **how the recorder obtains a resolved script** (A1, D-K): a materialised script id on
-      `Session.script`, or a session-scoped endpoint plus one recorder call site. The receiver and
-      the M4 gate must exercise this exact path, not a shortcut.
-- [] Freeze the draft protocol: **strong** ETag (rest-api's `"w/4-17"` example is weak and
-      weak validators are not valid for `If-Match`; use `"4-17"` or specify comparison), 428/412,
-      `details.current` **including the current ETag**, `details.checks`, idempotent PUT, whether
-      `_restore` consumes `If-Match`, and an `ETag` on the create response (or `If-None-Match: *`
-      for the first write).
-- [] Freeze what "new script" seeds (a script with no section is unpublishable under E10), and the
-      id semantics of import JSON and duplicate.
-- [] Freeze publish gate payload, the check ids the server enforces, how E04's `matchCount` is
+      production-side auth/backup (R12, §10.1). **Done:** R12 shipped the transfer discipline
+      (`layoutVersion` in `meta.json`, `--migrate`, `--gc`/`--gc-media`) with `server/README.md` as
+      the runbook and the production note; §8 records that the production deployment owns
+      auth/CSRF/backup (§10.1, §8 rows 1 and "production transfer requirements").
+- [x] Freeze **how the recorder obtains a resolved script** (A1, D-K): **Done** — the materialised
+      script id on `Session.script`, resolved at creation by `store.resolveSessionDraws` and read by
+      the recorder's unchanged `GET script/{sess.script}`; `server/draw.test.mjs` exercises exactly
+      that path (and `rest-api.md` §4.1 states it as the deployment contract).
+- [x] Freeze the draft protocol: **strong** ETag, 428/412, `details.current` **including the current
+      ETag**, `details.checks`, idempotent PUT, whether `_restore` consumes `If-Match`, and an
+      `ETag` on the create response. **Done in `server/api.mjs`:** a missing precondition is `428
+      PRECONDITION_REQUIRED`, a mismatch is `412 SCRIPT_DRAFT_CONFLICT` with
+      `details.current` + `details.currentEtag`, `_restore` goes through the same
+      `requireDraftPrecondition`, create answers with `ETag` + `Location`, and `If-None-Match: *`
+      asserts emptiness; `rest-api.md` §2.3 dies the weak `"w/4-17"` example.
+- [x] Freeze what "new script" seeds and the id semantics of import JSON and duplicate.
+      **Done:** `seedScript` in `server/api.mjs` seeds a publishable one-item script (so E10 cannot
+      block a fresh draft), and `POST project/{p}/script` with `{from: {scriptId, version?}}`
+      duplicates a draft/published version/published script under a new id ("(copy)" name);
+      `server/publish.test.mjs` covers the duplicate path.
+- [x] Freeze publish gate payload, the check ids the server enforces, how E04's `matchCount` is
       computed atomically at publish time, and the rendering of server-returned `details.checks`;
-      freeze the feature→recorder-version map ownership (`L1` adds
-      `lib/speechrecorder/script/feature-versions.ts`; the server needs the same table — decide
-      whether it is exported, duplicated or config).
-- [] Freeze bank endpoints and the shipped-bank delivery answer (Q3), **bank/media write
+      freeze the feature→recorder-version map ownership. **Done:** `409 PUBLISH_REJECTED` with
+      `details.checks` (R4), `matchCount` recomputed inside publish, and the map ownership decided
+      in L4 (`feature-versions.ts` + the receiver's mirror, held to the same cases by both suites).
+- [x] Freeze bank endpoints and the shipped-bank delivery answer (Q3), **bank/media write
       concurrency** (ETag or an explicit last-write-wins statement) and upload filename collisions.
-- [] Add the **media endpoints rest-api is missing** (B1): `GET project/{p}/media` with `usedBy`,
+      **Done:** builtin banks are served from the seed with `source: BUILTIN` and their items'
+      `audioSrc` used as given (rest-api §3.4); concurrency is frozen as last-write-wins with a
+      re-read after write (rest-api §1.2), except media `DELETE`, which refuses with
+      `409 MEDIA_IN_USE` while a published version references the file; uploads go through
+      `sanitiseMediaName`.
+- [x] Add the **media endpoints rest-api is missing** (B1): `GET project/{p}/media` with `usedBy`,
       `DELETE project/{p}/media/{src}`, the draft-vs-published reference rule, and the orphan
-      policy for uploads the undo stack cannot remove.
+      policy for uploads the undo stack cannot remove. **Done:** `store.listMedia` +
+      `usedBy`/`MEDIA_IN_USE` in `server/api.mjs`, the draft-vs-published rule in `server/media.mjs`
+      (only published references block a delete), and `--gc`/`--gc-media` as the orphan policy
+      (rest-api §5).
 - [x] Freeze the unified randomised-items schema (D-W, §10.4): the source reference (list vs bank),
       the client/server resolution split, the single session trace (shipped `Session.prefills` for
       lists plus `Session.bankDraws` for banks; `ResolvedDraw` dropped), `_redraw` and its status
@@ -145,17 +162,29 @@ inventory (§4 M2).
 - [x] Freeze the bank-source filter semantics (D-O, §10.4), including a `filterVersion`.
       **Done**: `server/bank.mjs` implements `category`/`words`/`hasAudio`/`tags`/`q`, and the bank
       source carries `filterVersion`.
-- [] Freeze `/media` upload (`X-Filename`, `durationMs` advisory), media-in-use refusal, and the
-      source of truth for W10's "deployment runs {actual}" (B7).
-- [] Freeze the auth surface: cookie vs bearer, XSRF strategy, and the 401 → login → return-URL
-      contract the shell implements (B8).
-- [] Fix the doc defects: the §1 list (README §4.1 test path and its missing `src/test` asset
+- [x] Freeze `/media` upload (`X-Filename`, `durationMs` advisory), media-in-use refusal, and the
+      source of truth for W10's "deployment runs {actual}" (B7). **Done:** the upload contract is
+      `server/api.mjs` (`x-filename` → `sanitiseMediaName`, the response
+      `{src, mimetype, durationMs, bytes}` with `durationMs` measured by `probeWav`, advisory to the
+      client), the refusal is `409 MEDIA_IN_USE`, and the source of truth is the new
+      `GET {api}version` → `{recorderVersion}` (what `--recorder-version` serves), because the
+      receiver and the recorder are co-deployed (rest-api §1.1).
+- [x] Freeze the auth surface: cookie vs bearer, XSRF strategy, and the 401 → login → return-URL
+      contract the shell implements (B8). **Done:** rest-api's conventions — a session cookie with
+      the deployment's CSRF scheme (the XSRF cookie/header Angular already supports) **or** a bearer
+      token, `401` redirected to the deployment's login with a return URL, `403` read-only, and the
+      editor ships no login form; §1.2 adds the bank/media last-write-wins statement.
+- [x] Fix the doc defects: the §1 list (README §4.1 test path and its missing `src/test` asset
       mapping, data-model `durationMs`, script `name`), the README §4.4 audit URL
       (`/edit/script/1245` vs ui-spec §1), README §4.3 `express/json-server` vs D-B's Node
       builtins, README §5's `BankService`/`DrawService` placement (kept editor-local; the recorder
-      never uses them), and ui-spec §8's M5-vs-per-milestone a11y wording. **The doc-level items in
-      this bullet are applied in this worktree**; the API items above are not.
-- [] Pseudonymity decision (Q4) — it changes the draws view only.
+      never uses them), and ui-spec §8's M5-vs-per-milestone a11y wording. **Verified applied** —
+      the `src/test` asset entry is in README §4.1, §4.4 audits
+      `/project/:p/script/:id/edit`, §5 lists `bank-api`/`draw-api`/`media` as app-local, ui-spec §8
+      reads "verified at each milestone and closed at M5"; `durationMs` and `Script.name` are in
+      data-model. **The API items above are closed with it** (see the bullets).
+- [x] Pseudonymity decision (Q4) — **default marked:** the draws view shows what the API returns and
+      keeps speaker rendering isolated, so a pseudonym mapping stays a one-file change (§8 row 4).
 - Gate: endpoint list and JSON shapes frozen in this directory, exercised by the check fixtures
   and the server's conformance tests (R4/R10) and imported by the editor specs; the open questions
   above either answered or explicitly deferred with a default marked in this file.
@@ -352,9 +381,9 @@ R1–R4 must land before 14–16; R5–R8 before 17. PRs 1, 4 and 5 wait on **D-
 | New: legacy shape policy (A4) | M0 | Detect + migrate on request (D-M); read-only until migrated. |
 | New: media endpoints (B1) | M0 | `GET` list with `usedBy`, `DELETE`, orphan policy; rest-api §5/§7 extended. |
 | New: draw-filter semantics incl. `q` (B4) | M0 | `q` added to `DrawFilter`, tags AND, inclusive bounds, `filterVersion`. |
-| New: auth surface (B8) | M0 | Cookie vs bearer, XSRF, 401 → login → return-URL contract documented. |
-| New: W10's "deployment runs {actual}" (B7) | M0 | Co-deployment assumption, else an endpoint reporting the recorder version. |
-| New: bank/media write concurrency (B8) | M0 | Last-write-wins stated explicitly, or ETag per bank/resource. |
+| New: auth surface (B8) | M0 | **Done.** Cookie + the deployment's CSRF scheme (XSRF cookie/header) or bearer; 401 → login with a return URL; banks/media last-write-wins (rest-api preamble, §1.2). |
+| New: W10's "deployment runs {actual}" (B7) | M0 | **Done.** `GET {api}version` → `{recorderVersion}`, the value `--recorder-version` serves; co-deployment means the receiver is the source of truth (rest-api §1.1, `server/version.test.mjs`). |
+| New: bank/media write concurrency (B8) | M0 | **Done.** Stated explicitly: last-write-wins with a re-read after write; media `DELETE` alone refuses while a published version references it (rest-api §1.2, §5). |
 | New: draft history retention (D3) | M0/M3 | Draft revisions in `<data>/script/<id>/revisions/`, keep 50 / 30 days, plus a local backup (D-N, §10.1). |
 | New: preview session handling (D-P) | M4 | Recorder honours `type:"TEST"`, or a dedicated preview deployment. |
 | New: production transfer requirements (auth, CSRF, retention, backup, migrations) | M0 | §10.1: the store layout is a contract with migrations; auth/CSRF/backup belong to the production deployment; `--gc` covers retention (R12). |
