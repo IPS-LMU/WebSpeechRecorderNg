@@ -420,25 +420,59 @@ rule).
 
 ## 7. Testing
 
-- **Unit (karma, the workspace's existing setup).** The validation catalogue, one spec per check
-  id; the normaliser (D7) including idempotence; draw-rule serialisation; `promptVisibleAt`,
-  `effectiveTiming` and the phase transitions in the library, with the recorder's current
-  behaviour as the oracle; fake-clock tests for each `when`; the draft service's undo, redo,
-  edit-intent reapply and conflict handling; the JSON line tokenizer's escapes and duplicate keys.
-- **Fixtures.** Extend [src/test/script](../../src/test/script) with a script that uses playback
-  and a drawn group, keep a legacy `promptUnits` script, and generate a ~500-item script.
-- **Contract.** Check fixtures for the draft, bank and draw payloads in this directory, run by the
-  server's conformance tests (R4/R10) and imported by the editor's specs; editor output parsed by
-  the library loader and re-serialised byte-identically.
+- **Library (karma).** `npm run test_module -- --watch=false --browsers=ChromeHeadless` — the
+  recorder's behaviour as the oracle: `promptVisibleAt`, `effectiveTiming`, the phase transitions
+  and the placement table for every `when` (C7), the feature→version map, the prefill utility and
+  the editor's model helpers. 137 specs today.
+- **Editor (karma).** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` — the
+  validation catalogue (one `describe` per id plus the shared corpus), the normaliser with
+  idempotence, the JSON line tokenizer (escapes, tabs/CRLF, duplicate keys, unicode), the draft
+  service (undo/redo, edit intent, 412 reapply with guards, 428, conflict, backup, invalid-JSON
+  rule), the services in both API modes, the shell, and one spec per screen including a
+  route-level mount through `APP_ROUTES` so an unprovided service fails here rather than at
+  runtime. 400 specs today.
+- **Fixtures.** `src/test/script/*.json` (playback with all five placements plus a drawn group,
+  a drawn-group script, legacy `promptUnits` scripts, a ~500-item script), `src/test/bank/*.json`,
+  and the FILES-mode tree the editor reads at `/test` — including the library list, the per-script
+  `draft.json` and the draw record/trace, all taken from the receiver's own responses so
+  `ApiType.FILES` and REST agree by construction. `core/round-trip.spec.ts` proves every fixture
+  survives load → write with no key lost, no fabricated `groups` over a legacy section and no
+  persisted `_shuffled*`.
+- **Contract.** `doc/script-editor/checks/*.checks.json` is the shared corpus: the editor's specs
+  and `server/checks-corpus.test.mjs` both run it. The write protocol is additionally exercised
+  against the receiver over `fetch` (create → publish → 412 → reapply → restore → PATCH → media),
+  and the draft service's specs assert the exact request shapes.
 - **Server (node --test).** `node --test server/` covers the receiver: store atomicity and ids,
-  ETag/428/412, the shared check fixtures, bank filter semantics, draw determinism, media in-use,
-  multipart and WAV duration, and that a `TEST` session cannot upload. Development runs the
-  receiver with `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` is gitignored.
-  CI runs this in `.github/workflows/tests.yml` beside the library karma job; the editor jobs join
-  the workflow at M2.
-- **Theme audit.** Editor routes in the CI list, light and dark, including one interaction state.
+  ETag/428/412, the shared check fixtures, bank filter semantics, draw determinism, the draw
+  record and its CSV, media in use, multipart and WAV duration, the version gate, CORS, and that a
+  `TEST` session cannot upload. 50 tests today. Development runs it with
+  `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` is gitignored.
+- **Theme audit.** Run the editor (or the built bundle) and drive a headless Chrome the tool can
+  attach to, then audit the routes and one interaction state:
+
+  ```bash
+  npm run start_editor -- --port 4300
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    --headless=new --remote-debugging-port=9333 --user-data-dir=/tmp/cdp about:blank &
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/edit --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/playback/preview --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit \
+    --prepare bin/audit/open-draw-rule.js --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768,1920x1080
+  ```
+
+  `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
+  drawn-group row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works
+  on a production build too.
+- **CI.** `.github/workflows/tests.yml` runs four jobs: the receiver, the library, the editor
+  (karma + production build) and the audit list above.
 - **Manual, per milestone.** Dry-run a session end to end in the recorder after every change to
-  the model, because the editor's job is to produce files another application must interpret.
+  the model, because the editor's job is to produce files another application must interpret — the
+  parts driven headless (script load, the headphone gate, replay persistence) are recorded in
+  [implementation-plan.md](implementation-plan.md) M1's gate row. VoiceOver (Safari) and NVDA
+  (Firefox) passes per ui-spec §8.
 
 ## 8. Open questions
 
