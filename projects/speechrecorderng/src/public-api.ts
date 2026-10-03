@@ -39,6 +39,8 @@ export {Script,Section,Group,PromptItem,Mediaitem,PromptDocUtil,MediaitemUtil,Pr
 export type {PromptPhase,Mode,Order,Playback,PlaybackWhen,PrefillBankSource,Bank,BankItem,DrawFilter,DrawFixedBy,BankSource,VirtualViewBox,Recinstructions,MediaitemKind} from './lib/speechrecorder/script/script'
 export {ScriptPrefillService} from './lib/speechrecorder/script/prefill.service'
 export {ScriptPrefillUtil} from './lib/speechrecorder/script/prefill'
+export {DEFAULT_POST_REC_DELAY, DEFAULT_PRE_REC_DELAY, ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, promptVisibleAt} from './lib/speechrecorder/script/phases'
+export type {EffectiveTiming, ItemPhase, PlaybackPlan} from './lib/speechrecorder/script/phases'
 export type {PromptItemPrefill} from './lib/speechrecorder/script/script'
 export type {PrefillChoice, PrefillChoices, PrefillSource, PrefillSourceList} from './lib/speechrecorder/script/prefill'
 export {RecordingService} from './lib/speechrecorder/recordings/recordings.service'

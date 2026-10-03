@@ -2,6 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter, SampleSize} from '../../audio/impl/wavwriter'
 import {Group, Mediaitem, PromptItem, PromptitemUtil, Script, Section} from '../script/script';
+import {DEFAULT_POST_REC_DELAY, effectiveTiming, promptVisibleAt} from '../script/phases';
 import {RecordingFileDescriptorImpl, SprRecordingFile} from '../recording'
 import {Upload, UploadHolder} from '../../net/uploader';
 import {
@@ -33,7 +34,7 @@ import {RecordingService} from "../recordings/recordings.service";
 import {AudioClip} from "../../audio/persistor";
 import {Item} from "./item";
 import {LevelBar, State as LiveLevelState} from "../../audio/ui/livelevel";
-import {BasicRecorder, ChunkAudioBufferReceiver, MAX_RECORDING_TIME_MS, RECFILE_API_CTX} from "./basicrecorder";
+import {BasicRecorder, ChunkAudioBufferReceiver, RECFILE_API_CTX} from "./basicrecorder";
 import {ArrayAudioBuffer} from "../../audio/array_audio_buffer";
 import {SprTranslator} from "../../i18n/translate";
 import {AudioBufferSource, AudioDataHolder, AudioSource} from "../../audio/audio_data_holder";
@@ -43,9 +44,6 @@ import {AudioStorageFormatEncoding, AudioStorageType} from "../project/project";
 import {NetAudioBuffer} from "../../audio/net_audio_buffer";
 import {BreakpointObserver} from "@angular/cdk/layout";
 import {SprLogger} from "../../utils/logger";
-
-const DEFAULT_PRE_REC_DELAY=1000;
-const DEFAULT_POST_REC_DELAY=500;
 
 export const enum Status {
   BLOCKED, IDLE, STARTING, PRE_RECORDING, RECORDING, POST_REC_STOP, POST_REC_PAUSE, STOPPING_STOP, STOPPING_PAUSE, NON_RECORDING_WAIT,ERROR
@@ -1095,7 +1093,7 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
 
     const isNonrecording=(this.promptItem.type==='nonrecording');
 
-    if (isNonrecording || !this.section.promptphase || this.section.promptphase === 'IDLE') {
+    if (promptVisibleAt(this.section.promptphase, 'SELECTED', this.promptItem.type)) {
       this.applyPrompt();
     }
 
@@ -1266,29 +1264,17 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
         this.sessionService.patchSessionObserver(this._session, body).subscribe()
       }
     }
-    if (this.section.promptphase === 'PRERECORDING' || this.section.promptphase === 'PRERECORDINGONLY') {
+    // A phase that hides the prompt until the take starts (PRERECORDING/PRERECORDINGONLY) shows it now.
+    if (promptVisibleAt(this.section.promptphase, 'PRE_RECORDING', this.promptItem.type)
+      && !promptVisibleAt(this.section.promptphase, 'SELECTED', this.promptItem.type)) {
       this.applyPrompt();
     }
     this.statusAlertType = 'info';
 
-    let preDelay = DEFAULT_PRE_REC_DELAY;
-    if (this.promptItem.prerecdelay!=null) {
-      preDelay = this.promptItem.prerecdelay;
-    }else if (this.promptItem.prerecording!=null) {
-      preDelay = this.promptItem.prerecording;
-    }
-
-    this.postDelay=DEFAULT_POST_REC_DELAY;
-    if(this.promptItem.postrecdelay!=null){
-      this.postDelay=this.promptItem.postrecdelay;
-    }else if(this.promptItem.postrecording!=null){
-      this.postDelay=this.promptItem.postrecording;
-    }
-
-    let maxRecordingTimeMs = MAX_RECORDING_TIME_MS;
-    if (this.promptItem.recduration!==null && this.promptItem.recduration!==undefined) {
-      maxRecordingTimeMs = preDelay+this.promptItem.recduration+this.postDelay;
-    }
+    const timing = effectiveTiming(this.promptItem);
+    const preDelay = timing.preDelay;
+    this.postDelay = timing.postDelay;
+    const maxRecordingTimeMs = timing.maxRecordingTimeMs;
 
     const promptAudio = PromptitemUtil.autoplayAudioitem(this.promptItem);
     if (promptAudio !== null) {
@@ -1330,10 +1316,13 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
       } else {
         this.transportActions.stopAction.disabled = false;
       }
-      if (this.section.promptphase === 'RECORDING') {
+      // The prompt appears when a RECORDING phase enters this window, and leaves it when a
+      // PRERECORDINGONLY prompt is no longer shown.
+      const visibleNow = promptVisibleAt(this.section.promptphase, 'RECORDING', this.promptItem.type);
+      const visibleBefore = promptVisibleAt(this.section.promptphase, 'PRE_RECORDING', this.promptItem.type);
+      if (visibleNow && !visibleBefore) {
         this.applyPrompt();
-      }
-      if (this.section.promptphase === 'PRERECORDINGONLY'){
+      } else if (!visibleNow && visibleBefore) {
         this.clearPrompt();
       }
 
