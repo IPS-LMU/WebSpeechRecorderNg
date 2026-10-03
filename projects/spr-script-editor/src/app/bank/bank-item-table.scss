@@ -1,0 +1,137 @@
+:host {
+  display: block;
+}
+
+.items {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--spr-surface, #FFFFFF);
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+}
+
+.items th,
+.items td {
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink, #1F3044);
+  border-bottom: 1px solid var(--spr-divider, #E4E9F0);
+}
+
+.items th {
+  color: var(--spr-ink-muted, #4A6288);
+}
+
+.items tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.item-text {
+  max-width: 24rem;
+}
+
+.audio-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.presence {
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.presence.none {
+  color: var(--spr-ink-muted, #4A6288);
+  font-style: italic;
+}
+
+.upload {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+  cursor: pointer;
+}
+
+.upload input[type='file'] {
+  max-width: 10rem;
+  min-height: 0;
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.upload-label {
+  margin-right: 0.3rem;
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.busy,
+.error-text {
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.error-text {
+  color: var(--spr-alert-ink, #7F1D1D);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.read-only-note {
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #4A6288);
+}
+
+button {
+  min-height: 44px;
+  padding: 0 0.8rem;
+  font-family: inherit;
+  font-size: var(--spr-type-body, 16px);
+  color: var(--spr-primary, #2A4765);
+  background: var(--spr-surface, #FFFFFF);
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+  cursor: pointer;
+}
+
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: var(--spr-r-md, 12px);
+}
+
+.pager-text {
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #4A6288);
+}
+
+.pager-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

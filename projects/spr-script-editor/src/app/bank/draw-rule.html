@@ -1,0 +1,170 @@
+<section class="rule" aria-labelledby="rule-heading">
+  <h2 id="rule-heading">{{ strings.rule.heading }}</h2>
+  <p class="draw-once">{{ catalogue.inspector.group.drawOnce }}</p>
+
+  <div class="bank-choice">
+    <span class="field-label">{{ strings.rule.bankField }}</span>
+    <span class="bank-title" [class.unknown]="rule().bank === '' || bankUnknown()">
+      {{ bank()?.title ?? (rule().bank === '' ? strings.rule.noBank : rule().bank) }}
+    </span>
+    @if (bank(); as chosen) {
+      <span class="chip" [class.chip-builtin]="chosen.source === 'BUILTIN'">{{ originLabel() }}</span>
+    }
+    <button type="button" class="link" (click)="openPicker.emit()">{{ strings.rule.changeBank }}</button>
+  </div>
+
+  <spre-bank-filter [legend]="strings.filter.ruleLegend" [hint]="strings.filter.ruleHint"
+                    [fields]="fields()" variant="rule-filter" idPrefix="rule"
+                    (fieldChange)="setField($event.name, $event.value)"></spre-bank-filter>
+
+  <p class="summary">
+    <span class="field-label">{{ strings.filter.summary }}</span>
+    <span class="summary-value">{{ summary() }}</span>
+  </p>
+
+  <div class="field count-field">
+    <label for="rule-count">{{ catalogue.inspector.group.count }}</label>
+    <input id="rule-count" type="number" min="1" max="999" step="1" [value]="rule().count"
+           [attr.aria-invalid]="countStatus().kind === 'error'" aria-describedby="rule-count-msg"
+           (input)="setCount($any($event.target).value)">
+    <p id="rule-count-msg" class="count-msg" aria-live="polite"
+       [class.is-error]="countStatus().kind === 'error'"
+       [class.is-suspended]="countStatus().kind === 'suspended'"
+       [class.is-ok]="countStatus().kind === 'ok'">
+      {{ countStatus().message }}
+    </p>
+  </div>
+
+  <div class="field">
+    <label for="rule-order">{{ strings.rule.order }}</label>
+    <select id="rule-order" [value]="rule().order ?? 'RANDOM'" (change)="setOrder($any($event.target).value)">
+      <option value="RANDOM">{{ strings.rule.orderRandom }}</option>
+      <option value="SEQUENTIAL">{{ strings.rule.orderSequential }}</option>
+    </select>
+  </div>
+
+  <div class="radio-group" role="radiogroup" [attr.aria-label]="catalogue.inspector.group.fixedBy">
+    <span class="field-label">{{ catalogue.inspector.group.fixedBy }}</span>
+    @for (option of fixedByOptions; track option) {
+      <label class="radio">
+        <input type="radio" name="rule-fixedBy" [value]="option"
+               [checked]="(rule().fixedBy ?? 'SESSION') === option"
+               [attr.aria-checked]="(rule().fixedBy ?? 'SESSION') === option"
+               (change)="setFixedBy(option)">
+        <span>{{ fixedByLabel(option) }}</span>
+      </label>
+    }
+  </div>
+  <p class="help">{{ fixedByHelp(rule().fixedBy ?? 'SESSION') }}</p>
+
+  <label class="check">
+    <input type="checkbox" [checked]="rule().skipRecordedBySpeaker === true"
+           (change)="setSkipRecorded($any($event.target).checked)">
+    <span>{{ catalogue.inspector.group.skipRecorded }}</span>
+  </label>
+  <p class="help">{{ catalogue.inspector.group.skipRecordedHelp }}</p>
+
+  <div class="field">
+    <label for="rule-prefix">{{ catalogue.inspector.group.prefix }}</label>
+    <input id="rule-prefix" type="text" [value]="rule().itemcodePrefix"
+           (input)="setPrefix($any($event.target).value)">
+    @if (codes()) {
+      <p class="codes" aria-live="polite">
+        <span class="field-label">{{ strings.rule.codesLabel }}:</span> {{ codesText() }}
+      </p>
+    }
+  </div>
+
+  <label class="check">
+    <input type="checkbox" [checked]="rule().playBankAudio === true"
+           (change)="setPlayBankAudio($any($event.target).checked)">
+    <span>{{ strings.rule.playBankAudio }}</span>
+  </label>
+  <p class="help">{{ strings.rule.playBankAudioHelp }}</p>
+
+  @if (rule().playBankAudio === true) {
+    <fieldset class="playback">
+      <legend>{{ strings.rule.playbackLegend }}</legend>
+      <div class="field">
+        <label for="rule-when">{{ catalogue.inspector.playback.when }}</label>
+        <select id="rule-when" [value]="rule().playback?.when ?? 'WITH_PROMPT'"
+                (change)="setPlaybackWhen($any($event.target).value)">
+          @for (when of whenOptions; track when) {
+            <option [value]="when">{{ whenLabel(when) }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="rule-repeats">{{ catalogue.inspector.playback.repeats }}</label>
+        <input id="rule-repeats" type="number" min="1" step="1"
+               [value]="rule().playback?.repeats ?? 1"
+               (input)="setPlaybackNumber('repeats', $any($event.target).value, true)">
+      </div>
+      <div class="field">
+        <label for="rule-gap">{{ catalogue.inspector.playback.gap }}</label>
+        <input id="rule-gap" type="number" min="0" step="1"
+               [value]="rule().playback?.gap ?? 500"
+               (input)="setPlaybackNumber('gap', $any($event.target).value, true)">
+      </div>
+      <div class="field">
+        <label for="rule-max-replays">{{ catalogue.inspector.playback.maxReplays }}</label>
+        <input id="rule-max-replays" type="number" min="0" step="1"
+               [value]="rule().playback?.maxReplays ?? ''"
+               (input)="setPlaybackNumber('maxReplays', $any($event.target).value, true)">
+      </div>
+      <label class="check">
+        <input type="checkbox" [checked]="rule().playback?.replayable === true"
+               (change)="setPlaybackFlag('replayable', $any($event.target).checked)">
+        <span>{{ catalogue.inspector.playback.replayable }}</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" [checked]="rule().playback?.headphones === true"
+               (change)="setPlaybackFlag('headphones', $any($event.target).checked)">
+        <span>{{ catalogue.inspector.playback.headphones }}</span>
+      </label>
+    </fieldset>
+  }
+
+  <fieldset class="defaults">
+    <legend>{{ strings.rule.defaultsLegend }}</legend>
+    <div class="field">
+      <label for="rule-pre">{{ catalogue.inspector.item.preDelay }}</label>
+      <input id="rule-pre" type="number" min="0" step="1"
+             [value]="rule().itemDefaults?.prerecdelay ?? ''"
+             (input)="setDefault('prerecdelay', $any($event.target).value)">
+    </div>
+    <div class="field">
+      <label for="rule-rec">{{ catalogue.inspector.item.recDuration }}</label>
+      <input id="rule-rec" type="number" min="0" step="1"
+             [value]="rule().itemDefaults?.recduration ?? ''"
+             (input)="setDefault('recduration', $any($event.target).value)">
+    </div>
+    <div class="field">
+      <label for="rule-post">{{ catalogue.inspector.item.postDelay }}</label>
+      <input id="rule-post" type="number" min="0" step="1"
+             [value]="rule().itemDefaults?.postrecdelay ?? ''"
+             (input)="setDefault('postrecdelay', $any($event.target).value)">
+    </div>
+    <div class="field wide">
+      <label for="rule-instr">{{ catalogue.inspector.item.instructions }}</label>
+      <input id="rule-instr" type="text" [value]="rule().itemDefaults?.recinstructions?.recinstructions ?? ''"
+             (input)="setInstructions($any($event.target).value)">
+    </div>
+  </fieldset>
+
+  <spre-draw-rule-findings [errors]="errors()" [suspended]="suspended()"
+                           [warnings]="warnings()"></spre-draw-rule-findings>
+
+  <spre-draw-rule-example [example]="example()" (drawAnother)="drawAnother()"></spre-draw-rule-example>
+
+  <div class="actions">
+    <button type="button" class="primary" [attr.title]="strings.rule.useRuleTitle" (click)="commit()">
+      {{ strings.rule.useRule }}
+    </button>
+    @if (drawsLink(); as link) {
+      <a class="link" [routerLink]="link">{{ strings.rule.openDraws }}</a>
+    } @else {
+      <span class="link disabled" [attr.title]="strings.rule.noDrawsLink">{{ strings.rule.openDraws }}</span>
+    }
+  </div>
+</section>

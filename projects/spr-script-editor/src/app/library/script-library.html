@@ -56,8 +56,9 @@
         <tr>
           <th scope="col">{{ strings.library.columnName }}</th>
           <th scope="col">{{ strings.library.columnSectionsItems }}</th>
-          <th scope="col">{{ strings.library.columnUpdated }}</th>
           <th scope="col">{{ strings.library.columnStatus }}</th>
+          <th scope="col">{{ strings.library.columnUsage }}</th>
+          <th scope="col">{{ strings.library.columnUpdated }}</th>
           <th scope="col">{{ strings.library.columnActions }}</th>
         </tr>
         </thead>
@@ -73,10 +74,11 @@
                 {{ strings.library.countSeparator }}
                 {{ script.fixedItems ?? 0 }} {{ strings.library.plus }} {{ script.drawnItems ?? 0 }} {{ strings.library.drawnWord }}
               </td>
-              <td>{{ script.modified ?? strings.library.updatedPlaceholder }}</td>
               <td>
                 <span class="chip" [attr.data-status]="script.status">{{ strings.library.statusLabels[script.status] }}</span>
               </td>
+              <td class="usage">{{ usageLabel(script) ?? strings.library.usageNone }}</td>
+              <td>{{ script.modified ?? strings.library.updatedPlaceholder }}</td>
               <td class="row-actions">
                 <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">{{ strings.library.edit }}</a>
                 <button type="button" [disabled]="true"
@@ -86,7 +88,7 @@
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5">{{ strings.library.noMatch }}</td></tr>
+            <tr><td colspan="6">{{ strings.library.noMatch }}</td></tr>
           }
         </tbody>
       </table>

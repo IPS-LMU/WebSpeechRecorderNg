@@ -1,23 +1,156 @@
 <section class="inspector" [attr.aria-label]="strings.editor.inspectorRegion">
+  @if (writesDisabled()) {
+    <p class="note" role="status">{{ ext.writesDisabled }}</p>
+  }
+
+  <!-- The bank-source rule, shared by the group's drawn variant and the item's randomised panel
+       (D-W): one surface, so the two cannot drift. The full rule also lives on the bank screen. -->
+  <ng-template #bankRule let-source>
+    <label class="field">
+      <span>{{ strings.inspector.group.bank }}</span>
+      <select [value]="source.bank" [disabled]="writesDisabled()"
+              (change)="setGroupBank($any($event.target).value)">
+        <optgroup [label]="strings.inspector.group.bankProject">
+          @for (bank of bankOptions(bankList(), 'PROJECT'); track bank.bankId) {
+            <option [value]="bank.bankId" [selected]="bank.bankId === source.bank">{{ bank.title }}</option>
+          }
+        </optgroup>
+        <optgroup [label]="strings.inspector.group.bankBuiltin">
+          @for (bank of bankOptions(bankList(), 'BUILTIN'); track bank.bankId) {
+            <option [value]="bank.bankId" [selected]="bank.bankId === source.bank">{{ bank.title }}</option>
+          }
+        </optgroup>
+      </select>
+    </label>
+    <p class="chip">{{ source.bankSource === 'PROJECT'
+      ? strings.centre.bankOriginProject : strings.centre.bankOriginBuiltin }}</p>
+
+    <h3>{{ strings.inspector.group.filter }}</h3>
+    <p class="note">{{ filterWords(source) }}</p>
+    <p><a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef()]"
+          [title]="strings.inspector.group.filterLinkTitle">{{ strings.inspector.group.filterLink }}</a></p>
+
+    <label class="field">
+      <span>{{ strings.inspector.group.count }}</span>
+      <input type="number" [value]="source.count" [disabled]="writesDisabled()"
+             [attr.aria-invalid]="countExceeds()" (input)="setGroupCount($any($event.target).value)">
+    </label>
+    <p class="help" [class.error]="countExceeds()">{{ countMessage() }}</p>
+
+    <label class="field">
+      <span>{{ strings.inspector.group.fixedBy }}</span>
+      <select [value]="source.fixedBy ?? 'SESSION'" [disabled]="writesDisabled()"
+              (change)="setGroupFixedBy($any($event.target).value)">
+        @for (fixedBy of fixedBys; track fixedBy) {
+          <option [value]="fixedBy" [selected]="(source.fixedBy ?? 'SESSION') === fixedBy">
+            {{ fixedByLabel(fixedBy) }}
+          </option>
+        }
+      </select>
+    </label>
+    <p class="help">{{ fixedByHelp(source.fixedBy) }}</p>
+
+    <label class="checkbox">
+      <input type="checkbox" [checked]="source.skipRecordedBySpeaker === true" [disabled]="writesDisabled()"
+             (change)="setGroupSkipRecorded($any($event.target).checked)">
+      <span>{{ strings.inspector.group.skipRecorded }}</span>
+    </label>
+    <p class="help">{{ strings.inspector.group.skipRecordedHelp }}</p>
+
+    <label class="field">
+      <span>{{ strings.inspector.group.prefix }}</span>
+      <input type="text" [value]="source.itemcodePrefix" [disabled]="writesDisabled()"
+             (input)="setGroupPrefix($any($event.target).value)">
+    </label>
+    <p class="help">{{ prefixPreview(source) }}</p>
+
+    @if (source.playBankAudio || source.playback || source.itemDefaults) {
+      <h3>{{ ext.inspector.group.defaultsTitle }}</h3>
+      <dl class="fields">
+        @if (source.playBankAudio === true) {
+          <dt>{{ prefillStrings.playBankAudio }}</dt>
+          <dd>{{ prefillStrings.playBankAudioYes }}</dd>
+        }
+        @if (source.playback; as drawPlayback) {
+          <dt>{{ strings.inspector.playback.when }}</dt>
+          <dd>{{ whenOptionLabel(drawPlayback.when) }}</dd>
+          @if (drawPlayback.repeats !== undefined) {
+            <dt>{{ strings.inspector.playback.repeats }}</dt>
+            <dd>{{ drawPlayback.repeats }}</dd>
+          }
+          @if (drawPlayback.gap !== undefined) {
+            <dt>{{ strings.inspector.playback.gap }}</dt>
+            <dd>{{ drawPlayback.gap }}</dd>
+          }
+          @if (drawPlayback.headphones === true) {
+            <dt>{{ strings.inspector.playback.headphones }}</dt>
+            <dd>{{ strings.inspector.playback.headphones }}</dd>
+          }
+        }
+        @if (source.itemDefaults; as defaults) {
+          @if (defaults.prerecdelay !== undefined) {
+            <dt>{{ strings.inspector.item.preDelay }}</dt>
+            <dd>{{ defaults.prerecdelay }}</dd>
+          }
+          @if (defaults.recduration !== undefined) {
+            <dt>{{ strings.inspector.item.recDuration }}</dt>
+            <dd>{{ defaults.recduration }}</dd>
+          }
+          @if (defaults.postrecdelay !== undefined) {
+            <dt>{{ strings.inspector.item.postDelay }}</dt>
+            <dd>{{ defaults.postrecdelay }}</dd>
+          }
+        }
+      </dl>
+    }
+    <p class="note">{{ strings.inspector.group.drawOnce }}</p>
+  </ng-template>
+
   @switch (selection().kind) {
     @case ('script') {
       <h2>{{ strings.inspector.script.title }}</h2>
       <dl class="fields">
-        <dt>{{ strings.inspector.script.id }}</dt>
-        <dd><input type="text" [value]="script()?.scriptId ?? ''" [disabled]="true"
-                   [title]="readOnlyReason" readonly></dd>
-        <dt>{{ strings.inspector.script.name }}</dt>
-        <dd><input type="text" [value]="script()?.name ?? ''" [disabled]="true" [title]="readOnlyReason"></dd>
-        <dt>{{ strings.inspector.script.virtualHeight }}</dt>
-        <dd><input type="number" [value]="script()?.virtualViewBox?.height ?? ''" [disabled]="true"
-                   [title]="readOnlyReason"></dd>
+        <dt><label for="script-id">{{ strings.inspector.script.id }}</label></dt>
+        <dd><input id="script-id" type="text" [value]="script()?.scriptId ?? ''" readonly></dd>
+        <dt><label for="script-name">{{ strings.inspector.script.name }}</label></dt>
+        <dd>
+          <input id="script-name" type="text" [value]="script()?.name ?? ''" [disabled]="writesDisabled()"
+                 (input)="setScriptName($any($event.target).value)">
+        </dd>
+        <dt><label for="script-height">{{ strings.inspector.script.virtualHeight }}</label></dt>
+        <dd>
+          <input id="script-height" type="number" [value]="script()?.virtualViewBox?.height ?? ''"
+                 [disabled]="writesDisabled()" (input)="setScriptHeight($any($event.target).value)">
+        </dd>
       </dl>
+
       <h3>{{ strings.inspector.script.counts }}</h3>
       <p class="note">{{ strings.inspector.script.countsValue }}</p>
       <p class="note">{{ strings.inspector.script.versionNote }}</p>
+
       <h3>{{ strings.inspector.script.historyTitle }}</h3>
-      <p class="note">{{ strings.inspector.script.historyEmpty }}</p>
-      <button type="button" [disabled]="true" [title]="readOnlyReason">{{ strings.inspector.script.restore }}</button>
+      @if (versions().length === 0) {
+        <p class="note">{{ strings.inspector.script.historyEmpty }}</p>
+      } @else {
+        <ul class="history">
+          @for (row of versions(); track row.version) {
+            <li class="version-row">
+              <span class="version-label">{{ strings.inspector.script.historyVersion.replace('{version}', row.version + '') }}</span>
+              @if (row.note) {
+                <span class="version-note">{{ strings.inspector.script.historyNote }}: {{ row.note }}</span>
+              }
+              @if (row.publishedDate) {
+                <span class="version-date">{{ ext.inspector.script.published }} {{ row.publishedDate }}</span>
+              }
+              <span class="version-sessions">{{ ext.inspector.script.sessions.replace('{count}', versionSessionsOf(row.version) + '') }}</span>
+              <button type="button" [disabled]="writesDisabled()" (click)="restoreVersion.emit(row.version)">
+                {{ strings.inspector.script.restore }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
       <p>
         <a [routerLink]="['/project', project(), 'script', scriptId(), 'draws']">{{ strings.inspector.script.openDraws }}</a>
       </p>
@@ -27,7 +160,8 @@
       <h2>{{ strings.inspector.section.title }}</h2>
       <label class="field">
         <span>{{ strings.inspector.section.name }}</span>
-        <input type="text" [value]="section()?.name ?? ''" [disabled]="true" [title]="readOnlyReason">
+        <input type="text" [value]="section()?.name ?? ''" [disabled]="writesDisabled()"
+               (input)="setSectionName($any($event.target).value)">
       </label>
 
       <fieldset role="radiogroup" [attr.aria-label]="strings.inspector.section.modeLegend">
@@ -35,7 +169,8 @@
         @for (mode of modes; track mode) {
           <label class="radio">
             <input type="radio" name="section-mode" [value]="mode" [checked]="section()?.mode === mode"
-                   [disabled]="true" [title]="readOnlyReason">
+                   [attr.aria-checked]="section()?.mode === mode" [disabled]="writesDisabled()"
+                   (change)="setSectionMode(mode)">
             <span class="radio-body">
               <span class="radio-label">{{ strings.centre.modeChip[mode] }}</span>
               <span class="radio-help">{{ strings.inspector.section.modeHelp[mode] }}</span>
@@ -46,7 +181,8 @@
 
       <label class="field">
         <span>{{ strings.inspector.section.promptPhase }}</span>
-        <select [value]="section()?.promptphase ?? ''" [disabled]="true" [title]="readOnlyReason">
+        <select [value]="section()?.promptphase ?? ''" [disabled]="writesDisabled()"
+                (change)="setSectionPromptPhase($any($event.target).value)">
           @for (phase of promptPhases; track phase) {
             <option [value]="phase" [selected]="section()?.promptphase === phase">{{ phase }}</option>
           }
@@ -58,24 +194,27 @@
 
       <label class="field">
         <span>{{ strings.inspector.section.order }}</span>
-        <select [value]="sectionOrder() ?? ''" [disabled]="true" [title]="readOnlyReason">
+        <select [value]="sectionOrder() ?? ''" [disabled]="writesDisabled()"
+                (change)="setSectionOrder($any($event.target).value)">
           @for (order of orders; track order) {
             <option [value]="order" [selected]="sectionOrder() === order">{{ orderLabel(order) }}</option>
           }
           @if (sectionOrder() === 'RANDOMIZED') {
-            <option value="RANDOMIZED" selected>{{ strings.inspector.section.orderRandomized }}</option>
+            <option value="RANDOMIZED" disabled selected>{{ ext.inspector.section.orderLegacy }}</option>
           }
         </select>
       </label>
 
       <label class="checkbox">
-        <input type="checkbox" [checked]="section()?.training === true" [disabled]="true" [title]="readOnlyReason">
+        <input type="checkbox" [checked]="section()?.training === true" [disabled]="writesDisabled()"
+               (change)="setSectionTraining($any($event.target).checked)">
         <span>{{ strings.inspector.section.training }}</span>
       </label>
       <p class="help">{{ strings.inspector.section.trainingHelp }}</p>
 
-      <button type="button" class="danger" [disabled]="true"
-              [title]="readOnlyReason">{{ strings.inspector.section.delete }}</button>
+      <button type="button" class="danger" [disabled]="writesDisabled()" (click)="deleteSection()">
+        {{ strings.inspector.section.delete }}
+      </button>
     }
 
     @case ('group') {
@@ -83,154 +222,212 @@
       <fieldset role="radiogroup" [attr.aria-label]="strings.inspector.group.kindLegend">
         <legend>{{ strings.inspector.group.kindLegend }}</legend>
         <label class="radio">
-          <input type="radio" name="group-kind" [checked]="!isDrawn()" [disabled]="true" [title]="readOnlyReason">
-          <span class="radio-label">{{ strings.inspector.group.fixed }}</span>
+          <input type="radio" name="group-kind" [checked]="!isDrawn()" [attr.aria-checked]="!isDrawn()"
+                 [disabled]="writesDisabled()" (change)="setGroupKind('fixed')">
+          <span class="radio-body">
+            <span class="radio-label">{{ strings.inspector.group.fixed }}</span>
+            <span class="radio-help">{{ ext.inspector.group.kindHelpFixed }}</span>
+          </span>
         </label>
         <label class="radio">
-          <input type="radio" name="group-kind" [checked]="isDrawn()" [disabled]="true" [title]="readOnlyReason">
-          <span class="radio-label">{{ strings.inspector.group.drawn }}</span>
+          <input type="radio" name="group-kind" [checked]="isDrawn()" [attr.aria-checked]="isDrawn()"
+                 [disabled]="writesDisabled()" (change)="setGroupKind('drawn')">
+          <span class="radio-body">
+            <span class="radio-label">{{ strings.inspector.group.drawn }}</span>
+            <span class="radio-help">{{ ext.inspector.group.kindHelpDrawn }}</span>
+          </span>
         </label>
       </fieldset>
 
       @if (drawn(); as source) {
-        <label class="field">
-          <span>{{ strings.inspector.group.bank }}</span>
-          <select [value]="source.bank" [disabled]="true" [title]="readOnlyReason">
-            <optgroup [label]="strings.inspector.group.bankProject">
-              @for (bank of bankOptions(bankList(), 'PROJECT'); track bank.bankId) {
-                <option [value]="bank.bankId" [selected]="bank.bankId === source.bank">{{ bank.title }}</option>
-              }
-            </optgroup>
-            <optgroup [label]="strings.inspector.group.bankBuiltin">
-              @for (bank of bankOptions(bankList(), 'BUILTIN'); track bank.bankId) {
-                <option [value]="bank.bankId" [selected]="bank.bankId === source.bank">{{ bank.title }}</option>
-              }
-            </optgroup>
-          </select>
-        </label>
-        <p class="chip">{{ source.bankSource === 'PROJECT'
-          ? strings.centre.bankOriginProject : strings.centre.bankOriginBuiltin }}</p>
-
-        <h3>{{ strings.inspector.group.filter }}</h3>
-        <p class="note">{{ filterWords(source) }}</p>
-        <p><a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef()]"
-              [title]="strings.inspector.group.filterLinkTitle">{{ strings.inspector.group.filterLink }}</a></p>
-
-        <label class="field">
-          <span>{{ strings.inspector.group.count }}</span>
-          <input type="number" [value]="source.count" [disabled]="true" [title]="readOnlyReason">
-        </label>
-        <p class="help">
-          @if (matchSummary(); as summary) {
-            {{ summary }}
-          } @else {
-            {{ strings.inspector.group.countUnknown }}
-          }
-        </p>
-
-        <label class="field">
-          <span>{{ strings.inspector.group.fixedBy }}</span>
-          <select [value]="source.fixedBy ?? 'SESSION'" [disabled]="true" [title]="readOnlyReason">
-            @for (fixedBy of fixedBys; track fixedBy) {
-              <option [value]="fixedBy" [selected]="(source.fixedBy ?? 'SESSION') === fixedBy">
-                {{ fixedByLabel(fixedBy) }}
-              </option>
-            }
-          </select>
-        </label>
-        <p class="help">{{ strings.inspector.group.fixedByHelp[source.fixedBy ?? 'SESSION'] }}</p>
-
-        <label class="checkbox">
-          <input type="checkbox" [checked]="source.skipRecordedBySpeaker === true" [disabled]="true"
-                 [title]="readOnlyReason">
-          <span>{{ strings.inspector.group.skipRecorded }}</span>
-        </label>
-        <p class="help">{{ strings.inspector.group.skipRecordedHelp }}</p>
-
-        <label class="field">
-          <span>{{ strings.inspector.group.prefix }}</span>
-          <input type="text" [value]="source.itemcodePrefix" [disabled]="true" [title]="readOnlyReason">
-        </label>
-        <p class="help">{{ prefixPreview(source) }}</p>
-        <p class="note">{{ strings.inspector.group.drawOnce }}</p>
+        <ng-container [ngTemplateOutlet]="bankRule" [ngTemplateOutletContext]="{$implicit: source}"></ng-container>
       } @else {
         <label class="field">
           <span>{{ strings.inspector.group.order }}</span>
-          <select [value]="group()?.order ?? ''" [disabled]="true" [title]="readOnlyReason">
+          <select [value]="group()?.order ?? ''" [disabled]="writesDisabled()"
+                  (change)="setGroupOrder($any($event.target).value)">
             @for (order of orders; track order) {
               <option [value]="order" [selected]="group()?.order === order">{{ orderLabel(order) }}</option>
             }
           </select>
         </label>
         <p class="note">{{ strings.inspector.group.itemCount.replace('{count}', (group()?.promptItems?.length ?? 0) + '') }}</p>
-        <button type="button" [disabled]="true" [title]="readOnlyReason">{{ strings.inspector.group.split }}</button>
+        <button type="button" [disabled]="writesDisabled() || (group()?.promptItems?.length ?? 0) < 2"
+                [title]="(group()?.promptItems?.length ?? 0) < 2 ? ext.inspector.group.splitNeedsTwo : ''"
+                (click)="splitGroup()">{{ strings.inspector.group.split }}</button>
       }
 
-      <button type="button" class="danger" [disabled]="true"
-              [title]="readOnlyReason">{{ strings.inspector.group.delete }}</button>
+      <button type="button" class="danger" [disabled]="writesDisabled()" (click)="deleteGroup()">
+        {{ strings.inspector.group.delete }}
+      </button>
     }
 
     @case ('item') {
       <h2>{{ strings.inspector.item.title }}</h2>
+
       <label class="field">
         <span>{{ strings.inspector.item.itemcode }}</span>
-        <input type="text" [value]="item()?.itemcode ?? ''" [disabled]="true" [title]="readOnlyReason">
+        <input type="text" [value]="item()?.itemcode ?? ''" [disabled]="writesDisabled()"
+               [attr.aria-invalid]="itemcodeIssues().length > 0"
+               [attr.aria-describedby]="itemcodeIssues().length > 0 ? 'itemcode-message' : null"
+               (input)="setItemcode($any($event.target).value)">
       </label>
+      @if (itemcodeMessage(); as message) {
+        <p class="error" id="itemcode-message" role="alert">{{ message }}</p>
+      }
+
+      <fieldset class="prefill" role="group" [attr.aria-label]="prefillStrings.legend">
+        <legend>{{ prefillStrings.legend }}</legend>
+        <label class="field">
+          <span>{{ prefillStrings.source }}</span>
+          <select [value]="prefillSelection()" [disabled]="writesDisabled()"
+                  (change)="setPrefillKind($any($event.target).value)">
+            <option value="none">{{ prefillStrings.none }}</option>
+            <option value="word">{{ prefillStrings.word }}</option>
+            <option value="sentence">{{ prefillStrings.sentence }}</option>
+            <option value="bank">{{ prefillStrings.bank }}</option>
+          </select>
+        </label>
+
+        @if (prefillSelection() === 'word' || prefillSelection() === 'sentence') {
+          <label class="field">
+            <span>{{ prefillStrings.listSource }}</span>
+            <input type="text" [value]="itemPrefill()?.source ?? ''" [disabled]="writesDisabled()"
+                   (input)="setPrefillSource($any($event.target).value)">
+          </label>
+          <p class="help">{{ prefillStrings.listSourceHelp }}</p>
+
+          <label class="field">
+            <span>{{ prefillStrings.select }}</span>
+            <select [value]="itemPrefill()?.select ?? 'random'" [disabled]="writesDisabled()"
+                    (change)="setPrefillSelect($any($event.target).value)">
+              <option value="random">{{ prefillStrings.selectRandom }}</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>{{ prefillStrings.itemcodeFormat }}</span>
+            <input type="text" [value]="itemPrefill()?.itemcodeFormat ?? ''" [disabled]="writesDisabled()"
+                   (input)="setPrefillItemcodeFormat($any($event.target).value)">
+          </label>
+          <p class="help">{{ prefillStrings.itemcodeFormatHelp }}</p>
+          <p class="help">{{ prefillFormatPreview(itemPrefill()?.itemcodeFormat ?? '') }}</p>
+          <p class="note">{{ prefillStrings.drawnAtLoad }}</p>
+        } @else if (prefillSelection() === 'bank') {
+          <p class="note">{{ prefillStrings.drawnAtSession }}</p>
+          @if (itemBank(); as source) {
+            <ng-container [ngTemplateOutlet]="bankRule" [ngTemplateOutletContext]="{$implicit: source}"></ng-container>
+          }
+        } @else {
+          <p class="note">{{ prefillStrings.noneHelp }}</p>
+        }
+      </fieldset>
 
       <fieldset role="radiogroup" [attr.aria-label]="strings.inspector.item.typeLegend">
         <legend>{{ strings.inspector.item.typeLegend }}</legend>
         <label class="radio">
           <input type="radio" name="item-type" [checked]="item()?.type !== 'nonrecording'"
-                 [disabled]="true" [title]="readOnlyReason">
+                 [attr.aria-checked]="item()?.type !== 'nonrecording'" [disabled]="writesDisabled()"
+                 (change)="setItemType(true)">
           <span class="radio-label">{{ strings.inspector.item.typeRecording }}</span>
         </label>
         <label class="radio">
           <input type="radio" name="item-type" [checked]="item()?.type === 'nonrecording'"
-                 [disabled]="true" [title]="readOnlyReason">
+                 [attr.aria-checked]="item()?.type === 'nonrecording'" [disabled]="writesDisabled()"
+                 (change)="setItemType(false)">
           <span class="radio-label">{{ strings.inspector.item.typeNonRecording }}</span>
         </label>
       </fieldset>
 
       <label class="field">
         <span>{{ strings.inspector.item.mediaSelect }}</span>
-        <select [value]="mediaKind(item())" [disabled]="true" [title]="readOnlyReason">
-          <option value="plain" [selected]="mediaKind(item()) === 'plain'">{{ strings.inspector.item.mediaPlain }}</option>
-          <option value="formatted" [selected]="mediaKind(item()) === 'formatted'">{{ strings.inspector.item.mediaFormatted }}</option>
-          <option value="image" [selected]="mediaKind(item()) === 'image'">{{ strings.inspector.item.mediaImage }}</option>
-          <option value="nothing" [selected]="mediaKind(item()) === 'nothing'">{{ strings.inspector.item.mediaNothing }}</option>
+        <select [value]="mediaKind(item())" [disabled]="writesDisabled()"
+                (change)="setPromptMediaKind($any($event.target).value)">
+          @for (kind of promptMediaKinds; track kind) {
+            <option [value]="kind" [selected]="mediaKind(item()) === kind">{{ mediaKindLabel(kind) }}</option>
+          }
         </select>
       </label>
 
       @if (mediaKind(item()) === 'plain' || mediaKind(item()) === 'formatted') {
         <label class="field">
           <span>{{ mediaKind(item()) === 'formatted' ? strings.inspector.item.promptDoc : strings.inspector.item.text }}</span>
-          <textarea rows="3" [value]="promptText(item())" [disabled]="true" [title]="readOnlyReason"></textarea>
+          <textarea rows="3" [value]="promptText(item())" [disabled]="writesDisabled()"
+                    (input)="setPromptText($any($event.target).value)"></textarea>
         </label>
       }
+
       @if (mediaKind(item()) === 'image') {
         <label class="field">
           <span>{{ strings.inspector.item.file }}</span>
-          <input type="text" [value]="item()?.mediaitems?.[0]?.src ?? ''" [disabled]="true" [title]="readOnlyReason">
+          <input type="text" [value]="item()?.mediaitems?.[0]?.src ?? ''" [disabled]="writesDisabled()"
+                 (input)="setPromptFile($any($event.target).value)">
         </label>
         <label class="field">
           <span>{{ strings.inspector.item.alt }}</span>
-          <input type="text" [value]="item()?.mediaitems?.[0]?.alt ?? ''" [disabled]="true" [title]="readOnlyReason">
+          <input type="text" [value]="item()?.mediaitems?.[0]?.alt ?? ''" [disabled]="writesDisabled()"
+                 (input)="setPromptAlt($any($event.target).value)">
         </label>
         <label class="field">
           <span>{{ strings.inspector.item.virtualHeight }}</span>
           <input type="number" [value]="item()?.mediaitems?.[0]?.defaultVirtualViewBox?.height ?? ''"
-                 [disabled]="true" [title]="readOnlyReason">
+                 [disabled]="writesDisabled()" (input)="setPromptHeight($any($event.target).value)">
         </label>
       }
 
       <label class="field">
         <span>{{ strings.inspector.item.instructions }}</span>
-        <textarea rows="2" [value]="instructions(item())" [disabled]="true" [title]="readOnlyReason"></textarea>
+        <textarea rows="2" [value]="instructions(item())" [disabled]="writesDisabled()"
+                  (input)="setInstructions($any($event.target).value)"></textarea>
       </label>
 
-      <fieldset class="playback">
+      <label class="field">
+        <span>{{ strings.inspector.item.preDelay }}</span>
+        <input type="number" [value]="item()?.prerecdelay ?? ''" [disabled]="writesDisabled()"
+               (input)="setPreDelay($any($event.target).value)">
+      </label>
+      <label class="field">
+        <span>{{ strings.inspector.item.recDuration }}</span>
+        <input type="number" [value]="item()?.recduration ?? ''" [disabled]="writesDisabled()"
+               (input)="setRecDuration($any($event.target).value)">
+      </label>
+      <label class="field">
+        <span>{{ strings.inspector.item.postDelay }}</span>
+        <input type="number" [value]="item()?.postrecdelay ?? ''" [disabled]="writesDisabled()"
+               (input)="setPostDelay($any($event.target).value)">
+      </label>
+
+      @if (item()?.type === 'nonrecording') {
+        <label class="field">
+          <span>{{ strings.inspector.item.displayDuration }}</span>
+          <input type="number" [value]="item()?.duration ?? ''" [disabled]="writesDisabled()"
+                 (input)="setDisplayDuration($any($event.target).value)">
+        </label>
+      }
+
+      <fieldset class="playback" role="group" [attr.aria-label]="strings.inspector.playback.legend">
         <legend>{{ strings.inspector.playback.legend }}</legend>
         @if (audio(); as mediaitem) {
+          <label class="field">
+            <span>{{ ext.inspector.playback.pickMedia }}</span>
+            <select [value]="mediaitem.src ?? ''" [disabled]="writesDisabled()"
+                    (change)="setAudioSrc($any($event.target).value)">
+              <option value="">{{ ext.inspector.playback.pickMediaNone }}</option>
+              @for (entry of media(); track entry.src) {
+                <option [value]="entry.src" [selected]="entry.src === mediaitem.src">{{ mediaLabel(entry) }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="field">
+            <span>{{ ext.inspector.playback.upload }}</span>
+            <input type="file" accept="audio/*" [disabled]="writesDisabled()" (change)="onAudioUpload($event)">
+          </label>
+          <p class="help">{{ ext.inspector.playback.uploadNote }}</p>
+          @if (uploadError(); as message) {
+            <p class="error" role="alert">{{ message }}</p>
+          }
+
           <dl class="fields">
             <dt>{{ strings.inspector.playback.fileName }}</dt>
             <dd>{{ mediaitem.src ?? strings.inspector.playback.fileNone }}</dd>
@@ -239,14 +436,33 @@
               ? strings.inspector.playback.durationUnknown
               : audioDuration() + ' ms' }}</dd>
           </dl>
+
           @if (audioUrl(); as url) {
             <p class="audition-label">{{ strings.inspector.playback.audition }}</p>
             <audio controls [src]="url" [attr.aria-label]="audioLabel()"></audio>
             <p class="help">{{ strings.inspector.playback.auditionNote }}</p>
           }
+
+          <label class="field">
+            <span>{{ strings.inspector.item.alt }}</span>
+            <input type="text" [value]="mediaitem.alt ?? ''" [disabled]="writesDisabled()"
+                   (input)="setAudioAlt($any($event.target).value)">
+          </label>
+
+          <label class="checkbox">
+            <input type="checkbox" [checked]="mediaFlag(item(), 'autoplay')" [disabled]="writesDisabled()"
+                   (change)="setAudioAutoplay($any($event.target).checked)">
+            <span>{{ strings.inspector.playback.autoplay }}</span>
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" [checked]="replayValue(item())" [disabled]="writesDisabled()"
+                   (change)="setAudioReplay($any($event.target).checked)">
+            <span>{{ strings.inspector.playback.replay }}</span>
+          </label>
+
           <label class="field">
             <span>{{ strings.inspector.playback.when }}</span>
-            <select [value]="when()" [disabled]="true" [title]="readOnlyReason">
+            <select [value]="when()" [disabled]="writesDisabled()" (change)="setPlaybackWhen($any($event.target).value)">
               @for (option of playbackWhens; track option) {
                 <option [value]="option" [selected]="when() === option">
                   {{ strings.inspector.playback.whenOptions[option] }}
@@ -254,67 +470,57 @@
               }
             </select>
           </label>
+          @if (w03()) {
+            <p class="warn" role="status">{{ strings.inspector.playback.w03 }}</p>
+          }
+
           <label class="field">
             <span>{{ strings.inspector.playback.repeats }}</span>
-            <input type="number" [value]="repeatsValue(item())" [disabled]="true" [title]="readOnlyReason">
+            <input type="number" min="1" [value]="repeatsValue(item())" [disabled]="writesDisabled()"
+                   (input)="setPlaybackRepeats($any($event.target).value)">
           </label>
           <label class="field">
             <span>{{ strings.inspector.playback.gap }}</span>
-            <input type="number" [value]="gapValue(item())" [disabled]="true" [title]="readOnlyReason">
+            <input type="number" min="0" [value]="gapValue(item())" [disabled]="writesDisabled()"
+                   (input)="setPlaybackGap($any($event.target).value)">
           </label>
           <label class="checkbox">
-            <input type="checkbox" [checked]="replayValue(item())" [disabled]="true" [title]="readOnlyReason">
+            <input type="checkbox" [checked]="replayValue(item())" [disabled]="writesDisabled()"
+                   (change)="setPlaybackReplayable($any($event.target).checked)">
             <span>{{ strings.inspector.playback.replayable }}</span>
           </label>
           <label class="field">
             <span>{{ strings.inspector.playback.maxReplays }}</span>
-            <input type="number" [value]="maxReplaysValue(item()) ?? ''" [disabled]="true" [title]="readOnlyReason">
+            <input type="number" min="0" [value]="maxReplaysValue(item()) ?? ''" [disabled]="writesDisabled()"
+                   (input)="setPlaybackMaxReplays($any($event.target).value)">
           </label>
           <label class="checkbox">
-            <input type="checkbox" [checked]="headphonesValue(item())" [disabled]="true" [title]="readOnlyReason">
+            <input type="checkbox" [checked]="headphonesValue(item())" [disabled]="writesDisabled()"
+                   (change)="setPlaybackHeadphones($any($event.target).checked)">
             <span>{{ strings.inspector.playback.headphones }}</span>
           </label>
-          <label class="checkbox">
-            <input type="checkbox" [checked]="mediaFlag(item(), 'autoplay')" [disabled]="true" [title]="readOnlyReason">
-            <span>{{ strings.inspector.playback.autoplay }}</span>
-          </label>
-          @if (w03()) {
-            <p class="warn" role="status">{{ strings.inspector.playback.w03 }}</p>
+
+          <button type="button" class="danger" [disabled]="writesDisabled()" (click)="removeAudio()">
+            {{ strings.inspector.playback.remove }}
+          </button>
+          <button type="button" class="danger" [disabled]="writesDisabled() || !mediaitem.src" (click)="deleteMedia()">
+            {{ ext.inspector.playback.deleteFile }}
+          </button>
+          @if (deleteError(); as message) {
+            <p class="error" role="alert">{{ message }}</p>
           }
-          <button type="button" class="danger" [disabled]="true"
-                  [title]="readOnlyReason">{{ strings.inspector.playback.remove }}</button>
         } @else {
           <p class="note">{{ strings.inspector.playback.empty }}</p>
-          <button type="button" [disabled]="true"
-                  [title]="strings.inspector.playback.addTitle">{{ strings.inspector.playback.add }}</button>
+          <button type="button" [disabled]="writesDisabled()" (click)="addAudio()">
+            {{ strings.inspector.playback.add }}
+          </button>
         }
       </fieldset>
 
-      <fieldset class="timing">
-        <legend>{{ strings.inspector.timing.legend }}</legend>
-        <dl class="fields">
-          <dt>{{ strings.inspector.item.preDelay }}</dt>
-          <dd>{{ itemTiming()?.preDelay }} ms</dd>
-          <dt>{{ strings.inspector.item.recDuration }}</dt>
-          <dd>{{ item()?.recduration ?? strings.inspector.timing.openEnded }}</dd>
-          <dt>{{ strings.inspector.item.postDelay }}</dt>
-          <dd>{{ itemTiming()?.postDelay }} ms</dd>
-          @if (item()?.type === 'nonrecording') {
-            <dt>{{ strings.inspector.item.displayDuration }}</dt>
-            <dd>{{ item()?.duration ?? '—' }}</dd>
-          }
-        </dl>
-        @if (item()?.recduration === null || item()?.recduration === undefined) {
-          <p class="help">{{ strings.inspector.timing.unbounded }}</p>
-        }
-        @if (when() === 'DURING') {
-          <p class="help">{{ strings.inspector.timing.overMicrophone }}</p>
-        }
-        @if (itemTiming(); as timing) {
-          <spr-editor-timeline [timing]="timing" [promptphase]="section()?.promptphase"
-                               [itemType]="item()?.type"></spr-editor-timeline>
-        }
-      </fieldset>
+      @if (itemTiming(); as timing) {
+        <spr-editor-timeline [timing]="timing" [promptphase]="section()?.promptphase"
+                             [itemType]="item()?.type"></spr-editor-timeline>
+      }
     }
   }
 
@@ -322,8 +528,8 @@
     <ul class="findings">
       @for (finding of applicableFindings(); track finding.id + finding.path) {
         <li class="finding">
-          <span class="chip severity">{{ finding.severity }}</span>
-          <span>{{ finding.message }}</span>
+          <span class="severity">{{ finding.severity }}</span>
+          <span class="finding-message">{{ finding.message }}</span>
         </li>
       }
     </ul>

@@ -1,5 +1,5 @@
 import {Component, input, output} from '@angular/core';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 
 /**
  * The transport bar of the mock speaker frame (ui-spec §4). It is a *mock* transport: the buttons
@@ -10,17 +10,17 @@ import {EDITOR_STRINGS} from '../core/editor-strings';
 @Component({
   selector: 'spre-preview-transport-bar',
   template: `
-    <div class="transport" role="group" [attr.aria-label]="strings.preview.transportLabel">
+    <div class="transport" role="group" [attr.aria-label]="strings.transportLabel">
       <button type="button" [disabled]="!canPrevious()" [title]="title(canPrevious())"
-              (click)="previous.emit()">{{ strings.preview.transportPrevious }}</button>
+              (click)="previous.emit()">{{ strings.transportPrevious }}</button>
       <button type="button" [disabled]="!canReplay()" [title]="replayTitle()"
-              (click)="play.emit()">{{ strings.preview.transportPlay }}</button>
+              (click)="play.emit()">{{ strings.transportPlay }}</button>
       <button type="button" [disabled]="!canRecord()" [title]="title(canRecord())"
-              (click)="record.emit()">{{ strings.preview.transportRecord }}</button>
+              (click)="record.emit()">{{ strings.transportRecord }}</button>
       <button type="button" [disabled]="!canStop()" [title]="title(canStop())"
-              (click)="stop.emit()">{{ strings.preview.transportStop }}</button>
+              (click)="stop.emit()">{{ strings.transportStop }}</button>
       <button type="button" [disabled]="!canNext()" [title]="title(canNext())"
-              (click)="next.emit()">{{ strings.preview.transportNext }}</button>
+              (click)="next.emit()">{{ strings.transportNext }}</button>
     </div>
   `,
   styles: [`
@@ -59,7 +59,7 @@ import {EDITOR_STRINGS} from '../core/editor-strings';
   `],
 })
 export class PreviewTransportBar {
-  readonly strings = EDITOR_STRINGS;
+  readonly strings = PREVIEW_STRINGS;
 
   readonly canPrevious = input.required<boolean>();
   readonly canReplay = input.required<boolean>();
@@ -75,6 +75,6 @@ export class PreviewTransportBar {
   readonly next = output<void>();
 
   title(enabled: boolean): string {
-    return enabled ? this.strings.preview.transportTitle : this.strings.preview.transportDisabledTitle;
+    return enabled ? this.strings.transportTitle : this.strings.transportDisabledTitle;
   }
 }

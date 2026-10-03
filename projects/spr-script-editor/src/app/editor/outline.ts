@@ -23,6 +23,8 @@ export interface OutlineRow {
   key: string;
   parentKey: string | null;
   kind: 'script' | 'section' | 'group' | 'item';
+  /** Whether the row can be expanded/collapsed (`→`/`←`); drawn groups are leaves. */
+  hasChildren: boolean;
   level: number;
   selection: Selection;
   label: string;
@@ -70,6 +72,8 @@ export function sectionCounts(section: unknown): SectionCounts {
 export interface OutlineOptions {
   /** Bank titles by id, for the dice marker ("draws 20 from <bank>"). */
   bankNames?: ReadonlyMap<string, string>;
+  /** Keys whose children are hidden (`→`/`←`); omitted means the tree is fully expanded. */
+  collapsed?: ReadonlySet<string>;
 }
 
 /** The flattened tree, in visual order. */
@@ -90,12 +94,14 @@ export function flattenOutline(
     label: isObject(script) && typeof script['name'] === 'string' ? script['name'] : S.editor.scriptWord,
     secondary: fillTemplate(S.outline.sectionsCount, {count: sections.length}),
     markers: {warning: hasWarning(findings, '')},
+    hasChildren: sections.length > 0,
     search: '',
   });
 
   sections.forEach((section, sectionIndex) => {
     const sectionKey = `s${sectionIndex}`;
     const counts = sectionCounts(section);
+    const groups = arrayOf(isObject(section) ? section['groups'] : undefined);
     rows.push({
       key: sectionKey,
       parentKey: 'script',
@@ -110,10 +116,10 @@ export function flattenOutline(
         training: isObject(section) && section['training'] === true,
         warning: hasWarning(findings, `sections[${sectionIndex}]`),
       },
+      hasChildren: groups.length > 0,
       search: '',
     });
 
-    const groups = arrayOf(isObject(section) ? section['groups'] : undefined);
     groups.forEach((group, groupIndex) => {
       const groupKey = `${sectionKey}.g${groupIndex}`;
       const groupPath = `sections[${sectionIndex}].groups[${groupIndex}]`;
@@ -136,6 +142,7 @@ export function flattenOutline(
             drawn: {count: Number(bank.count) || 0, bank: bankName},
             warning: hasWarning(findings, groupPath),
           },
+          hasChildren: false,
           search: `${bank.itemcodePrefix ?? ''} ${bankName}`.toLowerCase(),
         });
         return;
@@ -150,6 +157,7 @@ export function flattenOutline(
         label: fillTemplate(S.outline.groupLabel, {n: groupIndex + 1}),
         secondary: fillTemplate(S.outline.itemsCount, {count: items.length}),
         markers: {warning: hasWarning(findings, groupPath)},
+        hasChildren: items.length > 0,
         search: '',
       });
 
@@ -170,13 +178,34 @@ export function flattenOutline(
             playsMedia: itemPlaysMedia(item),
             warning: hasWarning(findings, itemPath),
           },
+          hasChildren: false,
           search: `${isObject(item) ? item['itemcode'] ?? '' : ''} ${prompt}`.toLowerCase(),
         });
       });
     });
   });
 
-  return rows;
+  return hideCollapsed(rows, options.collapsed);
+}
+
+/**
+ * Drops every row whose parent chain reaches a collapsed key. The script row has no parent and is
+ * never hidden; a collapsed row itself stays visible (`→`/`←` need something to focus).
+ */
+export function hideCollapsed(
+  rows: ReadonlyArray<OutlineRow>,
+  collapsed: ReadonlySet<string> | undefined,
+): OutlineRow[] {
+  if (collapsed === undefined || collapsed.size === 0) {
+    return [...rows];
+  }
+  const hidden = new Set<string>();
+  for (const row of rows) {
+    if (row.parentKey !== null && (collapsed.has(row.parentKey) || hidden.has(row.parentKey))) {
+      hidden.add(row.key);
+    }
+  }
+  return rows.filter((row) => !hidden.has(row.key));
 }
 
 /**

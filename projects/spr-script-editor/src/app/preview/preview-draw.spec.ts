@@ -1,5 +1,5 @@
 import type {PrefillBankSource} from 'speechrecorderng';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 import {
   BANK_MOCK_SRC_PREFIX,
   drawSeed,
@@ -33,7 +33,7 @@ describe('preview example draw', () => {
 
   it('takes its entries from the shared example pool, without repeats', () => {
     const draw = exampleDraw(BANK, 'playback', 3, 0, 0, 0, TEMPLATE);
-    const pool = EDITOR_STRINGS.preview.exampleEntries as readonly string[];
+    const pool = PREVIEW_STRINGS.exampleEntries as readonly string[];
 
     expect(draw.every((example) => pool.includes(example.entry))).toBe(true);
     expect(new Set(draw.map((example) => example.entry)).size).toBe(3);
@@ -101,7 +101,7 @@ describe('preview example draw', () => {
     const draw = exampleDraw({...BANK, count: 12}, 'playback', 3, 0, 0, 0, TEMPLATE);
 
     expect(draw).toHaveSize(12);
-    expect(new Set(draw.map((example) => example.entry)).size).toBe(EDITOR_STRINGS.preview.exampleEntries.length);
+    expect(new Set(draw.map((example) => example.entry)).size).toBe(PREVIEW_STRINGS.exampleEntries.length);
     expect(new Set(draw.map((example) => example.itemcode)).size).toBe(12);
   });
 

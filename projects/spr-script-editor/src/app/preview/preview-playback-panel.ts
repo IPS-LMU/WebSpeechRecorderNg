@@ -1,5 +1,5 @@
 import {Component, computed, input, output} from '@angular/core';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 
 /** Which lamps of the traffic light are lit (ui-spec §4: the recorder's three plus playback). */
 export interface Lamps {
@@ -21,20 +21,20 @@ export interface Lamps {
     <div class="playing" [attr.data-active]="level() > 0">
       <div class="level">
         <p class="level-label" aria-hidden="true">
-          {{ strings.preview.levelValue }} {{ level() }}{{ strings.preview.percent }}
+          {{ strings.levelValue }} {{ level() }}{{ strings.percent }}
         </p>
         <div class="level-meter" aria-hidden="true">
           @for (segment of segments; track segment) {
             <span class="level-segment" [class.lit]="segment < litSegments()"></span>
           }
         </div>
-        <p class="level-caption">{{ strings.preview.levelLabel }}</p>
+        <p class="level-caption">{{ strings.levelLabel }}</p>
       </div>
       <div class="replay">
         <button type="button" [disabled]="!canReplay()" [title]="replayTitle()" (click)="replay.emit()">
-          {{ strings.preview.replay }}
+          {{ strings.replay }}
         </button>
-        <p class="replay-count">{{ strings.preview.replaysUsed }}: {{ replayCount() }}</p>
+        <p class="replay-count">{{ strings.replaysUsed }}: {{ replayCount() }}</p>
       </div>
     </div>
 
@@ -48,7 +48,7 @@ export interface Lamps {
         <div class="housing housing-playback" aria-hidden="true">
           <span class="lamp lamp-playback" [class.lit]="lamps().playback"></span>
         </div>
-        <p class="lamp-caption">{{ strings.preview.lampPlayback }}</p>
+        <p class="lamp-caption">{{ strings.lampPlayback }}</p>
       </div>
       <p class="status" role="status" aria-live="polite">{{ status() }}</p>
     </div>
@@ -195,7 +195,7 @@ export interface Lamps {
   `],
 })
 export class PreviewPlaybackPanel {
-  readonly strings = EDITOR_STRINGS;
+  readonly strings = PREVIEW_STRINGS;
   readonly segments = Array.from({length: 12}, (_, index) => index);
   readonly litSegments = computed(() => Math.round((this.level() / 100) * this.segments.length));
 

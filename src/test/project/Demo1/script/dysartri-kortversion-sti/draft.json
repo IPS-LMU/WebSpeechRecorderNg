@@ -1,0 +1,337 @@
+{
+  "type": "script",
+  "scriptId": "dysartri-kortversion-sti",
+  "name": "Kortversion av dysartribedömning",
+  "virtualViewBox": {
+    "height": 600
+  },
+  "sections": [
+    {
+      "name": "Kortversion av dysartribedömning",
+      "mode": "MANUAL",
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "1",
+              "prerecdelay": 800,
+              "recduration": 30000,
+              "recinstructions": {
+                "recinstructions": "Svara:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Kan du berätta för mig om dina talproblem?"
+                }
+              ]
+            },
+            {
+              "itemcode": "2",
+              "prerecdelay": 800,
+              "recduration": 15000,
+              "recinstructions": {
+                "recinstructions": "Håll ut så länge som möjligt:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "s"
+                }
+              ]
+            },
+            {
+              "itemcode": "3",
+              "prerecdelay": 800,
+              "recduration": 15000,
+              "recinstructions": {
+                "recinstructions": "Håll ut så länge som möjligt:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "a"
+                }
+              ]
+            },
+            {
+              "itemcode": "4a",
+              "prerecdelay": 800,
+              "recduration": 8000,
+              "recinstructions": {
+                "recinstructions": "Upprepa så snabbt och jämnt som möjligt:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "pa-pa-pa"
+                }
+              ]
+            },
+            {
+              "itemcode": "4b",
+              "prerecdelay": 800,
+              "recduration": 8000,
+              "recinstructions": {
+                "recinstructions": "Upprepa så snabbt och jämnt som möjligt:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "ka-ka-ka"
+                }
+              ]
+            },
+            {
+              "itemcode": "4c",
+              "prerecdelay": 800,
+              "recduration": 8000,
+              "recinstructions": {
+                "recinstructions": "Upprepa så snabbt och jämnt som möjligt:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "pa-ta-ka-pa-ta-ka"
+                }
+              ]
+            },
+            {
+              "itemcode": "5a",
+              "prerecdelay": 800,
+              "recduration": 4000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Pappa målar bilen."
+                }
+              ]
+            },
+            {
+              "itemcode": "5b",
+              "prerecdelay": 800,
+              "recduration": 4000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "En fin västanvind."
+                }
+              ]
+            },
+            {
+              "itemcode": "5c",
+              "prerecdelay": 800,
+              "recduration": 4000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Damen sitter på tåget."
+                }
+              ]
+            },
+            {
+              "itemcode": "5d",
+              "prerecdelay": 800,
+              "recduration": 4000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Sjömannen jämrade sig av köld."
+                }
+              ]
+            },
+            {
+              "itemcode": "5e",
+              "prerecdelay": 800,
+              "recduration": 4000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Goda kakor åt hungriga magar."
+                }
+              ]
+            },
+            {
+              "itemcode": "5f",
+              "prerecdelay": 800,
+              "recduration": 6000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Sven skrattade när den spräckliga katten strök förbi stugknuten för fjärde gången."
+                }
+              ]
+            },
+            {
+              "itemcode": "5g",
+              "prerecdelay": 800,
+              "recduration": 4000,
+              "recinstructions": {
+                "recinstructions": "Läs (eller upprepa):"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Isen låg länge ute på sjön förra våren."
+                }
+              ]
+            },
+            {
+              "itemcode": "6",
+              "prerecdelay": 800,
+              "recduration": 30000,
+              "recinstructions": {
+                "recinstructions": "Instruktion: Läs lista med ord ur STI"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Instruktion: Läs lista med ord ur STI"
+                }
+              ],
+              "prefill": {
+                "source": "sti-wordlists",
+                "select": "random",
+                "itemcodeFormat": "6.{n}",
+                "recinstructions": "Läs ordet",
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+                    "text": "{entry}"
+                  }
+                ]
+              }
+            },
+            {
+              "itemcode": "7",
+              "prerecdelay": 800,
+              "recduration": 30000,
+              "recinstructions": {
+                "recinstructions": "Instruktion: Läs lista med meningar ur STI"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/plain",
+                  "text": "Instruktion: Läs lista med meningar ur STI"
+                }
+              ],
+              "prefill": {
+                "source": "sti-sentencelists",
+                "select": "random",
+                "itemcodeFormat": "7.{n}",
+                "recinstructions": "Läs meningen",
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+                    "text": "{entry}"
+                  }
+                ]
+              }
+            },
+            {
+              "itemcode": "8",
+              "prerecdelay": 800,
+              "recduration": 45000,
+              "recinstructions": {
+                "recinstructions": "Läs:"
+              },
+              "mediaitems": [
+                {
+                  "mimetype": "text/x-prompt",
+                  "promptDoc": {
+                    "body": {
+                      "blocks": [
+                        {
+                          "type": "p",
+                          "texts": [
+                            {
+                              "type": "text",
+                              "text": "Ett svårt fall"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "p",
+                          "texts": [
+                            {
+                              "type": "text",
+                              "text": "En pojke kom en dag inspringande på en bondgård och undrade om han kunde få låna en spade."
+                            },
+                            {
+                              "type": "linebreak"
+                            },
+                            {
+                              "type": "text",
+                              "text": "Bonden frågade vad han skulle ha spaden till."
+                            },
+                            {
+                              "type": "linebreak"
+                            },
+                            {
+                              "type": "text",
+                              "text": "Pojken svarade att hans bror hade ramlat ner i ett träsk och att han måste gräva upp honom."
+                            }
+                          ]
+                        },
+                        {
+                          "type": "p",
+                          "texts": [
+                            {
+                              "type": "text",
+                              "text": "”Hur djupt har han ramlat i?” frågade bonden."
+                            },
+                            {
+                              "type": "linebreak"
+                            },
+                            {
+                              "type": "text",
+                              "text": "”Upp till vristerna”, blev svaret."
+                            },
+                            {
+                              "type": "linebreak"
+                            },
+                            {
+                              "type": "text",
+                              "text": "”Men då kan han väl gå därifrån utan din hjälp, så då behöver du väl ingen spade?” Pojken såg förtvivlad ut och sa:"
+                            },
+                            {
+                              "type": "linebreak"
+                            },
+                            {
+                              "type": "text",
+                              "text": "”Jo, ni förstår, han ramlade i med huvudet före.”"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

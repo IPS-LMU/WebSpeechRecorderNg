@@ -1,7 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {Inject, Injectable} from '@angular/core';
-import {SPEECHRECORDER_CONFIG, Script, SpeechRecorderConfig} from 'speechrecorderng';
-import {map, Observable} from 'rxjs';
+import {SPEECHRECORDER_CONFIG, Script, SpeechRecorderConfig, minRecorderVersionFor} from 'speechrecorderng';
+import {map, Observable, switchMap} from 'rxjs';
 import {apiPath, normaliseApiEndPoint, projectPath, QueryParam, withQuery} from './api-base';
 import {RecorderVersion, ScriptSummary} from './script.model';
 
@@ -18,6 +18,48 @@ export interface DraftWriteResult {
   scriptId: string | number;
   draftVersion: number;
   etag: string;
+}
+
+/** `POST …/publish` (rest-api.md §2.4). */
+export interface PublishResult {
+  version: number;
+  publishedDate?: string;
+  minRecorderVersion?: string | null;
+}
+
+/** One row of `GET …/version` (rest-api.md §2.5). */
+export interface ScriptVersion {
+  version: number;
+  publishedDate?: string;
+  publishedBy?: string;
+  note?: string;
+  /** Session count is joined from the library list's `sessions.byVersion` (D5), not this endpoint. */
+  sessions?: number;
+}
+
+/** `POST …/script` (rest-api.md §2.2). The receiver returns ids and the `ETag`, not the body. */
+export interface CreateScriptResult {
+  scriptId: string | number;
+  draftVersion: number;
+  etag: string;
+}
+
+/** The metadata `PATCH …/script/{id}` changes (rest-api.md §2.6). */
+export interface ScriptPatch {
+  name?: string;
+  archived?: boolean;
+}
+
+/** The publisher's note and the exact draft the publish must freeze (rest-api.md §2.4). */
+export interface PublishBody {
+  fromDraftEtag: string;
+  note?: string;
+}
+
+/** `POST …/script` body; `from` duplicates an existing script (rest-api.md §2.2). */
+export interface CreateScriptBody {
+  name?: string;
+  from?: {scriptId: string | number; version?: number};
 }
 
 /**
@@ -79,6 +121,68 @@ export class ScriptApiService {
       withCredentials: this.withCredentials,
       headers,
     });
+  }
+
+  /**
+   * `POST project/{p}/script/{id}/publish` (rest-api.md §2.4). `fromDraftEtag` is the publisher's
+   * `If-Match`: the server freezes exactly that draft or answers `409` with `details.checks`
+   * (errors) or `FEATURE_FLOOR_UNKNOWN`.
+   */
+  publish(projectId: string, scriptId: string | number, body: PublishBody): Observable<PublishResult> {
+    const url = projectPath(this.base, projectId, 'script', scriptId, 'publish');
+    return this.http.post<PublishResult>(url, body, {withCredentials: this.withCredentials});
+  }
+
+  /** `GET project/{p}/script/{id}/version` — the version index, newest first. */
+  versions(projectId: string, scriptId: string | number): Observable<ScriptVersion[]> {
+    return this.get<ScriptVersion[]>(projectPath(this.base, projectId, 'script', scriptId, 'version'));
+  }
+
+  /** `GET project/{p}/script/{id}/version/{n}` — one published version. */
+  publishedVersion(projectId: string, scriptId: string | number, n: number | string): Observable<Script> {
+    return this.get<Script>(projectPath(this.base, projectId, 'script', scriptId, 'version', n));
+  }
+
+  /**
+   * `POST …/draft/_restore {version}` with `If-Match` (rest-api.md §2.5). The receiver answers
+   * `{scriptId, draftVersion, etag}` — rest-api claims it echoes the draft, it does not — so a
+   * follow-up `GET draft` supplies the bytes the draft service adopts.
+   */
+  restoreVersion(projectId: string, scriptId: string | number, version: number | string, ifMatch: string | null): Observable<DraftReadResult> {
+    const url = projectPath(this.base, projectId, 'script', scriptId, 'draft', '_restore');
+    const headers: Record<string, string> = {'Content-Type': 'application/json'};
+    if (ifMatch !== null && ifMatch !== '') {
+      headers['If-Match'] = ifMatch;
+    }
+    return this.http.post<CreateScriptResult>(url, {version}, {headers, withCredentials: this.withCredentials}).pipe(
+      switchMap(() => this.readDraft(projectId, scriptId)),
+    );
+  }
+
+  /** `PATCH project/{p}/script/{id}` — name and/or archive flag (rest-api.md §2.6). */
+  patchScript(projectId: string, scriptId: string | number, patch: ScriptPatch): Observable<ScriptSummary> {
+    const url = projectPath(this.base, projectId, 'script', scriptId);
+    return this.http.patch<ScriptSummary>(url, patch, {withCredentials: this.withCredentials});
+  }
+
+  /** `POST project/{p}/script` — a new draft, optionally duplicated from `from` (rest-api.md §2.2). */
+  createScript(projectId: string, body: CreateScriptBody = {}): Observable<CreateScriptResult> {
+    return this.http.post<CreateScriptResult>(projectPath(this.base, projectId, 'script'), body, {
+      withCredentials: this.withCredentials,
+    });
+  }
+
+  /** `POST` with `{from}` — rest-api.md §2.2's duplicate. */
+  duplicate(projectId: string, from: {scriptId: string | number; version?: number}, name?: string): Observable<CreateScriptResult> {
+    return this.createScript(projectId, name === undefined ? {from} : {name, from});
+  }
+
+  /**
+   * The feature floor the draft needs, from the library's `minRecorderVersionFor`/`FEATURE_VERSIONS`
+   * (script-api consumers must never re-derive the table); `null` when no feature has a floor.
+   */
+  minRecorderVersion(script: unknown): string | null {
+    return minRecorderVersionFor(script as Script | null | undefined);
   }
 
   private get<T>(url: string, params?: QueryParam[]): Observable<T> {

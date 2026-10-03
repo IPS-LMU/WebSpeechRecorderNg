@@ -1,0 +1,30 @@
+<table class="draws-table">
+  <caption>{{ strings.tableCaption }}</caption>
+  <thead>
+    <tr>
+      <th scope="col">{{ strings.colSession }}</th>
+      <th scope="col">{{ strings.colSpeaker }}</th>
+      <th scope="col">{{ strings.colStatus }}</th>
+      <th scope="col" class="num">{{ strings.colDrawn }}</th>
+      <th scope="col" class="num">{{ strings.colRecorded }}</th>
+      <th scope="col">{{ strings.colItems }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (row of rows(); track row.sessionId + '|' + (row.bank ?? '')) {
+      <tr [attr.aria-current]="row.sessionId === selectedId() ? 'true' : null">
+        <td>
+          <button type="button" class="row-select" (click)="select.emit(row.sessionId)">{{ row.sessionId }}</button>
+          @if (row.preview) {
+            <span class="chip chip-preview" [title]="strings.previewTitle">{{ strings.previewChip }}</span>
+          }
+        </td>
+        <td>{{ speakerLabel(row.speaker) || strings.speakerUnknown }}</td>
+        <td><span class="chip">{{ strings.status[statusKind(row.status)] }}</span></td>
+        <td class="num">{{ row.drawn }}</td>
+        <td class="num">{{ row.recorded }}</td>
+        <td class="itemcodes">{{ itemcodes(row.items) }}</td>
+      </tr>
+    }
+  </tbody>
+</table>

@@ -12,4 +12,6 @@ export const environment = {
   apiType: 'files',
   apiEndPoint: 'test',
   apiVersion: 1,
+  /** Tier 2 is disabled in fixture mode; a normal-mode dev run points this at the receiver. */
+  recorderBaseUrl: '',
 };

@@ -100,3 +100,44 @@ describe('outline: section counts', () => {
     expect(sectionCounts(script.sections[1])).toEqual({fixed: 0, drawn: 3});
   });
 });
+
+describe('outline: collapse state', () => {
+  const script3 = {
+    name: 'Demo',
+    sections: [
+      {name: 'One', mode: 'MANUAL', groups: [{promptItems: [{itemcode: 'A'}, {itemcode: 'B'}]}]},
+      {name: 'Two', mode: 'MANUAL', groups: [{promptItems: [{itemcode: 'C'}]}]},
+    ],
+  };
+
+  it('marks the rows that can and cannot be expanded', () => {
+    const rows = flattenOutline(script3);
+    const byKey = new Map(rows.map((row) => [row.key, row]));
+    expect(byKey.get('script')?.hasChildren).toBe(true);
+    expect(byKey.get('s0')?.hasChildren).toBe(true);
+    expect(byKey.get('s0.g0')?.hasChildren).toBe(true);
+    expect(byKey.get('s0.g0.i0')?.hasChildren).toBe(false);
+  });
+
+  it('hides the whole subtree of a collapsed key, but keeps the key itself', () => {
+    const rows = flattenOutline(script3, [], {collapsed: new Set(['s0'])});
+    expect(rows.map((row) => row.key)).toEqual(['script', 's0', 's1', 's1.g0', 's1.g0.i0']);
+  });
+
+  it('hides nested subtrees when a deep key is collapsed', () => {
+    const rows = flattenOutline(script3, [], {collapsed: new Set(['s0.g0'])});
+    expect(rows.map((row) => row.key)).toEqual(['script', 's0', 's0.g0', 's1', 's1.g0', 's1.g0.i0']);
+  });
+
+  it('returns the full tree for an empty or absent collapsed set', () => {
+    const full = flattenOutline(script3);
+    expect(flattenOutline(script3, [], {collapsed: new Set()})).toEqual(full);
+    expect(flattenOutline(script3, [], {})).toEqual(full);
+  });
+
+  it('never hides the script row, which has no parent', () => {
+    const rows = flattenOutline(script3, [], {collapsed: new Set(['script'])});
+    expect(rows[0].key).toBe('script');
+    expect(rows.some((row) => row.key === 's0')).toBe(false);
+  });
+});

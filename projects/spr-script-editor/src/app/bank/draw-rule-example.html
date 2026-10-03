@@ -1,0 +1,15 @@
+<section class="example" aria-labelledby="example-heading">
+  <h3 id="example-heading">{{ catalogue.centre.exampleTitle }}</h3>
+  <p class="note">{{ catalogue.centre.exampleNote }}</p>
+  <p class="note">{{ strings.rule.exampleIgnores }}</p>
+  @if (example().length > 0) {
+    <ol class="example-list">
+      @for (item of example(); track item.bankItemId) {
+        <li><code>{{ item.itemcode }}</code> <span class="example-text">{{ item.text }}</span></li>
+      }
+    </ol>
+  } @else {
+    <p class="empty">{{ catalogue.centre.exampleEmpty }}</p>
+  }
+  <button type="button" (click)="drawAnother.emit()">{{ catalogue.centre.drawAnother }}</button>
+</section>

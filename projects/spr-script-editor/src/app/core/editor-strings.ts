@@ -1,11 +1,13 @@
 /**
- * Every user-visible string the editor introduces, in one place, so a later i18n retrofit is a
- * mechanical change (plan M2: "keep strings centralised from M2"). No i18n framework and no locale
- * switching yet — just named constants grouped by screen.
+ * The strings of the screens whose components live in `app/library`, `app/shell`, `app/editor` and
+ * `app/core/validation`, in one place, so a later i18n retrofit is a mechanical change. No i18n
+ * framework and no locale switching yet — just named constants grouped by screen.
  *
- * Ownership: E1 owns this file. Later slices **append** their own group (E2's `inspector`,
- * `outline`, `preview`, …) and never rewrite an existing one; coordinate with a short message so
- * two agents do not clobber each other.
+ * Adding strings: a new screen keeps its own module beside its components (for example
+ * `app/preview/preview-strings.ts`, `app/source/source-strings.ts`) exporting one `…_STRINGS`
+ * object in this style, rather than appending a group here — two slices appending to this file at
+ * once is how the tree got broken once. Groups that already live here stay here; reading is always
+ * fine.
  */
 import type {ScriptStatus} from './script.model';
 
@@ -50,6 +52,10 @@ export const EDITOR_STRINGS = {
     columnSectionsItems: 'Sections / items',
     columnUpdated: 'Updated',
     columnStatus: 'Status',
+    columnUsage: 'Usage',
+    usageNone: '—',
+    sessionsWord: 'sessions',
+    versionPrefix: 'v',
     columnActions: 'Actions',
     idPrefix: '#',
     countSeparator: '·',
@@ -414,108 +420,5 @@ export const EDITOR_STRINGS = {
         POST_RECORDING: 'the post-recording delay',
       },
     },
-  },
-
-  /**
-   * Preview, tier 1 (ui-spec §4). Appended by E2; the file stays append-only.
-   *
-   * `exampleEntries` is mock content rather than chrome: tier 1 generates its drawn items locally
-   * (ui-spec §4 — "an editor-side mock, instant, no server"), so these stand in for the bank
-   * entries a real draw would have produced.
-   */
-  preview: {
-    title: 'Preview',
-    subtitle: 'Tier 1 · a mock of the recorder screen; the recorder is not started',
-    nothingRecorded: 'Nothing is recorded or uploaded',
-    nothingRecordedBody: 'This screen only draws what the recorder would do. No microphone is opened, no session is created and no file leaves the browser.',
-    dryRun: 'Open the tier-2 dry run',
-    dryRunTitle: 'M4 owns the tier-2 dry run (POST project/{p}/script/{id}/preview-session). Until then this button is disabled.',
-    loading: 'Loading the script…',
-    loadErrorPrefix: 'The script could not be loaded.',
-    empty: 'This script has no items, so there is nothing to preview.',
-    sectionOne: 'Section',
-    groupOne: 'Group',
-    itemOne: 'Item',
-    drawnGroupLabel: 'Drawn group',
-    fromWord: 'from',
-    itemsWord: 'items',
-    drawnWord: 'drawn',
-    ofWord: 'of',
-    practice: 'Practice',
-    drawnItem: 'Drawn item',
-    drawnGroup: 'Drawn group',
-    headphones: 'This section asks the speaker to put on headphones.',
-    stageLabel: 'Prompt stage',
-    stageEmpty: 'This item declares no prompt content.',
-    stageAudio: 'Playback',
-    stageAudioMissing: 'Playback file not found',
-    stageAudioNoSrc: 'Playback file missing (the item declares no file)',
-    stageBankAudio: 'Bank model recording — resolved when the session runs',
-    stageBankAudioAlt: 'Bank model recording',
-    stageImage: 'Image',
-    stageUnsupported: 'Unsupported media type',
-    stageDurationUnknown: 'duration unknown',
-    msWord: 'ms',
-    trafficLabel: 'Traffic light',
-    lampPlayback: 'Playback',
-    lampHold: 'Stop',
-    lampCue: 'Get ready',
-    lampLive: 'Recording',
-    lampOff: 'Off',
-    levelLabel: 'Input level',
-    levelValue: 'Level',
-    percent: '%',
-    replay: 'Replay the prompt sound',
-    replayTitle: 'Play the item sound again; the mock only moves the simulated step.',
-    replayLimitTitle: 'The item caps its replays and they are all used.',
-    replaysUsed: 'Replays used',
-    replaysUnlimited: 'unlimited',
-    stepsLabel: 'Step simulation',
-    stepIdle: 'Idle',
-    stepListening: 'Listening',
-    stepPreRec: 'Pre-rec',
-    stepRecording: 'Recording',
-    stepPostRec: 'Post-rec',
-    stepBlockNotRecorded: 'The item is not recorded: it shows its prompt and moves on.',
-    stepBlockNoSound: 'The item has no prompt sound.',
-    stepBlockOnDemand: 'The sound is played only when the operator asks for it.',
-    stepPromptVisible: 'Prompt on the stage',
-    stepPromptHidden: 'Prompt cleared',
-    stepSoundPlays: 'Sound plays',
-    stepSoundSilent: 'No sound',
-    statusIdle: 'Waiting to start',
-    statusListening: 'Playing the prompt sound',
-    statusPreRec: 'Pre-recording delay — get ready',
-    statusRecording: 'Recording',
-    statusPostRec: 'Post-recording delay',
-    transportLabel: 'Transport',
-    transportPrevious: 'Previous item',
-    transportPlay: 'Play prompt',
-    transportRecord: 'Record',
-    transportStop: 'Stop',
-    transportNext: 'Next item',
-    transportTitle: 'Mock control: it moves the simulated step. Nothing is recorded.',
-    transportDisabledTitle: 'This control has no target for the selected item.',
-    timingLabel: 'Timing',
-    timingPreRec: 'Pre-rec',
-    timingRecording: 'Recording',
-    timingPostRec: 'Post-rec',
-    timingWindow: 'Window',
-    timingUntilStopped: 'until stopped',
-    timingSound: 'Sound',
-    timingNoSound: 'none',
-    timingClip: 'clip',
-    timingRepeats: 'repeats',
-    timingGap: 'gap',
-    soundWhenWithPrompt: 'before the clocks, which wait for it',
-    soundWhenBefore: 'before the clocks, which wait for it',
-    soundWhenPreRecording: 'in the pre-recording delay, alongside the clocks',
-    soundWhenDuring: 'in the recording window, alongside the clocks',
-    soundWhenOnDemand: 'only when the operator plays it',
-    orderTitle: 'Session order',
-    orderCaption: 'Sections, groups and items in the order a session walks them, with drawn items folded in where the draw happens.',
-    redraw: 'Re-draw',
-    redrawTitle: 'Draw the example again with the next seed. Nothing is fetched: tier 1 generates the example locally.',
-    exampleEntries: ['alpha', 'bravo', 'charlie', 'delta', 'echo', 'foxtrot', 'golf', 'hotel'],
   },
 } as const;

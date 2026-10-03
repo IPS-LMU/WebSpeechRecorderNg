@@ -1,0 +1,53 @@
+:host {
+  display: block;
+}
+
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.finding {
+  padding: 0.4rem 0.5rem;
+  border-left: 4px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+  background: var(--spr-surface-3, #E3EAF3);
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.finding::before {
+  font-weight: 700;
+  margin-right: 0.3rem;
+}
+
+.finding.error {
+  border-left-color: var(--spr-alert, #B3261E);
+  color: var(--spr-alert-ink, #7F1D1D);
+}
+
+.finding.error::before {
+  content: 'Error:';
+}
+
+.finding.warning {
+  border-left-color: var(--spr-alert, #B3261E);
+  color: var(--spr-ink, #1F3044);
+}
+
+.finding.warning::before {
+  content: 'Warning:';
+}
+
+.finding.suspended {
+  border-left-color: var(--spr-ink-muted, #4A6288);
+  color: var(--spr-ink-muted, #4A6288);
+  font-style: italic;
+}
+
+.finding.suspended::before {
+  content: 'Suspended:';
+}

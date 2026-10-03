@@ -1,0 +1,71 @@
+<section class="source" [attr.aria-labelledby]="'source-title'">
+  <header class="source-header">
+    <h1 id="source-title">{{ strings.title }}</h1>
+    <div class="actions">
+      <label class="import">
+        <span>{{ strings.importJson }}</span>
+        <input type="file" accept=".json,application/json" [attr.aria-label]="strings.importHint" (change)="onImport($event)">
+      </label>
+      <button type="button" [title]="strings.downloadTitle" (click)="download()">{{ strings.download }}</button>
+      <button type="button" class="primary" [disabled]="!canPublish()" [title]="publishTitle()"
+              (click)="publish()">{{ strings.publish }}</button>
+    </div>
+  </header>
+
+  @if (publishNote(); as note) {
+    <p class="publish-note" role="status">{{ note }}</p>
+  }
+
+  @if (draft.writesDisabled()) {
+    <p class="read-only-note" role="status">{{ strings.readOnly }}</p>
+  }
+
+  @switch (state()) {
+    @case ('loading') {
+      <p class="state" role="status">{{ strings.loading }}</p>
+    }
+    @case ('error') {
+      <div class="state error" role="alert">
+        <h2>{{ strings.loadErrorTitle }}</h2>
+        <p>{{ strings.loadErrorBody }}</p>
+        <p class="detail">{{ error() }}</p>
+        <a [routerLink]="['/project', project(), 'script', scriptId(), 'edit']">{{ strings.back }}</a>
+      </div>
+    }
+    @default {
+      <div class="panes">
+        <section class="editor-pane" [attr.aria-label]="strings.textLabel">
+          <div class="editor-toolbar">
+            <h2>{{ strings.textLabel }}</h2>
+            <button type="button" [disabled]="!parse().applicable" [title]="strings.formatTitle"
+                    (click)="format()">{{ strings.format }}</button>
+          </div>
+
+          @if (errorText(); as message) {
+            <p class="parse-error" role="alert">{{ message }}</p>
+            <p class="frozen-note">{{ strings.frozenBody }}</p>
+          }
+
+          <div class="code">
+            <div #gutter class="gutter" aria-hidden="true">
+              @for (line of lines(); track line) {
+                <span class="gutter-line" [class.dot]="dotCount(line) > 0" [attr.data-dots]="dotCount(line)"
+                      [attr.title]="dotTitle(line)">{{ line }}</span>
+              }
+            </div>
+            <textarea #area class="text" spellcheck="false" wrap="off"
+                      [value]="sourceText()" (input)="onInput($event)" (scroll)="onScroll()"
+                      [attr.aria-label]="strings.textLabel"
+                      [attr.aria-invalid]="parse().kind === 'ok' ? null : true"></textarea>
+          </div>
+        </section>
+
+        <aside class="checks-pane">
+          <spre-checks-panel [clientFindings]="findings()" [serverFindings]="serverFindings()"
+                              [draft]="model()" [lineOf]="lineOf" [project]="project()"
+                              [scriptId]="scriptId()" (fix)="onFix($event)"></spre-checks-panel>
+        </aside>
+      </div>
+    }
+  }
+</section>

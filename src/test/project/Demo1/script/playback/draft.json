@@ -1,0 +1,138 @@
+{
+  "type": "script",
+  "scriptId": "playback",
+  "name": "Playback: prompt audio placement",
+  "virtualViewBox": {"height": 600},
+  "sections": [
+    {
+      "mode": "MANUAL",
+      "promptphase": "RECORDING",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "P1",
+              "prerecdelay": 500,
+              "recduration": 4000,
+              "postrecdelay": 500,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "The cat sleeps in the sun."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Model sentence"}
+              ],
+              "playback": {"when": "WITH_PROMPT"}
+            },
+            {
+              "itemcode": "P2",
+              "prerecdelay": 500,
+              "recduration": 4000,
+              "postrecdelay": 500,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "The bird sings on the roof."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Model sentence"}
+              ],
+              "playback": {"when": "BEFORE", "repeats": 2, "gap": 500, "headphones": true}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTOPROGRESS",
+      "promptphase": "PRERECORDING",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "P3",
+              "prerecdelay": 1000,
+              "recduration": 5000,
+              "postrecdelay": 500,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "Listen, then repeat the sentence."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Model sentence"}
+              ],
+              "playback": {"when": "PRERECORDING", "headphones": true}
+            },
+            {
+              "itemcode": "P4",
+              "prerecdelay": 500,
+              "recduration": 5000,
+              "postrecdelay": 500,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "Read the sentence while the model plays."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Model sentence"}
+              ],
+              "playback": {"when": "DURING", "replayable": true, "maxReplays": 2}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "AUTORECORDING",
+      "promptphase": "RECORDING",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "P5",
+              "type": "nonrecording",
+              "duration": 2000,
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "Take a short break."},
+                {"mimetype": "audio/wav", "src": "media/model-01.wav", "alt": "Break"}
+              ],
+              "playback": {"when": "ONDEMAND", "replayable": true}
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "MANUAL",
+      "promptphase": "RECORDING",
+      "order": "SEQUENTIAL",
+      "speakerDisplay": true,
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "D",
+              "mediaitems": [
+                {"mimetype": "text/plain", "text": "Repeat the vowel after the model."}
+              ],
+              "prefill": {
+                "bank": {
+                  "bank": "std-passages",
+                  "bankSource": "BUILTIN",
+                  "filter": {"category": "vowel", "hasAudio": true},
+                  "count": 2,
+                  "order": "SEQUENTIAL",
+                  "fixedBy": "SESSION",
+                  "itemcodePrefix": "D",
+                  "playBankAudio": true,
+                  "playback": {"when": "DURING", "replayable": true, "maxReplays": 1},
+                  "itemDefaults": {"prerecdelay": 1000, "recduration": 5000, "postrecdelay": 500}
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

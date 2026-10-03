@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.example {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: var(--spr-r-sm, 6px);
+  border: 1px dashed var(--spr-divider, #E4E9F0);
+  border-radius: var(--spr-r-sm, 6px);
+}
+
+h3 {
+  margin: var(--spr-r-sm, 6px) 0 0;
+  font-size: var(--spr-type-label, 14.4px);
+  color: var(--spr-ink-strong, #1C3660);
+}
+
+.note {
+  margin: 0 0 0.4rem;
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #4A6288);
+}
+
+.example-list {
+  margin: 0;
+  padding-left: 1.4rem;
+  font-size: var(--spr-type-body, 16px);
+}
+
+.example-list code {
+  color: var(--spr-primary, #2A4765);
+  font-weight: 500;
+}
+
+.empty {
+  margin: 0;
+  color: var(--spr-ink-muted, #4A6288);
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+button {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font-family: inherit;
+  font-size: var(--spr-type-body, 16px);
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+  background: var(--spr-surface, #FFFFFF);
+  color: var(--spr-primary, #2A4765);
+  cursor: pointer;
+}

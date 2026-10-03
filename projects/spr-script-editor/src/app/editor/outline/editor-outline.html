@@ -1,8 +1,8 @@
-<section class="outline" [attr.aria-label]="strings.editor.outlineRegion">
+<section class="outline" cdkDropListGroup [attr.aria-label]="strings.editor.outlineRegion">
   <div class="filter-row">
-    <label class="filter">
+    <label class="filter" [title]="outlineStrings.filterHint">
       <span>{{ strings.outline.filterLabel }}</span>
-      <input type="search" autocomplete="off" [placeholder]="strings.outline.filterPlaceholder"
+      <input type="search" #filterInput autocomplete="off" [placeholder]="strings.outline.filterPlaceholder"
              [value]="filter()" (input)="onFilterInput($any($event.target).value)">
     </label>
     @if (filter() !== '') {
@@ -15,6 +15,7 @@
     <p class="no-match" role="status">{{ strings.outline.noMatch }}</p>
   } @else {
     <div class="list" role="tree" [attr.aria-label]="strings.outline.virtualScrollLabel"
+         cdkDropList [cdkDropListDisabled]="dragDisabled()" (cdkDropListDropped)="onDrop($event)"
          (keydown)="onKeydown($event)">
       @if (virtual()) {
         <cdk-virtual-scroll-viewport itemSize="64" class="viewport">
@@ -32,9 +33,32 @@
 </section>
 
 <ng-template #rowTpl let-row>
-  <div class="row" [style.padding-left.px]="row.level * 16">
+  <div class="row" [style.padding-left.px]="row.level * 16"
+       cdkDrag [cdkDragData]="row.selection" [cdkDragDisabled]="dragDisabled()">
+    <span class="grip" cdkDragHandle aria-hidden="true" [class.disabled]="dragDisabled()">
+      <svg viewBox="0 0 8 14" width="8" height="14" aria-hidden="true">
+        <g fill="currentColor">
+          <circle cx="2" cy="3" r="1.2"/><circle cx="6" cy="3" r="1.2"/>
+          <circle cx="2" cy="7" r="1.2"/><circle cx="6" cy="7" r="1.2"/>
+          <circle cx="2" cy="11" r="1.2"/><circle cx="6" cy="11" r="1.2"/>
+        </g>
+      </svg>
+    </span>
+    @if (row.hasChildren) {
+      <button type="button" class="twisty" [attr.aria-expanded]="!isCollapsed(row)"
+              [attr.aria-label]="expandLabel(row)" [title]="expandLabel(row)" (click)="toggleRow(row)">
+        <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+          @if (isCollapsed(row)) {
+            <path d="M4 2l4 4-4 4z" fill="currentColor"/>
+          } @else {
+            <path d="M2 4l4 4 4-4z" fill="currentColor"/>
+          }
+        </svg>
+      </button>
+    }
     <button type="button" class="row-main" [id]="rowId(row)"
             [attr.aria-current]="isCurrent(row) ? 'true' : null"
+            [attr.aria-expanded]="row.hasChildren ? !isCollapsed(row) : null"
             [tabindex]="focusKey() === row.key ? 0 : -1"
             (click)="choose(row)" (focus)="focusKey.set(row.key)">
       <span class="row-label">{{ row.label }}</span>
@@ -77,10 +101,17 @@
       </span>
     </button>
     <span class="reorder">
-      <button type="button" [disabled]="true" [title]="strings.outline.reorderTitle"
-              [attr.aria-label]="strings.outline.moveUp">↑</button>
-      <button type="button" [disabled]="true" [title]="strings.outline.reorderTitle"
-              [attr.aria-label]="strings.outline.moveDown">↓</button>
+      <button type="button" class="move" [disabled]="!canMove(row, -1)" [title]="strings.outline.moveUp"
+              [attr.aria-label]="strings.outline.moveUp" (click)="moveRow(row, -1)">↑</button>
+      <button type="button" class="move" [disabled]="!canMove(row, 1)" [title]="strings.outline.moveDown"
+              [attr.aria-label]="strings.outline.moveDown" (click)="moveRow(row, 1)">↓</button>
+      <button type="button" class="remove" [disabled]="!canDelete(row)" [title]="deleteTitle(row)"
+              [attr.aria-label]="deleteAria(row)" (click)="deleteRow(row)">
+        <svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">
+          <path d="M2.5 4h9M5.5 4V2.5h3V4M3.5 4l.7 8h5.6l.7-8" fill="none" stroke="currentColor"
+                stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
     </span>
   </div>
 </ng-template>

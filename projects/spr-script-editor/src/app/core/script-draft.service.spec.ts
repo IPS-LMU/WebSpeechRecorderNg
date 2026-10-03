@@ -297,4 +297,43 @@ describe('ScriptDraftService', () => {
     expectDraft(http, 'PUT').flush(WRITE_OK);
     tick();
   }));
+
+  it('hands out a new model reference after an edit so screens re-render', fakeAsync(() => {
+    const {service, http} = setup();
+    loadDraft(service, http);
+
+    const before = service.model();
+    service.setValue('script.name', ['name'], 'edited');
+    const after = service.model();
+
+    // The service edits `rawModel` in place; without a fresh top-level object a computed would
+    // never see the change (outline rows, markers and the shell's name all read `model()`).
+    expect(after).not.toBe(before);
+    expect(after?.name).toBe('edited');
+    expect(before?.name).toBe('x');
+
+    void service.flush();
+    expectDraft(http, 'PUT').flush(WRITE_OK);
+    tick();
+  }));
+
+  it('restores a version by adopting the re-read draft bytes and validator', fakeAsync(() => {
+    const {service, http} = setup();
+    loadDraft(service, http, DRAFT, ETAG_A);
+
+    void service.restoreVersion(3);
+
+    const restore = http.expectOne((request) => request.method === 'POST' && pathOf(request.urlWithParams).endsWith('/script/1/draft/_restore'));
+    expect(restore.request.headers.get('If-Match')).toBe(ETAG_A);
+    expect(restore.request.body).toEqual({version: 3});
+    restore.flush({scriptId: 1, draftVersion: 9, etag: '"B"'});
+
+    const read = http.expectOne((request) => request.method === 'GET' && pathOf(request.urlWithParams).endsWith('/script/1/draft'));
+    read.flush('{"name":"restored","sections":[]}', {headers: {ETag: '"B"'}});
+    tick();
+
+    expect(service.model()?.name).toBe('restored');
+    expect(service.etag()).toBe('"B"');
+    expect(service.dirty()).toBe(false);
+  }));
 });

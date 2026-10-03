@@ -1,0 +1,140 @@
+:host {
+  display: block;
+  min-height: 0;
+  padding: var(--spr-r-lg, 14px);
+  color: var(--spr-ink, #1B1B1F);
+  background: var(--spr-page, #F6F5F1);
+}
+
+.draws {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spr-r-md, 12px);
+  max-width: 1100px;
+}
+
+.draws-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spr-r-md, 12px);
+  flex-wrap: wrap;
+}
+
+.draws-head h1 {
+  margin: 0;
+  font-size: var(--spr-type-title, 20px);
+  color: var(--spr-ink-strong, #111114);
+}
+
+.script-name {
+  color: var(--spr-ink-muted, #5C5C66);
+  font-weight: 400;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #5C5C66);
+}
+
+.actions {
+  display: flex;
+  gap: var(--spr-r-sm, 6px);
+  flex-wrap: wrap;
+}
+
+button {
+  min-height: 44px;
+  padding: 0 var(--spr-r-md, 12px);
+  border: 1px solid var(--spr-border, #D6D3CC);
+  border-radius: var(--spr-r-md, 12px);
+  background: var(--spr-surface, #FFFFFF);
+  color: var(--spr-ink, #1B1B1F);
+  font: inherit;
+  font-size: var(--spr-type-label, 14.4px);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--spr-chrome-hover, #EFEDE8);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  color: var(--spr-ink-muted, #5C5C66);
+}
+
+button.download {
+  background: var(--spr-primary, #3B5BDB);
+  border-color: var(--spr-primary, #3B5BDB);
+  color: var(--spr-primary-ink, #FFFFFF);
+}
+
+.fixed-note {
+  margin: 0;
+  padding: var(--spr-r-md, 12px);
+  border-left: 3px solid var(--spr-primary, #3B5BDB);
+  border-radius: var(--spr-r-sm, 6px);
+  background: var(--spr-surface-3, #F0EEE9);
+  font-size: var(--spr-type-label, 14.4px);
+  color: var(--spr-ink, #1B1B1F);
+}
+
+.field,
+.preview-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spr-r-sm, 6px);
+  font-size: var(--spr-type-label, 14.4px);
+}
+
+.script-picker select {
+  min-height: 44px;
+  padding: 0 var(--spr-r-sm, 6px);
+  border: 1px solid var(--spr-border, #D6D3CC);
+  border-radius: var(--spr-r-sm, 6px);
+  background: var(--spr-surface, #FFFFFF);
+  color: var(--spr-ink, #1B1B1F);
+  font: inherit;
+}
+
+.preview-toggle input {
+  width: 20px;
+  height: 20px;
+}
+
+.hint {
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #5C5C66);
+}
+
+.state {
+  margin: 0;
+  font-size: var(--spr-type-body, 16px);
+}
+
+.state-error {
+  color: var(--spr-alert-ink, #8A1C1C);
+}
+
+.redraw-reason {
+  margin: 0;
+  padding: var(--spr-r-sm, 6px) var(--spr-r-md, 12px);
+  border-radius: var(--spr-r-sm, 6px);
+  background: var(--spr-surface-3, #F0EEE9);
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #5C5C66);
+}
+
+.redraw-message {
+  margin: 0;
+  font-size: var(--spr-type-caption, 13.6px);
+}
+
+.skeleton-row {
+  height: 44px;
+  margin: 0 0 var(--spr-r-sm, 6px);
+  border-radius: var(--spr-r-sm, 6px);
+  background: linear-gradient(90deg, var(--spr-surface-3, #F0EEE9), var(--spr-chrome, #E7E4DE), var(--spr-surface-3, #F0EEE9));
+}

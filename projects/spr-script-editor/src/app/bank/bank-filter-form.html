@@ -1,0 +1,48 @@
+<fieldset [class]="'filter ' + variant()">
+  <legend>{{ legend() }}</legend>
+  @if (hint() !== '') {
+    <p class="hint">{{ hint() }}</p>
+  }
+  <div class="filter-grid">
+    <div class="field">
+      <label [attr.for]="idPrefix() + '-category'">{{ strings.filter.category }}</label>
+      <input [attr.id]="idPrefix() + '-category'" type="text" [value]="fields().category"
+             [attr.placeholder]="strings.filter.categoryPlaceholder"
+             (input)="set('category', $any($event.target).value)">
+    </div>
+    <div class="field">
+      <label [attr.for]="idPrefix() + '-min'">{{ strings.filter.minWords }}</label>
+      <input [attr.id]="idPrefix() + '-min'" type="number" min="0" step="1" [value]="fields().minWords"
+             (input)="set('minWords', $any($event.target).value)">
+    </div>
+    <div class="field">
+      <label [attr.for]="idPrefix() + '-max'">{{ strings.filter.maxWords }}</label>
+      <input [attr.id]="idPrefix() + '-max'" type="number" min="0" step="1" [value]="fields().maxWords"
+             (input)="set('maxWords', $any($event.target).value)">
+    </div>
+    <div class="field">
+      <label [attr.for]="idPrefix() + '-audio'">{{ strings.filter.audio }}</label>
+      <select [attr.id]="idPrefix() + '-audio'" [value]="fields().audio"
+              (change)="set('audio', $any($event.target).value)">
+        <option value="any">{{ strings.filter.audioAny }}</option>
+        <option value="with">{{ strings.filter.audioWith }}</option>
+        <option value="without">{{ strings.filter.audioWithout }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <label [attr.for]="idPrefix() + '-tags'">{{ strings.filter.tags }}</label>
+      <input [attr.id]="idPrefix() + '-tags'" type="text" [value]="fields().tags"
+             [attr.placeholder]="strings.filter.tagsPlaceholder"
+             (input)="set('tags', $any($event.target).value)">
+    </div>
+    <div class="field">
+      <label [attr.for]="idPrefix() + '-q'">{{ strings.filter.q }}</label>
+      <input [attr.id]="idPrefix() + '-q'" type="search" [value]="fields().q"
+             [attr.placeholder]="strings.filter.qPlaceholder"
+             (input)="set('q', $any($event.target).value)">
+    </div>
+  </div>
+  @if (showClear()) {
+    <button type="button" class="link" (click)="clear.emit()">{{ strings.filter.clear }}</button>
+  }
+</fieldset>

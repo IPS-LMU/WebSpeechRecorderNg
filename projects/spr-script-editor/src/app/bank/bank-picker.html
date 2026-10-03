@@ -1,0 +1,44 @@
+<aside class="picker" aria-labelledby="picker-heading">
+  <h2 id="picker-heading" class="visually-hidden">{{ strings.picker.legend }}</h2>
+
+  <div class="picker-group">
+    <h3>{{ strings.picker.groupProject }}</h3>
+    @if (groups().project.length === 0) {
+      <p class="empty">{{ strings.picker.emptyProject }}</p>
+    }
+    <ul class="bank-list">
+      @for (bank of groups().project; track bank.bankId) {
+        <li>
+          <button type="button" class="bank-row" [class.selected]="bank.bankId === selectedBankId()"
+                  [attr.aria-current]="bank.bankId === selectedBankId() ? 'true' : null"
+                  (click)="select.emit(bank)">
+            <span class="bank-name">{{ bank.title }}</span>
+            <span class="chip">{{ strings.picker.originProject }}</span>
+            @if (bank.itemCount !== undefined) {
+              <span class="count">{{ bank.itemCount }} items</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <div class="picker-group">
+    <h3>{{ strings.picker.groupBuiltin }}</h3>
+    <ul class="bank-list">
+      @for (bank of groups().builtin; track bank.bankId) {
+        <li>
+          <button type="button" class="bank-row" [class.selected]="bank.bankId === selectedBankId()"
+                  [attr.aria-current]="bank.bankId === selectedBankId() ? 'true' : null"
+                  (click)="select.emit(bank)">
+            <span class="bank-name">{{ bank.title }}</span>
+            <span class="chip chip-builtin">{{ strings.picker.originBuiltin }}</span>
+            @if (bank.itemCount !== undefined) {
+              <span class="count">{{ bank.itemCount }} items</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+</aside>

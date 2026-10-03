@@ -1,5 +1,5 @@
 import {Component, input, output} from '@angular/core';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 import type {OrderRow} from './preview-order';
 
 /**
@@ -13,12 +13,12 @@ import type {OrderRow} from './preview-order';
   template: `
     <aside class="order" aria-labelledby="order-title">
       <header class="order-head">
-        <h2 id="order-title">{{ strings.preview.orderTitle }}</h2>
-        <button type="button" [title]="strings.preview.redrawTitle" (click)="redraw.emit()">
-          {{ strings.preview.redraw }}
+        <h2 id="order-title">{{ strings.orderTitle }}</h2>
+        <button type="button" [title]="strings.redrawTitle" (click)="redraw.emit()">
+          {{ strings.redraw }}
         </button>
       </header>
-      <p class="order-caption">{{ strings.preview.orderCaption }}</p>
+      <p class="order-caption">{{ strings.orderCaption }}</p>
       <ul class="order-list">
         @for (row of rows(); track row.key) {
           <li [attr.data-kind]="row.kind" [attr.data-depth]="row.depth"
@@ -28,7 +28,7 @@ import type {OrderRow} from './preview-order';
                       [attr.aria-current]="row.key === currentKey() ? 'true' : null">
                 <span class="row-label">{{ row.label }}</span>
                 @if (row.drawn) {
-                  <span class="mark">{{ strings.preview.drawnWord }}</span>
+                  <span class="mark">{{ strings.drawnWord }}</span>
                 }
                 @if (row.detail !== null) {
                   <span class="row-detail">{{ row.detail }}</span>
@@ -38,7 +38,7 @@ import type {OrderRow} from './preview-order';
               <p class="row-structural">
                 <span class="row-label">{{ row.label }}</span>
                 @if (row.kind === 'drawn-group') {
-                  <span class="mark">{{ strings.preview.drawnWord }}</span>
+                  <span class="mark">{{ strings.drawnWord }}</span>
                 }
                 @if (row.detail !== null) {
                   <span class="row-detail">{{ row.detail }}</span>
@@ -185,7 +185,7 @@ import type {OrderRow} from './preview-order';
   `],
 })
 export class PreviewOrderPanel {
-  readonly strings = EDITOR_STRINGS;
+  readonly strings = PREVIEW_STRINGS;
 
   readonly rows = input.required<OrderRow[]>();
   readonly currentKey = input.required<string | null>();

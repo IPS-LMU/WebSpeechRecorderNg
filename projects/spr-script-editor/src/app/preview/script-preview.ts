@@ -12,7 +12,7 @@ import {
   type PlaybackTiming,
   type PromptItem,
 } from 'speechrecorderng';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 import {loadScript} from '../core/load';
 import {MediaService} from '../core/media.service';
 import {ScriptApiService} from '../core/script-api.service';
@@ -24,6 +24,7 @@ import {PreviewPlaybackPanel, type Lamps} from './preview-playback-panel';
 import {stageParts, type MediaIndex, type StagePart} from './preview-stage';
 import {PreviewStagePanel} from './preview-stage-panel';
 import {PreviewStepSimulation} from './preview-step-simulation';
+import {PreviewTier2Panel} from './preview-tier2-panel';
 import {PreviewTransportBar} from './preview-transport-bar';
 import {soundStep, stepViews, type SimStep, type StepView} from './preview-steps';
 
@@ -60,6 +61,7 @@ function describeError(error: unknown): string {
     PreviewStagePanel,
     PreviewPlaybackPanel,
     PreviewStepSimulation,
+    PreviewTier2Panel,
     PreviewTransportBar,
     PreviewOrderPanel,
   ],
@@ -72,7 +74,7 @@ export class ScriptPreview {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  readonly strings = EDITOR_STRINGS;
+  readonly strings = PREVIEW_STRINGS;
 
   /** Route params (bound through `withComponentInputBinding`). */
   readonly p = input<string>(DEFAULT_PROJECT);
@@ -104,7 +106,7 @@ export class ScriptPreview {
     if (row === null) {
       return '';
     }
-    return row.section.name?.trim() || `${this.strings.preview.sectionOne} ${row.sectionIndex + 1}`;
+    return row.section.name?.trim() || `${this.strings.sectionOne} ${row.sectionIndex + 1}`;
   });
   readonly plan = computed(() => playbackPlan(this.current()));
   readonly views = computed(() => stepViews(this.current(), this.currentSection()));
@@ -131,7 +133,7 @@ export class ScriptPreview {
   readonly canRecord = computed(() => this.applies('RECORDING'));
   readonly canStop = computed(() => this.applies('IDLE'));
   readonly replayTitle = computed(() =>
-    this.canReplay() ? this.strings.preview.replayTitle : this.strings.preview.replayLimitTitle,
+    this.canReplay() ? this.strings.replayTitle : this.strings.replayLimitTitle,
   );
 
   readonly progress = computed(() => {
@@ -141,8 +143,8 @@ export class ScriptPreview {
       return '';
     }
     const drawn = rows.filter((row) => row.drawn).length;
-    const drawnPart = drawn > 0 ? ` · ${drawn} ${this.strings.preview.drawnWord}` : '';
-    return `${this.strings.preview.itemOne} ${index + 1} ${this.strings.preview.ofWord} ${rows.length}${drawnPart}`;
+    const drawnPart = drawn > 0 ? ` · ${drawn} ${this.strings.drawnWord}` : '';
+    return `${this.strings.itemOne} ${index + 1} ${this.strings.ofWord} ${rows.length}${drawnPart}`;
   });
 
   readonly lamps = computed<Lamps>(() => {
@@ -281,15 +283,15 @@ export class ScriptPreview {
   stepStatus(step: SimStep): string {
     switch (step) {
       case 'IDLE':
-        return this.strings.preview.statusIdle;
+        return this.strings.statusIdle;
       case 'LISTENING':
-        return this.strings.preview.statusListening;
+        return this.strings.statusListening;
       case 'PRE_REC':
-        return this.strings.preview.statusPreRec;
+        return this.strings.statusPreRec;
       case 'RECORDING':
-        return this.strings.preview.statusRecording;
+        return this.strings.statusRecording;
       case 'POST_REC':
-        return this.strings.preview.statusPostRec;
+        return this.strings.statusPostRec;
     }
   }
 
@@ -297,23 +299,23 @@ export class ScriptPreview {
   soundPlacement(): string {
     switch (this.timing().playbackWhen) {
       case 'WITH_PROMPT':
-        return this.strings.preview.soundWhenWithPrompt;
+        return this.strings.soundWhenWithPrompt;
       case 'BEFORE':
-        return this.strings.preview.soundWhenBefore;
+        return this.strings.soundWhenBefore;
       case 'PRERECORDING':
-        return this.strings.preview.soundWhenPreRecording;
+        return this.strings.soundWhenPreRecording;
       case 'DURING':
-        return this.strings.preview.soundWhenDuring;
+        return this.strings.soundWhenDuring;
       case 'ONDEMAND':
-        return this.strings.preview.soundWhenOnDemand;
+        return this.strings.soundWhenOnDemand;
       default:
-        return this.strings.preview.timingNoSound;
+        return this.strings.timingNoSound;
     }
   }
 
   /** Replays used against the item's cap, or "unlimited" when the plan does not cap them. */
   replayCountLabel(): string {
     const maxReplays = this.plan()?.maxReplays ?? null;
-    return `${this.replaysUsed()} / ${maxReplays === null ? this.strings.preview.replaysUnlimited : maxReplays}`;
+    return `${this.replaysUsed()} / ${maxReplays === null ? this.strings.replaysUnlimited : maxReplays}`;
   }
 }

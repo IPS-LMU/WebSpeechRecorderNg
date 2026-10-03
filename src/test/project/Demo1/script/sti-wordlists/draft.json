@@ -1,0 +1,23 @@
+{
+  "_comment": "Demo fixture (src/test is the fixture bank): 2 lists of 33 words each. A deployment drops in the real file with all 150 STI word lists in the same shape: {\"lists\":[{\"id\":\"<list id>\",\"entries\":[33 words]}, ...]}. The drawn list id is stored on the session record (Session.prefills).",
+  "lists": [
+    {
+      "id": "demo-1",
+      "entries": [
+        "apa", "bil", "hus", "sol", "båt", "ko", "mål", "nål", "ros", "skog",
+        "vän", "tak", "is", "ö", "yr", "duk", "fot", "hag", "jul", "kor",
+        "lök", "mån", "nöt", "pil", "ram", "sal", "tår", "ugn", "vår", "val",
+        "zon", "spel", "bord"
+      ]
+    },
+    {
+      "id": "demo-2",
+      "entries": [
+        "arm", "bär", "dam", "ek", "fly", "gol", "här", "il", "jakt", "klo",
+        "lat", "mor", "nej", "ost", "pris", "rav", "snö", "tor", "ut", "vred",
+        "xylofon", "yl", "zink", "ås", "ägg", "öga", "blom", "grön", "sten", "ljus",
+        "väg", "hand", "moln"
+      ]
+    }
+  ]
+}

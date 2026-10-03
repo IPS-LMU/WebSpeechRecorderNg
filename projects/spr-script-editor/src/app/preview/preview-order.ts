@@ -12,7 +12,7 @@
  * their `key` is what the URL carries.
  */
 import type {PrefillBankSource, PromptItem} from 'speechrecorderng';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 import type {EditorScript, EditorSection} from '../core/script.model';
 import {exampleDraw, isDrawnPlaceholder} from './preview-draw';
 import {promptTextOf} from './preview-stage';
@@ -41,7 +41,7 @@ export interface OrderRow {
 }
 
 function itemLabel(item: PromptItem, index: number): string {
-  return item.itemcode?.trim() || `${EDITOR_STRINGS.preview.itemOne} ${index + 1}`;
+  return item.itemcode?.trim() || `${PREVIEW_STRINGS.itemOne} ${index + 1}`;
 }
 
 function itemRow(
@@ -72,7 +72,7 @@ function itemRow(
 
 /** The order rows of a script, with the example draw of `generation` folded into each drawn group. */
 export function buildOrderRows(script: EditorScript | null | undefined, generation: number): OrderRow[] {
-  const strings = EDITOR_STRINGS.preview;
+  const strings = PREVIEW_STRINGS;
   const rows: OrderRow[] = [];
   (script?.sections ?? []).forEach((section, sectionIndex) => {
     rows.push({

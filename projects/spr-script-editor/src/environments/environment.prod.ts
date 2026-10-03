@@ -7,4 +7,6 @@ export const environment = {
   apiType: 'normal',
   apiEndPoint: 'api/v1',
   apiVersion: 1,
+  /** Tier-2 dry run: `''` when the recorder is served on the editor's own origin. */
+  recorderBaseUrl: '',
 };

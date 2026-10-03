@@ -9,6 +9,23 @@ import {DEFAULT_PROJECT} from '../editor.config';
 type ListState = 'loading' | 'ready' | 'empty' | 'error';
 type StatusFilter = 'ALL' | ScriptStatus;
 
+/**
+ * The usage cell of ui-spec §2: how many sessions ran this script and which published versions they
+ * were created from (`rest-api.md` §2.1's `sessions.byVersion`). Null when the script has never run,
+ * so the cell shows the placeholder instead of "0 sessions".
+ */
+export function usageLabel(summary: ScriptSummary): string | null {
+  const counts = summary.sessions;
+  if (counts === undefined || counts === null || counts.total <= 0) {
+    return null;
+  }
+  const versions = Object.keys(counts.byVersion ?? {}).sort((a, b) => Number(a) - Number(b));
+  const suffix = versions.length === 0
+    ? ''
+    : ` (${versions.map((version) => `${EDITOR_STRINGS.library.versionPrefix}${version}`).join(', ')})`;
+  return `${counts.total} ${EDITOR_STRINGS.library.sessionsWord}${suffix}`;
+}
+
 function describeError(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
     return `${EDITOR_STRINGS.library.errorPrefix} (${EDITOR_STRINGS.library.httpPrefix} ${error.status})`;
@@ -33,6 +50,9 @@ export class ScriptLibrary {
   private readonly api = inject(ScriptApiService);
 
   readonly strings = EDITOR_STRINGS;
+
+  /** The usage cell (ui-spec §2) — a module-level pure function, exposed for the template. */
+  readonly usageLabel = usageLabel;
 
   /** Route param `:p` (bound through `withComponentInputBinding`). */
   readonly p = input<string>(DEFAULT_PROJECT);

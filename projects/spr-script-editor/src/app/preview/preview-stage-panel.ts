@@ -1,5 +1,5 @@
 import {Component, input} from '@angular/core';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 import type {StagePart} from './preview-stage';
 
 /**
@@ -12,7 +12,7 @@ import type {StagePart} from './preview-stage';
   selector: 'spre-preview-stage-panel',
   template: `
     <div class="stage">
-      <h3 class="stage-label">{{ strings.preview.stageLabel }}</h3>
+      <h3 class="stage-label">{{ strings.stageLabel }}</h3>
       <div class="stage-body">
         @for (part of parts(); track $index) {
           @switch (part.kind) {
@@ -23,11 +23,11 @@ import type {StagePart} from './preview-stage';
               <p class="prompt-text">{{ part.text }}</p>
             }
             @case ('image') {
-              <p class="media-chip">{{ strings.preview.stageImage }} · {{ part.text }}</p>
+              <p class="media-chip">{{ strings.stageImage }} · {{ part.text }}</p>
             }
             @case ('audio') {
               <p class="media-chip media-audio">
-                {{ strings.preview.stageAudio }} · {{ part.text }}
+                {{ strings.stageAudio }} · {{ part.text }}
                 <span class="media-note">{{ durationLabel(part) }}</span>
               </p>
             }
@@ -42,7 +42,7 @@ import type {StagePart} from './preview-stage';
             }
           }
         } @empty {
-          <p class="prompt-text">{{ strings.preview.stageEmpty }}</p>
+          <p class="prompt-text">{{ strings.stageEmpty }}</p>
         }
       </div>
     </div>
@@ -97,21 +97,21 @@ import type {StagePart} from './preview-stage';
   `],
 })
 export class PreviewStagePanel {
-  readonly strings = EDITOR_STRINGS;
+  readonly strings = PREVIEW_STRINGS;
   readonly parts = input.required<StagePart[]>();
 
   label(part: StagePart): string {
     switch (part.kind) {
       case 'audio-missing':
         return part.text === ''
-          ? this.strings.preview.stageAudioNoSrc
-          : `${this.strings.preview.stageAudioMissing}: ${part.text}`;
+          ? this.strings.stageAudioNoSrc
+          : `${this.strings.stageAudioMissing}: ${part.text}`;
       case 'bank-audio':
-        return this.strings.preview.stageBankAudio;
+        return this.strings.stageBankAudio;
       case 'image':
-        return `${this.strings.preview.stageImage}: ${part.text}`;
+        return `${this.strings.stageImage}: ${part.text}`;
       case 'unsupported':
-        return `${this.strings.preview.stageUnsupported}: ${part.text}`;
+        return `${this.strings.stageUnsupported}: ${part.text}`;
       default:
         return part.text;
     }
@@ -119,8 +119,8 @@ export class PreviewStagePanel {
 
   durationLabel(part: StagePart): string {
     if (part.durationMs === null) {
-      return this.strings.preview.stageDurationUnknown;
+      return this.strings.stageDurationUnknown;
     }
-    return `${part.durationMs} ${this.strings.preview.msWord}`;
+    return `${part.durationMs} ${this.strings.msWord}`;
   }
 }

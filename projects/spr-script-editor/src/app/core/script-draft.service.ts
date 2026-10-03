@@ -202,10 +202,15 @@ export class ScriptDraftService {
   private inFlight: Promise<void> | null = null;
   private queued = false;
 
-  /** The parsed draft the screens edit (with `_shuffled*` filled by `loadScript`). */
+  /**
+   * The parsed draft the screens edit (with `_shuffled*` filled by `loadScript`). Returns a fresh
+   * shallow copy whenever the model version changes: `mutate` edits `rawModel` in place, so without
+   * a new top-level reference Angular's computed equality would suppress the notification and no
+   * screen would re-render after an edit (markers, outline rows, the shell's name all read this).
+   */
   readonly model = computed<EditorScript | null>(() => {
     this.modelVersion();
-    return this.rawModel;
+    return this.rawModel === null ? null : {...this.rawModel};
   });
 
   /** The last valid JSON text — exactly what a write will send (D2). */
@@ -218,6 +223,10 @@ export class ScriptDraftService {
   readonly lastSaved = signal<string | null>(null);
   readonly lastError = signal<string | null>(null);
   readonly writesDisabled = this.writesDisabledSignal.asReadonly();
+
+  /** The coordinates of the draft currently loaded; `null` until `load` succeeds. */
+  readonly loadedProject = signal<string | null>(null);
+  readonly loadedScript = signal<string | null>(null);
 
   readonly dirty = computed(() =>
     this.validTextSignal() !== this.ackedTextSignal() || this.sourceTextSignal() !== this.validTextSignal());
@@ -247,6 +256,8 @@ export class ScriptDraftService {
   async load(projectId: string | number, scriptId: string | number): Promise<void> {
     this.projectId = String(projectId);
     this.scriptId = String(scriptId);
+    this.loadedProject.set(this.projectId);
+    this.loadedScript.set(this.scriptId);
     this.lastError.set(null);
     const read = await firstValueFrom(this.api.readDraft(this.projectId, this.scriptId));
     this.applyServerRead(read.text, read.etag);
@@ -255,6 +266,33 @@ export class ScriptDraftService {
       this.clearBackup();
     }
     this.lastSaved.set(new Date().toISOString());
+  }
+
+  /**
+   * `POST …/draft/_restore {version}` (rest-api.md §2.5): copies a published version into the
+   * draft and adopts the returned bytes and validator. The precondition is the draft's current
+   * ETag; published versions are untouched. A 412 goes to the conflict state, other failures to
+   * `lastError`.
+   */
+  async restoreVersion(version: number | string): Promise<void> {
+    if (this.projectId === null || this.scriptId === null) {
+      return;
+    }
+    this.lastError.set(null);
+    try {
+      const result = await firstValueFrom(
+        this.api.restoreVersion(this.projectId, this.scriptId, version, this.etagSignal()),
+      );
+      this.applyServerRead(result.text, result.etag);
+      this.restoreBackup();
+      this.lastSaved.set(new Date().toISOString());
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 412) {
+        this.enterConflict(error);
+        return;
+      }
+      this.lastError.set(error instanceof HttpErrorResponse ? this.messageOf(error) : DRAFT_STRINGS.saveFailed);
+    }
   }
 
   /** Re-fetches the draft, discarding local edits (the operator's explicit "use the server copy"). */

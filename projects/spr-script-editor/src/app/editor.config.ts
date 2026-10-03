@@ -23,3 +23,12 @@ export const EDITOR_CFG: SpeechRecorderConfig = {
   enableDownloadRecordings: false,
   enableUploadRecordings: false,
 };
+
+/**
+ * Where the recorder application is served, for the tier-2 dry run (rest-api §6, plan M4 row
+ * "E4 tier-2 preview"). The session opens at `{base}/spr/session/{id}` (the library's
+ * `SPR_ROUTES` path); a deployment that mounts the recorder under a prefix sets it here. `''`
+ * means the recorder is on the editor's own origin; `undefined` means the deployment has no
+ * recorder, and tier 2 stays disabled with that reason.
+ */
+export const EDITOR_RECORDER_BASE_URL: string | undefined = environment.recorderBaseUrl;

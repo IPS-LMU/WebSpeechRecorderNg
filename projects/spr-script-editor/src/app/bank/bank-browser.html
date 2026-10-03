@@ -1,0 +1,134 @@
+<section class="bank-screen" [attr.aria-label]="strings.regionLabel">
+  <header class="screen-header">
+    <h1>{{ ruleMode() ? strings.ruleScreenTitle : strings.browserTitle }}</h1>
+    <a class="link"
+       [routerLink]="ruleMode() && id() ? ['/project', p(), 'script', id(), 'edit'] : ['/project', p(), 'script']">
+      {{ ruleMode() ? strings.backToEditor : strings.backToLibrary }}
+    </a>
+  </header>
+
+  @if (state() === 'loading') {
+    <p class="state loading" role="status">{{ strings.table.loading }}</p>
+  } @else if (state() === 'error') {
+    <div class="state error" role="alert">
+      <p>{{ loadError() }}</p>
+      <button type="button" (click)="retry()">{{ strings.table.retry }}</button>
+    </div>
+  } @else {
+    <div class="layout" [class.with-rule]="ruleMode()">
+      <spre-bank-picker #picker [groups]="groups()" [selectedBankId]="selectedBankId()"
+                        (select)="selectBank($event)"></spre-bank-picker>
+
+      <main class="main">
+        @if (selectedBank(); as bank) {
+          <header class="bank-header">
+            <h2>{{ bank.title }}</h2>
+            <span class="chip" [class.chip-builtin]="bank.source === 'BUILTIN'">{{ originLabel() }}</span>
+            <span class="field-label">{{ strings.picker.originLegend }}</span>
+          </header>
+
+          @if (readOnly()) {
+            <div class="notice read-only" role="note">
+              <strong>{{ strings.picker.readOnlyTitle }}</strong>
+              <p>{{ strings.picker.readOnlyBody }}</p>
+              <button type="button" [disabled]="writesDisabled()" [attr.title]="strings.picker.copyTitle"
+                      (click)="copyToProject()">{{ strings.picker.copy }}</button>
+            </div>
+          }
+          <p class="notice trade">{{ strings.picker.readOnlyTrade }}</p>
+          @if (writesDisabled()) {
+            <p class="notice files-mode">{{ strings.write.filesMode }}</p>
+          }
+
+          <spre-bank-filter [legend]="strings.filter.browseLegend" [hint]="strings.filter.browseHint"
+                            [fields]="browseFields()" variant="browse-filter" idPrefix="browse"
+                            [showClear]="filterWidened()"
+                            (fieldChange)="setBrowseField($event.name, $event.value)"
+                            (clear)="widenFilter()"></spre-bank-filter>
+
+          @if (actionError(); as error) {
+            <p class="state error" role="alert">{{ error }}</p>
+          }
+
+          @if (itemsState() === 'loading') {
+            <div class="skeleton" role="status" aria-label="{{ strings.table.loading }}">
+              <span></span><span></span><span></span><span></span>
+            </div>
+          } @else if (itemsState() === 'error') {
+            <div class="state error" role="alert">
+              <p>{{ itemsError() }}</p>
+              <button type="button" (click)="refresh()">{{ strings.table.retry }}</button>
+            </div>
+          } @else if (browseEmpty()) {
+            <div class="state empty" role="status">
+              @if (filterWidened()) {
+                <h3>{{ strings.table.emptyTitle }}</h3>
+                <p>{{ strings.table.emptyBody }}</p>
+                <button type="button" (click)="widenFilter()">{{ strings.filter.browseWiden }}</button>
+              } @else {
+                <p>{{ strings.table.emptyBank }}</p>
+              }
+            </div>
+          } @else {
+            <spre-bank-item-table [items]="pageItems()" [pageText]="pageText()" [canPrev]="canPrev()"
+                                  [canNext]="canNext()" [showUsed]="showUsed()" [canEdit]="canEdit()"
+                                  [uploadingId]="uploadingId()" [auditionError]="auditionError()"
+                                  [confirmingDelete]="confirmingDelete()"
+                                  (prev)="goPrev()" (next)="goNext()"
+                                  (edit)="startEdit($event)" (remove)="deleteItem($event)"
+                                  (cancelDelete)="cancelDelete()" (audition)="audition($event)"
+                                  (upload)="uploadRecording($event.item, $event.file)"></spre-bank-item-table>
+          }
+
+          @if (canEdit()) {
+            @if (editing(); as edit) {
+              <spre-bank-item-form [edit]="edit" [saving]="saving()"
+                                   (save)="saveItem()" (cancel)="cancelEdit()"
+                                   (field)="onField($event.name, $event.value)"></spre-bank-item-form>
+            } @else {
+              <button type="button" class="add-item" (click)="startAdd()">{{ strings.table.addItem }}</button>
+            }
+          }
+        } @else {
+          <p class="state empty" role="status">{{ strings.picker.emptyProject }}</p>
+        }
+      </main>
+
+      @if (ruleMode()) {
+        <aside class="rule-column">
+          @switch (groupState()) {
+            @case ('ready') {
+              @if (rule(); as ruleSource) {
+                <spre-draw-rule [project]="p()" [source]="ruleSource" [banks]="banks()"
+                                [bank]="selectedBank()" [drawsLink]="drawsLink()"
+                                (change)="onRuleChange($event)" (useRule)="onUseRule($event)"
+                                (openPicker)="focusPicker()"></spre-draw-rule>
+              }
+            }
+            @case ('loading') {
+              <p class="state loading" role="status">{{ strings.group.loading }}</p>
+            }
+            @case ('error') {
+              <div class="state error" role="alert">
+                <h3>{{ strings.group.errorTitle }}</h3>
+                <p>{{ strings.group.errorBody }}</p>
+              </div>
+            }
+            @case ('missing') {
+              <div class="state empty" role="status">
+                <h3>{{ strings.group.missingTitle }}</h3>
+                <p>{{ strings.group.missingBody }}</p>
+              </div>
+            }
+            @default {
+              <div class="state empty" role="status">
+                <h3>{{ strings.group.notDrawnTitle }}</h3>
+                <p>{{ strings.group.notDrawnBody }}</p>
+              </div>
+            }
+          }
+        </aside>
+      }
+    </div>
+  }
+</section>

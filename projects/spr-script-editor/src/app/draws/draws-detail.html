@@ -1,0 +1,107 @@
+@if (row(); as row) {
+  <section class="detail" aria-labelledby="detail-title">
+    <header class="detail-head">
+      <h2 id="detail-title">{{ strings.detailTitle }}</h2>
+      <p class="detail-session"><code>{{ row.sessionId }}</code></p>
+    </header>
+
+    <dl class="facts">
+      <div><dt>{{ strings.fieldStatus }}</dt><dd>{{ strings.status[statusKind(row.status)] }}</dd></div>
+      <div><dt>{{ strings.fieldSpeaker }}</dt><dd>{{ speakerLabel(row.speaker) || strings.speakerUnknown }}</dd></div>
+      <div><dt>{{ strings.fieldVersion }}</dt><dd>{{ row.scriptVersion ?? strings.unrecorded }}</dd></div>
+      <div><dt>{{ strings.fieldDrawnAt }}</dt><dd>{{ row.drawnDate ?? strings.unrecorded }}</dd></div>
+    </dl>
+
+    @switch (state()) {
+      @case ('loading') {
+        <p class="state" role="status" aria-live="polite">{{ strings.detailLoading }}</p>
+      }
+      @case ('error') {
+        <p class="state state-error" role="alert">{{ error() }}</p>
+      }
+      @case ('ready') {
+        @if (trace(); as trace) {
+          @if (notes().length > 0) {
+            <ul class="notes">
+              @for (note of notes(); track note) {
+                <li>{{ noteText(note) }}</li>
+              }
+            </ul>
+          }
+
+          @for (draw of trace.bankDraws; track draw.key ?? (draw.bank + ':' + draw.placeholderItemcode)) {
+            <article class="draw">
+              <h3>
+                {{ draw.bank }}
+                <span class="chip">{{ draw.bankSource === 'BUILTIN' ? strings.originBuiltin : strings.originProject }}</span>
+              </h3>
+              <dl class="facts">
+                <div><dt>{{ strings.fieldFixedBy }}</dt><dd>{{ fixedByLabels[draw.fixedBy] }}</dd></div>
+                <div><dt>{{ strings.fieldSeed }}</dt><dd><code>{{ draw.key ?? strings.unrecorded }}</code></dd></div>
+                <div><dt>{{ strings.fieldCount }}</dt><dd>{{ draw.count ?? strings.unrecorded }}</dd></div>
+                <div><dt>{{ strings.fieldPrefix }}</dt><dd><code>{{ draw.itemcodePrefix }}</code></dd></div>
+                <div><dt>{{ strings.fieldPlaceholder }}</dt><dd><code>{{ draw.placeholderItemcode ?? strings.unrecorded }}</code></dd></div>
+              </dl>
+
+              <div class="filter">
+                <span class="k">{{ strings.fieldFilter }}</span>
+                @if (parts(draw.filter).length === 0) {
+                  <span>{{ strings.filterNone }}</span>
+                } @else {
+                  <ul class="filter-parts">
+                    @for (part of parts(draw.filter); track part.key) {
+                      <li><span class="k">{{ filterLabel(part.key) }}</span> {{ filterValue(part) }}</li>
+                    }
+                  </ul>
+                }
+              </div>
+
+              <p class="materialised-note">{{ strings.materialisedNote }}</p>
+              <table class="items">
+                <caption>{{ strings.traceTitle }} — {{ draw.bank }}</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">{{ strings.colItemcode }}</th>
+                    <th scope="col">{{ strings.colBankItem }}</th>
+                    <th scope="col">{{ strings.colText }}</th>
+                    <th scope="col">{{ strings.colRecordedDot }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of draw.items; track item.itemcode) {
+                    <tr>
+                      <td><code>{{ item.itemcode }}</code></td>
+                      <td><code>{{ item.bankItemId ?? strings.unrecorded }}</code></td>
+                      <td class="text">{{ itemText(draw.bank, item.bankItemId) }}</td>
+                      <td>
+                        <span class="recorded-dot" [class.is-recorded]="recordedCodes().has(item.itemcode)"
+                              [attr.aria-label]="recordedCodes().has(item.itemcode) ? strings.recordedYes : strings.recordedNo">
+                          {{ recordedCodes().has(item.itemcode) ? '●' : '○' }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (bankUnreachable(draw.bank)) {
+                <p class="hint" role="note">{{ strings.bankUnreachableNote }}</p>
+              }
+            </article>
+          }
+
+          @if (trace.listDraws.length > 0) {
+            <article class="draw">
+              <h3>{{ strings.listTraceTitle }}</h3>
+              <p class="materialised-note">{{ strings.listTraceNote }}</p>
+              <ul class="list-draws">
+                @for (draw of trace.listDraws; track draw.placeholderItemcode) {
+                  <li><code>{{ draw.placeholderItemcode }}</code> → {{ draw.source }} / {{ draw.list }}</li>
+                }
+              </ul>
+            </article>
+          }
+        }
+      }
+    }
+  </section>
+}

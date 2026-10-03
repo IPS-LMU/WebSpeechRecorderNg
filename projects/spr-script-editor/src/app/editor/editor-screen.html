@@ -31,8 +31,7 @@
           <div class="empty-card">
             <h2>{{ strings.editor.emptyTitle }}</h2>
             <p>{{ strings.editor.emptyBody }}</p>
-            <button type="button" [disabled]="true"
-                    [title]="strings.editor.addSectionTitle">{{ strings.editor.addSection }}</button>
+            <button type="button" (click)="addSection()">{{ strings.editor.addSection }}</button>
           </div>
         } @else {
           <spr-editor-centre [script]="script()" [selection]="selection()" [findings]="findings()"
@@ -44,7 +43,11 @@
       <aside class="col inspector-col">
         <spr-editor-inspector [script]="script()" [selection]="selection()" [findings]="findings()"
                               [bankViews]="bankViews()" [bankList]="bankList()" [media]="media()"
-                              [project]="project()" [scriptId]="scriptId()"></spr-editor-inspector>
+                              [project]="project()" [scriptId]="scriptId()"
+                              [versions]="versions()" [versionSessions]="versionSessions()"
+                              (restoreVersion)="restoreVersion($event)"
+                              (bankRequested)="requestBank($event)"
+                              (mediaChanged)="refreshMedia()"></spr-editor-inspector>
       </aside>
     </div>
   }

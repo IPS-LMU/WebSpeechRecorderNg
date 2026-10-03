@@ -1,0 +1,38 @@
+{
+  "type": "script",
+  "scriptId": "bank-draw",
+  "name": "Bank draw: two seated sentences per session",
+  "virtualViewBox": {"height": 600},
+  "sections": [
+    {
+      "mode": "MANUAL",
+      "promptphase": "RECORDING",
+      "order": "SEQUENTIAL",
+      "training": false,
+      "groups": [
+        {
+          "order": "SEQUENTIAL",
+          "promptItems": [
+            {
+              "itemcode": "RB",
+              "mediaitems": [{"mimetype": "text/plain", "text": "Read the sentence aloud."}],
+              "prefill": {
+                "bank": {
+                  "bank": "std-passages",
+                  "bankSource": "BUILTIN",
+                  "filter": {"category": "sentence"},
+                  "count": 2,
+                  "order": "SEQUENTIAL",
+                  "fixedBy": "SESSION",
+                  "itemcodePrefix": "RB",
+                  "playBankAudio": true,
+                  "itemDefaults": {"prerecdelay": 1000, "recduration": 5000, "postrecdelay": 500}
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

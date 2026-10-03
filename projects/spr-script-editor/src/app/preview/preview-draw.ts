@@ -23,7 +23,7 @@
  * same arguments are deep-equal.
  */
 import type {Mediaitem, PrefillBankSource, PromptItem, PromptItemPrefill} from 'speechrecorderng';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 
 /**
  * Marker for the model recording of a drawn example. Tier 1 cannot know the URL the server will
@@ -129,7 +129,7 @@ export function exampleDraw(
   template: readonly Mediaitem[] = [],
 ): ExampleDrawnItem[] {
   const count = Math.min(999, Math.max(1, Math.trunc(bank.count) || 1));
-  const pool = EDITOR_STRINGS.preview.exampleEntries as readonly string[];
+  const pool = PREVIEW_STRINGS.exampleEntries as readonly string[];
   const random = mulberry32(drawSeed(scriptId, sectionIndex, groupIndex, placeholderIndex, generation));
   const entries = shuffle(pool, random);
   const items: ExampleDrawnItem[] = [];
@@ -140,7 +140,7 @@ export function exampleDraw(
       mediaitems.push({
         mimetype: 'audio/wav',
         src: `${BANK_MOCK_SRC_PREFIX}${bank.bank}`,
-        alt: EDITOR_STRINGS.preview.stageBankAudioAlt,
+        alt: PREVIEW_STRINGS.stageBankAudioAlt,
       });
     }
     items.push({

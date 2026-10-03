@@ -1,0 +1,82 @@
+<section class="draws" aria-labelledby="draws-title">
+  <header class="draws-head">
+    <div>
+      <h1 id="draws-title">{{ strings.title }}<span class="script-name"> · {{ scriptId() }}</span></h1>
+      <p class="subtitle">{{ strings.subtitle }}</p>
+    </div>
+    <div class="actions">
+      @if (state() === 'ready') {
+        <button type="button" class="download" (click)="downloadCsv()" [title]="strings.downloadCsvTitle">
+          {{ strings.downloadCsv }}
+        </button>
+      }
+      <button type="button" class="redraw" (click)="redraw()"
+              [disabled]="!canRedraw().enabled || redrawBusy()"
+              [title]="redrawTitle()">
+        {{ redrawBusy() ? strings.redrawBusy : strings.redraw }}
+      </button>
+    </div>
+  </header>
+
+  <!-- The answer to the question this screen exists for: the draw is fixed at session creation. -->
+  <p class="fixed-note" role="note">{{ strings.fixedNote }}</p>
+
+  @if (routeScriptId() === '') {
+    <p class="field script-picker">
+      <label for="draws-script">{{ strings.scriptPickerLabel }}</label>
+      <select id="draws-script" [value]="scriptId()" (change)="onScriptChange($event)">
+        <option value="">{{ strings.scriptPickerPlaceholder }}</option>
+        @for (script of scriptList(); track script.scriptId) {
+          <option [value]="script.scriptId">{{ script.name }}</option>
+        }
+      </select>
+      @if (scriptListState() === 'loading') {
+        <span class="hint">{{ strings.scriptPickerLoading }}</span>
+      } @else if (scriptListState() === 'empty') {
+        <span class="hint">{{ strings.scriptPickerEmpty }}</span>
+      }
+    </p>
+  }
+
+  @if (scriptId() === '') {
+    <p class="state">{{ strings.pickScript }}</p>
+  } @else {
+    <p class="preview-toggle">
+      <input type="checkbox" id="draws-preview" [checked]="includePreview()" (change)="onPreviewChange($event)" />
+      <label for="draws-preview">{{ strings.showPreview }}</label>
+    </p>
+
+    @if (!canRedraw().enabled) {
+      <p class="redraw-reason" role="note">{{ redrawReason() }}</p>
+    }
+    @if (redrawMessage() !== null) {
+      <p class="redraw-message" [class.state-error]="redrawFailed()" role="status" aria-live="polite">{{ redrawMessage() }}</p>
+    }
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="skeleton" aria-hidden="true">
+          @for (n of [1, 2, 3]; track n) {
+            <p class="skeleton-row"></p>
+          }
+        </div>
+        <p class="state" role="status" aria-live="polite">{{ strings.loading }}</p>
+      }
+      @case ('error') {
+        <p class="state state-error" role="alert">{{ error() }}</p>
+      }
+      @case ('empty') {
+        <p class="state">{{ strings.empty }}</p>
+        <p class="hint">{{ strings.emptyHint }}</p>
+      }
+      @default {
+        <spre-draws-table [rows]="rows()" [selectedId]="selectedSessionId()" (select)="select($event)" />
+
+        @if (selectedRow(); as row) {
+          <spre-draws-detail [projectId]="p()" [row]="row" [trace]="trace()"
+                             [state]="traceState()" [error]="traceError()" />
+        }
+      }
+    }
+  }
+</section>

@@ -1,0 +1,791 @@
+{
+    "name": "Test1",
+    "type": "script",
+    "scriptId": 1245,
+
+  "virtualViewBox" : {
+    "height" : 500
+  }
+  ,
+    "sections": [
+      {
+        "name": "Empty section test",
+        "speakerDisplay": false,
+        "training": false,
+        "groups": []
+      },
+      {
+        "name": "Recording Session",
+        "order": "SEQUENTIAL",
+        "training": true,
+        "groups": [
+          {
+            "promptItems": [
+              {
+                "itemcode": "I0",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "text": "Välkommen till talinspelningen!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "autoplay": false,
+                    "mimetype": "text/plain",
+                    "text": "Hello!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "Non recording."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "N0",
+                "recduration": 10000,
+
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "autoplay": false,
+                    "mimetype": "text/plain",
+                    "text": "What's your name?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "S0",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "S1",
+                "recinstructions": {
+                  "recinstructions": "Läs:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "I dag är det vackert vårväder."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+
+      },
+      {
+        "mode": "AUTOPROGRESS",
+        "name": "Recording Session",
+        "order": "SEQUENTIAL",
+        "promptphase": "PRERECORDING",
+        "speakerDisplay": true,
+        "training": false,
+        "groups": [
+          {
+            "promptItems": [
+              {
+                "itemcode": "AN0",
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "recduration": 10000,
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "scope": "APPLICATION",
+                    "text": "What's your name?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "AS0",
+                "recinstructions": {
+                  "recinstructions": "Please read the digits:"
+                },
+                "recduration": 6000,
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "2 7 4 1 6 8 3 9 5 0"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "duration": 10000,
+                "recinstructions": {
+                  "recinstructions": "Please wait 10 seconds"
+                },
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+
+                    "text": "Hello!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "duration": 10000,
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+
+                    "text": "Non recording duration 10000ms."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "AS1",
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "How did you get here today?"
+                  }
+                ]
+              }
+            ]
+          },{
+            "promptItems": [
+              {
+                "itemcode": "VL4",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/x-prompt",
+                    "promptDoc": {
+                      "body": {
+                        "blocks": [
+                          {
+                            "type": "p",
+                            "texts": [
+                              {
+                                "type": "text",
+                                "text": "”Vind och sol slöt ett vad,"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "om vem som hade största kraften,"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "att en stackars vandrare"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "skulle berövas sina kläder."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Vinden började;"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "men hans stormande"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "gjorde honom intet; vandraren"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "drog sin mantel tätare omkring sig."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Vinden ger nu upp och vilar;"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "och en kär solens stråle"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "fyller med ljuv, mild glöd"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "vandrarens ben."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Sveper han sig nu djupare in?"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Nej!"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Av kastar han nu sitt plagg,"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "och solen segrade."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "Våld och makt, förnuftets tvång"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "gör och lämnar oss kalla;"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "Varm Kristus-kärlek –"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "vem förblev henne kall?”"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+
+                                "type": "text",
+                                "text": "– Dikter, femte boken, Historia och fabel, 4:e fabeln."
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+
+          }
+        ]
+      },
+      {
+        "mode": "AUTORECORDING",
+        "name": "Recording Session",
+        "order": "SEQUENTIAL",
+        "promptphase": "PRERECORDING",
+        "speakerDisplay": true,
+        "training": false,
+        "groups": [
+          {
+            "promptItems": [
+              {
+                "itemcode": "AN0",
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "recduration": 10000,
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "scope": "APPLICATION",
+                    "text": "What's your name?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "AS0",
+                "recinstructions": {
+                  "recinstructions": "Please read the digits:"
+                },
+                "recduration": 6000,
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "2 7 4 1 6 8 3 9 5 0"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+
+                "recinstructions": {
+                  "recinstructions": "Please wait 10 seconds"
+                },
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+
+                    "text": "Hello!"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "type": "nonrecording",
+                "duration": 10000,
+                "mediaitems": [
+                  {
+                    "mimetype": "text/plain",
+
+                    "text": "Non recording duration 10000ms."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "AS1",
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "How did you get here today?"
+                  }
+                ]
+              }
+            ]
+          },{
+            "promptItems": [
+              {
+                "itemcode": "VL4",
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/x-prompt",
+                    "promptDoc": {
+                      "body": {
+                        "blocks": [
+                          {
+                            "type": "p",
+                            "texts": [
+                              {
+                                "type": "text",
+                                "text": "”Vind och sol slöt ett vad,"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "om vem som hade största kraften,"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "att en stackars vandrare"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "skulle berövas sina kläder."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Vinden började;"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "men hans stormande"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "gjorde honom intet; vandraren"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "drog sin mantel tätare omkring sig."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Vinden ger nu upp och vilar;"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "och en kär solens stråle"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "fyller med ljuv, mild glöd"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "vandrarens ben."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Sveper han sig nu djupare in?"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Nej!"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "Av kastar han nu sitt plagg,"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "text",
+                                "text": "och solen segrade."
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "Våld och makt, förnuftets tvång"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "gör och lämnar oss kalla;"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "Varm Kristus-kärlek –"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+                                "type": "font",
+                                "style": "italic",
+                                "text": {
+                                  "type": "text",
+                                  "text": "vem förblev henne kall?”"
+                                }
+                              },
+                              {
+                                "type": "linebreak"
+                              },
+                              {
+
+                                "type": "text",
+                                "text": "– Dikter, femte boken, Historia och fabel, 4:e fabeln."
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+
+          }
+        ]
+      },
+      {
+        "mode": "AUTORECORDING",
+        "name": "Recording Session",
+        "order": "RANDOM",
+        "promptphase": "RECORDING",
+        "speakerDisplay": true,
+        "training": false,
+        "groups": [
+          {
+            "promptItems": [
+              {
+                "itemcode": "ARN0",
+                "prerecording": 500,
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "recduration": 10000,
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mediaitemId": 1258,
+                    "mimetype": "text/plain",
+                    "text": "What's your name?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "ARS0",
+                "prerecording": 500,
+                "recinstructions": {
+                  "recinstructions": "Please read the digits:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "text/plain",
+                    "text": "2 7 4 1 6 8 3 9 5 0"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "ARS1",
+                "prerecording": 500,
+                "recinstructions": {
+                  "recinstructions": "Please answer:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mediaitemId": 1300,
+                    "mimetype": "text/plain",
+                    "text": "How did you get here today?"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "promptItems": [
+              {
+                "itemcode": "IMG1",
+                "prerecording": 500,
+                "recinstructions": {
+                  "recinstructions": "Describe the image:"
+                },
+                "mediaitems": [
+                  {
+                    "annotationTemplate": false,
+                    "mimetype": "image/jpg",
+                    "src": "resources/images/IMG_2447.JPG"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+
+      }
+    ]
+  }
+

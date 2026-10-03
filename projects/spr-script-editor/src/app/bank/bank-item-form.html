@@ -1,0 +1,29 @@
+<form class="item-form" (submit)="$event.preventDefault(); save.emit()">
+  <h3>{{ edit().id ? strings.item.editTitle : strings.item.newTitle }}</h3>
+  <div class="field wide">
+    <label for="item-text">{{ strings.item.text }}</label>
+    <textarea id="item-text" rows="2" [value]="edit().text"
+              (input)="field.emit({name: 'text', value: $any($event.target).value})"></textarea>
+  </div>
+  <div class="field">
+    <label for="item-category">{{ strings.item.category }}</label>
+    <input id="item-category" type="text" [value]="edit().category"
+           (input)="field.emit({name: 'category', value: $any($event.target).value})">
+  </div>
+  <div class="field">
+    <label for="item-words">{{ strings.item.words }}</label>
+    <input id="item-words" type="number" min="0" step="1" [value]="edit().words"
+           (input)="field.emit({name: 'words', value: $any($event.target).value})">
+  </div>
+  <div class="field wide">
+    <label for="item-tags">{{ strings.item.tags }}</label>
+    <input id="item-tags" type="text" [value]="edit().tags"
+           (input)="field.emit({name: 'tags', value: $any($event.target).value})">
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="primary" [disabled]="saving()">
+      {{ saving() ? strings.item.saving : strings.item.save }}
+    </button>
+    <button type="button" (click)="cancel.emit()">{{ strings.item.cancel }}</button>
+  </div>
+</form>

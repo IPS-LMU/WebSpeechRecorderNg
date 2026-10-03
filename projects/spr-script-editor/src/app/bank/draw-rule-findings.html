@@ -1,0 +1,13 @@
+@if (errors().length > 0 || suspended().length > 0 || warnings().length > 0) {
+  <ul class="findings" aria-label="Checks">
+    @for (finding of errors(); track finding.id + finding.path) {
+      <li class="finding error" [attr.data-check]="finding.id">{{ finding.message }}</li>
+    }
+    @for (finding of suspended(); track finding.id) {
+      <li class="finding suspended" [attr.data-check]="finding.id">{{ finding.message }}</li>
+    }
+    @for (finding of warnings(); track finding.id) {
+      <li class="finding warning" [attr.data-check]="finding.id">{{ finding.message }}</li>
+    }
+  </ul>
+}

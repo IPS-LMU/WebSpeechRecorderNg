@@ -121,15 +121,17 @@ function texts(state: Harness, selector: string): string[] {
 describe('ScriptPreview (tier 1)', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
 
-  it('renders the banner, the disabled tier-2 dry run and the speaker frame', async () => {
+  it('renders the banner, the tier-2 dry run slot and the speaker frame', async () => {
     const state = await setup('/project/Demo1/script/demo/preview');
 
     const banner = state.root.querySelector('.banner')?.textContent ?? '';
     expect(banner).toContain('Nothing is recorded or uploaded');
 
-    const dryRun = state.root.querySelector('.dry-run') as HTMLButtonElement;
+    // Fixture mode cannot reach a receiver, so the dry run is present but disabled with its reason.
+    const dryRun = state.root.querySelector('.tier2-start') as HTMLButtonElement;
     expect(dryRun.disabled).toBe(true);
-    expect(dryRun.getAttribute('title')).toContain('M4');
+    expect(dryRun.getAttribute('title')).toContain('development fixtures');
+    expect(state.root.querySelector('.tier2-reason')?.textContent).toContain('development fixtures');
 
     expect(state.root.querySelector('#frame-section')?.textContent).toContain('Warm-up');
     expect(state.root.querySelector('.progress')?.textContent).toContain('Item 1 of 4 · 2 drawn');

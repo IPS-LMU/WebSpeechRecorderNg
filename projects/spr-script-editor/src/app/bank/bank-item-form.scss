@@ -1,0 +1,76 @@
+:host {
+  display: block;
+}
+
+.item-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.5rem;
+  padding: var(--spr-r-md, 12px);
+  background: var(--spr-surface, #FFFFFF);
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+}
+
+.item-form h3 {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: var(--spr-type-label, 14.4px);
+  color: var(--spr-ink-strong, #1C3660);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.field.wide {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #4A6288);
+}
+
+input,
+textarea {
+  min-height: 44px;
+  padding: 0 0.6rem;
+  font-family: inherit;
+  font-size: var(--spr-type-body, 16px);
+  color: var(--spr-ink, #1F3044);
+  background: var(--spr-surface, #FFFFFF);
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+}
+
+textarea {
+  padding: 0.4rem 0.6rem;
+  resize: vertical;
+}
+
+.form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.5rem;
+}
+
+button {
+  min-height: 44px;
+  padding: 0 0.8rem;
+  font-family: inherit;
+  font-size: var(--spr-type-body, 16px);
+  color: var(--spr-primary, #2A4765);
+  background: var(--spr-surface, #FFFFFF);
+  border: 1px solid var(--spr-border, #D8DFE8);
+  border-radius: var(--spr-r-sm, 6px);
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--spr-primary, #2A4765);
+  color: var(--spr-primary-ink, #FFFFFF);
+  border-color: var(--spr-primary, #2A4765);
+}

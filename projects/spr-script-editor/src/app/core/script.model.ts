@@ -10,6 +10,9 @@
  */
 import type {
   BankItem,
+  BankSource,
+  DrawFilter,
+  DrawFixedBy,
   Group,
   Mediaitem,
   Mode,
@@ -106,19 +109,21 @@ export interface BankItemPage {
 
 export interface DrawItem {
   itemcode: string;
-  bankItemId?: string;
+  bankItemId?: string | null;
   recorded?: boolean;
 }
 
 /** One row of the draw record (rest-api.md §4.2). */
 export interface DrawRow {
   sessionId: string | number;
-  speaker?: string;
+  speaker?: string | null;
   status: string;
-  scriptVersion?: number;
-  drawnDate?: string;
-  bank?: string;
-  bankSource?: 'PROJECT' | 'BUILTIN';
+  /** `true` for a `type: "TEST"` dry run; the receiver sets it (`rest-api.md` §4.2). */
+  preview?: boolean;
+  scriptVersion?: number | null;
+  drawnDate?: string | null;
+  bank?: string | null;
+  bankSource?: BankSource | null;
   drawn?: number;
   recorded?: number;
   items?: DrawItem[];
@@ -129,10 +134,42 @@ export interface DrawPage {
   rows: DrawRow[];
 }
 
+/** One `Session.bankDraws` entry (data-model.md §2.4) as the trace returns it. */
+export interface TraceBankDraw {
+  kind?: string;
+  placeholderItemcode?: string | null;
+  bank?: string;
+  bankSource?: BankSource | null;
+  filter?: DrawFilter;
+  count?: number;
+  fixedBy?: DrawFixedBy;
+  /** The PRNG key the server drew with. */
+  key?: string;
+  itemcodePrefix?: string;
+  items?: DrawItem[];
+  refilled?: boolean;
+  skippedRecorded?: boolean;
+  speakerFallback?: boolean;
+  drawnForVersion?: number | null;
+}
+
+/** `Session.prefills` (the shipped prefill mechanism) as the trace carries it. */
+export interface TracePrefill {
+  source?: string;
+  list?: string;
+}
+
 /** The session trace `GET project/{p}/session/{s}/draws` returns (data-model.md §2.4). */
 export interface SessionDrawTrace {
-  prefills?: unknown[];
-  bankDraws?: unknown[];
+  sessionId?: string | number;
+  /** The original script id (`scriptSource ?? script`). */
+  script?: string | number | null;
+  scriptVersion?: number | null;
+  drawnDate?: string | null;
+  redraw?: number;
+  /** One entry per placeholder itemcode for list sources. */
+  prefills?: Record<string, TracePrefill>;
+  bankDraws?: TraceBankDraw[];
   [key: string]: unknown;
 }
 

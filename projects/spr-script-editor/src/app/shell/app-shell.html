@@ -1,35 +1,136 @@
 <header class="toolbar">
-  <a class="brand" routerLink="/" [attr.aria-label]="strings.shell.homeLabel">{{ strings.shell.brand }}</a>
+  <a class="brand" routerLink="/" [attr.aria-label]="strings.homeLabel">{{ strings.brand }}</a>
 
-  <nav class="breadcrumb" [attr.aria-label]="strings.shell.breadcrumbLabel">
+  <nav class="breadcrumb" [attr.aria-label]="strings.breadcrumbLabel">
     @if (project(); as projectId) {
       <a [routerLink]="['/project', projectId, 'script']">{{ projectId }}</a>
       @if (scriptId(); as id) {
-        <span aria-hidden="true">{{ strings.shell.separator }}</span>
-        <span class="here">{{ strings.shell.scriptWord }} {{ id }}</span>
+        <span aria-hidden="true">{{ strings.separator }}</span>
+        @if (editorActive()) {
+          <input id="shell-script-name" class="script-name" type="text" autocomplete="off"
+                 [attr.aria-label]="strings.nameLabel"
+                 [value]="scriptName()" (change)="onNameChange($event)" />
+        } @else {
+          <span class="here">{{ strings.scriptWord }} {{ id }}</span>
+        }
       }
     }
   </nav>
 
   <span class="spacer"></span>
 
-  <p class="save-state" role="status">{{ strings.shell.saveState }}</p>
-  <p class="warning-count" [attr.aria-label]="strings.shell.warningLabel">{{ strings.shell.warningCount }}</p>
+  @if (editorActive()) {
+    <p class="save-state" role="status" aria-live="polite">
+      @if (draft.lastError(); as error) {
+        <span class="save-error">{{ strings.errorState }} {{ error }}</span>
+        <button type="button" class="retry" (click)="draft.flush()">{{ strings.retry }}</button>
+      } @else {
+        {{ saveStateText() }}
+      }
+    </p>
 
-  <div class="actions">
-    <button type="button" [disabled]="true" [title]="strings.shell.readOnlyReason"
-            [attr.aria-label]="strings.shell.undo">{{ strings.shell.undo }}</button>
-    <button type="button" [disabled]="true" [title]="strings.shell.readOnlyReason"
-            [attr.aria-label]="strings.shell.redo">{{ strings.shell.redo }}</button>
-    <button type="button" [disabled]="true" [title]="strings.shell.readOnlyReason"
-            [attr.aria-label]="strings.shell.preview">{{ strings.shell.preview }}</button>
-    <button type="button" class="primary" [disabled]="true" [title]="strings.shell.readOnlyReason"
-            [attr.aria-label]="strings.shell.publish">{{ strings.shell.publish }}</button>
-  </div>
+    <a class="warning-count" [routerLink]="['/project', project(), 'script', scriptId(), 'source']"
+       [attr.aria-label]="strings.warningsLabel + ': ' + countSummary()">{{ countSummary() }}</a>
+
+    <div class="actions">
+      <button type="button" [disabled]="!draft.canUndo()" [title]="strings.undo"
+              [attr.aria-label]="strings.undo" (click)="draft.undo()">{{ strings.undo }}</button>
+      <button type="button" [disabled]="!draft.canRedo()" [title]="strings.redo"
+              [attr.aria-label]="strings.redo" (click)="draft.redo()">{{ strings.redo }}</button>
+      <a class="action-link" [routerLink]="['/project', project(), 'script', scriptId(), 'preview']"
+         [attr.aria-label]="strings.preview">{{ strings.preview }}</a>
+      <button #publishButton type="button" class="primary" [disabled]="!canPublish()"
+              [title]="publishBlockedReason() ?? ''" [attr.aria-label]="strings.publish"
+              (click)="openPublish()">{{ strings.publish }}</button>
+      @if (publishBlockedReason(); as reason) {
+        <span class="publish-reason" role="note">{{ reason }}</span>
+      }
+    </div>
+  } @else if (scriptId() !== null) {
+    <a class="action-link" [routerLink]="['/project', project(), 'script', scriptId(), 'preview']"
+       [attr.aria-label]="strings.preview">{{ strings.preview }}</a>
+  }
 </header>
+
+@if (hasBanner()) {
+  <div class="banners">
+    @if (draft.conflict(); as conflict) {
+      <div class="conflict-bar" role="alert">
+        <span class="conflict-message">{{ strings.conflictTitle }}</span>
+        <button type="button" (click)="draft.resolveConflict('remote')">{{ strings.useServer }}</button>
+        <button type="button" class="primary" (click)="draft.resolveConflict('local')">{{ strings.keepMine }}</button>
+      </div>
+    }
+
+    @if (notice(); as noticeText) {
+      <div class="notice" role="alert">
+        <span>{{ noticeText }}</span>
+        <button type="button" (click)="dismissNotice()">{{ strings.dismiss }}</button>
+      </div>
+    }
+
+    @if (publishedVersion(); as version) {
+      <div class="notice ok" role="status">{{ strings.publishedPrefix }}{{ version }}</div>
+    }
+
+    @if (serverFindings().length > 0) {
+      <div class="server-findings">
+        <button type="button" class="server-findings-toggle" [attr.aria-expanded]="serverOpen()"
+                (click)="serverOpen.set(!serverOpen())">
+          {{ strings.serverFindingsLabel }} ({{ serverFindings().length }})
+        </button>
+        @if (serverOpen()) {
+          <ul class="finding-list">
+            @for (finding of serverFindings(); track finding.id + finding.path) {
+              <li>
+                <span class="chip" [class.chip-error]="finding.severity === 'error'">{{ finding.id }}</span>
+                {{ finding.message }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+}
 
 <main class="content">
   <router-outlet></router-outlet>
 </main>
 
-<p class="read-only-note">{{ strings.shell.readOnlyReason }}</p>
+@if (draft.writesDisabled()) {
+  <p class="read-only-note">{{ strings.readOnlyReason }}</p>
+}
+
+@if (dialogOpen()) {
+  <div class="dialog-backdrop" (click)="closePublish()">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="publish-dialog-title"
+         (keydown.escape)="closePublish()" (click)="$event.stopPropagation()">
+      <h2 id="publish-dialog-title">{{ strings.publishDialogTitle }}</h2>
+
+      @if (gate().warnings > 0) {
+        <p class="dialog-warning-heading">{{ strings.publishWarningsHeading }}</p>
+        <ul class="finding-list">
+          @for (finding of dialogWarnings(); track finding.id + finding.path) {
+            <li>
+              <span class="chip">{{ finding.id }}</span>
+              {{ finding.message }}
+            </li>
+          }
+        </ul>
+      }
+
+      <label class="note-field">
+        <span>{{ strings.noteLabel }}</span>
+        <textarea #publishNote rows="3" [value]="note()" (input)="onNoteInput($event)"></textarea>
+      </label>
+
+      <div class="dialog-actions">
+        <button type="button" (click)="closePublish()">{{ strings.cancel }}</button>
+        <button type="button" class="primary" [disabled]="publishing()" (click)="confirmPublish()">
+          {{ strings.publish }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,5 +1,5 @@
 import {Component, input, output} from '@angular/core';
-import {EDITOR_STRINGS} from '../core/editor-strings';
+import {PREVIEW_STRINGS} from './preview-strings';
 import {advanceStep, retreatStep, type SimStep, type StepView} from './preview-steps';
 
 /**
@@ -13,8 +13,8 @@ import {advanceStep, retreatStep, type SimStep, type StepView} from './preview-s
   selector: 'spre-preview-step-simulation',
   template: `
     <section class="simulation" aria-labelledby="sim-label">
-      <h3 id="sim-label">{{ strings.preview.stepsLabel }}</h3>
-      <div class="steps" role="radiogroup" [attr.aria-label]="strings.preview.stepsLabel"
+      <h3 id="sim-label">{{ strings.stepsLabel }}</h3>
+      <div class="steps" role="radiogroup" [attr.aria-label]="strings.stepsLabel"
            (keydown)="onKeydown($event)">
         @for (view of views(); track view.step) {
           <button type="button" class="step" role="radio"
@@ -26,10 +26,10 @@ import {advanceStep, retreatStep, type SimStep, type StepView} from './preview-s
             <span class="step-name">{{ name(view.step) }}</span>
             <span class="step-flags">
               <span class="step-flag">
-                {{ view.promptVisible ? strings.preview.stepPromptVisible : strings.preview.stepPromptHidden }}
+                {{ view.promptVisible ? strings.stepPromptVisible : strings.stepPromptHidden }}
               </span>
               <span class="step-flag">
-                {{ view.sound ? strings.preview.stepSoundPlays : strings.preview.stepSoundSilent }}
+                {{ view.sound ? strings.stepSoundPlays : strings.stepSoundSilent }}
               </span>
             </span>
           </button>
@@ -121,7 +121,7 @@ import {advanceStep, retreatStep, type SimStep, type StepView} from './preview-s
   `],
 })
 export class PreviewStepSimulation {
-  readonly strings = EDITOR_STRINGS;
+  readonly strings = PREVIEW_STRINGS;
 
   readonly views = input.required<StepView[]>();
   readonly current = input.required<SimStep>();
@@ -130,15 +130,15 @@ export class PreviewStepSimulation {
   name(step: SimStep): string {
     switch (step) {
       case 'IDLE':
-        return this.strings.preview.stepIdle;
+        return this.strings.stepIdle;
       case 'LISTENING':
-        return this.strings.preview.stepListening;
+        return this.strings.stepListening;
       case 'PRE_REC':
-        return this.strings.preview.stepPreRec;
+        return this.strings.stepPreRec;
       case 'RECORDING':
-        return this.strings.preview.stepRecording;
+        return this.strings.stepRecording;
       case 'POST_REC':
-        return this.strings.preview.stepPostRec;
+        return this.strings.stepPostRec;
     }
   }
 
@@ -148,15 +148,15 @@ export class PreviewStepSimulation {
     }
     switch (view.blockedBy) {
       case 'NOT_RECORDED':
-        return this.strings.preview.stepBlockNotRecorded;
+        return this.strings.stepBlockNotRecorded;
       case 'NO_SOUND':
-        return this.strings.preview.stepBlockNoSound;
+        return this.strings.stepBlockNoSound;
       case 'ON_DEMAND':
-        return this.strings.preview.stepBlockOnDemand;
+        return this.strings.stepBlockOnDemand;
       default:
         // Unreachable in practice (`applies` is exactly `blockedBy === null`); the generic
         // "no target for the selected item" sentence is the honest fallback.
-        return this.strings.preview.transportDisabledTitle;
+        return this.strings.transportDisabledTitle;
     }
   }
 
@@ -177,15 +177,15 @@ export class PreviewStepSimulation {
   private status(step: SimStep): string {
     switch (step) {
       case 'IDLE':
-        return this.strings.preview.statusIdle;
+        return this.strings.statusIdle;
       case 'LISTENING':
-        return this.strings.preview.statusListening;
+        return this.strings.statusListening;
       case 'PRE_REC':
-        return this.strings.preview.statusPreRec;
+        return this.strings.statusPreRec;
       case 'RECORDING':
-        return this.strings.preview.statusRecording;
+        return this.strings.statusRecording;
       case 'POST_REC':
-        return this.strings.preview.statusPostRec;
+        return this.strings.statusPostRec;
     }
   }
 }

@@ -1,0 +1,74 @@
+<table class="items">
+  <caption class="visually-hidden">{{ strings.table.caption }}</caption>
+  <thead>
+    <tr>
+      <th scope="col">{{ strings.table.columnId }}</th>
+      <th scope="col">{{ strings.table.columnItem }}</th>
+      <th scope="col">{{ strings.table.columnCategory }}</th>
+      <th scope="col">{{ strings.table.columnWords }}</th>
+      <th scope="col">{{ strings.table.columnTags }}</th>
+      <th scope="col">{{ strings.table.columnAudio }}</th>
+      @if (showUsed()) {
+        <th scope="col">{{ strings.table.columnUsed }}</th>
+      }
+      <th scope="col">{{ strings.table.columnActions }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (item of items(); track item.bankItemId) {
+      <tr>
+        <td><code>{{ item.bankItemId }}</code></td>
+        <td class="item-text">{{ itemText(item) }}</td>
+        <td>{{ item.category ?? '—' }}</td>
+        <td>{{ item.words ?? '—' }}</td>
+        <td>{{ item.tags?.length ? item.tags?.join(', ') : '—' }}</td>
+        <td class="audio-cell">
+          @if (item.audioSrc) {
+            <span class="presence">{{ strings.table.audioPresent }}</span>
+            <button type="button" (click)="audition.emit(item)"
+                    [attr.aria-label]="strings.table.audition"
+                    [attr.title]="strings.table.auditionTitle">{{ strings.table.audition }}</button>
+          } @else {
+            <span class="presence none">{{ strings.table.noAudio }}</span>
+          }
+          @if (canEdit()) {
+            <label class="upload">
+              <span class="upload-label">{{ item.audioSrc ? strings.table.replace : strings.table.upload }}</span>
+              <input type="file" accept="audio/*" (change)="onUpload(item, $event)">
+            </label>
+          }
+          @if (uploadingId() === item.bankItemId) {
+            <span class="busy">{{ strings.table.uploading }}</span>
+          }
+          @if (auditionError() === item.bankItemId) {
+            <span class="error-text">{{ strings.table.auditionFailed }}</span>
+          }
+        </td>
+        @if (showUsed()) {
+          <td>{{ usedCount(item) ?? '—' }}</td>
+        }
+        <td class="actions">
+          @if (canEdit()) {
+            <button type="button" (click)="edit.emit(item)">{{ strings.table.edit }}</button>
+            @if (confirmingDelete() === item.bankItemId) {
+              <button type="button" (click)="remove.emit(item)">{{ strings.table.deleteConfirm }}</button>
+              <button type="button" (click)="cancelDelete.emit()">{{ strings.table.deleteCancel }}</button>
+            } @else {
+              <button type="button" (click)="remove.emit(item)">{{ strings.table.delete }}</button>
+            }
+          } @else {
+            <span class="read-only-note">{{ strings.picker.readOnlyTitle }}</span>
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+
+<footer class="pager">
+  <span class="pager-text">{{ pageText() }}</span>
+  <div class="pager-buttons">
+    <button type="button" [disabled]="!canPrev()" (click)="prev.emit()">{{ strings.table.prev }}</button>
+    <button type="button" [disabled]="!canNext()" (click)="next.emit()">{{ strings.table.next }}</button>
+  </div>
+</footer>

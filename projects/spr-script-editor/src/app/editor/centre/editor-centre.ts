@@ -18,8 +18,7 @@ import {drawnPlaceholder, drawnSource, hasWarning, itemPlaysMedia} from '../mark
 import {drawnFilterWords} from '../drawn-filter';
 import {exampleDraw, previewCodes, type ExampleDrawItem} from '../example-draw';
 import {sectionCounts, type SectionCounts} from '../outline';
-import type {Selection} from '../selection';
-import {selectionEquals} from '../selection';
+import {formatSelection, selectionEquals, type Selection} from '../selection';
 
 const S = EDITOR_STRINGS;
 
@@ -242,9 +241,9 @@ export class EditorCentre {
     return fillTemplate(S.centre.cardSelect, {n: index + 1});
   }
 
-  /** The `:groupRef` of the bank screen route. */
+  /** The `:groupRef` of the bank screen route, from the shared selection format. */
   groupRef(groupIndex: number): string {
-    return `${this.activeSectionIndex()}.${groupIndex}`;
+    return formatSelection({kind: 'group', section: this.activeSectionIndex() ?? 0, group: groupIndex});
   }
 
   reservedRange(source: PrefillBankSource): string {

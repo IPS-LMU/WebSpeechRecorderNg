@@ -1,0 +1,51 @@
+<section class="checks" [attr.aria-labelledby]="'checks-title'">
+  <h2 id="checks-title">{{ strings.title }}</h2>
+
+  <p class="counts" [attr.aria-label]="strings.countsLabel">
+    @for (severity of severities; track severity) {
+      <span class="count" [attr.data-severity]="severity">{{ countLabel(severity) }}</span>
+    }
+  </p>
+
+  @if (cards().length === 0) {
+    <p class="empty">{{ strings.empty }}</p>
+  }
+
+  @for (group of groups(); track group.severity) {
+    <section class="group" [attr.data-severity]="group.severity" [attr.aria-label]="severityWord(group.severity)">
+      <h3>{{ severityWord(group.severity) }} <span class="group-count">{{ group.cards.length }}</span></h3>
+      <ul class="cards">
+        @for (card of group.cards; track $index) {
+          <li class="card" [attr.data-severity]="card.severity"
+              [attr.data-suspended]="card.finding.suspended === true ? true : null"
+              [attr.data-server]="card.server ? true : null">
+            <p class="head">
+              <span class="chip" [attr.data-severity]="card.severity">{{ severityWord(card.severity) }}</span>
+              @if (card.finding.suspended === true) {
+                <span class="chip muted">{{ strings.suspendedChip }}</span>
+              }
+              @if (card.server) {
+                <span class="chip muted">{{ strings.serverChip }}</span>
+              }
+              <span class="line">{{ lineText(card) }}</span>
+              <span class="separator" aria-hidden="true">·</span>
+              <span class="subject">{{ card.subject }}</span>
+            </p>
+            <p class="consequence">{{ card.consequence }}</p>
+            <p class="actions">
+              @if (card.choices.length === 1) {
+                <button type="button" (click)="apply(card, card.choices[0])">{{ card.choices[0].label }}</button>
+              } @else if (card.choices.length > 1) {
+                @for (choice of card.choices; track choice.label) {
+                  <button type="button" (click)="apply(card, choice)">{{ choice.label }}</button>
+                }
+              } @else if (card.link !== null) {
+                <a [routerLink]="card.link" [queryParams]="card.linkQuery">{{ strings.openInEditor }}</a>
+              }
+            </p>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+</section>
