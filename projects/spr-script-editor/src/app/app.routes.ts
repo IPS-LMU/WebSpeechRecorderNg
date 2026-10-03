@@ -12,6 +12,9 @@ import {ScriptLibrary} from './library/script-library';
  */
 const notYetBuilt = () => import('./core/not-yet-built').then((m) => m.NotYetBuilt);
 const editorScreen = () => import('./editor/editor-screen').then((m) => m.EditorScreen);
+const jsonSource = () => import('./source/json-source').then((m) => m.JsonSource);
+const bankBrowser = () => import('./bank/bank-browser').then((m) => m.BankBrowser);
+const drawsView = () => import('./draws/draws-view').then((m) => m.DrawsView);
 
 export const APP_ROUTES: Routes = [
   {path: '', pathMatch: 'full', redirectTo: `project/${DEFAULT_PROJECT}/script`},
@@ -26,16 +29,16 @@ export const APP_ROUTES: Routes = [
    loadComponent: () => import('./preview/script-preview').then((m) => m.ScriptPreview),
    title: 'Preview'},
   // ui-spec §5
-  {path: 'project/:p/script/:id/source', loadComponent: notYetBuilt, title: 'JSON source'},
+  {path: 'project/:p/script/:id/source', loadComponent: jsonSource, title: 'JSON source'},
   // ui-spec §6
-  {path: 'project/:p/script/:id/bank/:groupRef', loadComponent: notYetBuilt, title: 'Item bank'},
+  {path: 'project/:p/script/:id/bank/:groupRef', loadComponent: bankBrowser, title: 'Item bank'},
   // ui-spec §7
-  {path: 'project/:p/script/:id/draws', loadComponent: notYetBuilt, title: 'Resolved draws'},
+  {path: 'project/:p/script/:id/draws', loadComponent: drawsView, title: 'Resolved draws'},
 
   // Project-scoped entry points that are not tied to one script (ui-spec §1/§2).
   {path: 'project/:p/source', loadComponent: notYetBuilt, title: 'JSON source'},
-  {path: 'project/:p/bank', loadComponent: notYetBuilt, title: 'Item banks'},
-  {path: 'project/:p/draws', loadComponent: notYetBuilt, title: 'Resolved draws'},
+  {path: 'project/:p/bank', loadComponent: bankBrowser, title: 'Item banks'},
+  {path: 'project/:p/draws', loadComponent: drawsView, title: 'Resolved draws'},
 
   {path: '**', redirectTo: ''},
 ];
