@@ -39,6 +39,9 @@ export class PromptAudioService {
 
   private source: AudioBufferSourceNode|null = null;
   private endCurrent: ((result: PromptAudioResult) => void)|null = null;
+  /** The silence between the repeats of a sequence, and how to cut it short. */
+  private gapTimer: number|null = null;
+  private endGap: (() => void)|null = null;
 
   constructor(private http: HttpClient, private projectService: ProjectService,
               @Optional() @Inject(SPEECHRECORDER_CONFIG) config?: SpeechRecorderConfig) {
@@ -87,6 +90,45 @@ export class PromptAudioService {
   /** Stops the sound that is playing, if any. */
   stop(): void {
     this.stopCurrent();
+  }
+
+  /**
+   * Plays a prompt sound `repeats` times with `gap` ms of silence between the repeats (the
+   * `playback` modifier of D-V = C). Resolves like `play`: `stopped` when anything interrupts a
+   * playback or a gap, `failed` when a repeat cannot be played.
+   */
+  async playSequence(
+    projectName: string|null|undefined,
+    mediaitem: Mediaitem,
+    {repeats = 1, gap = 0}: {repeats?: number, gap?: number} = {},
+  ): Promise<PromptAudioResult> {
+    const total = Math.max(1, Math.floor(repeats));
+    for (let index = 0; index < total; index++) {
+      if (index > 0 && gap > 0 && !(await this.waitGap(gap))) {
+        return 'stopped';
+      }
+      const result = await this.play(projectName, mediaitem);
+      if (result !== 'ended') {
+        return result;
+      }
+    }
+    return 'ended';
+  }
+
+  /** The silence between repeats; false when `stop()` cut it short. */
+  private waitGap(ms: number): Promise<boolean> {
+    return new Promise<boolean>((resolve) => {
+      const finish = (waited: boolean) => {
+        if (this.gapTimer !== null) {
+          window.clearTimeout(this.gapTimer);
+          this.gapTimer = null;
+        }
+        this.endGap = null;
+        resolve(waited);
+      };
+      this.endGap = () => finish(false);
+      this.gapTimer = window.setTimeout(() => finish(true), ms);
+    });
   }
 
   private load(url: string): Promise<AudioBuffer> {
@@ -168,6 +210,15 @@ export class PromptAudioService {
   }
 
   private stopCurrent(): void {
+    const endGap = this.endGap;
+    this.endGap = null;
+    if (this.gapTimer !== null) {
+      window.clearTimeout(this.gapTimer);
+      this.gapTimer = null;
+    }
+    if (endGap !== null) {
+      endGap();
+    }
     const source = this.source;
     const finish = this.endCurrent;
     this.source = null;

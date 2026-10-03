@@ -6,7 +6,7 @@
  * editor's preview and timeline share the same arithmetic.
  */
 import {MAX_RECORDING_TIME_MS} from '../session/basicrecorder';
-import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, promptVisibleAt} from './phases';
+import {ITEM_PHASES, effectiveTiming, nextPhase, playbackPlan, playbackStart, promptVisibleAt} from './phases';
 import {PromptItem} from './script';
 
 const item = (overrides: Partial<PromptItem> = {}): PromptItem => ({
@@ -140,6 +140,25 @@ describe('phases', () => {
       expect(unknown.promptAudio).not.toBeNull();
       expect(unknown.playbackDurationMs).toBeNull();
       expect(unknown.playbackSpanMs).toBeNull();
+    });
+  });
+
+  describe('playback placement', () => {
+    const planOf = (playback?: {when: 'WITH_PROMPT' | 'BEFORE' | 'PRERECORDING' | 'DURING' | 'ONDEMAND'}) =>
+      playbackPlan(item({mediaitems: [audio], playback}));
+
+    it('maps each placement to where the sound starts', () => {
+      expect(playbackStart(null)).toBeNull();
+      expect(playbackStart(planOf({when: 'WITH_PROMPT'}))).toBe('BEFORE_CLOCKS');
+      expect(playbackStart(planOf({when: 'BEFORE'}))).toBe('BEFORE_CLOCKS');
+      expect(playbackStart(planOf({when: 'PRERECORDING'}))).toBe('PRE_RECORDING');
+      expect(playbackStart(planOf({when: 'DURING'}))).toBe('RECORDING');
+      expect(playbackStart(planOf({when: 'ONDEMAND'}))).toBe('OPERATOR');
+    });
+
+    it('keeps the shipped autoplay as the default placement', () => {
+      expect(playbackStart(playbackPlan(item({mediaitems: [audio]})))).toBe('BEFORE_CLOCKS');
+      expect(playbackStart(playbackPlan(item({mediaitems: [{...audio, autoplay: false}]})))).toBeNull();
     });
   });
 

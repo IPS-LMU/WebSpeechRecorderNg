@@ -110,6 +110,31 @@ export function effectiveTiming(item: PromptItem | null | undefined): EffectiveT
   };
 }
 
+/** When the item's sound starts, and whether the clocks wait for it (D-V = C). */
+export type PlaybackStart = 'BEFORE_CLOCKS' | 'PRE_RECORDING' | 'RECORDING' | 'OPERATOR';
+
+/**
+ * The phase in which the plan's sound plays: `BEFORE_CLOCKS` means the clocks wait for it (the
+ * shipped autoplay, or an explicit `BEFORE`), `OPERATOR` means only the play control starts it.
+ * Null when the item has no sound.
+ */
+export function playbackStart(plan: PlaybackPlan | null): PlaybackStart | null {
+  if (plan === null) {
+    return null;
+  }
+  switch (plan.when) {
+    case 'BEFORE':
+    case 'WITH_PROMPT':
+      return 'BEFORE_CLOCKS';
+    case 'PRERECORDING':
+      return 'PRE_RECORDING';
+    case 'DURING':
+      return 'RECORDING';
+    case 'ONDEMAND':
+      return 'OPERATOR';
+  }
+}
+
 /** How the item's sound is played (D-V = C). */
 export interface PlaybackPlan {
   /** The prompt's audio mediaitem: the sound source and the shipped default placement. */

@@ -159,6 +159,38 @@ describe('PromptAudioService', () => {
     await expectAsync(service.play('Demo1', {mimetype: 'audio/wav'})).toBeResolvedTo('failed' as PromptAudioResult);
   });
 
+  it('plays a sound once per repeat, with the gap between them', async () => {
+    const played: number[] = [];
+    spyOn(service, 'play').and.callFake(() => {
+      played.push(Date.now());
+      return Promise.resolve('ended' as PromptAudioResult);
+    });
+    expect(await service.playSequence('Demo1', SOUND, {repeats: 3, gap: 25})).toBe('ended');
+    expect(played.length).toBe(3);
+    expect(played[1] - played[0]).toBeGreaterThanOrEqual(20);
+    expect(played[2] - played[1]).toBeGreaterThanOrEqual(20);
+  });
+
+  it('ends as stopped when a stop interrupts the gap between repeats', async () => {
+    spyOn(service, 'play').and.returnValue(Promise.resolve('ended' as PromptAudioResult));
+    const sequence = service.playSequence('Demo1', SOUND, {repeats: 3, gap: 60});
+    setTimeout(() => service.stop(), 10);
+    expect(await sequence).toBe('stopped');
+  });
+
+  it('ends as failed when a repeat cannot be played', async () => {
+    spyOn(service, 'play').and.returnValues(
+      Promise.resolve('ended' as PromptAudioResult),
+      Promise.resolve('failed' as PromptAudioResult));
+    expect(await service.playSequence('Demo1', SOUND, {repeats: 3, gap: 1})).toBe('failed');
+  });
+
+  it('plays a single repeat when no repeats are asked for', async () => {
+    const play = spyOn(service, 'play').and.returnValue(Promise.resolve('ended' as PromptAudioResult));
+    expect(await service.playSequence('Demo1', SOUND)).toBe('ended');
+    expect(play.calls.count()).toBe(1);
+  });
+
   it('resumes a suspended context before starting the sound', async () => {
     context.state = 'suspended';
     const playing = service.play('Demo1', SOUND);
