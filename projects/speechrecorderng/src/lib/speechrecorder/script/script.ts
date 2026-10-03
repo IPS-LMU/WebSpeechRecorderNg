@@ -239,6 +239,13 @@ export interface VirtualViewBox{
 }
 
 export interface Script {
+  /** Set by the editor; the recorder ignores it beyond the list view (D-I). */
+  type?: string;
+  scriptId?: string | number;
+  /** Human label for the library list. */
+  name?: string;
+  /** Lowest recorder version that understands every feature used here, e.g. "3.12". */
+  minRecorderVersion?: string;
   virtualViewBox?:VirtualViewBox;
   sections: Array<Section>;
 }

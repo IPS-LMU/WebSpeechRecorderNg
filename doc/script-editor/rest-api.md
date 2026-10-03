@@ -121,8 +121,13 @@ POST project/{projectId}/script/{scriptId}/publish
 
 The server re-runs the invariants in [data-model.md](data-model.md) §4 and the error-severity
 checks in [validation.md](validation.md). Any failure returns `409` with
-`details.checks: [{ "id": "E02", "path": "sections[2].groups[0].promptItems[1].itemcode" }]`.
+`details.checks: [{"id":"E02","path":"sections[2].groups[0].promptItems[1].itemcode"}]`.
 Warnings never block.
+
+`minRecorderVersion` is the highest floor of the features the script uses
+([data-model.md](data-model.md) §5). A script using a feature the server has no floor for is refused
+with `409 FEATURE_FLOOR_UNKNOWN` and `details.features: ["…"]`: shipping it would make a recorder
+skip the feature silently.
 
 The server enforces every error-severity id the editor shows, with the same ids, and recomputes
 `E04`'s `matchCount` atomically at publish time — a count that passed in the editor can still be
@@ -235,6 +240,12 @@ the path into whatever it ships with; the client only ever uses the `audioSrc` i
 ## 4. Draw resolution and the draw record
 
 ### 4.1 At session creation (server behaviour, not an editor call)
+
+A session whose script carries a `minRecorderVersion` above the version the receiver serves
+([data-model.md](data-model.md) §5) is refused with `409 RECORDER_VERSION_TOO_OLD` and
+`details: {"required":"…","actual":"…"}` — the recorder bundle in the operator's browser may be
+stale, so the server is the one that checks. `--recorder-version` sets the version the receiver
+reports (default: the bundled recorder's).
 
 When a session is created against a script version, the server, for each group that has a `draw`:
 

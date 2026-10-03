@@ -254,6 +254,7 @@
       "promptAudio": "Playing the prompt sound...",
       "promptAudioError": "The prompt sound could not be played.",
       "promptAudioOffline": "The prompt sound is not available offline.",
+      "scriptVersionTooOld": "This script needs recorder {{required}} or newer; this recorder is {{actual}}.",
       "playerCreated": "Player created.",
       "audioFileLoaded": "Audio file loaded.",
       "playing": "Playing...",

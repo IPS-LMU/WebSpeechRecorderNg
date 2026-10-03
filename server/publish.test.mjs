@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {withServer, jsonRequest} from './api-harness.mjs';
+import {RECORDER_VERSION} from './feature-versions.mjs';
 
 const item = (itemcode, text) => ({itemcode, mediaitems: [{mimetype: 'text/plain', text}]});
 const script = (items, name = 'S') => ({
@@ -104,7 +105,7 @@ test('publish gates on errors, freezes versions and supports restore and duplica
   });
 });
 
-test('publish stamps the feature floor and refuses an unmapped feature', async () => {
+test('publish stamps the floor of the features the script uses', async () => {
   await withServer(async ({base}) => {
     const withPrefill = await createScript(base, 'Prefill');
     const prefillItem = {
@@ -124,10 +125,10 @@ test('publish stamps the feature floor and refuses an unmapped feature', async (
       mediaitems: [{mimetype: 'audio/wav', src: 'media/a.wav'}],
     };
     const playbackEtag = await putDraft(base, withPlayback.scriptId, script([playbackItem], 'Playback'), withPlayback.etag);
-    const refused = await publish(base, withPlayback.scriptId, {fromDraftEtag: playbackEtag});
-    assert.equal(refused.status, 409);
-    const body = await refused.json();
-    assert.equal(body.code, 'FEATURE_FLOOR_UNKNOWN');
-    assert.deepEqual(body.details.features, ['playback']);
+    const played = await publish(base, withPlayback.scriptId, {fromDraftEtag: playbackEtag});
+    assert.equal(played.status, 201);
+    // The playback modifier ships with the receiver's recorder: a script that uses it needs a
+    // recorder at least as new as this one (L4).
+    assert.equal((await played.json()).minRecorderVersion, RECORDER_VERSION);
   });
 });

@@ -254,6 +254,7 @@
       "promptAudio": "Spelar upp promptljudet…",
       "promptAudioError": "Promptljudet kunde inte spelas upp.",
       "promptAudioOffline": "Promptljudet är inte tillgängligt offline.",
+      "scriptVersionTooOld": "Det här manuset kräver inspelaren {{required}} eller nyare; den här inspelaren är {{actual}}.",
       "playerCreated": "Uppspelaren är skapad.",
       "audioFileLoaded": "Ljudfilen är inläst.",
       "playing": "Spelar upp…",

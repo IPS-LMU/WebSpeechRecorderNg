@@ -259,6 +259,7 @@ const SV = {
   'spr.status.promptAudio': 'Spelar upp promptljudet…',
   'spr.status.promptAudioError': 'Promptljudet kunde inte spelas upp.',
   'spr.status.promptAudioOffline': 'Promptljudet är inte tillgängligt offline.',
+  'spr.status.scriptVersionTooOld': 'Det här manuset kräver inspelaren {{required}} eller nyare; den här inspelaren är {{actual}}.',
   'spr.status.playerCreated': 'Uppspelaren är skapad.',
   'spr.status.audioFileLoaded': 'Ljudfilen är inläst.',
   'spr.status.playing': 'Spelar upp…',

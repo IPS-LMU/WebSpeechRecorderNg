@@ -10,6 +10,8 @@ import {ActivatedRoute, Params, Router} from "@angular/router";
 import {SessionService} from "./speechrecorder/session/session.service";
 import {ScriptService} from "./speechrecorder/script/script.service";
 import {ScriptPrefillService} from "./speechrecorder/script/prefill.service";
+import {minRecorderVersionFor, supportsRecorderVersion} from "./speechrecorder/script/feature-versions";
+import {VERSION} from "./spr.module.version";
 import {PrefillChoices} from "./speechrecorder/script/prefill";
 import {SpeechRecorderUploader} from "./speechrecorder/spruploader";
 import {Session} from "./speechrecorder/session/session";
@@ -168,6 +170,16 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
       this.sm.statusWaiting = true;
       this.scriptService.scriptObservable(sess.script).subscribe({
         next: (script) => {
+          if (!supportsRecorderVersion(script)) {
+            // Refuse rather than run a silently different session (L4): the script needs a newer
+            // recorder than this build, and the operator has to know why nothing happens.
+            const required = script?.minRecorderVersion ?? minRecorderVersionFor(script) ?? '';
+            SprLogger.error(`Script needs recorder ${required}; this recorder is ${VERSION}.`);
+            this.sm.statusAlertType = 'error';
+            this.sm.statusMsg = this.i18n.t('spr.status.scriptVersionTooOld', {required, actual: VERSION});
+            this.sm.statusWaiting = false;
+            return;
+          }
           this.sm.statusAlertType = 'info';
           this.sm.statusMsg = this.i18n.t('spr.status.scriptReceived');
           this.sm.statusWaiting = false;

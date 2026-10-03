@@ -191,6 +191,7 @@ export const SPR_STRINGS: Record<string, string> = {
   'spr.status.promptAudio': 'Playing the prompt sound...',
   'spr.status.promptAudioError': 'The prompt sound could not be played.',
   'spr.status.promptAudioOffline': 'The prompt sound is not available offline.',
+  'spr.status.scriptVersionTooOld': 'This script needs recorder {{required}} or newer; this recorder is {{actual}}.',
   'spr.status.playerCreated': 'Player created.',
   'spr.status.audioFileLoaded': 'Audio file loaded.',
   'spr.status.playing': 'Playing...',

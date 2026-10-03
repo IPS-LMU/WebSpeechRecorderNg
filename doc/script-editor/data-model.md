@@ -389,6 +389,21 @@ runs without the clip and nobody is told. Prevent that:
   browser cannot be trusted to check anything. Materialised session scripts (§2.4) carry the same
   floor as the script they came from.
 
+Implemented (milestone L4):
+
+- The table and the arithmetic live in
+  [feature-versions.ts](../../projects/speechrecorderng/src/lib/speechrecorder/script/feature-versions.ts):
+  `FEATURE_VERSIONS`, `compareVersions` (numeric segments, missing segments, pre-release), and
+  `supportsRecorderVersion`. `playback` maps to the version this build reports, so the floor rises
+  automatically with the release that ships the modifier.
+- `sessionmanager`'s component refuses at script load with `spr.status.scriptVersionTooOld`.
+- The receiver keeps its own copy in [server/feature-versions.mjs](../../server/feature-versions.mjs)
+  and refuses a session whose script floor is above the version it serves
+  (`--recorder-version`, default `RECORDER_VERSION`), with `409 RECORDER_VERSION_TOO_OLD`. A publish
+  whose script uses a feature with no table entry is refused rather than shipped
+  (`409 FEATURE_FLOOR_UNKNOWN`). The two copies are held to the same cases by
+  `feature-versions.spec.ts` and `server/feature-versions.test.mjs`.
+
 ## 6. Normalisation (D7)
 
 Offered as one-click fixes in the checks panel, never applied on save:

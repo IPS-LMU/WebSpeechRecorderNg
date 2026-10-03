@@ -8,11 +8,20 @@
  * introduced the feature. A feature **without** an entry cannot be published — the server refuses
  * rather than shipping a script that a recorder would silently skip.
  */
+/** The recorder release this receiver serves; keep in step with the library's `VERSION`. */
+export const RECORDER_VERSION = '3.11.26';
+
 export const FEATURE_VERSIONS = {
   /** Prefill shipped in the 3.11.26 receiver (`ba81bcf8`, `PromptItemPrefill`). */
   prefill: '3.11.26',
-  // playback: added at L1, when the recorder implements the `playback` modifier (D-V = C).
+  /** The playback modifier ships with this receiver — whichever version it reports (L3). */
+  playback: RECORDER_VERSION,
 };
+
+/** Whether a recorder of `version` can run a script with this floor; an absent floor never blocks. */
+export function supportsRecorderVersion(floor, version = RECORDER_VERSION) {
+  return floor === null || floor === undefined || compareVersions(version, floor) >= 0;
+}
 
 /**
  * Numeric segment comparison, not string order: `"3.10" > "3.9"`, `"3.12" == "3.12.0"`, and a

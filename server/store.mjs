@@ -19,16 +19,18 @@ import {dirname, join, resolve, sep} from 'node:path';
 import {RequestError} from './body.mjs';
 import {resolveBankSources} from './draw.mjs';
 import {etagOf} from './etag.mjs';
+import {RECORDER_VERSION, supportsRecorderVersion} from './feature-versions.mjs';
 import {MEDIA_DIR, mimeTypeFor, referencedResources} from './media.mjs';
 
 const ID_SEQUENCE = 'sequence.json';
 const JOURNAL = 'journal.json';
 
 export class Store {
-  constructor({dataDir, seedDir, log}) {
+  constructor({dataDir, seedDir, log, recorderVersion = RECORDER_VERSION}) {
     this.dataDir = resolve(dataDir);
     this.seedDir = seedDir === null ? null : resolve(seedDir);
     this.log = log;
+    this.recorderVersion = recorderVersion;
     this.uploadsDir = join(this.dataDir, 'uploads');
     this.tmpDir = join(this.uploadsDir, 'tmp');
     this._sequence = null;
@@ -237,7 +239,25 @@ export class Store {
     return updated;
   }
 
+  /**
+   * Refuses a script this receiver's recorder cannot run (L4/C8): a stale cached recorder bundle
+   * cannot check anything, so the server checks when the session is created.
+   */
+  requireRecorderVersion(scriptId, floor = undefined) {
+    const required = floor === undefined ? (this.script(scriptId)?.minRecorderVersion ?? null) : floor;
+    if (supportsRecorderVersion(required, this.recorderVersion)) {
+      return;
+    }
+    throw new RequestError(409, `script ${scriptId} needs recorder ${required}; this receiver serves ${this.recorderVersion}`, {
+      code: 'RECORDER_VERSION_TOO_OLD',
+      details: {required, actual: this.recorderVersion},
+    });
+  }
+
   createSession(id, {project, script, type = 'NORM', speaker = null}) {
+    if (script !== null && script !== undefined) {
+      this.requireRecorderVersion(script);
+    }
     let session = {
       sessionId: coerceId(id),
       type,
@@ -782,6 +802,7 @@ export class Store {
     if (source === null || source === undefined) {
       throw new RequestError(404, `script ${scriptId} has no ${version} to preview`);
     }
+    this.requireRecorderVersion(scriptId, source.minRecorderVersion ?? null);
     const sessionId = `preview-${randomBytes(6).toString('hex')}`;
     const expires = new Date(Date.now() + ttlMs).toISOString();
     let session = {

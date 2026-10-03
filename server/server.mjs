@@ -14,6 +14,7 @@ import {createReadStream, existsSync, statSync} from 'node:fs';
 import {extname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createApiHandler} from './api.mjs';
+import {RECORDER_VERSION} from './feature-versions.mjs';
 import {Store} from './store.mjs';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
@@ -21,7 +22,7 @@ const ROOT = resolve(HERE, '..');
 
 const options = parseArgs(process.argv.slice(2));
 const log = makeLogger();
-const store = new Store({dataDir: options.data, seedDir: options.seed, log}).open();
+const store = new Store({dataDir: options.data, seedDir: options.seed, log, recorderVersion: options.recorderVersion}).open();
 
 // Maintenance subcommands run against the data directory and exit before serving.
 if (options.migrate || options.gc) {
@@ -203,6 +204,7 @@ function parseArgs(argv) {
     migrate: false,
     gc: false,
     gcMedia: false,
+    recorderVersion: RECORDER_VERSION,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -226,6 +228,7 @@ function parseArgs(argv) {
       case '--migrate': opts.migrate = true; break;
       case '--gc': opts.gc = true; break;
       case '--gc-media': opts.gcMedia = true; break;
+      case '--recorder-version': opts.recorderVersion = value; i++; break;
       case '--help': case '-h': usage(); process.exit(0); break;
       default:
         process.stderr.write(`unknown argument ${arg}\n`);
@@ -273,6 +276,8 @@ function usage() {
                        encodes asynchronously, see the README)
   --quiet              log uploads and errors only
   --verbose            log every request, including static files
+  --recorder-version <v> version the served recorder reports (default ${RECORDER_VERSION}); a
+                       script whose minRecorderVersion is above it is refused at session creation
   --migrate            create the per-script layout for legacy flat scripts, then exit
   --gc                 prune draft revisions and expired preview sessions, then exit
   --gc-media           with --gc, also delete media that no draft or version references
