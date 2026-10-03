@@ -3,9 +3,13 @@
  * `(draft, context) => Finding[]`, with ids and paths held byte-for-byte against
  * `server/validate.mjs` and `doc/script-editor/checks/*.checks.json`.
  */
+import {EDITOR_STRINGS} from '../editor-strings';
 import type {Draft, Finding, ValidationContext} from './types';
 import {filterOf, queryBank} from './filter';
+import {fillTemplate} from './interpolate';
 import {eachBankSource, eachItem, eachSection, isAudio, isObject, mediaitemsOf, trimmedCode} from './walk';
+
+const S = EDITOR_STRINGS.validation;
 
 /** The item timing keys the recorder reads; a negative or non-numeric value is E09. */
 export const TIMING_FIELDS = ['prerecdelay', 'prerecording', 'recduration', 'duration', 'postrecording', 'postrecdelay'];
@@ -27,7 +31,7 @@ export function checkE01(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     if (trimmedCode(item) === '') {
-      findings.push(error('E01', `${path}.itemcode`, 'Itemcode is required.', 'focus'));
+      findings.push(error('E01', `${path}.itemcode`, S.e01, 'focus'));
     }
   }
   return findings;
@@ -44,7 +48,7 @@ export function checkE02(draft: Draft): Finding[] {
     }
     const first = seen.get(code);
     if (first !== undefined) {
-      findings.push(error('E02', `${path}.itemcode`, 'Another item already uses this itemcode.', 'next-code', {first}));
+      findings.push(error('E02', `${path}.itemcode`, S.e02, 'next-code', {first}));
     } else {
       seen.set(code, path);
     }
@@ -57,14 +61,14 @@ export function checkE03(draft: Draft, context: ValidationContext = {}): Finding
   const findings: Finding[] = [];
   for (const ref of eachBankSource(draft)) {
     if (ref.bankId.trim() === '') {
-      findings.push(error('E03', `${ref.bankPath}.bank`, 'The item draws from a bank but no bank is chosen.', 'bank-picker'));
+      findings.push(error('E03', `${ref.bankPath}.bank`, S.e03NoBank, 'bank-picker'));
       continue;
     }
     if (context.bankLookup === undefined) {
       continue;
     }
     if (context.bankLookup(ref.bankId) === null) {
-      findings.push(error('E03', `${ref.bankPath}.bank`, `Bank ${ref.bankId} does not exist.`, 'bank-picker'));
+      findings.push(error('E03', `${ref.bankPath}.bank`, fillTemplate(S.e03Missing, {bankId: ref.bankId}), 'bank-picker'));
     }
   }
   return findings;
@@ -88,7 +92,7 @@ export function checkE04(draft: Draft, context: ValidationContext = {}): Finding
         id: 'E04',
         severity: 'warning',
         path: `${ref.bankPath}.count`,
-        message: 'The filter match count is unknown because the bank could not be read. Count validation is suspended.',
+        message: S.e04Suspended,
         suspended: true,
       });
       continue;
@@ -101,7 +105,7 @@ export function checkE04(draft: Draft, context: ValidationContext = {}): Finding
       findings.push(error(
         'E04',
         `${ref.bankPath}.count`,
-        `The filter matches only ${matchCount} items. Widen the filter or draw fewer.`,
+        fillTemplate(S.e04, {matchCount}),
         'clamp-count',
         {matchCount},
       ));
@@ -123,7 +127,7 @@ function reservedRanges(draft: Draft, findings: Finding[]): ReservedRange[] {
     const prefix = ref.bank['itemcodePrefix'];
     const count = Number(ref.bank['count']);
     if (prefix === undefined || prefix === null || String(prefix) === '') {
-      findings.push(error('E05', `${ref.bankPath}.itemcodePrefix`, 'A drawn itemcode prefix is required.', 'free-prefix'));
+      findings.push(error('E05', `${ref.bankPath}.itemcodePrefix`, S.e05PrefixMissing, 'free-prefix'));
       continue;
     }
     if (Number.isInteger(count) && count >= 1) {
@@ -152,7 +156,7 @@ export function checkE05(draft: Draft): Finding[] {
       findings.push(error(
         'E05',
         `${range.path}.itemcodePrefix`,
-        `Prefix ${range.prefix} is already reserved at ${previous.path}.`,
+        fillTemplate(S.e05PrefixClash, {prefix: range.prefix, path: previous.path}),
         'free-prefix',
         {prefix: range.prefix},
       ));
@@ -174,7 +178,7 @@ export function checkE05(draft: Draft): Finding[] {
         findings.push(error(
           'E05',
           path,
-          `Itemcodes ${range.prefix}001–${range.prefix}${last} are reserved by the bank source at ${range.path}.`,
+          fillTemplate(S.e05Reserved, {prefix: range.prefix, last, path: range.path}),
           'free-prefix',
           {prefix: range.prefix, count: range.count},
         ));
@@ -192,7 +196,7 @@ export function checkE06(draft: Draft): Finding[] {
       continue;
     }
     if (!mediaitemsOf(item).some(isAudio)) {
-      findings.push(error('E06', `${path}.playback`, 'The item plays media but no file is chosen.', 'file-picker'));
+      findings.push(error('E06', `${path}.playback`, S.e06, 'file-picker'));
     }
   }
   return findings;
@@ -206,12 +210,12 @@ export function checkE07(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     const first = mediaitemsOf(item)[0];
-    const shows = first !== undefined && first !== null
-      && ((first as Record<string, unknown>)['text'] !== undefined && (first as Record<string, unknown>)['text'] !== null
-        || (first as Record<string, unknown>)['promptDoc'] !== undefined && (first as Record<string, unknown>)['promptDoc'] !== null
-        || (first as Record<string, unknown>)['src'] !== undefined && (first as Record<string, unknown>)['src'] !== null);
+    const shows = isObject(first)
+      && ((first['text'] !== undefined && first['text'] !== null)
+        || (first['promptDoc'] !== undefined && first['promptDoc'] !== null)
+        || (first['src'] !== undefined && first['src'] !== null));
     if (!shows && (item['playback'] === undefined || item['playback'] === null)) {
-      findings.push(error('E07', `${path}.mediaitems`, 'The item shows nothing and plays nothing.'));
+      findings.push(error('E07', `${path}.mediaitems`, S.e07));
     }
   }
   return findings;
@@ -228,7 +232,7 @@ export function checkE09(draft: Draft): Finding[] {
   for (const ref of eachBankSource(draft)) {
     const count = Number(ref.bank['count']);
     if (!Number.isInteger(count) || count < 1) {
-      findings.push(error('E09', `${ref.bankPath}.count`, 'count must be a positive whole number.'));
+      findings.push(error('E09', `${ref.bankPath}.count`, S.e09Count));
     }
   }
   for (const {item, itemPath: path} of eachItem(draft)) {
@@ -238,7 +242,7 @@ export function checkE09(draft: Draft): Finding[] {
         continue;
       }
       if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-        findings.push(error('E09', `${path}.${field}`, `${field} must be a positive number of milliseconds.`));
+        findings.push(error('E09', `${path}.${field}`, fillTemplate(S.e09Timing, {field})));
       }
     }
   }
@@ -250,13 +254,13 @@ export function checkE10(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   const sections = Array.isArray(draft?.sections) ? draft.sections : [];
   if (sections.length === 0) {
-    findings.push(error('E10', 'sections', 'A script needs at least one section with one group.', 'add-group'));
+    findings.push(error('E10', 'sections', S.e10, 'add-group'));
     return findings;
   }
   for (const {section, path} of eachSection(draft)) {
     const groups = section['groups'];
     if (!Array.isArray(groups) || groups.length === 0) {
-      findings.push(error('E10', `${path}.groups`, 'A script needs at least one section with one group.', 'add-group'));
+      findings.push(error('E10', `${path}.groups`, S.e10, 'add-group'));
     }
   }
   return findings;
@@ -267,12 +271,12 @@ export function checkE11(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   const scriptHeight = draft?.virtualViewBox?.height;
   if (scriptHeight !== undefined && !(typeof scriptHeight === 'number' && scriptHeight > 0)) {
-    findings.push(error('E11', 'virtualViewBox.height', 'The virtual view box height must be greater than zero.'));
+    findings.push(error('E11', 'virtualViewBox.height', S.e11Height));
   }
   for (const ref of eachBankSource(draft)) {
     const count = Number(ref.bank['count']);
     if (Number.isInteger(count) && count > 999) {
-      findings.push(error('E11', `${ref.bankPath}.count`, 'A drawn itemcode range holds at most 999 items.'));
+      findings.push(error('E11', `${ref.bankPath}.count`, S.e11Count));
     }
   }
   for (const {item, itemPath: path} of eachItem(draft)) {
@@ -280,23 +284,23 @@ export function checkE11(draft: Draft): Finding[] {
     if (isObject(playback)) {
       const repeats = playback['repeats'];
       if (repeats !== undefined && (!Number.isInteger(repeats) || (repeats as number) < 1)) {
-        findings.push(error('E11', `${path}.playback.repeats`, 'repeats must be at least 1.'));
+        findings.push(error('E11', `${path}.playback.repeats`, S.e11Repeats));
       }
       for (const field of NON_NEGATIVE_PLAYBACK_FIELDS) {
         const value = playback[field];
         if (value !== undefined && (!Number.isFinite(value) || (value as number) < 0)) {
-          findings.push(error('E11', `${path}.playback.${field}`, `${field} must not be negative.`));
+          findings.push(error('E11', `${path}.playback.${field}`, fillTemplate(S.e11NonNegative, {field})));
         }
       }
     }
     mediaitemsOf(item).forEach((mediaitem, mediaIndex) => {
-      const height = (mediaitem as Record<string, unknown>)?.['defaultVirtualViewBox'];
-      const value = height !== null && typeof height === 'object' ? (height as Record<string, unknown>)['height'] : undefined;
+      const box = isObject(mediaitem) ? mediaitem['defaultVirtualViewBox'] : undefined;
+      const value = isObject(box) ? box['height'] : undefined;
       if (value !== undefined && !(typeof value === 'number' && value > 0)) {
         findings.push(error(
           'E11',
           `${path}.mediaitems[${mediaIndex}].defaultVirtualViewBox.height`,
-          'The virtual view box height must be greater than zero.',
+          S.e11Height,
         ));
       }
     });

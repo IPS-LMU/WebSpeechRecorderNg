@@ -1,0 +1,51 @@
+@switch (state()) {
+  @case ('loading') {
+    <div class="state" role="status">
+      <p>{{ strings.editor.loading }}</p>
+      <div class="skeleton" aria-hidden="true" [attr.aria-label]="strings.editor.skeletonLabel">
+        @for (row of [1, 2, 3, 4, 5, 6]; track row) {
+          <span class="bar" [style.width.%]="60 + (row * 6) % 40"></span>
+        }
+      </div>
+    </div>
+  }
+
+  @case ('error') {
+    <div class="state error" role="alert">
+      <h1>{{ strings.editor.loadErrorTitle }}</h1>
+      <p>{{ strings.editor.loadErrorBody }}</p>
+      <p class="detail">{{ error() }}</p>
+      <button type="button" [disabled]="true" [title]="strings.editor.retryTitle">{{ strings.editor.retry }}</button>
+    </div>
+  }
+
+  @default {
+    <div class="editor">
+      <aside class="col outline-col">
+        <spr-editor-outline [script]="script()" [findings]="findings()" [selection]="selection()"
+                            [bankNames]="bankNames()" (select)="select($event)"></spr-editor-outline>
+      </aside>
+
+      <main class="col centre-col">
+        @if (state() === 'empty') {
+          <div class="empty-card">
+            <h2>{{ strings.editor.emptyTitle }}</h2>
+            <p>{{ strings.editor.emptyBody }}</p>
+            <button type="button" [disabled]="true"
+                    [title]="strings.editor.addSectionTitle">{{ strings.editor.addSection }}</button>
+          </div>
+        } @else {
+          <spr-editor-centre [script]="script()" [selection]="selection()" [findings]="findings()"
+                             [bankViews]="bankViews()" [bankList]="bankList()" [project]="project()"
+                             [scriptId]="scriptId()" (select)="select($event)"></spr-editor-centre>
+        }
+      </main>
+
+      <aside class="col inspector-col">
+        <spr-editor-inspector [script]="script()" [selection]="selection()" [findings]="findings()"
+                              [bankViews]="bankViews()" [bankList]="bankList()" [media]="media()"
+                              [project]="project()" [scriptId]="scriptId()"></spr-editor-inspector>
+      </aside>
+    </div>
+  }
+}

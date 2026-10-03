@@ -1,0 +1,20 @@
+<figure class="timeline">
+  <div class="bar" role="img" [attr.aria-label]="ariaLabel()">
+    @for (segment of segments(); track $index) {
+      <span class="seg" [class]="'seg-' + segment.kind" [class.hatched]="segment.hatched"
+            [class.overlay]="segment.overlayPlayback" [style.flex-basis.%]="widthPercent(segment)"
+            [attr.title]="label(segment) + ' · ' + millis(segment)"></span>
+    }
+  </div>
+  <ul class="legend">
+    @for (segment of segments(); track $index) {
+      <li>
+        <span class="swatch" [class]="'seg-' + segment.kind" [class.hatched]="segment.hatched"
+              [class.overlay]="segment.overlayPlayback" aria-hidden="true"></span>
+        <span class="legend-label">{{ label(segment) }}</span>
+        <span class="legend-value">{{ millis(segment) }}</span>
+      </li>
+    }
+  </ul>
+  <figcaption class="visibility">{{ sentence() }}</figcaption>
+</figure>

@@ -11,9 +11,13 @@ import {
   effectiveTiming,
   type PromptItem,
 } from 'speechrecorderng';
+import {EDITOR_STRINGS} from '../editor-strings';
 import type {Draft, Finding, ValidationContext} from './types';
 import {filterOf, queryBank} from './filter';
-import {eachBankSource, eachItem, eachSection, isAudio, isImage, isNonRecordingItem, mediaitemsOf} from './walk';
+import {fillTemplate} from './interpolate';
+import {eachBankSource, eachItem, eachSection, isAudio, isImage, isNonRecordingItem, isObject, mediaitemsOf} from './walk';
+
+const S = EDITOR_STRINGS.validation;
 
 function warning(id: string, path: string, message: string, data?: Finding['data']): Finding {
   const finding: Finding = {id, severity: 'warning', path, message};
@@ -39,11 +43,7 @@ export function checkW01(draft: Draft): Finding[] {
         continue;
       }
       if (item['recduration'] === undefined || item['recduration'] === null) {
-        findings.push(warning(
-          'W01',
-          `${path}.recduration`,
-          'The section records automatically, but this item has no duration. The recording runs until the speaker presses Next.',
-        ));
+        findings.push(warning('W01', `${path}.recduration`, S.w01));
       }
     }
   }
@@ -60,11 +60,7 @@ export function checkW02(draft: Draft): Finding[] {
       }
       const alt = (mediaitem as Record<string, unknown>)['alt'];
       if (alt === undefined || alt === null || String(alt).trim() === '') {
-        findings.push(warning(
-          'W02',
-          `${path}.mediaitems[${index}].alt`,
-          'Image prompt has no alt text. Screen-reader users get no prompt, and lists show only the file name.',
-        ));
+        findings.push(warning('W02', `${path}.mediaitems[${index}].alt`, S.w02));
       }
     });
   }
@@ -76,26 +72,14 @@ export function checkW03(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     const playback = item['playback'];
-    if (playback !== null && typeof playback === 'object'
-      && (playback as Record<string, unknown>)['when'] === 'DURING'
-      && (playback as Record<string, unknown>)['headphones'] !== true) {
-      findings.push(warning(
-        'W03',
-        `${path}.playback.headphones`,
-        'Playing while recording captures the sound through the microphone unless headphones are required.',
-      ));
+    if (isObject(playback) && playback['when'] === 'DURING' && playback['headphones'] !== true) {
+      findings.push(warning('W03', `${path}.playback.headphones`, S.w03));
     }
   }
   for (const ref of eachBankSource(draft)) {
     const playback = ref.bank['playback'];
-    if (playback !== null && typeof playback === 'object'
-      && (playback as Record<string, unknown>)['when'] === 'DURING'
-      && (playback as Record<string, unknown>)['headphones'] !== true) {
-      findings.push(warning(
-        'W03',
-        `${ref.bankPath}.playback.headphones`,
-        'Playing while recording captures the sound through the microphone unless headphones are required.',
-      ));
+    if (isObject(playback) && playback['when'] === 'DURING' && playback['headphones'] !== true) {
+      findings.push(warning('W03', `${ref.bankPath}.playback.headphones`, S.w03));
     }
   }
   return findings;
@@ -114,11 +98,7 @@ export function checkW04(draft: Draft, context: ValidationContext = {}): Finding
     }
     const {withoutAudio, matchCount} = queryBank(view, filterOf(ref.bank));
     if (withoutAudio > 0) {
-      findings.push(warning(
-        'W04',
-        `${ref.bankPath}.playBankAudio`,
-        `${withoutAudio} of the ${matchCount} matching items have no model recording. Those items would appear without sound.`,
-      ));
+      findings.push(warning('W04', `${ref.bankPath}.playBankAudio`, fillTemplate(S.w04, {withoutAudio, matchCount})));
     }
   }
   return findings;
@@ -136,43 +116,31 @@ export function checkW05(draft: Draft, context: ValidationContext = {}): Finding
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     const playback = item['playback'];
-    if (playback === null || typeof playback !== 'object' || (playback as Record<string, unknown>)['when'] !== 'PRERECORDING') {
+    if (!isObject(playback) || playback['when'] !== 'PRERECORDING') {
       continue;
     }
     const timing = effectiveTiming(item as unknown as PromptItem);
     if (timing.playbackSpanMs !== null && timing.playbackSpanMs > timing.preDelay) {
-      findings.push(warning(
-        'W05',
-        `${path}.playback.when`,
-        `The clip is ${timing.playbackSpanMs} ms but the pre-recording delay is ${timing.preDelay} ms, so recording starts while it still plays.`,
-      ));
+      findings.push(warning('W05', `${path}.playback.when`, fillTemplate(S.w05, {clip: timing.playbackSpanMs, delay: timing.preDelay})));
     }
   }
 
   for (const ref of eachBankSource(draft)) {
     const playback = ref.bank['playback'];
-    const when = playback !== null && typeof playback === 'object' ? (playback as Record<string, unknown>)['when'] : undefined;
+    const when = isObject(playback) ? playback['when'] : undefined;
     if (when !== 'PRERECORDING') {
       continue;
     }
     const durations = context.clipDurations?.(ref.bankId);
     const view = context.bankLookup?.(ref.bankId);
     if (durations === undefined || view === undefined || view === null) {
-      findings.push(suspended(
-        'W05',
-        `${ref.bankPath}.playback.when`,
-        'The drawn items\u2019 clip durations are unknown because the bank could not be read. Playback timing validation is suspended.',
-      ));
+      findings.push(suspended('W05', `${ref.bankPath}.playback.when`, S.w05SuspendedMissing));
       continue;
     }
     const matching = queryBank(view, filterOf(ref.bank)).items;
     const known = matching.map((bankItem) => durations.get(String(bankItem.bankItemId)));
     if (known.some((duration) => duration === undefined)) {
-      findings.push(suspended(
-        'W05',
-        `${ref.bankPath}.playback.when`,
-        'Some drawn items have no known clip duration. Playback timing validation is suspended.',
-      ));
+      findings.push(suspended('W05', `${ref.bankPath}.playback.when`, S.w05SuspendedPartial));
       continue;
     }
     const repeats = typeof (playback as Record<string, unknown>)['repeats'] === 'number'
@@ -182,20 +150,15 @@ export function checkW05(draft: Draft, context: ValidationContext = {}): Finding
       ? Math.max(0, (playback as Record<string, unknown>)['gap'] as number)
       : DEFAULT_POST_REC_DELAY;
     const defaults = ref.bank['itemDefaults'];
-    const delay = defaults !== null && typeof defaults === 'object'
-      && typeof (defaults as Record<string, unknown>)['prerecdelay'] === 'number'
-      ? (defaults as Record<string, unknown>)['prerecdelay'] as number
+    const delay = isObject(defaults) && typeof defaults['prerecdelay'] === 'number'
+      ? defaults['prerecdelay'] as number
       : DEFAULT_PRE_REC_DELAY;
     const spans = known
       .map((duration) => spanMs(duration as number, repeats, gap))
       .filter((span): span is number => span !== null);
     const longest = spans.length === 0 ? null : Math.max(...spans);
     if (longest !== null && longest > delay) {
-      findings.push(warning(
-        'W05',
-        `${ref.bankPath}.playback.when`,
-        `The clip is ${longest} ms but the pre-recording delay is ${delay} ms, so recording starts while it still plays.`,
-      ));
+      findings.push(warning('W05', `${ref.bankPath}.playback.when`, fillTemplate(S.w05, {clip: longest, delay})));
     }
   }
   return findings;
@@ -206,10 +169,10 @@ export function checkW06(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     if (isNonRecordingItem(item) && item['recduration'] !== undefined && item['recduration'] !== null) {
-      findings.push(warning('W06', `${path}.recduration`, 'recduration has no effect on this kind of item.'));
+      findings.push(warning('W06', `${path}.recduration`, fillTemplate(S.w06, {field: 'recduration'})));
     }
     if (!isNonRecordingItem(item) && item['duration'] !== undefined && item['duration'] !== null) {
-      findings.push(warning('W06', `${path}.duration`, 'duration has no effect on this kind of item.'));
+      findings.push(warning('W06', `${path}.duration`, fillTemplate(S.w06, {field: 'duration'})));
     }
   }
   return findings;
@@ -223,11 +186,7 @@ export function checkW07(draft: Draft): Finding[] {
       continue;
     }
     for (const ref of eachBankSource({sections: [section]})) {
-      findings.push(warning(
-        'W07',
-        ref.bankPath,
-        'Training items are exempt from the completeness check, so a draw here consumes bank items without producing required recordings.',
-      ));
+      findings.push(warning('W07', ref.bankPath, S.w07));
     }
   }
   return findings;
@@ -238,10 +197,7 @@ export function checkW08(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     if (mediaitemsOf(item).length > 1) {
-      findings.push({
-        ...warning('W08', `${path}.mediaitems`, 'Only the first media item is shown by the recorder. The others are ignored.'),
-        fix: 'keep-first-mediaitem',
-      });
+      findings.push({...warning('W08', `${path}.mediaitems`, S.w08), fix: 'keep-first-mediaitem'});
     }
   }
   return findings;
@@ -256,28 +212,23 @@ export function checkW09(draft: Draft): Finding[] {
     }
     for (const {item, itemPath: path} of eachItem({sections: [section]})) {
       const playback = item['playback'];
-      if (playback !== null && typeof playback === 'object') {
-        if ((playback as Record<string, unknown>)['replayable'] === true
-          && ((playback as Record<string, unknown>)['maxReplays'] === undefined || (playback as Record<string, unknown>)['maxReplays'] === null)) {
-          findings.push(warning('W09', `${path}.playback.maxReplays`, 'The speaker can replay without limit while the section advances on its own.'));
+      if (isObject(playback)) {
+        if (playback['replayable'] === true && (playback['maxReplays'] === undefined || playback['maxReplays'] === null)) {
+          findings.push(warning('W09', `${path}.playback.maxReplays`, S.w09));
         }
         continue;
       }
       mediaitemsOf(item).forEach((mediaitem, index) => {
-        if (!isAudio(mediaitem)) {
-          return;
-        }
-        if ((mediaitem as Record<string, unknown>)['replay'] === true) {
-          findings.push(warning('W09', `${path}.mediaitems[${index}].replay`, 'The speaker can replay without limit while the section advances on its own.'));
+        if (isAudio(mediaitem) && (mediaitem as Record<string, unknown>)['replay'] === true) {
+          findings.push(warning('W09', `${path}.mediaitems[${index}].replay`, S.w09));
         }
       });
     }
   }
   for (const ref of eachBankSource(draft)) {
     const playback = ref.bank['playback'];
-    if (playback !== null && typeof playback === 'object'
-      && (playback as Record<string, unknown>)['replayable'] === true) {
-      findings.push(warning('W09', `${ref.bankPath}.playback.replayable`, 'The speaker can replay without limit while the section advances on its own.'));
+    if (isObject(playback) && playback['replayable'] === true) {
+      findings.push(warning('W09', `${ref.bankPath}.playback.replayable`, S.w09));
     }
   }
   return findings;
@@ -290,11 +241,7 @@ export function checkW10(draft: Draft, context: ValidationContext = {}): Finding
   const actual = context.recorderVersion;
   if (typeof required === 'string' && required.trim() !== '' && typeof actual === 'string' && actual.trim() !== ''
     && compareVersions(required, actual) > 0) {
-    findings.push(warning(
-      'W10',
-      'minRecorderVersion',
-      `This script needs recorder ${required}; the deployment runs ${actual}. Playback would be skipped silently.`,
-    ));
+    findings.push(warning('W10', 'minRecorderVersion', fillTemplate(S.w10, {required, actual})));
   }
   return findings;
 }
@@ -306,14 +253,14 @@ export function checkW11(draft: Draft, context: ValidationContext = {}): Finding
   const known = index == null ? null : new Set(index);
   for (const {item, itemPath: path} of eachItem(draft)) {
     mediaitemsOf(item).forEach((mediaitem, mediaIndex) => {
-      const src = (mediaitem as Record<string, unknown>)?.['src'];
+      const src = isObject(mediaitem) ? mediaitem['src'] : undefined;
       if (typeof src !== 'string' || src.trim() === '') {
         return;
       }
       if (known === null) {
-        findings.push(suspended('W11', `${path}.mediaitems[${mediaIndex}].src`, `${src} cannot be checked because the project\u2019s media list could not be fetched.`));
+        findings.push(suspended('W11', `${path}.mediaitems[${mediaIndex}].src`, fillTemplate(S.w11Suspended, {src})));
       } else if (!known.has(src)) {
-        findings.push(warning('W11', `${path}.mediaitems[${mediaIndex}].src`, `${src} is not in the project's media.`));
+        findings.push(warning('W11', `${path}.mediaitems[${mediaIndex}].src`, fillTemplate(S.w11Missing, {src})));
       }
     });
   }
@@ -325,16 +272,12 @@ export function checkW12(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const {item, itemPath: path} of eachItem(draft)) {
     const playback = item['playback'];
-    if (!isNonRecordingItem(item) || playback === null || typeof playback !== 'object') {
+    if (!isNonRecordingItem(item) || !isObject(playback)) {
       continue;
     }
-    const when = (playback as Record<string, unknown>)['when'];
+    const when = playback['when'];
     if (when === 'PRERECORDING' || when === 'DURING') {
-      findings.push(warning(
-        'W12',
-        `${path}.playback.when`,
-        'The item has no recording phase, so the clip plays at the wrong moment; use WITH_PROMPT, BEFORE or ONDEMAND.',
-      ));
+      findings.push(warning('W12', `${path}.playback.when`, S.w12));
     }
   }
   return findings;
@@ -352,10 +295,7 @@ export function checkW13(draft: Draft): Finding[] {
       return record['autoplay'] !== undefined || record['replay'] !== undefined;
     });
     if (clashes.length > 0) {
-      findings.push({
-        ...warning('W13', `${path}.playback`, 'The item declares its placement twice; `playback` wins and the mediaitem flags are ignored.'),
-        data: {count: clashes.length},
-      });
+      findings.push({...warning('W13', `${path}.playback`, S.w13), data: {count: clashes.length}});
     }
   }
   return findings;

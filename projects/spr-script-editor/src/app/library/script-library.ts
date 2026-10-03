@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {Component, computed, effect, inject, input, signal} from '@angular/core';
 import {RouterLink} from '@angular/router';
+import {EDITOR_STRINGS} from '../core/editor-strings';
 import {ScriptApiService} from '../core/script-api.service';
 import {ScriptStatus, ScriptSummary} from '../core/script.model';
 import {DEFAULT_PROJECT} from '../editor.config';
@@ -10,10 +11,9 @@ type StatusFilter = 'ALL' | ScriptStatus;
 
 function describeError(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
-    const statusText = error.statusText ? ` ${error.statusText}` : '';
-    return `The server answered ${error.status}${statusText}.`;
+    return `${EDITOR_STRINGS.library.errorPrefix} (${EDITOR_STRINGS.library.httpPrefix} ${error.status})`;
   }
-  return error instanceof Error ? error.message : 'The script list could not be loaded.';
+  return EDITOR_STRINGS.library.errorPrefix;
 }
 
 /**
@@ -31,6 +31,8 @@ function describeError(error: unknown): string {
 })
 export class ScriptLibrary {
   private readonly api = inject(ScriptApiService);
+
+  readonly strings = EDITOR_STRINGS;
 
   /** Route param `:p` (bound through `withComponentInputBinding`). */
   readonly p = input<string>(DEFAULT_PROJECT);

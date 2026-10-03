@@ -11,6 +11,7 @@ import {ScriptLibrary} from './library/script-library';
  * `app/preview/…` (README §4.2).
  */
 const notYetBuilt = () => import('./core/not-yet-built').then((m) => m.NotYetBuilt);
+const editorScreen = () => import('./editor/editor-screen').then((m) => m.EditorScreen);
 
 export const APP_ROUTES: Routes = [
   {path: '', pathMatch: 'full', redirectTo: `project/${DEFAULT_PROJECT}/script`},
@@ -19,9 +20,11 @@ export const APP_ROUTES: Routes = [
   {path: 'project/:p/script', component: ScriptLibrary, title: 'Script library'},
 
   // ui-spec §3 — the selected node is in `?sel=`
-  {path: 'project/:p/script/:id/edit', loadComponent: notYetBuilt, title: 'Script editor'},
+  {path: 'project/:p/script/:id/edit', loadComponent: editorScreen, title: 'Script editor'},
   // ui-spec §4
-  {path: 'project/:p/script/:id/preview', loadComponent: notYetBuilt, title: 'Preview'},
+  {path: 'project/:p/script/:id/preview',
+   loadComponent: () => import('./preview/script-preview').then((m) => m.ScriptPreview),
+   title: 'Preview'},
   // ui-spec §5
   {path: 'project/:p/script/:id/source', loadComponent: notYetBuilt, title: 'JSON source'},
   // ui-spec §6

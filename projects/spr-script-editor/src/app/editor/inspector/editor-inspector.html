@@ -1,0 +1,331 @@
+<section class="inspector" [attr.aria-label]="strings.editor.inspectorRegion">
+  @switch (selection().kind) {
+    @case ('script') {
+      <h2>{{ strings.inspector.script.title }}</h2>
+      <dl class="fields">
+        <dt>{{ strings.inspector.script.id }}</dt>
+        <dd><input type="text" [value]="script()?.scriptId ?? ''" [disabled]="true"
+                   [title]="readOnlyReason" readonly></dd>
+        <dt>{{ strings.inspector.script.name }}</dt>
+        <dd><input type="text" [value]="script()?.name ?? ''" [disabled]="true" [title]="readOnlyReason"></dd>
+        <dt>{{ strings.inspector.script.virtualHeight }}</dt>
+        <dd><input type="number" [value]="script()?.virtualViewBox?.height ?? ''" [disabled]="true"
+                   [title]="readOnlyReason"></dd>
+      </dl>
+      <h3>{{ strings.inspector.script.counts }}</h3>
+      <p class="note">{{ strings.inspector.script.countsValue }}</p>
+      <p class="note">{{ strings.inspector.script.versionNote }}</p>
+      <h3>{{ strings.inspector.script.historyTitle }}</h3>
+      <p class="note">{{ strings.inspector.script.historyEmpty }}</p>
+      <button type="button" [disabled]="true" [title]="readOnlyReason">{{ strings.inspector.script.restore }}</button>
+      <p>
+        <a [routerLink]="['/project', project(), 'script', scriptId(), 'draws']">{{ strings.inspector.script.openDraws }}</a>
+      </p>
+    }
+
+    @case ('section') {
+      <h2>{{ strings.inspector.section.title }}</h2>
+      <label class="field">
+        <span>{{ strings.inspector.section.name }}</span>
+        <input type="text" [value]="section()?.name ?? ''" [disabled]="true" [title]="readOnlyReason">
+      </label>
+
+      <fieldset role="radiogroup" [attr.aria-label]="strings.inspector.section.modeLegend">
+        <legend>{{ strings.inspector.section.modeLegend }}</legend>
+        @for (mode of modes; track mode) {
+          <label class="radio">
+            <input type="radio" name="section-mode" [value]="mode" [checked]="section()?.mode === mode"
+                   [disabled]="true" [title]="readOnlyReason">
+            <span class="radio-body">
+              <span class="radio-label">{{ strings.centre.modeChip[mode] }}</span>
+              <span class="radio-help">{{ strings.inspector.section.modeHelp[mode] }}</span>
+            </span>
+          </label>
+        }
+      </fieldset>
+
+      <label class="field">
+        <span>{{ strings.inspector.section.promptPhase }}</span>
+        <select [value]="section()?.promptphase ?? ''" [disabled]="true" [title]="readOnlyReason">
+          @for (phase of promptPhases; track phase) {
+            <option [value]="phase" [selected]="section()?.promptphase === phase">{{ phase }}</option>
+          }
+        </select>
+      </label>
+      @if (section()?.promptphase; as phase) {
+        <p class="help">{{ strings.inspector.section.promptPhaseHelp[phase] }}</p>
+      }
+
+      <label class="field">
+        <span>{{ strings.inspector.section.order }}</span>
+        <select [value]="sectionOrder() ?? ''" [disabled]="true" [title]="readOnlyReason">
+          @for (order of orders; track order) {
+            <option [value]="order" [selected]="sectionOrder() === order">{{ orderLabel(order) }}</option>
+          }
+          @if (sectionOrder() === 'RANDOMIZED') {
+            <option value="RANDOMIZED" selected>{{ strings.inspector.section.orderRandomized }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="checkbox">
+        <input type="checkbox" [checked]="section()?.training === true" [disabled]="true" [title]="readOnlyReason">
+        <span>{{ strings.inspector.section.training }}</span>
+      </label>
+      <p class="help">{{ strings.inspector.section.trainingHelp }}</p>
+
+      <button type="button" class="danger" [disabled]="true"
+              [title]="readOnlyReason">{{ strings.inspector.section.delete }}</button>
+    }
+
+    @case ('group') {
+      <h2>{{ strings.inspector.group.title }}</h2>
+      <fieldset role="radiogroup" [attr.aria-label]="strings.inspector.group.kindLegend">
+        <legend>{{ strings.inspector.group.kindLegend }}</legend>
+        <label class="radio">
+          <input type="radio" name="group-kind" [checked]="!isDrawn()" [disabled]="true" [title]="readOnlyReason">
+          <span class="radio-label">{{ strings.inspector.group.fixed }}</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="group-kind" [checked]="isDrawn()" [disabled]="true" [title]="readOnlyReason">
+          <span class="radio-label">{{ strings.inspector.group.drawn }}</span>
+        </label>
+      </fieldset>
+
+      @if (drawn(); as source) {
+        <label class="field">
+          <span>{{ strings.inspector.group.bank }}</span>
+          <select [value]="source.bank" [disabled]="true" [title]="readOnlyReason">
+            <optgroup [label]="strings.inspector.group.bankProject">
+              @for (bank of bankOptions(bankList(), 'PROJECT'); track bank.bankId) {
+                <option [value]="bank.bankId" [selected]="bank.bankId === source.bank">{{ bank.title }}</option>
+              }
+            </optgroup>
+            <optgroup [label]="strings.inspector.group.bankBuiltin">
+              @for (bank of bankOptions(bankList(), 'BUILTIN'); track bank.bankId) {
+                <option [value]="bank.bankId" [selected]="bank.bankId === source.bank">{{ bank.title }}</option>
+              }
+            </optgroup>
+          </select>
+        </label>
+        <p class="chip">{{ source.bankSource === 'PROJECT'
+          ? strings.centre.bankOriginProject : strings.centre.bankOriginBuiltin }}</p>
+
+        <h3>{{ strings.inspector.group.filter }}</h3>
+        <p class="note">{{ filterWords(source) }}</p>
+        <p><a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef()]"
+              [title]="strings.inspector.group.filterLinkTitle">{{ strings.inspector.group.filterLink }}</a></p>
+
+        <label class="field">
+          <span>{{ strings.inspector.group.count }}</span>
+          <input type="number" [value]="source.count" [disabled]="true" [title]="readOnlyReason">
+        </label>
+        <p class="help">
+          @if (matchSummary(); as summary) {
+            {{ summary }}
+          } @else {
+            {{ strings.inspector.group.countUnknown }}
+          }
+        </p>
+
+        <label class="field">
+          <span>{{ strings.inspector.group.fixedBy }}</span>
+          <select [value]="source.fixedBy ?? 'SESSION'" [disabled]="true" [title]="readOnlyReason">
+            @for (fixedBy of fixedBys; track fixedBy) {
+              <option [value]="fixedBy" [selected]="(source.fixedBy ?? 'SESSION') === fixedBy">
+                {{ fixedByLabel(fixedBy) }}
+              </option>
+            }
+          </select>
+        </label>
+        <p class="help">{{ strings.inspector.group.fixedByHelp[source.fixedBy ?? 'SESSION'] }}</p>
+
+        <label class="checkbox">
+          <input type="checkbox" [checked]="source.skipRecordedBySpeaker === true" [disabled]="true"
+                 [title]="readOnlyReason">
+          <span>{{ strings.inspector.group.skipRecorded }}</span>
+        </label>
+        <p class="help">{{ strings.inspector.group.skipRecordedHelp }}</p>
+
+        <label class="field">
+          <span>{{ strings.inspector.group.prefix }}</span>
+          <input type="text" [value]="source.itemcodePrefix" [disabled]="true" [title]="readOnlyReason">
+        </label>
+        <p class="help">{{ prefixPreview(source) }}</p>
+        <p class="note">{{ strings.inspector.group.drawOnce }}</p>
+      } @else {
+        <label class="field">
+          <span>{{ strings.inspector.group.order }}</span>
+          <select [value]="group()?.order ?? ''" [disabled]="true" [title]="readOnlyReason">
+            @for (order of orders; track order) {
+              <option [value]="order" [selected]="group()?.order === order">{{ orderLabel(order) }}</option>
+            }
+          </select>
+        </label>
+        <p class="note">{{ strings.inspector.group.itemCount.replace('{count}', (group()?.promptItems?.length ?? 0) + '') }}</p>
+        <button type="button" [disabled]="true" [title]="readOnlyReason">{{ strings.inspector.group.split }}</button>
+      }
+
+      <button type="button" class="danger" [disabled]="true"
+              [title]="readOnlyReason">{{ strings.inspector.group.delete }}</button>
+    }
+
+    @case ('item') {
+      <h2>{{ strings.inspector.item.title }}</h2>
+      <label class="field">
+        <span>{{ strings.inspector.item.itemcode }}</span>
+        <input type="text" [value]="item()?.itemcode ?? ''" [disabled]="true" [title]="readOnlyReason">
+      </label>
+
+      <fieldset role="radiogroup" [attr.aria-label]="strings.inspector.item.typeLegend">
+        <legend>{{ strings.inspector.item.typeLegend }}</legend>
+        <label class="radio">
+          <input type="radio" name="item-type" [checked]="item()?.type !== 'nonrecording'"
+                 [disabled]="true" [title]="readOnlyReason">
+          <span class="radio-label">{{ strings.inspector.item.typeRecording }}</span>
+        </label>
+        <label class="radio">
+          <input type="radio" name="item-type" [checked]="item()?.type === 'nonrecording'"
+                 [disabled]="true" [title]="readOnlyReason">
+          <span class="radio-label">{{ strings.inspector.item.typeNonRecording }}</span>
+        </label>
+      </fieldset>
+
+      <label class="field">
+        <span>{{ strings.inspector.item.mediaSelect }}</span>
+        <select [value]="mediaKind(item())" [disabled]="true" [title]="readOnlyReason">
+          <option value="plain" [selected]="mediaKind(item()) === 'plain'">{{ strings.inspector.item.mediaPlain }}</option>
+          <option value="formatted" [selected]="mediaKind(item()) === 'formatted'">{{ strings.inspector.item.mediaFormatted }}</option>
+          <option value="image" [selected]="mediaKind(item()) === 'image'">{{ strings.inspector.item.mediaImage }}</option>
+          <option value="nothing" [selected]="mediaKind(item()) === 'nothing'">{{ strings.inspector.item.mediaNothing }}</option>
+        </select>
+      </label>
+
+      @if (mediaKind(item()) === 'plain' || mediaKind(item()) === 'formatted') {
+        <label class="field">
+          <span>{{ mediaKind(item()) === 'formatted' ? strings.inspector.item.promptDoc : strings.inspector.item.text }}</span>
+          <textarea rows="3" [value]="promptText(item())" [disabled]="true" [title]="readOnlyReason"></textarea>
+        </label>
+      }
+      @if (mediaKind(item()) === 'image') {
+        <label class="field">
+          <span>{{ strings.inspector.item.file }}</span>
+          <input type="text" [value]="item()?.mediaitems?.[0]?.src ?? ''" [disabled]="true" [title]="readOnlyReason">
+        </label>
+        <label class="field">
+          <span>{{ strings.inspector.item.alt }}</span>
+          <input type="text" [value]="item()?.mediaitems?.[0]?.alt ?? ''" [disabled]="true" [title]="readOnlyReason">
+        </label>
+        <label class="field">
+          <span>{{ strings.inspector.item.virtualHeight }}</span>
+          <input type="number" [value]="item()?.mediaitems?.[0]?.defaultVirtualViewBox?.height ?? ''"
+                 [disabled]="true" [title]="readOnlyReason">
+        </label>
+      }
+
+      <label class="field">
+        <span>{{ strings.inspector.item.instructions }}</span>
+        <textarea rows="2" [value]="instructions(item())" [disabled]="true" [title]="readOnlyReason"></textarea>
+      </label>
+
+      <fieldset class="playback">
+        <legend>{{ strings.inspector.playback.legend }}</legend>
+        @if (audio(); as mediaitem) {
+          <dl class="fields">
+            <dt>{{ strings.inspector.playback.fileName }}</dt>
+            <dd>{{ mediaitem.src ?? strings.inspector.playback.fileNone }}</dd>
+            <dt>{{ strings.inspector.playback.duration }}</dt>
+            <dd>{{ audioDuration() === null
+              ? strings.inspector.playback.durationUnknown
+              : audioDuration() + ' ms' }}</dd>
+          </dl>
+          @if (audioUrl(); as url) {
+            <p class="audition-label">{{ strings.inspector.playback.audition }}</p>
+            <audio controls [src]="url" [attr.aria-label]="audioLabel()"></audio>
+            <p class="help">{{ strings.inspector.playback.auditionNote }}</p>
+          }
+          <label class="field">
+            <span>{{ strings.inspector.playback.when }}</span>
+            <select [value]="when()" [disabled]="true" [title]="readOnlyReason">
+              @for (option of playbackWhens; track option) {
+                <option [value]="option" [selected]="when() === option">
+                  {{ strings.inspector.playback.whenOptions[option] }}
+                </option>
+              }
+            </select>
+          </label>
+          <label class="field">
+            <span>{{ strings.inspector.playback.repeats }}</span>
+            <input type="number" [value]="repeatsValue(item())" [disabled]="true" [title]="readOnlyReason">
+          </label>
+          <label class="field">
+            <span>{{ strings.inspector.playback.gap }}</span>
+            <input type="number" [value]="gapValue(item())" [disabled]="true" [title]="readOnlyReason">
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" [checked]="replayValue(item())" [disabled]="true" [title]="readOnlyReason">
+            <span>{{ strings.inspector.playback.replayable }}</span>
+          </label>
+          <label class="field">
+            <span>{{ strings.inspector.playback.maxReplays }}</span>
+            <input type="number" [value]="maxReplaysValue(item()) ?? ''" [disabled]="true" [title]="readOnlyReason">
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" [checked]="headphonesValue(item())" [disabled]="true" [title]="readOnlyReason">
+            <span>{{ strings.inspector.playback.headphones }}</span>
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" [checked]="mediaFlag(item(), 'autoplay')" [disabled]="true" [title]="readOnlyReason">
+            <span>{{ strings.inspector.playback.autoplay }}</span>
+          </label>
+          @if (w03()) {
+            <p class="warn" role="status">{{ strings.inspector.playback.w03 }}</p>
+          }
+          <button type="button" class="danger" [disabled]="true"
+                  [title]="readOnlyReason">{{ strings.inspector.playback.remove }}</button>
+        } @else {
+          <p class="note">{{ strings.inspector.playback.empty }}</p>
+          <button type="button" [disabled]="true"
+                  [title]="strings.inspector.playback.addTitle">{{ strings.inspector.playback.add }}</button>
+        }
+      </fieldset>
+
+      <fieldset class="timing">
+        <legend>{{ strings.inspector.timing.legend }}</legend>
+        <dl class="fields">
+          <dt>{{ strings.inspector.item.preDelay }}</dt>
+          <dd>{{ itemTiming()?.preDelay }} ms</dd>
+          <dt>{{ strings.inspector.item.recDuration }}</dt>
+          <dd>{{ item()?.recduration ?? strings.inspector.timing.openEnded }}</dd>
+          <dt>{{ strings.inspector.item.postDelay }}</dt>
+          <dd>{{ itemTiming()?.postDelay }} ms</dd>
+          @if (item()?.type === 'nonrecording') {
+            <dt>{{ strings.inspector.item.displayDuration }}</dt>
+            <dd>{{ item()?.duration ?? '—' }}</dd>
+          }
+        </dl>
+        @if (item()?.recduration === null || item()?.recduration === undefined) {
+          <p class="help">{{ strings.inspector.timing.unbounded }}</p>
+        }
+        @if (when() === 'DURING') {
+          <p class="help">{{ strings.inspector.timing.overMicrophone }}</p>
+        }
+        @if (itemTiming(); as timing) {
+          <spr-editor-timeline [timing]="timing" [promptphase]="section()?.promptphase"
+                               [itemType]="item()?.type"></spr-editor-timeline>
+        }
+      </fieldset>
+    }
+  }
+
+  @if (applicableFindings().length > 0) {
+    <ul class="findings">
+      @for (finding of applicableFindings(); track finding.id + finding.path) {
+        <li class="finding">
+          <span class="chip severity">{{ finding.severity }}</span>
+          <span>{{ finding.message }}</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

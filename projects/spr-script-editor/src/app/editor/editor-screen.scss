@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.editor {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 380px;
+  height: 100%;
+  min-height: 0;
+}
+
+.col {
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.outline-col {
+  border-right: 1px solid var(--spr-divider);
+}
+
+.inspector-col {
+  overflow-y: auto;
+  border-left: 1px solid var(--spr-divider);
+}
+
+.centre-col {
+  background: var(--spr-page);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: var(--spr-r-lg);
+  font-size: var(--spr-type-body);
+  color: var(--spr-ink);
+}
+
+.state h1 {
+  margin: 0;
+  font-size: var(--spr-type-title);
+}
+
+.state.error {
+  color: var(--spr-ink);
+}
+
+.state .detail {
+  color: var(--spr-ink-muted);
+}
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(600px, 80%);
+}
+
+.bar {
+  height: 18px;
+  background: var(--spr-surface-3);
+  border-radius: var(--spr-r-sm);
+}
+
+.empty-card {
+  margin: var(--spr-r-lg);
+  padding: var(--spr-r-lg);
+  background: var(--spr-surface);
+  border: 1px solid var(--spr-border);
+  border-radius: var(--spr-r-md);
+  box-shadow: var(--spr-shadow-card);
+}
+
+.empty-card h2 {
+  margin: 0 0 0.4rem;
+  font-size: var(--spr-type-section);
+}
+
+.empty-card p {
+  margin: 0 0 0.8rem;
+  color: var(--spr-ink-muted);
+}
+
+button {
+  min-height: 44px;
+  padding: 0 0.8rem;
+  font: inherit;
+  font-size: var(--spr-type-label);
+  color: var(--spr-ink);
+  background: var(--spr-surface-3);
+  border: 1px solid var(--spr-border-strong);
+  border-radius: var(--spr-r-sm);
+  cursor: pointer;
+}
+
+button[disabled] {
+  color: var(--spr-ink-disabled);
+  background: var(--spr-disabled-bg);
+  cursor: not-allowed;
+}

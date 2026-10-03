@@ -1,26 +1,30 @@
 <header class="toolbar">
-  <a class="brand" routerLink="/" aria-label="Script editor home">SpeechRecorder script editor</a>
+  <a class="brand" routerLink="/" [attr.aria-label]="strings.shell.homeLabel">{{ strings.shell.brand }}</a>
 
-  <nav class="breadcrumb" aria-label="Breadcrumb">
+  <nav class="breadcrumb" [attr.aria-label]="strings.shell.breadcrumbLabel">
     @if (project(); as projectId) {
       <a [routerLink]="['/project', projectId, 'script']">{{ projectId }}</a>
       @if (scriptId(); as id) {
-        <span aria-hidden="true">/</span>
-        <span class="here">script {{ id }}</span>
+        <span aria-hidden="true">{{ strings.shell.separator }}</span>
+        <span class="here">{{ strings.shell.scriptWord }} {{ id }}</span>
       }
     }
   </nav>
 
   <span class="spacer"></span>
 
-  <p class="save-state" role="status">All changes saved</p>
-  <p class="warning-count" aria-label="Warnings">0 warnings</p>
+  <p class="save-state" role="status">{{ strings.shell.saveState }}</p>
+  <p class="warning-count" [attr.aria-label]="strings.shell.warningLabel">{{ strings.shell.warningCount }}</p>
 
   <div class="actions">
-    <button type="button" [disabled]="true" [title]="readOnlyReason" aria-label="Undo">Undo</button>
-    <button type="button" [disabled]="true" [title]="readOnlyReason" aria-label="Redo">Redo</button>
-    <button type="button" [disabled]="true" [title]="readOnlyReason" aria-label="Preview">Preview</button>
-    <button type="button" class="primary" [disabled]="true" [title]="readOnlyReason" aria-label="Publish">Publish</button>
+    <button type="button" [disabled]="true" [title]="strings.shell.readOnlyReason"
+            [attr.aria-label]="strings.shell.undo">{{ strings.shell.undo }}</button>
+    <button type="button" [disabled]="true" [title]="strings.shell.readOnlyReason"
+            [attr.aria-label]="strings.shell.redo">{{ strings.shell.redo }}</button>
+    <button type="button" [disabled]="true" [title]="strings.shell.readOnlyReason"
+            [attr.aria-label]="strings.shell.preview">{{ strings.shell.preview }}</button>
+    <button type="button" class="primary" [disabled]="true" [title]="strings.shell.readOnlyReason"
+            [attr.aria-label]="strings.shell.publish">{{ strings.shell.publish }}</button>
   </div>
 </header>
 
@@ -28,4 +32,4 @@
   <router-outlet></router-outlet>
 </main>
 
-<p class="read-only-note">{{ readOnlyReason }}</p>
+<p class="read-only-note">{{ strings.shell.readOnlyReason }}</p>

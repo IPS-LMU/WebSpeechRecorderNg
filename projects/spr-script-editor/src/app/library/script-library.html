@@ -1,27 +1,28 @@
-<section class="library" aria-labelledby="library-title">
+<section class="library" [attr.aria-labelledby]="'library-title'">
   <header class="library-header">
-    <h1 id="library-title">Scripts</h1>
+    <h1 id="library-title">{{ strings.library.title }}</h1>
     <div class="library-actions">
       <button type="button" [disabled]="true"
-              title="Read-only milestone: creating a script arrives with a later milestone.">New script</button>
+              [title]="strings.library.newScriptTitle">{{ strings.library.newScript }}</button>
       <button type="button" [disabled]="true"
-              title="Read-only milestone: importing JSON arrives with a later milestone.">Import JSON</button>
+              [title]="strings.library.importJsonTitle">{{ strings.library.importJson }}</button>
     </div>
   </header>
 
   <form class="filters" role="search" (submit)="$event.preventDefault()">
     <div class="field">
-      <label for="library-search">Search</label>
-      <input id="library-search" type="search" autocomplete="off" placeholder="Name, id or itemcode"
+      <label for="library-search">{{ strings.library.searchLabel }}</label>
+      <input id="library-search" type="search" autocomplete="off"
+             [placeholder]="strings.library.searchPlaceholder"
              [value]="search()" (input)="search.set($any($event.target).value)">
     </div>
     <div class="field">
-      <label for="library-status">Status</label>
+      <label for="library-status">{{ strings.library.statusLabel }}</label>
       <select id="library-status" [value]="status()" (change)="status.set($any($event.target).value)">
-        <option value="ALL">All</option>
-        <option value="DRAFT">Drafts</option>
-        <option value="PUBLISHED">Published</option>
-        <option value="ARCHIVED">Archived</option>
+        <option value="ALL">{{ strings.library.statusAll }}</option>
+        <option value="DRAFT">{{ strings.library.statusDrafts }}</option>
+        <option value="PUBLISHED">{{ strings.library.statusPublished }}</option>
+        <option value="ARCHIVED">{{ strings.library.statusArchived }}</option>
       </select>
     </div>
   </form>
@@ -29,7 +30,7 @@
   @switch (state()) {
     @case ('loading') {
       <div class="state" role="status" aria-live="polite">
-        <p>Loading scripts…</p>
+        <p>{{ strings.library.loading }}</p>
         <ul class="skeleton" aria-hidden="true">
           <li></li>
           <li></li>
@@ -39,26 +40,25 @@
     }
     @case ('error') {
       <div class="state state-error" role="alert">
-        <p>The script list could not be loaded. {{ error() }}</p>
-        <button type="button" [disabled]="true"
-                title="Read-only milestone: retrying is wired with the write screens.">Retry</button>
+        <p>{{ error() }}</p>
+        <button type="button" [disabled]="true" [title]="strings.library.retryTitle">{{ strings.library.retry }}</button>
       </div>
     }
     @case ('empty') {
       <div class="state">
-        <p>No scripts in this project yet. Create one or import a JSON file to get started.</p>
+        <p>{{ strings.library.empty }}</p>
       </div>
     }
     @default {
       <table class="scripts">
-        <caption class="visually-hidden">Scripts in this project</caption>
+        <caption class="visually-hidden">{{ strings.library.caption }}</caption>
         <thead>
         <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Sections / items</th>
-          <th scope="col">Updated</th>
-          <th scope="col">Status</th>
-          <th scope="col">Actions</th>
+          <th scope="col">{{ strings.library.columnName }}</th>
+          <th scope="col">{{ strings.library.columnSectionsItems }}</th>
+          <th scope="col">{{ strings.library.columnUpdated }}</th>
+          <th scope="col">{{ strings.library.columnStatus }}</th>
+          <th scope="col">{{ strings.library.columnActions }}</th>
         </tr>
         </thead>
         <tbody>
@@ -66,39 +66,45 @@
             <tr>
               <th scope="row">
                 <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">{{ script.name }}</a>
-                <span class="script-id">#{{ script.scriptId }}</span>
+                <span class="script-id">{{ strings.library.idPrefix }}{{ script.scriptId }}</span>
               </th>
-              <td>{{ script.sections ?? 0 }} sections · {{ script.fixedItems ?? 0 }} + {{ script.drawnItems ?? 0 }} drawn</td>
-              <td>{{ script.modified ?? '—' }}</td>
-              <td><span class="chip" [attr.data-status]="script.status">{{ script.status }}</span></td>
+              <td>
+                {{ script.sections ?? 0 }} {{ strings.library.sectionsWord }}
+                {{ strings.library.countSeparator }}
+                {{ script.fixedItems ?? 0 }} {{ strings.library.plus }} {{ script.drawnItems ?? 0 }} {{ strings.library.drawnWord }}
+              </td>
+              <td>{{ script.modified ?? strings.library.updatedPlaceholder }}</td>
+              <td>
+                <span class="chip" [attr.data-status]="script.status">{{ strings.library.statusLabels[script.status] }}</span>
+              </td>
               <td class="row-actions">
-                <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">Edit</a>
+                <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">{{ strings.library.edit }}</a>
                 <button type="button" [disabled]="true"
-                        title="Read-only milestone: duplicating a script arrives later.">Duplicate</button>
+                        [title]="strings.library.duplicateTitle">{{ strings.library.duplicate }}</button>
                 <button type="button" [disabled]="true"
-                        title="Read-only milestone: archiving a script arrives later.">Archive</button>
+                        [title]="strings.library.archiveTitle">{{ strings.library.archive }}</button>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5">No script matches the filter.</td></tr>
+            <tr><td colspan="5">{{ strings.library.noMatch }}</td></tr>
           }
         </tbody>
       </table>
     }
   }
 
-  <section class="legend" aria-label="What the statuses mean">
+  <section class="legend" [attr.aria-label]="strings.library.legendLabel">
     <article>
-      <h2>Draft</h2>
-      <p>Changes not yet published. Only the editor sees them; sessions keep the published version.</p>
+      <h2>{{ strings.library.legendDraftTitle }}</h2>
+      <p>{{ strings.library.legendDraftBody }}</p>
     </article>
     <article>
-      <h2>Published</h2>
-      <p>A frozen version. Sessions created from it stay on it, even when the draft moves on.</p>
+      <h2>{{ strings.library.legendPublishedTitle }}</h2>
+      <p>{{ strings.library.legendPublishedBody }}</p>
     </article>
     <article>
-      <h2>In use</h2>
-      <p>Sessions have been recorded with this script. Publishing a new version does not touch them.</p>
+      <h2>{{ strings.library.legendInUseTitle }}</h2>
+      <p>{{ strings.library.legendInUseBody }}</p>
     </article>
   </section>
 </section>

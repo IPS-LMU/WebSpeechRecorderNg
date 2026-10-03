@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {RouterLink} from '@angular/router';
+import {EDITOR_STRINGS} from './editor-strings';
 
 /**
  * One placeholder for every screen the later slices own (plan M2 rows E1/editor, E4, draws,
@@ -13,10 +14,9 @@ import {RouterLink} from '@angular/router';
   imports: [RouterLink],
   template: `
     <section class="not-built" aria-labelledby="not-built-title">
-      <h1 id="not-built-title">This screen is not built yet</h1>
-      <p>The read-only foundation (M2) ships the shell, the routes and the library list. This
-        screen arrives with a later milestone.</p>
-      <a class="back" routerLink="/">Back to the script library</a>
+      <h1 id="not-built-title">{{ strings.notYetBuilt.title }}</h1>
+      <p>{{ strings.notYetBuilt.body }}</p>
+      <a class="back" routerLink="/">{{ strings.notYetBuilt.back }}</a>
     </section>
   `,
   styles: [`
@@ -55,4 +55,6 @@ import {RouterLink} from '@angular/router';
     }
   `],
 })
-export class NotYetBuilt {}
+export class NotYetBuilt {
+  readonly strings = EDITOR_STRINGS;
+}

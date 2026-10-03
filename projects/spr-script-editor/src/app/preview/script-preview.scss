@@ -1,0 +1,196 @@
+/**
+ * Preview, tier 1 (ui-spec §4): the chrome of the mock — heading, banner, states, the frame's
+ * header (section, chips, progress) and the timing panel. Everything that owns visible elements of
+ * its own lives in a child component with its own stylesheet:
+ *
+ *   spre-preview-stage-panel        the beige prompt stage
+ *   spre-preview-playback-panel     the playing state, the level display, the traffic light
+ *   spre-preview-transport-bar      the transport controls
+ *   spre-preview-step-simulation    the step radiogroup
+ *   spre-preview-order-panel        the session order list and Re-draw
+ *
+ * Colours come from `--spr-*` tokens only, without literal fallbacks: the editor's `main.scss`
+ * pins every token. Interactive targets are 44 px high or more.
+ */
+:host {
+  display: block;
+  padding: var(--spr-r-lg);
+  color: var(--spr-ink);
+}
+
+.preview,
+.frame-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spr-r-md);
+}
+
+.preview-head,
+.frame-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spr-r-md);
+}
+
+.preview-head {
+  align-items: flex-start;
+}
+
+.preview-head h1,
+.frame-head h2,
+.timing h3 {
+  margin: 0;
+  color: var(--spr-ink-strong);
+  font-size: var(--spr-type-section);
+}
+
+.preview-head h1 {
+  font-size: var(--spr-type-title);
+}
+
+.script-name,
+.subtitle,
+.progress,
+.timing dt {
+  color: var(--spr-ink-muted);
+  font-size: var(--spr-type-caption);
+}
+
+.banner,
+.state {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--spr-border);
+  border-radius: var(--spr-r-md);
+  background: var(--spr-surface);
+  font-size: var(--spr-type-label);
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  border-left: 4px solid var(--spr-caution);
+}
+
+.state-error {
+  border-left: 4px solid var(--spr-alert);
+}
+
+.dry-run {
+  margin-left: auto;
+}
+
+button {
+  min-height: 44px;
+  padding: 0 0.8rem;
+  border: 1px solid var(--spr-border-strong);
+  border-radius: var(--spr-r-sm);
+  background: var(--spr-surface-2);
+  color: var(--spr-ink);
+  font-family: inherit;
+  font-size: var(--spr-type-label);
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--spr-focus);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  background: var(--spr-disabled-bg);
+  color: var(--spr-ink-disabled);
+  cursor: not-allowed;
+}
+
+.preview-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  gap: var(--spr-r-md);
+  align-items: start;
+}
+
+.headphones {
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--spr-r-md);
+  background: var(--spr-caution);
+  color: var(--spr-caution-ink);
+  font-size: var(--spr-type-label);
+}
+
+.speaker-frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spr-r-md);
+  padding: var(--spr-r-md);
+  border: 1px solid var(--spr-border);
+  border-radius: var(--spr-r-lg);
+  background: var(--spr-surface);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 0.1rem 0.6rem;
+  border-radius: var(--spr-r-pill);
+  background: var(--spr-primary);
+  color: var(--spr-chrome-ink);
+  font-size: var(--spr-type-caption);
+}
+
+.chip-drawn {
+  background: var(--spr-ok);
+  color: var(--spr-ok-ink);
+}
+
+.progress {
+  margin: 0 0 0 auto;
+}
+
+/* The timing panel: the library's arithmetic, spelled out. */
+.timing {
+  padding: var(--spr-r-md);
+  border: 1px solid var(--spr-border);
+  border-radius: var(--spr-r-lg);
+  background: var(--spr-surface);
+}
+
+.timing h3 {
+  margin-bottom: 0.5rem;
+}
+
+.timing dl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 0.8rem;
+  margin: 0;
+  font-size: var(--spr-type-label);
+}
+
+.timing dd {
+  margin: 0;
+}
+
+/* Tablet: the order list drops below the frame. */
+@media (max-width: 1100px) {
+  .preview-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Phone: one column; the progress line stops pushing itself to the right. */
+@media (max-width: 700px) {
+  .progress {
+    margin-left: 0;
+  }
+}

@@ -3,8 +3,12 @@
  * (N01, N02) and N06 carry a one-click fix in `normalise.ts`.
  */
 import {compareVersions, FEATURE_VERSIONS, featuresUsed, minRecorderVersionFor} from 'speechrecorderng';
+import {EDITOR_STRINGS} from '../editor-strings';
 import type {Draft, Finding, ValidationContext} from './types';
+import {fillTemplate} from './interpolate';
 import {eachBankSource, eachGroup, eachItem, eachSection} from './walk';
+
+const S = EDITOR_STRINGS.validation;
 
 function note(id: string, path: string, message: string, fix?: Finding['fix']): Finding {
   const finding: Finding = {id, severity: 'note', path, message};
@@ -30,12 +34,7 @@ export function checkN01(draft: Draft): Finding[] {
   for (const {item, itemPath: path} of eachItem(draft)) {
     for (const {legacy, modern} of LEGACY_PAIRS) {
       if (item[legacy] !== undefined && item[legacy] !== null && (item[modern] === undefined || item[modern] === null)) {
-        findings.push(note(
-          'N01',
-          `${path}.${legacy}`,
-          `${legacy} is read as the ${modern} because ${modern} is not set.`,
-          'rename-modern',
-        ));
+        findings.push(note('N01', `${path}.${legacy}`, fillTemplate(S.n01, {legacy, modern}), 'rename-modern'));
       }
     }
   }
@@ -45,20 +44,19 @@ export function checkN01(draft: Draft): Finding[] {
 /** N02 — `order: 'RANDOMIZED'`, which the recorder treats as sequential. */
 export function checkN02(draft: Draft): Finding[] {
   const findings: Finding[] = [];
-  const message = 'The recorder does not implement RANDOMIZED and treats it as sequential.';
   for (const {section, path} of eachSection(draft)) {
     if (section['order'] === 'RANDOMIZED') {
-      findings.push(note('N02', `${path}.order`, message, 'replace-order'));
+      findings.push(note('N02', `${path}.order`, S.n02, 'replace-order'));
     }
   }
   for (const {group, groupPath} of eachGroup(draft)) {
     if (group['order'] === 'RANDOMIZED') {
-      findings.push(note('N02', `${groupPath}.order`, message, 'replace-order'));
+      findings.push(note('N02', `${groupPath}.order`, S.n02, 'replace-order'));
     }
   }
   for (const ref of eachBankSource(draft)) {
     if (ref.bank['order'] === 'RANDOMIZED') {
-      findings.push(note('N02', `${ref.bankPath}.order`, message, 'replace-order'));
+      findings.push(note('N02', `${ref.bankPath}.order`, S.n02, 'replace-order'));
     }
   }
   return findings;
@@ -76,11 +74,10 @@ export function checkN03(draft: Draft): Finding[] {
   }, 0);
   const placeholders = new Set(sources.map((ref) => ref.itemPath));
   const fixed = eachItem(draft).filter((ref) => !placeholders.has(ref.itemPath)).length;
-  const total = drawn + fixed;
   return [note(
     'N03',
     sources[0].bankPath,
-    `${drawn} items are drawn per session, on top of ${fixed} fixed items, so a session runs ${total} items.`,
+    fillTemplate(S.n03, {drawn, fixed, total: drawn + fixed}),
   )];
 }
 
@@ -95,7 +92,7 @@ export function checkN04(draft: Draft, context: ValidationContext = {}): Finding
     return [];
   }
   const feature = featuresUsed(draft).find((name) => FEATURE_VERSIONS[name] === next) ?? 'minRecorderVersion';
-  return [note('N04', 'minRecorderVersion', `This script now needs recorder ${next} or newer, because it uses ${feature}.`)];
+  return [note('N04', 'minRecorderVersion', fillTemplate(S.n04, {version: next, feature}))];
 }
 
 /** N05 — a speaker-stable draw that also skips what the speaker recorded. */
@@ -103,11 +100,7 @@ export function checkN05(draft: Draft): Finding[] {
   const findings: Finding[] = [];
   for (const ref of eachBankSource(draft)) {
     if (ref.bank['fixedBy'] === 'SPEAKER' && ref.bank['skipRecordedBySpeaker'] === true) {
-      findings.push(note(
-        'N05',
-        ref.bankPath,
-        'A speaker-stable draw repeats the same items, so skipping what the speaker recorded can empty the draw.',
-      ));
+      findings.push(note('N05', ref.bankPath, S.n05));
     }
   }
   return findings;
@@ -120,12 +113,7 @@ export function checkN06(draft: Draft): Finding[] {
     const groups = section['groups'];
     const hasGroups = Array.isArray(groups) && groups.length > 0;
     if (section['promptUnits'] !== undefined && section['promptUnits'] !== null && !hasGroups) {
-      findings.push(note(
-        'N06',
-        path,
-        'This section predates groups. The editor opens it read-only until it is converted, so saving never adds an empty `groups`.',
-        'convert-groups',
-      ));
+      findings.push(note('N06', path, S.n06, 'convert-groups'));
     }
   }
   return findings;

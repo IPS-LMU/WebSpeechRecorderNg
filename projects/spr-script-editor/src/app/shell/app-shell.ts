@@ -2,6 +2,7 @@ import {Component, computed, inject, signal} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {NavigationEnd, Router, RouterLink, RouterOutlet} from '@angular/router';
 import {filter} from 'rxjs';
+import {EDITOR_STRINGS} from '../core/editor-strings';
 
 const PROJECT_IN_URL = /\/project\/([^/]+)/;
 const SCRIPT_IN_URL = /\/project\/[^/]+\/script\/([^/]+)/;
@@ -24,10 +25,10 @@ const SCRIPT_IN_URL = /\/project\/[^/]+\/script\/([^/]+)/;
 export class AppShell {
   private readonly router = inject(Router);
 
+  readonly strings = EDITOR_STRINGS;
   readonly url = signal(this.router.url);
   readonly project = computed(() => PROJECT_IN_URL.exec(this.url())?.[1] ?? null);
   readonly scriptId = computed(() => SCRIPT_IN_URL.exec(this.url())?.[1] ?? null);
-  readonly readOnlyReason = 'This milestone is read-only: saving, publishing and editing are disabled.';
 
   constructor() {
     this.router.events

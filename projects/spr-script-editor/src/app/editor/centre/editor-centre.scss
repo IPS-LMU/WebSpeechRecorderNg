@@ -1,0 +1,242 @@
+:host {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+
+.centre {
+  box-sizing: border-box;
+  height: 100%;
+  padding: var(--spr-r-md);
+  overflow: auto;
+  color: var(--spr-ink);
+  background: var(--spr-page);
+}
+
+h2 {
+  margin: 0 0 0.3rem;
+  font-size: var(--spr-type-section);
+}
+
+h1 {
+  margin: 0.2rem 0 0;
+  font-size: var(--spr-type-title);
+}
+
+h3 {
+  margin: 0 0 0.4rem;
+  font-size: var(--spr-type-label);
+}
+
+h4 {
+  margin: 0 0 0.2rem;
+  font-size: var(--spr-type-label);
+}
+
+.intro {
+  margin: 0 0 0.8rem;
+  font-size: var(--spr-type-caption);
+  color: var(--spr-ink-muted);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--spr-r-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--spr-r-md);
+  text-align: left;
+  color: var(--spr-ink);
+  background: var(--spr-surface);
+  border: 1px solid var(--spr-border);
+  border-radius: var(--spr-r-md);
+  box-shadow: var(--spr-shadow-card);
+  cursor: pointer;
+}
+
+.card-number {
+  font-size: var(--spr-type-caption);
+  color: var(--spr-ink-muted);
+}
+
+.card-name {
+  font-size: var(--spr-type-section);
+  font-weight: 700;
+}
+
+.card-mode,
+.card-counts {
+  font-size: var(--spr-type-caption);
+  color: var(--spr-ink-muted);
+}
+
+.card-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  font-size: var(--spr-type-caption);
+  color: var(--spr-chrome-ink);
+  background: var(--spr-primary);
+  border-radius: var(--spr-r-pill);
+}
+
+.section-header {
+  margin-bottom: 0.8rem;
+}
+
+.section-number,
+.chips {
+  margin: 0;
+  font-size: var(--spr-type-caption);
+  color: var(--spr-ink-muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0.3rem 0;
+}
+
+.group {
+  margin-bottom: var(--spr-r-md);
+  padding: var(--spr-r-md);
+  background: var(--spr-surface);
+  border: 1px solid var(--spr-border);
+  border-radius: var(--spr-r-md);
+}
+
+.group.active {
+  border-color: var(--spr-select-edge);
+}
+
+.grid-header,
+.fixed-row {
+  display: grid;
+  grid-template-columns: 28px 84px minmax(120px, 1fr) 132px 118px 150px 28px;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.grid-header {
+  padding: 0 0.4rem 0.3rem;
+  font-size: var(--spr-type-caption);
+  color: var(--spr-ink-muted);
+  border-bottom: 1px solid var(--spr-divider);
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fixed-row {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.35rem 0.4rem;
+  text-align: left;
+  color: var(--spr-ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--spr-divider);
+  font: inherit;
+  cursor: pointer;
+}
+
+.fixed-row[aria-current='true'] {
+  background: var(--spr-select-fill);
+  box-shadow: inset 3px 0 0 var(--spr-select-edge);
+}
+
+.cell {
+  overflow: hidden;
+  font-size: var(--spr-type-caption);
+  text-overflow: ellipsis;
+}
+
+.prompt-cell {
+  white-space: nowrap;
+}
+
+.grip {
+  color: var(--spr-ink-subtle);
+  letter-spacing: 1px;
+}
+
+.warning-cell,
+.marker.warning {
+  color: var(--spr-caution);
+}
+
+.note,
+.help {
+  margin: 0.25rem 0;
+  font-size: var(--spr-type-caption);
+  color: var(--spr-ink-muted);
+}
+
+.bank-title {
+  margin: 0;
+  font-size: var(--spr-type-label);
+  font-weight: 600;
+}
+
+.example {
+  margin-top: 0.6rem;
+  padding: 0.6rem;
+  background: var(--spr-surface-2);
+  border: 1px dashed var(--spr-border-strong);
+  border-radius: var(--spr-r-sm);
+}
+
+.example-items {
+  margin: 0.3rem 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--spr-type-caption);
+}
+
+.example-items li {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.code {
+  min-width: 64px;
+  font-family: var(--spr-font-mono);
+  color: var(--spr-ink-muted);
+}
+
+button {
+  min-height: 44px;
+  padding: 0 0.8rem;
+  font: inherit;
+  font-size: var(--spr-type-label);
+  color: var(--spr-ink);
+  background: var(--spr-surface-3);
+  border: 1px solid var(--spr-border-strong);
+  border-radius: var(--spr-r-sm);
+  cursor: pointer;
+}
+
+a {
+  color: var(--spr-primary);
+  font-size: var(--spr-type-label);
+}

@@ -1,0 +1,95 @@
+<section class="preview" aria-labelledby="preview-title">
+  <header class="preview-head">
+    <div>
+      <h1 id="preview-title">{{ strings.preview.title }}<span class="script-name"> · {{ script()?.name ?? id() }}</span></h1>
+      <p class="subtitle">{{ strings.preview.subtitle }}</p>
+    </div>
+    <button type="button" class="dry-run" [disabled]="true" [title]="strings.preview.dryRunTitle">
+      {{ strings.preview.dryRun }}
+    </button>
+  </header>
+
+  <p class="banner" role="note">
+    <strong>{{ strings.preview.nothingRecorded }}</strong>
+    <span>{{ strings.preview.nothingRecordedBody }}</span>
+  </p>
+
+  @switch (state()) {
+    @case ('loading') {
+      <p class="state" role="status" aria-live="polite">{{ strings.preview.loading }}</p>
+    }
+    @case ('error') {
+      <p class="state state-error" role="alert">{{ strings.preview.loadErrorPrefix }} {{ error() }}</p>
+    }
+    @case ('empty') {
+      <p class="state">{{ strings.preview.empty }}</p>
+    }
+    @default {
+      <div class="preview-body">
+        <div class="frame-column">
+          @if (headphones()) {
+            <p class="headphones" role="note">{{ strings.preview.headphones }}</p>
+          }
+
+          <!-- The speaker frame: what the speaker sees on the recorder screen. -->
+          <section class="speaker-frame" aria-labelledby="frame-section">
+            <header class="frame-head">
+              <h2 id="frame-section">{{ sectionName() }}</h2>
+              <ul class="chips">
+                @if (currentSection()?.training === true) {
+                  <li class="chip chip-practice">{{ strings.preview.practice }}</li>
+                }
+                @if (isDrawn()) {
+                  <li class="chip chip-drawn">{{ strings.preview.drawnItem }}</li>
+                }
+              </ul>
+              <p class="progress">{{ progress() }}</p>
+            </header>
+
+            <spre-preview-stage-panel [parts]="stage()" />
+
+            <spre-preview-playback-panel [lamps]="lamps()" [status]="statusText()" [level]="level()"
+                                         [canReplay]="canReplay()" [replayCount]="replayCountLabel()"
+                                         [replayTitle]="replayTitle()" (replay)="play()" />
+
+            <spre-preview-transport-bar [canPrevious]="canPrevious()" [canReplay]="canReplay()"
+                                        [canRecord]="canRecord()" [canStop]="canStop()" [canNext]="canNext()"
+                                        [replayTitle]="replayTitle()" (previous)="previousItem()"
+                                        (play)="play()" (record)="record()" (stop)="stop()" (next)="nextItem()" />
+          </section>
+
+          <spre-preview-step-simulation [views]="views()" [current]="simStep()" (select)="goToStep($event)" />
+
+          <!-- What the recorder's timers would do for this item, all from the library. -->
+          <section class="timing" aria-labelledby="timing-label">
+            <h3 id="timing-label">{{ strings.preview.timingLabel }}</h3>
+            <dl>
+              <dt>{{ strings.preview.timingPreRec }}</dt>
+              <dd>{{ timing().preDelay }} {{ strings.preview.msWord }}</dd>
+              <dt>{{ strings.preview.timingRecording }}</dt>
+              <dd>
+                {{ timing().recDuration === null ? strings.preview.timingUntilStopped : timing().recDuration + ' ' + strings.preview.msWord }}
+              </dd>
+              <dt>{{ strings.preview.timingPostRec }}</dt>
+              <dd>{{ timing().postDelay }} {{ strings.preview.msWord }}</dd>
+              <dt>{{ strings.preview.timingWindow }}</dt>
+              <dd>{{ timing().maxRecordingTimeMs }} {{ strings.preview.msWord }}</dd>
+              <dt>{{ strings.preview.timingSound }}</dt>
+              <dd>{{ soundPlacement() }}</dd>
+              @if (timing().playbackDurationMs !== null) {
+                <dt>{{ strings.preview.timingClip }}</dt>
+                <dd>
+                  {{ timing().playbackDurationMs }} {{ strings.preview.msWord }}
+                  · {{ placement() }}
+                </dd>
+              }
+            </dl>
+          </section>
+        </div>
+
+        <spre-preview-order-panel [rows]="rows()" [currentKey]="currentRow()?.key ?? null"
+                                  (select)="selectRow($event)" (redraw)="redraw()" />
+      </div>
+    }
+  }
+</section>
