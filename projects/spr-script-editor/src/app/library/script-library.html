@@ -1,0 +1,104 @@
+<section class="library" aria-labelledby="library-title">
+  <header class="library-header">
+    <h1 id="library-title">Scripts</h1>
+    <div class="library-actions">
+      <button type="button" [disabled]="true"
+              title="Read-only milestone: creating a script arrives with a later milestone.">New script</button>
+      <button type="button" [disabled]="true"
+              title="Read-only milestone: importing JSON arrives with a later milestone.">Import JSON</button>
+    </div>
+  </header>
+
+  <form class="filters" role="search" (submit)="$event.preventDefault()">
+    <div class="field">
+      <label for="library-search">Search</label>
+      <input id="library-search" type="search" autocomplete="off" placeholder="Name, id or itemcode"
+             [value]="search()" (input)="search.set($any($event.target).value)">
+    </div>
+    <div class="field">
+      <label for="library-status">Status</label>
+      <select id="library-status" [value]="status()" (change)="status.set($any($event.target).value)">
+        <option value="ALL">All</option>
+        <option value="DRAFT">Drafts</option>
+        <option value="PUBLISHED">Published</option>
+        <option value="ARCHIVED">Archived</option>
+      </select>
+    </div>
+  </form>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="state" role="status" aria-live="polite">
+        <p>Loading scripts…</p>
+        <ul class="skeleton" aria-hidden="true">
+          <li></li>
+          <li></li>
+          <li></li>
+        </ul>
+      </div>
+    }
+    @case ('error') {
+      <div class="state state-error" role="alert">
+        <p>The script list could not be loaded. {{ error() }}</p>
+        <button type="button" [disabled]="true"
+                title="Read-only milestone: retrying is wired with the write screens.">Retry</button>
+      </div>
+    }
+    @case ('empty') {
+      <div class="state">
+        <p>No scripts in this project yet. Create one or import a JSON file to get started.</p>
+      </div>
+    }
+    @default {
+      <table class="scripts">
+        <caption class="visually-hidden">Scripts in this project</caption>
+        <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Sections / items</th>
+          <th scope="col">Updated</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (script of filtered(); track script.scriptId) {
+            <tr>
+              <th scope="row">
+                <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">{{ script.name }}</a>
+                <span class="script-id">#{{ script.scriptId }}</span>
+              </th>
+              <td>{{ script.sections ?? 0 }} sections · {{ script.fixedItems ?? 0 }} + {{ script.drawnItems ?? 0 }} drawn</td>
+              <td>{{ script.modified ?? '—' }}</td>
+              <td><span class="chip" [attr.data-status]="script.status">{{ script.status }}</span></td>
+              <td class="row-actions">
+                <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">Edit</a>
+                <button type="button" [disabled]="true"
+                        title="Read-only milestone: duplicating a script arrives later.">Duplicate</button>
+                <button type="button" [disabled]="true"
+                        title="Read-only milestone: archiving a script arrives later.">Archive</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5">No script matches the filter.</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+
+  <section class="legend" aria-label="What the statuses mean">
+    <article>
+      <h2>Draft</h2>
+      <p>Changes not yet published. Only the editor sees them; sessions keep the published version.</p>
+    </article>
+    <article>
+      <h2>Published</h2>
+      <p>A frozen version. Sessions created from it stay on it, even when the draft moves on.</p>
+    </article>
+    <article>
+      <h2>In use</h2>
+      <p>Sessions have been recorded with this script. Publishing a new version does not touch them.</p>
+    </article>
+  </section>
+</section>

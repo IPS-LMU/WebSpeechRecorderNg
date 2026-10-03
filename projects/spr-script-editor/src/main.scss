@@ -1,0 +1,56 @@
+@use '@angular/material' as mat;
+
+@use '../../speechrecorderng/src/lib/theme/palette' as umu;
+@use '../../speechrecorderng/src/lib/theme/tokens' as tokens;
+
+// Umeå University brand theme for the script editor.
+//
+// Same rule as the library and the recorder: components reference `var(--spr-*, <fallback>)`
+// only, never a colour literal. `mat.theme()` derives every Material system role from the brand
+// tone ramps; the includes after it pin the roles and tokens where the brand value must be exact.
+html {
+  @include mat.theme((
+    color: (
+      primary: umu.$spr-primary-palette,
+      tertiary: umu.$spr-tertiary-palette,
+      theme-type: light,
+    ),
+    typography: (
+      plain-family: umu.$spr-font-family,
+      brand-family: umu.$spr-font-family,
+      regular-weight: 400,
+      medium-weight: 500,
+      bold-weight: 700,
+    ),
+    density: 0,
+  ));
+}
+
+// Emitted at the top level: both mixins write `:root { … }` themselves, and nesting them inside
+// `html {}` would compile to the descendant selector `html :root`, which matches nothing.
+// (`bin/theme_audit.mjs` fails the build check if the pins stop resolving.)
+@include tokens.spr-token-styles();
+@include tokens.spr-material-role-tokens();
+
+// Opt-in dark scheme: `<html data-spr-scheme="dark">` switches every --spr-* value, and the
+// Material pins above follow automatically because they reference the tokens, not literals.
+@include tokens.spr-token-styles(dark, ':root[data-spr-scheme="dark"]');
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--spr-font-family, Inter, "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif);
+  font-size: var(--spr-type-body, 16px);
+  color: var(--spr-ink, #1F3044);
+  background: var(--spr-page, #EEF1F5);
+}
+
+spre-app-shell {
+  display: block;
+  height: 100%;
+}

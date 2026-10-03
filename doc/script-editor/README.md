@@ -169,7 +169,8 @@ On current `master` the application project is named `Cavox` and the library sta
         "inlineStyleLanguage": "scss",
         "assets": [
           "projects/spr-script-editor/src/assets",
-          {"glob": "**/*", "input": "src/test", "output": "test"}
+          {"glob": "**/*", "input": "src/test", "output": "test"},
+          {"glob": "*.checks.json", "input": "doc/script-editor/checks", "output": "checks"}
         ],
         "styles": ["projects/spr-script-editor/src/main.scss"]
       },
@@ -187,11 +188,28 @@ On current `master` the application project is named `Cavox` and the library sta
     "serve": { "builder": "@angular/build:dev-server", "configurations": {
       "development": { "buildTarget": "spr-script-editor:build:development" } } },
     "test": { "builder": "@angular/build:karma",
-      "options": { "polyfills": ["zone.js", "zone.js/testing"],
+      "options": { "polyfills": ["zone.js","zone.js/testing"],
+        "assets": [
+          "projects/spr-script-editor/src/assets",
+          {"glob": "**/*", "input": "src/test", "output": "test"},
+          {"glob": "*.checks.json", "input": "doc/script-editor/checks", "output": "checks"}
+        ],
         "tsConfig": "projects/spr-script-editor/tsconfig.spec.json" } }
   }
 }
 ```
+
+Three additions beyond the sketch, all of them load-bearing:
+
+- **`environments` + `fileReplacements`.** Development must read the FILES tree
+  (`ApiType.FILES`, `apiEndPoint` pointing at `/test`); production must read the REST API beside the
+  app. Without the replacement the production bundle would ship the fixture endpoint. Mirror
+  [src/app/app.config.ts](../../src/app/app.config.ts).
+- **The `assets` entry for `src/test` (and, in karma, the same array).** The dev server serves the
+  repository's fixtures at `/test`, and the editor's specs run against them; the plan's E0 row owns
+  this (A3).
+- **The `checks` asset.** The shared corpus in [checks/](checks) is served at `/checks/*.checks.json`
+  so the editor's specs and the receiver's `server/checks-corpus.test.mjs` run the same files.
 
 The editor's budget is deliberately larger than the recorder's: it is a desktop tool for
 researchers, not a field application. Keep the recorder's existing 500 kB / 1 MB budget

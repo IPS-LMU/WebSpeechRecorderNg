@@ -1,8 +1,5 @@
-# Tests for the receiver and the library. The two jobs are independent so a receiver
-# failure does not hide a library regression (and the reverse).
-#
-# The editor jobs (karma for `spr-script-editor`, `ng build`) are added with the editor
-# project itself; until then only the library and the server run here.
+# Tests for the receiver, the library and the editor. The jobs are independent so a
+# receiver failure does not hide a library regression (and the reverse).
 name: Tests
 
 on:
@@ -37,3 +34,23 @@ jobs:
       # The runner image ships Chrome, which `ChromeHeadless` picks up.
       - name: Library suite
         run: npm run test_module -- --watch=false --browsers=ChromeHeadless
+
+  editor:
+    name: Editor (karma + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      # The editor's specs read the FILES fixtures and the shared check corpus from the
+      # assets the karma target serves; the library suite above must stay green.
+      - name: Editor suite
+        run: npm run test_editor -- --watch=false --browsers=ChromeHeadless
+      # Production is the configuration with the REST base, so this also proves the
+      # environment replacement and the budgets.
+      - name: Editor production build
+        run: npm run build_editor

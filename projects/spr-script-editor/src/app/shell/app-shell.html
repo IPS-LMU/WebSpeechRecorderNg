@@ -1,0 +1,31 @@
+<header class="toolbar">
+  <a class="brand" routerLink="/" aria-label="Script editor home">SpeechRecorder script editor</a>
+
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    @if (project(); as projectId) {
+      <a [routerLink]="['/project', projectId, 'script']">{{ projectId }}</a>
+      @if (scriptId(); as id) {
+        <span aria-hidden="true">/</span>
+        <span class="here">script {{ id }}</span>
+      }
+    }
+  </nav>
+
+  <span class="spacer"></span>
+
+  <p class="save-state" role="status">All changes saved</p>
+  <p class="warning-count" aria-label="Warnings">0 warnings</p>
+
+  <div class="actions">
+    <button type="button" [disabled]="true" [title]="readOnlyReason" aria-label="Undo">Undo</button>
+    <button type="button" [disabled]="true" [title]="readOnlyReason" aria-label="Redo">Redo</button>
+    <button type="button" [disabled]="true" [title]="readOnlyReason" aria-label="Preview">Preview</button>
+    <button type="button" class="primary" [disabled]="true" [title]="readOnlyReason" aria-label="Publish">Publish</button>
+  </div>
+</header>
+
+<main class="content">
+  <router-outlet></router-outlet>
+</main>
+
+<p class="read-only-note">{{ readOnlyReason }}</p>

@@ -94,6 +94,109 @@
         }
       }
     },
+    "spr-script-editor": {
+      "projectType": "application",
+      "root": "projects/spr-script-editor",
+      "sourceRoot": "projects/spr-script-editor/src",
+      "prefix": "spre",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": {
+              "base": "dist/spr-script-editor"
+            },
+            "index": "projects/spr-script-editor/src/index.html",
+            "browser": "projects/spr-script-editor/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "projects/spr-script-editor/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "projects/spr-script-editor/src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/test",
+                "output": "test"
+              },
+              {
+                "glob": "*.checks.json",
+                "input": "doc/script-editor/checks",
+                "output": "checks"
+              }
+            ],
+            "styles": [
+              "projects/spr-script-editor/src/main.scss"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "900kb",
+                  "maximumError": "1.5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kb",
+                  "maximumError": "8kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "projects/spr-script-editor/src/environments/environment.ts",
+                  "with": "projects/spr-script-editor/src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "sourceMap": true
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "development": {
+              "buildTarget": "spr-script-editor:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "projects/spr-script-editor/tsconfig.spec.json",
+            "assets": [
+              "projects/spr-script-editor/src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/test",
+                "output": "test"
+              },
+              {
+                "glob": "*.checks.json",
+                "input": "doc/script-editor/checks",
+                "output": "checks"
+              }
+            ]
+          }
+        }
+      }
+    },
     "speechrecorderng": {
       "projectType": "library",
       "root": "projects/speechrecorderng",

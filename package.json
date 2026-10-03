@@ -29,6 +29,9 @@
     "prebuild": "node bin/ensure_env.mjs",
     "build": "ng build",
     "serve:api": "node server/server.mjs",
+    "start_editor": "ng serve spr-script-editor --host=127.0.0.1 --configuration development",
+    "build_editor": "ng build spr-script-editor --configuration production",
+    "test_editor": "ng test spr-script-editor",
     "watch": "ng build --watch --configuration development"
   },
   "private": true,
