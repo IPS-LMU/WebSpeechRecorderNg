@@ -357,28 +357,33 @@ exercised end to end without CORS in the way.
 editor must never serve a stale script, and `ng build` must not register a worker for this
 application.
 
-## 5. What has to be added to the library
+## 5. What the library had to gain, and where each piece landed
 
-Keep one definition of everything both applications need. Each row is a task.
+One definition of everything both applications need. Every row below is implemented; the plan's
+milestone rows carry the per-item evidence.
 
-| Need | Where it goes | Action |
+| Need | Where it landed | State |
 |---|---|---|
-| `Playback`, `Draw`, bank and resolved-draw types | `lib/speechrecorder/script/script.ts` | extend, export from `public-api.ts` ([data-model.md](data-model.md)) |
-| Script write, publish, version endpoints | `ScriptService` | add methods; keep `scriptObservable` untouched |
-| Banks, bank items, resolved draws | `app/core/bank-api.service.ts`, `app/core/draw-api.service.ts` in the editor | the recorder never reads them, so they stay app-local rather than in the library |
-| Resolved session scripts | server + `Session.script` (D2) | at creation the server materialises the resolved script; the recorder's load path is unchanged (M1/L5) |
-| Prompt visibility rule and phase transitions | new `lib/speechrecorder/script/phases.ts` | extract `promptVisibleAt(promptphase, phase, itemType)` and the transition table from `sessionmanager.ts` and use them in both the recorder and the editor's preview (D6) |
-| Item timing arithmetic | same file | extract `effectiveTiming(item)` returning pre, rec, post and the playback span with its sequencing, including the `prerecording`/`postrecording` fallbacks already in `sessionmanager.ts`; the max timer includes `BEFORE` playback |
-| Playback execution | `sessionmanager.ts`, prompting components | recorder feature, milestone M1 |
-| Media list, upload and delete | editor `media.service.ts` | per [rest-api.md](rest-api.md) §5; the editor needs the list for W11 and the picker |
-| Audio audition in the editor | a small editor-local `<audio>` player | the library's `AudioPlayer`/`AudioDisplay` are NgModule-only and Web Audio; do not import them |
-| Theme partials and `sprToken()` | `lib/theme/*` | already there; the editor imports the SCSS directly |
-| Editor REST endpoints | `server/*.mjs` (the receiver) | new modules `validate`, `bank`, `draw`, `media`; track R of [implementation-plan.md](implementation-plan.md) |
+| `Playback`, `Draw`, bank and resolved-draw types | `lib/speechrecorder/script/script.ts`, exported from `public-api.ts` ([data-model.md](data-model.md)) | Done (L1): `Playback`/`PlaybackWhen`, `PrefillBankSource`, `Bank`/`BankItem`, `DrawFilter`, and `Script.name`/`type`/`minRecorderVersion`; `PromptDoc` is exported too, because the inspector edits it. |
+| Script write, publish, version endpoints | the editor's `core/script-api.service.ts`, not `ScriptService` | Done: the recorder's `scriptObservable` is untouched and the editor owns `readDraft`/`writeDraft`/`publish`/`versions`/`restoreVersion`/`patchScript`/`createScript`/`duplicate`. |
+| Banks, bank items, resolved draws | editor `core/{bank-api,draw-api}.service.ts` | Done: the recorder never reads them, so they stay app-local rather than in the library. |
+| Resolved session scripts | server + `Session.script` (D-K) | Done (L5): at creation the receiver materialises the resolved script (`script/sess-<id>`); the recorder's load path is unchanged. |
+| Prompt visibility rule and phase transitions | `lib/speechrecorder/script/phases.ts` | Done (L2): `promptVisibleAt` and `ITEM_PHASES`/`nextPhase` extracted from `sessionmanager.ts` and used by both applications (D6). |
+| Item timing arithmetic | same file | Done (L2): `effectiveTiming(item)` with the pre/rec/post fallbacks and the playback span; `playbackPlan`/`playbackStart`/`playbackTiming`/`replayAllowed`/`sectionNeedsHeadphones` sit beside it. |
+| Playback execution | `sessionmanager.ts`, prompting components, `audio/prompt_audio.ts` | Done (L3): every `when`, repeats/gap, the replay cap with its persisted count, and the headphone reminder. |
+| Media list, upload and delete | editor `core/media.service.ts` | Done: per [rest-api.md](rest-api.md) §5, with `durationMs` on upload and `MEDIA_IN_USE` surfaced on delete. |
+| Audio audition in the editor | a small editor-local `<audio>` player (D-L) | Done: the library's `AudioPlayer`/`AudioDisplay` are NgModule-only Web Audio and are never imported. |
+| Feature → recorder version map | `lib/speechrecorder/script/feature-versions.ts` | Done (L4): the comparator, the table and `minRecorderVersionFor`/`supportsRecorderVersion`; the receiver mirrors the table and refuses at session creation. |
+| Theme partials and `sprToken()` | `lib/theme/*` | Already there; the editor imports the SCSS directly, and CI audits its routes. |
+| Editor REST endpoints | `server/*.mjs` (the receiver) | Done: `server/{etag,validate,bank,draw,media,cors,feature-versions}.mjs` plus the routes in `server/api.mjs` — track R of [implementation-plan.md](implementation-plan.md). |
 
-Extracting the pure functions and the phase table is what keeps tier-1 preview honest. Unit-test
-them in the library and let both applications depend on them rather than on each other.
+Extracting the pure functions and the phase table is what keeps tier-1 preview honest: both
+applications depend on the library, not on each other.
 
 ## 6. Milestones
+
+Status lives in [implementation-plan.md](implementation-plan.md) — each milestone's rows and its
+gate record what was verified and how. The criteria below are the original acceptance bar.
 
 Each milestone ends with something demonstrable. The server work is called out per milestone
 because it is the long pole.
