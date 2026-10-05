@@ -99,6 +99,15 @@ button[disabled] {
   border-radius: var(--spr-r-sm, 6px);
 }
 
+.action-error {
+  margin: 0 0 var(--spr-r-sm, 6px);
+  font-size: var(--spr-type-body, 16px);
+  color: var(--spr-alert-ink, #000000);
+  background: var(--spr-alert, #EABAB9);
+  padding: var(--spr-r-sm, 6px);
+  border-radius: var(--spr-r-sm, 6px);
+}
+
 .skeleton {
   margin: 0;
   padding: 0;

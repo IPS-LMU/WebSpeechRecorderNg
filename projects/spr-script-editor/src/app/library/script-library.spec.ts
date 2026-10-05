@@ -1,8 +1,9 @@
 import {provideHttpClient} from '@angular/common/http';
 import {HttpTestingController, provideHttpClientTesting} from '@angular/common/http/testing';
 import {TestBed} from '@angular/core/testing';
-import {provideRouter, withComponentInputBinding} from '@angular/router';
+import {Router, provideRouter, withComponentInputBinding} from '@angular/router';
 import {RouterTestingHarness} from '@angular/router/testing';
+import {firstValueFrom, timer} from 'rxjs';
 import {ApiType, SPEECHRECORDER_CONFIG} from 'speechrecorderng';
 import type {ScriptSummary} from '../core/script.model';
 import {ScriptApiService} from '../core/script-api.service';
@@ -84,6 +85,31 @@ function setStatus(root: HTMLElement, value: string): void {
   const select = root.querySelector<HTMLSelectElement>('#library-status') as HTMLSelectElement;
   select.value = value;
   select.dispatchEvent(new Event('change'));
+}
+
+function pathOf(urlWithParams: string): string {
+  return urlWithParams.split('?')[0];
+}
+
+/** The action button with `label` in the nth data row. */
+function rowButton(root: HTMLElement, index: number, label: string): HTMLButtonElement {
+  const row = root.querySelectorAll('.scripts tbody tr')[index];
+  const button = Array.from(row.querySelectorAll<HTMLButtonElement>('button'))
+    .find((candidate) => candidate.textContent?.trim() === label);
+  expect(button).withContext(`the ${label} action exists in row ${index}`).toBeDefined();
+  return button as HTMLButtonElement;
+}
+
+/** Hands the file input a file the way a picker does, then fires the change event. */
+function importFile(root: HTMLElement, file: File): void {
+  const input = root.querySelector<HTMLInputElement>('input[type="file"]') as HTMLInputElement;
+  Object.defineProperty(input, 'files', {configurable: true, value: [file]});
+  input.dispatchEvent(new Event('change'));
+}
+
+/** Reading a File is a browser promise, so the specs wait a real macrotask for it to land. */
+function settle(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 20));
 }
 
 describe('ScriptLibrary states', () => {
@@ -203,5 +229,161 @@ describe('ScriptLibrary states', () => {
     const rows = Array.from(state.root.querySelectorAll('.scripts tbody tr'));
     expect(rows.length).toBe(1);
     expect(rows[0].textContent).toContain('Random test');
+  });
+
+  it('creates a script with no body and opens its editor', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    const button = Array.from(state.root.querySelectorAll<HTMLButtonElement>('.library-actions button'))
+      .find((candidate) => candidate.textContent?.trim() === 'New script') as HTMLButtonElement;
+    button.click();
+    await firstValueFrom(timer(0));
+
+    const create = state.http.expectOne((request) => request.method === 'POST'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script');
+    expect(create.request.body).toEqual({});
+    create.flush({scriptId: 77, draftVersion: 1, etag: '"A"'});
+    await firstValueFrom(timer(0));
+
+    expect(TestBed.inject(Router).url).toBe('/project/Demo1/script/77/edit');
+  });
+
+  it('duplicates a row into a new draft and opens it', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    rowButton(state.root, 0, 'Duplicate').click();
+    await firstValueFrom(timer(0));
+
+    const create = state.http.expectOne((request) => request.method === 'POST'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script');
+    expect(create.request.body).toEqual({from: {scriptId: '1245'}});
+    create.flush({scriptId: 78, draftVersion: 1, etag: '"B"'});
+    await firstValueFrom(timer(0));
+
+    expect(TestBed.inject(Router).url).toBe('/project/Demo1/script/78/edit');
+  });
+
+  it('archives a row, re-reads the list and offers Unarchive', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    rowButton(state.root, 0, 'Archive').click();
+    await firstValueFrom(timer(0));
+
+    const patch = state.http.expectOne((request) => request.method === 'PATCH'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script/1245');
+    expect(patch.request.body).toEqual({archived: true});
+    patch.flush({scriptId: '1245', name: 'Dysarthria test', status: 'ARCHIVED', archived: true});
+    // The list is re-read so the row shows what the server now holds, not what the click assumed.
+    await state.harness.fixture.whenStable();
+    state.harness.detectChanges();
+    listRequest(state.http).flush([{...ROWS[0], status: 'ARCHIVED' as const, archived: true}, ROWS[1]]);
+    await state.harness.fixture.whenStable();
+    state.harness.detectChanges();
+
+    expect(state.root.querySelector('.scripts tbody tr .chip')?.textContent).toContain('Archived');
+    expect(rowButton(state.root, 0, 'Unarchive')).toBeDefined();
+  });
+
+  it('imports a JSON file into a new script and opens it', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    const text = '{"name":"Imported","sections":[]}';
+    importFile(state.root, new File([text], 'imported.json', {type: 'application/json'}));
+    await settle();
+
+    const create = state.http.expectOne((request) => request.method === 'POST'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script');
+    expect(create.request.body).toEqual({name: 'imported'});
+    create.flush({scriptId: 91, draftVersion: 1, etag: '"C"'});
+    await settle();
+
+    const write = state.http.expectOne((request) => request.method === 'PUT'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script/91/draft');
+    expect(write.request.headers.get('If-Match')).toBe('"C"');
+    expect(write.request.body).toBe(text);
+    write.flush({scriptId: 91, draftVersion: 2, etag: '"D"'});
+    await settle();
+
+    expect(TestBed.inject(Router).url).toBe('/project/Demo1/script/91/edit');
+  });
+
+  it('refuses a file that is not JSON before creating anything', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    importFile(state.root, new File(['not json'], 'broken.json', {type: 'application/json'}));
+    await settle();
+    state.harness.detectChanges();
+
+    expect(state.root.querySelector('.action-error')?.textContent).toContain('broken.json');
+    expect(TestBed.inject(Router).url).toBe('/project/Demo1/script');
+    // `afterEach`'s verify() proves no create was attempted.
+  });
+
+  it('exports the draft bytes under the script id', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    const names: string[] = [];
+    const blobs: Blob[] = [];
+    spyOn(HTMLAnchorElement.prototype, 'click').and.callFake(function (this: HTMLAnchorElement) {
+      names.push(this.download);
+    });
+    spyOn(URL, 'createObjectURL').and.callFake((blob: Blob | MediaSource) => {
+      blobs.push(blob as Blob);
+      return 'blob:test';
+    });
+
+    rowButton(state.root, 0, 'Export JSON').click();
+    await firstValueFrom(timer(0));
+    state.http.expectOne((request) => request.method === 'GET'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script/1245/draft')
+      .flush('{"name":"Dysarthria test","sections":[]}', {headers: {ETag: '"A"'}});
+    await firstValueFrom(timer(0));
+
+    expect(names).toEqual(['script-1245.json']);
+    expect(await blobs[0].text()).toContain('Dysarthria test');
+  });
+
+  it('exports the newest published version when the script has no draft', async () => {
+    const state = await setup();
+    listRequest(state.http).flush(ROWS);
+    state.harness.detectChanges();
+
+    const names: string[] = [];
+    const blobs: Blob[] = [];
+    spyOn(HTMLAnchorElement.prototype, 'click').and.callFake(function (this: HTMLAnchorElement) {
+      names.push(this.download);
+    });
+    spyOn(URL, 'createObjectURL').and.callFake((blob: Blob | MediaSource) => {
+      blobs.push(blob as Blob);
+      return 'blob:test';
+    });
+
+    rowButton(state.root, 1, 'Export JSON').click();
+    await firstValueFrom(timer(0));
+    state.http.expectOne((request) => request.method === 'GET'
+      && pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script/3456/draft')
+      .flush({error: 'script 3456 has no draft'}, {status: 404, statusText: 'Not Found'});
+    await firstValueFrom(timer(0));
+    state.http.expectOne((request) => pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script/3456/version')
+      .flush([{version: 2, publishedDate: '2026-09-30T00:00:00.000Z'}]);
+    await firstValueFrom(timer(0));
+    state.http.expectOne((request) => pathOf(request.urlWithParams) === 'api/v1/project/Demo1/script/3456/version/2')
+      .flush({name: 'Random test', sections: []});
+    await firstValueFrom(timer(0));
+
+    expect(names).toEqual(['script-3456.json']);
+    expect(await blobs[0].text()).toContain('"name": "Random test"');
   });
 });

@@ -5,6 +5,7 @@ import {ActivatedRoute, RouterLink} from '@angular/router';
 import {catchError, firstValueFrom, forkJoin, map, of} from 'rxjs';
 import type {Bank, BankItem} from 'speechrecorderng';
 import {BankApiService} from '../core/bank-api.service';
+import {downloadJson} from '../core/download';
 import {EditorFindingsService} from '../core/editor-findings.service';
 import {MediaService} from '../core/media.service';
 import {applyFix} from '../core/normalise';
@@ -238,14 +239,7 @@ export class JsonSource {
   }
 
   download(): void {
-    const text = this.sourceText();
-    const blob = new Blob([text], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `script-${this.scriptId()}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadJson(`script-${this.scriptId()}.json`, this.sourceText());
   }
 
   /** Applies a catalogue fix to the model and pushes it back through the draft service. */

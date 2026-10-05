@@ -2,12 +2,15 @@
   <header class="library-header">
     <h1 id="library-title">{{ strings.library.title }}</h1>
     <div class="library-actions">
-      <button type="button" [disabled]="true"
-              [title]="strings.library.newScriptTitle">{{ strings.library.newScript }}</button>
-      <button type="button" [disabled]="true"
-              [title]="strings.library.importJsonTitle">{{ strings.library.importJson }}</button>
+      <button type="button" [disabled]="busy()" (click)="newScript()">{{ strings.library.newScript }}</button>
+      <button type="button" [disabled]="busy()" (click)="importInput.click()">{{ strings.library.importJson }}</button>
+      <input #importInput type="file" accept="application/json,.json" hidden (change)="onImport($event)">
     </div>
   </header>
+
+  @if (actionError(); as message) {
+    <p class="action-error" role="alert">{{ message }}</p>
+  }
 
   <form class="filters" role="search" (submit)="$event.preventDefault()">
     <div class="field">
@@ -81,10 +84,9 @@
               <td>{{ script.modified ?? strings.library.updatedPlaceholder }}</td>
               <td class="row-actions">
                 <a [routerLink]="['/project', p(), 'script', script.scriptId, 'edit']">{{ strings.library.edit }}</a>
-                <button type="button" [disabled]="true"
-                        [title]="strings.library.duplicateTitle">{{ strings.library.duplicate }}</button>
-                <button type="button" [disabled]="true"
-                        [title]="strings.library.archiveTitle">{{ strings.library.archive }}</button>
+                <button type="button" [disabled]="busy()" (click)="duplicate(script)">{{ strings.library.duplicate }}</button>
+                <button type="button" [disabled]="busy()" (click)="archive(script)">{{ script.archived ? strings.library.unarchive : strings.library.archive }}</button>
+                <button type="button" [disabled]="busy()" (click)="exportJson(script)">{{ strings.library.exportJson }}</button>
               </td>
             </tr>
           } @empty {
