@@ -101,7 +101,9 @@ Four variants. Fields map to the model one to one
 
 **Script**: id (read-only), name, `virtualViewBox.height`, counts (sections, fixed items, drawn
 per session), a note about which versions sessions use, a **version history panel** (list, note
-and session count per version, restore into the draft), and a link to §7.
+and session count per version, restore into the draft), and a link to §7. The name is a draft
+field like the rest, so the library list adopts it when the version is published (rest-api §2.4);
+`PATCH` renames the entity directly.
 
 **Section**: `name`; `mode` as three radio cards each with its consequence in one line; `promptphase`
 as a select with help text that changes with the value; `order` (Sequential, Random — never

@@ -304,6 +304,9 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
         text,
         note: typeof body.note === 'string' ? body.note : null,
         minRecorderVersion,
+        // The frozen document owns the name: a rename made in the editor is a draft edit, so the
+        // entity (the library list, session creation, PATCH) follows it at this commit point.
+        name: typeof value.name === 'string' && value.name.trim() !== '' ? value.name : null,
       }));
     }
 

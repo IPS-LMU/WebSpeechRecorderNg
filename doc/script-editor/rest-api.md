@@ -161,6 +161,12 @@ Warnings never block.
 with `409 FEATURE_FLOOR_UNKNOWN` and `details.features: ["…"]`: shipping it would make a recorder
 skip the feature silently.
 
+Publishing also **names** the script: when the frozen document carries a non-empty `name`, the entity
+adopts it — `name` in §2.1's list is the name of the newest published document — which is how a
+rename made in the editor (a draft edit) reaches the list and session creation. A document without a
+name leaves the entity's name alone; `PATCH` (§2.6) renames the entity and mirrors into both the
+draft and the published document.
+
 The server enforces every error-severity id the editor shows, with the same ids, and recomputes
 `E04`'s `matchCount` atomically at publish time — a count that passed in the editor can still be
 refused if the bank changed. The editor renders returned `details.checks` in its own panel, not as
@@ -190,6 +196,11 @@ versions are untouched.
 PATCH project/{projectId}/script/{scriptId}
 { "name": "Read speech, adults", "archived": true }
 ```
+
+`name` is the script entity's name ([data-model.md](data-model.md) §2.5's `Script.name?`): the patch
+writes it into the metadata **and** mirrors it into the draft and the published document, so the two
+sides cannot drift. Publishing a document that carries its own name adopts it the same way (§2.4).
+`archived` is metadata only: a session never reads it.
 
 ## 3. Item banks
 

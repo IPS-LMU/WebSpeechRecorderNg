@@ -626,9 +626,13 @@ export class Store {
    * recorder-facing `published.json` (atomic rename), then the metadata. A crash between the steps
    * is repaired by publishing again, and the recorder's path is only ever swapped atomically.
    *
+   * `name` is the frozen document's own name when it has one: the entity's name follows the text
+   * that was published, which is how a rename made in the editor (a draft edit) reaches the library
+   * list. A draft without a name leaves the entity's name alone.
+   *
    * @returns {{version: number, publishedDate: string, minRecorderVersion: string|null}}
    */
-  publish(id, {text, note = null, minRecorderVersion = null}) {
+  publish(id, {text, note = null, minRecorderVersion = null, name = null}) {
     const meta = this.ensureScriptMeta(id);
     const version = (meta.publishedVersion ?? 0) + 1;
     this.writeText(this.scriptVersionPath(id, version), text);
@@ -640,6 +644,7 @@ export class Store {
     this.writeJson(this.scriptVersionsPath(id), {versions: index});
     this.writeJson(this.scriptMetaPath(id), {
       ...meta,
+      ...(name === null ? {} : {name}),
       publishedVersion: version,
       publishedDraftVersion: meta.draftVersion ?? 0,
       publishedDate,

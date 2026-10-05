@@ -851,3 +851,24 @@ gate caught it: a `[disabled]="true"` button passes every test, audit and build.
 **The check that would have caught it** — a grep for a disabled control beside a done milestone is
 cheap enough to belong in review; the editor specs now pin the actions' request shapes, so a
 regression to a stub fails a test instead of shipping.
+
+### 11.8 The name the entity never learned — **Done**
+
+**What the audit found** — ui-spec §3.3's Script inspector edits the script's `name`, and that edit
+is a draft write. `PATCH script/{id} {name}` existed, but only the library's archive toggle ever
+called that endpoint, and publishing never adopted the document's name either. So a rename appeared
+in the draft, in every published version and in what the recorder runs, and **never** in the entity:
+the library list, session creation and `PATCH` kept the name the script was created with.
+Reproduced against a receiver: create "First name", publish v1, rename the draft, publish v2 — the
+v2 document says "Renamed in the editor" while the list still said "First name".
+
+**The rule now** — publishing adopts the frozen document's non-empty `name` into the metadata
+(`server/api.mjs` passes it, `server/store.mjs`'s `publish` writes it), so the list's name is the
+newest published document's name. A blank name carries nothing to adopt and leaves the entity alone.
+`PATCH` stays the direct rename and mirrors into both documents, so the two sides cannot drift.
+`server/publish.test.mjs` pins the adoption, the blank-name guard and the duplicate-name
+consequence; rest-api §2.4/§2.6 and ui-spec §3.3 state the rule.
+
+**Verified in the mounted editor** — New script, rename in the inspector, Publish (confirming the
+warning dialog): the library list row reads "Verification rename" with status PUBLISHED, and the v1
+document and the draft both carry that name.

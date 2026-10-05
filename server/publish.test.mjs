@@ -83,6 +83,8 @@ test('publish gates on errors, freezes versions and supports restore and duplica
     const listed = (await (await fetch(`${base}/project/demo/script`)).json()).find((s) => String(s.scriptId) === String(scriptId));
     assert.equal(listed.status, 'PUBLISHED');
     assert.equal(listed.publishedVersion, 2);
+    // Publishing v2 adopted its document's name, so the entity carries 'S v2' from here on.
+    assert.equal(listed.name, 'S v2');
 
     // Restore version 1 into the draft (a new draft revision, not a publish).
     const restored = await fetch(`${base}/project/demo/script/${scriptId}/draft/_restore`, {
@@ -100,7 +102,8 @@ test('publish gates on errors, freezes versions and supports restore and duplica
     assert.notEqual(copyId, scriptId);
     assert.equal(await (await fetch(`${base}/project/demo/script/${copyId}/draft`)).text(), JSON.stringify(good));
     const copyEntry = (await (await fetch(`${base}/project/demo/script`)).json()).find((s) => String(s.scriptId) === String(copyId));
-    assert.equal(copyEntry.name, 'S (copy)');
+    // Named after the source script's current name, which followed its published document ('S v2').
+    assert.equal(copyEntry.name, 'S v2 (copy)');
     assert.equal(copyEntry.status, 'DRAFT');
   });
 });
@@ -130,5 +133,29 @@ test('publish stamps the floor of the features the script uses', async () => {
     // The playback modifier ships with the receiver's recorder: a script that uses it needs a
     // recorder at least as new as this one (L4).
     assert.equal((await played.json()).minRecorderVersion, RECORDER_VERSION);
+  });
+});
+
+test('the published document names the script: the entity follows at publish', async () => {
+  await withServer(async ({base}) => {
+    const created = await createScript(base, 'First name');
+    const {scriptId} = created;
+    const listed = async () => {
+      const rows = await (await fetch(`${base}/project/demo/script`)).json();
+      return rows.find((row) => String(row.scriptId) === String(scriptId));
+    };
+
+    // A rename in the editor is a draft edit; the entity keeps the published name until the commit.
+    const renamed = {...script([item('a', 'one')]), name: 'Renamed in the editor'};
+    const renamedEtag = await putDraft(base, scriptId, renamed, created.etag);
+    assert.equal((await listed()).name, 'First name');
+
+    assert.equal((await publish(base, scriptId, {fromDraftEtag: renamedEtag, note: 'renamed'})).status, 201);
+    assert.equal((await listed()).name, 'Renamed in the editor');
+
+    // A blank name carries nothing to adopt, so the entity keeps the name it has.
+    const blankEtag = await putDraft(base, scriptId, {...script([item('a', 'one')]), name: '   '}, renamedEtag);
+    assert.equal((await publish(base, scriptId, {fromDraftEtag: blankEtag})).status, 201);
+    assert.equal((await listed()).name, 'Renamed in the editor');
   });
 });
