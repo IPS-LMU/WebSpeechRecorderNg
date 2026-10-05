@@ -1165,3 +1165,22 @@ only the nesting rule can fire) makes the audit exit 1 naming
 `button#probe-inner inside button#probe-outer`; putting a `<form>` inside a `<p>` in the library
 template makes the lint exit 1 naming `script-library.html:15: <form inside <p>`. a11y.md's rule list
 and README §7 say what they are for.
+
+### 11.22 The console nothing watched — **Done**
+
+Every check in this repository reads the DOM, the accessibility tree, colours or request shapes. None
+of them watched the browser's console, so a route could render correctly and log an error, a warning
+or an uncaught exception on every load — a broken binding, a 404 asset, an unhandled rejection — and
+everything would stay green. Both drivers now listen to `Runtime.exceptionThrown`,
+`Runtime.consoleAPICalled` (error and warning) and `Log.entryAdded`, and fail naming what they saw:
+
+- **`bin/a11y_audit.mjs`**, rule 16, per route and viewport: the seven audited routes load quietly.
+- **`bin/audit/dry_run.mjs`**: the recorder drives a whole session, so the assertion covers the app the
+  plan actually extends. A console error, warning or exception during the run fails it.
+
+**Verified** — both were clean when added and both are proven by injection rather than assumed: a
+`--prepare` script that calls `console.error`/`console.warn` makes the accessibility audit exit 1
+naming `console: ERROR probe error` and `console: WARNING probe warning`; a `console.error` compiled
+into the recorder's `ngOnInit` makes the dry run exit 1 with
+`✗ console: ERROR dry-run console probe`, and removing it returns the driver to `Dry run passed.`
+a11y.md's rule list and README §7 say what they are for.

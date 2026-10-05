@@ -522,7 +522,7 @@ rule).
   target is at least 44 px high (a control inside a `<label>` is measured as that label; a link
   flowing inline in text is exempt), plus the document rules: a `lang`, exactly one `h1` and
   one `main`, heading levels that do not skip, no positive `tabindex`, and no control inside another
-  control. `doc/script-editor/a11y.md`
+  control, and without console errors or uncaught exceptions. `doc/script-editor/a11y.md`
   lists each rule and what it caught;
   CI runs the whole list.
 - **House-rule lint.** `node bin/editor_lint.mjs` reads the editor's templates and styles and fails on

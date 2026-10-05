@@ -30,7 +30,8 @@
  *   node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
  *
  * Exits non-zero when an assertion fails; `--verbose` traces every step, `--json` prints the
- * timeline as data too.
+ * timeline as data too. A console error, warning or uncaught exception during the run also fails it:
+ * a recorder that behaves while logging on every take is still broken for the operator.
  */
 
 const args = process.argv.slice(2);
@@ -154,11 +155,36 @@ if (!page) {
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 let seq = 0;
 const pending = new Map();
+/**
+ * Console errors, warnings and uncaught exceptions seen while the session runs. A recorder that
+ * records correctly while logging every take is still broken for the operator, and nothing else in
+ * this driver would notice.
+ */
+const consoleProblems = [];
 ws.addEventListener('message', (event) => {
   const message = JSON.parse(event.data);
   if (message.id && pending.has(message.id)) {
     pending.get(message.id)(message);
     pending.delete(message.id);
+    return;
+  }
+  if (message.method === 'Runtime.exceptionThrown') {
+    consoleProblems.push('EXCEPTION ' + String(message.params?.exceptionDetails?.exception?.description ?? '').split('\n')[0].slice(0, 140));
+    return;
+  }
+  if (message.method === 'Runtime.consoleAPICalled' && (message.params?.type === 'error' || message.params?.type === 'warning')) {
+    const text = (message.params.args ?? [])
+      .map((arg) => String(arg.value ?? arg.description ?? ''))
+      .join(' ')
+      .split('\n')[0]
+      .slice(0, 140);
+    consoleProblems.push(message.params.type.toUpperCase() + ' ' + text);
+    return;
+  }
+  if (message.method === 'Log.entryAdded' && (message.params?.entry?.level === 'error' || message.params?.entry?.level === 'warning')) {
+    const entry = message.params.entry;
+    consoleProblems.push('LOG-' + entry.level.toUpperCase() + ' ' + String(entry.text ?? '').slice(0, 140)
+      + ' ' + String(entry.url ?? '').slice(-40));
   }
 });
 await new Promise((resolve) => ws.addEventListener('open', resolve));
@@ -180,6 +206,7 @@ const pageEvents = () => evaluate('JSON.stringify(window.__dryRun.events)').then
 
 await send('Page.enable');
 await send('Runtime.enable');
+await send('Log.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', {source: HOOKS});
 await send('Page.navigate', {url: `${BASE}/spr/session/${SESSION}`});
 
@@ -431,6 +458,11 @@ console.log(`  windows: ${recordingStarts.map((entry) => `@${entry.t}ms`).join('
 console.log(`  rows:    ${doneIn(await state())}/${schedule.length} finished`);
 console.log(`  session: status=${(await (await fetch(`${BASE}/api/v1/session/${SESSION}`)).json()).status ?? '?'}`);
 if (JSON_OUT) console.log(JSON.stringify({schedule, timeline}, null, 2));
+
+// A recorder that behaves while logging on every take is still broken for the operator.
+for (const problem of [...new Set(consoleProblems)].slice(0, 6)) {
+  failures.push(`console: ${problem}`);
+}
 
 ws.close();
 if (failures.length) {

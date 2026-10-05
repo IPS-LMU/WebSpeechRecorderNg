@@ -30,7 +30,8 @@
  *  13. exactly one `main` landmark;
  *  14. no positive `tabindex`: it reorders the document for every keyboard user;
  *  15. no control inside another control (`<button>` in `<button>`, a link in a link): the inner one
- *      is usually unreachable and a click on it fires the outer action.
+ *      is usually unreachable and a click on it fires the outer action;
+ *  16. the route loads without console errors, warnings or uncaught exceptions.
  *
  * Usage:
  *   # terminal 1
@@ -208,11 +209,33 @@ if (!page) {
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 let seq = 0;
 const pending = new Map();
+/** Console errors, warnings and uncaught exceptions seen since the last reset (one rule per run). */
+const consoleProblems = [];
 ws.addEventListener('message', (event) => {
   const message = JSON.parse(event.data);
   if (message.id && pending.has(message.id)) {
     pending.get(message.id)(message);
     pending.delete(message.id);
+    return;
+  }
+  // A screen that looks right can still log every load; those messages are the route's health.
+  if (message.method === 'Runtime.exceptionThrown') {
+    consoleProblems.push('EXCEPTION ' + String(message.params?.exceptionDetails?.exception?.description ?? '').split('\n')[0].slice(0, 140));
+    return;
+  }
+  if (message.method === 'Runtime.consoleAPICalled' && (message.params?.type === 'error' || message.params?.type === 'warning')) {
+    const text = (message.params.args ?? [])
+      .map((arg) => String(arg.value ?? arg.description ?? ''))
+      .join(' ')
+      .split('\n')[0]
+      .slice(0, 140);
+    consoleProblems.push(message.params.type.toUpperCase() + ' ' + text);
+    return;
+  }
+  if (message.method === 'Log.entryAdded' && (message.params?.entry?.level === 'error' || message.params?.entry?.level === 'warning')) {
+    const entry = message.params.entry;
+    consoleProblems.push('LOG-' + entry.level.toUpperCase() + ' ' + String(entry.text ?? '').slice(0, 140)
+      + ' ' + String(entry.url ?? '').slice(-40));
   }
 });
 await new Promise((resolve) => ws.addEventListener('open', resolve));
@@ -224,6 +247,7 @@ const send = (method, params = {}) => new Promise((resolve) => {
 
 await send('Page.enable');
 await send('Runtime.enable');
+await send('Log.enable');
 await send('Accessibility.enable');
 
 /**
@@ -304,6 +328,7 @@ const failures = [];
 const notes = [];
 
 for (const [width, height] of VIEWPORTS) {
+  consoleProblems.length = 0;
   await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false});
   await send('Page.navigate', {url: URL_TO_TEST});
   await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
@@ -380,6 +405,12 @@ for (const [width, height] of VIEWPORTS) {
   }
   for (const element of documentFacts.nestedControls) {
     failures.push(at(`${element} — a control inside a control: unreachable or ambiguous for a reader`));
+  }
+
+  // 16: the route loads quietly. A broken binding, a missing asset or an unhandled rejection can
+  // leave a screen that looks right and logs on every load, which nothing else would notice.
+  for (const problem of [...new Set(consoleProblems)].slice(0, 6)) {
+    failures.push(at(`console: ${problem}`));
   }
 
   // 4: duplicate ids.
