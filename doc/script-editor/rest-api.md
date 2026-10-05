@@ -92,6 +92,7 @@ GET project/{projectId}/script
     "fixedItems": 22,
     "drawnItems": 20,
     "itemcodes": ["ANE01", "ANE02", "RB"],
+    "sectionNames": ["Repetition", "Read speech"],
     "sessions": { "total": 14, "started": 9, "byVersion": { "3": 14 } },
     "modified": "2026-09-30T09:12:00Z",
     "modifiedBy": "nylen",
@@ -115,6 +116,10 @@ real codes are minted per session, so its prefix is the token that belongs to th
 walks the document it already reads for the counts, so the field costs no extra I/O; it does grow
 with the script (a 500-item script adds ~4 KB to the list), which is the price of searching locally
 in both API modes.
+
+`sectionNames` is ui-spec §2's "script name with its section names underneath": the sections' own
+`name`s in document order, with unnamed ones omitted and repeats kept, so the row reads like the
+outline. Same walk, no extra I/O.
 
 ### 2.2 Create
 

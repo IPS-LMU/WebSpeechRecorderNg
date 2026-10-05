@@ -178,6 +178,15 @@ export class ScriptLibrary {
     return `${JSON.stringify(published, null, 2)}\n`;
   }
 
+  /**
+   * The section names under the script name (ui-spec §2), joined for the one-line cell. An empty
+   * string hides the line, so a script whose sections are unnamed reads like a plain row.
+   */
+  sectionNames(script: ScriptSummary): string {
+    const names = script.sectionNames ?? [];
+    return names.length === 0 ? '' : names.join(' · ');
+  }
+
   readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
     const status = this.status();

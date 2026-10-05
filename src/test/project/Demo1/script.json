@@ -16,7 +16,10 @@
     },
     "modified": "2026-06-01T09:00:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": [
+      "Introduction"
+    ]
   },
   {
     "scriptId": "1245",
@@ -50,7 +53,14 @@
     },
     "modified": "2026-09-30T09:12:00Z",
     "modifiedBy": "nylen",
-    "archived": false
+    "archived": false,
+    "sectionNames": [
+      "Empty section test",
+      "Recording Session",
+      "Recording Session",
+      "Recording Session",
+      "Recording Session"
+    ]
   },
   {
     "scriptId": "3456",
@@ -91,7 +101,13 @@
     },
     "modified": "2026-08-14T11:05:00Z",
     "modifiedBy": "nylen",
-    "archived": false
+    "archived": false,
+    "sectionNames": [
+      "Introduction",
+      "Randomized section",
+      "Randomized groups",
+      "Randomized section"
+    ]
   },
   {
     "scriptId": "3457",
@@ -115,7 +131,10 @@
     },
     "modified": "2026-09-02T13:20:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": [
+      "Sound prompts"
+    ]
   },
   {
     "scriptId": "317118e4-3603-4058-abbd-008c2cb9b59b",
@@ -134,7 +153,12 @@
     },
     "modified": "2026-05-10T08:00:00Z",
     "modifiedBy": "klausj",
-    "archived": true
+    "archived": true,
+    "sectionNames": [
+      "Introduction",
+      "Recording Session",
+      "Recording Session"
+    ]
   },
   {
     "scriptId": "bank-draw",
@@ -155,7 +179,8 @@
     },
     "modified": "2026-10-01T08:00:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": []
   },
   {
     "scriptId": "dysartri-kortversion",
@@ -194,7 +219,10 @@
     },
     "modified": "2026-09-20T10:00:00Z",
     "modifiedBy": "nylen",
-    "archived": false
+    "archived": false,
+    "sectionNames": [
+      "Kortversion av dysartribedömning"
+    ]
   },
   {
     "scriptId": "dysartri-kortversion-sti",
@@ -230,7 +258,10 @@
     },
     "modified": "2026-09-22T10:00:00Z",
     "modifiedBy": "nylen",
-    "archived": false
+    "archived": false,
+    "sectionNames": [
+      "Kortversion av dysartribedömning"
+    ]
   },
   {
     "scriptId": "large-500",
@@ -750,7 +781,8 @@
     },
     "modified": "2026-10-02T12:00:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": []
   },
   {
     "scriptId": "playback",
@@ -776,7 +808,8 @@
     },
     "modified": "2026-10-01T09:30:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": []
   },
   {
     "scriptId": "sti-sentencelists",
@@ -795,7 +828,8 @@
     },
     "modified": "2026-09-05T10:00:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": []
   },
   {
     "scriptId": "sti-wordlists",
@@ -814,6 +848,7 @@
     },
     "modified": "2026-09-05T10:00:00Z",
     "modifiedBy": "klausj",
-    "archived": false
+    "archived": false,
+    "sectionNames": []
   }
 ]

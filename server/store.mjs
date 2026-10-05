@@ -808,6 +808,7 @@ export class Store {
         draftVersion: meta.draftVersion ?? 0,
         ...scriptCounts(doc),
         itemcodes: scriptItemcodes(doc),
+        sectionNames: scriptSectionNames(doc),
         sessions: usage[String(meta.scriptId)] ?? {total: 0, started: 0, byVersion: {}},
         modified: meta.modified ?? null,
         modifiedBy: meta.modifiedBy ?? null,
@@ -1266,4 +1267,15 @@ function scriptItemcodes(doc) {
     }
   }
   return [...codes].sort();
+}
+
+/**
+ * The section names, in document order, for the library's name cell (ui-spec §2: "script name with
+ * its section names underneath"). Names are the author's own and may repeat; the list keeps them as
+ * they are, so the row reads like the outline.
+ */
+function scriptSectionNames(doc) {
+  return (doc?.sections ?? [])
+    .map((section) => (typeof section?.name === 'string' ? section.name.trim() : ''))
+    .filter((name) => name !== '');
 }

@@ -218,6 +218,20 @@ describe('ScriptLibrary states', () => {
     expect(rows[0].textContent).toContain('Random test');
   });
 
+  it('shows the section names under the script name', async () => {
+    const state = await setup();
+    listRequest(state.http).flush([
+      {...ROWS[0], sectionNames: ['A', 'B']},
+      // A script whose sections are unnamed shows no line at all, not an empty one.
+      {...ROWS[1], scriptId: '9998', name: 'Unnamed sections', sectionNames: []},
+    ]);
+    state.harness.detectChanges();
+
+    const rows = Array.from(state.root.querySelectorAll<HTMLTableRowElement>('.scripts tbody tr'));
+    expect(rows[0].querySelector('.section-names')?.textContent?.trim()).toBe('A · B');
+    expect(rows[1].querySelector('.section-names')).withContext('no line for unnamed sections').toBeNull();
+  });
+
   it('searches by itemcode as well as by name and id', async () => {
     const state = await setup();
     const names = () => Array.from(state.root.querySelectorAll<HTMLTableRowElement>('.scripts tbody tr'))

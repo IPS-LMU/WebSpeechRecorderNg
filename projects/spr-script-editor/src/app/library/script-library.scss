@@ -162,6 +162,15 @@ table.scripts th a,
   color: var(--spr-ink-muted, #4A6288);
 }
 
+.section-names {
+  display: block;
+  overflow: hidden;
+  font-size: var(--spr-type-caption, 13.6px);
+  color: var(--spr-ink-muted, #4A6288);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .row-actions {
   display: flex;
   gap: 0.5rem;

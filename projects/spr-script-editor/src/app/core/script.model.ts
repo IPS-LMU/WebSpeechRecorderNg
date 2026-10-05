@@ -48,6 +48,11 @@ export interface ScriptSummary {
    * "search by name, id or itemcode" true.
    */
   itemcodes?: readonly string[];
+  /**
+   * The section names in document order, for the name cell (ui-spec §2). Names the author left blank
+   * are absent, and a repeated name stays repeated: the row reads like the outline.
+   */
+  sectionNames?: readonly string[];
   sessions?: SessionCounts;
   modified?: string;
   modifiedBy?: string;

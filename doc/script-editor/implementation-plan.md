@@ -1039,3 +1039,20 @@ no URL means a named line instead of a redirect, a 403 survives a later 401), th
 unsaved change blocks Publish with its reason; a 403 renders its own line with nothing hidden).
 Editor suite 477. The mounted pair was re-run to confirm the new interceptor leaves normal traffic
 alone.
+
+### 11.16 The section names the name cell never showed — **Done**
+
+ui-spec §2's table cell is "script name with its section names underneath, id, content summary". The
+cell rendered the name, the id and the counts — never the section names, and the list payload did
+not carry them, so nothing could have. A researcher scanning the library for "the script with the
+Repetition section" had to open each script.
+
+**What landed** — `sectionNames` on each list row (`server/store.mjs`'s `scriptSectionNames`: the
+sections' own names in document order, unnamed ones omitted, repeats kept), rendered under the name
+as a muted single line that disappears when a script's sections are unnamed. Same walk as the
+counts and `itemcodes`, so no extra I/O. rest-api §2.1 documents the field, and the FILES-mode list
+fixture carries it too.
+
+**Verified** — `server/list.test.mjs` pins the `1245` row's five names in order; the library spec
+covers the joined line and the unnamed case (no line at all, not an empty one). Editor suite 478,
+server 57; the list renders the names against a seeded receiver.

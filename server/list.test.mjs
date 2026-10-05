@@ -38,6 +38,11 @@ test('library list counts fixed and drawn items and how sessions use the version
     // placeholder's prefix, whose real codes are minted per session.
     assert.deepEqual(row.itemcodes, ['D', 'P1', 'P2', 'P3', 'P4', 'P5']);
 
+    // ui-spec §2's name cell reads the sections the script has, in document order.
+    const named = rows.find((entry) => String(entry.scriptId) === '1245');
+    assert.deepEqual(named.sectionNames, ['Empty section test', 'Recording Session', 'Recording Session',
+      'Recording Session', 'Recording Session']);
+
     const empty = rows.find((entry) => String(entry.scriptId) === '1');
     assert.deepEqual(empty.sessions, {total: 0, started: 0, byVersion: {}});
   }, {seed});
