@@ -505,11 +505,12 @@ rule).
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
   drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
   production build too.
-- **Dry run (recorder).** `bin/audit/dry_run.mjs` drives the real recorder through a session and
-  reports what the browser proves — the session's item table (including a drawn group's own
-  recordings), the headphone reminder, the prompt clips that actually play as takes complete, and the
-  operator-only item staying silent until asked. It needs the built recorder served by the receiver
-  and a headless Chrome with the fake media stream:
+- **Dry run (recorder).** `bin/audit/dry_run.mjs` reads the session's **materialised script** from the
+  receiver, so it knows each item's placement and section mode, then drives the real recorder and
+  asserts, per item, where the clip played relative to the take's recording window:
+  `WITH_PROMPT`/`BEFORE` before the clocks (they gate them), `PRERECORDING`/`DURING` at or inside the
+  window, `ONDEMAND` only when asked. It also checks the headphone reminder, the drawn group's own
+  recordings, and cancels a playing sound with a pause when it can land one.
 
   ```bash
   npm run build
@@ -522,9 +523,10 @@ rule).
   node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
   ```
 
-  It walks the manual sections itself; the AUTOPROGRESS/AUTORECORDING sections need an operator's
-  timing, and the per-`when` placement of all five values is pinned by the library's placement table
-  (`phases.spec.ts`), so those stay in the manual pass.
+  It drives MANUAL sections and names what it cannot drive: a section whose mode is
+  AUTOPROGRESS/AUTORECORDING needs the operator's own timing at the boundary, so the fixture's P3–P5
+  and the drawn rows stay in the manual pass — as does a pause that lands inside a ~1 s clip. The
+  placement of all five `when` values is pinned by the library's table (`phases.spec.ts`, C7).
 - **CI.** `.github/workflows/tests.yml` runs four jobs: the receiver, the library, the editor
   (karma + production build) and the audit list above.
 - **Deployment rehearsal.** `bin/serve_deploy.mjs` serves the built recorder and editor behind their

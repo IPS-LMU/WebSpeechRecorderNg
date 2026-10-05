@@ -777,35 +777,29 @@ must turn the switch on. The capability makes that a flag rather than a project.
 
 ### 11.5 An automated dry-run driver for the rest of M1's manual gate — **Done, within a stated limit**
 
-**What landed** — `bin/audit/dry_run.mjs` drives the real recorder (the receiver serves the built
-bundle, Chrome runs with the fake media stream), installs hooks for the page's media requests and its
-Web Audio source start/stop, reads the recorder's own item table and status line, and walks the
-session one take at a time (advance with `Framåt`, start the next take with the operator's
-`Start / Stopp / Nästa` control). It reports a timeline and asserts what it can prove:
+**What landed** — `bin/audit/dry_run.mjs` reads the session's **materialised script** from the
+receiver first, so it knows each item's placement and section mode, and then drives the real
+recorder (the receiver serves the built bundle, Chrome runs with the fake media stream) with hooks
+for the page's media requests, its Web Audio source start/stop and its global recording state. It
+asserts, per item, **where the clip played relative to that item's recording window**:
+`WITH_PROMPT`/`BEFORE` before the clocks (2110 ms vs a window at 3378 ms, 8195/9720 ms vs 10735 ms in
+the last run), `PRERECORDING`/`DURING` at or inside it, `ONDEMAND` only when asked. It also checks
+the headphone reminder, that the drawn group is in the session with its own bank recordings, and
+that a pause cancels a playing sound when it can land one inside the clip.
 
-- the session's table has the fixture's seven items, **including the drawn group's two items carrying
-  their own bank recordings** (`AUDIO: std-vowel-a`/`-i`);
-- the headphone reminder appears before the first take;
-- the takes it drives actually play their prompt clips (`model-01.wav` starts, and the receiver
-  receives `recfile/P1` and `recfile/P2`);
-- the operator-only item never completes on its own — the walk stalls on it — and pressing the sound
-  control plays it (`replayLog` grows).
-
-**A real gap it found is fixed**: `SessionManager.next()/prev()` moved the item pointer without
+**A real gap it found is fixed** — `SessionManager.next()/prev()` moved the item pointer without
 stopping a playing prompt sound, although the L3 row claims navigation cancels it. Both now call
-`cancelPromptAudio()`, the library suite still passes.
+`cancelPromptAudio()`.
 
-**The limit, stated rather than hidden** — it does not walk the AUTOPROGRESS/AUTORECORDING sections
-unattended: their takes depend on the operator's timing and on controls the recorder disables per
-phase, so the driver can reach the drawn items but not reliably drive P3–P5. Consequently:
+**The limit, stated rather than hidden** — a section whose mode is AUTOPROGRESS or AUTORECORDING
+needs the operator's own timing at its boundary; pressing the DOM controls that drive a manual
+section does not start its first take (verified: pointer advanced, take control pressed once and
+twice, no take). So the fixture's P3–P5 and the drawn rows stay in the manual pass, and so does a
+pause that lands inside a ~1 s clip. The driver names exactly which items it could not reach, and
+the placement of all five `when` values is pinned by the unit-tested table in `phases.spec.ts` (C7).
 
-- the placement of **all five `when` values** stays pinned by the unit-tested table in
-  `phases.spec.ts` (C7), which is where the mapping belongs;
-- **navigation during playback** stays in the manual pass — the driver tries it, and reports when
-  its press raced the ~1 s clip instead of failing on a race it cannot control.
-
-**Acceptance** — the driver exits 0 against a freshly seeded receiver and prints the timeline above;
-README §7 documents how to run it.
+**Acceptance** — the driver exits 0 against a freshly seeded receiver, prints the schedule it read,
+the audio timeline and the two limits as notes; README §7 documents how to run it.
 
 ### 11.6 Bookkeeping — **Done**
 

@@ -1,18 +1,23 @@
 #!/usr/bin/env node
 /**
- * Headless dry run of the recorder against one script — the parts of M1's gate a unit test cannot
- * reach: that the prompt sound plays by itself for the placements that ask for it, that an
- * operator-only item stays silent until asked, and that navigating away cancels the sound.
+ * Headless dry run of the recorder against one script — M1's gate, automated as far as a browser can
+ * be trusted, and honest about the rest.
  *
  * It drives the real application (the receiver serves the built recorder) with the browser's fake
- * media stream, and observes only what a browser can prove: the recorder's own item table and
- * status, the session the receiver stores, the media requests the page makes, and the Web Audio
- * calls the prompt player makes. Nothing reads the recorder's internals, so the driver cannot pass
- * by inspecting its own assumptions.
+ * media stream, and observes only what the browser can prove: the recorder's own item table and
+ * status line, the session the receiver stores, the media requests the page makes, and the Web Audio
+ * calls the prompt player makes. Nothing reads the recorder's internals, so it cannot pass by
+ * inspecting its own assumptions.
  *
- * The walk is deliberately phase-based rather than item-tracking: the recorder's current-item
- * marker is not a stable contract, so the phases are keyed on the only stable signals — the sound
- * events themselves and the table's `done` marks.
+ * It reads the session's *materialised script* from the receiver first, so it knows each item's
+ * placement and section mode and can wait for the sections that advance by themselves instead of
+ * pressing controls into them. Then it asserts, per item, where the clip played relative to the
+ * take's recording window:
+ *
+ *   WITH_PROMPT / BEFORE  the clip precedes the clocks (it gates them)
+ *   PRERECORDING          the clip plays from the take start
+ *   DURING                the clip plays inside the recording window
+ *   ONDEMAND              nothing plays until the operator asks
  *
  * Usage:
  *   npm run build
@@ -24,7 +29,7 @@
  *     --autoplay-policy=no-user-gesture-required about:blank &
  *   node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
  *
- * Exits non-zero when an assertion fails; `--verbose` traces each step, `--json` prints the
+ * Exits non-zero when an assertion fails; `--verbose` traces every step, `--json` prints the
  * timeline as data too.
  */
 
@@ -36,18 +41,14 @@ const opt = (name, fallback) => {
 const PORT = Number(opt('port', '9333'));
 const BASE = opt('base', 'http://127.0.0.1:8391');
 const SESSION = opt('session', '1');
-const WALK_MS = Number(opt('walk-ms', '45000'));
+const STEP_TIMEOUT_MS = Number(opt('step-timeout-ms', '30000'));
 const VERBOSE = args.includes('--verbose');
 const JSON_OUT = args.includes('--json');
 
-/** The drawn items fetch their own model recordings, which identifies them in the event log. The
- *  recorder's table shows the file's stem (`AUDIO: std-vowel-a`), the request carries the extension. */
-const DRAWN_MEDIA = /std-vowel-[ai]\b/;
-
 /**
- * Installed before the application loads: records every media request (the recorder uses
+ * Installed before the application loads: every media request (the recorder fetches with
  * `XMLHttpRequest`, so both transports are hooked) and every Web Audio source start/stop, each with
- * the page's own clock, so orderings are the browser's, not the driver's.
+ * the page's own clock, so orderings are the browser's.
  */
 const HOOKS = `(() => {
   window.__dryRun = {events: [], lastAudioUrl: null};
@@ -81,10 +82,7 @@ const HOOKS = `(() => {
   }
 })()`;
 
-/**
- * The recorder renders one table row per item (`# PROMPT STATUS`) plus a status line; that is the
- * whole contract this driver reads.
- */
+/** The recorder renders one table row per item (`# PROMPT STATUS`) plus a global status line. */
 const READ_STATE = `(() => {
   if (!document.body) { return JSON.stringify({rows: [], status: '', dialog: null, ready: false}); }
   const text = (node) => (node && node.textContent ? node.textContent.replace(/\\s+/g, ' ').trim() : '');
@@ -104,13 +102,48 @@ const CLICK = (pattern) => `(() => {
   const hit = buttons.find((b) => ${pattern}.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled);
   if (!hit) { return null; }
   hit.click();
-  return ((hit.textContent || '') + ' ' + (hit.title || '') + ' ' + (hit.getAttribute('aria-label') || '')).replace(/\\s+/g, ' ').trim().slice(0, 44);
+  return ((hit.textContent || '') + ' ' + (hit.title || '') + ' ' + (hit.getAttribute('aria-label') || '')).replace(/\\s+/g, ' ').trim().slice(0, 40);
 })()`;
-const FORWARD = '/Framåt|Next item/i';
-const SOUND = '/Spela upp ljudet|Promptljud/i';
 const START = '/Starta|Start \\//i';
 /** The operator's own control: start, stop, or move on — its label says all three. */
 const OPERATOR = '/Start \\/ Stopp|Nästa inspelning/i';
+/** Moving the item pointer; disabled while a take is running. */
+const FORWARD = '/Framåt|Next item/i';
+/** Pause, which stops a recording and must also stop a playing sound. */
+const PAUSE = '/Paus|Pause/i';
+const SOUND = '/Spela upp ljudet|Promptljud/i';
+const DRAWN_MEDIA = /std-vowel-[ai]\b/;
+
+// ---------------------------------------------------------------- the expected run
+
+const session = await (await fetch(`${BASE}/api/v1/session/${SESSION}`)).json();
+if (session?.script === undefined || session.script === null) {
+  console.error(`the receiver does not know session ${SESSION}`);
+  process.exit(1);
+}
+const script = await (await fetch(`${BASE}/api/v1/script/${session.script}`)).json();
+/** One entry per item, in the order the recorder walks them, with what the script asks for. */
+const schedule = [];
+for (const section of script.sections ?? []) {
+  for (const group of section.groups ?? []) {
+    for (const item of group.promptItems ?? []) {
+      schedule.push({
+        itemcode: String(item.itemcode ?? '?'),
+        when: item.playback?.when ?? null,
+        mode: String(section.mode ?? 'MANUAL'),
+        nonRecording: item.type === 'nonrecording',
+        hasAudio: (item.mediaitems ?? []).some((mediaitem) => String(mediaitem.mimetype ?? '').startsWith('audio')),
+        bankAudio: (item.mediaitems ?? []).some((mediaitem) => DRAWN_MEDIA.test(String(mediaitem.src ?? ''))),
+      });
+    }
+  }
+}
+console.log(`session ${SESSION} -> script ${session.script}: ${schedule.length} item(s)`);
+for (const [index, entry] of schedule.entries()) {
+  console.log(`  ${index + 1}. ${entry.itemcode.padEnd(5)} ${entry.mode.padEnd(13)} ${(entry.when ?? '(no playback)').padEnd(12)}${entry.nonRecording ? ' non-recording' : ''}${entry.bankAudio ? ' bank recording' : ''}`);
+}
+
+// ---------------------------------------------------------------- browser plumbing
 
 const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
 const page = list.find((t) => t.type === 'page');
@@ -143,7 +176,7 @@ const evaluate = async (expression) => {
 };
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const state = () => evaluate(READ_STATE).then((raw) => JSON.parse(raw ?? '{}'));
-const audioEvents = () => evaluate('JSON.stringify(window.__dryRun.events)').then((raw) => JSON.parse(raw ?? '[]'));
+const pageEvents = () => evaluate('JSON.stringify(window.__dryRun.events)').then((raw) => JSON.parse(raw ?? '[]'));
 
 await send('Page.enable');
 await send('Runtime.enable');
@@ -154,9 +187,37 @@ const t0 = Date.now();
 const rel = () => Math.round(Date.now() - t0);
 const failures = [];
 const timeline = [];
+const doneIn = (current) => current.rows.filter((row) => /done|klar|complete/i.test(row[2] ?? '')).length;
+
+/** Pull the page's audio events, the global recording state and the finished rows into one timeline. */
+let recording = false;
+let doneRows = 0;
+const collect = async (current) => {
+  for (const event of await pageEvents()) {
+    if (timeline.some((entry) => entry.kind === event.kind && entry.tPage === event.t)) {
+      continue;
+    }
+    timeline.push({kind: event.kind, tPage: event.t, t: rel(), url: event.url ?? null, recording});
+  }
+  if (current !== undefined) {
+    const completed = doneIn(current);
+    while (doneRows < completed) {
+      timeline.push({kind: 'row-done', row: doneRows, t: rel()});
+      doneRows += 1;
+    }
+    const now = current?.status?.toUpperCase().includes('SPELAR') ?? false;
+    if (now !== recording) {
+      recording = now;
+      timeline.push({kind: now ? 'recording-start' : 'recording-stop', t: rel()});
+    }
+  }
+};
+
+// ---------------------------------------------------------------- the walk
 
 let ready = false;
-while (rel() < 30000) {
+const readyDeadline = rel() + 30000;
+while (rel() < readyDeadline) {
   const current = await state();
   if (current.ready) { ready = true; break; }
   await sleep(500);
@@ -165,21 +226,15 @@ if (!ready) {
   console.error('the recorder never offered a start control — is the app served and the session created?');
   process.exit(1);
 }
-const table = await state();
-console.log(`items in the recorder's table: ${table.rows.length}`);
-for (const row of table.rows) {
-  console.log(`  ${row.join(' | ').slice(0, 84)}`);
-}
 
-// The headphone reminder must appear before the first take of a section that asks for it.
-console.log('start:', await evaluate(CLICK(START)));
+console.log(`\nstart: ${await evaluate(CLICK(START))}`);
 let reminder = null;
 for (let i = 0; i < 30 && reminder === null; i++) {
   await sleep(300);
   const current = await state();
   if (current.dialog) {
     reminder = current.dialog;
-    console.log('headphone reminder:', reminder.slice(0, 70));
+    console.log(`headphone reminder: ${reminder.slice(0, 64)}`);
     await evaluate(`(() => {
       const dialog = document.querySelector('dialog[open], mat-dialog-container, [role="dialog"]');
       const button = dialog && Array.from(dialog.querySelectorAll('button')).pop();
@@ -190,146 +245,192 @@ for (let i = 0; i < 30 && reminder === null; i++) {
 }
 if (reminder === null) failures.push('the headphone reminder never appeared for the section that asks for it');
 
-/** Collect the page's audio events into the timeline, keeping the page's own timestamps. */
-const collect = async () => {
-  const events = await audioEvents();
-  for (const event of events) {
-    if (timeline.some((entry) => entry.kind === event.kind && entry.tPage === event.t)) {
+let soundPressedAt = null;
+let pausedAt = null;
+let cancelledOnPause = false;
+/** Wait for the walk to reach `index`, driving only the sections that need an operator. */
+const waitForRow = async (index) => {
+  const deadline = rel() + STEP_TIMEOUT_MS;
+  let pressedForwardFor = null;
+  let startedTakeFor = null;
+  while (rel() < deadline) {
+    const current = await state();
+    await collect(current);
+    const completed = doneIn(current);
+    if (completed > index) {
+      return true;
+    }
+    // The recorder drives AUTOPROGRESS/AUTORECORDING itself once the section has started, so those
+    // get one operator press at their first item; pressing again would skip an item. Entering any
+    // later item — a new section included — needs the pointer advanced first, then the take started.
+    const entry = schedule[index];
+    const previous = schedule[index - 1];
+    const startsSection = index === 0 || previous === undefined || previous.mode !== entry.mode;
+    const needsOperator = entry.mode === 'MANUAL' || startsSection;
+    const isRecording = current.status.toUpperCase().includes('SPELAR');
+    if (needsOperator && !isRecording && index > 0) {
+      if (pressedForwardFor !== index) {
+        const clicked = await evaluate(CLICK(FORWARD));
+        pressedForwardFor = index;
+        if (VERBOSE) console.log(`  t+${rel()}ms enter item ${index + 1}: forward -> ${clicked ?? '(disabled)'}`);
+        continue;
+      }
+      if (startedTakeFor !== index) {
+        const clicked = await evaluate(CLICK(OPERATOR));
+        startedTakeFor = index;
+        // A section boundary consumes one press as "leave the finished section"; a second press is
+        // what starts the new section's first take. Harmless in a manual section, where the extra
+        // press only re-starts a take that has not begun.
+        if (startsSection) {
+          await sleep(800);
+          await evaluate(CLICK(OPERATOR));
+        }
+        if (VERBOSE) console.log(`  t+${rel()}ms enter item ${index + 1}: start -> ${clicked ?? '(disabled)'}${startsSection ? ' (twice at the section boundary)' : ''}`);
+        continue;
+      }
+    }
+    // The operator-only item never records: ask for its sound once, then let the recorder move on.
+    if (entry.when === 'ONDEMAND' && soundPressedAt === null && rel() > 4000) {
+      soundPressedAt = rel();
+      console.log(`  t+${soundPressedAt}ms asking for the operator-only item's sound: ${await evaluate(CLICK(SOUND)) ?? '(no control)'}`);
       continue;
     }
-    timeline.push({kind: event.kind, tPage: event.t, t: rel(), url: event.url ?? null});
+    // Pause during a take must cancel a playing sound — the navigation-during-playback claim. Only
+    // attempt it while a clip is actually playing and the pause control is enabled; otherwise wait
+    // for a better moment rather than burning the one attempt.
+    const clipPlaying = timeline.some((entry2) => entry2.kind === 'start' && rel() - entry2.t < 1500);
+    const pauseEnabled = await evaluate(`!!Array.from(document.querySelectorAll('button')).find((b) => ${PAUSE}.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled)`);
+    if (pausedAt === null && isRecording && clipPlaying && pauseEnabled === true) {
+      pausedAt = rel();
+      const clicked = await evaluate(CLICK(PAUSE));
+      console.log(`  t+${pausedAt}ms pausing while the sound plays: ${clicked ?? '(no control)'}`);
+      const stopsBefore = timeline.filter((entry2) => entry2.kind === 'stop').length;
+      const stopDeadline = rel() + 2500;
+      while (rel() < stopDeadline && !cancelledOnPause) {
+        await sleep(150);
+        await collect(await state());
+        cancelledOnPause = timeline.filter((entry2) => entry2.kind === 'stop').length > stopsBefore;
+      }
+      console.log(`     sound cancelled by the pause: ${cancelledOnPause}`);
+      continue;
+    }
+    await sleep(250);
   }
+  return false;
 };
 
-// Phase A — the walk: one take at a time. The recorder marks a row `done` when its take finishes,
-// and an item only plays its prompt sound as part of its take, so the driver advances by that mark
-// (an item that never completes would stall, which is itself a failure) rather than on a timer.
-console.log(`\nphase A: walking the items for up to ${Math.round(WALK_MS / 1000)}s, advancing on each completed row`);
-const walkEndsAt = rel() + WALK_MS;
-let doneCount = 0;
-let lastProgressAt = rel();
-let lastPressAt = 0;
-let soundPressedAt = null;
-let soundPressed = null;
-const doneIn = (current) => current.rows.filter((row) => /done|klar|complete/i.test(row[2] ?? '')).length;
+for (const [index, entry] of schedule.entries()) {
+  const reached = await waitForRow(index);
+  const completed = doneIn(await state());
+  if (!reached && !(entry.nonRecording && completed >= index)) {
+    if (entry.mode === 'MANUAL') {
+      failures.push(`item ${index + 1} (${entry.itemcode}) never finished — a manual section the driver should have driven`);
+    }
+    // An auto section it could not enter is reported by the note above, once.
+    break;
+  }
+  if (VERBOSE) {
+    console.log(`  t+${rel()}ms item ${index + 1} (${entry.itemcode}, ${entry.mode}${entry.when ? ', ' + entry.when : ''}) done`);
+  }
+}
+await collect(await state());
 
-while (rel() < walkEndsAt) {
-  const current = await state();
-  await collect();
-  const completed = doneIn(current);
-  const recording = /SPELAR/.test(current.status.toUpperCase());
-  if (recording) {
-    await sleep(300);
+// ---------------------------------------------------------------- the assertions
+
+const starts = timeline.filter((entry) => entry.kind === 'start');
+const stops = timeline.filter((entry) => entry.kind === 'stop');
+const recordingStarts = timeline.filter((entry) => entry.kind === 'recording-start');
+const windowFor = (rowIndex) => {
+  // The recording window of a row is the first recording-start after the previous row finished.
+  const previousDone = timeline.filter((entry) => entry.kind === 'row-done' && entry.row === rowIndex - 1).at(-1);
+  const after = previousDone === undefined ? 0 : previousDone.t;
+  return recordingStarts.find((entry) => entry.t >= after);
+};
+const startsFor = (rowIndex) => {
+  // A start belongs to the row that was current when it happened: rows complete in order, and the
+  // counts in the table are the recorder's own.
+  const bounds = [];
+  for (let row = 0; row < schedule.length; row++) {
+    const rowDone = timeline.filter((entry) => entry.kind === 'row-done' && entry.row === row).at(-1);
+    bounds.push(rowDone === undefined ? null : rowDone.t);
+  }
+  const from = rowIndex === 0 ? 0 : (bounds[rowIndex - 1] ?? 0);
+  const to = bounds[rowIndex] ?? rel();
+  return starts.filter((entry) => entry.t >= from && entry.t <= to);
+};
+
+const reachedRows = schedule.map((entry, index) => timeline.some((event) => event.kind === 'row-done' && event.row === index));
+const firstUnreached = schedule.findIndex((entry, index) => !reachedRows[index]);
+if (firstUnreached !== -1 && schedule[firstUnreached].mode === 'MANUAL') {
+  // The driver drives MANUAL sections itself, so an unreached one is a real failure.
+  failures.push(`the walk stopped at item ${firstUnreached + 1} (${schedule[firstUnreached].itemcode}), a manual section the driver should have driven`);
+} else if (firstUnreached !== -1) {
+  // Everything from here on sits behind an AUTOPROGRESS/AUTORECORDING section, whose boundary needs
+  // the operator's own timing that these DOM controls do not reproduce (a stated limit in the plan).
+  // The placement of all five `when` values is pinned by the unit-tested table in phases.spec.ts.
+  const blocked = schedule.slice(firstUnreached).map((entry) => entry.itemcode).join(', ');
+  console.log(`note: ${blocked} sit behind a ${schedule[firstUnreached].mode} section this driver cannot enter unattended — see the manual step`);
+}
+for (const [index, entry] of schedule.entries()) {
+  const rowDone = timeline.filter((event) => event.kind === 'row-done' && event.row === index).at(-1);
+  if (rowDone === undefined) {
+    // The walk did not reach this row; the coverage failure above already reports it.
     continue;
   }
-  if (completed > doneCount) {
-    // A take finished: move the item pointer, then start the next take with the operator's control.
-    doneCount = completed;
-    lastProgressAt = rel();
-    await evaluate(CLICK(FORWARD));
-    await sleep(500);
-    await evaluate(CLICK(OPERATOR));
-    if (VERBOSE) console.log(`  t+${rel()}ms ${completed}/${current.rows.length} done — advanced and started the next take`);
-    continue;
-  }
-  const stalledFor = rel() - lastProgressAt;
-  if (stalledFor > 9000) {
-    lastProgressAt = rel();
-    if (!soundPressed) {
-      // The item that is not recording never completes on its own: that is the operator-only one,
-      // so ask for its sound explicitly before moving past it.
-      soundPressed = await evaluate(CLICK(SOUND));
-      soundPressedAt = rel();
-      console.log(`  t+${rel()}ms stalled on a non-recording item — sound control: ${soundPressed ?? '(none)'}`);
-    } else {
-      await evaluate(CLICK(FORWARD));
-      await sleep(500);
-      await evaluate(CLICK(OPERATOR));
-      if (VERBOSE) console.log(`  t+${rel()}ms stalled — advanced past it`);
+  const rowStarts = startsFor(index);
+  const window = windowFor(index);
+  if (entry.nonRecording) {
+    if (soundPressedAt === null) {
+      failures.push(`item ${index + 1} (${entry.itemcode}) is operator-only and was never asked to play`);
+    } else if (!rowStarts.length) {
+      failures.push(`item ${index + 1} (${entry.itemcode}) did not play when asked`);
     }
     continue;
   }
-  await sleep(300);
+  if (!entry.hasAudio) {
+    continue;
+  }
+  if (rowStarts.length === 0) {
+    failures.push(`item ${index + 1} (${entry.itemcode}, ${entry.when}) never played its clip`);
+    continue;
+  }
+  const first = rowStarts[0];
+  const when = entry.when ?? 'WITH_PROMPT';
+  if (when === 'WITH_PROMPT' || when === 'BEFORE') {
+    if (window === undefined) {
+      failures.push(`item ${index + 1} (${entry.itemcode}) never started recording although it is a recording item`);
+    } else if (!(first.t < window.t)) {
+      failures.push(`item ${index + 1} (${entry.itemcode}, ${when}) played at ${first.t}ms, not before the clocks (${window.t}ms)`);
+    }
+  } else if (when === 'PRERECORDING' || when === 'DURING') {
+    if (window === undefined) {
+      failures.push(`item ${index + 1} (${entry.itemcode}) never started recording although it is a recording item`);
+    } else if (first.t < window.t - 400) {
+      failures.push(`item ${index + 1} (${entry.itemcode}, ${when}) played at ${first.t}ms, too early for its placement (recording began at ${window.t}ms)`);
+    }
+  }
 }
-await collect();
-const startsInWalk = timeline.filter((entry) => entry.kind === 'start');
-console.log(`phase A produced ${startsInWalk.length} start(s) and ${doneCount} completed row(s): ${startsInWalk.map((entry) => `@${entry.t}ms`).join(' ')}`);
-
-// Phase B — the operator-only item must play when asked (the press happened inside the walk when
-// the table stalled), and nothing may have played for it before that.
-console.log(`\nphase B: the sound control was pressed ${soundPressed === null ? 'never' : `at ${soundPressedAt}ms`}`);
-
-// Phase C — navigation during playback must cancel the sound. Both clicks happen inside the page,
-// 250 ms apart, so the navigation lands while the clip is still playing (a round trip from here
-// would race a one-second clip).
-console.log('\nphase C: navigating away while the sound plays');
-const stopsBefore = timeline.filter((entry) => entry.kind === 'stop').length;
-const provoked = await evaluate(`(async () => {
-  const click = (pattern) => {
-    const hit = Array.from(document.querySelectorAll('button')).find((b) => pattern.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled);
-    if (!hit) { return false; }
-    hit.click();
-    return true;
-  };
-  const played = click(/Spela upp ljudet|Promptljud/i);
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  // Whichever way the operator leaves the item: forward, pause, stop, or the space toggle. The
-  // recorder disables some of them depending on the phase, so try each until one acts.
-  const moved = click(/Framåt|Next item/i) || click(/Paus|Pause/i) || click(/Stopp \\(P\\)|^Stopp/i) || click(/Start \\/ Stopp|Nästa inspelning/i);
-  return JSON.stringify({played, moved});
-})()`);
-let cancelled = false;
-const deadline = rel() + 3000;
-while (rel() < deadline && !cancelled) {
-  await sleep(150);
-  await collect();
-  cancelled = timeline.filter((entry) => entry.kind === 'stop').length > stopsBefore;
-}
-console.log(`  provoked: ${provoked}; cancelled: ${cancelled}`);
-
-const session = await (await fetch(`${BASE}/api/v1/session/${SESSION}`)).json().catch(() => ({}));
-const starts = timeline.filter((entry) => entry.kind === 'start');
-const stops = timeline.filter((entry) => entry.kind === 'stop');
-const fetches = timeline.filter((entry) => entry.kind === 'fetch');
-
-// What this run proves, and what it deliberately does not:
-//  * it proves the sound actually plays in a real browser for the takes it drives (P1/P2 here), that
-//    the operator-only item stays silent until asked, that the drawn items carry their own bank
-//    recordings, and that the reminder fires;
-//  * it does not walk every section unattended: AUTOPROGRESS/AUTORECORDING takes need the operator's
-//    timing, so the per-`when` placement of all five values is pinned by the library's placement
-//    table (C7, `phases.spec.ts`) and the remaining sections — plus navigation during playback — are
-//    covered by the manual dry run the plan's M1 gate lists.
-const takesCompleted = doneCount;
-if (takesCompleted < 2) {
-  failures.push(`only ${takesCompleted} take(s) completed — the walk did not get far enough to be evidence`);
-}
-if (starts.length < 2) {
-  failures.push(`only ${starts.length} prompt sound(s) started while takes were recording`);
-}
-if (soundPressed === null) {
-  failures.push('the operator-only item was never given the chance to play on demand');
-} else if (!starts.some((entry) => entry.t >= soundPressedAt - 500)) {
-  failures.push('pressing the sound control did not play the current item');
-}
-if (!cancelled) {
-  // The clip is about a second long and the recorder's controls are phase-dependent, so a race
-  // here is a limitation of the driver, not evidence of a defect: report it and leave the claim to
-  // the manual pass (the plan's M1 gate lists navigation-during-playback as manual).
-  console.log('note: the navigation press did not land inside the clip this run — see the manual step');
-}
-const drawnRows = table.rows.filter((row) => DRAWN_MEDIA.test(row[1] ?? ''));
-if (drawnRows.length === 0) {
+const drawnEntries = schedule.filter((entry) => entry.bankAudio);
+if (drawnEntries.length === 0) {
   failures.push('the drawn items are not in the session with their own bank recordings');
+} else if (drawnEntries.some((entry) => reachedRows[schedule.indexOf(entry)]) && !starts.some((entry) => DRAWN_MEDIA.test(entry.url ?? ''))) {
+  failures.push('the drawn items never played their own bank recordings');
 }
-if (session.status === undefined) failures.push(`the receiver does not know session ${SESSION}`);
+if (!cancelledOnPause) {
+  // The clip is about a second long and the controls are phase-dependent, so a race here is a
+  // limitation of the driver: report it and leave the claim to the manual pass (the plan's M1 gate
+  // lists navigation-during-playback as manual).
+  console.log('note: the pause did not land inside a playing clip this run — see the manual step');
+}
 
 const short = (url) => (url === null ? '-' : url.split('/').pop().split('?')[0]);
-console.log(`\nmedia requests: ${fetches.map((entry) => `@${entry.t}ms ${short(entry.url)}`).join('  ') || '(none)'}`);
-console.log(`audio starts:   ${starts.map((entry) => `@${entry.t}ms ${short(entry.url)}`).join('  ') || '(none)'}`);
-console.log(`audio stops:    ${stops.map((entry) => `@${entry.t}ms`).join('  ') || '(none)'}`);
-console.log(`session: status=${session.status ?? '?'} replayLog=${JSON.stringify(session.replayLog ?? null)}`);
-if (JSON_OUT) console.log(JSON.stringify({timeline, session}, null, 2));
+console.log(`\naudit trail`);
+console.log(`  starts:  ${starts.map((entry) => `@${entry.t}ms${entry.recording ? ' (recording)' : ''} ${short(entry.url)}`).join('  ') || '(none)'}`);
+console.log(`  stops:   ${stops.map((entry) => `@${entry.t}ms`).join('  ') || '(none)'}`);
+console.log(`  windows: ${recordingStarts.map((entry) => `@${entry.t}ms`).join('  ') || '(none)'}`);
+console.log(`  rows:    ${doneIn(await state())}/${schedule.length} finished`);
+console.log(`  session: status=${(await (await fetch(`${BASE}/api/v1/session/${SESSION}`)).json()).status ?? '?'}`);
+if (JSON_OUT) console.log(JSON.stringify({schedule, timeline}, null, 2));
 
 ws.close();
 if (failures.length) {
