@@ -16,7 +16,13 @@ const key = (finding) => `${finding.id}@${finding.path}`;
 
 test('every corpus case matches the server catalogue', () => {
   const files = readdirSync(CORPUS_DIR).filter((name) => name.endsWith('.checks.json')).sort();
-  assert.ok(files.length >= 5, `corpus is too small: ${files.length} case(s)`);
+  // The file *set* is part of the contract: a renamed or dropped case must fail here, not silently
+  // stop being checked. Keep in step with `CORPUS_FILES` in the editor's
+  // `projects/spr-script-editor/src/app/core/validation/corpus.ts`.
+  const expectedNames = ['bank-count', 'bank-missing', 'bank-prefix-clash', 'clean', 'duplicate-itemcode',
+    'empty-item', 'missing-itemcode', 'negative-timing', 'playback-bounds'];
+  assert.deepEqual(files.map((name) => name.replace(/\.checks\.json$/, '')),
+    [...expectedNames].sort(), 'the corpus file set drifted from the editor\'s CORPUS_FILES');
   for (const file of files) {
     const corpusCase = JSON.parse(readFileSync(join(CORPUS_DIR, file), 'utf8'));
     const banks = corpusCase.banks ?? {};

@@ -1100,3 +1100,23 @@ audits' existing exception path then fails the run with the fixture's own words.
 0 with `prepared(…): draw rule selected`; with `.marker-text` renamed to a class that does not
 exist, the same audit exits 1 naming `--prepare script failed: Error: no drawn-group marker in the
 outline`; restoring the selector returns it to green. README §7 and a11y.md record the rule.
+
+### 11.19 The shared corpus that could go missing quietly — **Done**
+
+README §7 calls `doc/script-editor/checks/*.checks.json` "the shared corpus: the editor's specs and
+`server/checks-corpus.test.mjs` both run it", and it is the cross-runtime contract (§10.2). Neither
+side actually pinned the file set:
+
+- the editor's `corpus.spec.ts` called `pending()` when a file was not served, so a renamed or dropped
+  case turned its spec into a silent no-op;
+- the server's `checks-corpus.test.mjs` iterated whatever files it found with only a
+  `files.length >= 5` floor, so the ninth case could disappear unnoticed.
+
+**What landed** — the editor's spec now **fails** with the file's name and the asset locations it
+looked in; the server's test asserts the exact nine names, with a comment pointing at the editor's
+`CORPUS_FILES` so the two lists are kept in step deliberately rather than by luck.
+
+**Verified** — renaming `clean.checks.json` away fails the editor spec naming
+`clean.checks.json … check the karma assets` and fails the server test with
+`the corpus file set drifted from the editor's CORPUS_FILES`; restoring the file returns both to
+green (editor 480, server 57).

@@ -479,7 +479,9 @@ rule).
   `ApiType.FILES` and REST agree by construction. `core/round-trip.spec.ts` proves every fixture
   survives load → write with no key lost, no fabricated `groups` over a legacy section and no
   persisted `_shuffled*`.
-- **Contract.** `doc/script-editor/checks/*.checks.json` is the shared corpus: the editor's specs
+- **Contract.** `doc/script-editor/checks/*.checks.json` is the shared **file set**: both sides pin the
+  nine cases by name, so a renamed or dropped case fails instead of quietly stopping being checked.
+  Each file is the shared corpus: the editor's specs
   and `server/checks-corpus.test.mjs` both run it. The write protocol is additionally exercised
   against the receiver over `fetch` (create → publish → 412 → reapply → restore → PATCH → media),
   and the draft service's specs assert the exact request shapes.
