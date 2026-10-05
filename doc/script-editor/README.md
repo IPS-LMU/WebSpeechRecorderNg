@@ -518,6 +518,14 @@ rule).
   exception), so a drifted selector cannot leave the audit measuring the default screen and green. The house rule covers light **and** dark, so `use-dark-scheme.js` switches
   `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
   the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13). CI
+
+  The recorder’s own screens are measured too — `/spr/session/1` and the start page in the dry-run
+  job, which renders them — because the token, contrast, type-size and layout rules are shared and the
+  **logo** rules (loaded, `alt`, height, inside the viewport) only ever fire there, on the control
+  bar. Each rule is sensitive: a `--prepare` script that injects `lightgrey` fails it naming
+  `lightgrey`, a low-contrast paragraph names its ratio, 9 px text names its size, a 3000 px block
+  names the scrollbar, `Arial` on a measured link names the font, and `use-dark-scheme.js` reaches the
+  other scheme.
   also measures a phone width (390×844) on the screens that reflow — the editor stacks its columns
   below 820 px, the bank below 1100 px — which is how the editor's overlapping columns and the bank's
   document-level scrollbar were found (§11.14).

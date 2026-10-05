@@ -1246,3 +1246,29 @@ hand-edited or stale generated file fails too.
 `sv.json` makes it exit 1 naming `sv.json is missing "app.help.nextRecording"`, and restoring the file
 returns it to 0. `npm run build:i18n` is idempotent on the committed strings. README §7's library
 bullet documents both.
+
+### 11.26 The theme audit's rules, and the screens they never reached — **Done**
+
+The accessibility audit's rules each had a recorded sensitivity check (a11y.md, and §11.11/§11.25 for
+the ones added since). The theme audit's rules had none, and one of them — the **logo** rules
+(loaded, `alt`, 16–64 px tall, inside the viewport) — had never run at all: they only fire on the
+recorder's control bar, and every CI theme run was against editor routes, which render no logo. Two
+things to settle, then: do the theme rules bite, and do the screens they were written for get seen?
+
+**Every rule bites** — proven by injection, one prepare script per rule:
+
+| Injection | Failure |
+|---|---|
+| `background: lightgrey` on a div | `div uses rgb(211, 211, 211) (lightgrey)` |
+| `#969696` on `#ffffff`, 16 px | `p "…" contrast 2.96:1 < 4.5:1` |
+| 9 px text | `p text "…" at 9px (< 13.5px)` |
+| a 3000 px block | `document scrolls (scrollHeight 3768 > viewport 768)` |
+| `font-family: Arial` on a measured link | `a.brand renders in Arial` |
+
+(The token-layer rule — "no `--spr-*` tokens are defined" — needs the stylesheet removed to reach, so
+it is exercised by the light and dark runs themselves rather than by an injection.)
+
+**The recorder's screens are now audited** — the dry-run job, which already has the receiver and
+Chrome with a fake media stream, measures `/spr/session/1` and the start page before it drives the
+session. Both pass, so the shared theme holds there, and the logo rules have somewhere to fire.
+Verified end to end in the job's own order: theme session 0, theme start 0, dry run 0.

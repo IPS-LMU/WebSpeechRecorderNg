@@ -170,4 +170,10 @@ jobs:
             curl -sf -o /dev/null http://127.0.0.1:9333/json/version && break
             sleep 1
           done
+          # The recorder's own screens, which the editor-scoped audit job never renders: the token,
+          # contrast, type-size and layout rules apply to them too (the redesign is shared), and the
+          # *logo* rules — loaded, alt text, height, inside the viewport — only ever fire here, on the
+          # recorder's control bar (plan §11.26).
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 1366x768
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/ --viewports 1366x768
           node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
