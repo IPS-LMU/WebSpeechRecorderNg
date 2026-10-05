@@ -241,7 +241,7 @@ Required, not optional: verified at each milestone and closed at M5:
 | Screen | Empty | Loading | Error |
 |---|---|---|---|
 | Library | no scripts: one line, New and Import | skeleton rows | retry with the server message |
-| Editor | script with no sections: one card inviting a section | outline skeleton, inspector blank | draft load failure blocks editing, never shows an empty script as if it were real |
+| Editor | script with no sections: one card inviting a section | outline skeleton, inspector blank | draft load failure blocks editing, never shows an empty script as if it were real; a script that has published versions and no draft (a migrated one) offers Start a draft from the published version instead of a dead end |
 | Drawn group | no bank chosen: the group says so and points right | — | bank unreachable: the rule stays visible, the counts show "unknown" and `count` validation is suspended |
 | Preview | script with no items | — | a missing playback file shows a labelled placeholder, not a silent gap |
 | Bank | filter matches nothing: offer to widen it | table skeleton | — |

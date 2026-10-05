@@ -15,6 +15,8 @@ import {ScriptApiService} from './script-api.service';
 import {ScriptDraftService} from './script-draft.service';
 
 const DRAFT = '{"name":"x","sections":[]}';
+/** A published version as the server serves it: parse it, then stringify it for a new draft. */
+const SCRIPT = {name: 'published', sections: [], playback: {src: 'media/clip.wav'}};
 const ETAG_A = '"A"';
 const WRITE_OK = {scriptId: 1, draftVersion: 2, etag: '"B"'};
 
@@ -335,5 +337,53 @@ describe('ScriptDraftService', () => {
     expect(service.model()?.name).toBe('restored');
     expect(service.etag()).toBe('"B"');
     expect(service.dirty()).toBe(false);
+  }));
+
+  it('starts a draft from the newest published version, asserting emptiness with If-None-Match: *', fakeAsync(() => {
+    const {service, http} = setup();
+    // The state the operator is in: the script exists, its draft does not (a migrated script).
+    void service.load('Demo1', 1).catch(() => undefined);
+    expectDraft(http, 'GET').flush({error: 'script 1 has no draft'}, {status: 404, statusText: 'Not Found'});
+    tick();
+    expect(service.model()).toBeNull();
+
+    void service.startDraftFromPublished();
+
+    const versions = http.expectOne((request) => request.method === 'GET' && pathOf(request.urlWithParams).endsWith('/script/1/version'));
+    versions.flush([{version: 3, publishedDate: '2026-01-01T00:00:00.000Z', note: '', sessions: 0}]);
+    tick();
+
+    const published = http.expectOne((request) => request.method === 'GET' && pathOf(request.urlWithParams).endsWith('/script/1/version/3'));
+    published.flush(SCRIPT);
+    tick();
+
+    const create = http.expectOne((request) => request.method === 'PUT' && pathOf(request.urlWithParams).endsWith('/script/1/draft'));
+    expect(create.request.headers.get('If-None-Match')).toBe('*');
+    expect(create.request.headers.has('If-Match')).toBe(false);
+    expect(create.request.body).toBe(JSON.stringify(SCRIPT));
+    create.flush({scriptId: 1, draftVersion: 1, etag: ETAG_A});
+    tick();
+
+    expectDraft(http, 'GET').flush(JSON.stringify(SCRIPT), {headers: {ETag: ETAG_A}});
+    tick();
+
+    expect(service.model()?.name).toBe(SCRIPT.name);
+    expect(service.etag()).toBe(ETAG_A);
+    expect(service.lastError()).toBeNull();
+  }));
+
+  it('does not create anything when the script has no published version to start from', fakeAsync(() => {
+    const {service, http} = setup();
+    void service.load('Demo1', 1).catch(() => undefined);
+    expectDraft(http, 'GET').flush({error: 'script 1 has no draft'}, {status: 404, statusText: 'Not Found'});
+    tick();
+
+    void service.startDraftFromPublished();
+
+    http.expectOne((request) => pathOf(request.urlWithParams).endsWith('/script/1/version')).flush([]);
+    tick();
+
+    expect(service.lastError()).toContain('neither a draft nor a published version');
+    http.verify();
   }));
 });

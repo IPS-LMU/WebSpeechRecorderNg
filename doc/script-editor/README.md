@@ -345,9 +345,10 @@ attack surface, it is not the access control.
 **Two settings a mounted deployment must get right**, both because a path prefix is where relative
 URLs break:
 
-- `apiEndPoint` must be **absolute** (`/api/v1`). The editor's production environment ships the
-  absolute form for exactly this reason: a relative `api/v1` would resolve against `/wsr/edit/` and
-  never reach the API. The recorder's environment is absolute already.
+- `apiEndPoint` must be **absolute** (`/api/v1`). Both production environments ship the absolute
+  form for exactly this reason: a relative `api/v1` would resolve against the mount prefix
+  (`/wsr/edit/`, `/wsr/ng/`) and never reach the API. `src/environments/environment.prod.sample.ts`
+  is the template a deployment copies, and it carries the reason.
 - `recorderBaseUrl` (the editor's tier-2 link) must name the recorder's mount, e.g. `/wsr/ng`, or be
   left empty when the recorder is on the editor's own origin.
 

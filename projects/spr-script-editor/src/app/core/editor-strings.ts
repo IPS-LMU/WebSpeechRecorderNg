@@ -144,6 +144,8 @@ export const EDITOR_STRINGS = {
     skeletonLabel: 'Loading the script outline…',
     loadErrorTitle: 'The draft could not be loaded',
     loadErrorBody: 'Editing is blocked until the draft loads. This is not an empty script.',
+    startDraft: 'Start a draft from the published version',
+    startDraftHint: 'This script has published versions but no draft — what the migration of an older store leaves behind. Starting a draft copies the newest published version, so nothing published changes.',
     retry: 'Retry',
     retryTitle: 'Read-only milestone: retrying arrives with the write screens.',
     emptyTitle: 'This script has no sections',

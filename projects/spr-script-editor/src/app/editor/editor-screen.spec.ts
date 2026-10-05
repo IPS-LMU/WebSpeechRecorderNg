@@ -127,6 +127,49 @@ describe('EditorScreen states', () => {
     expect(state.root.querySelector('.state[role="status"]')).toBeNull();
   });
 
+  it('offers to start a draft when the script has published versions and none yet', async () => {
+    const state = await mount();
+
+    // The server's answer for a script the legacy migration left without a draft.
+    state.http.expectOne((request) => request.method === 'GET'
+      && pathOf(request.urlWithParams).endsWith('/project/Demo1/script/1245/draft'))
+      .flush({error: 'script 1245 has no draft'}, {status: 404, statusText: 'Not Found'});
+    await firstValueFrom(timer(0));
+    state.harness.detectChanges();
+
+    const error = state.root.querySelector('.state.error[role="alert"]') as HTMLElement;
+    expect(error.textContent).toContain('published versions but no draft');
+    const start = Array.from(error.querySelectorAll<HTMLButtonElement>('button'))
+      .find((button) => button.textContent?.trim() === 'Start a draft from the published version');
+    expect(start).withContext('the start action exists instead of the disabled Retry').toBeDefined();
+
+    start?.click();
+    await firstValueFrom(timer(0));
+
+    state.http.expectOne((request) => pathOf(request.urlWithParams).endsWith('/project/Demo1/script/1245/version'))
+      .flush([{version: 1, publishedDate: '2026-01-01T00:00:00.000Z', note: '', sessions: 0}]);
+    await firstValueFrom(timer(0));
+    state.http.expectOne((request) => pathOf(request.urlWithParams).endsWith('/project/Demo1/script/1245/version/1'))
+      .flush(JSON.stringify(SCRIPT_WITH_GROUP));
+    await firstValueFrom(timer(0));
+
+    const create = state.http.expectOne((request) => request.method === 'PUT'
+      && pathOf(request.urlWithParams).endsWith('/project/Demo1/script/1245/draft'));
+    expect(create.request.headers.get('If-None-Match')).toBe('*');
+    create.flush({scriptId: 1245, draftVersion: 1, etag: '"A"'});
+    await firstValueFrom(timer(0));
+
+    // The create reads the new draft back, and then the screen re-runs the load it interrupted.
+    state.http.expectOne((request) => request.method === 'GET'
+      && pathOf(request.urlWithParams).endsWith('/project/Demo1/script/1245/draft'))
+      .flush(JSON.stringify(SCRIPT_WITH_GROUP), {headers: {ETag: '"A"'}});
+    await firstValueFrom(timer(0));
+    await loadDraft(state, JSON.stringify(SCRIPT_WITH_GROUP));
+
+    expect(state.root.querySelector('.state.error')).withContext('the failure is gone').toBeNull();
+    expect(state.root.querySelector('.editor')).withContext('the editor mounts').not.toBeNull();
+  });
+
   it('blocks editing on a draft load failure with the server message and a Retry action', async () => {
     const state = await mount();
 

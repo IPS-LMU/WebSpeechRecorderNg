@@ -50,6 +50,8 @@ export class EditorScreen {
 
   readonly state = signal<ScreenState>('loading');
   readonly error = signal<string | null>(null);
+  /** True when the server answered 404 for the draft: a published script the editor can start. */
+  readonly draftMissing = signal(false);
   private readonly bankViewsSignal = signal<ReadonlyMap<string, BankView>>(new Map());
   private readonly bankListSignal = signal<ReadonlyArray<Bank>>([]);
   private readonly mediaSignal = signal<ReadonlyArray<MediaEntry>>([]);
@@ -217,6 +219,7 @@ export class EditorScreen {
   private async start(project: string, id: string): Promise<void> {
     this.state.set('loading');
     this.error.set(null);
+    this.draftMissing.set(false);
     this.baseline.set(null);
     this.bankViewsSignal.set(new Map());
     this.bankListSignal.set([]);
@@ -232,6 +235,9 @@ export class EditorScreen {
     try {
       await this.draft.load(project, id);
     } catch (error) {
+      // A 404 on this URL is the server saying the script has no draft, not that it is missing: a
+      // script the receiver's legacy migration left with published versions and nothing to edit.
+      this.draftMissing.set(error instanceof HttpErrorResponse && error.status === 404);
       this.error.set(this.describeError(error));
       this.state.set('error');
       return;
@@ -245,6 +251,20 @@ export class EditorScreen {
     }
     this.baseline.set(structuredClone(model) as EditorScript);
     this.loadContext(project, id, model);
+  }
+
+  /**
+   * The escape from a load failure the server describes as "no draft": create one from the newest
+   * published version, then re-run the load that was interrupted. ui-spec's state table requires the
+   * failure to block editing, not to strand the operator.
+   */
+  async startDraftFromPublished(): Promise<void> {
+    await this.draft.startDraftFromPublished();
+    if (this.draft.model() !== null) {
+      await this.start(this.currentProject, this.currentId);
+      return;
+    }
+    this.error.set(this.draft.lastError() ?? this.strings.editor.loadErrorBody);
   }
 
   private loadContext(project: string, id: string, model: EditorScript): void {

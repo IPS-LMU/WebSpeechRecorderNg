@@ -755,6 +755,20 @@ with their mount base hrefs):
   `/wsr/ng/spr/session/preview-<id>` — the setting works, and the committed default is `''`
   (same origin) for the receiver-root deployment.
 
+**A second defect, found by rehearsing the mounted pair again and now fixed** — the mounted editor
+could not open a script that the receiver's legacy migration leaves with published versions and no
+draft: `GET draft` answers `404`, and the only draft write the editor knew demanded an `If-Match`
+validator that does not exist, so the blocking state above was a dead end — blocking is what ui-spec
+§9 asks for, stranding the operator is not. The receiver already implemented the way in
+(`PUT draft` with `If-None-Match: *`, `server/draft.test.mjs`); the editor never used it. The
+failure state now offers **Start a draft from the published version**, which reads the newest
+version and creates the draft with that header (`ScriptApiService.createDraft`,
+`ScriptDraftService.startDraftFromPublished`), then re-runs the load it interrupted. Rehearsed end
+to end against the mounted build: a migrated script opens with one click and the editor renders.
+The same run also showed the recorder's production environment template shipping a **relative**
+`apiEndPoint` (`api/v1`), which resolves against the `/wsr/ng/` mount and reaches nothing; the
+sample now ships `/api/v1` with the reason, and the mounted recorder's item table renders again.
+
 **Rejected alternative** — teaching the receiver to route prefixes: that belongs to the web server.
 
 ### 11.4 Pseudonyms in the draw record — **Capability done; the policy answer is the owner's**

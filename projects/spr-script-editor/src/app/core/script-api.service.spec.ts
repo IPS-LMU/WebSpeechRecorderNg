@@ -113,6 +113,29 @@ describe('ScriptApiService', () => {
     expect(emitted).toEqual([{text: '{"name":"restored","sections":[]}', etag: '"B"'}]);
   });
 
+  it('creates a draft with If-None-Match: *, then reads its bytes', () => {
+    const {service, http} = setup({apiEndPoint: 'api/v1', apiType: ApiType.NORMAL, apiVersion: 1});
+    const emitted: Array<{text: string; etag: string | null}> = [];
+    const body = '{"name":"migrated","sections":[]}';
+
+    // The create form: a script with published versions and no draft (a migrated one) cannot use
+    // If-Match, because the ETag it would name does not exist.
+    service.createDraft('Demo1', 1, body).subscribe((value) => emitted.push(value));
+
+    const create = http.expectOne((req) => pathOf(req.urlWithParams) === 'api/v1/project/Demo1/script/1/draft');
+    expect(create.request.method).toBe('PUT');
+    expect(create.request.headers.get('If-None-Match')).toBe('*');
+    expect(create.request.headers.has('If-Match')).toBe(false);
+    expect(create.request.body).toBe(body);
+    create.flush({scriptId: 1, draftVersion: 1, etag: '"A"'});
+
+    const read = http.expectOne((req) => pathOf(req.urlWithParams) === 'api/v1/project/Demo1/script/1/draft');
+    expect(read.request.method).toBe('GET');
+    read.flush(body, {headers: {ETag: '"A"'}});
+
+    expect(emitted).toEqual([{text: body, etag: '"A"'}]);
+  });
+
   it('patches script metadata and creates/duplicates scripts', () => {
     const {service, http} = setup({apiEndPoint: 'api/v1', apiType: ApiType.NORMAL, apiVersion: 1});
 

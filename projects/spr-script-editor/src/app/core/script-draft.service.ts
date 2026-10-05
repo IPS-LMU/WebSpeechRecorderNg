@@ -33,6 +33,7 @@ import {parseJsonSource, serialiseJson} from './validation';
 export const DRAFT_STRINGS = {
   conflict: 'The draft changed on the server while you were editing.',
   saveFailed: 'The draft could not be saved.',
+  noPublishedVersion: 'This script has neither a draft nor a published version to start one from.',
   filesMode: 'This deployment serves the fixtures read-only (FILES mode): changes stay local and are never saved.',
 } as const;
 
@@ -283,6 +284,39 @@ export class ScriptDraftService {
       const result = await firstValueFrom(
         this.api.restoreVersion(this.projectId, this.scriptId, version, this.etagSignal()),
       );
+      this.applyServerRead(result.text, result.etag);
+      this.restoreBackup();
+      this.lastSaved.set(new Date().toISOString());
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 412) {
+        this.enterConflict(error);
+        return;
+      }
+      this.lastError.set(error instanceof HttpErrorResponse ? this.messageOf(error) : DRAFT_STRINGS.saveFailed);
+    }
+  }
+
+  /**
+   * Starts a draft for a script that has published versions and none yet: the state the receiver's
+   * legacy migration leaves a script in, where `GET draft` answers 404 and every draft write needs a
+   * validator that does not exist. The draft begins as the newest published version, exactly as
+   * `_restore` would leave it, and is created with `If-None-Match: *` so it cannot overwrite a draft
+   * that appeared meanwhile.
+   */
+  async startDraftFromPublished(): Promise<void> {
+    if (this.projectId === null || this.scriptId === null) {
+      return;
+    }
+    this.lastError.set(null);
+    try {
+      const index = await firstValueFrom(this.api.versions(this.projectId, this.scriptId));
+      const newest = index[0]?.version;
+      if (newest === undefined) {
+        this.lastError.set(DRAFT_STRINGS.noPublishedVersion);
+        return;
+      }
+      const published = await firstValueFrom(this.api.publishedVersion(this.projectId, this.scriptId, newest));
+      const result = await firstValueFrom(this.api.createDraft(this.projectId, this.scriptId, JSON.stringify(published)));
       this.applyServerRead(result.text, result.etag);
       this.restoreBackup();
       this.lastSaved.set(new Date().toISOString());

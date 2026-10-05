@@ -131,6 +131,13 @@ The body is a `Script` ([data-model.md](data-model.md) §2.5). `PUT` without `If
 with `428`; a stale `If-Match` returns `412` with the current draft **and its `ETag`** in
 `details.current`, which the editor uses to show a conflict and re-apply the pending edit once.
 
+`PUT` with `If-None-Match: *` is the **create** form: it succeeds only when the script has no draft,
+and stores the body as the first draft. A script without a draft has no validator to name, so this
+is the only way in for a script the legacy migration left with published versions and no draft
+(`status` in the list is `PUBLISHED` with `draftVersion: 0`). A draft that exists returns `412`
+`SCRIPT_DRAFT_CONFLICT`, so the form can never overwrite one; the editor's load-failure state offers
+it as "start a draft from the published version" and sends the newest version's body.
+
 Autosave: the editor debounces writes (2 s idle, or on blur of a field) and sends the whole draft.
 Partial `PATCH` is deliberately not specified — a script is small and whole-document writes keep
 the server simple and the conflict story honest.

@@ -124,6 +124,20 @@ export class ScriptApiService {
   }
 
   /**
+   * `PUT project/{p}/script/{id}/draft` with `If-None-Match: *` (rest-api.md §2.3): the create form
+   * for a script that has published versions and no draft yet — what the receiver's legacy
+   * migration leaves behind (`server/draft.test.mjs`). `If-None-Match: *` asserts emptiness, so the
+   * server answers `412` if a draft appeared meanwhile and this can never overwrite one.
+   */
+  createDraft(projectId: string, scriptId: string | number, text: string): Observable<DraftReadResult> {
+    const url = projectPath(this.base, projectId, 'script', scriptId, 'draft');
+    return this.http.put<DraftWriteResult>(withQuery(url, this.config), text, {
+      withCredentials: this.withCredentials,
+      headers: {'Content-Type': 'application/json', 'If-None-Match': '*'},
+    }).pipe(switchMap(() => this.readDraft(projectId, scriptId)));
+  }
+
+  /**
    * `POST project/{p}/script/{id}/publish` (rest-api.md §2.4). `fromDraftEtag` is the publisher's
    * `If-Match`: the server freezes exactly that draft or answers `409` with `details.checks`
    * (errors) or `FEATURE_FLOOR_UNKNOWN`.

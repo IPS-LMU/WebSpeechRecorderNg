@@ -13,7 +13,11 @@
 export const environment = {
   production: true,
   apiType: 'normal',
-  apiEndPoint: 'api/v1',
+  // Absolute on purpose, like the editor's production environment: a deployment that mounts the
+  // recorder under a path prefix (README §4.5 mounts it at `/wsr/ng/`) would otherwise resolve a
+  // relative `api/v1` against that prefix - `/wsr/ng/api/v1` - and never reach the API. A
+  // deployment behind another path sets this to its own absolute base.
+  apiEndPoint: '/api/v1',
   apiVersion:1,
   enableDownloadRecordings:false,
   enableUploadRecordings: true,

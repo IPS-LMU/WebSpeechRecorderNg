@@ -15,7 +15,12 @@
       <h1>{{ strings.editor.loadErrorTitle }}</h1>
       <p>{{ strings.editor.loadErrorBody }}</p>
       <p class="detail">{{ error() }}</p>
-      <button type="button" [disabled]="true" [title]="strings.editor.retryTitle">{{ strings.editor.retry }}</button>
+      @if (draftMissing()) {
+        <p class="hint">{{ strings.editor.startDraftHint }}</p>
+        <button type="button" (click)="startDraftFromPublished()">{{ strings.editor.startDraft }}</button>
+      } @else {
+        <button type="button" [disabled]="true" [title]="strings.editor.retryTitle">{{ strings.editor.retry }}</button>
+      }
     </div>
   }
 
