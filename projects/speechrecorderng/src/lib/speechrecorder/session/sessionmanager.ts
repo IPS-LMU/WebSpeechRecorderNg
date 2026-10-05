@@ -1210,6 +1210,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
        if(newPrIdx<0){
          newPrIdx=this.promptItemCount-1;
        }
+       // Moving to another item must not leave this item's sound playing (L3/D-V = C).
+       this.cancelPromptAudio();
        this.promptIndex=newPrIdx;
       //this.updateNavigationActions()
     }
@@ -1221,6 +1223,8 @@ export class SessionManager extends BasicRecorder implements AfterViewInit,OnDes
     if(newPrIdx>=this.promptItemCount){
       newPrIdx=0;
     }
+    // Moving to another item must not leave this item's sound playing (L3/D-V = C).
+    this.cancelPromptAudio();
     this.promptIndex=newPrIdx;
     //this.updateNavigationActions();
   }

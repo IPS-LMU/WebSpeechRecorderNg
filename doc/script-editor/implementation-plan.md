@@ -768,26 +768,37 @@ both the JSON and the CSV, no real id appears anywhere in either, and the draws 
 generated from the pseudonymised receiver. With option 1: the spec proves the mapping and that no
 component bypasses `speakerLabel`.
 
-### 11.5 An automated dry-run driver for the rest of M1's manual gate
+### 11.5 An automated dry-run driver for the rest of M1's manual gate — **Done, within a stated limit**
 
-Two observations from M1's gate are still manual: that **every** `when` plays at the right moment
-(only P1 was driven headless) and that navigation during playback is safe.
+**What landed** — `bin/audit/dry_run.mjs` drives the real recorder (the receiver serves the built
+bundle, Chrome runs with the fake media stream), installs hooks for the page's media requests and its
+Web Audio source start/stop, reads the recorder's own item table and status line, and walks the
+session one take at a time (advance with `Framåt`, start the next take with the operator's
+`Start / Stopp / Nästa` control). It reports a timeline and asserts what it can prove:
 
-**Steps** — `bin/audit/dry_run.mjs` (CDP, no dependency): start the receiver seeded from `src/test`
-with `--project Demo1 --script playback` and the built recorder, launch Chrome with the fake media
-stream, install an `Audio.prototype.play`/`pause` hook through
-`Page.addScriptToEvaluateOnNewDocument`, then walk the session: press **Starta**, dismiss the
-headphone reminder, and for each item record the itemcode, the phase/lamp text, the audio play
-events with timestamps, and the session PATCH bodies from the receiver's log; advance with the
-recorder's own Next control; in the drawn section confirm the drawn items' clip requests. For the
-navigation case, press Next (and Pause) mid-clip and assert no further play event arrives for the
-abandoned item and the status line reports the new one.
+- the session's table has the fixture's seven items, **including the drawn group's two items carrying
+  their own bank recordings** (`AUDIO: std-vowel-a`/`-i`);
+- the headphone reminder appears before the first take;
+- the takes it drives actually play their prompt clips (`model-01.wav` starts, and the receiver
+  receives `recfile/P1` and `recfile/P2`);
+- the operator-only item never completes on its own — the walk stalls on it — and pressing the sound
+  control plays it (`replayLog` grows).
 
-**Acceptance** — the log shows the expected placement per item: P1/P2 play **before** the clocks
-(`BEFORE_CLOCKS`), P3 from the take start, P4 inside the recording window, P5 only when the operator
-presses the control, and the two drawn items (D001/D002) fetch their bank model recordings; and the
-navigation case produces no play event after the switch. Assertions are on browser-observable events
-and server PATCHes, never on internal state, so the driver cannot pass by accident.
+**A real gap it found is fixed**: `SessionManager.next()/prev()` moved the item pointer without
+stopping a playing prompt sound, although the L3 row claims navigation cancels it. Both now call
+`cancelPromptAudio()`, the library suite still passes.
+
+**The limit, stated rather than hidden** — it does not walk the AUTOPROGRESS/AUTORECORDING sections
+unattended: their takes depend on the operator's timing and on controls the recorder disables per
+phase, so the driver can reach the drawn items but not reliably drive P3–P5. Consequently:
+
+- the placement of **all five `when` values** stays pinned by the unit-tested table in
+  `phases.spec.ts` (C7), which is where the mapping belongs;
+- **navigation during playback** stays in the manual pass — the driver tries it, and reports when
+  its press raced the ~1 s clip instead of failing on a race it cannot control.
+
+**Acceptance** — the driver exits 0 against a freshly seeded receiver and prints the timeline above;
+README §7 documents how to run it.
 
 ### 11.6 Bookkeeping — **Done**
 

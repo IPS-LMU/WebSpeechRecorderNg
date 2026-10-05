@@ -477,8 +477,28 @@ rule).
   ```
 
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
-  drawn-group row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works
-  on a production build too.
+  drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
+  production build too.
+- **Dry run (recorder).** `bin/audit/dry_run.mjs` drives the real recorder through a session and
+  reports what the browser proves — the session's item table (including a drawn group's own
+  recordings), the headphone reminder, the prompt clips that actually play as takes complete, and the
+  operator-only item staying silent until asked. It needs the built recorder served by the receiver
+  and a headless Chrome with the fake media stream:
+
+  ```bash
+  npm run build
+  node server/server.mjs --port 8391 --data /tmp/dryrun --seed src/test \
+    --app dist/cavox/browser --project Demo1 --script playback --quiet &
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+    --remote-debugging-port=9333 --user-data-dir=/tmp/cdp-dry \
+    --use-fake-ui-for-media-stream --use-fake-device-for-media-stream \
+    --autoplay-policy=no-user-gesture-required about:blank &
+  node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
+  ```
+
+  It walks the manual sections itself; the AUTOPROGRESS/AUTORECORDING sections need an operator's
+  timing, and the per-`when` placement of all five values is pinned by the library's placement table
+  (`phases.spec.ts`), so those stay in the manual pass.
 - **CI.** `.github/workflows/tests.yml` runs four jobs: the receiver, the library, the editor
   (karma + production build) and the audit list above.
 - **Manual, per milestone.** Dry-run a session end to end in the recorder after every change to
