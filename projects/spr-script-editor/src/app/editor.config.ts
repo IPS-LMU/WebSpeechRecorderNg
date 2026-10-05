@@ -1,4 +1,5 @@
 import {ApiType, SpeechRecorderConfig} from 'speechrecorderng';
+import {InjectionToken} from '@angular/core';
 import {environment} from '../environments/environment';
 
 /**
@@ -32,3 +33,14 @@ export const EDITOR_CFG: SpeechRecorderConfig = {
  * recorder, and tier 2 stays disabled with that reason.
  */
 export const EDITOR_RECORDER_BASE_URL: string | undefined = environment.recorderBaseUrl;
+
+/**
+ * The deployment's login page, for the `401` ui-spec §1 describes: the editor redirects there with
+ * `?return=<the editor's URL>` and the deployment's own login sends the operator back. Empty means
+ * the deployment has no login the editor can name (a proxy, or no authentication at all), and a
+ * `401` then says so instead of redirecting to nowhere.
+ */
+export const EDITOR_LOGIN_URL = new InjectionToken<string>('EDITOR_LOGIN_URL', {
+  providedIn: 'root',
+  factory: () => environment.loginUrl ?? '',
+});

@@ -1011,3 +1011,31 @@ does not reflow is not merely ugly, it is clipped. At 390×844 two screens faile
 **In CI** — the theme audit runs `390x844` on six routes and the accessibility audit on three, next
 to the desktop and dark passes. Verified: theme and accessibility audits exit 0 on all eight routes
 at 390×844, and unchanged at 834×1112 and 1366×768.
+
+### 11.15 The auth surface the docs promised and the client never had — **Done**
+
+ui-spec §1 says what a deployment's answers mean: "`401` sends the user to the deployment's login
+and returns afterwards. `403` keeps the editor in read-only mode: every write control disabled with
+one explanatory line, nothing hidden." rest-api's preamble and README §8.7 repeat it, and the plan's
+M0 row for the auth surface is marked **Done**. The client had none of it: no interceptor existed,
+`main.ts` registered `withInterceptorsFromDi()` with nothing to register, and only the tier-2 preview
+mapped a `401`/`403` into its own error string. An operator who could read but not write met a raw
+failure on every attempt instead of read-only mode.
+
+**What landed** — `core/access.service.ts` (one read-only flag, the one-line messages, and the
+`signInUrl` the redirect is built from) and `core/access.interceptor.ts`, registered in `main.ts`:
+any `401` sends the browser to the deployment's login with `?return=`, any `403` flips the read-only
+flag for the whole application, and the error is rethrown so the calling screen still reports it in
+its own words. Where the login lives is configuration (`loginUrl` in the editor's environment), and
+without it a `401` says so rather than redirecting to nowhere. The draft service's and the bank's
+`writesDisabled` fold the flag in, which is what disables every write control — including Publish —
+and the shell shows the single line, naming the 403's cause separately from the FILES-mode one.
+The same paragraph's other promise was missing too: a failed autosave now blocks Publish with
+`publishBlockedSaveFailed`, where before only a conflict or a gate error did.
+
+**Verified** — nine new specs: the access service (URL building with and without an existing query,
+no URL means a named line instead of a redirect, a 403 survives a later 401), the interceptor
+(403 → read-only with the caller still erroring, 401 → sign-in, 500 → nothing), and the shell (an
+unsaved change blocks Publish with its reason; a 403 renders its own line with nothing hidden).
+Editor suite 477. The mounted pair was re-run to confirm the new interceptor leaves normal traffic
+alone.

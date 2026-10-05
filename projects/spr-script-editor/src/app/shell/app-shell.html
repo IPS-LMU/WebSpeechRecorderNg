@@ -101,7 +101,11 @@
 </main>
 
 @if (draft.writesDisabled()) {
-  <p class="read-only-note">{{ strings.readOnlyReason }}</p>
+  <p class="read-only-note" role="status">{{ access.readOnly() ? access.readOnlyMessage : strings.readOnlyReason }}</p>
+}
+
+@if (access.signInRequired()) {
+  <p class="read-only-note" role="status">{{ access.signInMessage }}</p>
 }
 
 @if (dialogOpen()) {

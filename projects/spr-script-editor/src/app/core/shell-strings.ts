@@ -48,6 +48,7 @@ export const SHELL_STRINGS = {
   publishBlockedConflict: 'Resolve the conflict before publishing.',
   publishBlockedReadOnly: EDITOR_STRINGS.shell.readOnlyReason,
   publishBlockedNoDraft: 'The draft has not loaded yet.',
+  publishBlockedSaveFailed: 'The last change could not be saved, so there is nothing safe to publish.',
 
   /** Publish dialog (ui-spec §5, validation.md "Publish gate"). */
   publishDialogTitle: 'Publish this script?',

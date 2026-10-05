@@ -6,6 +6,7 @@ import {provideRouter} from '@angular/router';
 import {RouterTestingHarness} from '@angular/router/testing';
 import {ApiType, SPEECHRECORDER_CONFIG} from 'speechrecorderng';
 import {EditorFindingsService} from '../core/editor-findings.service';
+import {AccessService} from '../core/access.service';
 import {ScriptApiService} from '../core/script-api.service';
 import type {DraftConflict} from '../core/script-draft.service';
 import {ScriptDraftService} from '../core/script-draft.service';
@@ -103,6 +104,31 @@ const serverCheck = {
 
 describe('AppShell', () => {
   afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('blocks Publish while the last change is unsaved, and says why', async () => {
+    const state = await setupEditor();
+    state.draft.lastError.set('HTTP 500');
+    state.harness.detectChanges();
+
+    const publish = state.root.querySelector<HTMLButtonElement>('button[aria-label="Publish"]') as HTMLButtonElement;
+    expect(publish.disabled).withContext('an autosave that failed blocks Publish').toBe(true);
+    expect(state.root.querySelector('.publish-reason')?.textContent).toContain('could not be saved');
+  });
+
+  it('explains a 403 with its own line and hides nothing', async () => {
+    const state = await setupEditor();
+    TestBed.inject(AccessService).noteForbidden();
+    // The draft service folds the flag into `writesDisabled`; the shell renders what it says.
+    state.draft.writesDisabled.set(true);
+    state.harness.detectChanges();
+
+    const note = state.root.querySelector('.read-only-note') as HTMLElement;
+    expect(note).withContext('the one explanatory line is shown').not.toBeNull();
+    expect(note.textContent).toContain('read but not change');
+    expect(note.getAttribute('role')).toBe('status');
+    expect(state.root.querySelector('button[aria-label="Publish"]'))
+      .withContext('nothing is hidden: the control stays and disables').not.toBeNull();
+  });
 
   it('shows the four save-state forms and retries the failed save', async () => {
     const state = await setupEditor();

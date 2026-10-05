@@ -25,6 +25,7 @@ import {computed, inject, Injectable, signal} from '@angular/core';
 import {ApiType, SPEECHRECORDER_CONFIG} from 'speechrecorderng';
 import {firstValueFrom} from 'rxjs';
 import {loadScript} from './load';
+import {AccessService} from './access.service';
 import {ScriptApiService} from './script-api.service';
 import type {EditorScript} from './script.model';
 import {parseJsonSource, serialiseJson} from './validation';
@@ -176,6 +177,7 @@ function applyIntent(doc: unknown, ops: ReadonlyArray<IntentOp>): IntentOutcome 
 @Injectable({providedIn: 'root'})
 export class ScriptDraftService {
   private readonly api = inject(ScriptApiService);
+  private readonly access = inject(AccessService);
   private readonly config = inject(SPEECHRECORDER_CONFIG, {optional: true});
   private readonly storage: Storage | null = typeof localStorage === 'undefined' ? null : localStorage;
 
@@ -223,7 +225,7 @@ export class ScriptDraftService {
   readonly conflict = this.conflictSignal.asReadonly();
   readonly lastSaved = signal<string | null>(null);
   readonly lastError = signal<string | null>(null);
-  readonly writesDisabled = this.writesDisabledSignal.asReadonly();
+  readonly writesDisabled = computed(() => this.writesDisabledSignal() || this.access.readOnly());
 
   /** The coordinates of the draft currently loaded; `null` until `load` succeeds. */
   readonly loadedProject = signal<string | null>(null);

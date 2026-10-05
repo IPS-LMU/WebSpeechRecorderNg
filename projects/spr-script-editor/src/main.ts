@@ -1,6 +1,7 @@
-import {provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
+import {provideHttpClient, withInterceptors, withInterceptorsFromDi} from '@angular/common/http';
 import {bootstrapApplication} from '@angular/platform-browser';
 import {provideRouter, withComponentInputBinding} from '@angular/router';
+import {accessInterceptor} from './app/core/access.interceptor';
 import {EDITOR_PROVIDERS} from './app/app.providers';
 import {APP_ROUTES} from './app/app.routes';
 import {AppShell} from './app/shell/app-shell';
@@ -16,7 +17,7 @@ import {AppShell} from './app/shell/app-shell';
 bootstrapApplication(AppShell, {
   providers: [
     provideRouter(APP_ROUTES, withComponentInputBinding()),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi(), withInterceptors([accessInterceptor])),
     ...EDITOR_PROVIDERS,
   ],
 });

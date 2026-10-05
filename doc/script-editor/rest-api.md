@@ -12,7 +12,13 @@ Every endpoint follows the conventions already in the library
   deployment's login" and 403 as "you may read but not change this".
 - Writes are protected the deployment's way: a session cookie with the deployment's CSRF scheme
   (the XSRF cookie/header Angular already supports) or a bearer token. `401` redirects to the
-  deployment's login with a return URL; the editor never renders a login form.
+  deployment's login with a `?return=` naming the editor's URL; the editor never renders a login
+  form. Where the login lives is the deployment's answer, so it is configuration, not code:
+  `loginUrl` in the editor's `environment.prod.ts` (empty when a proxy handles it, and then the
+  editor says so instead of redirecting to nowhere).
+- A `403` from any request flips the editor into read-only mode once, for the whole application:
+  every write control disables and one line explains why (`AccessService` + the interceptor in
+  `core/`), while the screen that made the call still reports its own failure.
 - Project-scoped resources live under `project/{projectId}/…`, as sessions and recording files
   already do.
 - `Content-Type: application/json` unless stated otherwise.

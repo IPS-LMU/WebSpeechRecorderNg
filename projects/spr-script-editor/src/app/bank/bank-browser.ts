@@ -24,6 +24,7 @@ import {
 } from 'speechrecorderng';
 import {catchError, debounceTime, distinctUntilChanged, firstValueFrom, map, of, switchMap} from 'rxjs';
 import {normaliseApiEndPoint} from '../core/api-base';
+import {AccessService} from '../core/access.service';
 import {BankApiService} from '../core/bank-api.service';
 import {MediaService} from '../core/media.service';
 import {BankItemPage} from '../core/script.model';
@@ -87,6 +88,7 @@ function itemsOf(group: unknown): unknown[] {
 export class BankBrowser {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly access = inject(AccessService);
   private readonly bankApi = inject(BankApiService);
   private readonly writes = inject(BankWriteService);
   private readonly media = inject(MediaService);
@@ -108,7 +110,7 @@ export class BankBrowser {
   readonly selectedBank = computed(() =>
     this.banks().find((bank) => bank.bankId === this.selectedBankId()) ?? null);
   readonly readOnly = computed(() => this.selectedBank()?.source === 'BUILTIN');
-  readonly writesDisabled = computed(() => this.config?.apiType === ApiType.FILES);
+  readonly writesDisabled = computed(() => this.config?.apiType === ApiType.FILES || this.access.readOnly());
   readonly canEdit = computed(() => !this.readOnly() && !this.writesDisabled());
   readonly originLabel = computed(() => this.selectedBank()?.source === 'BUILTIN'
     ? this.strings.picker.originBuiltin

@@ -587,7 +587,11 @@ Answered during M0–M4; the deciding document is named, and the plan's §8 tabl
    end to end in `server/draw.test.mjs` and by the recorder dry run.
 7. **Authentication surface.** A session cookie with the deployment's CSRF scheme, or a bearer
    token; `401` → the deployment's login → return URL; `403` reads but does not write — the
-   conventions in [rest-api.md](rest-api.md).
+   conventions in [rest-api.md](rest-api.md). The editor side is `core/access.service.ts` and
+   `core/access.interceptor.ts`: the login URL is the deployment's `loginUrl` setting, a `403`
+   flips one application-wide read-only flag that every write control reads (the draft service's
+   and the bank's `writesDisabled`), and the shell shows the single explanatory line. A failed
+   autosave blocks Publish with its own reason (ui-spec §1).
 8. **W10's "deployment runs {actual}".** `GET {api}version` → `{recorderVersion}`, the value the
    receiver serves ([rest-api.md](rest-api.md) §1.1), so the editor never guesses from its own
    bundle.

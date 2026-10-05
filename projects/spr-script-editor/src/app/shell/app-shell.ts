@@ -5,6 +5,7 @@ import {NavigationEnd, Router, RouterLink, RouterOutlet} from '@angular/router';
 import {filter, firstValueFrom} from 'rxjs';
 import {EditorFindingsService} from '../core/editor-findings.service';
 import {ScriptApiService} from '../core/script-api.service';
+import {AccessService} from '../core/access.service';
 import {ScriptDraftService} from '../core/script-draft.service';
 import {SHELL_STRINGS} from '../core/shell-strings';
 import {fillTemplate} from '../core/validation/interpolate';
@@ -42,6 +43,7 @@ export class AppShell {
   private readonly router = inject(Router);
   private readonly api = inject(ScriptApiService);
   readonly draft = inject(ScriptDraftService);
+  readonly access = inject(AccessService);
   private readonly findings = inject(EditorFindingsService);
 
   readonly strings = SHELL_STRINGS;
@@ -109,6 +111,10 @@ export class AppShell {
     }
     if (this.draft.saving()) {
       return this.strings.savingState;
+    }
+    // ui-spec §1: "an autosave that cannot reach the server must block Publish and say why".
+    if (this.draft.lastError() !== null) {
+      return this.strings.publishBlockedSaveFailed;
     }
     return null;
   });

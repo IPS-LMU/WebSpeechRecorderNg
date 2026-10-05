@@ -12,4 +12,6 @@ export const environment = {
   /** Tier-2 dry run: `''` when the recorder is served on the editor's own origin, else its base,
    *  e.g. `/wsr/ng` under the documented deployment. */
   recorderBaseUrl: '',
+  /** The deployment's login page for the 401 redirect (ui-spec §1); empty when the deployment has none. */
+  loginUrl: '',
 };

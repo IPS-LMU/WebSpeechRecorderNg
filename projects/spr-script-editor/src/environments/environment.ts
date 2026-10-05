@@ -14,4 +14,6 @@ export const environment = {
   apiVersion: 1,
   /** Tier 2 is disabled in fixture mode; a normal-mode dev run points this at the receiver. */
   recorderBaseUrl: '',
+  /** Development: the fixtures carry no authentication, so there is no login to name. */
+  loginUrl: '',
 };
