@@ -129,6 +129,17 @@ describe('ScriptLibrary states', () => {
       .find((button) => button.textContent?.trim() === 'Retry');
     expect(retry).withContext('a Retry action exists').toBeDefined();
     expect(state.root.querySelector('.scripts')).withContext('no table on failure').toBeNull();
+
+    // The Retry re-issues the list request; a good answer replaces the error with the table.
+    retry?.click();
+    await state.harness.fixture.whenStable();
+    state.harness.detectChanges();
+    listRequest(state.http).flush(ROWS);
+    await state.harness.fixture.whenStable();
+    state.harness.detectChanges();
+
+    expect(state.root.querySelector('.state-error')).withContext('the error is gone').toBeNull();
+    expect(state.root.querySelectorAll('.scripts tbody tr').length).withContext('the rows render').toBe(2);
   });
 
   it('renders name, id, counts, status and updated from the list fixture', async () => {

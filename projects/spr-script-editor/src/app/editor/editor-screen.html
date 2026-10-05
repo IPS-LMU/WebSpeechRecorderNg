@@ -19,7 +19,7 @@
         <p class="hint">{{ strings.editor.startDraftHint }}</p>
         <button type="button" (click)="startDraftFromPublished()">{{ strings.editor.startDraft }}</button>
       } @else {
-        <button type="button" [disabled]="true" [title]="strings.editor.retryTitle">{{ strings.editor.retry }}</button>
+        <button type="button" (click)="retryLoad()">{{ strings.editor.retry }}</button>
       }
     </div>
   }

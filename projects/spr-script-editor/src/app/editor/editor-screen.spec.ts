@@ -191,6 +191,14 @@ describe('EditorScreen states', () => {
     // "never shows an empty script as if it were real": neither the editor nor the empty card.
     expect(state.root.querySelector('.editor')).toBeNull();
     expect(state.root.querySelector('.empty-card')).toBeNull();
+
+    // The Retry is a real action, not a placeholder: it re-runs the load and the editor mounts.
+    retry?.click();
+    await firstValueFrom(timer(0));
+    await loadDraft(state, JSON.stringify(SCRIPT_WITH_GROUP));
+
+    expect(state.root.querySelector('.state.error')).withContext('the error is gone').toBeNull();
+    expect(state.root.querySelector('.editor')).withContext('the editor mounts after the retry').not.toBeNull();
   });
 
   it('resolves ?sel=g:0:0 to the group inspector variant', async () => {

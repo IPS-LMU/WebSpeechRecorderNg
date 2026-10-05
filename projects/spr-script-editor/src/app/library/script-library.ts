@@ -63,6 +63,16 @@ export class ScriptLibrary {
   readonly search = signal('');
   readonly status = signal<StatusFilter>('ALL');
 
+  /** Bumping this re-runs the list request: the ui-spec §9 error state's retry. */
+  private readonly reload = signal(0);
+
+  /** Re-issues the list request after a failure, showing the loading state again. */
+  retry(): void {
+    this.state.set('loading');
+    this.error.set(null);
+    this.reload.update((value) => value + 1);
+  }
+
   readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
     const status = this.status();
@@ -78,6 +88,7 @@ export class ScriptLibrary {
   constructor() {
     effect((onCleanup) => {
       const project = this.p();
+      this.reload();
       this.state.set('loading');
       this.error.set(null);
       const subscription = this.api.list(project).subscribe({

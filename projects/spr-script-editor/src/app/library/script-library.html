@@ -41,7 +41,7 @@
     @case ('error') {
       <div class="state state-error" role="alert">
         <p>{{ error() }}</p>
-        <button type="button" [disabled]="true" [title]="strings.library.retryTitle">{{ strings.library.retry }}</button>
+        <button type="button" (click)="retry()">{{ strings.library.retry }}</button>
       </div>
     }
     @case ('empty') {

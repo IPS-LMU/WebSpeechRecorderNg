@@ -253,6 +253,11 @@ export class EditorScreen {
     this.loadContext(project, id, model);
   }
 
+  /** Re-runs the load that failed; a 404 offers the start action instead (see below). */
+  async retryLoad(): Promise<void> {
+    await this.start(this.currentProject, this.currentId);
+  }
+
   /**
    * The escape from a load failure the server describes as "no draft": create one from the newest
    * published version, then re-run the load that was interrupted. ui-spec's state table requires the
