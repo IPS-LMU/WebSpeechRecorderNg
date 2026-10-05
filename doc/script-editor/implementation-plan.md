@@ -1079,3 +1079,24 @@ server shows the N06 sentence, the `/script/1/source` link, a disabled name fiel
 Publish on the legacy fixture, and an ordinary script keeps its own message. Editor suite 480.
 (One spec lesson: the new case shares script id 1 with the round-trip spec, so it clears the local
 backup it creates — a leaked backup there rewrote the round-trip's document.)
+
+### 11.18 The interaction fixture whose failure nobody read — **Done**
+
+The audit list's `--prepare bin/audit/open-draw-rule.js` exists so the audit measures the draw-rule
+inspector rather than the default script selection. The fixture signalled "I could not reach that
+state" by **returning** a sentence — `'no drawn-group marker in the outline'`, `'no inspector
+rendered'`, `'inspector still shows another variant'` — and both audits only failed on a thrown
+exception, logging the return value instead. So if the `.marker-text` class, the row's markup or the
+inspector's selector drifted, the fixture said so, the audit printed the sentence, measured the
+**default** screen and stayed green: the one CI line that checks the draw-rule inspector could not
+fail.
+
+**What landed** — the three fixtures with a reachable-but-unreachable state (`open-draw-rule.js`,
+`open-detail-view.js`, `open-error-dialog.js`) now **throw** on every failure path, including the
+ternary ones that had hidden an ok/failure pair in one expression, and their headers say so. The
+audits' existing exception path then fails the run with the fixture's own words.
+
+**Verified** — sensitive in both directions: `open-draw-rule.js` opens the state and the audit exits
+0 with `prepared(…): draw rule selected`; with `.marker-text` renamed to a class that does not
+exist, the same audit exits 1 naming `--prepare script failed: Error: no drawn-group marker in the
+outline`; restoring the selector returns it to green. README §7 and a11y.md record the rule.

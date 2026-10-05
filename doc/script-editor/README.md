@@ -506,7 +506,8 @@ rule).
 
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
   drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
-  production build too. The house rule covers light **and** dark, so `use-dark-scheme.js` switches
+  production build too. A fixture that cannot reach its state **throws** (the audits fail on the
+  exception), so a drifted selector cannot leave the audit measuring the default screen and green. The house rule covers light **and** dark, so `use-dark-scheme.js` switches
   `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
   the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13). CI
   also measures a phone width (390×844) on the screens that reflow — the editor stacks its columns

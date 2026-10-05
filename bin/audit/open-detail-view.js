@@ -7,12 +7,14 @@
  * render the recording-file list (`AudioRecorder` / `AudioRecorderComponent`) have this
  * overlay; `SpeechrecorderngComponent` renders the session screen without it, so this
  * fixture reports "no component with a detail view in this route" there.
+ * A state it cannot reach is thrown, not returned: the audits fail on the exception, so a fixture
+ * whose selector drifted cannot leave the audit measuring the default screen and green.
  */
 (() => {
   const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
   return (async () => {
     if (!window.ng || !window.ng.getComponent) {
-      return 'no Angular dev API (needs a development build)';
+      throw new Error('no Angular dev API (needs a development build)');
     }
     const candidates = [
       'app-audiorecorder-comp',
@@ -29,10 +31,11 @@
       component.audioSignalCollapsed = false;
       window.ng.applyChanges(component);
       await sleep(1500);
-      return document.querySelector('.collapsable.active')
-        ? 'detail view open (' + selector + ')'
-        : 'detail view did not open (' + selector + ')';
+      if (!document.querySelector('.collapsable.active')) {
+        throw new Error('detail view did not open (' + selector + ')');
+      }
+      return 'detail view open (' + selector + ')';
     }
-    return 'no component with a detail view in this route';
+    throw new Error('no component with a detail view in this route');
   })();
 })()
