@@ -342,6 +342,32 @@ Reuse the SPA fallback pattern in
 server authorises every write regardless of what the frontend shows: the path restriction reduces
 attack surface, it is not the access control.
 
+**Two settings a mounted deployment must get right**, both because a path prefix is where relative
+URLs break:
+
+- `apiEndPoint` must be **absolute** (`/api/v1`). The editor's production environment ships the
+  absolute form for exactly this reason: a relative `api/v1` would resolve against `/wsr/edit/` and
+  never reach the API. The recorder's environment is absolute already.
+- `recorderBaseUrl` (the editor's tier-2 link) must name the recorder's mount, e.g. `/wsr/ng`, or be
+  left empty when the recorder is on the editor's own origin.
+
+`bin/serve_deploy.mjs` rehearses the whole layout locally — the two mounts behind their prefixes
+with the SPA fallback and an `/api/` proxy — so a sub-path deployment is tested rather than assumed:
+
+```bash
+node server/server.mjs --port 8391 --data /tmp/deploy --seed src/test --app none --migrate
+node server/server.mjs --port 8391 --data /tmp/deploy --seed src/test --app none \
+  --project Demo1 --script playback --quiet &
+npm run build -- --base-href=/wsr/ng/
+npm run build_editor -- --base-href=/wsr/edit/
+node bin/serve_deploy.mjs --port 8080 --api http://127.0.0.1:8391
+# http://127.0.0.1:8080/wsr/edit/project/Demo1/script and .../wsr/ng/spr/session/1
+```
+
+Note the `--migrate`: the receiver's store has no draft for a script until one is written (the
+FILES-mode `draft.json` fixtures are the *editor's*, not the store's), so a mounted editor on a
+fresh store shows its blocking "draft could not be loaded" state until a draft exists.
+
 Tier-2 preview opens the recorder at `<recorder base>/spr/session/{id}`, where the base is a
 deployment setting (`EDITOR_RECORDER_BASE_URL`; empty means same origin as the editor, which is what
 the receiver serves locally) and the path is the recorder's own route — see [rest-api.md](rest-api.md)
@@ -501,6 +527,10 @@ rule).
   (`phases.spec.ts`), so those stay in the manual pass.
 - **CI.** `.github/workflows/tests.yml` runs four jobs: the receiver, the library, the editor
   (karma + production build) and the audit list above.
+- **Deployment rehearsal.** `bin/serve_deploy.mjs` serves the built recorder and editor behind their
+  documented prefixes (`/wsr/ng/`, `/wsr/edit/`) with the SPA fallback and an `/api/` proxy — the
+  commands and the two settings a mounted deployment must get right are in §4.5. It found the
+  relative `apiEndPoint` that a prefix would have broken.
 - **Manual, per milestone.** Dry-run a session end to end in the recorder after every change to
   the model, because the editor's job is to produce files another application must interpret — the
   parts driven headless (script load, the headphone gate, replay persistence) are recorded in

@@ -722,28 +722,33 @@ leaves and re-enters.
 **Remaining (human):** the VoiceOver and NVDA passes themselves, using the script — record the
 commit hash and the result in this file when they run.
 
-### 11.3 A local harness for the documented deployment shape
+### 11.3 A local harness for the documented deployment shape — **Done, and it found a real defect**
 
-**Why** — the receiver serves one application at `/` (`server/server.mjs`'s `serveApplication`), so
-README §4.5's real layout — the recorder at `/wsr/ng/`, the editor behind auth at `/wsr/edit/`, both
-below one API — is untested. A sub-path is exactly what breaks base hrefs, the relative fixture
-paths, the SPA fallback and the tier-2 link to the recorder.
+**What landed** — `bin/serve_deploy.mjs` (Node builtins) mounts the built recorder at `/wsr/ng/` and
+the editor at `/wsr/edit/`, applies the SPA fallback inside each mount, and proxies `/api/` to the
+receiver. README §4.5 carries the commands and the two settings a mounted deployment must get right.
 
-**Steps**
-1. `bin/serve_deploy.mjs` (Node builtins, ~80 lines): mount `--recorder dist/cavox/browser` at
-   `/wsr/ng/`, `--editor dist/spr-script-editor/browser` at `/wsr/edit/`, proxy `/api/` to the
-   receiver, serve `index.html` for any unknown path inside a mount, and send no cache headers. It is
-   a local stand-in for the web server the README describes, not a replacement for it.
-2. Build as §4.5 says (`--base-href=/wsr/edit/` and `/wsr/ng/`), serve, and check.
+**The defect it found**: the editor's production environment used a **relative** `apiEndPoint`
+(`api/v1`). With `<base href="/wsr/edit/">` the browser resolved it to `/wsr/edit/api/v1`, so every
+request 404'd — invisible while the editor is served at the root (the receiver case) and fatal for
+the documented layout. It is now absolute (`/api/v1`), matching the recorder's environment, with the
+reason recorded in the file.
 
-**Acceptance** — with the harness and the receiver running: `/wsr/edit/project/Demo1/script` renders
-the list with every asset 200; `/wsr/ng/spr/session/1` renders the recorder; a deep link
-`/wsr/edit/project/Demo1/script/1245/edit` survives a reload; the preview's tier-2 link points at
-`/wsr/ng/spr/session/<id>`; and the theme audit passes against the mounted path (proving the token
-stylesheet survives the base href).
+**Verified against the running rehearsal** (receiver API-only with `--migrate`, both bundles built
+with their mount base hrefs):
 
-**Rejected alternative** — teaching the receiver to serve two applications behind prefixes: that puts
-deployment routing into the evaluation tool, which §4.5 deliberately leaves to the web server.
+- both shells serve with the right `<base href>` and load their assets (`polyfills-….js` → 200);
+- a deep link (`/wsr/edit/project/Demo1/script/1245/edit`) survives a reload and renders the editor —
+  **50 outline rows** once the script has a draft, and with a draft missing the documented blocking
+  state appears ("The draft could not be loaded. Editing is blocked until the draft loads. This is
+  not an empty…"), never a real-looking empty editor;
+- the recorder's session screen renders under `/wsr/ng/spr/session/1` with the item table;
+- `/api/v1/version` answers through the proxy, and the theme audit passes on the mounted editor;
+- with `recorderBaseUrl: '/wsr/ng'` the tier-2 panel's link is
+  `/wsr/ng/spr/session/preview-<id>` — the setting works, and the committed default is `''`
+  (same origin) for the receiver-root deployment.
+
+**Rejected alternative** — teaching the receiver to route prefixes: that belongs to the web server.
 
 ### 11.4 Pseudonyms in the draw record (a decision, then a small wiring job)
 
