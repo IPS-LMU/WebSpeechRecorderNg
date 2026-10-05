@@ -72,6 +72,11 @@ $spr-tokens-light: (
   'spr-canvas-signal': p.$umu-green,  // 6.41:1 on canvas
   'spr-canvas-live': p.$umu-gold,     // 8.77:1 on canvas
   'spr-canvas-cursor': p.$umu-gold,
+  // The timeline's hatch over the canvas; hidden on the dark scheme's black canvas, so it flips.
+  'spr-canvas-hatch': rgba(0, 0, 0, 0.35),
+  // Link text: the brand blue reads at 7.9–9.6:1 on the light surfaces. In the dark scheme it is a
+  // light step (7.4–9.8:1 there), because the brand blue as *text* on a dark surface is 1.5–1.9:1.
+  'spr-link': p.$umu-blue,
   'spr-select-fill': rgba(215, 177, 124, 0.22),
   'spr-select-edge': p.$umu-gold,
 
@@ -135,6 +140,8 @@ $spr-tokens-dark: map.merge(
     'spr-focus': #D7B17C,
     'spr-focus-on-chrome': #D7B17C,
     'spr-canvas': #000000,
+    'spr-canvas-hatch': rgba(255, 255, 255, 0.28),
+    'spr-link': #9CC0F0,
     'spr-logo-plate': #FFFFFF,
     'spr-housing-edge': #24497E,
     'spr-disabled-bg': rgba(255, 255, 255, 0.08),

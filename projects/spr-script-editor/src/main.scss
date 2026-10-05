@@ -50,6 +50,12 @@ body {
   background: var(--spr-page, #EEF1F5);
 }
 
+// Every link reads from the token: without this the user agent's blue leaks in wherever a screen
+// forgot to colour one, and the dark scheme's 4.5:1 is not something a browser default can know.
+a {
+  color: var(--spr-link, #2A4765);
+}
+
 spre-app-shell {
   display: block;
   height: 100%;

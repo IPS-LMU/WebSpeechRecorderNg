@@ -506,7 +506,9 @@ rule).
 
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
   drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
-  production build too.
+  production build too. The house rule covers light **and** dark, so `use-dark-scheme.js` switches
+  `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
+  the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13).
 - **Accessibility audit.** `bin/a11y_audit.mjs` attaches to the same running Chrome and checks the
   machine-checkable part of ui-spec §8 on the same routes: accessible names, labels and the ARIA
   relationships that carry them, unique ids, `alt`, nothing focusable inside `aria-hidden`, tree and
@@ -514,6 +516,11 @@ rule).
   target is at least 44 px high (a control inside a `<label>` is measured as that label; a link
   flowing inline in text is exempt). `doc/script-editor/a11y.md` lists each rule and what it caught;
   CI runs the whole list.
+- **House-rule lint.** `node bin/editor_lint.mjs` reads the editor's templates and styles and fails on
+  the ui-spec §8 rules that are text rather than a rendered property: a `font-size` off the
+  `--spr-type-*` scale, a colour literal outside a `var(--spr-…)` fallback, and a `(click)` on a host
+  that is neither a control nor carries a `role`. CI runs it in the editor job; `--verbose` prints
+  the counts it checked.
 - **Dry run (recorder).** `bin/audit/dry_run.mjs` reads the session's **materialised script** from the
   receiver, so it knows each item's placement and section mode, then drives the real recorder and
   asserts, per item, where the clip played relative to the take's recording window:

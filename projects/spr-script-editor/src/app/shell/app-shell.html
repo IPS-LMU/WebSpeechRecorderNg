@@ -105,7 +105,7 @@
 }
 
 @if (dialogOpen()) {
-  <div class="dialog-backdrop" (click)="closePublish()">
+  <div class="dialog-backdrop" role="presentation" (click)="closePublish()">
     <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="publish-dialog-title"
          (keydown.escape)="closePublish()" (click)="$event.stopPropagation()">
       <h2 id="publish-dialog-title">{{ strings.publishDialogTitle }}</h2>

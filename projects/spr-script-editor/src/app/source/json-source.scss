@@ -157,7 +157,7 @@ button[disabled] {
 .gutter-line,
 .text {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 14px;
+  font-size: var(--spr-type-label, 14.4px);
   line-height: 1.5;
   white-space: pre;
 }

@@ -943,3 +943,49 @@ least 44 px high. A control inside a `<label>` is measured as that label (a 20 p
 control. It is sensitive in the way it has to be: returning `.row-select` to `min-height: 30px` makes
 the audit exit 1 naming `button.row-select is 30 px high — ui-spec §8 asks for 44`, and restoring it
 returns to green. a11y.md's rule list, README §7 and the CI comment all name the new rule.
+
+### 11.12 The other two house rules, met and checked — **Done**
+
+ui-spec §8's house rules also say "Type sizes come from the `--spr-type-*` scale" and "Colours come
+from `--spr-*` tokens only. No literals in components" — and, like the 44 px rule (§11.11), nothing
+looked. A census found exactly two violations, both real:
+
+- `app/source/json-source.scss` set the source view's monospace text at a bare `14px`; it uses
+  `var(--spr-type-label, 14.4px)` now.
+- `app/editor/timeline/editor-timeline.scss` hatched the unbounded-recording segment with a literal
+  `rgba(0, 0, 0, 0.35)`, which is invisible on the dark scheme's black canvas. It is a token now
+  (`--spr-canvas-hatch`, `rgba(0, 0, 0, 0.35)` in light and `rgba(255, 255, 255, 0.28)` in the dark
+  scheme), so the hatch reads in both.
+
+**The check** — `bin/editor_lint.mjs`, wired into CI's editor job: every `font-size` must be a
+`--spr-type-*` token, every colour literal must sit in a `var(--spr-…)` fallback (285 of the 286 do;
+the pattern is the documented one), and every `(click)` must sit on a control or a host that states
+a `role` — the publish dialog's backdrop now says `role="presentation"` rather than being an
+unexplained `<div>` with a handler. Sensitivity checked: setting the source view back to `13px` makes
+the lint exit 1 naming all three occurrences, and restoring it returns to green (195 font sizes, 286
+colours, 65 click handlers).
+
+### 11.13 The dark scheme, which was broken and unaudited — **Done**
+
+ui-spec's house rule is explicit: colours come from `--spr-*` tokens "light and dark both covered".
+`bin/audit/use-dark-scheme.js` existed for exactly this — its own header says to run
+`bin/theme_audit.mjs --prepare bin/audit/use-dark-scheme.js` — and no CI line, README line or plan row
+ever ran it. Running it found the dark scheme in a state a user would notice at once:
+
+- **Links rendered in the browser's blue** (`rgb(0, 0, 238)`) wherever a screen had not coloured one —
+  1.7:1 on the dark surfaces. The library's row links, the inspector's "Resolved draws" link and
+  others were all affected.
+- **`--spr-primary` used as text** (the bank's "Back to the scripts", the draws view's session-row
+  selector) rendered at 1.5–1.9:1, because the brand navy is a *light-surface* text colour; the dark
+  scheme's primary is the same navy, chosen for fills.
+- **The timeline's hatch** was a literal `rgba(0, 0, 0, 0.35)` — invisible on the dark canvas's black.
+
+**What landed** — a `--spr-link` token (`#2A4765` in light, `#9CC0F0` in dark, 7.4–9.8:1 there), a
+global `a { color: var(--spr-link) }` in the editor's stylesheet so a forgotten link cannot fall back
+to the user agent's blue, the link-shaped uses of `--spr-primary` moved to it (library rows, bank
+`.link`, the draws row selector), and the hatch token from §11.12 which flips on the dark canvas. The
+audit passes on all seven routes in both schemes now, theme and accessibility alike, and CI runs the
+dark pass on six routes plus two accessibility ones.
+
+**Why it took an audit** — every one of these is invisible in the light scheme, which is what every
+earlier check ran.

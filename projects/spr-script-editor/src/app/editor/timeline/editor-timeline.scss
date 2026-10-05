@@ -39,7 +39,7 @@
 }
 
 .hatched {
-  background-image: repeating-linear-gradient(45deg, transparent 0 4px, rgba(0, 0, 0, 0.35) 4px 8px);
+  background-image: repeating-linear-gradient(45deg, transparent 0 4px, var(--spr-canvas-hatch, rgba(0, 0, 0, 0.35)) 4px 8px);
 }
 
 .overlay {
