@@ -1272,3 +1272,28 @@ it is exercised by the light and dark runs themselves rather than by an injectio
 Chrome with a fake media stream, measures `/spr/session/1` and the start page before it drives the
 session. Both pass, so the shared theme holds there, and the logo rules have somewhere to fire.
 Verified end to end in the job's own order: theme session 0, theme start 0, dry run 0.
+
+### 11.27 The recorder's screens, checked for the rules that hold anywhere — **Done**
+
+The accessibility audit was editor-scoped, which was right for its house rules but left the app the
+plan actually extends unchecked: `/spr/session/1` had never been audited. Running the rules that hold
+anywhere found eight icon-only controls whose only label was a Material tooltip — a tooltip is not an
+accessible name, and the accessibility tree announced each one as a bare "button": the four in
+`audio_display_control.ts` (play all, play selection, stop, clear selection) and the four in
+`recordingitem_display.ts` (start, stop, toggle details, download). The library already pairs
+`[matTooltip]` with `[attr.aria-label]` elsewhere (the transport controls), so the fix is the same
+pattern with the same i18n keys — no new strings, no new translations.
+
+The run also exposed a false positive **in the audit**: the logo links were reported as unnamed while
+the accessibility tree named them from their `<img alt>` plates. Rule 1 counted only text, so it now
+counts an image's `alt` as text for the image and for any container holding nothing else — what the
+tree computes, which is why the cross-check exists.
+
+**Scoped so both apps can be checked** — `--rules universal` skips the editor's own house rules (the
+44 px target, the single `h1`, the single `main`), and the dry-run job runs it on the recorder's
+session screen and start page, which pass. The editor routes keep the full set and still pass; an
+unknown `--rules` value exits 2 with what it accepts.
+
+**Verified** — recorder session and start: `Accessibility audit passed (universal rules)`; the editor,
+library and bank routes unchanged (full set, still green); library 144, editor 480, server 58, both
+builds, house-rule lint and the i18n guard all green.

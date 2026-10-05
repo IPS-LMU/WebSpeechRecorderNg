@@ -16,22 +16,22 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
 @Component({
     selector: 'spr-recordingitemcontrols',
     template: `
-        <button [matTooltip]="i18n.t('spr.audio.startPlayback')" class="spr-play" (click)="playStartAction?.perform()"
+        <button [matTooltip]="i18n.t('spr.audio.startPlayback')" [attr.aria-label]="i18n.t('spr.audio.startPlayback')" class="spr-play" (click)="playStartAction?.perform()"
           [disabled]="playStartAction?playStartAction.disabled:true">
           <mat-icon>play_arrow</mat-icon>
         </button>
-        <button [matTooltip]="i18n.t('spr.audio.stopPlayback')" class="spr-stop" (click)="playStopAction?.perform()"
+        <button [matTooltip]="i18n.t('spr.audio.stopPlayback')" [attr.aria-label]="i18n.t('spr.audio.stopPlayback')" class="spr-stop" (click)="playStopAction?.perform()"
           [disabled]="playStopAction?.disabled">
           <mat-icon>stop</mat-icon>
         </button>
         @if (!screenXs) {
-          <button [matTooltip]="i18n.t('spr.audio.toggleDetails')" [disabled]="disableAudioDetails || !audioLoaded"
+          <button [matTooltip]="i18n.t('spr.audio.toggleDetails')" [attr.aria-label]="i18n.t('spr.audio.toggleDetails')" [disabled]="disableAudioDetails || !audioLoaded"
             (click)="showRecordingDetails()">
             <mat-icon>{{(audioSignalCollapsed) ? "expand_less" : "expand_more"}}</mat-icon>
           </button>
         }
         @if (enableDownload) {
-          <button [matTooltip]="i18n.t('spr.audio.downloadRecording')" [disabled]="disableAudioDetails || !audioLoaded"
+          <button [matTooltip]="i18n.t('spr.audio.downloadRecording')" [attr.aria-label]="i18n.t('spr.audio.downloadRecording')" [disabled]="disableAudioDetails || !audioLoaded"
             (click)="downloadRecording()">
             <mat-icon>file_download</mat-icon>
           </button>

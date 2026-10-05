@@ -536,7 +536,9 @@ rule).
   target is at least 44 px high (a control inside a `<label>` is measured as that label; a link
   flowing inline in text is exempt), plus the document rules: a `lang`, exactly one `h1` and
   one `main`, heading levels that do not skip, no positive `tabindex`, and no control inside another
-  control, and without console errors or uncaught exceptions. `doc/script-editor/a11y.md`
+  control, and without console errors or uncaught exceptions. `--rules universal` leaves out the
+  editor’s own house rules (44 px targets, one `h1`, one `main`) so the recorder’s screens — which
+  predate them — are checked by the dry-run job for the rules that hold anywhere. `doc/script-editor/a11y.md`
   lists each rule and what it caught;
   CI runs the whole list.
 - **House-rule lint.** `node bin/editor_lint.mjs` reads the editor's templates and styles and fails on

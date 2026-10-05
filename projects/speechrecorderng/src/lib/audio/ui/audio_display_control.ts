@@ -14,16 +14,16 @@ import {SprTranslator} from "../../i18n/translate";
             <legend>{{i18n.t('spr.audio.play')}}</legend>
 
             <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled"
-              [style.color]="playStartAction?.disabled ? 'var(--spr-ink-subtle, #6D7C98)' : 'var(--spr-ok, #73A790)'" [matTooltip]="i18n.t('spr.audio.playAll')">
+              [style.color]="playStartAction?.disabled ? 'var(--spr-ink-subtle, #6D7C98)' : 'var(--spr-ok, #73A790)'" [matTooltip]="i18n.t('spr.audio.playAll')" [attr.aria-label]="i18n.t('spr.audio.playAll')">
               <mat-icon>play_arrow</mat-icon>
             </button>
             <button (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
-              [style.color]="playSelectionAction?.disabled ? 'var(--spr-ink-subtle, #6D7C98)' : 'var(--spr-ok, #73A790)'" [matTooltip]="i18n.t('spr.audio.playSelection')">
+              [style.color]="playSelectionAction?.disabled ? 'var(--spr-ink-subtle, #6D7C98)' : 'var(--spr-ok, #73A790)'" [matTooltip]="i18n.t('spr.audio.playSelection')" [attr.aria-label]="i18n.t('spr.audio.playSelection')">
               <mat-icon>play_circle_outline</mat-icon>
             </button>
             <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled"
-              [style.color]="playStopAction?.disabled ? 'var(--spr-ink-subtle, #6D7C98)' : 'var(--spr-caution, #D7B17C)'">
-              <mat-icon>stop</mat-icon>
+              [style.color]="playStopAction?.disabled ? 'var(--spr-ink-subtle, #6D7C98)' : 'var(--spr-caution, #D7B17C)'" [attr.aria-label]="i18n.t('spr.audio.stopPlayback')">
+            <mat-icon>stop</mat-icon>
             </button>&nbsp;
             <mat-checkbox #autoplaySelectionCheckbox (change)="autoPlaySelectionChange($event)">{{i18n.t('spr.audio.autoplayOnSelect')}}
             </mat-checkbox>
@@ -46,7 +46,7 @@ import {SprTranslator} from "../../i18n/translate";
             <span>to</span>
             } {{audioClip?.selection?.rightFrame}}
             <button (click)="clearSelection()" [disabled]="audioClip?.selection==null"
-              [style.color]="hasSelection() ? 'var(--spr-chrome, #2A4765)' : 'var(--spr-ink-subtle, #6D7C98)'" [matTooltip]="i18n.t('spr.audio.clearSelection')">
+              [style.color]="hasSelection() ? 'var(--spr-chrome, #2A4765)' : 'var(--spr-ink-subtle, #6D7C98)'" [matTooltip]="i18n.t('spr.audio.clearSelection')" [attr.aria-label]="i18n.t('spr.audio.clearSelection')">
               <mat-icon>clear</mat-icon>
             </button>
 

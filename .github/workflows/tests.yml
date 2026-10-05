@@ -176,4 +176,9 @@ jobs:
           # recorder's control bar (plan §11.26).
           node bin/theme_audit.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 1366x768
           node bin/theme_audit.mjs --url http://127.0.0.1:8391/ --viewports 1366x768
+          # The recorder's screens against the rules that hold anywhere — names, labels, ids, alt,
+          # ARIA, the tree, tab order, nesting, a quiet console. The editor's house rules (44 px
+          # targets, one h1, one main) are scoped out: the recorder predates them (plan §11.28).
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 1366x768 --rules universal
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/ --viewports 1366x768 --rules universal
           node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1

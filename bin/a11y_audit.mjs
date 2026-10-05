@@ -45,6 +45,11 @@
  *
  * `--prepare <file>` runs a page script after load, to reach a state behind an interaction
  * (`bin/audit/*.js`). Exits non-zero when a check fails; `--verbose` prints what passed too.
+ *
+ * `--rules universal` runs everything but the editor's own house rules (10, and the "exactly one
+ * `h1`" and "exactly one `main`" halves of 12 and 13), so the *recorder's* screens — the app the
+ * plan extends, which predates those house rules — can be checked for the rules that hold anywhere:
+ * names, labels, ids, alt, ARIA, the tree, tab order, nesting and a quiet console.
  */
 
 const args = process.argv.slice(2);
@@ -58,6 +63,13 @@ const VIEWPORTS = opt('viewports', '1366x768').split(',').map((v) => v.split('x'
 const VERBOSE = args.includes('--verbose');
 const PREPARE_FILE = opt('prepare', null);
 const SETTLE_MS = Number(opt('settle-ms', '3000'));
+const RULE_SET = opt('rules', 'all');
+if (RULE_SET !== 'all' && RULE_SET !== 'universal') {
+  console.error(`--rules must be "all" or "universal", not "${RULE_SET}".`);
+  process.exit(2);
+}
+/** The editor's own house rules (ui-spec §8): skipped for screens that predate them (the recorder). */
+const HOUSE_RULES = RULE_SET === 'all';
 
 /**
  * Collects the raw material for the rules; the judging happens in Node so every failure can name
@@ -80,9 +92,15 @@ const PAGE_PROBE = `(() => {
     .join(' ');
   const name = (el) => {
     const labelledBy = el.getAttribute('aria-labelledby');
+    // An image's alt is text: it names the image and any container that holds nothing else, which
+    // is what the accessibility tree computes (the logo links are named by their plates).
+    const altOf = (node) => node.getAttribute('alt') ?? '';
+    const imageAlts = Array.from(el.querySelectorAll('img[alt]')).map(altOf);
     return trim(
       el.getAttribute('aria-label')
       || (labelledBy ? textOfIdList(labelledBy) : '')
+      || (el.tagName === 'IMG' ? altOf(el) : '')
+      || imageAlts.join(' ')
       || trim(el.textContent)
       || '',
     );
@@ -376,10 +394,12 @@ for (const [width, height] of VIEWPORTS) {
     if (control.invalid === 'true' && control.describedBy === '') failures.push(at(`${control.where} is aria-invalid but has no aria-describedby message`));
   }
 
-  // 10: every interactive target is at least 44 px high (ui-spec §8's house rule).
-  for (const control of controls) {
-    if (control.disabled || control.targetInline || control.targetHeight >= 44) continue;
-    failures.push(at(`${control.where} is ${control.targetHeight} px high — ui-spec §8 asks for 44`));
+  // 10: every interactive target is at least 44 px high (ui-spec §8's house rule; editor-scoped).
+  if (HOUSE_RULES) {
+    for (const control of controls) {
+      if (control.disabled || control.targetInline || control.targetHeight >= 44) continue;
+      failures.push(at(`${control.where} is ${control.targetHeight} px high — ui-spec §8 asks for 44`));
+    }
   }
 
   // 11-14: what a screen reader relies on before it reads anything else.
@@ -387,7 +407,7 @@ for (const [width, height] of VIEWPORTS) {
     failures.push(at('<html> has no lang attribute — the reader has to guess the language'));
   }
   const h1s = documentFacts.headings.filter((heading) => heading.level === 1);
-  if (h1s.length !== 1) {
+  if (HOUSE_RULES && h1s.length !== 1) {
     failures.push(at(`${h1s.length} h1 heading(s) — a route names itself exactly once`));
   }
   let previousLevel = 0;
@@ -397,7 +417,7 @@ for (const [width, height] of VIEWPORTS) {
     }
     previousLevel = heading.level;
   }
-  if (documentFacts.mainCount !== 1) {
+  if (HOUSE_RULES && documentFacts.mainCount !== 1) {
     failures.push(at(`${documentFacts.mainCount} main landmark(s) — exactly one per route`));
   }
   for (const element of documentFacts.positiveTabindex) {
@@ -469,4 +489,4 @@ if (failures.length) {
   failures.forEach((failure) => console.log('  ✗ ' + failure));
   process.exit(1);
 }
-console.log('\nAccessibility audit passed.');
+console.log(`\nAccessibility audit passed${HOUSE_RULES ? '' : ' (universal rules)'}.`);
