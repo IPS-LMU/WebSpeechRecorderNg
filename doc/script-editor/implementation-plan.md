@@ -1120,3 +1120,29 @@ looked in; the server's test asserts the exact nine names, with a comment pointi
 `clean.checks.json … check the karma assets` and fails the server test with
 `the corpus file set drifted from the editor's CORPUS_FILES`; restoring the file returns both to
 green (editor 480, server 57).
+
+### 11.20 The document-level rules the audits never had — **Done**
+
+The accessibility audit checked element-level facts (names, labels, ARIA, tree semantics, tab order,
+target sizes) and the theme audit colours; nothing looked at what a screen reader needs *before* it
+reads anything: the page's language, its outline, its landmarks. Four rules were added, and they found
+two real defects on the first run:
+
+- **The editor route had no `h1` at all.** Every other route names itself once; the editor screen
+  started straight into its outline skeleton and named its parts with `h2`/`h3`, so a reader arriving
+  there had no page title. The screen now carries a visually-hidden `h1`
+  (`strings.editor.screenTitle`), so all seven routes name themselves.
+- **The editor and bank routes had two `main` landmarks each** — the shell's `<main class="content">`
+  plus a screen-level `<main>` (the editor's centre column, the bank's `.main`). Nested mains leave a
+  reader asking which one is the page's; both are layout columns inside the shell's main, so they are
+  `<div>`s now and every route carries exactly one `main`.
+
+The rules are 11–14 in `bin/a11y_audit.mjs`: a non-empty `<html lang>`, exactly one `h1`, no heading
+level jumping by more than one, exactly one `main`, and no positive `tabindex`. a11y.md's list and
+README §7 name them.
+
+**Verified** — sensitive in both directions: with the editor's `h1` line deleted the audit exits 1
+naming `0 h1 heading(s)`, and restoring it returns to green; the nested mains failed before the fix
+and pass after. Twenty-one audit runs pass across the seven routes in light, dark and at 390×844
+(theme and accessibility), with editor 480, library 144, server 57, both builds and the house-rule
+lint green.

@@ -1,3 +1,5 @@
+<h1 class="visually-hidden">{{ strings.editor.screenTitle }}</h1>
+
 @switch (state()) {
   @case ('loading') {
     <div class="state" role="status">
@@ -31,7 +33,7 @@
                             [bankNames]="bankNames()" (select)="select($event)"></spr-editor-outline>
       </aside>
 
-      <main class="col centre-col">
+      <div class="col centre-col">
         @if (state() === 'empty') {
           <div class="empty-card">
             <h2>{{ strings.editor.emptyTitle }}</h2>
@@ -43,7 +45,7 @@
                              [bankViews]="bankViews()" [bankList]="bankList()" [project]="project()"
                              [scriptId]="scriptId()" (select)="select($event)"></spr-editor-centre>
         }
-      </main>
+      </div>
 
       <aside class="col inspector-col">
         <spr-editor-inspector [script]="script()" [selection]="selection()" [findings]="findings()"

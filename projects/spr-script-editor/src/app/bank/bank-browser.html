@@ -19,7 +19,7 @@
       <spre-bank-picker #picker [groups]="groups()" [selectedBankId]="selectedBankId()"
                         (select)="selectBank($event)"></spre-bank-picker>
 
-      <main class="main">
+      <div class="main">
         @if (selectedBank(); as bank) {
           <header class="bank-header">
             <h2>{{ bank.title }}</h2>
@@ -98,7 +98,7 @@
         } @else {
           <p class="state empty" role="status">{{ strings.picker.emptyProject }}</p>
         }
-      </main>
+      </div>
 
       @if (ruleMode()) {
         <aside class="rule-column">

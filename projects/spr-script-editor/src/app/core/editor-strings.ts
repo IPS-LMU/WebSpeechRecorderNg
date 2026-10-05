@@ -133,6 +133,7 @@ export const EDITOR_STRINGS = {
 
   /** Editor screen chrome (ui-spec §3): loading/empty/error states and the read-only reason. */
   editor: {
+    screenTitle: 'Script editor',
     loading: 'Loading script…',
     skeletonLabel: 'Loading the script outline…',
     loadErrorTitle: 'The draft could not be loaded',

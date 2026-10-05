@@ -520,7 +520,9 @@ rule).
   relationships that carry them, unique ids, `alt`, nothing focusable inside `aria-hidden`, tree and
   radiogroup semantics, tab order, the browser's own accessibility tree, and that every interactive
   target is at least 44 px high (a control inside a `<label>` is measured as that label; a link
-  flowing inline in text is exempt). `doc/script-editor/a11y.md` lists each rule and what it caught;
+  flowing inline in text is exempt), plus the document rules: a `lang`, exactly one `h1` and
+  one `main`, heading levels that do not skip, and no positive `tabindex`. `doc/script-editor/a11y.md`
+  lists each rule and what it caught;
   CI runs the whole list.
 - **House-rule lint.** `node bin/editor_lint.mjs` reads the editor's templates and styles and fails on
   the ui-spec §8 rules that are text rather than a rendered property: a `font-size` off the

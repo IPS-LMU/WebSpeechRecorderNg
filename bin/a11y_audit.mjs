@@ -23,7 +23,12 @@
  *      name (button, link, textbox, treeitem, …) is nameless;
  *  10. every interactive target is at least 44 px high (ui-spec §8's house rule). A control inside a
  *      `<label>` is measured as that label, a link flowing inline in text is exempt (WCAG 2.5.8),
- *      and so is a disabled control.
+ *      and so is a disabled control;
+ *  11. `<html>` declares a `lang`, so the reader does not guess the language;
+ *  12. the route names itself with exactly one `h1`, and the heading levels never jump by more than
+ *      one (they are the screen reader's outline);
+ *  13. exactly one `main` landmark;
+ *  14. no positive `tabindex`: it reorders the document for every keyboard user.
  *
  * Usage:
  *   # terminal 1
@@ -162,6 +167,16 @@ const PAGE_PROBE = `(() => {
   };
 
   const ids = Array.from(document.querySelectorAll('[id]')).map((el) => el.id);
+  const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+    .map((heading) => ({level: Number(heading.tagName[1]), text: trim(heading.textContent).slice(0, 40)}));
+  const documentFacts = {
+    lang: document.documentElement.getAttribute('lang') ?? '',
+    headings,
+    mainCount: document.querySelectorAll('main, [role="main"]').length,
+    positiveTabindex: Array.from(document.querySelectorAll('[tabindex]'))
+      .filter((el) => Number(el.getAttribute('tabindex')) > 0)
+      .map((el) => where(el) + ' tabindex=' + el.getAttribute('tabindex')),
+  };
   const focusOrder = Array.from(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
     .filter((el) => el.tabIndex >= 0 && visible(el))
     .map((el) => {
@@ -169,7 +184,7 @@ const PAGE_PROBE = `(() => {
       return {where: where(el), x: Math.round(rect.x), right: Math.round(rect.right), y: Math.round(rect.y)};
     });
 
-  return JSON.stringify({controls, images, hiddenFocusable, radiogroups, tree: treeInfo, ids, focusOrder});
+  return JSON.stringify({controls, images, hiddenFocusable, radiogroups, tree: treeInfo, ids, focusOrder, documentFacts});
 })()`;
 
 const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
@@ -294,7 +309,7 @@ for (const [width, height] of VIEWPORTS) {
     failures.push(`${width}x${height}: probe returned nothing (${JSON.stringify(out.result?.exceptionDetails?.exception?.description || out.result)})`);
     continue;
   }
-  const {controls, images, hiddenFocusable, radiogroups, tree, ids, focusOrder} = JSON.parse(raw);
+  const {controls, images, hiddenFocusable, radiogroups, tree, ids, focusOrder, documentFacts} = JSON.parse(raw);
   const at = (message) => `${width}x${height}: ${message}`;
 
   // The browser's accessibility tree — what a screen reader is actually handed.
@@ -328,6 +343,28 @@ for (const [width, height] of VIEWPORTS) {
   for (const control of controls) {
     if (control.disabled || control.targetInline || control.targetHeight >= 44) continue;
     failures.push(at(`${control.where} is ${control.targetHeight} px high — ui-spec §8 asks for 44`));
+  }
+
+  // 11-14: what a screen reader relies on before it reads anything else.
+  if (documentFacts.lang === '') {
+    failures.push(at('<html> has no lang attribute — the reader has to guess the language'));
+  }
+  const h1s = documentFacts.headings.filter((heading) => heading.level === 1);
+  if (h1s.length !== 1) {
+    failures.push(at(`${h1s.length} h1 heading(s) — a route names itself exactly once`));
+  }
+  let previousLevel = 0;
+  for (const heading of documentFacts.headings) {
+    if (previousLevel !== 0 && heading.level > previousLevel + 1) {
+      failures.push(at(`heading level jumps h${previousLevel} to h${heading.level} at "${heading.text}"`));
+    }
+    previousLevel = heading.level;
+  }
+  if (documentFacts.mainCount !== 1) {
+    failures.push(at(`${documentFacts.mainCount} main landmark(s) — exactly one per route`));
+  }
+  for (const element of documentFacts.positiveTabindex) {
+    failures.push(at(`${element} — a positive tabindex reorders the document for every keyboard user`));
   }
 
   // 4: duplicate ids.
