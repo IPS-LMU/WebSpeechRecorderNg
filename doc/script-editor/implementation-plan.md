@@ -750,28 +750,28 @@ with their mount base hrefs):
 
 **Rejected alternative** — teaching the receiver to route prefixes: that belongs to the web server.
 
-### 11.4 Pseudonyms in the draw record (a decision, then a small wiring job)
+### 11.4 Pseudonyms in the draw record — **Capability done; the policy answer is the owner's**
 
 **Open question** — README §8.4: may the editor show which speaker recorded which item, and must
 pseudonyms replace speaker ids in the UI *and* the CSV? The plan's M0 default is "show what the API
-returns, keep rendering isolated", and `app/draws/draws-speaker.ts` is that isolation: one table
-(`SPEAKER_PSEUDONYMS`) and one function.
+returns, keep rendering isolated", and `app/draws/draws-speaker.ts` is that isolation.
 
-**Steps, once the data-protection answer exists**
-1. If the answer is **client-side only**: fill `SPEAKER_PSEUDONYMS` from the deployment's mapping (a
-   project endpoint or a build-time table) and call it done — no other file moves. A spec pins the
-   mapping and the absent-speaker case.
-2. If the answer is **pseudonyms everywhere** (recommended, because the CSV and the JSON leave the
-   server too): add `--pseudonymise-speakers` to the receiver and hash the speaker id per project
-   with a stable salt before it reaches the response, so `/draws`, the CSV and the materialised
-   session all agree and no real id ever reaches a browser. The client then needs no table at all,
-   and `speakerLabel` becomes the identity.
-3. Update README §8.4 with the decision and whichever implementation landed.
+**What landed (option 2 of the plan)** — `--pseudonymise-speakers` on the receiver. When set, the
+store keeps a stable label (`sp-<12 hex>`) instead of the caller's id — normalised where a speaker
+*enters* the store (`createSession`, `patchSession`) — so the draw record, the CSV, the session
+record and the `skipRecordedBySpeaker` check all agree by construction and the real id is never
+written. The salt lives in the data directory (`speaker-salt`), created on first use, so labels
+survive restarts and the copy-to-production transfer, and differ between installations. Off by
+default; the editor needs no change either way.
 
-**Acceptance** — with option 2 enabled: the same speaker shows the same pseudonym across sessions in
-both the JSON and the CSV, no real id appears anywhere in either, and the draws spec's fixtures are
-generated from the pseudonymised receiver. With option 1: the spec proves the mapping and that no
-component bypasses `speakerLabel`.
+`server/pseudonym.test.mjs` pins it: off → the caller's id; on → one stable label per speaker,
+different speakers differ, the real id appears nowhere in the stored session, a reopened store
+reproduces the label while another installation does not, a patched speaker is normalised too, the
+recorded-set lookup keys on the label (and the real id no longer identifies anything), and the salt
+helper is deterministic per directory.
+
+**What is still needed from a person** — the data-protection decision itself: whether a deployment
+must turn the switch on. The capability makes that a flag rather than a project.
 
 ### 11.5 An automated dry-run driver for the rest of M1's manual gate — **Done, within a stated limit**
 

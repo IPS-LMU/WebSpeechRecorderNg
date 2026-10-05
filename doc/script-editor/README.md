@@ -550,9 +550,14 @@ Answered during M0–M4; the deciding document is named, and the plan's §8 tabl
 3. **Shipped banks.** The server decides where a `BUILTIN` bank's items and their model recordings
    come from and hands the client the paths to use ([rest-api.md](rest-api.md) §3.4); the receiver
    seeds them from `src/test/bank`. How production packages them stays a deployment decision.
-4. **Speaker pseudonymity.** Still a human decision: the view shows what the API returns and
-   speaker rendering is isolated in one file (`app/draws/draws-speaker.ts`), so a pseudonym
-   mapping is a local change. The data-protection answer is what is missing.
+4. **Speaker pseudonymity.** The capability is implemented and the *choice* is the owner's: the
+   receiver's `--pseudonymise-speakers` stores and returns a stable per-deployment label
+   (`sp-<12 hex>`, salted from a file in the data directory) instead of the caller's id, so the draw
+   record, the CSV, the session record and the "already recorded by this speaker" check agree and
+   the real id is never written. Off by default, as the receiver's other privacy-relevant switches
+   are. What remains is the data-protection answer: whether a deployment must turn it on. The
+   editor needs no change either way — its speaker rendering stays isolated in
+   `app/draws/draws-speaker.ts`.
 5. **Multi-project banks.** Project-local (D3); sharing one between projects would need a scope
    beyond the project id.
 6. **Resolved-script delivery.** The materialised script id on `Session.script` (D-K), exercised

@@ -332,6 +332,11 @@ A trace or record entry carries ids, not prose: `{itemcode, bankItemId, recorded
 is the **bank's current** text, which the editor looks up by `bankItemId` and labels as such — an
 edited or retired bank item must not silently rewrite what a finished session recorded.
 
+A receiver started with `--pseudonymise-speakers` stores and returns a stable label instead of the
+caller's speaker id (`sp-<12 hex>`, salted per installation from a file in the data directory), so
+`speaker` here, the CSV and the session record agree, and the real id never leaves the store
+(README §8.4).
+
 ### 4.3 Re-draw
 
 ```

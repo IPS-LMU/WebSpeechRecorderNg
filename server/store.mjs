@@ -20,17 +20,20 @@ import {RequestError} from './body.mjs';
 import {resolveBankSources} from './draw.mjs';
 import {etagOf} from './etag.mjs';
 import {RECORDER_VERSION, supportsRecorderVersion} from './feature-versions.mjs';
+import {loadOrCreateSalt, pseudonymiseSpeaker} from './pseudonym.mjs';
 import {MEDIA_DIR, mimeTypeFor, referencedResources} from './media.mjs';
 
 const ID_SEQUENCE = 'sequence.json';
 const JOURNAL = 'journal.json';
 
 export class Store {
-  constructor({dataDir, seedDir, log, recorderVersion = RECORDER_VERSION}) {
+  constructor({dataDir, seedDir, log, recorderVersion = RECORDER_VERSION, pseudonymiseSpeakers = false}) {
     this.dataDir = resolve(dataDir);
     this.seedDir = seedDir === null ? null : resolve(seedDir);
     this.log = log;
     this.recorderVersion = recorderVersion;
+    this.pseudonymiseSpeakers = pseudonymiseSpeakers;
+    this.speakerSaltValue = null;
     this.uploadsDir = join(this.dataDir, 'uploads');
     this.tmpDir = join(this.uploadsDir, 'tmp');
     this._sequence = null;
@@ -234,7 +237,10 @@ export class Store {
     if (session === null) {
       return null;
     }
-    const updated = {...session, ...patch, sessionId: session.sessionId ?? id};
+    const safePatch = patch !== null && typeof patch === 'object' && 'speaker' in patch
+      ? {...patch, speaker: this.normaliseSpeaker(patch.speaker)}
+      : patch;
+    const updated = {...session, ...safePatch, sessionId: session.sessionId ?? id};
     this.writeJson(this.sessionPath(id), updated);
     return updated;
   }
@@ -254,6 +260,22 @@ export class Store {
     });
   }
 
+  /**
+   * The speaker id as the store keeps it (README §8.4): the caller's id when pseudonymity is off,
+   * a stable per-deployment label when it is on. Everything downstream — the draw record, the CSV,
+   * the session record and the "already recorded by this speaker" check — then agrees by
+   * construction, and the real id is never written.
+   */
+  normaliseSpeaker(speaker) {
+    if (!this.pseudonymiseSpeakers) {
+      return speaker ?? null;
+    }
+    if (this.speakerSaltValue === null) {
+      this.speakerSaltValue = loadOrCreateSalt(this.dataDir);
+    }
+    return pseudonymiseSpeaker(this.speakerSaltValue, speaker);
+  }
+
   createSession(id, {project, script, type = 'NORM', speaker = null}) {
     if (script !== null && script !== undefined) {
       this.requireRecorderVersion(script);
@@ -270,7 +292,7 @@ export class Store {
       scriptVersion: script === null || script === undefined
         ? null
         : (this.scriptMeta(String(script))?.publishedVersion ?? null),
-      ...(speaker === null || speaker === undefined ? {} : {speaker}),
+      ...(speaker === null || speaker === undefined ? {} : {speaker: coerceId(this.normaliseSpeaker(speaker))}),
     };
     const resolved = this.resolveSessionDraws(session);
     if (resolved !== null) {
