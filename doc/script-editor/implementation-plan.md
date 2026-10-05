@@ -651,9 +651,11 @@ existing prefill already covers word/sentence lists and the design's bank become
 
 ## 11. Outstanding work: plans for what is still missing
 
-Four items are open after M5; §11.1 and §11.6 are closed below. Each remaining one is planned with
-its evidence, its steps, the acceptance that closes it, and what it needs from a person. Ordered by
-value against cost.
+All five items are closed below within stated limits; what remains is human: the two
+screen-reader passes, the two dry-run observations the driver cannot drive unattended, and the
+data-protection *choice* the pseudonymity switch exists to serve. §11.1 and §11.6 were the
+bookkeeping pair, §11.2 the accessibility audit, §11.5 the dry-run driver, §11.3 the deployment
+rehearsal and §11.4 the pseudonymity capability.
 
 ### 11.1 FILES-mode fixtures the editor asks for and the tree does not have — **Done**
 
