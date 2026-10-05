@@ -922,3 +922,24 @@ all, which is the divergence R11 exists to prevent.
 the drawn prefix included); the library spec searches `rg00`, `ane02` and a row without codes, and
 still reaches "no match" for a term nothing carries. Live on the dev server: `RB` → the bank-draw
 script, `S10G1I01` → the 500-item script, `P1` → playback, `Z999` → the no-match line.
+
+### 11.11 The 44 px target rule, which nothing checked — **Done**
+
+ui-spec §8's house rules open with "Interactive targets are at least 44 px high", and no rule in
+`bin/a11y_audit.mjs` looked at a box: names, labels, ARIA, tree semantics and tab order were covered,
+size was not. Measuring the eight audited routes found four real violations, all invisible to every
+other check:
+
+| Control | Was | Now |
+|---|---|---|
+| The shell toolbar's brand link | 21 px | 44 px (`inline-flex` + `min-height`) |
+| The shell's breadcrumb links | 17 px | 44 px |
+| The draws view's preview-session checkbox | 20 px input, label as a sibling | the label wraps the input and is the 44 px target |
+| The draws table's session-row selectors | 30 px | 44 px |
+
+**The rule** — new `10.` in `bin/a11y_audit.mjs`: every visible, enabled interactive target is at
+least 44 px high. A control inside a `<label>` is measured as that label (a 20 px checkbox in a
+44 px label is fine), a link flowing inline in text is exempt (WCAG 2.5.8), and so is a disabled
+control. It is sensitive in the way it has to be: returning `.row-select` to `min-height: 30px` makes
+the audit exit 1 naming `button.row-select is 30 px high — ui-spec §8 asks for 44`, and restoring it
+returns to green. a11y.md's rule list, README §7 and the CI comment all name the new rule.

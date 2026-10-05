@@ -89,6 +89,14 @@ button.download {
   font-size: var(--spr-type-label, 14.4px);
 }
 
+/* The label wraps the checkbox, so it is the target and must meet ui-spec §8's 44 px itself. */
+.preview-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spr-r-sm, 6px);
+  min-height: 44px;
+}
+
 .script-picker select {
   min-height: 44px;
   padding: 0 var(--spr-r-sm, 6px);

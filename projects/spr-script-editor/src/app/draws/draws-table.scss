@@ -39,7 +39,8 @@ th {
 }
 
 .row-select {
-  min-height: 30px;
+  /* ui-spec §8: a target is at least 44 px high, even as a table row's selector. */
+  min-height: 44px;
   padding: 0;
   border: none;
   background: none;

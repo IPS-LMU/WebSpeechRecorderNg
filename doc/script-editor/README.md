@@ -507,6 +507,13 @@ rule).
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
   drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
   production build too.
+- **Accessibility audit.** `bin/a11y_audit.mjs` attaches to the same running Chrome and checks the
+  machine-checkable part of ui-spec §8 on the same routes: accessible names, labels and the ARIA
+  relationships that carry them, unique ids, `alt`, nothing focusable inside `aria-hidden`, tree and
+  radiogroup semantics, tab order, the browser's own accessibility tree, and that every interactive
+  target is at least 44 px high (a control inside a `<label>` is measured as that label; a link
+  flowing inline in text is exempt). `doc/script-editor/a11y.md` lists each rule and what it caught;
+  CI runs the whole list.
 - **Dry run (recorder).** `bin/audit/dry_run.mjs` reads the session's **materialised script** from the
   receiver, so it knows each item's placement and section mode, then drives the real recorder and
   asserts, per item, where the clip played relative to the take's recording window:

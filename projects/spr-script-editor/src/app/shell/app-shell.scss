@@ -18,6 +18,10 @@
 }
 
 .brand {
+  /* ui-spec §8: every interactive target is at least 44 px high; the toolbar is 56 px, so it fits. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   font-size: var(--spr-type-section);
   font-weight: 700;
   color: var(--spr-chrome-ink);
@@ -33,6 +37,9 @@
 }
 
 .breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: inherit;
 }
 

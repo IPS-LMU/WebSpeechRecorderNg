@@ -20,7 +20,10 @@
  *   8. tab order never jumps back up within one column (document order against the elements' boxes);
  *   9. the browser's own **accessibility tree** agrees: every treeitem carries a level, a tree has
  *      treeitems, a radiogroup has radios with a checked state, and no node whose role requires a
- *      name (button, link, textbox, treeitem, …) is nameless.
+ *      name (button, link, textbox, treeitem, …) is nameless;
+ *  10. every interactive target is at least 44 px high (ui-spec §8's house rule). A control inside a
+ *      `<label>` is measured as that label, a link flowing inline in text is exempt (WCAG 2.5.8),
+ *      and so is a disabled control.
  *
  * Usage:
  *   # terminal 1
@@ -101,12 +104,24 @@ const PAGE_PROBE = `(() => {
     const named = name(el);
     const titleOnly = named === '' && trim(el.getAttribute('title')) !== '' && (tag === 'button' || tag === 'a');
     const filled = el.value !== undefined && trim(el.value) !== '' ? 'value' : '';
+    // Rule 10: a control inside a label is targeted through the label, so that box is measured; a
+    // link that flows inline in text is exempt (WCAG 2.5.8), as is a disabled control.
+    const wrapper = el.closest('label');
+    const target = tag === 'input' && kind === 'field' && wrapper !== null ? wrapper : el;
+    const targetBox = target.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    const inlineInText = tag === 'a'
+      && style.display === 'inline'
+      && el.closest('p, li, td, dd, dt, dl, .note, .legend, caption') !== null;
     controls.push({
       where: where(el),
       kind,
       name: named,
       titleOnly,
       filled,
+      targetHeight: Math.round(targetBox.height),
+      targetInline: inlineInText,
+      disabled: el.disabled === true,
       label: kind === 'field' ? labelFor(el) : '',
       ariaLabel: trim(el.getAttribute('aria-label')),
       invalid: el.getAttribute('aria-invalid'),
@@ -307,6 +322,12 @@ for (const [width, height] of VIEWPORTS) {
     if (control.labelledBy !== '' && control.labelledByText === '') failures.push(at(`${control.where} aria-labelledby points at nothing with text`));
     if (control.describedBy !== '' && control.describedText === '') failures.push(at(`${control.where} aria-describedby points at nothing with text`));
     if (control.invalid === 'true' && control.describedBy === '') failures.push(at(`${control.where} is aria-invalid but has no aria-describedby message`));
+  }
+
+  // 10: every interactive target is at least 44 px high (ui-spec §8's house rule).
+  for (const control of controls) {
+    if (control.disabled || control.targetInline || control.targetHeight >= 44) continue;
+    failures.push(at(`${control.where} is ${control.targetHeight} px high — ui-spec §8 asks for 44`));
   }
 
   // 4: duplicate ids.

@@ -42,8 +42,10 @@
     <p class="state">{{ strings.pickScript }}</p>
   } @else {
     <p class="preview-toggle">
-      <input type="checkbox" id="draws-preview" [checked]="includePreview()" (change)="onPreviewChange($event)" />
-      <label for="draws-preview">{{ strings.showPreview }}</label>
+      <label>
+        <input type="checkbox" id="draws-preview" [checked]="includePreview()" (change)="onPreviewChange($event)" />
+        {{ strings.showPreview }}
+      </label>
     </p>
 
     @if (!canRedraw().enabled) {
