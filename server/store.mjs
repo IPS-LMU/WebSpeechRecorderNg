@@ -657,6 +657,7 @@ export class Store {
     if (existing !== null) {
       return existing;
     }
+    const now = new Date().toISOString();
     const legacy = this.readJson(this.scriptPath(id));
     mkdirSync(join(this.scriptDir(id), 'revisions'), {recursive: true});
     if (legacy !== null) {
@@ -664,8 +665,15 @@ export class Store {
       if (!existsSync(this.scriptVersionPath(id, 1))) {
         this.writeJson(this.scriptVersionPath(id, 1), legacy);
       }
+      // The version *document* is not the history: `GET …/version` and the editor's panel read the
+      // index, so an imported script whose meta says `publishedVersion: 1` must appear there too, or
+      // the two disagree and the panel shows an empty history for a published script.
+      if (!existsSync(this.scriptVersionsPath(id))) {
+        this.writeJson(this.scriptVersionsPath(id), {
+          versions: [{version: 1, publishedDate: now, note: null, minRecorderVersion: null}],
+        });
+      }
     }
-    const now = new Date().toISOString();
     const meta = {
       scriptId: coerceId(id),
       name: legacy?.name ?? null,

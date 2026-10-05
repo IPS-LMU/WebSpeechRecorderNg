@@ -228,7 +228,7 @@ Delivered: `core/script-draft.service.ts` (+spec) with the snapshots, the edit i
 | E3 checks panel | `app/validation` UI | Severity groups, `line · subject`, consequence sentence, deep link into the editor, one-click fixes; errors block Publish, warnings are listed to the publisher; **server-returned `details.checks` render here too** (B3), so a publish-time race appears as findings, not a bare 409. |
 | E3 publish/versions | `script-api.service.ts`, shell | Publish with gate; version list + restore (`draft/_restore`) **with a designed surface — ui-spec has no version-history screen (D5): add a panel to the script inspector and amend ui-spec §3.3**; PATCH name/archive; create/duplicate from the library; `minRecorderVersion` derived from the feature map and shown as N04. |
 | E3 media | `script-api.service.ts`, `media.service.ts`, playback block | `POST project/{p}/media`, capture `durationMs` (D-G), attach to `playback.src`; `GET` the media list for the picker and W11; `DELETE` surfaces `MEDIA_IN_USE`; orphan uploads are called out because undo cannot remove them (B1). |
-| R2–R4 server write surface | `server/{api,store,etag,validate}.mjs` (track R) | R1–R4 land here; the M3 gate runs against the receiver, not FILES. Conformance fixtures under `doc/script-editor/checks/` are shared with V1. |
+| R2–R4 server write surface | `server/{api,store,etag,validate}.mjs` (track R) | **Done.** R1–R4 landed with the editor's write path (see R1–R4 above and the M3 gate); the M3 verification ran against the receiver, not FILES, and the conformance fixtures under `doc/script-editor/checks/` are shared with V1. |
 | Gate | **Proven.** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` **398 pass**, `npm run test_module` **137 pass**, `npm run build_editor` green with **no budget warning**, theme audit exit 0 on `…/1245/edit` (1366×768 and 1920×1080). The write path is exercised against the **real receiver** (built editor served same-origin by it, headless CDP): a shell name edit, a structural outline move and an inspector field edit each go *All changes saved → Unsaved changes → All changes saved* and are **persisted across reload**; the same sequence over `fetch` covers create → publish (including `409 PUBLISH_REJECTED` with `details.checks`) → version read → duplicate → a stale `If-Match` `412 SCRIPT_DRAFT_CONFLICT` with `details.current` + `currentEtag` → retry → `_restore` → `PATCH` → media upload/`DELETE` → `409 MEDIA_IN_USE` for a referenced file. The editor→library round-trip over **every** fixture is a spec of its own (`core/round-trip.spec.ts`: no key lost, a legacy `promptUnits` section gains no `groups`, `_shuffled*` never persisted). One real integration bug was found by this pass and fixed: the draft service's `model` computed returned the same object reference, so Angular's computed equality suppressed notification and **no screen re-rendered after an edit** — pinned by a spec now. The two-browser race is covered by the 412/reapply specs rather than two live browsers. | M3 |
 
 ### M4 — Banks and draws
@@ -651,37 +651,41 @@ existing prefill already covers word/sentence lists and the design's bank become
 
 ## 11. Outstanding work: plans for what is still missing
 
-Five items are open after M5. Each is planned with its evidence, its steps, the acceptance that
-closes it, and what it needs from a person. Ordered by value against cost.
+Four items are open after M5; §11.1 and §11.6 are closed below. Each remaining one is planned with
+its evidence, its steps, the acceptance that closes it, and what it needs from a person. Ordered by
+value against cost.
 
-### 11.1 FILES-mode fixtures the editor asks for and the tree does not have
+### 11.1 FILES-mode fixtures the editor asks for and the tree does not have — **Done**
 
 **Evidence** — a Network capture on the dev server (`ng serve` on 4330, headless Chrome, all eight
-editor routes) shows every failing request, and they are all fixtures:
+editor routes) showed every failing request, and they were all fixtures:
 
-| Request (FILES mode) | Route(s) that ask | Why it is missing |
+| Request (FILES mode) | Route(s) that ask | Why it was missing |
 |---|---|---|
-| `GET /test/version.json` | every editor route | the deployment-version endpoint (rest-api §1.1) has no fixture; the endpoint was added after the fixture set |
-| `GET /test/project/Demo1/script/<id>/version.json` | `…/script/<id>/edit`, `…/source` | the version-history panel (rest-api §2.5) has no fixture for any script |
-| `GET /favicon.ico` | every route | the editor's `index.html` declares no icon |
+| `GET /test/version.json` | every editor route | the deployment-version endpoint (rest-api §1.1) had no fixture; the endpoint was added after the fixture set |
+| `GET /test/project/Demo1/script/<id>/version.json` | `…/script/<id>/edit`, `…/source` | the version-history panel (rest-api §2.5) had no fixture for any script |
+| `GET /favicon.ico` | every route | the editor's `index.html` declared no icon |
 
-**Steps**
-1. `src/test/version.json` = `{"recorderVersion":"3.11.26"}` — the value `--recorder-version` serves,
-   so the panel and W10 read the same thing in both modes.
-2. `src/test/project/Demo1/script/<id>/version.json` for every id in the list fixture, in the shape
-   `[{version, publishedDate, note, minRecorderVersion}]` sorted descending — exactly what
-   `store.versionsIndex()` returns (`server/store.mjs`). Generate them **from the receiver** (one
-   `curl` per script against a seeded instance, the technique already used for the draw record and
-   the library list) rather than writing them by hand, so REST and FILES cannot drift. Give `1245`
-   three versions to match its `publishedVersion: 3`, and `1` none, so both the populated and the
-   empty panel are exercisable.
-3. Editor `index.html`: `<link rel="icon" href="data:,">` (or a small asset) so the console and the
-   network log stay clean.
-4. Add the two paths to README §7's fixture inventory.
+**What landed**
+1. `src/test/version.json` = `{"recorderVersion":"3.11.26"}` — the value `--recorder-version` serves.
+2. `src/test/project/Demo1/script/<id>/version.json` for all twelve list rows, in the shape
+   `store.versionsIndex()` writes (`[{version, publishedDate, note, minRecorderVersion}]`, newest
+   first): `publishedVersion` entries each, so `1245` has three (its list row says v3),
+   `dysartri-kortversion` four, `3456` two, and the never-published rows an empty array — which also
+   exercises the panel's empty state. The newest entry carries the floor the receiver would stamp
+   (`bank-draw`/`playback`/`dysartri-kortversion-sti` → `3.11.26`), computed with the server's own
+   `minRecorderVersionFor`.
+3. `index.html` declares `<link rel="icon" href="data:,">`, so no 404 for an icon.
+4. **A real receiver bug fell out of planning this:** the legacy import wrote the version *document*
+   (`versions/1.json`) but never the index, so after `--migrate` a script reported
+   `publishedVersion: 1` with an empty history — the editor's panel showed "no versions" for a
+   published script and Restore had nothing to restore. `ensureScriptMeta` now seeds the index too,
+   and `server/maintenance.test.mjs` asserts the index agrees with the meta and does not duplicate on
+   a second migrate.
 
-**Acceptance** — the Network capture of all eight routes reports no response ≥ 400; the version
-panel renders its rows from the fixture (the panel's spec already flushes the same shape through
-`HttpTestingController`); the theme audit still passes on the list and edit routes.
+**Acceptance — met** — the Network capture of nine route loads (including the script-inspector
+variant) reports **zero** responses ≥ 400; the history panel renders `1245`'s three versions with
+their notes, dates and the session counts joined from the list fixture; the server suite is green.
 
 ### 11.2 Screen readers: the manual passes, and the machine-checkable subset
 
@@ -781,9 +785,7 @@ presses the control, and the two drawn items (D001/D002) fetch their bank model 
 navigation case produces no play event after the switch. Assertions are on browser-observable events
 and server PATCHes, never on internal state, so the driver cannot pass by accident.
 
-### 11.6 Bookkeeping
+### 11.6 Bookkeeping — **Done**
 
-- The M3 table's `R2–R4 server write surface` row still reads as a plan; give it the `**Done.**`
-  marker the other R rows carry.
-- 11.1's new fixtures go into README §7's inventory, and `src/test/project/Demo1/script/*/version.json`
-  into the note about fixtures generated from the receiver.
+- The M3 table's `R2–R4 server write surface` row carries the `**Done.**` marker the other R rows do.
+- README §7's fixture inventory now names `test/version.json` and the per-script version indexes.

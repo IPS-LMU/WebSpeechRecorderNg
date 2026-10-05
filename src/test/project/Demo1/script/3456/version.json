@@ -1,0 +1,14 @@
+[
+  {
+    "version": 2,
+    "publishedDate": "2026-08-08T09:00:00.000Z",
+    "note": "Published version 2",
+    "minRecorderVersion": null
+  },
+  {
+    "version": 1,
+    "publishedDate": "2026-08-01T09:00:00.000Z",
+    "note": null,
+    "minRecorderVersion": null
+  }
+]

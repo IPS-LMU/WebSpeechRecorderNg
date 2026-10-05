@@ -444,7 +444,9 @@ rule).
   runtime. 400 specs today.
 - **Fixtures.** `src/test/script/*.json` (playback with all five placements plus a drawn group,
   a drawn-group script, legacy `promptUnits` scripts, a ~500-item script), `src/test/bank/*.json`,
-  and the FILES-mode tree the editor reads at `/test` — including the library list, the per-script
+  and the FILES-mode tree the editor reads at `/test` — including the library list, the deployment
+  version (`test/version.json`, the value `--recorder-version` serves), each script's version index
+  (`test/project/<p>/script/<id>/version.json`, the shape `GET …/version` returns), the per-script
   `draft.json` and the draw record/trace, all taken from the receiver's own responses so
   `ApiType.FILES` and REST agree by construction. `core/round-trip.spec.ts` proves every fixture
   survives load → write with no key lost, no fabricated `groups` over a legacy section and no
