@@ -45,8 +45,11 @@
       </svg>
     </span>
     @if (row.hasChildren) {
+      <!-- Mouse affordance only: the treeitem itself expands with →/←, so this stays out of the
+           tab order and out of the accessibility tree. -->
       <button type="button" class="twisty" [attr.aria-expanded]="!isCollapsed(row)"
-              [attr.aria-label]="expandLabel(row)" [title]="expandLabel(row)" (click)="toggleRow(row)">
+              aria-hidden="true" tabindex="-1"
+              [title]="expandLabel(row)" (click)="toggleRow(row)">
         <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
           @if (isCollapsed(row)) {
             <path d="M4 2l4 4-4 4z" fill="currentColor"/>
@@ -57,6 +60,10 @@
       </button>
     }
     <button type="button" class="row-main" [id]="rowId(row)"
+            role="treeitem"
+            [attr.aria-level]="row.level + 1"
+            [attr.aria-posinset]="row.posInSet"
+            [attr.aria-setsize]="row.setSize"
             [attr.aria-current]="isCurrent(row) ? 'true' : null"
             [attr.aria-expanded]="row.hasChildren ? !isCollapsed(row) : null"
             [tabindex]="focusKey() === row.key ? 0 : -1"

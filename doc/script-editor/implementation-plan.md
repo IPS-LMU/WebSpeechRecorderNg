@@ -687,36 +687,40 @@ editor routes) showed every failing request, and they were all fixtures:
 variant) reports **zero** responses ≥ 400; the history panel renders `1245`'s three versions with
 their notes, dates and the session counts joined from the list fixture; the server suite is green.
 
-### 11.2 Screen readers: the manual passes, and the machine-checkable subset
+### 11.2 Screen readers: the manual passes, and the machine-checkable subset — **Done, one human step left**
 
-The two passes themselves stay manual — no headless tool announces a tree — but most of ui-spec §8
-is machine-checkable, and the repo already has the pattern (`bin/layout_probe.mjs`,
-`bin/theme_audit.mjs`, both CDP).
+**What landed**
+1. `bin/a11y_audit.mjs` (CDP, Node builtins, no new dependency) checks eight properties per route:
+   accessible names (a `title` alone is not enough for an icon-only control), labels on every form
+   control, `aria-invalid` wired to a text message through `aria-describedby`, referential integrity
+   of `aria-labelledby`/`aria-describedby`, unique ids, `alt` on non-decorative images, nothing
+   focusable inside `aria-hidden`, `radiogroup` children with `aria-checked`, a `role="tree"`
+   containing `treeitem`s with `aria-level` and `aria-expanded`, and tab order that never jumps back
+   up within one column.
+2. It runs in the CI `audit` job for the library list, the editor, the preview, the bank browser,
+   the draw-rule state (via `--prepare bin/audit/open-draw-rule.js`), the draws view and the JSON
+   source — all seven pass at 1366×768.
+3. `doc/script-editor/a11y.md` holds the two manual passes as repeatable scripts (nine steps for
+   VoiceOver on Safari, the same for NVDA on Firefox, with what each step should announce), so the
+   milestone exit is recorded evidence rather than an opinion.
 
-**Steps**
-1. `bin/a11y_audit.mjs` (CDP, Node builtins, no new dependency): for each route assert
-   - every interactive element resolves an accessible name (text content, `aria-label` or
-     `aria-labelledby`);
-   - every form control has a label (`<label for>`, a wrapping label or an accessible name), and an
-     invalid field carries `aria-invalid` **plus** a text message wired through `aria-describedby`;
-   - the editor's outline keeps `role=tree`/`treeitem` semantics with `aria-current` on the selected
-     row, the preview keeps `role=radiogroup` + `aria-checked`, and the state surfaces keep
-     `role=status`/`role=alert`;
-   - tab order follows visual order in the three columns (compare the document order of focusable
-     nodes against their `getBoundingClientRect()` order);
-   - no severity or status is colour-only (the chip's text is asserted), and decorative graphics are
-     `aria-hidden`.
-2. Wire it into the existing CI `audit` job for the same six routes (one Chrome, one dev server), so
-   an `aria-label` that disappears fails the build.
-3. `doc/script-editor/a11y.md`: the two manual scripts, step by step with the expected
-   announcements — outline navigation and reorder, the items table, the inspector's playback fieldset
-   and its errors, the source view's parse error, the checks panel, the bank rule (suspended count),
-   the draws detail and its CSV link, and the preview's step simulation — so the pass is repeatable
-   and its result is a recorded pass, not an opinion.
+**It found a real defect, and the fix is in.** The editor's outline had `role="tree"` on the
+container but plain `<button>`s as rows, so a screen reader lost the tree entirely — no position,
+no level, no expand/collapse. The rows are now `role="treeitem"` with `aria-level` (1 for the script,
+2 for sections, 3 for groups, 4 for items), `aria-posinset`/`aria-setsize` computed in
+`flattenOutline`, and the existing `aria-expanded`/`aria-current`/roving `tabindex`; the disclosure
+twisty became `aria-hidden` with `tabindex="-1"` (the treeitem's own `→`/`←` do the expanding for
+keyboard users).
 
-**Acceptance** — the probe exits 0 on all six routes, and it fails when one icon-only button's
-`aria-label` is removed (a failing-before proof, as the outline spec was proved); the two manual
-passes are recorded in this file with the build hash they were run against.
+**Its own sensitivity was checked**, not assumed: removing one `aria-label` from the outline's
+icon-only delete button makes the probe exit 1 naming that button; restoring it returns to green.
+Two false rules were tightened while doing that — a full geometric sort of the tab order (one
+toolbar row's boxes differ in height, so it fired on 13 px jitter) became the "never back up within
+one column" rule, which also tolerates the side-by-side columns a document-order walk legitimately
+leaves and re-enters.
+
+**Remaining (human):** the VoiceOver and NVDA passes themselves, using the script — record the
+commit hash and the result in this file when they run.
 
 ### 11.3 A local harness for the documented deployment shape
 

@@ -48,6 +48,12 @@ const draftStub = () => ({
 
 let draft = draftStub();
 
+/**
+ * One macrotask, so CDK's own measurement can run before the next assertion. The executor form is
+ * required here: the workspace's TS `lib` predates `Promise.withResolvers`.
+ */
+const nextMacrotask = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 20));
+
 /** The viewport measures its own box, so the host needs a definite height the way the shell gives it one. */
 const mount = async (script: EditorScript) => {
   draft = draftStub();
@@ -59,14 +65,22 @@ const mount = async (script: EditorScript) => {
   host.style.height = '600px';
   fixture.componentRef.setInput('script', script);
   fixture.detectChanges();
-  // CDK renders from a measured box; give the viewport one explicitly and let it re-measure.
+  // CDK renders from a measured box and measures on its own schedule (ResizeObserver plus its own
+  // change-detection), so one pass is timing-sensitive under load — it once rendered nothing when
+  // the machine was busy. Pump until it has rendered; a branch that is genuinely broken still never
+  // renders, which is what the missing scroll strategy produces (three specs fail on that).
   const viewport = host.querySelector('cdk-virtual-scroll-viewport') as HTMLElement | null;
   if (viewport !== null) {
     viewport.style.height = '300px';
-    window.dispatchEvent(new Event('resize'));
-    await fixture.whenStable();
-    fixture.detectChanges();
-    await fixture.whenStable();
+    for (let attempt = 0; attempt < 10; attempt++) {
+      window.dispatchEvent(new Event('resize'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      if (host.querySelectorAll('.row').length > 0) {
+        break;
+      }
+      await nextMacrotask();
+    }
   }
   return fixture;
 };

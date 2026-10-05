@@ -26,6 +26,9 @@ export interface OutlineRow {
   /** Whether the row can be expanded/collapsed (`→`/`←`); drawn groups are leaves. */
   hasChildren: boolean;
   level: number;
+  /** 1-based position among its siblings and how many there are, for `aria-posinset`/`aria-setsize`. */
+  posInSet: number;
+  setSize: number;
   selection: Selection;
   label: string;
   secondary: string;
@@ -90,6 +93,8 @@ export function flattenOutline(
     parentKey: null,
     kind: 'script',
     level: 0,
+    posInSet: 1,
+    setSize: 1,
     selection: {kind: 'script'},
     label: isObject(script) && typeof script['name'] === 'string' ? script['name'] : S.editor.scriptWord,
     secondary: fillTemplate(S.outline.sectionsCount, {count: sections.length}),
@@ -107,6 +112,8 @@ export function flattenOutline(
       parentKey: 'script',
       kind: 'section',
       level: 1,
+      posInSet: sectionIndex + 1,
+      setSize: sections.length,
       selection: {kind: 'section', section: sectionIndex},
       label: isObject(section) && typeof section['name'] === 'string'
         ? section['name']
@@ -135,6 +142,8 @@ export function flattenOutline(
           parentKey: sectionKey,
           kind: 'group',
           level: 2,
+          posInSet: groupIndex + 1,
+          setSize: groups.length,
           selection: {kind: 'group', section: sectionIndex, group: groupIndex},
           label: S.centre.drawnGroupCaption,
           secondary: bankName,
@@ -153,6 +162,8 @@ export function flattenOutline(
         parentKey: sectionKey,
         kind: 'group',
         level: 2,
+        posInSet: groupIndex + 1,
+        setSize: groups.length,
         selection: {kind: 'group', section: sectionIndex, group: groupIndex},
         label: fillTemplate(S.outline.groupLabel, {n: groupIndex + 1}),
         secondary: fillTemplate(S.outline.itemsCount, {count: items.length}),
@@ -169,6 +180,8 @@ export function flattenOutline(
           parentKey: groupKey,
           kind: 'item',
           level: 3,
+          posInSet: itemIndex + 1,
+          setSize: items.length,
           selection: {kind: 'item', section: sectionIndex, group: groupIndex, item: itemIndex},
           label: isObject(item) && typeof item['itemcode'] === 'string' && item['itemcode'].trim() !== ''
             ? item['itemcode']
