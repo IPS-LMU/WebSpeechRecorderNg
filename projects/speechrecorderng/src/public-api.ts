@@ -10,7 +10,7 @@ export {VERSION} from './lib/spr.module.version'
 export {SPEECHRECORDER_ENVIRONMENT_DEFAULTS} from './lib/environment/environment.defaults'
 export {SPEECHRECORDER_CONFIG} from './lib/spr.config'
 
-export {UUID} from "./lib/utils/utils"
+export {UUID, messageOf} from "./lib/utils/utils"
 export {SprLogger, SprLogLevel} from "./lib/utils/logger"
 export {Action} from "./lib/action/action";
 

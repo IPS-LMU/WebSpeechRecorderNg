@@ -19,16 +19,18 @@
 
   <span class="spacer"></span>
 
-  @if (editorActive()) {
+  @if (editorRoute()) {
     <p class="save-state" role="status" aria-live="polite">
       @if (draft.lastError(); as error) {
-        <span class="save-error">{{ strings.errorState }} {{ error }}</span>
+        <span class="save-error">{{ saveErrorLabel() }} {{ error }}</span>
         <button type="button" class="retry" (click)="draft.flush()">{{ strings.retry }}</button>
       } @else {
         {{ saveStateText() }}
       }
     </p>
+  }
 
+  @if (editorActive()) {
     <a class="warning-count" [routerLink]="['/project', project(), 'script', scriptId(), 'source']"
        [attr.aria-label]="strings.warningsLabel + ': ' + countSummary()">{{ countSummary() }}</a>
 

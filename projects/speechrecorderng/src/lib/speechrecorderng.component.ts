@@ -20,7 +20,7 @@ import {ProjectService} from "./speechrecorder/project/project.service";
 import {AudioContextProvider} from "./audio/context";
 import {RecordingService} from "./speechrecorder/recordings/recordings.service";
 import {RecordingFileDescriptorImpl} from "./speechrecorder/recording";
-import {Arrays, DataSize} from "./utils/utils";
+import {Arrays, DataSize, messageOf} from "./utils/utils";
 import {RecorderComponent} from "./recorder_component";
 import {BasicRecorder} from "./speechrecorder/session/basicrecorder";
 import {SprDb} from "./db/inddb";
@@ -139,10 +139,10 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
                       });
 
                   }, error: (reason) => {
-                    this.sm.statusMsg = reason;
+                    this.sm.statusMsg = messageOf(reason);
                     this.sm.statusAlertType = 'error';
                     this.sm.statusWaiting = false;
-                    SprLogger.error("Error fetching project config: " + reason)
+                    SprLogger.error("Error fetching project config: " + messageOf(reason))
                   }
                 }
               );
@@ -154,10 +154,10 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
           },
           error:(reason) =>
           {
-            this.sm.statusMsg = reason;
+            this.sm.statusMsg = messageOf(reason);
             this.sm.statusAlertType = 'error';
             this.sm.statusWaiting = false;
-            SprLogger.error("Error fetching session " + reason)
+            SprLogger.error("Error fetching session " + messageOf(reason))
           }
         });
       }
@@ -191,14 +191,14 @@ export class SpeechrecorderngComponent extends RecorderComponent implements OnIn
               this.fetchRecordings(sess, this.script)
             },
             error: (reason) => {
-              const errMsg = this.i18n.t('spr.status.scriptPrefillError', {value: reason})
+              const errMsg = this.i18n.t('spr.status.scriptPrefillError', {value: messageOf(reason)})
               SprLogger.error(errMsg)
               this.sm.statusMsg = errMsg;
               this.sm.statusAlertType = 'error';
             }
           });
         }, error: (reason) => {
-          let errMsg = this.i18n.t('spr.status.scriptFetchError', {value: reason})
+          let errMsg = this.i18n.t('spr.status.scriptFetchError', {value: messageOf(reason)})
           SprLogger.error(errMsg)
           this.sm.statusMsg = errMsg;
           this.sm.statusAlertType = 'error';

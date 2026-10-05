@@ -75,6 +75,7 @@ async function setup(url: string): Promise<Harness> {
 async function setupEditor(): Promise<Harness> {
   const state = await setup('/project/Demo1/script/1245/edit');
   state.draft.loadedScript.set('1245');
+  state.draft.model.set({name: 'Test1'});
   state.draft.etag.set('"A"');
   state.harness.detectChanges();
   return state;
@@ -342,7 +343,33 @@ describe('AppShell', () => {
     state.draft.loadedScript.set('9999');
     state.harness.detectChanges();
 
-    expect(state.root.querySelector('.save-state')).toBeNull();
+    // The toolbar names the mismatch instead of claiming a save about a draft that is not there.
+    expect((state.root.querySelector('.save-state') as HTMLElement).textContent).toContain('No draft loaded');
     expect(state.root.querySelector('button[aria-label="Publish"]')).toBeNull();
+  });
+
+  it('says the draft could not be loaded, and never "all changes saved", when the load failed', async () => {
+    const state = await setup('/project/Demo1/script/1245/edit');
+    // A failed load leaves no model and no loaded script, and carries the reason.
+    state.draft.model.set(null);
+    state.draft.lastError.set('HTTP 404 Not Found');
+    state.harness.detectChanges();
+
+    const status = state.root.querySelector('.save-state') as HTMLElement;
+    expect(status.textContent).toContain('The draft could not be loaded:');
+    expect(status.textContent).toContain('HTTP 404 Not Found');
+    expect(status.textContent).not.toContain('All changes saved');
+    expect(status.textContent).toContain('Retry');
+    expect(state.root.querySelector('button[aria-label="Publish"]')).toBeNull();
+  });
+
+  it('keeps the save wording distinct once a draft is loaded and a save fails', async () => {
+    const state = await setupEditor();
+    state.draft.lastError.set('HTTP 500');
+    state.harness.detectChanges();
+
+    const status = state.root.querySelector('.save-state') as HTMLElement;
+    expect(status.textContent).toContain('The draft could not be saved:');
+    expect(status.textContent).not.toContain('could not be loaded');
   });
 });

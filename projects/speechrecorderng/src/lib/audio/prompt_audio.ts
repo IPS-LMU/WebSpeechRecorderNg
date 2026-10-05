@@ -4,6 +4,7 @@ import {firstValueFrom} from "rxjs";
 import {AudioContextProvider} from "./context";
 import {Mediaitem} from "../speechrecorder/script/script";
 import {ProjectService} from "../speechrecorder/project/project.service";
+import {messageOf} from "../utils/utils";
 import {SPEECHRECORDER_CONFIG, SpeechRecorderConfig} from "../spr.config";
 import {SprLogger} from "../utils/logger";
 
@@ -236,8 +237,4 @@ export class PromptAudioService {
       finish('stopped');
     }
   }
-}
-
-function messageOf(reason: unknown): string {
-  return reason instanceof Error ? reason.message : String(reason);
 }

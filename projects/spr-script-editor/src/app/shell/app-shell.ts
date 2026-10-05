@@ -49,10 +49,17 @@ export class AppShell {
   readonly project = computed(() => PROJECT_IN_URL.exec(this.url())?.[1] ?? null);
   readonly scriptId = computed(() => SCRIPT_IN_URL.exec(this.url())?.[1] ?? null);
 
-  /** True only when the draft service holds the script the URL names (never stale state). */
+  /** True on an editor route, whether or not the draft it names has loaded. */
+  readonly editorRoute = computed(() => this.scriptId() !== null);
+
+  /**
+   * True when the draft service holds the script the URL names **and has a model to show**: `load()`
+   * records the requested script before its request returns, so an id match alone would claim a
+   * draft that a failed load never produced.
+   */
   readonly editorActive = computed(() => {
     const id = this.scriptId();
-    return id !== null && this.draft.loadedScript() === id;
+    return id !== null && this.draft.loadedScript() === id && this.draft.model() !== null;
   });
 
   readonly scriptName = computed(() => this.draft.model()?.name ?? '');
@@ -62,6 +69,11 @@ export class AppShell {
   readonly serverFindings = this.findings.server;
 
   readonly saveStateText = computed(() => {
+    if (!this.editorActive()) {
+      // Nothing this URL names is loaded, so "all changes saved" would be a claim about a draft
+      // that is not there.
+      return this.strings.noDraftState;
+    }
     if (this.draft.saving()) {
       return this.strings.savingState;
     }
@@ -70,6 +82,9 @@ export class AppShell {
     }
     return this.strings.savedState;
   });
+
+  /** Which half failed: a draft that never loaded reads differently from a save that did not land. */
+  readonly saveErrorLabel = computed(() => this.editorActive() ? this.strings.errorState : this.strings.loadFailedState);
 
   readonly countSummary = computed(() => {
     const {errors, warnings} = this.counts();

@@ -19,6 +19,9 @@ export const SHELL_STRINGS = {
   savingState: 'Saving…',
   unsavedState: 'Unsaved changes',
   errorState: 'The draft could not be saved:',
+  /** A draft that never loaded says so, and says which half failed. */
+  loadFailedState: 'The draft could not be loaded:',
+  noDraftState: 'No draft loaded',
   retry: 'Retry',
 
   nameLabel: 'Script name',

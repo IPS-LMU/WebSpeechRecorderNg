@@ -1,6 +1,44 @@
 
 import {SprLogger} from "./logger";
 
+/**
+ * A readable sentence for whatever a failed request or operation handed back.
+ *
+ * The status lines used to print the reason object itself, which reached the operator as
+ * "[object Object]" — an `HttpErrorResponse` is not an `Error`, and a rejected promise can carry a
+ * plain object, so a bare `String(reason)` is not enough. Order: an Error's message, an object's
+ * `message`, an HTTP status with its text, then the value itself.
+ */
+export function messageOf(reason: unknown): string {
+  if (reason === null || reason === undefined) {
+    return '';
+  }
+  if (typeof reason === 'string') {
+    return reason;
+  }
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+  const candidate = reason as {message?: unknown, status?: unknown, statusText?: unknown};
+  if (typeof candidate.message === 'string' && candidate.message !== '') {
+    return candidate.message;
+  }
+  if (typeof candidate.status === 'number') {
+    return typeof candidate.statusText === 'string' && candidate.statusText !== ''
+      ? `HTTP ${candidate.status} ${candidate.statusText}`
+      : `HTTP ${candidate.status}`;
+  }
+  try {
+    const rendered = JSON.stringify(reason);
+    if (rendered !== undefined) {
+      return rendered;
+    }
+  } catch (ignored) {
+    // A circular structure has no JSON form; fall through to String.
+  }
+  return String(reason);
+}
+
   export class UUID {
 
     static generate():string {

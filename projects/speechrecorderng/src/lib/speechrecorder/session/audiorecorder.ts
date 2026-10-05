@@ -2,6 +2,7 @@ import {AudioCapture, AudioCaptureListener} from '../../audio/capture/capture';
 import {AudioPlayer, AudioPlayerEvent, EventType} from '../../audio/playback/player'
 import {WavWriter} from '../../audio/impl/wavwriter'
 import {RecordingFile, RecordingFileUtils} from '../recording'
+import {messageOf} from '../../utils/utils'
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -693,7 +694,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
                 error: err => {
                   SprLogger.error("Could not load recording file from server: " + err);
                   this.liveLevelDisplayState = LiveLevelState.READY;
-                  this.statusMsg = 'Recording file could not be loaded: ' + err;
+                  this.statusMsg = 'Recording file could not be loaded: ' + messageOf(err);
                   this.statusAlertType = 'error';
                   this.changeDetectorRef.detectChanges();
                 }
@@ -739,7 +740,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               error: err => {
                 SprLogger.error("Could not load recording file from server: " + err);
                 this.liveLevelDisplayState = LiveLevelState.READY;
-                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusMsg = 'Recording file could not be loaded: ' + messageOf(err);
                 this.statusAlertType = 'error';
                 this.changeDetectorRef.detectChanges();
               }
@@ -779,7 +780,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               error: err => {
                 SprLogger.error("Could not load recording file from server: " + err);
                 this.liveLevelDisplayState = LiveLevelState.READY;
-                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusMsg = 'Recording file could not be loaded: ' + messageOf(err);
                 this.statusAlertType = 'error';
               }
             });
@@ -813,7 +814,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
               }, error: err => {
                 SprLogger.error("Could not load recording file from server: " + err);
                 this.liveLevelDisplayState = LiveLevelState.READY;
-                this.statusMsg = 'Recording file could not be loaded: ' + err;
+                this.statusMsg = 'Recording file could not be loaded: ' + messageOf(err);
                 this.statusAlertType = 'error';
               }
             })
@@ -1349,10 +1350,10 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
               this.ar.project=project;
               this.ar.fetchRecordings(sess);
             },error:(reason) =>{
-              this.ar.statusMsg=reason;
+              this.ar.statusMsg=messageOf(reason);
               this.ar.statusAlertType='error';
               this.ar.statusWaiting=false;
-              SprLogger.error("Error fetching project config: "+reason)
+              SprLogger.error("Error fetching project config: "+this.ar.statusMsg)
             }});
 
           } else {
@@ -1360,7 +1361,7 @@ export class AudioRecorderComponent extends RecorderComponent  implements OnInit
           }
         },
         error:(reason) => {
-          this.ar.statusMsg = reason;
+          this.ar.statusMsg = messageOf(reason);
           this.ar.statusAlertType = 'error';
           this.ar.statusWaiting=false;
           SprLogger.error("Error fetching session " + reason)
