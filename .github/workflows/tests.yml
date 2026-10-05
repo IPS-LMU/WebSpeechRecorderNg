@@ -99,3 +99,38 @@ jobs:
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/source --viewports 1366x768
+
+  dry-run:
+    name: Recorder dry run (Chrome, fake media)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      # The driver drives the production bundle, so this job also proves the app build.
+      - name: Build the recorder
+        run: npm run build
+      # The receiver serves the built bundle and creates session 1 from the fixture script; Chrome
+      # feeds it a fake media stream. One step, because a background process does not survive the
+      # end of the step that started it.
+      - name: Drive a session end to end
+        run: |
+          set -e
+          node server/server.mjs --port 8391 --data /tmp/dryrun --seed src/test \
+            --app dist/cavox/browser --project Demo1 --script playback --quiet > /tmp/receiver.log 2>&1 &
+          google-chrome --headless=new --remote-debugging-port=9333 --user-data-dir=/tmp/cdp-dry \
+            --use-fake-ui-for-media-stream --use-fake-device-for-media-stream \
+            --autoplay-policy=no-user-gesture-required about:blank > /tmp/chrome.log 2>&1 &
+          for i in $(seq 1 120); do
+            curl -sf -o /dev/null http://127.0.0.1:8391/api/v1/version && break
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:9333/json/version && break
+            sleep 1
+          done
+          node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
