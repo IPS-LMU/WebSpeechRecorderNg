@@ -28,3 +28,13 @@ export function loadScript<T extends EditorScript>(script: T): T {
   }
   return script;
 }
+
+/**
+ * True while any section still carries the legacy `promptUnits` shape (data-model.md §4 invariant 10,
+ * D-M): such a script opens **read-only** until N06's one-click conversion runs. The draft service
+ * folds this into `writesDisabled`, so the switch is the same one FILES mode and a 403 use.
+ */
+export function hasLegacySection(script: EditorScript | null): boolean {
+  return (script?.sections ?? []).some(
+    (section) => section.promptUnits !== undefined && section.promptUnits !== null);
+}

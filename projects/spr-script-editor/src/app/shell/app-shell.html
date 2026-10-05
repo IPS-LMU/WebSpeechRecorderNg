@@ -101,7 +101,14 @@
 </main>
 
 @if (draft.writesDisabled()) {
-  <p class="read-only-note" role="status">{{ access.readOnly() ? access.readOnlyMessage : strings.readOnlyReason }}</p>
+  @if (draft.legacy()) {
+    <p class="read-only-note" role="status">
+      {{ strings.legacyReadOnly }}
+      <a [routerLink]="['/project', project(), 'script', scriptId(), 'source']">{{ strings.legacyConvertLink }}</a>
+    </p>
+  } @else {
+    <p class="read-only-note" role="status">{{ access.readOnly() ? access.readOnlyMessage : strings.readOnlyReason }}</p>
+  }
 }
 
 @if (access.signInRequired()) {

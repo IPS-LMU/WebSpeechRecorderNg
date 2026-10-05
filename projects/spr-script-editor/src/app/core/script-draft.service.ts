@@ -24,7 +24,7 @@ import {HttpErrorResponse} from '@angular/common/http';
 import {computed, inject, Injectable, signal} from '@angular/core';
 import {ApiType, SPEECHRECORDER_CONFIG} from 'speechrecorderng';
 import {firstValueFrom} from 'rxjs';
-import {loadScript} from './load';
+import {hasLegacySection, loadScript} from './load';
 import {AccessService} from './access.service';
 import {ScriptApiService} from './script-api.service';
 import type {EditorScript} from './script.model';
@@ -225,7 +225,9 @@ export class ScriptDraftService {
   readonly conflict = this.conflictSignal.asReadonly();
   readonly lastSaved = signal<string | null>(null);
   readonly lastError = signal<string | null>(null);
-  readonly writesDisabled = computed(() => this.writesDisabledSignal() || this.access.readOnly());
+  /** A legacy section (D-M, N06) keeps the script read-only until it is converted. */
+  readonly legacy = computed(() => hasLegacySection(this.model()));
+  readonly writesDisabled = computed(() => this.writesDisabledSignal() || this.access.readOnly() || this.legacy());
 
   /** The coordinates of the draft currently loaded; `null` until `load` succeeds. */
   readonly loadedProject = signal<string | null>(null);

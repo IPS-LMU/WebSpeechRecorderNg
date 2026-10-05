@@ -1056,3 +1056,26 @@ fixture carries it too.
 **Verified** — `server/list.test.mjs` pins the `1245` row's five names in order; the library spec
 covers the joined line and the unnamed case (no line at all, not an empty one). Editor suite 478,
 server 57; the list renders the names against a seeded receiver.
+
+### 11.17 A legacy script did not actually open read-only — **Done**
+
+data-model.md §2 (D-M) says a `promptUnits` script "detects it, opens read-only, and migrates only
+on request (N06)", and §4's invariant row repeats it. The editor detected it (N06) and offered the
+conversion, and the loader never fabricated `groups` — but nothing made the script read-only: an
+operator could keep editing and publishing a legacy draft while N06 sat in the panel. The plan's
+D-M row and data-model §32/§373 asserted behaviour the tree did not have.
+
+**What landed** — `hasLegacySection` (core/load.ts) folded into `ScriptDraftService` as `legacy`, and
+into `writesDisabled` next to FILES mode and the 403 flag: a legacy draft disables the inspector, the
+outline, the centre, Publish and the autosave. The conversion remains possible — the source view's
+N06 fix is not gated by `writesDisabled`, and once it runs the model no longer carries `promptUnits`,
+so `writesDisabled` lifts by itself and the debounced write persists the converted document. The
+shell's read-only line names this cause separately, with N06's own sentence and a link to the source
+view, instead of borrowing the FILES-mode text.
+
+**Verified** — the draft-service spec loads a legacy document (`legacy()` and `writesDisabled()` both
+true) and a converted one (both false); the shell spec pins the N06 line and its route; the dev
+server shows the N06 sentence, the `/script/1/source` link, a disabled name field and a disabled
+Publish on the legacy fixture, and an ordinary script keeps its own message. Editor suite 480.
+(One spec lesson: the new case shares script id 1 with the round-trip spec, so it clears the local
+backup it creates — a leaked backup there rewrote the round-trip's document.)

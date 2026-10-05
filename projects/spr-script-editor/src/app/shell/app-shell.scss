@@ -258,3 +258,11 @@ button[disabled] {
   gap: 0.4rem;
 }
 
+
+/* The legacy read-only line carries the route to the conversion; its link is a target like any
+   other (ui-spec §8's 44 px). */
+.read-only-note a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

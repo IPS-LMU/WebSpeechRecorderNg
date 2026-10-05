@@ -319,6 +319,28 @@ describe('ScriptDraftService', () => {
     tick();
   }));
 
+  it('opens a legacy script read-only until N06 converts it (D-M)', fakeAsync(() => {
+    localStorage.clear();
+    const {service, http} = setup();
+    const legacy = '{"name":"Legacy","sections":[{"mode":"MANUAL","promptphase":"RECORDING","promptUnits":[{"itemcode":"A1"}]}]}';
+    void service.load('Demo1', 1);
+    expectDraft(http, 'GET').flush(legacy, {headers: {ETag: ETAG_A}});
+    tick();
+
+    expect(service.legacy()).withContext('the shape is detected').toBe(true);
+    expect(service.writesDisabled()).withContext('and it disables writes').toBe(true);
+
+    // A converted document is an ordinary draft again.
+    void service.load('Demo1', 1);
+    expectDraft(http, 'GET').flush('{"name":"Converted","sections":[{"groups":[]}]}', {headers: {ETag: ETAG_A}});
+    tick();
+
+    expect(service.legacy()).toBe(false);
+    expect(service.writesDisabled()).toBe(false);
+    // The round-trip spec loads these same coordinates; leave no local backup behind.
+    localStorage.clear();
+  }));
+
   it('restores a version by adopting the re-read draft bytes and validator', fakeAsync(() => {
     const {service, http} = setup();
     loadDraft(service, http, DRAFT, ETAG_A);

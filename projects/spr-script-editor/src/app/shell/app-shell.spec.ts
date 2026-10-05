@@ -23,6 +23,7 @@ class FakeDraft {
   readonly canUndo = signal(false);
   readonly canRedo = signal(false);
   readonly writesDisabled = signal(false);
+  readonly legacy = signal(false);
   readonly loadedProject = signal<string | null>(null);
   readonly loadedScript = signal<string | null>(null);
 
@@ -113,6 +114,19 @@ describe('AppShell', () => {
     const publish = state.root.querySelector<HTMLButtonElement>('button[aria-label="Publish"]') as HTMLButtonElement;
     expect(publish.disabled).withContext('an autosave that failed blocks Publish').toBe(true);
     expect(state.root.querySelector('.publish-reason')?.textContent).toContain('could not be saved');
+  });
+
+  it('names the legacy read-only reason and offers the source view', async () => {
+    const state = await setupEditor();
+    state.draft.legacy.set(true);
+    state.draft.writesDisabled.set(true);
+    state.harness.detectChanges();
+
+    const note = state.root.querySelector('.read-only-note') as HTMLElement;
+    expect(note.textContent).toContain('predates groups');
+    const link = note.querySelector('a') as HTMLAnchorElement;
+    expect(link).withContext('the route to the fix').not.toBeNull();
+    expect(link.getAttribute('href')).toBe('/project/Demo1/script/1245/source');
   });
 
   it('explains a 403 with its own line and hides nothing', async () => {

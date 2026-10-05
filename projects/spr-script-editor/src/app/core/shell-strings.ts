@@ -49,6 +49,9 @@ export const SHELL_STRINGS = {
   publishBlockedReadOnly: EDITOR_STRINGS.shell.readOnlyReason,
   publishBlockedNoDraft: 'The draft has not loaded yet.',
   publishBlockedSaveFailed: 'The last change could not be saved, so there is nothing safe to publish.',
+  /** A legacy script (D-M, N06) is read-only for its own reason; N06's sentence says which. */
+  legacyReadOnly: EDITOR_STRINGS.validation.n06,
+  legacyConvertLink: 'Open the source view and convert it',
 
   /** Publish dialog (ui-spec §5, validation.md "Publish gate"). */
   publishDialogTitle: 'Publish this script?',
