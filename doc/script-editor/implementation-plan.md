@@ -648,3 +648,142 @@ existing prefill already covers word/sentence lists and the design's bank become
   bank); the wording distinguishes "drawn when the script loads" from "drawn when the session
   starts" only where the researcher must know.
 - The shipped `sti-*`/`dysartri-*` scripts keep working unchanged.
+
+## 11. Outstanding work: plans for what is still missing
+
+Five items are open after M5. Each is planned with its evidence, its steps, the acceptance that
+closes it, and what it needs from a person. Ordered by value against cost.
+
+### 11.1 FILES-mode fixtures the editor asks for and the tree does not have
+
+**Evidence** — a Network capture on the dev server (`ng serve` on 4330, headless Chrome, all eight
+editor routes) shows every failing request, and they are all fixtures:
+
+| Request (FILES mode) | Route(s) that ask | Why it is missing |
+|---|---|---|
+| `GET /test/version.json` | every editor route | the deployment-version endpoint (rest-api §1.1) has no fixture; the endpoint was added after the fixture set |
+| `GET /test/project/Demo1/script/<id>/version.json` | `…/script/<id>/edit`, `…/source` | the version-history panel (rest-api §2.5) has no fixture for any script |
+| `GET /favicon.ico` | every route | the editor's `index.html` declares no icon |
+
+**Steps**
+1. `src/test/version.json` = `{"recorderVersion":"3.11.26"}` — the value `--recorder-version` serves,
+   so the panel and W10 read the same thing in both modes.
+2. `src/test/project/Demo1/script/<id>/version.json` for every id in the list fixture, in the shape
+   `[{version, publishedDate, note, minRecorderVersion}]` sorted descending — exactly what
+   `store.versionsIndex()` returns (`server/store.mjs`). Generate them **from the receiver** (one
+   `curl` per script against a seeded instance, the technique already used for the draw record and
+   the library list) rather than writing them by hand, so REST and FILES cannot drift. Give `1245`
+   three versions to match its `publishedVersion: 3`, and `1` none, so both the populated and the
+   empty panel are exercisable.
+3. Editor `index.html`: `<link rel="icon" href="data:,">` (or a small asset) so the console and the
+   network log stay clean.
+4. Add the two paths to README §7's fixture inventory.
+
+**Acceptance** — the Network capture of all eight routes reports no response ≥ 400; the version
+panel renders its rows from the fixture (the panel's spec already flushes the same shape through
+`HttpTestingController`); the theme audit still passes on the list and edit routes.
+
+### 11.2 Screen readers: the manual passes, and the machine-checkable subset
+
+The two passes themselves stay manual — no headless tool announces a tree — but most of ui-spec §8
+is machine-checkable, and the repo already has the pattern (`bin/layout_probe.mjs`,
+`bin/theme_audit.mjs`, both CDP).
+
+**Steps**
+1. `bin/a11y_audit.mjs` (CDP, Node builtins, no new dependency): for each route assert
+   - every interactive element resolves an accessible name (text content, `aria-label` or
+     `aria-labelledby`);
+   - every form control has a label (`<label for>`, a wrapping label or an accessible name), and an
+     invalid field carries `aria-invalid` **plus** a text message wired through `aria-describedby`;
+   - the editor's outline keeps `role=tree`/`treeitem` semantics with `aria-current` on the selected
+     row, the preview keeps `role=radiogroup` + `aria-checked`, and the state surfaces keep
+     `role=status`/`role=alert`;
+   - tab order follows visual order in the three columns (compare the document order of focusable
+     nodes against their `getBoundingClientRect()` order);
+   - no severity or status is colour-only (the chip's text is asserted), and decorative graphics are
+     `aria-hidden`.
+2. Wire it into the existing CI `audit` job for the same six routes (one Chrome, one dev server), so
+   an `aria-label` that disappears fails the build.
+3. `doc/script-editor/a11y.md`: the two manual scripts, step by step with the expected
+   announcements — outline navigation and reorder, the items table, the inspector's playback fieldset
+   and its errors, the source view's parse error, the checks panel, the bank rule (suspended count),
+   the draws detail and its CSV link, and the preview's step simulation — so the pass is repeatable
+   and its result is a recorded pass, not an opinion.
+
+**Acceptance** — the probe exits 0 on all six routes, and it fails when one icon-only button's
+`aria-label` is removed (a failing-before proof, as the outline spec was proved); the two manual
+passes are recorded in this file with the build hash they were run against.
+
+### 11.3 A local harness for the documented deployment shape
+
+**Why** — the receiver serves one application at `/` (`server/server.mjs`'s `serveApplication`), so
+README §4.5's real layout — the recorder at `/wsr/ng/`, the editor behind auth at `/wsr/edit/`, both
+below one API — is untested. A sub-path is exactly what breaks base hrefs, the relative fixture
+paths, the SPA fallback and the tier-2 link to the recorder.
+
+**Steps**
+1. `bin/serve_deploy.mjs` (Node builtins, ~80 lines): mount `--recorder dist/cavox/browser` at
+   `/wsr/ng/`, `--editor dist/spr-script-editor/browser` at `/wsr/edit/`, proxy `/api/` to the
+   receiver, serve `index.html` for any unknown path inside a mount, and send no cache headers. It is
+   a local stand-in for the web server the README describes, not a replacement for it.
+2. Build as §4.5 says (`--base-href=/wsr/edit/` and `/wsr/ng/`), serve, and check.
+
+**Acceptance** — with the harness and the receiver running: `/wsr/edit/project/Demo1/script` renders
+the list with every asset 200; `/wsr/ng/spr/session/1` renders the recorder; a deep link
+`/wsr/edit/project/Demo1/script/1245/edit` survives a reload; the preview's tier-2 link points at
+`/wsr/ng/spr/session/<id>`; and the theme audit passes against the mounted path (proving the token
+stylesheet survives the base href).
+
+**Rejected alternative** — teaching the receiver to serve two applications behind prefixes: that puts
+deployment routing into the evaluation tool, which §4.5 deliberately leaves to the web server.
+
+### 11.4 Pseudonyms in the draw record (a decision, then a small wiring job)
+
+**Open question** — README §8.4: may the editor show which speaker recorded which item, and must
+pseudonyms replace speaker ids in the UI *and* the CSV? The plan's M0 default is "show what the API
+returns, keep rendering isolated", and `app/draws/draws-speaker.ts` is that isolation: one table
+(`SPEAKER_PSEUDONYMS`) and one function.
+
+**Steps, once the data-protection answer exists**
+1. If the answer is **client-side only**: fill `SPEAKER_PSEUDONYMS` from the deployment's mapping (a
+   project endpoint or a build-time table) and call it done — no other file moves. A spec pins the
+   mapping and the absent-speaker case.
+2. If the answer is **pseudonyms everywhere** (recommended, because the CSV and the JSON leave the
+   server too): add `--pseudonymise-speakers` to the receiver and hash the speaker id per project
+   with a stable salt before it reaches the response, so `/draws`, the CSV and the materialised
+   session all agree and no real id ever reaches a browser. The client then needs no table at all,
+   and `speakerLabel` becomes the identity.
+3. Update README §8.4 with the decision and whichever implementation landed.
+
+**Acceptance** — with option 2 enabled: the same speaker shows the same pseudonym across sessions in
+both the JSON and the CSV, no real id appears anywhere in either, and the draws spec's fixtures are
+generated from the pseudonymised receiver. With option 1: the spec proves the mapping and that no
+component bypasses `speakerLabel`.
+
+### 11.5 An automated dry-run driver for the rest of M1's manual gate
+
+Two observations from M1's gate are still manual: that **every** `when` plays at the right moment
+(only P1 was driven headless) and that navigation during playback is safe.
+
+**Steps** — `bin/audit/dry_run.mjs` (CDP, no dependency): start the receiver seeded from `src/test`
+with `--project Demo1 --script playback` and the built recorder, launch Chrome with the fake media
+stream, install an `Audio.prototype.play`/`pause` hook through
+`Page.addScriptToEvaluateOnNewDocument`, then walk the session: press **Starta**, dismiss the
+headphone reminder, and for each item record the itemcode, the phase/lamp text, the audio play
+events with timestamps, and the session PATCH bodies from the receiver's log; advance with the
+recorder's own Next control; in the drawn section confirm the drawn items' clip requests. For the
+navigation case, press Next (and Pause) mid-clip and assert no further play event arrives for the
+abandoned item and the status line reports the new one.
+
+**Acceptance** — the log shows the expected placement per item: P1/P2 play **before** the clocks
+(`BEFORE_CLOCKS`), P3 from the take start, P4 inside the recording window, P5 only when the operator
+presses the control, and the two drawn items (D001/D002) fetch their bank model recordings; and the
+navigation case produces no play event after the switch. Assertions are on browser-observable events
+and server PATCHes, never on internal state, so the driver cannot pass by accident.
+
+### 11.6 Bookkeeping
+
+- The M3 table's `R2–R4 server write surface` row still reads as a plan; give it the `**Done.**`
+  marker the other R rows carry.
+- 11.1's new fixtures go into README §7's inventory, and `src/test/project/Demo1/script/*/version.json`
+  into the note about fixtures generated from the receiver.
