@@ -82,12 +82,6 @@ export const EDITOR_STRINGS = {
     legendInUseBody: 'Sessions have been recorded with this script. Publishing a new version does not touch them.',
   },
 
-  notYetBuilt: {
-    title: 'This screen is not built yet',
-    body: 'The read-only foundation (M2) ships the shell, the routes and the library list. This screen arrives with a later milestone.',
-    back: 'Back to the script library',
-  },
-
   // V1 appended its own group; `{placeholder}` slots are filled by `validation/interpolate.ts`.
   validation: {
     // E01–E11 (doc/script-editor/validation.md)
@@ -149,9 +143,6 @@ export const EDITOR_STRINGS = {
     emptyTitle: 'This script has no sections',
     emptyBody: 'A script needs at least one section with one group before anything can be recorded.',
     addSection: 'Add section',
-    addSectionTitle: 'Read-only milestone: adding a section arrives with the draft editor.',
-    readOnly: 'Read-only in this milestone',
-    readOnlyReason: 'Editing arrives with the draft service in a later milestone; every control is shown disabled.',
     scriptWord: 'Script',
     sectionWord: 'Section',
     groupWord: 'Group',
@@ -168,7 +159,6 @@ export const EDITOR_STRINGS = {
     filterLabel: 'Filter',
     filterPlaceholder: 'Itemcode or prompt text',
     clearFilter: 'Clear filter',
-    clearFilterTitle: 'Read-only milestone: filtering is available, the draft is not edited.',
     noMatch: 'No row matches the filter.',
     scriptRow: 'Script',
     sectionLabel: 'Section {n}',
@@ -185,7 +175,6 @@ export const EDITOR_STRINGS = {
     playsMediaTitle: 'This item plays media',
     moveUp: 'Move up',
     moveDown: 'Move down',
-    reorderTitle: 'Read-only milestone: reordering arrives with the draft editor.',
     virtualScrollLabel: 'Script outline rows',
   },
 
@@ -221,7 +210,6 @@ export const EDITOR_STRINGS = {
       timing: 'Timing',
       warning: 'Check',
     },
-    gripTitle: 'Read-only milestone: reordering arrives with the draft editor.',
     mediaText: 'Text',
     mediaPlaysFirst: 'Text + plays first',
     mediaPlaysOnDemand: 'Text + plays on demand',
@@ -257,7 +245,6 @@ export const EDITOR_STRINGS = {
     drawAnother: 'Draw another example',
     reservedCodes: 'Reserved codes {first}…{last}',
     openBank: 'Open the bank screen',
-    openBankTitle: 'Read-only milestone: the bank screen arrives with a later milestone.',
     exampleEmpty: 'The filter matches no item, so the example is empty.',
   },
 
@@ -277,9 +264,7 @@ export const EDITOR_STRINGS = {
       historySessions: '{count} sessions',
       historyNote: 'Note',
       restore: 'Restore into the draft',
-      restoreTitle: 'Read-only milestone: restoring a version arrives with the draft editor.',
       openDraws: 'Resolved draws',
-      openDrawsTitle: 'Read-only milestone: the draws screen arrives with a later milestone.',
     },
     section: {
       title: 'Section',
@@ -304,7 +289,6 @@ export const EDITOR_STRINGS = {
       training: 'Training',
       trainingHelp: 'Training items are exempt from the completeness check.',
       delete: 'Delete section',
-      deleteTitle: 'Read-only milestone: deleting arrives with the draft editor.',
     },
     group: {
       title: 'Group',
@@ -314,16 +298,13 @@ export const EDITOR_STRINGS = {
       order: 'Order',
       itemCount: '{count} items',
       split: 'Split group',
-      splitTitle: 'Read-only milestone: splitting arrives with the draft editor.',
       delete: 'Delete group',
-      deleteTitle: 'Read-only milestone: deleting arrives with the draft editor.',
       bank: 'Bank',
       bankProject: 'This project',
       bankBuiltin: 'Ships with SpeechRecorder',
       origin: 'Origin',
       filter: 'Filter',
       filterLink: 'Edit the filter on the bank screen',
-      filterLinkTitle: 'Read-only milestone: the bank screen arrives with a later milestone.',
       count: 'Items per session',
       countAgainst: 'matches {match} of {total} items',
       countUnknown: 'match count unknown; validation is suspended',
@@ -368,7 +349,6 @@ export const EDITOR_STRINGS = {
       legend: 'Media played to the speaker',
       empty: 'This item has no audio to play.',
       add: 'Add audio or video…',
-      addTitle: 'Read-only milestone: adding media arrives with the draft editor.',
       fileName: 'File',
       fileNone: 'No file chosen',
       duration: 'Duration',
@@ -376,7 +356,6 @@ export const EDITOR_STRINGS = {
       audition: 'Audition',
       auditionNote: 'Preview only; nothing is recorded or uploaded.',
       remove: 'Remove',
-      removeTitle: 'Read-only milestone: removing media arrives with the draft editor.',
       autoplay: 'Autoplay',
       replay: 'Replay',
       when: 'Plays',

@@ -64,7 +64,7 @@
                 <button type="button" class="fixed-row"
                         [attr.aria-current]="isActiveItem(block.index, $index) ? 'true' : null"
                         (click)="chooseItem(block.index, $index)">
-                  <span class="cell grip" [title]="strings.centre.gripTitle" aria-hidden="true">⠿</span>
+                  <span class="cell grip" aria-hidden="true">⠿</span>
                   <span class="cell">{{ item.itemcode }}</span>
                   <span class="cell prompt-cell">{{ promptText(item) }}</span>
                   <span class="cell">
@@ -106,8 +106,7 @@
             <p class="help">{{ matchText(block) }}</p>
             <p class="note">{{ perSessionSentence(block.source) }}</p>
             <p>
-              <a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef(block.index)]"
-                 [title]="strings.centre.openBankTitle">{{ strings.centre.openBank }}</a>
+              <a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef(block.index)]">{{ strings.centre.openBank }}</a>
             </p>
             <div class="example">
               <h4>{{ strings.centre.exampleTitle }}</h4>

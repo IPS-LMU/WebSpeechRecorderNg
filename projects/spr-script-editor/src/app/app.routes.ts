@@ -4,13 +4,9 @@ import {ScriptLibrary} from './library/script-library';
 
 /**
  * Editor routes (ui-spec §1). The selected node of the editor lives in `?sel=`; every route is
- * deep-linkable so a reload restores the view.
- *
- * Screens owned by later slices mount lazily through the shared `NotYetBuilt` placeholder; those
- * slices replace the target under `app/editor/…`, `app/source/…`, `app/bank/…`, `app/draws/…` and
- * `app/preview/…` (README §4.2).
+ * deep-linkable so a reload restores the view. Each screen is its own lazy chunk under
+ * `app/editor/…`, `app/source/…`, `app/bank/…`, `app/draws/…` and `app/preview/…` (README §4.2).
  */
-const notYetBuilt = () => import('./core/not-yet-built').then((m) => m.NotYetBuilt);
 const editorScreen = () => import('./editor/editor-screen').then((m) => m.EditorScreen);
 const jsonSource = () => import('./source/json-source').then((m) => m.JsonSource);
 const bankBrowser = () => import('./bank/bank-browser').then((m) => m.BankBrowser);

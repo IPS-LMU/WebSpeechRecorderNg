@@ -6,7 +6,7 @@
              [value]="filter()" (input)="onFilterInput($any($event.target).value)">
     </label>
     @if (filter() !== '') {
-      <button type="button" class="clear" [title]="strings.outline.clearFilterTitle"
+      <button type="button" class="clear"
               (click)="clearFilter()">{{ strings.outline.clearFilter }}</button>
     }
   </div>

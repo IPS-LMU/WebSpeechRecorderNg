@@ -27,8 +27,7 @@
 
     <h3>{{ strings.inspector.group.filter }}</h3>
     <p class="note">{{ filterWords(source) }}</p>
-    <p><a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef()]"
-          [title]="strings.inspector.group.filterLinkTitle">{{ strings.inspector.group.filterLink }}</a></p>
+    <p><a [routerLink]="['/project', project(), 'script', scriptId(), 'bank', groupRef()]">{{ strings.inspector.group.filterLink }}</a></p>
 
     <label class="field">
       <span>{{ strings.inspector.group.count }}</span>

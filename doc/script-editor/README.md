@@ -461,14 +461,15 @@ rule).
 - **Library (karma).** `npm run test_module -- --watch=false --browsers=ChromeHeadless` — the
   recorder's behaviour as the oracle: `promptVisibleAt`, `effectiveTiming`, the phase transitions
   and the placement table for every `when` (C7), the feature→version map, the prefill utility and
-  the editor's model helpers. 137 specs today.
+  the editor's model helpers. 144 specs today.
 - **Editor (karma).** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` — the
   validation catalogue (one `describe` per id plus the shared corpus), the normaliser with
   idempotence, the JSON line tokenizer (escapes, tabs/CRLF, duplicate keys, unicode), the draft
   service (undo/redo, edit intent, 412 reapply with guards, 428, conflict, backup, invalid-JSON
   rule), the services in both API modes, the shell, and one spec per screen including a
   route-level mount through `APP_ROUTES` so an unprovided service fails here rather than at
-  runtime. 400 specs today.
+  runtime; the library's five actions (create, import, duplicate, archive, export) assert their
+  request shapes there too. 465 specs today.
 - **Fixtures.** `src/test/script/*.json` (playback with all five placements plus a drawn group,
   a drawn-group script, legacy `promptUnits` scripts, a ~500-item script), `src/test/bank/*.json`,
   and the FILES-mode tree the editor reads at `/test` — including the library list, the deployment
