@@ -698,7 +698,12 @@ their notes, dates and the session counts joined from the list fixture; the serv
    of `aria-labelledby`/`aria-describedby`, unique ids, `alt` on non-decorative images, nothing
    focusable inside `aria-hidden`, `radiogroup` children with `aria-checked`, a `role="tree"`
    containing `treeitem`s with `aria-level` and `aria-expanded`, and tab order that never jumps back
-   up within one column.
+   up within one column. It then **cross-checks the browser's own accessibility tree** — the roles
+   and names a screen reader is handed: no node whose role requires a name is nameless, every
+   treeitem has a level, a radiogroup has radios with a checked state, and a live region has
+   something to announce. Writing that cross-check corrected two of the file's own rules against
+   ARIA (a live region is announced by its contents, not its name; radios may nest below a wrapper),
+   which is exactly what reading the consumer's view buys.
 2. It runs in the CI `audit` job for the library list, the editor, the preview, the bank browser,
    the draw-rule state (via `--prepare bin/audit/open-draw-rule.js`), the draws view and the JSON
    source — all seven pass at 1366×768.

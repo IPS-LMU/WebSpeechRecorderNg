@@ -18,6 +18,9 @@
  *   7. a `role="radiogroup"` marks its children with `aria-checked`, and a `role="tree"` contains
  *      `treeitem`s (with `aria-level`, and `aria-expanded` where they have children);
  *   8. tab order never jumps back up within one column (document order against the elements' boxes);
+ *   9. the browser's own **accessibility tree** agrees: every treeitem carries a level, a tree has
+ *      treeitems, a radiogroup has radios with a checked state, and no node whose role requires a
+ *      name (button, link, textbox, treeitem, …) is nameless.
  *
  * Usage:
  *   # terminal 1
@@ -179,6 +182,75 @@ const send = (method, params = {}) => new Promise((resolve) => {
 
 await send('Page.enable');
 await send('Runtime.enable');
+await send('Accessibility.enable');
+
+/**
+ * Judging the browser's own accessibility tree: the roles and names a screen reader is handed, as
+ * the engine computes them, rather than the attributes this file looks up in the DOM. It is a
+ * cross-check of the same contract from the consumer's side — a human pass still catches the
+ * quality of the announcements.
+ */
+const NAME_REQUIRED_ROLES = new Set([
+  'button', 'link', 'checkbox', 'radio', 'tab', 'treeitem', 'textbox', 'searchbox', 'combobox',
+  'slider', 'switch', 'menuitem', 'option', 'spinbutton', 'heading',
+]);
+const judgeAxTree = (nodes, at) => {
+  const live = (nodes ?? []).filter((node) => node.ignored !== true);
+  const byId = new Map(live.map((node) => [node.nodeId, node]));
+  const roleOf = (node) => node.role?.value ?? '';
+  const nameOf = (node) => (node.name?.value ?? '').trim();
+  const property = (node, wanted) => (node.properties ?? []).find((entry) => entry.name === wanted)?.value?.value;
+  /** The node and everything below it the accessibility tree exposes. */
+  const descendants = (node) => {
+    const out = [];
+    const walk = (current) => {
+      for (const id of current.childIds ?? []) {
+        const child = byId.get(id);
+        if (child === undefined) {
+          continue;
+        }
+        out.push(child);
+        walk(child);
+      }
+    };
+    walk(node);
+    return out;
+  };
+
+  for (const node of live) {
+    const role = roleOf(node);
+    if (NAME_REQUIRED_ROLES.has(role) && nameOf(node) === '') {
+      failures.push(at(`the accessibility tree exposes a ${role} with no name`));
+    }
+  }
+  // A live region is announced by its *contents*, not by a name, so it must have text below it.
+  for (const node of live.filter((candidate) => ['alert', 'status'].includes(roleOf(candidate)))) {
+    const hasText = descendants(node).some((child) => nameOf(child) !== '');
+    if (!hasText) {
+      failures.push(at(`the accessibility tree exposes a ${roleOf(node)} with nothing to announce`));
+    }
+  }
+  const treeItems = live.filter((node) => roleOf(node) === 'treeitem');
+  if (live.some((node) => roleOf(node) === 'tree')) {
+    if (treeItems.length === 0) {
+      failures.push(at('the accessibility tree has a tree with no treeitem'));
+    }
+    const withoutLevel = treeItems.filter((node) => property(node, 'level') === undefined).length;
+    if (withoutLevel > 0) {
+      failures.push(at(`the accessibility tree has ${withoutLevel} treeitem(s) without a level`));
+    }
+  }
+  // Radios may sit directly under the group or inside a wrapper the tree exposes, so look below it.
+  for (const group of live.filter((node) => roleOf(node) === 'radiogroup')) {
+    const radios = descendants(group).filter((node) => roleOf(node) === 'radio');
+    if (radios.length === 0) {
+      failures.push(at('the accessibility tree has a radiogroup with no radio'));
+    } else if (radios.some((radio) => property(radio, 'checked') === undefined)) {
+      failures.push(at('a radio in the accessibility tree has no checked state'));
+    }
+  }
+  return {live: live.length, treeItems: treeItems.length};
+};
 
 let prepareSource = null;
 if (PREPARE_FILE) {
@@ -209,6 +281,10 @@ for (const [width, height] of VIEWPORTS) {
   }
   const {controls, images, hiddenFocusable, radiogroups, tree, ids, focusOrder} = JSON.parse(raw);
   const at = (message) => `${width}x${height}: ${message}`;
+
+  // The browser's accessibility tree — what a screen reader is actually handed.
+  const ax = await send('Accessibility.getFullAXTree', {});
+  const axSummary = judgeAxTree(ax.result?.nodes ?? [], at);
 
   // 1 + 2: names and labels.
   let named = 0;
@@ -276,7 +352,7 @@ for (const [width, height] of VIEWPORTS) {
   }
 
   if (VERBOSE) {
-    notes.push(at(`${controls.length} interactive element(s), ${named} named, ${tree === null ? 'no tree' : `${tree.treeitems} treeitem(s)`}`));
+    notes.push(at(`${controls.length} interactive element(s), ${named} named, ${tree === null ? 'no tree' : `${tree.treeitems} treeitem(s)`}; accessibility tree: ${axSummary.live} node(s), ${axSummary.treeItems} treeitem(s)`));
   }
 }
 
