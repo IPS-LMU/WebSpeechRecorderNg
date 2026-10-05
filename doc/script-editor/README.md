@@ -353,7 +353,8 @@ URLs break:
   left empty when the recorder is on the editor's own origin.
 
 `bin/serve_deploy.mjs` rehearses the whole layout locally — the two mounts behind their prefixes
-with the SPA fallback and an `/api/` proxy — so a sub-path deployment is tested rather than assumed:
+with the SPA fallback and an `/api/` proxy — so a sub-path deployment is tested rather than assumed (and asserted by
+  `server/deploy.test.mjs`, which runs in the receiver job):
 
 ```bash
 node server/server.mjs --port 8391 --data /tmp/deploy --seed src/test --app none --migrate
@@ -488,7 +489,8 @@ rule).
 - **Server (node --test).** `node --test server/` covers the receiver: store atomicity and ids,
   ETag/428/412, the shared check fixtures, bank filter semantics, draw determinism, the draw
   record and its CSV, media in use, multipart and WAV duration, the version gate, CORS, and that a
-  `TEST` session cannot upload. 50 tests today. Development runs it with
+  `TEST` session cannot upload, and the deployment harness's mounts, SPA fallback and API proxy —
+  `server/deploy.test.mjs` spawns it once against fixture directories. 58 tests today. Development runs it with
   `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` is gitignored.
 - **Theme audit.** Run the editor (or the built bundle) and drive a headless Chrome the tool can
   attach to, then audit the routes and one interaction state:

@@ -1200,3 +1200,31 @@ one outline: h1 (the screen) → h2 (its regions and sections). No heading level
 **Verified** — the same audit set that failed now passes: 14 runs across the eight routes in light,
 dark and at 390×844 (theme and accessibility, including the draw-rule interaction state), with editor
 480 specs and the house-rule lint green.
+
+### 11.24 The deployment harness, asserted instead of rehearsed — **Done**
+
+`bin/serve_deploy.mjs` exists so a sub-path deployment is "tested rather than assumed" (README §4.5):
+the recorder under `/wsr/ng/`, the editor under `/wsr/edit/`, both with the SPA fallback, and one API
+proxied beside them. Nothing ran it except the manual rehearsal, so the contract the docs tell an
+operator to mirror had no check at all — the same gap the audits exist to prevent, in the one place
+the plan calls a rehearsal.
+
+**What landed** — `server/deploy.test.mjs` (in the receiver job, so CI runs it) spawns the harness
+against fixture directories and asserts what §4.5 and the `.htaccess` sample promise:
+
+- each mount serves its own shell at its prefix, with the right content type, and the mounts do not
+  cross;
+- a deep link inside a mount is the SPA's: the shell, query string included, not a 404;
+- a real asset is served from the mount with its type;
+- `/api/…` is proxied to the receiver (the mounts cannot shadow it) and a dead receiver answers `502`
+  with a reason rather than a stack;
+- the harness's own root page names both mounts, and anything else outside them is a `404` that names
+  the mounts;
+- **the documented fallback answers even for a missing asset** — the sample rewrites everything that
+  is not an existing file, so `/wsr/edit/nothing/here.js` returns the shell. That is now asserted,
+  which both keeps the rehearsal faithful and puts the caveat on the record;
+- a plain `../` traversal normalises out of the mount and 404s; the percent-encoded form is not
+  decoded, lands in the fallback and serves the shell — never a repository file.
+
+**Verified** — `node --test server/` is 58 tests (was 57) with the new contract test in it, and the
+README's §4.5 and §7 now name it (its server count was stale at 50; it says 58).
