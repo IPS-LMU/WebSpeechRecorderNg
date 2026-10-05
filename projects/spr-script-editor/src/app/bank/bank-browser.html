@@ -87,6 +87,12 @@
                                    (field)="onField($event.name, $event.value)"></spre-bank-item-form>
             } @else {
               <button type="button" class="add-item" (click)="startAdd()">{{ strings.table.addItem }}</button>
+              <button type="button" class="import-csv" [disabled]="importBusy()" [title]="strings.table.importTitle"
+                      (click)="csvInput.click()">{{ strings.table.importCsv }}</button>
+              <input #csvInput type="file" accept="text/csv,.csv" hidden (change)="onImportCsv($event)">
+              @if (importMessage(); as message) {
+                <p class="import-result" [class.import-failed]="importFailed()" role="status">{{ message }}</p>
+              }
             }
           }
         } @else {

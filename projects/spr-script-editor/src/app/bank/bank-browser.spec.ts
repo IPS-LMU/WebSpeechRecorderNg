@@ -339,6 +339,67 @@ describe('BankBrowser (project bank, NORMAL mode: write affordances)', () => {
     harness.detectChanges();
   });
 
+  it('imports a CSV through the bank endpoint and reports what the server took', async () => {
+    const {harness, root, http} = await open();
+
+    const csv = 'text,category,words,tags,audio\nNy mening,katt,2,,';
+    const file = new File([csv], 'items.csv', {type: 'text/csv'});
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    const input = root.querySelector('input[type="file"][accept*="csv"]') as HTMLInputElement;
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    harness.detectChanges();
+
+    const post = await take({harness, http}, (req) => req.method === 'POST'
+      && req.url.endsWith('/bank/demo-sentences/_import'), 'POST _import');
+    expect(post.request.headers.get('Content-Type')).toBe('text/csv');
+    expect(post.request.body).toBe(csv);
+    post.flush({imported: 3, skipped: 1, errors: [{line: 4, message: 'text is required'}]});
+    harness.detectChanges();
+
+    // The receiver appends, so the bank and its page are re-read; the line says what happened.
+    (await take({harness, http}, (req) => pathOf(req.urlWithParams) === 'api/v1/project/Demo1/bank', 'bank list reload')).flush(BANKS);
+    (await take({harness, http}, (req) => pathOf(req.urlWithParams).endsWith('/demo-sentences/item'), 'demo item page')).flush(PAGE);
+    harness.detectChanges();
+
+    const message = root.querySelector('.import-result') as HTMLElement;
+    expect(message).withContext('the import is announced').not.toBeNull();
+    expect(message.getAttribute('role')).toBe('status');
+    expect(message.textContent).toContain('3 imported, 1 skipped.');
+    expect(message.textContent).toContain('Line 4: text is required');
+
+    // The shipped bank cannot be written, so it offers no import at all (rest-api §3.3: 405).
+    buttonWith(root, '.bank-row', 'Standard passages and vowels').click();
+    harness.detectChanges();
+    (await take({harness, http}, (req) => pathOf(req.urlWithParams).endsWith('/std-passages/item'), 'std item page')).flush(PAGE);
+    harness.detectChanges();
+    expect(texts(root, 'button')).not.toContain(BANK_STRINGS.table.importCsv);
+  });
+
+  it('reports a refused import instead of pretending it landed', async () => {
+    const {harness, root, http} = await open();
+
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['text\n'], 'items.csv', {type: 'text/csv'}));
+    const input = root.querySelector('input[type="file"][accept*="csv"]') as HTMLInputElement;
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    harness.detectChanges();
+
+    const post = await take({harness, http}, (req) => req.method === 'POST'
+      && req.url.endsWith('/bank/demo-sentences/_import'), 'POST _import');
+    post.flush({error: 'BANK_READ_ONLY', message: 'This bank ships with SpeechRecorder.'},
+      {status: 405, statusText: 'Method Not Allowed'});
+    // The failure lands in a microtask after the flush; `detectChanges` alone is too early.
+    await firstValueFrom(timer(0));
+    harness.detectChanges();
+
+    const message = root.querySelector('.import-result.import-failed') as HTMLElement;
+    expect(message).withContext('the failure is marked as one').not.toBeNull();
+    expect(message.textContent).toContain(BANK_STRINGS.table.importFailed);
+  });
+
   it('deletes an item only after a second, explicit confirmation', async () => {
     const {harness, root, http} = await open();
 

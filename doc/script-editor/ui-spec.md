@@ -194,7 +194,10 @@ drift from the recorder (README §5).
   some matching items have none (W04). A separate browse filter, when offered, is visually
   distinct and is never written to the draft.
 - **Item table**: bank id, item, words, model audio (with an audition button), times used.
-  Paginated through `limit`/`offset`; the footer says how many of the matches are shown.
+  Paginated through `limit`/`offset`; the footer says how many of the matches are shown. A project
+  bank also offers **Add item** and **Import CSV** — the columns are `text,category,words,tags,audio`
+  (rest-api §3.3) and the server appends; the result line names what it took (`{imported} imported,
+  {skipped} skipped`) and the first refused line. A shipped bank offers neither.
 - **Rule panel**: `count` validated against `matchCount` (E04), `order`, `fixedBy` with help,
   `skipRecordedBySpeaker` with its fallback explained, `itemcodePrefix` with generated codes,
   "Play the bank item's model recording", an example draw with a Draw-again button, and a link to

@@ -54,4 +54,27 @@ export class BankWriteService {
       {withCredentials: this.withCredentials},
     );
   }
+
+  /**
+   * `POST …/bank/{b}/_import` with `text/csv` (rest-api.md §3.3): columns `text,category,words,tags,
+   * audio`, a header row when the first row names them. The receiver **appends** the parsed items and
+   * answers what it took and what it refused, so the caller reloads the bank.
+   */
+  importCsv(projectId: string, bankId: string, csv: string): Observable<BankImportResult> {
+    return this.http.post<BankImportResult>(
+      projectPath(this.base, projectId, 'bank', bankId, '_import'),
+      csv,
+      {
+        headers: new HttpHeaders({'Content-Type': 'text/csv'}),
+        withCredentials: this.withCredentials,
+      },
+    );
+  }
+}
+
+/** `200` body of `_import`: the counts, plus one entry per refused line. */
+export interface BankImportResult {
+  imported: number;
+  skipped: number;
+  errors: ReadonlyArray<{line: number; message: string}>;
 }

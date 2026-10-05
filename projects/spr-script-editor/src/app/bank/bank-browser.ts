@@ -161,6 +161,10 @@ export class BankBrowser {
   readonly confirmingDelete = signal<string | null>(null);
   readonly uploadingId = signal<string | null>(null);
   readonly auditionError = signal<string | null>(null);
+  readonly importBusy = signal(false);
+  /** The sentence the import leaves behind: counts as accepted, plus the first refused line. */
+  readonly importMessage = signal<string | null>(null);
+  readonly importFailed = signal(false);
 
   private readonly base = normaliseApiEndPoint(this.config ?? undefined);
   private audio: HTMLAudioElement | null = null;
@@ -525,6 +529,49 @@ export class BankBrowser {
       this.actionError.set(describeError(error, this.strings.item.uploadFailed));
     } finally {
       this.uploadingId.set(null);
+    }
+  }
+
+  /**
+   * `POST …/bank/{b}/_import` (rest-api.md §3.3): the file's text *is* the request body, so the
+   * columns are the server's contract, not a client parse. The receiver appends to the bank, so the
+   * bank and its item table are re-read; the counts and the first refused line are reported.
+   */
+  async importCsv(file: File): Promise<void> {
+    const bank = this.selectedBank();
+    if (bank === null) {
+      return;
+    }
+    this.importBusy.set(true);
+    this.importFailed.set(false);
+    this.importMessage.set(null);
+    this.actionError.set(null);
+    try {
+      const result = await firstValueFrom(this.writes.importCsv(this.p(), bank.bankId, await file.text()));
+      const summary = fillTemplate(this.strings.table.importResult, {
+        imported: result.imported,
+        skipped: result.skipped,
+      });
+      const first = result.errors[0];
+      this.importMessage.set(first === undefined
+        ? summary
+        : `${summary} ${fillTemplate(this.strings.table.importProblem, {line: first.line, message: first.message})}`);
+      await this.reloadBank();
+    } catch (error) {
+      this.importFailed.set(true);
+      this.importMessage.set(describeError(error, this.strings.table.importFailed));
+    } finally {
+      this.importBusy.set(false);
+    }
+  }
+
+  /** The file input's `change` handler: one file, then the control is reset for the next pick. */
+  onImportCsv(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file !== undefined) {
+      void this.importCsv(file);
     }
   }
 

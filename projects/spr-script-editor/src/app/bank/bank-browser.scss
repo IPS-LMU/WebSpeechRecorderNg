@@ -181,3 +181,18 @@ button[disabled] {
 .add-item {
   align-self: flex-start;
 }
+
+.import-csv {
+  align-self: flex-start;
+}
+
+.import-result {
+  margin: 0 0 var(--spr-r-sm, 6px);
+  color: var(--spr-ink, #1F3044);
+}
+
+.import-result.import-failed {
+  border-left: 4px solid var(--spr-alert, #B3261E);
+  color: var(--spr-alert-ink, #7F1D1D);
+  padding-left: var(--spr-r-sm, 6px);
+}
