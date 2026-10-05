@@ -324,8 +324,8 @@ ng build spr-script-editor --configuration development           # typecheck + t
 ng serve spr-script-editor --host=127.0.0.1 --configuration development
 node --test server/                                              # server unit tests (R10)
 npm run serve:api -- --port 4301 --data /tmp/spr-server --seed src/test   # the receiver (track R)
-node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/test/script/1245/edit \
-  --viewports 1366x768,1920x1080 --prepare bin/audit/open-draw-inspector.js
+node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit \
+  --viewports 1366x768,1920x1080 --prepare bin/audit/open-draw-rule.js
 ```
 
 Manual, per milestone: dry-run a recorded session in the recorder after every model change —
@@ -872,3 +872,28 @@ consequence; rest-api §2.4/§2.6 and ui-spec §3.3 state the rule.
 **Verified in the mounted editor** — New script, rename in the inspector, Publish (confirming the
 warning dialog): the library list row reads "Verification rename" with status PUBLISHED, and the v1
 document and the draft both carry that name.
+
+### 11.9 The audit that found the two above, and what it cleared — **Done**
+
+After §11.7/§11.8, the designs were walked against the tree rather than trusted, because the tables
+had already been wrong once. Each area and its result:
+
+- **Check catalogue.** `validation.md`'s ids against the checker: E01–E07, E09–E11 and every W and N
+  id are implemented; **E08 is retired by D-W** and correctly absent (its condition is
+  unrepresentable). Nothing missing.
+- **REST endpoints.** Every path in rest-api.md is called by the editor or the receiver; the draw
+  paths are `draws` throughout (server, client and doc agree). The one endpoint with **no client at
+  all** was `POST …/bank/{b}/_import` → §11.7's sibling gap, now wired.
+- **Model fields.** Every field of data-model §2.5 and the playback/timing blocks has a control
+  (`itemcode`, `type`, `mediaitems`, `recinstructions`, `prerecdelay`/`recduration`/`postrecdelay`,
+  `duration`, the playback set incl. `gap`/`maxReplays`, `virtualViewBox`, `defaultVirtualViewBox`,
+  `promptDoc`), so the inspector is not missing a field the model has.
+- **States.** ui-spec §9's six rows each have a branch and a spec; the two the plan had listed as
+  last (library, editor) were already covered, and §11.3/§11.7 fixed the editor's third case.
+- **Orphan modules.** Every `.ts` under the editor is imported by something (only `corpus.ts` and
+  `test-helpers.ts` are spec-only, which is what they are for).
+- **The name path** — the only silent inconsistency the audit found: §11.8.
+- **The plan's own §5 command** was stale — it named the project `test` and a
+  `bin/audit/open-draw-inspector.js` that does not exist. It now names the route and prepare script
+  CI actually uses (`/project/Demo1/script/bank-draw/edit` + `open-draw-rule.js`), and both audits
+  were run through it.
