@@ -214,11 +214,3 @@ table.scripts th a,
   color: var(--spr-ink, #1F3044);
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}

@@ -508,7 +508,10 @@ rule).
   drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
   production build too. The house rule covers light **and** dark, so `use-dark-scheme.js` switches
   `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
-  the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13).
+  the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13). CI
+  also measures a phone width (390×844) on the screens that reflow — the editor stacks its columns
+  below 820 px, the bank below 1100 px — which is how the editor's overlapping columns and the bank's
+  document-level scrollbar were found (§11.14).
 - **Accessibility audit.** `bin/a11y_audit.mjs` attaches to the same running Chrome and checks the
   machine-checkable part of ui-spec §8 on the same routes: accessible names, labels and the ARIA
   relationships that carry them, unique ids, `alt`, nothing focusable inside `aria-hidden`, tree and

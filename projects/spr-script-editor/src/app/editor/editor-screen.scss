@@ -11,6 +11,35 @@
   min-height: 0;
 }
 
+/*
+ * Below the width three columns need, the screen stacks in document order — outline, centre,
+ * inspector — so that what a keyboard user tabs through matches what is on screen (a11y rule 8 in
+ * `bin/a11y_audit.mjs` measures exactly that), and each column keeps its own scroller (the outline's
+ * virtual viewport needs a height). The host scrolls between them.
+ */
+@media (max-width: 820px) {
+  :host {
+    overflow: auto;
+  }
+
+  .editor {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100%;
+  }
+
+  .col {
+    height: 70vh;
+    min-height: 22rem;
+  }
+
+  .outline-col,
+  .inspector-col {
+    border-right: none;
+    border-left: none;
+  }
+}
+
 .col {
   min-width: 0;
   height: 100%;

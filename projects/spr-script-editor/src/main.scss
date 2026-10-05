@@ -56,6 +56,24 @@ a {
   color: var(--spr-link, #2A4765);
 }
 
+// Screen-reader-only text, defined once for every screen (four components used to carry their own
+// copy). `top`/`left` matter: an absolutely positioned box with an auto offset keeps its in-flow
+// position, which extended the document past the viewport in the bank's table caption — the shell
+// hides its own overflow, so the extra 46 px showed up as a scrollbar nobody asked for.
+.visually-hidden {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 spre-app-shell {
   display: block;
   height: 100%;

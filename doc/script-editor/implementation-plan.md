@@ -989,3 +989,25 @@ dark pass on six routes plus two accessibility ones.
 
 **Why it took an audit** — every one of these is invisible in the light scheme, which is what every
 earlier check ran.
+
+### 11.14 The phone width, where two screens did not reflow — **Done**
+
+Every audit ran at 1366×768 and 1920×1080. ui-spec names a phone width for the preview's speaker
+frame, and the shell is a fixed-height application whose content area scrolls — so a screen that
+does not reflow is not merely ugly, it is clipped. At 390×844 two screens failed:
+
+- **The editor's three columns overlapped.** `.editor` is a `300px | 1fr | 380px` grid with no
+  breakpoint: at 390 px all three started at the same y, the inspector ran 115 px past the centre,
+  and the keyboard order jumped from a centre card back up to an inspector input (a11y rule 8).
+  Below 820 px the screen now stacks in document order — outline, centre, inspector — each column
+  keeps its own scroller (the outline's virtual viewport needs a height) and the host scrolls between
+  them.
+- **The bank's table caption scrolled the document.** The item table's `<caption class="visually-hidden">`
+  was `position: absolute` with no `top`/`left`, so it kept its in-flow position ~46 px below the
+  viewport and extended `document.scrollHeight` past it. The recipe is now defined **once** in the
+  editor's stylesheet with `top: 0; left: 0` (four components had their own copy), and the bank
+  screen scrolls internally like the others.
+
+**In CI** — the theme audit runs `390x844` on six routes and the accessibility audit on three, next
+to the desktop and dark passes. Verified: theme and accessibility audits exit 0 on all eight routes
+at 390×844, and unchanged at 834×1112 and 1366×768.
