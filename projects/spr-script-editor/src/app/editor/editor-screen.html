@@ -14,7 +14,7 @@
 
   @case ('error') {
     <div class="state error" role="alert">
-      <h1>{{ strings.editor.loadErrorTitle }}</h1>
+      <h2>{{ strings.editor.loadErrorTitle }}</h2>
       <p>{{ strings.editor.loadErrorBody }}</p>
       <p class="detail">{{ error() }}</p>
       @if (draftMissing()) {

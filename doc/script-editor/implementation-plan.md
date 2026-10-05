@@ -1184,3 +1184,19 @@ naming `console: ERROR probe error` and `console: WARNING probe warning`; a `con
 into the recorder's `ngOnInit` makes the dry run exit 1 with
 `✗ console: ERROR dry-run console probe`, and removing it returns the driver to `Dry run passed.`
 a11y.md's rule list and README §7 say what they are for.
+
+### 11.23 The `h1`s the new rule caught — **Done**
+
+Rule 12 (§11.20) found the editor's three headings as soon as a route rendered two of them together:
+the screen's new `h1` plus the **draw-rule panel**'s, in the state behind an interaction
+(`/script/bank-draw/edit` with the panel open). Two more were waiting in the editor's own templates —
+the load-error state's heading and the centre's per-section heading — both of which are headings
+*inside* a screen, not the page's title.
+
+**What landed** — the panel's heading was already an `h2`; the editor's load-error heading and the
+centre's section heading are `h2`s now, so every route names itself exactly once and the reader gets
+one outline: h1 (the screen) → h2 (its regions and sections). No heading level skips.
+
+**Verified** — the same audit set that failed now passes: 14 runs across the eight routes in light,
+dark and at 390×844 (theme and accessibility, including the draw-rule interaction state), with editor
+480 specs and the house-rule lint green.
