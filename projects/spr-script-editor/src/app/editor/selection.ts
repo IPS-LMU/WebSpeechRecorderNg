@@ -157,8 +157,3 @@ export function selectionPath(selection: Selection): string {
 export function selectionEquals(a: Selection, b: Selection): boolean {
   return formatSelection(a) === formatSelection(b);
 }
-
-/** The section index a selection belongs to, or `null` for the script. */
-export function selectionSection(selection: Selection): number | null {
-  return selection.kind === 'script' ? null : selection.section;
-}

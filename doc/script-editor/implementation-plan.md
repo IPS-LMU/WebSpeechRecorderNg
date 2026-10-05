@@ -1297,3 +1297,19 @@ unknown `--rules` value exits 2 with what it accepts.
 **Verified** — recorder session and start: `Accessibility audit passed (universal rules)`; the editor,
 library and bank routes unchanged (full set, still green); library 144, editor 480, server 58, both
 builds, house-rule lint and the i18n guard all green.
+
+### 11.28 Five exports nothing called — **Done**
+
+A census of the editor's sources for exported symbols with no reference anywhere (including their own
+file) found five: `findingsBySeverity` (validation/index.ts — a *dead duplicate* of `groupCards` in
+`validation/panel.ts`, which is what the checks panel actually groups with), `withId`
+(validation/test-helpers.ts), `isRecordingItem` and `isBlank` (validation/walk.ts — `isNonRecordingItem`
+is the one in use), and `selectionSection` (selection.ts). Deleted; nothing referenced them.
+
+The same census flagged `seg-playback`/`seg-preDelay`/`seg-recording`/`seg-postDelay` and `overlay` in
+the timeline's stylesheet as unreferenced, which is a **false positive worth recording**: the template
+binds them dynamically (`[class]="'seg-' + segment.kind"`, `[class.overlay]="segment.overlayPlayback"`),
+so a static scan cannot see them — the same reason the CDK's `cdk-drag-*` classes stay.
+
+**Verified** — the five symbols have zero references in the tree; editor 480 specs, house-rule lint and
+both production builds green.

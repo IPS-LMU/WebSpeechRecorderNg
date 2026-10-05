@@ -120,11 +120,6 @@ export function eachBankSource(draft: Draft): BankRef[] {
   return out;
 }
 
-/** True when the item records (anything but `type: 'nonrecording'` records). */
-export function isRecordingItem(item: Record<string, unknown>): boolean {
-  return item['type'] !== 'nonrecording';
-}
-
 export function isNonRecordingItem(item: Record<string, unknown>): boolean {
   return item['type'] === 'nonrecording';
 }
@@ -142,8 +137,4 @@ export function isImage(mediaitem: unknown): boolean {
 
 export function mediaitemsOf(item: Record<string, unknown>): unknown[] {
   return arrayOf(item['mediaitems']);
-}
-
-export function isBlank(value: unknown): boolean {
-  return value === undefined || value === null || String(value).trim() === '';
 }

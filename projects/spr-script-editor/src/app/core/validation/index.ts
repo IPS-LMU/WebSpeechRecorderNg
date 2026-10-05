@@ -61,11 +61,4 @@ export function findingsUnder(findings: ReadonlyArray<Finding>, path: string): F
   return findings.filter((finding) => finding.path === path || finding.path.startsWith(`${path}.`) || finding.path.startsWith(`${path}[`));
 }
 
-/** Groups findings by severity, for the checks panel. */
-export function findingsBySeverity(findings: ReadonlyArray<Finding>): Record<Severity, Finding[]> {
-  return {
-    error: findings.filter((finding) => finding.severity === 'error' && finding.suspended !== true),
-    warning: findings.filter((finding) => finding.severity === 'warning' || finding.suspended === true),
-    note: findings.filter((finding) => finding.severity === 'note'),
-  };
-}
+

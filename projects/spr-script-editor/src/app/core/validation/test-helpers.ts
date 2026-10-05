@@ -42,7 +42,3 @@ export function ids(findings: ReadonlyArray<Finding>): string[] {
 export function paths(findings: ReadonlyArray<Finding>): string[] {
   return findings.map((finding) => finding.path);
 }
-
-export function withId(findings: ReadonlyArray<Finding>, id: string): Finding[] {
-  return findings.filter((finding) => finding.id === id);
-}
