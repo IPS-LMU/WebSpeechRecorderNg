@@ -471,6 +471,10 @@ rule).
   route-level mount through `APP_ROUTES` so an unprovided service fails here rather than at
   runtime; the library's five actions (create, import, duplicate, archive, export) assert their
   request shapes there too. 465 specs today.
+- **i18n guard.** `npm run validate:i18n` checks that every key of `src/assets/i18n/en.json`
+  exists in every locale with a non-empty value, that every key of the library's `SPR_STRINGS` is
+  overridable, and that every key the source references exists; regenerating with
+  `npm run build:i18n` must leave the committed strings untouched. CI runs both.
 - **Fixtures.** `src/test/script/*.json` (playback with all five placements plus a drawn group,
   a drawn-group script, legacy `promptUnits` scripts, a ~500-item script), `src/test/bank/*.json`,
   and the FILES-mode tree the editor reads at `/test` — including the library list, the deployment

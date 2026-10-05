@@ -1228,3 +1228,21 @@ against fixture directories and asserts what §4.5 and the `.htaccess` sample pr
 
 **Verified** — `node --test server/` is 58 tests (was 57) with the new contract test in it, and the
 README's §4.5 and §7 now name it (its server count was stale at 50; it says 58).
+
+### 11.25 The i18n guard nothing ran — **Done**
+
+`bin/validate_i18n.mjs` exists and the plan's L3 row names it: "regenerated with `bin/build_i18n.mjs`
+and checked by `bin/validate_i18n.mjs`". No CI job ever ran it — the script was in `package.json` as
+`validate:i18n` and nowhere else — so a half-finished translation could ship: a key added to
+`en.json` and forgotten in `sv.json`, a library string with no override, a `t('…')` typo falling back
+to the key text. The same class the two reviews found in the corpus and the interaction fixtures.
+
+**What landed** — the receiver job now runs the guard, and it also asserts that the *generated*
+strings are current: `npm run build:i18n` must leave `src/assets/i18n` byte-identical, so a
+hand-edited or stale generated file fails too.
+
+**Verified** — the guard passes on the tree as committed (242 keys in `en.json`, 209 in
+`SPR_STRINGS`, 203 referenced from source, both locales) and is sensitive: dropping one key from
+`sv.json` makes it exit 1 naming `sv.json is missing "app.help.nextRecording"`, and restoring the file
+returns it to 0. `npm run build:i18n` is idempotent on the committed strings. README §7's library
+bullet documents both.
