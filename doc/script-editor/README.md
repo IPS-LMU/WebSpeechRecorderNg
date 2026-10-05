@@ -521,13 +521,15 @@ rule).
   radiogroup semantics, tab order, the browser's own accessibility tree, and that every interactive
   target is at least 44 px high (a control inside a `<label>` is measured as that label; a link
   flowing inline in text is exempt), plus the document rules: a `lang`, exactly one `h1` and
-  one `main`, heading levels that do not skip, and no positive `tabindex`. `doc/script-editor/a11y.md`
+  one `main`, heading levels that do not skip, no positive `tabindex`, and no control inside another
+  control. `doc/script-editor/a11y.md`
   lists each rule and what it caught;
   CI runs the whole list.
 - **House-rule lint.** `node bin/editor_lint.mjs` reads the editor's templates and styles and fails on
   the ui-spec §8 rules that are text rather than a rendered property: a `font-size` off the
   `--spr-type-*` scale, a colour literal outside a `var(--spr-…)` fallback, and a `(click)` on a host
-  that is neither a control nor carries a `role`. CI runs it in the editor job; `--verbose` prints
+  that is neither a control nor carries a `role`, and a block element inside `<p>` (the browser
+  hoists it out, so the rendered tree is not the template`s). CI runs it in the editor job; `--verbose` prints
   the counts it checked.
 - **Dry run (recorder).** `bin/audit/dry_run.mjs` reads the session's **materialised script** from the
   receiver, so it knows each item's placement and section mode, then drives the real recorder and

@@ -28,7 +28,9 @@
  *  12. the route names itself with exactly one `h1`, and the heading levels never jump by more than
  *      one (they are the screen reader's outline);
  *  13. exactly one `main` landmark;
- *  14. no positive `tabindex`: it reorders the document for every keyboard user.
+ *  14. no positive `tabindex`: it reorders the document for every keyboard user;
+ *  15. no control inside another control (`<button>` in `<button>`, a link in a link): the inner one
+ *      is usually unreachable and a click on it fires the outer action.
  *
  * Usage:
  *   # terminal 1
@@ -176,6 +178,16 @@ const PAGE_PROBE = `(() => {
     positiveTabindex: Array.from(document.querySelectorAll('[tabindex]'))
       .filter((el) => Number(el.getAttribute('tabindex')) > 0)
       .map((el) => where(el) + ' tabindex=' + el.getAttribute('tabindex')),
+    // A control inside another control is unreachable or ambiguous: the inner one is often not
+    // focusable, and a click on it bubbles into the outer action.
+    nestedControls: Array.from(document.querySelectorAll(
+      'button, a[href], input, select, textarea, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])'))
+      .map((el) => {
+        const parent = el.parentElement === null ? null : el.parentElement.closest(
+          'button, a[href], [role="button"], [role="link"]');
+        return parent === null ? null : where(el) + ' inside ' + where(parent);
+      })
+      .filter((entry) => entry !== null),
   };
   const focusOrder = Array.from(document.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
     .filter((el) => el.tabIndex >= 0 && visible(el))
@@ -365,6 +377,9 @@ for (const [width, height] of VIEWPORTS) {
   }
   for (const element of documentFacts.positiveTabindex) {
     failures.push(at(`${element} — a positive tabindex reorders the document for every keyboard user`));
+  }
+  for (const element of documentFacts.nestedControls) {
+    failures.push(at(`${element} — a control inside a control: unreachable or ambiguous for a reader`));
   }
 
   // 4: duplicate ids.

@@ -6,7 +6,8 @@
  *   1. every `font-size` comes from the `--spr-type-*` scale (a bare pixel value drifts from it);
  *   2. every colour is a `--spr-*` token or the fallback inside one — `var(--spr-x, #abc)` is the
  *      documented pattern, a literal standing on its own is not;
- *   3. every `(click)` sits on a real control (`button`, `a`, `input`, `select`, `textarea`,
+ *   3. no block element inside `<p>` (the parser hoists it out, so the tree is not the template's);
+ *   4. every `(click)` sits on a real control (`button`, `a`, `input`, `select`, `textarea`,
  *      `label`, `option`, `summary`, a `mat-*`/`spre-*` component) or the host states its role.
  *
  * Usage: `node bin/editor_lint.mjs [--root <dir>]`. Exits non-zero and names `file:line` for each
@@ -45,7 +46,7 @@ function lineAt(text, index) {
 }
 
 const failures = [];
-const passed = {type: 0, colour: 0, click: 0};
+const passed = {type: 0, colour: 0, click: 0, structure: 0};
 
 for (const path of filesUnder(ROOT, (name) => name.endsWith('.scss') || (name.endsWith('.ts') && !name.endsWith('.spec.ts')))) {
   const text = readFileSync(path, 'utf8');
@@ -82,6 +83,29 @@ for (const path of filesUnder(ROOT, (name) => name.endsWith('.html'))) {
   const text = readFileSync(path, 'utf8');
   const where = relative(process.cwd(), path);
 
+  // 4: a block element inside <p>. The parser closes the paragraph before it, so the rendered tree
+  // is not the template's and the layout drifts without anything failing.
+  const BLOCKS = /<\/?p\b[^>]*>|<(?:div|section|article|aside|header|footer|main|nav|ul|ol|dl|table|form|h[1-6]|pre|blockquote)\b[^>]*>/g;
+  let paragraphDepth = 0;
+  for (const match of text.matchAll(BLOCKS)) {
+    const tag = match[0];
+    if (/^<\/p/.test(tag)) {
+      paragraphDepth = Math.max(0, paragraphDepth - 1);
+      continue;
+    }
+    if (/^<p\b/.test(tag)) {
+      passed.structure += 1;
+      if (paragraphDepth > 0) {
+        failures.push(`${where}:${lineAt(text, match.index)}: <p> inside <p> — the browser closes the outer one`);
+      }
+      paragraphDepth += 1;
+      continue;
+    }
+    if (paragraphDepth > 0) {
+      failures.push(`${where}:${lineAt(text, match.index)}: ${tag.slice(0, tag.indexOf(' ') < 0 ? tag.length - 1 : tag.indexOf(' '))} inside <p> — the browser hoists it out of the paragraph`);
+    }
+  }
+
   // 3: click handlers on real controls.
   for (const match of text.matchAll(/\(click\)[^>]*/g)) {
     // Walk back to the tag that hosts the handler: a `<` that opens a tag and no `>` in between
@@ -107,11 +131,11 @@ for (const path of filesUnder(ROOT, (name) => name.endsWith('.html'))) {
 }
 
 if (VERBOSE) {
-  console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers`);
+  console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs`);
 }
 if (failures.length > 0) {
   for (const failure of failures) console.error(`✗ ${failure}`);
   console.error(`editor lint failed: ${failures.length} violation(s)`);
   process.exit(1);
 }
-console.log(`Editor lint passed (${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers).`);
+console.log(`Editor lint passed (${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs).`);

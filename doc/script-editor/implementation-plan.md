@@ -1146,3 +1146,22 @@ naming `0 h1 heading(s)`, and restoring it returns to green; the nested mains fa
 and pass after. Twenty-one audit runs pass across the seven routes in light, dark and at 390×844
 (theme and accessibility), with editor 480, library 144, server 57, both builds and the house-rule
 lint green.
+
+### 11.21 The two template classes nothing looked at — **Done**
+
+Two ways a template can be wrong without any rendered property changing, and neither was checked:
+
+- **A control inside a control** (`<button>` in `<button>`, a link in a link). The inner one is
+  usually not focusable, and a click on it bubbles into the outer action — a bug the audits' names,
+  labels, tab order and target sizes all pass. New rule 15 in `bin/a11y_audit.mjs` walks every
+  control's ancestors for one, and the seven audited routes are clean.
+- **A block element inside `<p>`.** The parser closes the paragraph before it, so the rendered tree
+  is not the template's and the layout drifts with nothing failing. New rule in
+  `bin/editor_lint.mjs` scans every template's paragraphs (125 today) and reports the offending line.
+
+Both were **clean when added** — they are regression insurance, and each is proven by a negative
+test rather than assumed: injecting `<button><button></button></button>` (both sized and named, so
+only the nesting rule can fire) makes the audit exit 1 naming
+`button#probe-inner inside button#probe-outer`; putting a `<form>` inside a `<p>` in the library
+template makes the lint exit 1 naming `script-library.html:15: <form inside <p>`. a11y.md's rule list
+and README §7 say what they are for.
