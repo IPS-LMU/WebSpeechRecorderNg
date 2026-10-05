@@ -218,6 +218,35 @@ describe('ScriptLibrary states', () => {
     expect(rows[0].textContent).toContain('Random test');
   });
 
+  it('searches by itemcode as well as by name and id', async () => {
+    const state = await setup();
+    const names = () => Array.from(state.root.querySelectorAll<HTMLTableRowElement>('.scripts tbody tr'))
+      .map((row) => row.querySelector('th a')?.textContent?.trim() ?? '');
+    listRequest(state.http).flush([
+      {...ROWS[0], itemcodes: ['ANE01', 'ANE02']},
+      {...ROWS[1], itemcodes: ['RG00']},
+      // A row the list never gave codes for still matches by name.
+      {...ROWS[1], scriptId: '9999', name: 'No codes', itemcodes: undefined},
+    ]);
+    state.harness.detectChanges();
+
+    setInput(state.root, 'rg00');
+    state.harness.detectChanges();
+    expect(names()).toEqual(['Random test']);
+
+    setInput(state.root, 'ane02');
+    state.harness.detectChanges();
+    expect(names()).toEqual(['Dysarthria test']);
+
+    setInput(state.root, 'no codes');
+    state.harness.detectChanges();
+    expect(names()).toEqual(['No codes']);
+
+    setInput(state.root, 'nothing here');
+    state.harness.detectChanges();
+    expect(state.root.querySelector('.scripts tbody tr td')?.textContent).toContain('No script matches the filter.');
+  });
+
   it('filters by status as well as by text', async () => {
     const state = await setup();
     listRequest(state.http).flush(ROWS);

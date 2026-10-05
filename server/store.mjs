@@ -807,6 +807,7 @@ export class Store {
         publishedVersion: meta.publishedVersion ?? 0,
         draftVersion: meta.draftVersion ?? 0,
         ...scriptCounts(doc),
+        itemcodes: scriptItemcodes(doc),
         sessions: usage[String(meta.scriptId)] ?? {total: 0, started: 0, byVersion: {}},
         modified: meta.modified ?? null,
         modifiedBy: meta.modifiedBy ?? null,
@@ -1240,4 +1241,29 @@ function scriptCounts(doc) {
     }
   }
   return {sections, fixedItems, drawnItems};
+}
+
+/**
+ * The codes a search can find in this script: every fixed item's `itemcode`, plus a drawn
+ * placeholder's `itemcodePrefix` (its real codes are minted per session, so the prefix is the token
+ * that belongs to the script itself). Sorted and deduplicated; the library's filter matches a row
+ * when one of these contains the search term (ui-spec §2).
+ */
+function scriptItemcodes(doc) {
+  const codes = new Set();
+  for (const section of doc?.sections ?? []) {
+    for (const group of section.groups ?? []) {
+      for (const item of group.promptItems ?? []) {
+        const drawn = item?.prefill?.bank;
+        if (drawn === undefined || drawn === null) {
+          if (typeof item?.itemcode === 'string' && item.itemcode !== '') {
+            codes.add(item.itemcode);
+          }
+        } else if (typeof drawn.itemcodePrefix === 'string' && drawn.itemcodePrefix !== '') {
+          codes.add(drawn.itemcodePrefix);
+        }
+      }
+    }
+  }
+  return [...codes].sort();
 }

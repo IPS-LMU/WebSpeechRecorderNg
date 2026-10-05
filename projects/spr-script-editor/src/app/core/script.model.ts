@@ -42,6 +42,12 @@ export interface ScriptSummary {
   sections?: number;
   fixedItems?: number;
   drawnItems?: number;
+  /**
+   * The codes a search can find in this script (rest-api §2.1): its fixed itemcodes plus each drawn
+   * placeholder's prefix. The library's filter matches these, which is what makes ui-spec §2's
+   * "search by name, id or itemcode" true.
+   */
+  itemcodes?: readonly string[];
   sessions?: SessionCounts;
   modified?: string;
   modifiedBy?: string;

@@ -85,6 +85,7 @@ GET project/{projectId}/script
     "sections": 5,
     "fixedItems": 22,
     "drawnItems": 20,
+    "itemcodes": ["ANE01", "ANE02", "RB"],
     "sessions": { "total": 14, "started": 9, "byVersion": { "3": 14 } },
     "modified": "2026-09-30T09:12:00Z",
     "modifiedBy": "nylen",
@@ -101,6 +102,13 @@ GET project/{projectId}/script
 counts by the version a session was **created from** (the server records `scriptVersion` at creation)
 and preview sessions never count. `modifiedBy` names the authenticated user, or is `null` where the
 deployment has none (the receiver).
+
+`itemcodes` is what makes ui-spec §2's "search by name, id or itemcode" true: every fixed item's
+`itemcode` plus each drawn placeholder's `itemcodePrefix`, sorted and deduplicated. A drawn group's
+real codes are minted per session, so its prefix is the token that belongs to the script. The server
+walks the document it already reads for the counts, so the field costs no extra I/O; it does grow
+with the script (a 500-item script adds ~4 KB to the list), which is the price of searching locally
+in both API modes.
 
 ### 2.2 Create
 

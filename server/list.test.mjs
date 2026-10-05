@@ -34,6 +34,9 @@ test('library list counts fixed and drawn items and how sessions use the version
     assert.equal(row.drawnItems, 2, 'one session draws that many items');
     assert.deepEqual(row.sessions, {total: 2, started: 2, byVersion: {1: 2}});
     assert.equal(row.modifiedBy, null, 'the receiver has no authenticated user to name');
+    // ui-spec §2's search reaches itemcodes, so the list carries them: the fixed ones plus the drawn
+    // placeholder's prefix, whose real codes are minted per session.
+    assert.deepEqual(row.itemcodes, ['D', 'P1', 'P2', 'P3', 'P4', 'P5']);
 
     const empty = rows.find((entry) => String(entry.scriptId) === '1');
     assert.deepEqual(empty.sessions, {total: 0, started: 0, byVersion: {}});

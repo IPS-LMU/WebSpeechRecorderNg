@@ -185,7 +185,8 @@ export class ScriptLibrary {
       const statusMatches = status === 'ALL' || script.status === status;
       const textMatches = term === ''
         || script.name.toLowerCase().includes(term)
-        || String(script.scriptId).toLowerCase().includes(term);
+        || String(script.scriptId).toLowerCase().includes(term)
+        || (script.itemcodes ?? []).some((code) => code.toLowerCase().includes(term));
       return statusMatches && textMatches;
     });
   });

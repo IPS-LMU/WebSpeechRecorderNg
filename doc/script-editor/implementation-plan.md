@@ -897,3 +897,28 @@ had already been wrong once. Each area and its result:
   `bin/audit/open-draw-inspector.js` that does not exist. It now names the route and prepare script
   CI actually uses (`/project/Demo1/script/bank-draw/edit` + `open-draw-rule.js`), and both audits
   were run through it.
+- **ui-spec §2's search** promised "name, id or itemcode" while the library matched name and id only,
+  and the list carried no codes to match. Fixed in §11.10.
+
+### 11.10 Search by itemcode, which the list had no codes for — **Done**
+
+ui-spec §2's filter row and the library's own placeholder both say "Name, id or itemcode", and the
+field is what a researcher actually types ("RB013"). The client matched `name` and `scriptId` only,
+and the list row carried no codes at all — the promise had nothing behind it, and no test noticed
+because the specs' own fixture rows had no codes either.
+
+**What landed** — `itemcodes` on each list row (`server/store.mjs`'s `scriptItemcodes`): every fixed
+item's `itemcode` plus each drawn placeholder's `itemcodePrefix`, sorted and deduplicated. A drawn
+group's real codes exist only per session, so the prefix is the token that belongs to the script.
+The walk costs nothing — the list already reads the document for its counts — and the client's filter
+matches the field, so both API modes search the same way. The FILES-mode list fixture carries the
+codes too, computed from the same documents with the same rule.
+
+**The trade, stated** — the field grows with the script (the 500-item fixture row adds ~4 KB to the
+list). The alternative, a server-side `q` query, would have left FILES mode unable to match codes at
+all, which is the divergence R11 exists to prevent.
+
+**Verified** — `server/list.test.mjs` pins the `playback` row's codes (`['D','P1','P2','P3','P4','P5']`,
+the drawn prefix included); the library spec searches `rg00`, `ane02` and a row without codes, and
+still reaches "no match" for a term nothing carries. Live on the dev server: `RB` → the bank-draw
+script, `S10G1I01` → the 500-item script, `P1` → playback, `Z999` → the no-match line.
