@@ -228,3 +228,49 @@ jobs:
           # respondent mirror is measured too, where the same line is set at the larger caption.
           node bin/layout_probe.mjs --url http://127.0.0.1:8391/spr/session/1 --mirror http://127.0.0.1:8391/spr/respondent/1 --viewports 1568x986,1280x800
           node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
+
+  detail-view:
+    name: Recorder detail view (development build, Chrome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+      # The overlay no production bundle can be probed for: bin/audit/open-detail-view.js opens the
+      # waveform and sonagram pane through Angular's development API, and the page is the recorder's
+      # own `/recorder/session/1` route. One step, because a background process does not survive the
+      # end of the step that started it.
+      - name: Audit the detail view
+        run: |
+          set -e
+          npx ng build --configuration development --output-path=/tmp/devapp
+          node server/server.mjs --port 8391 --data /tmp/detailrun --seed src/test --app none \
+            --project Demo1 --script playback --migrate
+          node server/server.mjs --port 8391 --data /tmp/detailrun --seed src/test \
+            --app /tmp/devapp/browser --project Demo1 --script playback --quiet > /tmp/receiver.log 2>&1 &
+          google-chrome --headless=new --remote-debugging-port=9333 --user-data-dir=/tmp/cdp-detail \
+            --use-fake-ui-for-media-stream --use-fake-device-for-media-stream \
+            --autoplay-policy=no-user-gesture-required about:blank > /tmp/chrome.log 2>&1 &
+          for i in $(seq 1 180); do
+            curl -sf -o /dev/null http://127.0.0.1:8391/recorder/session/1 && break
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://127.0.0.1:9333/json/version && break
+            sleep 1
+          done
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/recorder/session/1 \
+            --prepare bin/audit/open-detail-view.js --viewports 1366x768
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/recorder/session/1 \
+            --prepare bin/audit/open-detail-view.js --viewports 1366x768 --rules universal
+          # The error dialog too, through the recorder's own error path. Only the theme pass: with a
+          # modal open Angular Material marks the application root `aria-hidden` while its focus trap
+          # keeps Tab inside the dialog - measured, four presses all landed on the dialog's button -
+          # so the universal rule "aria-hidden but contains focusable content" cannot tell that
+          # pattern from a real violation, and firing on it here would say nothing about the dialog.
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/recorder/session/1 \
+            --prepare bin/audit/open-error-dialog.js --viewports 1366x768
