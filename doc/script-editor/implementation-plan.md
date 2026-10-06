@@ -1816,9 +1816,17 @@ up `projects/speechrecorderng/src/test.ts` — Karma's bootstrap, which cannot r
 — and in that run `server/maintenance.test.mjs` fails non-deterministically (it is 6/6 alone). The
 explicit glob is the form that isolates the receiver.
 
-**Residual:** the workflow still needs its first run on GitHub. Every job's Linux path has since been
-verified in a container (§11.50), so a red first run would mean something the container does not
-reproduce — the runner's x86_64 Google Chrome, its image's tooling, or the `actions/*` setup steps.
+**Residual:** the workflow still needs its first run on GitHub. Its state, checked against the remote
+refs rather than a possibly stale local `master`: the branch is strictly **ahead** of `origin/master`
+with its merge base *at* master's tip — nothing behind, so no conflicts and nothing to rebase — and
+`master` is the only branch on the remote, so the first push creates this one. 325 files change,
++56,012/−165, of which the upstream-code surface is 21 files in the library (+1334/−92): the
+`sessionmanager.ts` (+206), new `phases.ts` (+233), `script.ts` (+124), `prompt_audio.ts` (+96) and
+`_tokens.scss` (+17) that the L-rows name, with `src/app` untouched. That surface is what the library's
+148-spec suite, the dry run and the audits cover; they pass.
+
+Once it has run, a red job would mean something a container does not reproduce — the runner's x86_64
+Google Chrome, its image's tooling, or the `actions/*` setup steps.
 
 ### 11.49 The dry-run driver that waited for a language the runner does not use — **Done**
 
