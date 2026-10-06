@@ -320,7 +320,9 @@ node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/test/script/1245/ed
 ```
 
 Add editor routes to the audit list used in CI, including one state behind an interaction (the
-inspector with a draw rule selected) via a `bin/audit/*.js` fixture.
+inspector with a draw rule selected) via a `bin/audit/*.js` fixture, and the dedicated
+bank + draw-rule route (`bank-draw/bank/g:0:0`), which renders without any interaction — its
+absence from the lists hid a dark-scheme failure (§11.45).
 
 ### 4.5 Deployment
 
@@ -462,7 +464,7 @@ rule).
 - **Library (karma).** `npm run test_module -- --watch=false --browsers=ChromeHeadless` — the
   recorder's behaviour as the oracle: `promptVisibleAt`, `effectiveTiming`, the phase transitions
   and the placement table for every `when` (C7), the feature→version map, the prefill utility and
-  the editor's model helpers. 146 specs today.
+  the editor's model helpers. 148 specs today.
 - **Library package.** The same job runs `npm run build_module`: ng-packagr is the pipeline the
   recorder consumes, and it fails on a bad `public-api`, an entry point or a budget — none of which
   karma compiles — while the version file it regenerates must match what is committed. The job then

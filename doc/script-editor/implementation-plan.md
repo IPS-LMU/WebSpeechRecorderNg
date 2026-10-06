@@ -1679,3 +1679,45 @@ shipped bundle imports tslib, which the manifest does not declare", and pointing
 the package lacks exits 1 with "the manifest points ./theme[default] at ./theme-missing.scss, which
 the package does not contain". The job's steps run end to end here: build, "version file unchanged",
 package check, exit 0.
+
+### 11.45 The bank and draw-rule screen in the dark scheme — **Done**
+
+§11.13 fixed the dark scheme on the routes the audits covered. The dedicated bank + draw-rule route
+(`/project/Demo1/script/bank-draw/bank/g:0:0`) was on a11y.md's *manual* list only — for its
+screen-reader announcements, which are genuinely manual — even though it renders with no interaction
+at all. It was therefore absent from every audit list, and its dark scheme was broken in seven
+places the moment it was measured:
+
+- **`--spr-primary` used as text** (1.72:1): the palette's brand navy is a light-surface text colour,
+  and the dark map keeps `spr-primary` navy deliberately — for *fills*. This is the same mistake
+  §11.13 fixed in the library rows and the draws view; nine sites remained, five of them on this
+  screen (a secondary button each in the browser, the example panel and the rule panel, the itemcode
+  `code` elements, and the picker's "Choose another bank").
+- **`--spr-ok-ink` used as text on a surface** (1.27:1): the `-ink` tokens are calibrated for text
+  *on their own fill* — the map says so with a ratio in the comment — and they are black in both
+  schemes. `.count-msg.is-ok` reads "matches 6 of 6 items" on the page surface, not on the fill.
+
+**What landed.** The library gains the text-side steps the map was missing, per scheme, with the
+measured ratios in the comments: `--spr-ok-text`, `--spr-caution-text`, `--spr-alert-text` — light
+`#1B5E20` (7.87:1) / `#7A5A16` (6.36:1) / `#7F1D1D` (10.02:1), dark the brand green / gold / pink
+(6.04:1 / 8.25:1 / 5.41:1), which are legible there because the fills are light for the light scheme.
+The editor's text uses move to them, and the nine navy-as-text sites move to `--spr-link`, whose
+light value is the same `#2A4765` — pixel-identical in the light scheme, 8.84:1 in dark. The picker's
+selected-row border and inset marker go the same way: a state indicator at 1.73:1 in dark is below
+the 3:1 non-text bar, and `--spr-link` is again identical in light. Borders that bound their own
+primary fill (`button.primary`, the draws view's download button) stay `--spr-primary`.
+
+The caution sites were fixed on *value* evidence rather than a screenshot: the audit renders no
+warning marker in its states, and `$umu-gold` as text is 2.01:1 on the light surface — the same
+defect, provable without a fixture.
+
+**Verified** — after the change, both schemes × all eight editor routes: light 8/8 and dark 8/8 with
+zero contrast failures; the rule route alone at 1366×768 and 1920×1080, at 390×844, and its a11y pass,
+all exit 0 (it was 1 failing route with 7 findings before). Editor lint 0 (286 colours), library 148
+specs, editor 480 specs.
+
+**CI** — the route joins the light, dark and a11y lists, so the screen it hid behind is now held to
+the same gates as the rest (README §4.4, §7).
+
+**Residual, recorded not fixed:** the text audit does not measure non-text contrast, so selection
+borders and box-shadows elsewhere are only checked where they were reasoned about here.
