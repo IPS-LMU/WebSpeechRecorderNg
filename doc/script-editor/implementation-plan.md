@@ -2260,3 +2260,10 @@ without a `dist` — D-A's "the demo app already consumes source" is true, just 
 
 **Residual:** D-A's wording now names the file the mapping is in; and the editor's dev loop
 (`ng serve spr-script-editor`) resolves from source, which is the change the decision was taken for.
+
+**And the job it repairs, run where it runs.** The same fresh checkout serves the editor —
+`npm run start_editor` answers 200 — and the audit job's steps pass there: theme on three routes, the
+a11y pass, and the planted-violation run exiting 1 with its rules named. Before the fix that job's dev
+server could not have started at all, so this change is what makes the job runnable rather than a
+convenience. Every asset root the steps read is fully tracked — `src/assets` 8/8, the editor's 1/1, the
+fixtures under `src/test` 76/76 and the check corpus 9/9 — so a checkout has everything they ask for.
