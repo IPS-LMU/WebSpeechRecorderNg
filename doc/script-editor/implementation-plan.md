@@ -2446,3 +2446,11 @@ comment pointing at the plan's checklist).
 
 **Residual:** the preview button's tooltip was verified by reading the string the panel renders and by
 the build, not by rendering the preview screen — the same probe that found §11.67 did not reach it.
+
+**Scope, completed.** The sweep that certified "no milestone wording remains user-facing" ran over three
+strings files; the check now covers all fourteen string sources — the editor's twelve (`editor-strings`,
+`editor-strings-ext`, `shell-strings`, `outline-strings`, `prefill-strings`, `bank-strings`,
+`draws-strings`, `preview-strings`, `preview-tier2-strings`, `source-strings`, `checks-strings`) plus the
+recorder's `en.json`/`sv.json` catalogues and the library's `translate.ts`. One hit remains and it is a
+false positive: the legend's "Changes **not yet** published. Only the editor sees them; sessions keep the
+published version.", which is an accurate description of a draft rather than a promise about the future.
