@@ -2987,3 +2987,21 @@ history, which is a legitimate practice and evidently a deliberate one.
 Recorded for two reasons: "the file is absent" is the only finding such a sweep can return, and the next
 person looking for release notes should be told where they are — the plan and the log — instead of hunting
 a file that was never meant to exist.
+
+### 11.93 The standalone picker's catalogue, resolved — **Done**
+
+§11.71 checked the Standalone-mode claim by reading: the catalogue path, the unset `defaultSessionId`, and
+the asset being configured. It never checked whether the entries *load*, and a picker whose session does
+not exist fails on the first click — which is exactly what "a fresh install can be tried out end to end"
+promises.
+
+All five configurations resolve. `introduction` session 2, `sound-prompts` session 9 and `random-test`
+session 3, all in project `Demo1`; the two `dysartri-*` entries by script. They sit in **two** layouts —
+`src/test/project/Demo1/session/2/` (per-script, with its `recfile/` tree) and `src/test/session/{3,9}.json`
+(legacy flat) — which is the duality `--migrate` exists to move (§11.80); the script-named entries likewise
+have both a flat `.json` and a directory.
+
+**My first pass reported two entries unresolved**, which would have been a false defect: the checker globbed
+one layout and the tree keeps two on purpose. The tenth time in this series that the checker rather than the
+tree was wrong — and the first where the *reason* was a migration the repository is deliberately in the
+middle of.
