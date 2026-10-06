@@ -2869,3 +2869,21 @@ filter form pairs a bound `[attr.for]` with a bound `[attr.id]`, and the two `ty
 **Rule 5's read direction** is covered on every screen: `editor-screen.spec.ts` mounts `?sel=` and says so
 in its own comment ("the four inspector variants the deep link chooses"), `script-preview.spec.ts` mounts
 `?item=`, and the draws and bank specs mount their URLs through `RouterTestingHarness`.
+
+### 11.87 The `withCredentials` convention, in both projects — **Done**
+
+rest-api.md's preamble states it — "Editor requests carry `withCredentials` when the deployment sets it" —
+`api-base.ts` repeats it for the editor, and the library README documents the setting ("Send cookies; see
+Security below"). Nothing enforces it structurally: `api-base.ts` shares *paths*, and each service builds
+its own request options.
+
+So it was swept: **35** `this.http.*` calls across the editor (20) and the library (15), and **every one**
+carries it — directly, or through the options object its service builds, as in
+`bank-write.service.ts:42` (`{headers, withCredentials: this.withCredentials}`) and the library's
+per-service `withCredentials` fields. The first pass flagged two editor calls, both of which pass a
+variable: the extractor looked for the key in the call's own text — the sixth time in this series that the
+checker, not the tree, was wrong.
+
+**Nothing was changed.** The convention holds everywhere it applies, so a lint rule ("every HTTP call in
+these sources passes `withCredentials`, directly or through its options object") would be *hardening*
+rather than a fix. Recorded here so the option is visible rather than taken unasked.
