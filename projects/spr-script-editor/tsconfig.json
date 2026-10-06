@@ -2,6 +2,14 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../out-tsc/spr-script-editor"
+    "outDir": "../../out-tsc/spr-script-editor",
+    // D-A: the editor imports the library from source. The root mapping points at `dist/speechrecorderng`,
+    // which is not tracked, so without this every editor build — the app, its specs and `ng serve` — needs
+    // `npm run build_module` first, and CI's editor job (which never builds the library) cannot resolve the
+    // import at all. `baseUrl` is the workspace root, which is how the decision's paths are written.
+    "baseUrl": "../..",
+    "paths": {
+      "speechrecorderng": ["projects/speechrecorderng/src/public-api.ts"]
+    }
   }
 }
