@@ -25,7 +25,8 @@
  *   node bin/layout_probe.mjs --browser safari --url ... --mirror ...
  *
  * Exits non-zero when the instruction line sits further from the header's centre than
- * `--tolerance` px, when a page reports no stage, or when a page overflows its viewport.
+ * `--tolerance` px, when a page reports no stage, or when the status line does not fit. A page that
+ * overflows its viewport is `bin/theme_audit.mjs`'s check (`document scrolls`), not this one's.
  */
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
@@ -194,11 +195,13 @@ if (AS_JSON) {
   console.log(JSON.stringify(measurements, null, 1));
 } else {
   for (const m of measurements) {
-    const where = `${m.url} @${m.viewport[0]}x${m.viewport[1]}`;
     if (m.state) {
-      console.log(`${where}\n  ${m.state}`);
+      // A page with no stage reports only a state and a URL — no viewport — so the line is built from
+      // what it has; reading `m.viewport` here first crashed the tool that exists to report this.
+      console.log(`${m.url}\n  ${m.state}`);
       continue;
     }
+    const where = `${m.url} @${m.viewport[0]}x${m.viewport[1]}`;
     console.log(`${where}`);
     console.log(`  instruction line ${m.captionPx}/${m.lineHeight}, padding ${m.padding}, text ${JSON.stringify(m.text)}`);
     console.log(`  header ${m.headerH}px (min ${m.headerMinHeight}) -> text centre ${m.textOffsetFromHeaderCentre}px from it`);

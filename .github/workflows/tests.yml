@@ -215,6 +215,11 @@ jobs:
       - name: Drive a session end to end
         run: |
           set -e
+          # The step's own scratch state. A runner starts with none, but running this step twice locally
+          # leaves a completed session behind, and the driver then meets a session it does not expect:
+          # measured, `start: play_arrow Starta uppspelning` and `session: status=COMPLETED`, with every
+          # clip "never played". Clearing it costs nothing and makes the step reproducible.
+          rm -rf /tmp/dryrun /tmp/receiver.log /tmp/chrome.log
           # Chrome will not advance an audio clip's clock without an output device, so no prompt clip
           # can play; the recorder reports that as a failure rather than stalling on it (it bounds
           # the wait). Give the runner a null sink so the clip-relative checks are checked here too.
@@ -239,6 +244,11 @@ jobs:
             curl -sf -o /dev/null http://127.0.0.1:9333/json/version && break
             sleep 1
           done
+          # The driver first, on the session it expects: it was created by the migrate above and nothing
+          # has loaded it yet. The audits and the probe below visit the same pages and leave the session
+          # loaded and connected - measured, running them first makes the driver's first take never
+          # happen ("the headphone reminder never appeared", every clip "never played").
+          node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
           # The recorder's own screens, which the editor-scoped audit job never renders: the token,
           # contrast, type-size and layout rules apply to them too (the redesign is shared), and the
           # *logo* rules — loaded, alt text, height, inside the viewport — only ever fire here, on the
@@ -270,10 +280,28 @@ jobs:
           node bin/a11y_audit.mjs --url http://127.0.0.1:8391/ --viewports 1366x768 --rules universal --prepare bin/audit/use-dark-scheme.js
           # The stage's instruction line, and which marks the branding slots actually show, measured
           # rather than eyeballed: the tool exits non-zero when the line sits off the header's centre
-          # beyond a pixel, when a page has no stage, or when a page overflows its viewport. The
+          # beyond a pixel, when a page has no stage, or when the status line does not fit. The
           # respondent mirror is measured too, where the same line is set at the larger caption.
           node bin/layout_probe.mjs --url http://127.0.0.1:8391/spr/session/1 --mirror http://127.0.0.1:8391/spr/respondent/1 --viewports 1568x986,1280x800
-          node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
+          # The probe's two reachable failure modes, so the tool cannot stop biting: a page with no
+          # stage must be reported as such - it used to crash on one, building its log line from a
+          # viewport that a state report does not carry - and a line off the centre must fail at zero
+          # tolerance. The third mode, a status line that does not fit, is implemented but not induced.
+          nopage_out=$(node bin/layout_probe.mjs --url http://127.0.0.1:8391/recorder/session/1 --viewports 1568x986 2>&1) \
+            && nopage_status=0 || nopage_status=$?
+          if [ "${nopage_status:-0}" = "0" ]; then
+            echo "the probe passed a page with no stage"; echo "$nopage_out"; exit 1
+          fi
+          echo "$nopage_out" | grep -qF 'no stage on the page' || {
+            echo "the probe did not report the missing stage"; echo "$nopage_out"; exit 1; }
+          tight_out=$(node bin/layout_probe.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 1568x986 --tolerance 0 2>&1) \
+            && tight_status=0 || tight_status=$?
+          if [ "${tight_status:-0}" = "0" ]; then
+            echo "the probe passed an off-centre line at zero tolerance"; echo "$tight_out"; exit 1
+          fi
+          echo "$tight_out" | grep -qF 'outside tolerance' || {
+            echo "the probe did not report the off-centre line"; echo "$tight_out"; exit 1; }
+          echo "the layout probe reports both reachable failure modes"
 
   detail-view:
     name: Recorder detail view (development build, Chrome)
