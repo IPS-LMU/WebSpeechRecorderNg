@@ -48,7 +48,7 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 
 | # | Decision | Why / alternative |
 |---|---|---|
-| D-A | The editor imports the library **from source**: editor `tsconfig.app.json` overrides `baseUrl` to `../..` and `paths: {"speechrecorderng": ["projects/speechrecorderng/src/public-api.ts"]}`. | The dist mapping forces `ng build speechrecorderng` before every `ng serve` and kills HMR in library code. The demo app already consumes source. Alternative (npm semantics) costs only the developer loop; production build is identical. |
+| D-A | The editor imports the library **from source**: the editor's `tsconfig.json` (which both `tsconfig.app.json` and `tsconfig.spec.json` extend) sets `baseUrl` to `../..` and `paths: {"speechrecorderng":["projects/speechrecorderng/src/public-api.ts"]}`. Putting it there rather than in `tsconfig.app.json` is deliberate: the specs are the half that failed without it (§11.61). | The dist mapping forces `ng build speechrecorderng` before every `ng serve` and kills HMR in library code. The demo app already consumes source. Alternative (npm semantics) costs only the developer loop; production build is identical. |
 | D-B | **Extend the in-repo receiver** (`server/*.mjs`) rather than write a separate stub: rest-api §2–§7 land as new modules there (`validate.mjs`, `bank.mjs`, `draw.mjs`, `media.mjs`), behind the existing handler and store. Development runs it with `--data /tmp/… --seed src/test`, so runtime state never enters the repo. | The server exists, is the recorder's contract reference, and already owns the upload half. A parallel stub would duplicate the store, upload and WAV code and drift (Q1 is answered: the server is local). Alternative: a stub in `bin/` only if the receiver turns out to be evaluation-only and the production service is elsewhere. |
 | D-C | Undo = whole-draft snapshots (`structuredClone`), coalesced per focused field, history capped (~50). The pending edit is also captured as a small **edit intent** (JSON-Patch-style ops per save window); on 412 the intent is re-applied once over the server copy with index guards, then a visible conflict state. | A snapshot stack alone cannot re-apply a structural edit (move/delete/add) — only text. Snapshots serve undo, the intent serves rest-api §2.3's reapply; the intent must cover structure, not only typing. |
 | D-D | Validation is pure functions with an injected context (bank `matchCount`, media index, deployment `VERSION`, feature→version map); publishing re-checks server-side. | Editor is catalogue owner (validation.md); the server is the only trusted gate. |
@@ -2228,3 +2228,35 @@ CI gets, by doing nothing but what CI does.
 here; they ran in the containers in §11.50, on both architectures for the install and the build. This is
 the closest local equivalent of the six jobs' non-browser half, not a substitute for their first run on
 GitHub.
+
+### 11.61 The editor resolved the library through an untracked `dist/` — **Done**
+
+Running the jobs on a checkout of only what git tracks (§11.60) surfaced this on the first browser
+step. The root `tsconfig.json` maps `speechrecorderng` to `dist/speechrecorderng` — two `dist` entries
+and no source entry — and no editor tsconfig overrode it, although D-A says the editor imports from
+source. So `npm run test_editor`, `npm run build_editor` and `ng serve spr-script-editor` all required
+`npm run build_module` to have run first, and **CI's editor job does not build the library**: its first
+step would have failed on a fresh runner with `Cannot find module 'speechrecorderng'`, in 71 files.
+
+**Why it stayed invisible, which is the same masking §11.60 was written to expose.** `dist/` existed in
+the working tree from earlier builds; the container runs tar-copied the working tree and excluded only
+`node_modules` and `.git`, so they carried `dist/` too; and §11.60's own run called `build_module`
+before `build_editor`. It appeared the first time the suite ran against `git archive HEAD` with nothing
+built.
+
+**Fixed** by implementing D-A where it belongs: the editor's `tsconfig.json` sets `baseUrl: "../.."` and
+the source path, so both the app and the specs inherit it. D-A named `tsconfig.app.json`, which would
+have left the spec build — the half that actually failed — still resolving through `dist`.
+
+**Verified before and after, on exactly the tree CI gets.** Before: `test_editor` exited 1 with
+`Cannot find module 'speechrecorderng'` on a fresh checkout. After, on a checkout with **no `dist` at
+all**: `test_editor` **481 SUCCESS**, and `build_editor` **500.38 kB / 135.99 kB** — against 500.31 /
+136.08 for the dist-based build, so the decision's rejected-alternative fear (that a library utility
+would drag the audio subtree in) does not materialise and the budget headroom is untouched.
+
+**The demo needs no change**: it consumes the library by relative path
+(`../../projects/speechrecorderng/src/lib/…`), so `npm run build` passes on the same fresh checkout
+without a `dist` — D-A's "the demo app already consumes source" is true, just not by package name.
+
+**Residual:** D-A's wording now names the file the mapping is in; and the editor's dev loop
+(`ng serve spr-script-editor`) resolves from source, which is the change the decision was taken for.
