@@ -25,6 +25,11 @@ jobs:
       # and public-api.ts makes its exports reachable for consumers rather than callers.
       - name: No unreferenced exports
         run: node bin/dead_exports.mjs --verbose
+      # The file all of this runs from. A job appended by hand with one wrong indent turns every check
+      # in the repository off without any of them reporting it, so its shape is checked here
+      # (bin/workflow_check.mjs).
+      - name: Workflow structure
+        run: node bin/workflow_check.mjs --verbose
 
   library:
     name: Library (karma)
