@@ -550,6 +550,11 @@ rule).
   the *editor* has no locale switching — its strings are constants (`core/editor-strings.ts`) — so it
   renders in English and there is no Swedish editor screen to audit. That fixture drives the demo
   recorder, which exposes `setLanguage`, which is the URL the root README's example uses.
+  Contrast is checked twice over: the text rule (WCAG AA) and **non-text** boundaries (WCAG 1.4.11) —
+  an element that announces a state by ARIA or a state class and marks it with a border, outline or
+  box-shadow must reach 3:1 against what it sits on (§11.54). That rule exists because the class it
+  covers had to be found and fixed by hand first (§11.45), and it is what now holds the editor's
+  selection markers; the recorder's timeline and canvas keep the pale gold, which is a fill colour.
   The house rule covers light **and** dark, so `use-dark-scheme.js` switches
   `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
   the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13). CI

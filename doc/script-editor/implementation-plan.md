@@ -1719,8 +1719,10 @@ specs, editor 480 specs.
 **CI** — the route joins the light, dark and a11y lists, so the screen it hid behind is now held to
 the same gates as the rest (README §4.4, §7).
 
-**Residual, recorded not fixed:** the text audit does not measure non-text contrast, so selection
-borders and box-shadows elsewhere are only checked where they were reasoned about here.
+**Residual — closed by §11.54.** This recorded that the text audit does not measure non-text contrast,
+so selection borders and box-shadows were only checked where they had been reasoned about by hand. The
+audit now has that rule (WCAG 1.4.11), the class it could not see is fixed, and its four remaining
+sites in the editor were found by the rule the moment it existed.
 
 ### 11.46 Every screen audited, and every audit a screen — **Done**
 
@@ -2004,3 +2006,39 @@ records *at that revision* and stay as they are.
 **Residual:** this covered the summary table, the refusals and the codes, not every request and
 response *shape* in §§2–6; the shapes are exercised by the receiver's own specs and the editor's
 service specs.
+
+### 11.54 The audit could not see a state marker — **Done**
+
+§11.45 left this residual: the text audit measures text contrast, so a selection border or box-shadow
+was only ever checked where somebody reasoned about it by hand — which is how the picker's selected row
+was found at 1.73:1. That gap is now closed by a rule rather than by attention.
+
+`bin/theme_audit.mjs` checks WCAG 1.4.11 for boundaries that carry meaning: an element that announces
+a state — by ARIA (`aria-current`, `aria-selected`, `aria-checked`, `aria-invalid`) or by a state class
+(`selected`, `current`, `active`, `checked`, `is-*`) — and marks it with a border, outline or
+box-shadow must reach 3:1 against what it sits on. Decorative lines are exempt by construction,
+because nothing announces a state, which is what keeps it from flooding: on the six audited editor
+routes it reports nothing today, and adding it flagged exactly one element.
+
+**What it found.** `button.row-main` — the outline's current row — marks itself with a box-shadow at
+**1.74:1** in the light scheme. Following the colour rather than the one report found the same pale
+gold on the centre's active card, the centre's current fixed row, and the preview's selected order row
+and checked step: five sites in the editor, all the pale brand gold as an *edge* on a light surface.
+The recorder's timeline and canvas keep it — that is the library's canvas token, and the canvas is
+black in the light scheme, where a darker gold would be worse, not better.
+
+**Fixed** — the editor's five selection edges use `--spr-link`, the token §11.45 already chose for the
+picker's selected row in the same application: identical in light and 8.84:1 in dark.
+`spr-select-edge` now appears only where it is a fill or a canvas colour.
+
+**Verified** — light and dark over the six editor routes: exit 0, no state-marker findings, and no new
+text failures from the changed colour. The planted violation exits 1 naming
+`div.planted-violation.is-selected state marker (is-selected) border contrast 1.10:1 < 3:1`, and the CI
+block now asserts that string, so the rule cannot silently stop biting. Editor lint (colour uses
+286 → 291), both scripts parse, workflow check green.
+
+**Residual:** the rule covers boundaries, not large-area tint fills — `--spr-select-fill` stays at
+about 1.1:1 — which is the reading 1.4.11 usually takes (the boundary is what identifies the state,
+and the fill accompanies a boundary in every case here). And it can only see the states the audited
+screens render: the centre's card marker needs a `?sel=` state with a drawn card, which no fixture
+opens, so that site is fixed here but not yet exercised by the rule.
