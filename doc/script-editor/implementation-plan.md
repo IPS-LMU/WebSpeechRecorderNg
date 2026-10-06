@@ -1827,7 +1827,11 @@ with its merge base *at* master's tip — nothing behind, so no conflicts and no
 148-spec suite, the dry run and the audits cover; they pass.
 
 Once it has run, a red job would mean something a container does not reproduce — the runner's x86_64
-Google Chrome, its image's tooling, or the `actions/*` setup steps.
+Google Chrome, its image's tooling, or the `actions/*` setup steps. **The baseline, measured**: a
+checkout of `origin/master` passes its own suites — `npm ci`, the library's 102 specs, the recorder's
+build — carries no editor project, has only `codeql.yml` and `osv-scanner.yml` where this branch adds
+`tests.yml`, and its `server/` holds no `*.test.mjs` at all (those are this branch's). So a failure on
+the first run belongs to this work rather than to anything it inherits.
 
 ### 11.49 The dry-run driver that waited for a language the runner does not use — **Done**
 
