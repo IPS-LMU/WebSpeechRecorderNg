@@ -1930,9 +1930,10 @@ remaining static claim — the lockfile carries the x64 optional deps — into a
 exercised on x86_64: the browser suites (karma and the audits); Chrome is the same code either way and
 they passed on aarch64.
 
-The first run on GitHub is still owed, and it is one push away: this branch is unpushed, `gh` is
-present with `repo` and `workflow` scopes, and the repository's Actions history holds only CodeQL and
-the OSV scanner.
+The first run on GitHub is still owed, and it takes a **pull request**, not merely a push: the workflow
+triggers on `push` to `master` and on `pull_request`, so pushing this branch alone runs nothing, and
+there is no `workflow_dispatch` to start it by hand. `gh` is present with `repo` and `workflow` scopes,
+the branch is unpushed, and the repository's Actions history holds only CodeQL and the OSV scanner.
 
 ### 11.51 A drawn group's recordings were "orphan media" — **Done**
 
@@ -2315,3 +2316,23 @@ that builds it. Only *running* the tool exposes that. And an earlier container r
 nothing because my `set -e` had landed in the parent shell rather than in the script. Both are the same
 lesson as a status code without its body — which is why the numbers quoted above come from runs whose
 own verdicts are visible.
+
+### 11.63 What starts the workflow — **Done**
+
+The last layer before the runner is the workflow's own Actions semantics, which no check here covers.
+Read as written: it uses **no expressions** and **no matrix** (the file is literal shell — the `{}` I
+had read once was my own renderer's collapse marker), every job is `ubuntu-latest` with a `cache: npm`
+step backed by a *tracked* root lockfile, and no job needs a `permissions:` block.
+
+**One thing changes what has to be done rather than what runs:**
+
+```yaml
+on:
+  push:
+    branches: [master]
+  pull_request:
+```
+
+`push` fires only for **master**, and there is no `workflow_dispatch` — so **pushing this branch alone
+runs nothing at all**. The first run takes a **pull request**. §11.50's residual said "one push away",
+which was wrong and is corrected; a reader would have pushed, seen no run, and had to work out why.
