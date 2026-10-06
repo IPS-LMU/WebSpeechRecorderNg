@@ -547,6 +547,12 @@ validation.md and the editor), a generated `server/checks.generated.mjs` the ser
 touching TypeScript, and the fixture corpus as the cross-runtime test that fails when one side
 changes alone. The generation step is the only new build piece and it shows up in the diff.
 
+**What shipped is A + the corpus** (§11.19): `server/validate.mjs` and the editor's `validation/`
+remained separate implementations, and the nine `doc/script-editor/checks/*.checks.json` cases are what
+hold them together — each side asserts the file set, and the editor's `CORPUS_FILES` is named in the
+server's test. C's generated artifact was never built, so this table is the design reasoning, not a
+description of the tree.
+
 **Corpus scope (minimum):** per E id, one positive and one negative draft; E05 boundaries (reserved
 ranges across sections, two draws sharing a prefix); E11 boundaries (cap 999, zero/negative);
 E04 against a bank fixture; every `path` asserted byte-for-byte, because the editor deep-links by
@@ -2709,3 +2715,48 @@ test still passes*, which is what shows the two assertions cover different paths
 nothing: no refusal of a data dir whose layout is newer than the receiver understands. That is consistent
 with the runbook, which describes the field as a *label* — "says which layout a script is" — and asks the
 operator to migrate forward rather than to be refused. Recorded so nobody adds a gate nothing promised.
+
+### 11.81 The invariant comments, swept — **Done**
+
+The family that produced §11.78–11.80 is "a comment asserts that two things must agree". Swept for it:
+eight comment lines across the library, the editor, the server and `bin/` carry such a phrase, and six are
+enforced where the comment says — the `_shuffled*` stripping (asserted by the round-trip spec), the
+server's feature table (§11.79), `store.mjs`'s layout mirror, `theme_audit.mjs` (the audit *is* the
+enforcer) and `editor-inspector.ts` (intent).
+
+Two were inspected closely and are clean:
+
+- `feature-versions.ts` says the table "mirrors `data-model.md` §5". §5 **defers** rather than duplicates
+  — "The table and the arithmetic live in `feature-versions.ts`" — and no floor value appears in the doc,
+  so there is no third list to tie;
+- `bank-model.ts` says the persisted `Draw.filter` and the wire query "must agree, which is why they are
+  produced here rather than inline in a template". That is a structural guarantee, and
+  `bank-model.spec.ts` asserts both serialisations (the frozen filter semantics, the query's page and
+  repeated tags) with `server/bank.test.mjs` on the other side.
+
+**One clarification of §11.79.** §5 also says the two copies "are held to the same **cases** by
+`feature-versions.spec.ts` and `server/feature-versions.test.mjs`" — and that is true: reading both shows
+the four cases mirrored (numeric segments, the features a script uses, the floor they imply, at or above
+the floor). What was missing was not the cases but the *tables*: the entries themselves had never been
+compared, which is what §11.79 added. The doc's sentence was accurate; the gap was elsewhere.
+
+### 11.82 The design docs' paths, swept at last — **Done**
+
+§11.75 swept the *plan*'s path-like names; the four design documents' own links and backticked paths were
+never swept, and a sweep that covers one file of five can hide its own gap. Doing the rest yields
+thirteen names with no file anywhere, and every one is right in context:
+
+- `tests.yml`, `codeql.yml` and `osv-scanner.yml` live under `.github/workflows/`, which a `**/` glob skips
+  as a hidden directory — the same artefact that produced §11.75's three, resolved there by the plan's own
+  wording ("this branch adds `.github/workflows/tests.yml`");
+- `meta.json`, `published.json`, `session.json`, `manifest.json` and `recfiles/A0/A0_0.wav` are artifacts
+  and fields, not repository paths;
+- `core/not-yet-built.ts`, `bin/audit/open-draw-inspector.js` and `/wsr/edit/nothing/here.js` were triaged
+  in §11.75 — a deleted stub, the fixture the sentence *says* was missing and was fixed, and a
+  deliberately nonexistent URL;
+- `shared/script-checks.mjs` and `server/checks.generated.mjs` are **options B and C** in the plan's own
+  comparison table for sharing the checks between editor and server. Both are correct as options — but the
+  table ends on "Recommendation: C with A's corpus", while the tree shipped **A + the corpus**. The block
+  now says what shipped, because a reader of that table alone would conclude a generated artifact exists.
+
+`feature-versions.spec.ts`, which `data-model.md` §5 names, does exist — that sentence resolves.
