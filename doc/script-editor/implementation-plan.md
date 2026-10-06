@@ -2479,3 +2479,23 @@ strings`; the editor suite is 481 SUCCESS, which compiles the template.
 `\[attr.aria-label\]` — a broken attribute that the lint's *rule* cannot see (it is not a literal) and
 that the label *count* did. `git diff` showed it, the count agreed (72 → 71 → 72 after the repair), and
 the fix went through the editor rather than a shell substitution. Read the diff, not the summary.
+
+### 11.70 The last tool nothing had run — **Done**
+
+A cross-check of `bin/` against everything that references it found no orphaned tool or fixture — every
+one of the twenty-three has at least one referrer, which closes §11.35's "fixtures nothing runs" class —
+but it also showed the one that is referenced and still never executed: `bin/mv_tgz_pkgs.js`. Its only
+caller is `npm run pack_pi_module`, which is on the *release* path, and CI never touches it.
+
+Its own header records a defect it already fixed — "a tarball under another name, or none at all, used to
+leave the release looking successful with the artifact somewhere else" — so all three paths were driven,
+in a temporary directory since it works with relative paths:
+
+- no `dist/speechrecorderng` → exit 1, "dist/speechrecorderng does not exist — run
+  `npm run build_module` first.";
+- the directory present with no tarball → exit 1, naming what it did find (`Files there: package.json`),
+  which is what makes a differently-named artifact visible rather than a silent success;
+- a tarball present → "Moved: speechrecorderng-9.9.9.tgz", exit 0, and it lands in `dist/`.
+
+The rest of that chain is verified elsewhere — `build_module` in §11.50 and §11.60, and `npm pack` is
+npm's own — so the release path's pieces are all covered, and the list of tools nothing has run is empty.
