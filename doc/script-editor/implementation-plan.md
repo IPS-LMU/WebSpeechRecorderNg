@@ -3024,3 +3024,15 @@ missing. And the export lives in `lib/environment/environment.defaults.ts`, re-e
 
 The family's positive direction holds too: here is a claim about two lists that *are* in step, written where
 a reader can check it.
+
+### 11.95 The editor job's three steps, after the last UI change — **Done**
+
+§11.85 changed the inspector's template and component, and verified it with karma (482) and the lint (click
+handlers 69) — but not with the editor **production build**, which is the editor job's last step
+(`tests.yml:95`). Run now: exit 0, initial total **500.36 kB / 136.02 kB** estimated, **no budget warning**.
+
+The job's other two steps were re-run in the same pass, so all three `run:` lines — karma, `editor_lint
+--verbose`, `build_editor` — have now been exercised on the current tree, rather than on the tree as it
+stood before §11.85. That is the same claim §11.50 made about the whole job, renewed after a change that
+touched the job's inputs; the 0.02 kB over §11.74's 136.00 kB is the two confirm buttons and their labels,
+which matters only because the Gate row quotes a budget this still sits well inside.
