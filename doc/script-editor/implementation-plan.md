@@ -3172,7 +3172,28 @@ state**, read first in every case.
 **Verified** — the editor suite is **482 pass** and the lint passes, and the flagged set fell from 38 to
 **26**: exactly the twelve of §11.99 and this entry.
 
-**What remains, deliberately.** `countsUnknown` appears **twice** in one file, as `'—'` and as
-`'counts unknown'`, and neither is rendered — which is ui-spec §9's "the counts show 'unknown'" state. Two
-spellings and no render is a product question, not a duplicate to delete. The rest need the same consumer
-reading, and the ones whose text appears nowhere are named in §11.100.
+**What remains, deliberately.** The rest need the same consumer reading, and the ones whose text appears
+nowhere are named in §11.100. (`countsUnknown` was kept here as a product question; §11.102 showed that was
+wrong — the render exists under a third name and both keys were duplicates.)
+
+### 11.102 The counts-unknown state, which is rendered after all — **Fixed**
+
+§11.101 kept `countsUnknown` twice, calling "two spellings and no render" a product question. The second
+half was wrong: the render exists. `editor-centre.ts`'s `matchText` returns `S.centre.matchCountUnknown`
+when `block.match === null`, and that key is used — ui-spec §9's "bank unreachable … the counts show
+'unknown'" is implemented, under a third name.
+
+What remained was a duplicate idea in two blocks: `editor.countsUnknown = '—'` and
+`centre.countsUnknown = 'counts unknown'`, referenced nowhere. Both deleted, along with `sectionHeading`
+(`centre`), whose neighbours show the centre's heading is `scriptHeading: 'Session flow'` and that its
+sections are cards without individual headings — so a per-section heading is a feature, not this string.
+
+**Verified** — the editor suite is 482 pass and the lint passes, and the flagged set fell from 38 through
+§11.99's five and §11.101's seven to **24**: these three deletions remove `countsUnknown` once, because it
+was flagged once (a set, though the name appeared in two blocks), and `sectionHeading` once.
+
+**The lesson is about the *keep* verdict.** §11.100 and §11.101 taught reading a consumer before deleting;
+this round reached "product question" by reading the *value* rather than the consumer, and was wrong in the
+same way. A state that *looks* unimplemented is a claim about the code and needs the same evidence as one
+that looks dead.
+

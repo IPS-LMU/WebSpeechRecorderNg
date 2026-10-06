@@ -148,7 +148,6 @@ export const EDITOR_STRINGS = {
     outlineRegion: 'Script outline',
     centreRegion: 'Script content',
     inspectorRegion: 'Inspector',
-    countsUnknown: '—',
   },
 
   /** Outline column (ui-spec §3.1). */
@@ -178,7 +177,6 @@ export const EDITOR_STRINGS = {
   centre: {
     scriptHeading: 'Session flow',
     scriptIntro: 'One card per section. Select a card to open the section.',
-    sectionHeading: 'Section {n}',
     modeChip: {
       MANUAL: 'Manual',
       AUTOPROGRESS: 'Auto advance',
@@ -191,7 +189,6 @@ export const EDITOR_STRINGS = {
       RECORDING: 'Prompt: recording',
     },
     counts: '{fixed} items + {drawn} drawn',
-    countsUnknown: 'counts unknown',
     trainingFlag: 'Training',
     playsMediaFlag: '{count} play media',
     cardSelect: 'Select section {n}',
