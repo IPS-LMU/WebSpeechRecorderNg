@@ -52,6 +52,11 @@ jobs:
         run: |
           npm run build_module
           git diff --exit-code -- projects/speechrecorderng/src/lib/spr.module.version.ts
+      # What the built package promises its consumers, which nothing here does: every path the
+      # manifest names exists in the package — the theme subpath is one this work had to add — and
+      # every external import in the shipped bundle is a declared dependency or peer (plan §11.44).
+      - name: Package shape
+        run: node bin/package_check.mjs
       # Every key of en.json in every locale, every SPR_STRINGS key overridable, every key the source
       # references present, and the committed strings identical to what the generator produces — a
       # check that existed but that nothing ran (plan §11.25).
