@@ -83,6 +83,24 @@ export class EditorInspector {
   readonly versionSessions = input<ReadonlyMap<number, number>>(new Map());
 
   readonly restoreVersion = output<number>();
+
+  /**
+   * `_restore` replaces the draft and the draft service takes no snapshot for it, so undo cannot bring
+   * the replaced draft back — ui-spec §1's "asks first when it is not" applies, and the button asks.
+   */
+  requestRestore(version: number): void {
+    if (this.confirming() !== `version:${version}`) {
+      this.confirming.set(`version:${version}`);
+      return;
+    }
+    this.confirming.set(null);
+    this.restoreVersion.emit(version);
+  }
+
+  /** Clears a pending confirmation; every destructive control reading `confirming` returns to rest. */
+  cancelConfirm(): void {
+    this.confirming.set(null);
+  }
   readonly bankRequested = output<string>();
   readonly mediaChanged = output<void>();
 
@@ -105,6 +123,8 @@ export class EditorInspector {
 
   readonly uploadError = signal<string | null>(null);
   readonly deleteError = signal<string | null>(null);
+  /** Which destructive action is asking first: ui-spec §1 wants undo, or a question when undo cannot help. */
+  readonly confirming = signal<string | null>(null);
 
   private readonly sectionIndex = computed<number | null>(() => {
     const selection = this.selection();
@@ -885,6 +905,13 @@ export class EditorInspector {
     if (src === undefined || src === '') {
       return;
     }
+    // The media service documents deletion as outside the draft's undo stack, so this asks first
+    // (ui-spec §1) exactly as the bank's remove does.
+    if (this.confirming() !== 'media') {
+      this.confirming.set('media');
+      return;
+    }
+    this.confirming.set(null);
     this.deleteError.set(null);
     this.mediaApi.remove(this.project(), src).subscribe({
       next: () => {

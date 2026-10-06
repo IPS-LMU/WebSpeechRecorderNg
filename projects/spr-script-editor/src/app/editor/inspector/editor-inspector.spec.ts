@@ -144,19 +144,28 @@ describe('EditorInspector writes — script variant', () => {
     });
   });
 
-  it('emits the restored version instead of writing the draft', () => {
+  it('asks before replacing the draft, then emits the restored version', () => {
     const {component, draft, fixture} = mount({script: scriptOf([promptItem()]), selection: {kind: 'script'}});
     fixture.componentRef.setInput('versions', [{version: 3, note: 'n', publishedDate: '2026-01-01'}]);
-    fixture.componentRef.setInput('versionSessions', new Map([[3, 7]]));
+    fixture.componentRef.setInput('versionSessions', new Map([[3,7]]));
     fixture.detectChanges();
 
     const restored: number[] = [];
     component.restoreVersion.subscribe((version) => restored.push(version));
     const button = (fixture.nativeElement as HTMLElement).querySelector('.version-row button') as HTMLButtonElement;
     expect(button.textContent).toContain('Restore');
-    button.click();
 
+    // ui-spec §1: `_restore` replaces the draft and the service takes no snapshot for it, so the first
+    // click only asks. Without this the action was destructive and undo could not bring the draft back.
+    button.click();
+    fixture.detectChanges();
+    expect(restored).toEqual([]);
+    expect(component.confirming()).toBe('version:3');
+
+    const confirm = (fixture.nativeElement as HTMLElement).querySelector('.version-row button.danger') as HTMLButtonElement;
+    confirm.click();
     expect(restored).toEqual([3]);
+    expect(component.confirming()).toBeNull();
     expect(draft.calls).toEqual([]);
   });
 });
@@ -380,13 +389,19 @@ describe('EditorInspector media endpoints', () => {
     expect(fixture.componentInstance.uploadError()).toBeNull();
   });
 
-  it('deletes the project file and emits mediaChanged on success', () => {
+  it('asks before deleting the project file, then deletes it and emits mediaChanged', () => {
     const {component, http} = mount({script: mediaScript(), selection});
     const changed: number[] = [];
     component.mediaChanged.subscribe(() => changed.push(1));
 
+    // ui-spec §1: the file is deleted server-side and the media service documents deletion as outside the
+    // draft's undo stack, so the first call only asks — the same two steps the bank's remove takes.
     component.deleteMedia();
+    expect(component.confirming()).toBe('media');
+    http.expectNone((candidate) => candidate.method === 'DELETE');
 
+    component.deleteMedia();
+    expect(component.confirming()).toBeNull();
     const request = http.expectOne((candidate) => candidate.method === 'DELETE' && candidate.url === 'project/Demo1/media/a.wav');
     request.flush({deleted: true});
 
@@ -394,10 +409,22 @@ describe('EditorInspector media endpoints', () => {
     expect(component.deleteError()).toBeNull();
   });
 
+  it('cancels a pending deletion without touching the server', () => {
+    const {component, http} = mount({script: mediaScript(), selection});
+
+    component.deleteMedia();
+    expect(component.confirming()).toBe('media');
+    component.cancelConfirm();
+
+    expect(component.confirming()).toBeNull();
+    http.expectNone((candidate) => candidate.method === 'DELETE');
+  });
+
   it('surfaces 409 MEDIA_IN_USE inline and does not touch the draft', () => {
     const {component, draft, http} = mount({script: mediaScript(), selection});
 
     component.deleteMedia();
+    component.deleteMedia(); // twice: the first only asks (ui-spec §1).
 
     const request = http.expectOne((candidate) => candidate.method === 'DELETE');
     request.flush({error: 'MEDIA_IN_USE', usedBy: [{scriptId: '1245', version: 3}]}, {status: 409, statusText: 'Conflict'});

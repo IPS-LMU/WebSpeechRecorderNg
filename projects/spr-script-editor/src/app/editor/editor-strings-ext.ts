@@ -11,9 +11,11 @@ export const EDITOR_STRINGS_EXT = {
   writesDisabled:
     'This deployment serves the fixtures read-only (FILES mode): the draft is shown but cannot be changed.',
   inspector: {
+    cancel: 'Cancel',
     script: {
       published: 'Published',
       sessions: '{count} sessions',
+      restoreConfirm: 'Replace the draft with version {version}?',
     },
     section: {
       orderLegacy: 'Randomized (the recorder treats it as sequential)',
@@ -33,6 +35,7 @@ export const EDITOR_STRINGS_EXT = {
       upload: 'Upload…',
       uploadNote: 'An upload is immediate and stays outside the draft’s undo history.',
       deleteFile: 'Delete the file from the project',
+      deleteFileConfirm: 'Delete this file permanently? It is not part of the draft, so undo cannot bring it back.',
       uploadFailed: 'The file could not be uploaded.',
       deleteFailed: 'The file could not be deleted.',
       inUse: 'The file is referenced by a published version, so it cannot be deleted.',

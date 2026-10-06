@@ -2815,3 +2815,31 @@ cache-buster the *client* appends in `ApiType.FILES` mode, so ignoring it is the
 Request bodies were not swept here because §11.65 drove the write path against the receiver end to end —
 create, draft, publish, restore — which exercises the documented fields (`name`, `archived`, `version`)
 rather than comparing them on paper.
+
+### 11.85 Two destructive actions that did not ask — **Fixed**
+
+ui-spec §1 sets a house rule: "Every destructive action is reversible through undo, or asks first when it is
+not." Sweeping the editor's destructive controls, six are undoable — `deleteSection`, `deleteGroup`,
+`deleteRow` and `removeAudio` all route through `draft.remove(...)`, whose whole-draft undo/redo snapshots
+are the draft service's stated design; `archive` is a toggle; the two filter clears drop no data.
+
+**Two were neither undoable nor asked.** `deleteMedia` calls `mediaApi.remove(...)`, which
+`media.service.ts` documents as outside the draft's undo stack: it deletes the project file and asked
+nothing. `restoreVersion` replaces the draft (rest-api §2.5: "It replaces the current draft") and the draft
+service takes no snapshot for it — its undo spec is about coalescing field edits — so one click on Restore
+discarded uncommitted work with no question.
+
+**Fixed** by giving both the two steps the bank's `confirmingDelete` already uses: a `confirming` signal in
+the inspector, `requestRestore(version)` and `deleteMedia()` that ask on the first call and act on the
+second, `cancelConfirm()`, and a string for each question plus one `Cancel`. The media question says the
+file is outside the draft and that undo cannot bring it back.
+
+**Verified** — the editor suite is **482 pass** (481 before, plus the new cancel case), and the two
+rewritten cases assert the rule directly: the first click emits nothing and sends no request
+(`http.expectNone`), the second acts; the 409 case calls twice with the reason written beside it. Lint
+passes, click handlers 65 → 69.
+
+**Not re-measured for this state, and why.** The 44 px target rule is checked by the CDP audit over a route
+list, and these buttons appear only after a click. They reuse the exact class and structure of buttons that
+route already passes, and the specs render and query them; a `bin/audit` fixture for the confirm state is
+the roadmap item if the owner wants it measured rather than inherited.

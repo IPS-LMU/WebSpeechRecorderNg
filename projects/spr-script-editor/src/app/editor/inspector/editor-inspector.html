@@ -142,9 +142,15 @@
                 <span class="version-date">{{ ext.inspector.script.published }} {{ row.publishedDate }}</span>
               }
               <span class="version-sessions">{{ ext.inspector.script.sessions.replace('{count}', versionSessionsOf(row.version) + '') }}</span>
-              <button type="button" [disabled]="writesDisabled()" (click)="restoreVersion.emit(row.version)">
-                {{ strings.inspector.script.restore }}
-              </button>
+              @if (confirming() === 'version:' + row.version) {
+                <span class="help">{{ ext.inspector.script.restoreConfirm.replace('{version}', row.version + '') }}</span>
+                <button type="button" class="danger" (click)="requestRestore(row.version)">{{ strings.inspector.script.restore }}</button>
+                <button type="button" (click)="cancelConfirm()">{{ ext.inspector.cancel }}</button>
+              } @else {
+                <button type="button" [disabled]="writesDisabled()" (click)="requestRestore(row.version)">
+                  {{ strings.inspector.script.restore }}
+                </button>
+              }
             </li>
           }
         </ul>
@@ -502,9 +508,15 @@
           <button type="button" class="danger" [disabled]="writesDisabled()" (click)="removeAudio()">
             {{ strings.inspector.playback.remove }}
           </button>
-          <button type="button" class="danger" [disabled]="writesDisabled() || !mediaitem.src" (click)="deleteMedia()">
-            {{ ext.inspector.playback.deleteFile }}
-          </button>
+          @if (confirming() === 'media') {
+            <span class="help">{{ ext.inspector.playback.deleteFileConfirm }}</span>
+            <button type="button" class="danger" (click)="deleteMedia()">{{ ext.inspector.playback.deleteFile }}</button>
+            <button type="button" (click)="cancelConfirm()">{{ ext.inspector.cancel }}</button>
+          } @else {
+            <button type="button" class="danger" [disabled]="writesDisabled() || !mediaitem.src" (click)="deleteMedia()">
+              {{ ext.inspector.playback.deleteFile }}
+            </button>
+          }
           @if (deleteError(); as message) {
             <p class="error" role="alert">{{ message }}</p>
           }
