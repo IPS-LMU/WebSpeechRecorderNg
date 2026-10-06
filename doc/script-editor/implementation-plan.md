@@ -1444,3 +1444,24 @@ navigation half (leaving an item stops its sound) is what the recorder's `prompt
 navigation implements. M1's manual pass keeps navigation-during-playback for a person to hear; the
 pause itself needs the recorder to enable the control first, which is a product decision and not a
 driver's.
+
+### 11.35 Two audit fixtures nothing runs — **Recorded, with what they would need**
+
+`bin/audit/open-detail-view.js` and `bin/audit/open-error-dialog.js` are named by §11.18's prose and
+by nothing else: no workflow, no script and no README line runs them, so the screens they open — the
+recorder's detail view (waveform and sonagram over the recording list) and its error dialog — have
+never been measured by the theme or accessibility audits.
+
+Trying them settles what reviving them takes. The detail view is reachable: `/spr/session/1` renders
+`app-sprrecordingsession` under a development build, which the fixture needs for `window.ng`. Its pane
+cannot open the way the fixture expects, though — `recorder_combi_pane.ts` binds
+`[class.active]="!audioSignalCollapsed && !screenXs"`, and the pane's container is the 296 px operator
+rail, so `screenXs` is true and no candidate selector ever lights `.collapsable.active`. The fixture now
+tries every candidate and names them all when none opens the pane, instead of throwing on the first,
+which is how that was measured. The error dialog needs `window.ng` and a reachable error path, and the
+development server in this worktree serves no API at all (`/api/v1/session/1` answers `500`), so its
+page is not a clean surface for an audit either.
+
+Wiring both up means a job that serves a *development* build beside a working API, plus a fixture
+updated to the pane's current markup. That is coverage for screens the plan's audit list never claimed
+rather than a gate that came loose, so it is recorded as a scoping decision instead of being built here.

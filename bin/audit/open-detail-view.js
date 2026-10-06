@@ -28,14 +28,17 @@
       if (!component || !('audioSignalCollapsed' in component)) {
         continue;
       }
+      // More than one component carries the flag, and only the one that owns the collapsable pane
+      // opens the view: a candidate that has the field but no pane is tried, not thrown on. The
+      // throw stays after the list, so a drifted selector still cannot leave the audit green while
+      // it measures the default screen.
       component.audioSignalCollapsed = false;
       window.ng.applyChanges(component);
       await sleep(1500);
-      if (!document.querySelector('.collapsable.active')) {
-        throw new Error('detail view did not open (' + selector + ')');
+      if (document.querySelector('.collapsable.active')) {
+        return 'detail view open (' + selector + ')';
       }
-      return 'detail view open (' + selector + ')';
     }
-    throw new Error('no component with a detail view in this route');
+    throw new Error('the detail view did not open for any of: ' + candidates.join(', '));
   })();
 })()
