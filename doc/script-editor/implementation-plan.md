@@ -3343,3 +3343,24 @@ What does *not* exist is the stronger form: a negative *per id* aimed at the bou
 trigger, ten cases that would catch an over-eager check as well as a missing one. That is real value, and it
 is the owner's call rather than something to infer — but the requirement as written is met.
 
+### 11.109 The route gate's scope, verified rather than assumed — **Done**
+
+`route_check.mjs` compares the **editor's** router against the workflow's audit URLs in both directions — a
+routed screen no audit reaches, and an audited URL no route serves — and its doc records that both have
+happened (§11.45). Its scope is the editor, while routes live in three places: the editor's `app.routes.ts`,
+the app's `app-routing.module.ts` and the library's `SPR_ROUTES`. So the question was whether the recorder's
+URLs go unchecked.
+
+They do not need checking, and the editor's table is the right one to read. Every audited URL in the workflow
+points at port 4300, which the workflow starts with `npm run start_editor -- --port 4300`, and the route
+shapes those URLs use — `project/:p/script`, `project/:p/script/:id/edit`, `…/preview`, `…/bank/:groupRef`,
+`…/draws` — are each a path in `app.routes.ts`. The recorder jobs drive **scripts** rather than a URL list
+(`bin/audit/*.js`, the dry-run driver), and the route they open was the subject of §11.62's fix; no `/spr/`
+URL appears in the workflow at all.
+
+Two things this entry first claimed and had to check. The app's `app-routing.module.ts` holds
+`const routes: Routes = []` — an empty NgModule table, so the library is not reached "through the app's own
+table" as I first wrote; the library declares `SPR_ROUTES` in its own module and the editor is a separate
+application. And the audited URLs are not nine: the workflow makes 36 `theme_audit` and 26 `a11y_audit`
+invocations, most of them the same routes at several viewports, which is why counting lines proves nothing.
+
