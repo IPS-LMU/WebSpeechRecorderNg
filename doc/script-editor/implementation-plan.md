@@ -3039,11 +3039,13 @@ The row is scoped — its milestone column says M2 — so this is milder than §
 present-tense clause still described a placeholder for a feature that shipped two milestones later. It now
 gives both states: disabled at M2, shipped in M4 as `preview-tier2-panel`.
 
-**The rule itself holds where it applies.** The outline's move and delete buttons carry bound `[title]`
-reasons (`strings.outline.moveUp`, `deleteTitle(row)`), and the editor's other forty-four `[disabled]`
-elements are transient states (`saving()`, `busy()`, `publishing()`, `!canPrev()`) or `writesDisabled()` —
-the read-only mode that ui-spec explains with one page-level line, which §11.15 put there. A first pass read
-all forty-four as violations; they are not the class the rule is about.
+**The rule holds, and the sweep that shows it had to include inline templates.** Counting `**/*.html` and
+every `template:` string in the component `.ts` files: **78** elements carry `[disabled]`, of which **20**
+carry a bound `title`/aria reason in the same tag — the transport bar's five, the replay control, the
+simulation steps, the tier-2 button, and the outline's move and delete, which is what a per-control reason is
+*for*. The other **58** are transient (`saving()`, `busy()`, `publishing()`, `!canPrev()`) or
+`writesDisabled()` — the read-only mode ui-spec explains with one page-level line, which §11.15 put there.
+The first pass here swept `*.html` alone, and §11.97 records what that cost.
 
 ### 11.96 The editor job's three steps, after the last UI change — **Done**
 
@@ -3057,3 +3059,23 @@ The job's other two steps were re-run in the same pass, so all three `run:` line
 stood before §11.85. That is the same claim §11.50 made about the whole job, renewed after a change that
 touched the job's inputs; the 0.02 kB over §11.74's 136.00 kB is the two confirm buttons and their labels,
 which matters only because the Gate row quotes a budget this still sits well inside.
+
+### 11.97 The inline template the sweep could not see — **Fixed**
+
+§11.95 claimed "no preview template carries `[disabled]`" and counted "the editor's other forty-four". Both
+came from a sweep of `**/*.html` alone — and the preview's components carry their templates **inline**, in
+`template:` strings inside `.ts` files. `preview-playback-panel.ts:34`, `preview-step-simulation.ts:23`,
+`preview-tier2-panel.ts:27` and five buttons in `preview-transport-bar.ts` all carry `[disabled]`, each with
+a bound `[title]`.
+
+The false statement is corrected in §11.95, and its numbers are now the true ones: **78** elements across
+`.html` and inline templates, **20** carrying a per-control reason, **58** transient or read-only.
+
+That matters beyond a count. The claim *contradicted* the rule it was checking — E2's "a step the item cannot
+reach is disabled with the reason, never hidden" — and the evidence for the rule is precisely what the sweep
+could not see. A reader trusting §11.95's first wording would have concluded the preview hid its steps.
+
+This is the third round running where the checker was wrong and the tree right (§11.89's references, §11.93's
+two session layouts, this one). The pattern is consistent enough to state plainly: **every sweep in this
+series has needed its blind spot hunted before its result was written down** — here, the file extension; there,
+a layout, a name form, a variable.
