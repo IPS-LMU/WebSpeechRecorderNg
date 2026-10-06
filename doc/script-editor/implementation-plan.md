@@ -3582,5 +3582,21 @@ is rewritten to `3.11.26`.
 first version of the write produced the compact form, and the file's own hash caught it rather than my eye,
 after the edit had looked right in the diff.
 
+### 11.118 The commented block naming a file that is gone — **Fixed**
+
+§11.117 put me inside `apply_version.js`, where a commented-out block still read `module_package.json` and
+wrote its `version` back. That file is not in the tree and has not been tracked since `85afb661` ("First
+successful build of the speechrecorderng library by ng build speechrecorderng command"); the block's own
+history says why — `3118e088` ("Fixed: version was not applied to module code") superseded it, and it was
+commented rather than removed.
+
+**Deleted**, which is what §11.7 did with the disabled stubs. A commented block is not harmless documentation:
+it tells a reader that this script also stamps a module manifest, and the only way to learn otherwise is to
+notice that the file it names does not exist — which is exactly the sort of thing this register exists to
+catch rather than preserve.
+
+**Verified** — `node --check` passes, and a run still stamps `spr.module.version.ts` and leaves
+`src/test/version.json` byte-identical, with nothing else modified.
+
 
 
