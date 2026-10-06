@@ -1529,7 +1529,11 @@ inside a control and a 17 px target — since a11y.md's own sensitivity claim na
 For the theme audit beyond the five in README §7 it means the five logo rules, which fire on
 `spr-logos img`: the editor routes carry no logos, so the fixture plants a `<spr-logos>` host with one
 image per fault, and README §7's claim that those rules "only ever fire there, on the control bar" now
-says how they are proved.
+says how they are proved. Two rules need a page rather than a plant: the accessibility rule the
+error-dialog job waives by number is proved live by a hidden div holding a button, and the theme
+audit's inert-token-layer and Material-pins rules are proved on `favicon.ico`, a page that is not the
+application at all — pointing the same command at the application makes both findings absent, which is
+the check on the assertions. Twenty-seven rule checks in all.
 
 **Verified** as the job runs it — the block extracted from the workflow and executed by `bash` against
 a development server and Chrome: exit 0, "both audits named every planted violation", the five theme
