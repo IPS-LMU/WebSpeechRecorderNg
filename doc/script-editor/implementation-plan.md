@@ -3148,3 +3148,31 @@ unambiguous: `notFound` ("That selection no longer exists in this script" — th
 `sectionHeading` ("Section {n}"), `onDemand` ("The clip plays on the speaker's request"), `unbounded` ("The
 recording is open-ended, so it is hatched") and `canvasUnsupported` ("This browser cannot play this file
 here."). Each is either an unrendered state or a string that outlived one — a product question, not a sweep.
+
+### 11.101 Seven more strings, decided by their consumer — **Fixed**
+
+§11.100 refused to delete on a value match. Something better decides these: **the consumer that pins the
+state**, read first in every case.
+
+- `scriptRow` (`outline`) — the outline's script row renders `S.editor.scriptWord` (`outline.ts:99`), while
+  `sectionLabel` and `groupLabel` beside it *are* used. The block is live; this one key was the duplicate.
+- `sectionWord`, `groupWord` (`editor`) — the outline labels sections and groups through `sectionLabel` and
+  `groupLabel`, and `itemWord`, the third of the trio, *is* used. Only these two were stale.
+- `notFound` (`editor`) — "That selection no longer exists in this script." `selectionFromQuery` and
+  `sanitiseSelection` fall back silently, and `editor-screen.spec.ts` pins that: *"defaults to the script
+  variant with no query, not a stale node"* asserts the script inspector and no message. A note on a stale
+  deep link would be a behaviour change, so the message is not lost by deleting it — it is in the history if
+  someone wants it.
+- `warningCount` (`shell`) — `'0 warnings'`, a placeholder with the zero hardcoded, while the shell renders
+  `countSummary()` and owns `warningWordMany` and `warningsLabel`.
+- `itemcodeInvalid` and `itemcodeValid`, the whole `item:` block of `editor-strings-ext.ts` —
+  `itemcodeMessage` joins the *findings'* `.message` (E01/E02 from the validation catalogue, §11.78), so the
+  field's message has never come from these.
+
+**Verified** — the editor suite is **482 pass** and the lint passes, and the flagged set fell from 38 to
+**26**: exactly the twelve of §11.99 and this entry.
+
+**What remains, deliberately.** `countsUnknown` appears **twice** in one file, as `'—'` and as
+`'counts unknown'`, and neither is rendered — which is ui-spec §9's "the counts show 'unknown'" state. Two
+spellings and no render is a product question, not a duplicate to delete. The rest need the same consumer
+reading, and the ones whose text appears nowhere are named in §11.100.

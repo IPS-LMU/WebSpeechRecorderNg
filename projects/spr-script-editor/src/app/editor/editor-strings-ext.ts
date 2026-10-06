@@ -27,10 +27,6 @@ export const EDITOR_STRINGS_EXT = {
       countSuspended: 'The bank could not be read, so the items-per-session count cannot be validated.',
       defaultsTitle: 'Applied to every drawn item',
     },
-    item: {
-      itemcodeInvalid: 'This itemcode is not valid yet.',
-      itemcodeValid: 'No itemcode clash and not inside a reserved range.',
-    },
     playback: {
       upload: 'Upload…',
       uploadNote: 'An upload is immediate and stays outside the draft’s undo history.',
