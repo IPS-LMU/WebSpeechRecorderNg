@@ -1452,16 +1452,24 @@ by nothing else: no workflow, no script and no README line runs them, so the scr
 recorder's detail view (waveform and sonagram over the recording list) and its error dialog — have
 never been measured by the theme or accessibility audits.
 
-Trying them settles what reviving them takes. The detail view is reachable: `/spr/session/1` renders
-`app-sprrecordingsession` under a development build, which the fixture needs for `window.ng`. Its pane
-cannot open the way the fixture expects, though — `recorder_combi_pane.ts` binds
-`[class.active]="!audioSignalCollapsed && !screenXs"`, and the pane's container is the 296 px operator
-rail, so `screenXs` is true and no candidate selector ever lights `.collapsable.active`. The fixture now
-tries every candidate and names them all when none opens the pane, instead of throwing on the first,
-which is how that was measured. The error dialog needs `window.ng` and a reachable error path, and the
-development server in this worktree serves no API at all (`/api/v1/session/1` answers `500`), so its
-page is not a clean surface for an audit either.
+Trying them settles what reviving them takes, and corrects the first explanation I wrote here. The
+detail view is *not* blocked by the responsive rule: `screenXs` is the CDK `XSmall` breakpoint, a
+viewport query that is false at 1366 px (`matchMedia('(max-width: 599.98px)')` false on the page).
+What is missing is the component itself. Only `app-sprrecordingsession` is present on
+`/spr/session/1` and `/spr/session/2`; the combi pane is rendered by `AudioRecorderComponent`
+(`audiorecorder.ts`), and this application does not route that component at all — `/spr/recorder/
+session/1` falls through to the start page, and the demo's own routes are `session`, `session/test`,
+`audio_display` and a `**` fallback. So the fixture's four candidates are absent rather than
+mis-targeted, and the pane cannot be measured until something renders its component (a route, or a
+harness that mounts it).
 
-Wiring both up means a job that serves a *development* build beside a working API, plus a fixture
-updated to the pane's current markup. That is coverage for screens the plan's audit list never claimed
-rather than a gate that came loose, so it is recorded as a scoping decision instead of being built here.
+The error dialog is closer to reachable — its page does render `app-sprrecordingsession` — but the
+fixture calls `error(...)` on that component and the recorder's error path lives on the session
+manager, so its hook has drifted too. Both fixtures also need a development build for `window.ng`,
+and the development server here serves no API (`/api/v1/session/1` answers `500`), so neither page is
+a clean surface for an accessibility audit as it stands.
+
+Wiring them up therefore means a route or harness that renders `AudioRecorderComponent`, a
+development build beside a working API, and both fixtures brought up to the current hooks. That is
+coverage for screens the plan's audit list never claimed rather than a gate that came loose, so it is
+recorded as a scoping decision instead of being built here.
