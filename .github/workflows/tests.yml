@@ -193,7 +193,7 @@ jobs:
           # does not name one of them. README §7's sensitivity claims were prose before this.
           theme_out=$(node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script \
             --prepare bin/audit/plant-violations.js --viewports 1366x768 2>&1) && theme_status=0 || theme_status=$?
-          if [ "${theme_status:-1}" = "0" ]; then
+          if [ "${theme_status:-0}" = "0" ]; then
             echo "the theme audit passed with planted violations"; echo "$theme_out"; exit 1
           fi
           for expected in 'lightgrey' '9px' 'contrast 2.96:1' 'renders in Arial' 'document scrolls' \
@@ -205,7 +205,7 @@ jobs:
           done
           a11y_out=$(node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script \
             --prepare bin/audit/plant-violations.js --viewports 1366x768 2>&1) && a11y_status=0 || a11y_status=$?
-          if [ "${a11y_status:-1}" = "0" ]; then
+          if [ "${a11y_status:-0}" = "0" ]; then
             echo "the accessibility audit passed with planted violations"; echo "$a11y_out"; exit 1
           fi
           for expected in 'exposes a button with no name' 'is 17 px high' 'has no lang attribute' \

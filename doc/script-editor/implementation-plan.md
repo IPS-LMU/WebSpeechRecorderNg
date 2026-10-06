@@ -3499,4 +3499,25 @@ phone runs as light because the categories overlap by construction.
 Recorded because the comparison is the useful artifact: a reader asking "how much does the audit cover" now has
 both matrices, and knows which parts are deliberate rather than missing.
 
+### 11.115 Three gate guards, and one that was fail-open — **Fixed**
+
+The workflow's sensitivity block is the sharpest thing in it: each audit runs with a fixture that *plants* a
+violation, and the step fails if the audit **passes anyway** (`exit 1` with "passed with planted violations")
+*and* if it does not **name every expected rule** — a loop over eleven names for the theme audit and ten for
+the accessibility one, the latter with `grep -qF`. The audits are held to biting, not merely to running.
+
+**One guard pointed the wrong way.** The theme and accessibility checks read `${theme_status:-1}` and
+`${a11y_status:-1}`, while the layout probe's reads `${status_status:-0}`. That default decides what an *unset*
+status means, and the two disagreed: `:-1` stays silent — the gate disarmed — and `:-0` exits 1. The variable is
+assigned on every path today, so this is hardening rather than a live defect, but it is the *wrong* direction,
+and the sibling line already had it right.
+
+**Fixed** to `:-0` on both, so all three guards fail closed, and *proven* rather than reasoned about: with the
+status unset, `:-1` stays silent while `:-0` exits 1; with the real outcomes, a passing audit fires the guard
+and a failing one does not. The guards are shell, so unlike the audit runs this change is exercised directly.
+
+**A harmless inconsistency, noted so it is not "fixed" later**: the theme loop uses `grep -q` and the
+accessibility loop `grep -qF`. `grep`'s default pattern is basic, so the theme names containing parentheses
+match literally, and both loops are correct as written.
+
 
