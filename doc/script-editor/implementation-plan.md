@@ -3005,3 +3005,22 @@ have both a flat `.json` and a directory.
 one layout and the tree keeps two on purpose. The tenth time in this series that the checker rather than the
 tree was wrong — and the first where the *reason* was a migration the repository is deliberately in the
 middle of.
+
+### 11.94 The offline sample and the export it mirrors — **Done**
+
+The last documented-variant thread: `environment.demo.sample.ts` and the newer
+`SPEECHRECORDER_ENVIRONMENT_DEFAULTS` introduced in §11.57, of which the plan says the values are identical
+"with `production: true`".
+
+Checked value by value. Five of six agree — `apiType: 'files'`, `apiEndPoint: 'test'`, `apiVersion: 1`,
+`enableDownloadRecordings: true`, `enableUploadRecordings: false` — and the sixth is exactly the difference
+the plan names: the export is `production: false` and the sample `true`. The claim is precise, including the
+exception it states.
+
+Two things settled alongside it. The sample's own header says `angular.json` "defines no configuration for
+it — copy it over `environment.ts`", which is why §11.71 found no `fileReplacements` entry and why none is
+missing. And the export lives in `lib/environment/environment.defaults.ts`, re-exported through
+`public-api.ts`, so a consumer can import the defaults rather than retype them.
+
+The family's positive direction holds too: here is a claim about two lists that *are* in step, written where
+a reader can check it.
