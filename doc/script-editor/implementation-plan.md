@@ -2454,3 +2454,28 @@ strings files; the check now covers all fourteen string sources — the editor's
 recorder's `en.json`/`sv.json` catalogues and the library's `translate.ts`. One hit remains and it is a
 false positive: the legend's "Changes **not yet** published. Only the editor sees them; sessions keep the
 published version.", which is an accurate description of a draft rather than a promise about the future.
+
+### 11.69 The one user-facing string outside the strings files — **Done**
+
+The sweep in §11.68 read the *strings files*, which is exactly what a literal in a template escapes. One
+existed: `bank/draw-rule-findings.html` labelled its findings list `aria-label="Checks"`, while every
+other `aria-label`, `title` and `placeholder` in the editor's templates is bound from the strings (the
+other greps' hits were spec selectors). The plan's own convention — "centralise chrome strings from M2" —
+is the reason it matters: one place to read them, and the only kind of string a catalogue could reach.
+
+**Guarded, because nothing checked it.** `editor_lint.mjs` had rules for type sizes, colours, click
+handlers and paragraph structure, and none for this, so the next literal would have gone unnoticed
+exactly as this one did. It now fails on a literal `aria-label`/`title`/`placeholder` in a template,
+naming the file, line and the literal, and counts the bound ones (72 today).
+
+**Fixed** — the component takes `BANK_STRINGS` as its sibling `draw-rule-example.ts` does, and the label
+comes from `rule.findingsLabel`; the rendered word is unchanged.
+
+**Verified** — the lint passes on the tree with 72 bound labels; injecting `aria-label="Checks"` back
+makes it fail with `…draw-rule-findings.html:2: aria-label="Checks" is a literal — bind it from the
+strings`; the editor suite is 481 SUCCESS, which compiles the template.
+
+**And a self-inflicted one, caught and fixed.** My inject/revert `sed` escape-mangled the binding into
+`\[attr.aria-label\]` — a broken attribute that the lint's *rule* cannot see (it is not a literal) and
+that the label *count* did. `git diff` showed it, the count agreed (72 → 71 → 72 after the repair), and
+the fix went through the editor rather than a shell substitution. Read the diff, not the summary.
