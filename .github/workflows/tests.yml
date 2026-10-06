@@ -164,11 +164,11 @@ jobs:
       - name: Drive a session end to end
         run: |
           set -e
-          # Chrome will not advance an audio clip's clock without an output device, and the recorder
-          # waits for each prompt clip to finish before it starts a take, so this gate needs a sink.
-          # A runner has no sound card: give it a null one. This is best effort - if it does not take,
-          # the driver reports the frozen clock itself and skips loudly instead of blaming the
-          # recorder (bin/audit/dry_run.mjs).
+          # Chrome will not advance an audio clip's clock without an output device, so no prompt clip
+          # can play; the recorder reports that as a failure rather than stalling on it (it bounds
+          # the wait). Give the runner a null sink so the clip-relative checks are checked here too.
+          # Best effort: without it the driver measures the frozen clock, drives the run anyway and
+          # marks those checks unverified instead of blaming the recorder (bin/audit/dry_run.mjs).
           if ! pactl info > /dev/null 2>&1; then
             sudo apt-get update -qq && sudo apt-get install -y -qq pulseaudio > /dev/null 2>&1 || true
           fi
