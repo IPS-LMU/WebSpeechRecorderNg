@@ -2642,3 +2642,26 @@ and both are correct as written:
   `Spelar in`. The docs quote it case-styled; a future sweep must not "correct" it.
 
 Every other code the docs cite — the `409`s and their names, `If-Match`, the settings — is in the tree.
+
+### 11.78 The catalogue nothing compared — **Done**
+
+`validation.md` calls itself "one source of truth for the editor's checks panel, the outline markers and
+the server's publish gate", and nothing compared the lists. The specs test the ids they already know
+about, so a check dropped from a module, or an id added without a catalogue row, drifts in silence —
+and the server's codes were compared to nothing at all. Four lists existed: the catalogue's **30** rows,
+the modules' **30** `check` functions, the specs' **30** `describe('<id>'` blocks, and the **10** codes
+`server/validate.mjs` publishes (E01–E07 and E09–E11 — E08 is the retired no-op the catalogue records).
+
+**`bin/editor_lint.mjs` rule 6** now ties them: every catalogued id must have a check *and* a `describe`,
+every defined check must be catalogued, and every code the server publishes must be catalogued. It runs
+in the editor CI job (`tests.yml:91`), so it is a gate rather than a local habit — §11.37's point.
+
+**Verified in four directions** — passing on the tree ("…72 bound labels, 30 catalogued checks"); a
+catalogue carrying `| E99 |` gives "E99 is catalogued but no check defines it" and "E99 has no describe";
+a catalogue missing `| N06 |` gives "N06 is defined but not catalogued"; and `add('E99', …)` injected into
+`server/validate.mjs` gives "publishes E99, which … does not catalogue", then reverted.
+
+**Two bugs of my own, found by that testing.** The server clause first scanned for `checkXn`, but the
+server writes `add('E01', …)` — it matched nothing, so the clause was a silent no-op that a green run
+would have hidden. And it filtered to `E`-prefixed ids, which would have let a stray `W`/`N` code through.
+Both were fixed before the four proofs above, which is why the injection test exists.

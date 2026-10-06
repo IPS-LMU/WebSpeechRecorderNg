@@ -8,9 +8,13 @@
  *      documented pattern, a literal standing on its own is not;
  *   3. no block element inside `<p>` (the parser hoists it out, so the tree is not the template's);
  *   4. every `(click)` sits on a real control (`button`, `a`, `input`, `select`, `textarea`,
- *      `label`, `option`, `summary`, a `mat-*`/`spre-*` component) or the host states its role.
+ *      `label`, `option`, `summary`, a `mat-*`/`spre-*` component) or the host states its role;
+ *   5. no user-facing literal in a template attribute — `aria-label`, `title` and `placeholder` come
+ *      from the `*-strings` files, so a literal is text nobody can review in one place;
+ *   6. the check catalogue agrees with the code: every id in `validation.md` has a check and a
+ *      `describe`, every check it defines is catalogued, and the server publishes no unknown code.
  *
- * Usage: `node bin/editor_lint.mjs [--root <dir>]`. Exits non-zero and names `file:line` for each
+ * Usage: `node bin/editor_lint.mjs [--root <dir>] [--catalogue <file>]`. Exits non-zero and names `file:line` for each
  * violation; `--verbose` also prints the counts of what passed.
  */
 import {readFileSync, readdirSync, statSync} from 'node:fs';
@@ -46,7 +50,7 @@ function lineAt(text, index) {
 }
 
 const failures = [];
-const passed = {type: 0, colour: 0, click: 0, structure: 0, label: 0};
+const passed = {type: 0, colour: 0, click: 0, structure: 0, label: 0, catalogue: 0};
 
 for (const path of filesUnder(ROOT, (name) => name.endsWith('.scss') || (name.endsWith('.ts') && !name.endsWith('.spec.ts')))) {
   const text = readFileSync(path, 'utf8');
@@ -140,12 +144,50 @@ for (const path of filesUnder(ROOT, (name) => name.endsWith('.html'))) {
   }
 }
 
+// 6: the check catalogue. `validation.md` calls itself the single source of truth for the ids, so
+// four lists have to agree and nothing else compares them: the catalogue's rows, the modules that
+// define each check, the specs that carry one `describe` per id, and the codes the server publishes.
+// A dropped check or an id added without a catalogue row is invisible to the specs, which only test
+// the ids they already know about.
+const CATALOGUE = opt('catalogue', 'doc/script-editor/validation.md');
+const VALIDATION = join(ROOT, 'app/core/validation');
+const idOf = (text) => [...text.matchAll(/check([EWN]\d+)/g)].map((m) => m[1]);
+const catalogued = new Set();
+for (const line of readFileSync(CATALOGUE, 'utf8').split('\n')) {
+  const row = /^\|\s*([EWN]\d+)\s*\|/.exec(line);
+  if (row) catalogued.add(row[1]);
+}
+const defined = new Set();
+const described = new Set();
+for (const path of filesUnder(VALIDATION, (name) => name.endsWith('.ts'))) {
+  const text = readFileSync(path, 'utf8');
+  const where = relative(process.cwd(), path);
+  if (!path.endsWith('.spec.ts')) {
+    for (const id of idOf(text)) defined.add(id);
+    continue;
+  }
+  for (const match of text.matchAll(/(?:describe|it)\(\s*[`'"]([EWN]\d+)/g)) described.add(match[1]);
+}
+for (const id of catalogued) {
+  if (!defined.has(id)) failures.push(`${CATALOGUE}: ${id} is catalogued but no check defines it`);
+  if (!described.has(id)) failures.push(`${CATALOGUE}: ${id} has no describe in ${relative(process.cwd(), VALIDATION)}/*.spec.ts`);
+  if (defined.has(id) && described.has(id)) passed.catalogue += 1;
+}
+for (const id of defined) {
+  if (!catalogued.has(id)) failures.push(`${relative(process.cwd(), VALIDATION)}: ${id} is defined but not catalogued in ${CATALOGUE}`);
+}
+// The server publishes its codes as `add('E01', path, message)` rather than `checkE01`.
+const serverIds = new Set([...readFileSync('server/validate.mjs', 'utf8').matchAll(/'([EWN]\d+)'/g)].map((m) => m[1]));
+for (const id of serverIds) {
+  if (!catalogued.has(id)) failures.push(`server/validate.mjs: publishes ${id}, which ${CATALOGUE} does not catalogue`);
+}
+
 if (VERBOSE) {
-  console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels`);
+  console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels, ${passed.catalogue} catalogued checks`);
 }
 if (failures.length > 0) {
   for (const failure of failures) console.error(`✗ ${failure}`);
   console.error(`editor lint failed: ${failures.length} violation(s)`);
   process.exit(1);
 }
-console.log(`Editor lint passed (${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels).`);
+console.log(`Editor lint passed (${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels, ${passed.catalogue} catalogued checks).`);
