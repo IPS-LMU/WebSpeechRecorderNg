@@ -560,7 +560,9 @@ rule).
   and to name each one, so an audit that stops biting fails the job rather than passing quietly.
   The theme audit also measures a phone width (390×844) on the screens that reflow — the editor stacks
   its columns below 820 px, the bank below 1100 px — which is how the editor's overlapping columns and
-  the bank's document-level scrollbar were found (§11.14).
+  the bank's document-level scrollbar were found (§11.14). Each run leaves whatever Chrome profile its
+  `--user-data-dir` names, and those reach a couple of hundred megabytes each: clear them occasionally,
+  or a local run eventually fails to write anything at all — measured, at 99% full, on this machine.
 - **Accessibility audit.** `bin/a11y_audit.mjs` attaches to the same running Chrome and checks the
   machine-checkable part of ui-spec §8 on the same routes: accessible names, labels and the ARIA
   relationships that carry them, unique ids, `alt`, nothing focusable inside `aria-hidden`, tree and
