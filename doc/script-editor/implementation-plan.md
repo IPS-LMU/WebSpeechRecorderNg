@@ -3696,10 +3696,32 @@ pass**, up one.
 **Still unasserted, and recorded rather than glossed**: the label itself — `editor-strings.ts`'s `exampleNote`,
 rendered in `editor-centre.html` — has no assertion. That is the shape §11.47 found for a ui-spec §9 state that
 "rode on compilation": the example's *behaviour* is now guarded, the sentence telling the speaker it is an
-example is not.
+example is not. §11.124 traces why: the label lives in the drawn card's *banked* branch, which no case mounts.
 
 **And the measurement is the useful record**: ten of twenty-three named in §11, thirteen evidenced elsewhere.
 A reader asking "where is D-S checked" now has an answer instead of an assurance.
+
+### 11.124 The drawn card's banked branch, which no case mounts — **Recorded**
+
+Chasing §11.123's recorded gap — the example label had no assertion — led to its root: the label is not in the
+branch that `editor-screen.spec.ts` mounts. `editor-centre.html` renders `drawnNoBank`/`drawnNoBankHint` under
+one branch and *everything else* under `@else`: the bank title and origin chip, the filter words, the match
+count, the per-session sentence, the link to the bank screen, and then the whole example block — title, note,
+reserved range, the drawn items, and the Re-draw button.
+
+**No spec mounts that branch.** The one drawn-group case loads `DRAWN_WITH_NO_BANK`, whose `prefill.bank` has an
+empty id; the algorithm behind the example is covered by `example-draw.spec.ts` (reserved codes, determinism,
+and since §11.123 the independence from `fixedBy`/`skipRecordedBySpeaker`), but the *rendering* of a banked card
+is asserted nowhere.
+
+**Why it stayed that way is visible in the harness.** `loadDraft` flushes the draft and notes that the screen
+"fans out its context requests in a later microtask"; the bankless fixture fans out nothing bank-related, so
+the case is three lines. A banked one needs the bank list *and* the filtered item page flushed — which is a new
+fixture plus two flushes, not a two-line assertion.
+
+**The shape to write it**, for whoever does: a fixture whose `prefill.bank.bank` names a real bank from the
+fixture tree, `mount('…?sel=g:0:0')`, `loadDraft`, then the file's own `http.expectOne(...).flush(...)` for the
+bank list and the item page, and assertions on the card's text with the example note among them.
 
 
 
