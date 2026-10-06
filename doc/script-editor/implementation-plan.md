@@ -2788,3 +2788,16 @@ the file's line is `[{ "version": 3, … }]` with spaces while the display showe
 failed on anchors that never existed; `repr`/bytes are the reliable source. And an earlier pass of the
 shape harness printed figures I could not reconcile with the bodies it printed, so they were discarded:
 every claim above comes from a printed response or the source, not from that harness.
+
+**The remaining shapes were checked the same way and are clean.** The bank page: a `std-passages` item with
+audio carries `audioSrc` and `audioMimetype` exactly as §3.2 shows, `usedInSessions` is absent — the
+section says so ("`usedInSessions` is optional; omit it if counting") — and the envelope's `items`,
+`matchCount` and `withoutAudio` match. The draw-record example describes a populated record while the script
+the seed ships answers with an empty one, whose envelope is consistent with it. The session trace has no
+JSON example in the file at all, so comparing it was my mistake.
+
+Two further harness artefacts, worth naming because each looked like a defect: the first bank sampled
+(`demo-sentences`) has no audio items, and the block at §3.2 also carries the bank **list** example
+(`project`, `itemCount`, `updated`), whose keys can never appear in an item page. One real omission
+remains: the item page's envelope echoes `offset`, which the file documents as a query input rather than a
+response field.
