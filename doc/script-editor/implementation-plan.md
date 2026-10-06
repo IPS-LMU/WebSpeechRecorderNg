@@ -1436,7 +1436,10 @@ comment blamed its timing. Measured, it is not the driver: the recorder leaves t
 beside one of them is commented out, and `pauseDisabled()` is
 `pauseAction.disabled || !pausingEnabled` while `pausingEnabled` defaults to true. Thirty samples
 across items 1 to 3 all read `Paus (P) OFF`, including while the status said `Spelar in` — so neither
-the driver nor an operator can press it.
+the driver nor an operator can press it. `git blame` settles whose it is: those lines come from the
+upstream commit `eb78cd7f` ("Added simple audio recorder stub", 2021), with four more sites in
+`sessionmanager.ts`, so the pause was never finished upstream rather than broken here — enabling it is
+that code's call, not this work's.
 
 The claim it stands for — a pause must stop a playing sound (C4) — is therefore not exercisable
 through the UI at all. It is covered where it can be: the L3 specs call the manager directly, and the
