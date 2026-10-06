@@ -2048,3 +2048,34 @@ fails. Verified both ways — with the selection it reports
 1 naming the three selectors it looked for. The same URL and fixture also carry the **a11y** pass over
 that state — `aria-current` on the current row, the active card's names and target sizes — which the
 unselected routes do not render; it passes.
+
+### 11.55 The probe promised a rule it did not have — **Done**
+
+`bin/layout_probe.mjs`'s header — and the CI comment echoing it — said it exits non-zero "when the
+status line does not fit". It did not check that. What it measured was the status element's `x`, and
+the `fits` in its failure line is the *root's* horizontal overflow: a different question, which is how
+the claim survived. §11.41 removed exactly this class of statement from the same header once already
+(a `scrollHeight` claim, for an overflow check that did not exist); this one was nearly true, which
+made it harder to see.
+
+**Fixed two ways.** The rule now exists: `statusFits` compares the status element's own content with
+its box, joins the failure condition, and is named in the message. And the probe gained the mechanism
+its sibling tools have had all along — `--prepare <file>`, a page script run once the page has settled
+and before anything is measured, evaluated the way the audits evaluate theirs, so a fixture that throws
+fails the probe instead of leaving it green.
+
+**Inducing it took more than a fixture**, which is worth recording: a fresh session's status line is
+*empty* and its host is *inline*, so its box is zero-width and no content can overflow it. The fixture
+therefore gives the element a box and content, and re-applies both through a `MutationObserver`,
+because a render clears children added to a component's host. That is the difference between inducing
+the mode and merely claiming to.
+
+**Verified** — bare probe exit 0 with `statusFits=true`; with `bin/audit/plant-status-overflow.js`
+exit 1, reporting `status content 1222px in a 60px box` and failing with
+`fits=true, statusFits=false`; and the workflow's whole three-mode block, extracted and run verbatim
+against a receiver-served recorder, ends with "Layout probe passed: 4 measurement(s) within 1px" and
+"the layout probe reports all three failure modes".
+
+**Residual:** the rule reads the status element's `scrollWidth` against its `clientWidth`, so it
+catches content wider than the box it is drawn in. A status line clipped by an ancestor, or one that
+wraps out of the operator's view, is not its question.

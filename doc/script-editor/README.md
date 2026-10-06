@@ -572,7 +572,8 @@ rule).
   over the same session screen: it measures what a screenshot cannot, the instruction line against the
   centre of the header it sits in and which marks
   each branding slot shows, and exits non-zero when the line is more than a pixel off centre, when a
-  page has no stage, or when the status line does not fit. The respondent mirror
+  page has no stage, or when the status line's content is wider than its own box (§11.55, induced by
+  `bin/audit/plant-status-overflow.js`; `--prepare <file>` works there as it does for the audits). The respondent mirror
   (`/spr/respondent/1`) is measured in the same run, where that line is set at the larger caption.
   Each rule is sensitive and CI checks that it is: `bin/audit/plant-violations.js` plants a violation
   for each theme rule named here — a `lightgrey` div, 9 px text, a 2.96:1 paragraph, a `3000 px` block
