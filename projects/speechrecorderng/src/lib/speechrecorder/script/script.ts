@@ -226,6 +226,8 @@ export interface Group {
 }
 
 export interface Section {
+  /** Human label, as the preview's order list shows it; unnamed sections fall back to a position (D-I). */
+  name?: string;
   mode: Mode;
   promptphase: PromptPhase;
   order?: Order;

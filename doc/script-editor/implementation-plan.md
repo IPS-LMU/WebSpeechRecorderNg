@@ -21,7 +21,7 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 | Library is one eager `NgModule` declaring every recorder component and registering `SPR_ROUTES` | `speechrecorderng.module.ts` | D1 confirmed; the editor must not import it and must not rely on its routes. |
 | Timing facts: defaults `1000`/`500` ms; `prerecdelay` falls back to `prerecording` (`sessionmanager.ts:1120-1122`), `postrecdelay` to `postrecording` (`:1127`); max timer `pre+recduration+post` (`:1133`); prompt applied at start for `PRERECORDING`/`PRERECORDINGONLY`, at pre-delay end for `RECORDING`, cleared at pre-delay end for `PRERECORDINGONLY` (`:1113-1163`) | `sessionmanager.ts` | L2 can only be correct if these exact behaviours are pinned as characterisation tests first. |
 | `RANDOMIZED` is ignored; shuffle runs in the component for `order==='RANDOM'`, writing `_shuffledGroups`/`_shuffledPromptItems`; `applyItem` reads them | `speechrecorderng.component.ts:333-345`, `sessionmanager.ts` `applyItem` | The editor must never persist `_shuffled*`; drafts strip them (D-F). |
-| Library types lag the JSON: `Section` has no `name`, `Script` has no `name`/`type`/`minRecorderVersion`, yet fixtures carry `name`, `type`, `scriptId`; `1.json` still uses legacy `promptUnits` | `script.ts:63-81`, `src/test/script/*.json` | Additive type extensions (D-I); the loader must tolerate keys the types do not describe and keep them untouched. |
+| Library types: `Script` carries `name`/`type`/`minRecorderVersion` and `Section` carries `name` — both D-I fields landed, the last in §11.74; `1.json` still uses legacy `promptUnits` | `script.ts`, `src/test/script/*.json` | Additive type extensions (D-I); the loader must tolerate keys the types do not describe and keep them untouched (A4/N06). |
 | `Group._shuffledPromptItems` / `Section._shuffledGroups` are **required, non-optional** fields | `script.ts:67-76` | The editor's loader fills them; the serialiser strips them (never make the recorder null-check). |
 | Fixtures: `1.json` 1.8 kB (legacy), `1245.json` 26.6 kB, `3456.json` 6.5 kB, `3171…json` 16.7 kB | `src/test/script/` | Enough for M2; M1/M4 need new fixtures (playback, draw, 500-item perf). |
 | Library tests: `@angular/build:karma`, `src/test.ts`, `tsconfig.spec.json`, `karma.conf.js` (Chrome, `singleRun:false`) | `angular.json`, `projects/speechrecorderng/*` | Copy the pattern for the editor; headless runs pass `--watch=false --browsers=ChromeHeadless`. |
@@ -2553,3 +2553,33 @@ script-name question being "open while fixtures already carry `name`". All three
 `tsConfig` path resolves to a real file, `durationMs` is in the `Playback` interface, and §8.2 answers
 the name question with D-I while the library's `script.ts` carries `name?: string`. The row now says so
 and points at the evidence.
+
+### 11.74 D-I's typed fields, audited one by one — **Done**
+
+Sweeping the docs' cross-references (§11.73) left two ground-truth rows that still read as open work.
+Checking them turned into an audit of D-I itself, which promises seven optional typed fields:
+
+| D-I field | Where it is |
+|---|---|
+| `Script.name?`, `Script.type?`, `Script.minRecorderVersion?` | in `script.ts` |
+| `PromptItem.playback?` | in `script.ts` |
+| `Playback.durationMs?` | in `Playback` (not `script.ts`) |
+| `Group.draw?` | **superseded by D-W**, not a gap |
+| `Section.name?` | **was missing — landed here** |
+
+`Group.draw?` is the interesting one to get wrong: `data-model.md`'s `Group` carries the note "Superseded
+by D-W: a bank source is referenced from the placeholder item's `prefill`", and L1's row confirms
+`PrefillBankSource`, `DrawFilter` and `DrawFixedBy` landed, so the draw rule lives on the item, not the
+group. `Section.name?` was genuinely absent: the editor typed it in its own `EditorSection`, the preview
+already read `section.name?.trim()` (falling back to a position — `preview-order.ts:82`,
+`script-preview.ts:109`), and `data-model.md` documents no `Section` interface at all. It is now in
+`script.ts`, commented as the preview shows it — additive and invisible to the recorder.
+
+**Verified** — `ng build speechrecorderng --configuration production` exits 0 and the library suite runs
+**148 SUCCESS**, so nothing moved but the type.
+
+**And a false alarm worth writing down.** The editor's `EditorSection`/`EditorGroup`/`EditorScript` look
+like exactly the copy `data-model.md` §1 forbids ("The editor must not keep its own copy"). They are not:
+they are a *raw-draft* model — an index signature, legacy `promptUnits`, `_shuffled*` — deliberately
+looser than the script model so the loader can keep keys the types do not describe, which is §4's
+invariant. Reading §1 against those names would be a mistake.
