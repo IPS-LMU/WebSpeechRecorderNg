@@ -2420,3 +2420,29 @@ are untouched.
 **Verified** — the editor suite is 481 SUCCESS; on the rebuilt bundle served by the receiver the block
 reads "The draft could not be loaded (HTTP 404)", no "script list" appears anywhere on the page, and the
 documented state is otherwise intact.
+
+### 11.68 Two survivors of §11.7's milestone cleanup — **Done**
+
+§11.7 deleted "the stale `Read-only milestone: …` titles and the `readOnly`/`readOnlyReason` banner
+strings". Grepping the user-facing strings for milestone and future-tense language found two survivors:
+
+- **`readOnlyReason`** — "This milestone is read-only: saving, publishing and editing are disabled." —
+  still **rendered**, as the disabled Publish button's `title` in a read-only shell. (The note paragraph
+  beside it uses `access.readOnlyMessage`, which is accurate.) A shipped build was telling the operator
+  that a *milestone* was in progress. `app-shell.spec.ts` pinned the wording, which is how it survived —
+  the same shape as §11.67.
+- **`dryRunTitle`** in the preview strings — "M4 owns the tier-2 dry run (POST …). Until then this button
+  is disabled." — **unused**: the panel renders `buttonTitle` and its own disabled reasons. Dead, but it
+  tells whoever reads the strings file that the feature is unbuilt when it is built, which is the kind of
+  thing this register exists to prevent.
+
+**Fixed** — the read-only wording is "Read-only: publishing, saving and editing are disabled.", the dead
+string is deleted, and the spec's pin follows the text it now renders. Its behaviour assertions — Publish
+disabled in a read-only shell, enabled otherwise — are untouched.
+
+**Verified** — the editor suite is 481 SUCCESS, which also compiles the preview panel the deleted key was
+in, and no milestone wording remains anywhere user-facing (the one remaining mention is a spec's doc
+comment pointing at the plan's checklist).
+
+**Residual:** the preview button's tooltip was verified by reading the string the panel renders and by
+the build, not by rendering the preview screen — the same probe that found §11.67 did not reach it.
