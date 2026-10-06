@@ -257,28 +257,35 @@ await send('Page.navigate', {url: `${BASE}/spr/session/${SESSION}`});
 // clock that advances. A headless Chrome with no output device — a CI runner, or a remote mac with
 // no display attached — stalls every clip at currentTime 0 forever, which makes a healthy recorder
 // look like one that never starts a take. Measure the clock once and report the real cause.
+//
+// Measure it on the medium the recorder actually waits on: its prompts are Web Audio
+// (`AudioBufferSourceNode.onended`), not `<audio>`, and a host can advance one and not the other.
+// Checking `<audio>` here was wrong in exactly that case, and the driver then reported the
+// recorder's clip assertions as failures instead of marking them unverified.
 await sleep(1500);
 const audioClock = await evaluate(`(async () => {
-  let probe;
+  let context;
   try {
-    // One second of silence, built here so the probe needs nothing from the receiver.
-    const rate = 8000, samples = rate;
-    const frame = new DataView(new ArrayBuffer(44 + samples));
-    const ascii = (offset, text) => { for (let i = 0; i < text.length; i += 1) { frame.setUint8(offset + i, text.charCodeAt(i)); } };
-    ascii(0, 'RIFF'); frame.setUint32(4, 36 + samples, true); ascii(8, 'WAVEfmt ');
-    frame.setUint32(16, 16, true); frame.setUint16(20, 1, true); frame.setUint16(22, 1, true);
-    frame.setUint32(24, rate, true); frame.setUint32(28, rate, true); frame.setUint16(32, 1, true);
-    frame.setUint16(34, 8, true); ascii(36, 'data'); frame.setUint32(40, samples, true);
-    for (let i = 0; i < samples; i += 1) { frame.setUint8(44 + i, 128); }
-    probe = new Audio(URL.createObjectURL(new Blob([frame], {type: 'audio/wav'})));
-  } catch { return 'unavailable'; }
-  try { await probe.play(); } catch { return 'blocked'; }
+    context = new AudioContext();
+  } catch {
+    return 'unavailable (no AudioContext)';
+  }
+  // One second of silence: a buffer source of the context's own rate, so the probe needs nothing.
+  const buffer = context.createBuffer(1, context.sampleRate, context.sampleRate);
+  const source = context.createBufferSource();
+  source.buffer = buffer;
   let ended = false;
-  probe.onended = () => { ended = true; };
+  source.onended = () => { ended = true; };
+  try {
+    await context.resume();
+    source.start();
+  } catch (reason) {
+    return 'unavailable (' + String(reason).slice(0, 40) + ')';
+  }
   await new Promise((resolve) => setTimeout(resolve, 2000));
   // A stalled device still ticks a few tens of milliseconds and then stops, so demand real progress.
-  if (ended || probe.currentTime >= 0.5) { return 'advances'; }
-  return 'frozen at ' + probe.currentTime.toFixed(2) + 's of ' + (isNaN(probe.duration) ? '?' : probe.duration.toFixed(2)) + 's';
+  if (ended || context.currentTime >= 0.5) { return 'advances'; }
+  return 'frozen at ' + context.currentTime.toFixed(2) + 's of the 1s clip';
 })()`);
 if (!audioClock.startsWith('advances')) {
   // The recorder now reports such a clip as failed and carries on (PromptAudioService), so the run
