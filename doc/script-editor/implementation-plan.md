@@ -1464,15 +1464,15 @@ corrections, both found by measuring rather than reasoning:
 
 Both fixtures need Angular's development API, so their job builds a development bundle
 (`ng build --configuration development`), serves it from the receiver beside a working API, and audits
-`/recorder/session/1`: theme and universal accessibility with the detail pane open, and the theme pass
-with the error dialog open.
+`/recorder/session/1`: theme and universal accessibility with the detail pane open, and theme plus
+accessibility (minus rule 6, below) with the error dialog open.
 
-**Why the dialog gets no accessibility pass** — measured with the dialog open, `app-root` carries
-`aria-hidden` with six focusables inside it and no `inert`, while four Tab presses all landed on the
-dialog's own button: the focus trap holds, so "aria-hidden but contains focusable content" cannot tell
-that framework pattern from a real violation. Running it there would report Angular Material, not the
-dialog. Scoping that one rule out for modal states is the refinement to make if the dialog is to have
-the rest of the rules.
+**The dialog's accessibility pass, with one rule skipped** — measured with the dialog open, `app-root`
+carries `aria-hidden` with six focusables inside it and no `inert`, while four Tab presses all landed
+on the dialog's own button: the focus trap holds, so "aria-hidden but contains focusable content"
+cannot tell that framework pattern from a real violation. `bin/a11y_audit.mjs` therefore takes
+`--except <n>`, and the dialog's pass names rule 6 and the reason in the command itself, so the
+exemption is visible where it is taken and every other universal rule still runs against the dialog.
 
 ### 11.36 The ETag verdicts the API did not use — **Done**
 
