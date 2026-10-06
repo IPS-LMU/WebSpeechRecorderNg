@@ -1526,6 +1526,10 @@ both directions: neither audit may pass with the violations in place, and each m
 For the accessibility audit that means nine of its rules — a nameless button, a duplicated id, an image
 without `alt`, a page without `lang`, a second `h1`, a second `main`, a positive `tabindex`, a control
 inside a control and a 17 px target — since a11y.md's own sensitivity claim named only the last of those.
+For the theme audit beyond the five in README §7 it means the five logo rules, which fire on
+`spr-logos img`: the editor routes carry no logos, so the fixture plants a `<spr-logos>` host with one
+image per fault, and README §7's claim that those rules "only ever fire there, on the control bar" now
+says how they are proved.
 
 **Verified** as the job runs it — the block extracted from the workflow and executed by `bash` against
 a development server and Chrome: exit 0, "both audits named every planted violation", the five theme

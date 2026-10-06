@@ -543,7 +543,9 @@ rule).
   the start page, and the respondent mirror (`/spr/respondent/1`, the screen the speaker reads) —
   because the token, contrast, type-size and layout rules are shared and the
   **logo** rules (loaded, `alt`, height, inside the viewport) only ever fire there, on the control
-  bar. The same three screens are measured at 390x844 as well, and in the dark scheme at 1366x768, as
+  bar. Those rules are proved the same way as the rest: `bin/audit/plant-violations.js` carries a
+  `<spr-logos>` host with one image per fault, because the editor routes render no logos of their own.
+  The same three screens are measured at 390x844 as well, and in the dark scheme at 1366x768, as
   the editor's routes have been since §11.14 and §11.13. That job also runs `bin/layout_probe.mjs`
   over the same session screen: it measures what a screenshot cannot, the instruction line against the
   centre of the header it sits in and which marks
