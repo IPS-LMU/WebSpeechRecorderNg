@@ -306,7 +306,7 @@ and new modules `server/{etag,validate,bank,draw,media}.mjs`.
 | R7b draw record | `server/api.mjs`, `server/store.mjs` | **Done.** `GET project/{p}/session/{s}/draws` returns the trace (`prefills`, `bankDraws`, `drawnDate`, `redraw`); `GET project/{p}/script/{id}/draws?version&limit&offset` returns one row per drawn session with `drawn`/`recorded` counts and per-item `recorded` flags, honouring `includePreview` (TEST excluded by default); `Accept: text/csv` exports `sessionId,speaker,itemcode,bankItemId,recorded`; `POST …/draws/_redraw` re-seeds a `CREATED` session (the key gains `#n`, so the trace stays the truth) and answers `409 SESSION_ALREADY_STARTED` otherwise. Tests: `server/draws.test.mjs`. | M4 |
 | R8 preview sessions | `server/api.mjs`, `server/store.mjs` | **Done.** `POST …/preview-session {version: 'draft'|n}` creates a `TEST` session over a materialised copy of the draft or version, responds `201 {sessionId, expires}` and never touches the source. Uploads and chunked uploads are refused for a `TEST` session (`409 TEST_SESSION_READ_ONLY`) at both the session-scoped and project-scoped entry points; materialised scripts (`internal: true`) stay out of the library list. Tests: `server/preview.test.mjs`. | M4 |
 | R9 fixtures and dev loop | `src/test/**`, `README` §Testing | **Done.** `src/test/script/playback.json` (audio prompt, placement modifier, non-recording item), `bank-draw.json` (a bank source over `std-passages`), `large-500.json` (500 items), `src/test/bank/{std-passages,demo-sentences}.json` (R5) and `src/test/project/Demo1/media/model-01.wav`; all `--seed`-able, and the three new scripts pass the gate. `server/data` stays gitignored runtime state. | M2/M4 |
-| R10 tests and CI | `server/*.test.mjs`, `.github/workflows/tests.yml` (new) | **Done.** `node --test server/` covers store atomicity/ids, ETag/428/412, the check corpus, bank filters, draw resolution (determinism, skip/refill, redraw), media in-use, multipart, WAV duration, preview write refusal and the draw record. The workflow runs five jobs on push/PR — the receiver tests, the library karma job, the editor (karma + production build), the theme/accessibility audit list and the recorder dry run (11.5's driver). | M5 |
+| R10 tests and CI | `server/*.test.mjs`, `.github/workflows/tests.yml` (new) | **Done.** `node --test server/` covers store atomicity/ids, ETag/428/412, the check corpus, bank filters, draw resolution (determinism, skip/refill, redraw), media in-use, multipart, WAV duration, preview write refusal and the draw record. The workflow runs six jobs on push/PR — the receiver tests, the library karma job, the editor (karma + production build), the theme/accessibility audit list, the recorder dry run (11.5's driver) and the recorder's detail view and error dialog (11.35's fixtures, which need a development build). | M5 |
 | R11 fixture parity | `server/api.mjs`, `src/test/**` | **Verified at M2/M3**: the receiver's read paths return the shapes [rest-api.md](rest-api.md) documents, and the editor's FILES-mode fixtures mirror them, so the M2 FILES gate and the M3 server-backed gate test one contract. Re-checked when the editor's read paths land. | M2 |
 
 | R12 transfer discipline | `server/store.mjs`, `server/server.mjs`, `server/README.md` | **Done.** `meta.json` carries `layoutVersion`; `node server/server.mjs --migrate` builds the per-script layout for legacy flat scripts (idempotent — on the seeded tree it imported 12 scripts as version 1); `--gc` prunes draft revisions (50 deep, 30 days) and expired preview sessions with their materialised scripts, reports orphan media and deletes it only with `--gc-media`; `server/README.md` is the runbook for run/seed/backup/restore/transfer and the production note. Tests: `server/maintenance.test.mjs`. | M0/M5 |
@@ -1445,40 +1445,34 @@ navigation implements. M1's manual pass keeps navigation-during-playback for a p
 pause itself needs the recorder to enable the control first, which is a product decision and not a
 driver's.
 
-### 11.35 Two audit fixtures nothing runs — **Recorded, with what they would need**
+### 11.35 Two audit fixtures nothing runs — **Done**
 
-`bin/audit/open-detail-view.js` and `bin/audit/open-error-dialog.js` are named by §11.18's prose and
-by nothing else: no workflow, no script and no README line runs them, so the screens they open — the
-recorder's detail view (waveform and sonagram over the recording list) and its error dialog — have
-never been measured by the theme or accessibility audits.
+`bin/audit/open-detail-view.js` and `bin/audit/open-error-dialog.js` were named by §11.18's prose and
+by nothing else, so the screens they open had never been measured. Wiring them up needed two
+corrections, both found by measuring rather than reasoning:
 
-Trying them settles what reviving them takes, and corrects the first explanation I wrote here. The
-detail view is *not* blocked by the responsive rule: `screenXs` is the CDK `XSmall` breakpoint, a
-viewport query that is false at 1366 px (`matchMedia('(max-width: 599.98px)')` false on the page).
-What is missing is the component itself. Only `app-sprrecordingsession` is present on
-`/spr/session/1` and `/spr/session/2`; the combi pane is rendered by `AudioRecorderComponent`
-(`audiorecorder.ts`), and this application does not route that component at all — `/spr/recorder/
-session/1` falls through to the start page, and the demo's own routes are `session`, `session/test`,
-`audio_display` and a `**` fallback. So the fixture's four candidates are absent rather than
-mis-targeted, and the pane cannot be measured until something renders its component (a route, or a
-harness that mounts it).
+- **The detail view was never unreachable.** `SPR_ROUTES` holds absolute paths and the recorder's own
+  route is `/recorder/session/1` (`recorder/session/:id`) — not the `spr`-prefixed form I probed, which
+  falls through to the start page. On the right route the page renders `app-recordercombipane` with its
+  collapsable pane, and the fixture opens it. The pane's `[class.active]="!audioSignalCollapsed &&
+  !screenXs"` was never the problem either: `screenXs` is the CDK `XSmall` breakpoint, false at
+  1366 px. What did block it was the fixture's own throw on the first candidate that did not open the
+  pane, which is why it now tries every candidate and names them all.
+- **The error dialog's hook had drifted.** It called `error(...)` on `app-sprrecordingsession`; the
+  error path lives on `AudioRecorderComponent` (`audiorecorder.ts`). It tries the candidates too now,
+  and opens the real dialog — `error dialog open (app-audiorecorder)`.
 
-The error dialog is closer to reachable — its page does render `app-sprrecordingsession` — but the
-fixture calls `error(...)` on that component and the recorder's error path lives on the session
-manager, so its hook has drifted too.
+Both fixtures need Angular's development API, so their job builds a development bundle
+(`ng build --configuration development`), serves it from the receiver beside a working API, and audits
+`/recorder/session/1`: theme and universal accessibility with the detail pane open, and the theme pass
+with the error dialog open.
 
-Both fixtures need a development build for `window.ng`, and that prerequisite is now known to be
-satisfiable: built with `ng build --configuration development` and served by the receiver, the page
-has `window.ng` on all three routes and the API answers, so the earlier confound (a development
-server with no API, answering `500`) is gone. Re-measured in exactly that setup, the component is
-still absent: `/spr/session/1` renders only `app-sprrecordingsession`, and `/spr/recorder/session/1`
-falls through to the start page as before. The pane's own component is the thing to provide, not the
-build.
-
-Wiring them up therefore means a route or harness that renders `AudioRecorderComponent`, a job that
-serves a development build beside a working API, and both fixtures brought up to the current hooks.
-That is coverage for screens the plan's audit list never claimed rather than a gate that came loose,
-so it is recorded as a scoping decision instead of being built here.
+**Why the dialog gets no accessibility pass** — measured with the dialog open, `app-root` carries
+`aria-hidden` with six focusables inside it and no `inert`, while four Tab presses all landed on the
+dialog's own button: the focus trap holds, so "aria-hidden but contains focusable content" cannot tell
+that framework pattern from a real violation. Running it there would report Angular Material, not the
+dialog. Scoping that one rule out for modal states is the refinement to make if the dialog is to have
+the rest of the rules.
 
 ### 11.36 The ETag verdicts the API did not use — **Done**
 

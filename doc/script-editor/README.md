@@ -586,10 +586,12 @@ rule).
   AUTOPROGRESS/AUTORECORDING needs the operator's own timing at the boundary, so the fixture's P3–P5
   and the drawn rows stay in the manual pass — as does a pause that lands inside a ~1 s clip. The
   placement of all five `when` values is pinned by the library's table (`phases.spec.ts`, C7).
-- **CI.** `.github/workflows/tests.yml` runs five jobs: the receiver, the library, the editor
-  (karma + production build), the audit list above, and the dry run — the last one builds the
-  recorder, serves it with the fixture session and drives it with Chrome's fake media stream, so
-  the driver's assertions are checked on every push, not by hand.
+- **CI.** `.github/workflows/tests.yml` runs six jobs: the receiver, the library, the editor
+  (karma + production build), the audit list above, the dry run — which builds the recorder, serves
+  it with the fixture session and drives it with Chrome's fake media stream, so the driver's
+  assertions are checked on every push, not by hand — and the detail view, which serves a
+  *development* build (its fixture opens the pane through Angular's dev API) and audits the
+  recorder's `/recorder/session/1` with the waveform and sonagram pane open.
 - **Deployment rehearsal.** `bin/serve_deploy.mjs` serves the built recorder and editor behind their
   documented prefixes (`/wsr/ng/`, `/wsr/edit/`) with the SPA fallback and an `/api/` proxy — the
   commands and the two settings a mounted deployment must get right are in §4.5. It found the
