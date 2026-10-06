@@ -2394,3 +2394,29 @@ observable effect — no request (its bytes come from the draft already in memor
 headless download directory — so this method cannot tell whether it worked. Import JSON needs a file
 picker (`DOM.setFileInputFiles`) and was not driven. Both remain verified only by their specs'
 request shapes, which is what the register says.
+
+### 11.67 The editor reported a draft's status under the library's wording — **Done**
+
+Driving the editor on a script with published versions and no draft — §11.3's migrated state — renders
+the documented blocking message, "**Editing is blocked until the draft loads. This is not an empty
+script.**", the invite to start a draft, and the action. Beneath them it also said "**The script list
+could not be loaded. (HTTP 404)**" — and the only 404 the receiver served was the *draft*; the version
+index and the library list both answer 200.
+
+`editor-screen.ts`'s `describeError` formatted a draft's HTTP status with
+`this.strings.library.errorPrefix`, the *library list's* wording. The sibling screens pass their own
+(`bank-browser` uses `table.errorPrefix`, `draws-view` uses `DRAWS_STRINGS.errorPrefix`), so this was a
+wrong-group string in a user-facing error state.
+
+**A spec had pinned it**: `editor-screen.spec.ts` asserted the library's wording inside the *editor's*
+error block, which is how it survived. (The identical assertion in `script-library.spec.ts` is correct —
+that screen *is* the library list.)
+
+**Fixed** — the editor's own `loadErrorTitle` as the prefix, with the shared `httpPrefix`, and the
+spec's assertion corrected to the detail it now renders. Its behaviour assertions — the failure is
+announced `role="alert"`, the Retry re-runs the load, neither the editor nor the empty card appears —
+are untouched.
+
+**Verified** — the editor suite is 481 SUCCESS; on the rebuilt bundle served by the receiver the block
+reads "The draft could not be loaded (HTTP 404)", no "script list" appears anywhere on the page, and the
+documented state is otherwise intact.
