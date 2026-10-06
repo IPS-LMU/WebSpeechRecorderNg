@@ -3636,5 +3636,25 @@ and again in §11.119 when `pack_pi_module` was run).
 **One thing deliberately not done**: running `new_patchrelease_…` itself, because it *bumps versions*. A release
 is a human act, and every piece it is composed of has been run individually.
 
+### 11.121 The version script that bumped one manifest — **Fixed**
+
+§11.119 removed `pack_module` and left the rest of the script set unexamined. Auditing it for reachability —
+which script is called by another, by the workflow, by a document, by nothing — found one more: **`npm_version`**,
+`npm version --no-git-tag-version prerelease`, run by nothing and documented nowhere.
+
+**It is not merely dead, which is why it gets an entry.** The `new_*` chains *inline* that same command and run
+it **twice**, once at the root and once in `projects/speechrecorderng`. A maintainer who reached for
+`npm_version` would bump **one** manifest and leave the two out of step. Same shape as `pack_module`: the
+diminished sibling, holding the name one would reach for.
+
+**Deleted.**
+
+**And the audit's limits, for whoever runs it again.** `prebuild` and `prestart_prod` are npm *lifecycle
+hooks* — `npm run build` and `npm run start_prod` run them, so nothing *calls* them and they are not dead;
+`start_prod` is a hand-run entry point for serving a production build, and `bin/ensure_env.mjs`'s own doc names
+its hook. Six scripts showed as unreferenced: one was dead, two are hooks, and the rest are entry points or
+documented in a phrasing a literal search misses — §11.120's README section names
+`new_prerelease_build_and_pack_module` as "or `new_prerelease_build_and_pack_module` for a prerelease".
+
 
 
