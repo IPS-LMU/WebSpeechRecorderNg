@@ -2956,3 +2956,21 @@ build takes seven seconds).
 
 **The lesson, one step on from §11.88**: a reference to another file is a claim about that file too.
 Dismissing it answers whether the name is *mentioned* somewhere, not whether what it says is true.
+
+### 11.91 The five references, all checked — **Done**
+
+§11.89 set five comments aside as references and §11.90 checked two, correcting one. Finishing the set:
+
+- `script-draft.service.ts` → `editor-strings.ts`: **true**. `DRAFT_STRINGS` is defined and exported in
+  that service and used for its own messages; the draft-adjacent words in `editor-strings.ts`
+  (`statusDrafts`, `legendDraftTitle`, `DRAFT: 'Draft'`) are the *status and legend* vocabulary, not this
+  service's.
+- `json-source-view.ts` → `load.ts`: **true**. `load.ts` fills `_shuffledGroups` and `_shuffledPromptItems`
+  (lines 22 and 25), which is exactly what the serialiser strips.
+- `server/wav.mjs` → `wavwriter.ts`: **true**. The file is `audio/impl/wavwriter.ts` — I looked for it under
+  `session/` first and said it was absent, which was my path and not the tree — and it writes through
+  `writeInt16` and `setFloat32`, matching the claimed "PCM 16 bit signed or 32 bit float".
+
+**So the class holds exactly one member** — `theme.ts`'s attribution, corrected in §11.90 — across the five
+references and the manifest. Four of the five references were accurate, which is also the useful number: it
+says how much of this codebase's commenting is trustworthy, and why the one wrong case was worth chasing.
