@@ -478,7 +478,7 @@ rule).
   rule), the services in both API modes, the shell, and one spec per screen including a
   route-level mount through `APP_ROUTES` so an unprovided service fails here rather than at
   runtime; the library's five actions (create, import, duplicate, archive, export) assert their
-  request shapes there too. 480 specs today.
+  request shapes there too. 481 specs today.
 - **Dead exports.** `node bin/dead_exports.mjs` scans the receiver and the editor for exported
   symbols no production file names, and fails naming them. The recorder library is deliberately not
   scanned: it is upstream code, and `public-api.ts` makes its exports reachable for consumers rather

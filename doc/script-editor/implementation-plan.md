@@ -1750,3 +1750,33 @@ the check reported exactly one gap: the draws route, now added to the light, dar
 
 **Residual:** the pattern match is segment-wise, so a route that changes only a *parameter*'s shape
 (e.g. a validator on `:groupRef`) is not distinguished — the audits cover one value per parameter.
+
+### 11.47 A ui-spec §9 state that rode on compilation — **Done**
+
+The earlier pass claimed "ui-spec §9's six rows each have a branch and a spec". Checking that claim
+by rendered text rather than by name found one row whose branch nothing asserted: the drawn group's
+**no bank chosen** card, "the group says so and points right". The centre owns the branch
+(`editor-centre.html`, `block.source.bank === ''`), the centre has no spec file of its own, and no
+spec named either string. Every other row's text is asserted somewhere (`startDraft`,
+`loadFailedState`, `noDraftState`, `stageAudioMissing`, `browseWiden`), and the library's empty state
+is asserted in `script-library.spec.ts` — my first sweep missed it because it looked for the string's
+*name*.
+
+**A false alarm worth recording.** The first version of the case failed: with `prefill: {bank: '',
+count: 6}` the centre rendered the *chosen*-bank layout — the builtin bank, "no filter: every item in
+the bank", an unknown match count. The descriptor is the value of `prefill.bank`, not the value of
+`prefill`, so `drawnSource()` returned a string and every `source.bank`/`source.filter` read was
+`undefined`. data-model §2.2 called the descriptor "referenced from … `prefill`", which reads as the
+former; that comment now names the path. Measuring the real script settled it: the card renders its
+bank title, "category sentence", "3 of 6 items match the filter" and the example items. **No defect**
+— an unasserted branch, and a shape I had to reverse-engineer because the spec that would have shown
+it did not exist.
+
+**Verified** — the editor suite is 481 SUCCESS (was 480) with the case added, and the assertion is
+load-bearing: it was observed failing, on a render the branch did not produce, before the fixture was
+right.
+
+**Residual:** `W05`'s suspension text (`w05SuspendedMissing`, `w05SuspendedPartial`, `countUnknown`)
+is named by no spec and no corpus file. Its `E04` sibling is asserted twice and the class is asserted
+in `draw-rule.spec.ts`, and the corpus's nine files are all error cases — so this is the
+warning-level sibling of a covered state, on the same screen and the same branch.

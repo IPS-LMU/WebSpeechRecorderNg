@@ -166,8 +166,9 @@ export interface DrawFilter {
   tags?: Array<string>;
 }
 
-/** The bank source descriptor. Referenced from a placeholder item's `prefill` (D-W); M0 freezes the
-    exact discriminated shape. */
+/** The bank source descriptor. Referenced from a placeholder item's `prefill` (D-W) — the descriptor
+    itself sits at `promptItems[n].prefill.bank`, which is the shape `drawnSource()` returns; M0
+    freezes the exact discriminated shape. */
 export interface Draw {
   bank: string;
   bankSource: BankSource;
