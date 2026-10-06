@@ -2374,3 +2374,23 @@ with the browser driven over CDP and every step measured at the *receiver* rathe
 is enabled, on-screen and unremarkable, and nothing happened. Dispatching real
 `Input.dispatchMouseEvent` presses did, which is why `bin/audit/*.js` and `bin/audit/dry_run.mjs` press
 buttons that way. A driver that used `.click()` would report a dead Publish button that is not dead.
+
+### 11.66 The library's actions, pressed — **Done**
+
+§11.7 is the reason this was worth doing: the five library actions of ui-spec §2 once sat behind
+`[disabled]="true"` with read-only titles — buttons that existed and did nothing. Their *request shapes*
+are specced, but the buttons themselves had never been pressed. Driven here the same way as §11.65
+(built editor served same-origin by the receiver, real mouse events, everything measured at the
+receiver):
+
+- **New script** — `POST` → the list went 12 → 13 and the editor opened on the new script (§11.65).
+- **Duplicate** — `201 POST …/script 126B`, the list 12 → 13, and it opened the duplicate's editor, which
+  is what the row promises.
+- **Archive** — `PATCH …/script/1 229B`, and the API then reports script 1 archived. The row stays in the
+  API's list because the *client* owns the status filter; that is the design, not a leak.
+
+**Two could not be confirmed by this probe, and are not claimed.** Export JSON was pressed with no
+observable effect — no request (its bytes come from the draft already in memory) and no file in the
+headless download directory — so this method cannot tell whether it worked. Import JSON needs a file
+picker (`DOM.setFileInputFiles`) and was not driven. Both remain verified only by their specs'
+request shapes, which is what the register says.
