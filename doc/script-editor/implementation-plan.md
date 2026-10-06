@@ -1618,3 +1618,19 @@ why the order is right rather than repeating that mistake.
 clean data dir): exit 0 — the driver at 7/7 with seven windows, nine theme and nine accessibility
 passes, the probe at four measurements with both of its failure modes reported, and every planted
 violation named.
+
+### 11.42 The release step that succeeded silently — **Done**
+
+`bin/mv_tgz_pkgs.js` is the last line of `npm run pack_pi_module`, the documented release path: it moves
+the tarball `npm pack` wrote inside `dist/speechrecorderng` out to `dist/`, where the release expects it.
+It matched one name pattern, printed nothing when nothing matched, and ended with `process.exit(0)`
+either way — so a tarball under another name, or none at all, left the release looking successful with
+the artifact somewhere else. It also parsed the package manifest into a variable it never used. It now
+names what the directory holds when it finds no tarball, says which command to run when the build output
+is missing, and exits 1 in both cases.
+
+Running the command also settles the sibling of §11.30 — the one packaging step no CI job runs, because
+a release is not a push. It works: `Moved: speechrecorderng-3.11.26.tgz`, exit 0, the artifact in `dist/`.
+
+**Verified** in three states: no tarball → exit 1 listing what `dist/speechrecorderng` holds; no build
+output → exit 1 with "run `npm run build_module` first"; the documented command → exit 0 with the move.
