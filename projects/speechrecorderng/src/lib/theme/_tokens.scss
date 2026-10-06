@@ -59,10 +59,15 @@ $spr-tokens-light: (
   // status (komplementfärger — ink is always black) --------------------------
   'spr-ok': p.$umu-green,
   'spr-ok-ink': p.$umu-black,         // 7.66:1 on ok
+  // The `-ink` values are for text *on* their own fill. Text in the status colour on a
+  // *surface* needs a darker step on the light scheme: the fill itself is only 2.0–3.1:1 there.
+  'spr-ok-text': #1B5E20,             // 7.87:1 on the light surface
   'spr-caution': p.$umu-gold,
   'spr-caution-ink': p.$umu-black,    // 10.47:1 on caution
+  'spr-caution-text': #7A5A16,        // 6.36:1 on the light surface
   'spr-alert': p.$umu-pink,
   'spr-alert-ink': p.$umu-black,      // 12.22:1 on alert
+  'spr-alert-text': #7F1D1D,          // 10.02:1 on the light surface
 
   // canvas -----------------------------------------------------------------
   'spr-canvas': p.$spr-canvas,
@@ -142,6 +147,11 @@ $spr-tokens-dark: map.merge(
     'spr-canvas': #000000,
     'spr-canvas-hatch': rgba(255, 255, 255, 0.28),
     'spr-link': #9CC0F0,
+    // The status colours as *text*: the fills themselves read 5.4–8.3:1 on this surface, so the
+    // dark step is the brand colour rather than a darker one.
+    'spr-ok-text': p.$umu-green,
+    'spr-caution-text': p.$umu-gold,
+    'spr-alert-text': p.$umu-pink,
     'spr-logo-plate': #FFFFFF,
     'spr-housing-edge': #24497E,
     'spr-disabled-bg': rgba(255, 255, 255, 0.08),

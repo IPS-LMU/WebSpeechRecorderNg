@@ -124,6 +124,10 @@ jobs:
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --prepare bin/audit/open-draw-rule.js --viewports 1366x768,1920x1080
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768,1920x1080
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768,1920x1080
+          # The dedicated bank + draw-rule screen. It renders without any interaction, yet it was on
+          # the manual list only — and it was the one editor screen whose dark scheme was broken
+          # (plan §11.45).
+          node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/bank/g:0:0 --viewports 1366x768,1920x1080
           # A phone width as well: the editor stacks its three columns below 820 px and the bank below
           # 1100 px, and the shell hides its own overflow, so a screen that does not fit or does not
           # reflow shows up here (plan §11.14).
@@ -142,6 +146,7 @@ jobs:
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
+          node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/bank/g:0:0 --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           # The machine-checkable part of ui-spec §8: accessible names, labels, ARIA relationships,
           # tree/radiogroup semantics, tab order and 44 px target sizes, on the same routes.
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 1366x768
@@ -150,6 +155,7 @@ jobs:
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --prepare bin/audit/open-draw-rule.js --viewports 1366x768
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768
+          node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/bank/g:0:0 --viewports 1366x768
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/source --viewports 1366x768
           # The same routes in the dark scheme: the house rule covers both, and a scheme changes
           # which surfaces the colours land on.

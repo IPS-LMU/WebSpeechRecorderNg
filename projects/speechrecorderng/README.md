@@ -132,7 +132,7 @@ value as a fallback.
 | `--spr-stage` / `--spr-stage-ink` | `#F1EFE4` / `#000000` | prompt stage (18.21:1) |
 | `--spr-ink` / `--spr-ink-muted` / `--spr-ink-subtle` | `#1F3044` / `#4A6288` / `#6D7C98` | body, secondary, non-essential |
 | `--spr-border` / `--spr-border-strong` / `--spr-divider` | `#D8DFE8` / `#C7D1DF` / `#E9EDF3` | lines |
-| `--spr-ok` / `--spr-caution` / `--spr-alert` | `#73A790` / `#D7B17C` / `#EABAB9` | recording-done, warning/level, error — ink is `--spr-*-ink` (black) |
+| `--spr-ok` / `--spr-caution` / `--spr-alert` | `#73A790` / `#D7B17C` / `#EABAB9` | recording-done, warning/level, error — text *on* the fill is `--spr-*-ink` (black); text in the status colour *on a surface* is `--spr-*-text` (`#1B5E20` / `#7A5A16` / `#7F1D1D` light, the brand colour dark) |
 | `--spr-canvas` / `--spr-canvas-ink` / `--spr-canvas-signal` | `#0E1A26` / `#FFFFFF` / `#73A790` | signal + spectrogram surface |
 | `--spr-black` / `--spr-lamp-off` | `#000000` / navy 55% | traffic light housing and unlit lamp |
 | `--spr-r-sm … --spr-r-xl` | 6 / 12 / 14 / 22 px | radii |

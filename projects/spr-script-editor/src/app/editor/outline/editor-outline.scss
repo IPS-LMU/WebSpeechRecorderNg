@@ -139,7 +139,7 @@ button[disabled] {
 }
 
 .marker.warning {
-  color: var(--spr-caution);
+  color: var(--spr-caution-text, #7A5A16);
 }
 
 .icon {
