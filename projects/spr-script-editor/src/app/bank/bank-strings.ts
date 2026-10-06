@@ -154,5 +154,3 @@ export const BANK_STRINGS = {
     filesMode: 'This deployment serves the fixtures read-only (FILES mode), so banks and recordings cannot be changed here.',
   },
 } as const;
-
-export type BankStrings = typeof BANK_STRINGS;

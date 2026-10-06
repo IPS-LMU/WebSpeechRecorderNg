@@ -130,5 +130,3 @@ export const DRAWS_STRINGS = {
     unknown: 'Unknown',
   } as Record<string, string>,
 } as const;
-
-export type DrawsStrings = typeof DRAWS_STRINGS;

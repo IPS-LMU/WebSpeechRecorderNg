@@ -10,13 +10,11 @@ import {isObject} from '../core/validation/walk';
 import type {Finding, Severity} from '../core/validation/types';
 import {severityOfId} from './paths';
 
-/** One entry of the server's `details.checks`. */
-export interface ServerCheck {
-  id: string;
-  path?: string;
-  severity?: Severity;
-  message?: string;
-}
+/**
+ * One entry of the server's `details.checks`, as documented in rest-api.md §2.4. Not a type this
+ * module can use: the payload is untrusted, so it is read through type guards rather than asserted
+ * into a shape — `checksArray` and `serverFindingsFrom` below are that reading.
+ */
 
 function isSeverity(value: unknown): value is Severity {
   return value === 'error' || value === 'warning' || value === 'note';
