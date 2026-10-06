@@ -10,6 +10,18 @@ For backwards compatibility to server REST API v1 set the property `apiVersion: 
 ### Install NPM package
 Speechrecorder module is available as NPM package.
 Install it with `npm install speechrecorderng`, which adds it to your `package.json`.
+### Releasing
+This repository is where the library is published from, out of `dist/`. Two commands:
+
+1. `npm run new_patchrelease_build_and_pack_module` — or `new_prerelease_build_and_pack_module` for a
+   prerelease — bumps the version in both `package.json` files, stamps the version constant and the
+   FILES-mode fixture from it, builds into `dist/speechrecorderng` and packs the tarball into `dist/`
+   through `bin/mv_tgz_pkgs.js`, which fails when the tarball is not where `npm pack` should have left it
+   rather than reporting a release that shipped nothing;
+2. `npm run publish_module` — publishes `dist/speechrecorderng`.
+
+Neither step commits or tags: `npm version` runs with `--no-git-tag-version`, so the two version bumps and
+the stamped files are the releaser's to commit, and the tag is theirs to cut.
 ### Module integration
 Add SpeechRecorderNg module to 'imports' property of your `AppModule` annotation. The module main component `SpeechRecorder` should be activated by an Angular route.
 

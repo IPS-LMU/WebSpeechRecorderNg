@@ -3617,5 +3617,24 @@ script named `pack_module` is worse, because it is the name one would reach for,
 **Verified**: `package.json` parses; no reference to the removed name remains; and `npm run pack_pi_module`
 still packs and reports the move through the checked script (`Moved: speechrecorderng-3.11.26.tgz`).
 
+### 11.120 The release path was called documented and was not — **Fixed**
+
+§11.42 describes `bin/mv_tgz_pkgs.js` as the last line of "`npm run pack_pi_module`, **the documented release
+path**". Nothing user-facing documented it: the only mentions of the release scripts in any document are inside
+this register, and a maintainer had to read `package.json` to work out the order.
+
+**Documented where a maintainer looks** — the library's README, which is also the one copied into the tarball:
+the two commands (`new_patchrelease_build_and_pack_module` or its prerelease twin, then `publish_module`), what
+the first does step by step — both manifests, the version constant, the FILES-mode fixture, the build, and the
+checked pack — and the fact that **neither commits nor tags**, because `npm version` runs with
+`--no-git-tag-version`.
+
+**Verified by reading the scripts it names**, each of which the register has already exercised: the two entry
+points and their bodies in `package.json`, `apply_version.js` (§11.117–§11.118), and the checked move (§11.70,
+and again in §11.119 when `pack_pi_module` was run).
+
+**One thing deliberately not done**: running `new_patchrelease_…` itself, because it *bumps versions*. A release
+is a human act, and every piece it is composed of has been run individually.
+
 
 
