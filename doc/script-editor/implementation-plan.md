@@ -1428,7 +1428,7 @@ recording file attached to the item satisfies `recordingFileDone()`, i.e.
 through `this.items.getItem(this.promptIndex)` (`sessionmanager.ts`). Nothing in the recorder reads
 `bankItemId` at runtime.
 
-### 11.34 The pause control the recorder never enables — **Found while chasing a note**
+### 11.34 The pause control the recorder never enables — **Recorded; enabling it is the recorder's call**
 
 The dry run ends with a note that the pause never landed inside a playing clip, and the driver's own
 comment blamed its timing. Measured, it is not the driver: the recorder leaves the control disabled.
