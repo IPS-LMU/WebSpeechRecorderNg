@@ -57,7 +57,7 @@ test('gc removes expired previews with their materialised script and keeps live 
   assert.ok(existsSync(store.scriptPath(String(live.script))));
 });
 
-test('orphanMedia reports only files no draft or published version references', () => {
+test('orphanMedia reports only files no draft, published version or bank item references', () => {
   const store = freshStore();
   writeFileSync(join(store.dataDir, 'project', 'demo.json'), JSON.stringify({name: 'Demo'}));
   store.ensureMediaDir('demo');
@@ -65,13 +65,24 @@ test('orphanMedia reports only files no draft or published version references', 
   writeFileSync(store.mediaPath('demo', 'used.wav'), Buffer.from('x'));
   const referencing = {sections: [{groups: [{promptItems: [{itemcode: '1', mediaitems: [{mimetype: 'audio/wav', src: 'media/used.wav'}]}]}]}]};
   store.createScript({name: 'S', project: 'demo', value: referencing, text: JSON.stringify(referencing)});
+  // A drawn group plays the recording its bank item names, so a clip only a bank refers to is used
+  // too. `used.wav` above is held by a draft; this one by a bank — the case that was taken for an
+  // orphan and deleted by `--gc-media` (§11.51).
+  writeFileSync(store.mediaPath('demo', 'bank.wav'), Buffer.from('x'));
+  store.writeBank('std', {
+    title: 'Bank',
+    source: 'BUILTIN',
+    items: [{bankItemId: 'std-001', text: 'x', audioSrc: 'media/bank.wav'}],
+  });
 
   assert.deepEqual(store.orphanMedia().map((entry) => entry.name), ['orphan.wav']);
+  assert.deepEqual(store.resourceReferences().get('media/bank.wav'), [{bankId: 'std', bank: true}]);
   const summary = store.gc({media: true});
   assert.equal(summary.orphansFound, 1);
   assert.equal(summary.mediaRemoved, 1);
   assert.ok(!existsSync(store.mediaPath('demo', 'orphan.wav')));
   assert.ok(existsSync(store.mediaPath('demo', 'used.wav')));
+  assert.ok(existsSync(store.mediaPath('demo', 'bank.wav')), 'a bank-referenced clip is not an orphan');
 });
 
 test('gc defaults to the 50 deep, 30 day retention the runbook documents', () => {

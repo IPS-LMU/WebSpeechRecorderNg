@@ -20,11 +20,14 @@ is seeded from `--seed` (`src/test` by default) on first run; `server/data` is g
 ## Tests
 
 ```bash
-node --test server/          # 37 specs: drafts, publish, validation corpus, banks, media,
-                             # draw resolution, previews, maintenance
+node --test server/*.test.mjs   # 60 specs: drafts, publish, validation corpus, banks, media,
+                                # draw resolution, previews, maintenance
 ```
 
-CI runs this and the library karma suite (`.github/workflows/tests.yml`).
+The explicit file list, not `server/`: Node 22's runner treats a directory argument as an entry
+module (`MODULE_NOT_FOUND`) and only learned to scan one in a later major (plan §11.48).
+
+CI runs this and the other five jobs (`.github/workflows/tests.yml`).
 
 ## Data layout
 
@@ -53,6 +56,9 @@ node server/server.mjs --data <dir> --gc --gc-media    # also delete unreference
 ```
 
 * **Draft revisions** are kept 50 deep and 30 days (see `Store.pruneDraftRevisions`).
+* **Unreferenced** means no draft, no published version and no **bank item** names the file: a drawn
+  group plays the recording its bank item points at, so a clip only a bank refers to is in use and
+  `--gc-media` leaves it alone (plan §11.51).
 * **Preview sessions** (`type: "TEST"`) expire; `gc` removes the session and its materialised script,
   never the source script.
 * **Published versions and recordings are never touched** by `gc`.

@@ -973,9 +973,14 @@ export class Store {
   }
 
   /**
-   * The project resources a script draft or published version refers to, mapped to their owners:
-   * `{scriptId, draft: true}` for a draft and `{scriptId, version: n}` for a published version.
-   * Legacy flat scripts have no versions yet and are reported as version 1.
+   * The project resources a script draft, a published version or a bank item refers to, mapped to
+   * their owners: `{scriptId, draft: true}` for a draft, `{scriptId, version: n}` for a published
+   * version, `{bankId, bank: true}` for a bank item. Legacy flat scripts have no versions yet and are
+   * reported as version 1.
+   *
+   * Bank items matter because a drawn group plays the recording a bank item names: a clip only a
+   * bank refers to is *used*, so `gc` must not call it an orphan and the media listing must say who
+   * holds it. Their `audioSrc` is project-relative like a script's, so the same key applies.
    */
   resourceReferences(projectId = null) {
     const refs = new Map();
@@ -1011,6 +1016,17 @@ export class Store {
             add(src, {scriptId, version: 1});
           }
         }
+      }
+    }
+    // Banks are not project-scoped on disk, and a builtin bank's `audioSrc` resolves inside whichever
+    // project draws from it, so these references hold for every project.
+    for (const bank of this.banks()) {
+      const bankId = String(bank?.bankId ?? '');
+      if (bankId === '') {
+        continue;
+      }
+      for (const src of referencedResources(bank)) {
+        add(src, {bankId, bank: true});
       }
     }
     return refs;
@@ -1128,7 +1144,7 @@ export class Store {
     return session;
   }
 
-  /** Media no draft or published version references. */
+  /** Media no draft, published version or bank item references. */
   orphanMedia(projectId = null) {
     const references = this.resourceReferences(projectId);
     const orphans = [];
