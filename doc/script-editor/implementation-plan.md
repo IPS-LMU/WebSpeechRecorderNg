@@ -1776,7 +1776,12 @@ it did not exist.
 load-bearing: it was observed failing, on a render the branch did not produce, before the fixture was
 right.
 
-**Residual:** `W05`'s suspension text (`w05SuspendedMissing`, `w05SuspendedPartial`, `countUnknown`)
-is named by no spec and no corpus file. Its `E04` sibling is asserted twice and the class is asserted
-in `draw-rule.spec.ts`, and the corpus's nine files are all error cases — so this is the
-warning-level sibling of a covered state, on the same screen and the same branch.
+**Residual — withdrawn after checking.** This entry first recorded that `W05`'s suspension
+(`w05SuspendedMissing`, `w05SuspendedPartial`) is named by no spec. The *behaviour* is asserted:
+`warnings.spec.ts` has "suspends on a drawn group when clip durations are unknown", asserting the
+`suspended` flag, exactly as W11's "suspends when the media index cannot be fetched" does — ui-spec
+§9's other promised suspension. What no spec names is the message *wording*, which this plan
+deliberately does not pin: a rewritten message must not fail a test. `countUnknown` is the same case
+— the count message's suspended state is asserted in `draw-rule.spec.ts`. So the lead was worth
+chasing once and is now dropped, and the register's only other residuals are honest statements of
+what a tool does not measure (§11.45, §11.46).
