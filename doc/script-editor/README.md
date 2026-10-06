@@ -530,7 +530,12 @@ rule).
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
   drawn-row so the draw-rule inspector is what gets measured, and it is pure DOM, so it works on a
   production build too. A fixture that cannot reach its state **throws** (the audits fail on the
-  exception), so a drifted selector cannot leave the audit measuring the default screen and green. The house rule covers light **and** dark, so `use-dark-scheme.js` switches
+  exception), so a drifted selector cannot leave the audit measuring the default screen and green. The
+  locale fixture, `use-locale-sv.js`, is the exception in where it applies rather than in what it does:
+  the *editor* has no locale switching — its strings are constants (`core/editor-strings.ts`) — so it
+  renders in English and there is no Swedish editor screen to audit. That fixture drives the demo
+  recorder, which exposes `setLanguage`, which is the URL the root README's example uses.
+  The house rule covers light **and** dark, so `use-dark-scheme.js` switches
   `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
   the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13). CI
 

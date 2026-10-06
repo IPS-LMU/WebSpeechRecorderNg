@@ -1546,3 +1546,23 @@ under js-yaml with the expected steps per job, and the check is sensitive to eac
 removed `runs-on:`, a `run: |` block holding only a comment, a job indented by four spaces, and a tab.
 Writing the check found one of my own mistakes: the rule looked for `run:` at ten spaces where the file
 uses eight, and only the empty-block probe showed it was not running at all.
+
+### 11.40 The locale fixture that never switched anything — **Done**
+
+Checking the last unreferenced fixture, as §11.35 had done for two others, turned up the same defect in
+a worse form. `bin/audit/use-locale-sv.js` asked `app-root`'s component for `setLanguage` and, finding
+none, *returned* a string — "language switch not found (needs a development build)" — instead of
+throwing. §11.18 fixed exactly that in the other two fixtures, for exactly that reason: a fixture that
+cannot reach its state and does not throw leaves the audit measuring the default screen and green. This
+one has always done it (zero throws where its siblings have two and one), and `setLanguage` exists in no
+file of this tree, so it has never switched a page to anything.
+
+It throws now, naming the real reason, and it also refuses a switch that re-rendered nothing. Measured
+on both apps that can host it: the editor exits 1 — it has no locale switching at all, its strings are
+constants (`core/editor-strings.ts`), so it renders in English and there is no Swedish editor screen to
+audit — while the demo recorder, which does expose `setLanguage` and is the URL the root README's
+example uses, exits 0 with `locale sv, sample: "Cavox"`.
+
+No job runs it, and that is the right answer rather than a gap: the recorder's screens are Swedish
+already and the editor has no other locale. It stays a documented manual check, one that can no longer
+claim success it did not have.
