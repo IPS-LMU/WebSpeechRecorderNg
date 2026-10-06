@@ -2911,3 +2911,26 @@ times in both the README and `session_export.ts`.
 **The lesson is the series' own, inverted.** Every previous round here found the tree wrong and the checker
 right; this one is the reverse. Only comparing the claim against the *code* — rather than against the
 comment that described it — caught it, which is why §11.71's shortcut was wrong to take.
+
+### 11.89 Comments that promise what the code does not do — **Done, and not gate-able**
+
+§11.88 was one member of a class worth sweeping: a comment naming an artifact as produced when the code
+does not produce it. Swept over the library, the editor, the server and `bin/`:
+
+- **The only member is the one already fixed.** `session_export.ts`'s `manifest.json` was the tree's sole
+  instance; the sweep now returns nothing.
+- **A broad rule catches it, at a cost.** "Any filename a comment names that appears nowhere in the code"
+  finds the manifest, and also five legitimate *cross-file references*: `theme.ts` on `_tokens.scss`,
+  `script-draft.service.ts` on `editor-strings.ts` (which it says it is **not** appended to),
+  `draws.service.ts` on `core/draw-api.service.ts`, `json-source-view.ts` on `load.ts`, and `server/wav.mjs`
+  on the recorder's `wavwriter.ts`. Five to eyeball for one hit.
+- **A narrow rule is quiet and useless.** Requiring a production verb beside the name gives zero false
+  positives and, verified by reinstating the exact stale wording, reports **nothing** — the real comment
+  read "next to `session.json` and a `manifest.json` index", with no verb to key on. Narrow: `nothing`.
+  Broad: `[(21, 'manifest.json')]`.
+
+**So this is not a gate.** The broad rule needs a human to dismiss five references per run; the narrow one
+cannot see the case that motivated it, and the wording that made it invisible is exactly the wording a
+stale comment would use. The class is empty as of §11.88, and the broad sweep is the tool to reach for if
+another is ever suspected — which is why it is written down with its false positives rather than turned
+into a check that would be ignored.
