@@ -9,6 +9,9 @@
  *   2. measured text contrast meets WCAG AA (4.5:1, or 3:1 for large text)
  *   3. no text renders below the smallest token size (13.6px), icons excepted
  *   4. the application still fits the viewport without document scrollbars
+ *   5. non-text contrast (WCAG 1.4.11): a boundary that carries meaning — an element that announces a
+ *      state by ARIA or a state class and has a border, outline or box-shadow — reaches 3:1 against
+ *      what it sits on. Decorative lines are exempt; the rule only applies where a state is announced.
  *
  * Usage:
  *   # terminal 1
@@ -185,6 +188,29 @@ const PAGE_PROBE = `(() => {
       disabled: el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true' || !!el.closest('[disabled],[aria-disabled="true"]'),
       decorative: el.getAttribute('aria-hidden') === 'true' || !!el.closest('[aria-hidden="true"]'),
       isIcon: el.tagName === 'MAT-ICON' || (cs.fontFamily.includes('Material Icons')),
+      // A state marker is a boundary that carries meaning: the element announces a state and a
+      // border, outline or box-shadow is what shows it. WCAG 1.4.11 asks 3:1 of that boundary, and
+      // the text rule cannot see it (§11.45's residual).
+      state: (() => {
+        const aria = el.getAttribute('aria-selected') === 'true' ? 'aria-selected'
+          : (el.getAttribute('aria-current') && el.getAttribute('aria-current') !== 'false') ? 'aria-current'
+          : el.getAttribute('aria-checked') === 'true' ? 'aria-checked'
+          : el.getAttribute('aria-invalid') === 'true' ? 'aria-invalid' : '';
+        if (aria) return aria;
+        const classes = typeof el.className === 'string' ? el.className.split(/\\s+/) : [];
+        return classes.find(c => /^(selected|current|active|checked|is-[a-z][a-z-]*)$/.test(c)) || '';
+      })(),
+      boundaries: (() => {
+        const out = [];
+        for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+          const w = parseFloat(cs['border' + side + 'Width']) || 0;
+          if (w > 0) out.push(['border-' + side.toLowerCase(), cs['border' + side + 'Color']]);
+        }
+        if (cs.boxShadow && cs.boxShadow !== 'none') out.push(['box-shadow', cs.boxShadow]);
+        const ow = parseFloat(cs.outlineWidth) || 0;
+        if (ow > 0 && cs.outlineStyle && cs.outlineStyle !== 'none') out.push(['outline', cs.outlineColor]);
+        return out;
+      })(),
       visible: cs.visibility !== 'hidden' && cs.display !== 'none' && parseFloat(cs.opacity) > 0.05,
     });
   });
@@ -238,9 +264,16 @@ const contrast = (a, b) => {
 };
 const parseCss = (value) => {
   const m = String(value).match(/^rgba?\(([^)]+)\)$/);
-  if (!m) return null;
-  const parts = m[1].split(/[,\s/]+/).filter(Boolean).map(Number);
-  return [parts[0], parts[1], parts[2], parts.length > 3 ? parts[3] : 1];
+  if (m) {
+    const parts = m[1].split(/[,\s/]+/).filter(Boolean).map(Number);
+    return [parts[0], parts[1], parts[2], parts.length > 3 ? parts[3] : 1];
+  }
+  // Newer Chromium reports some computed colours in the colour-4 syntax.
+  const srgb = String(value).match(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)$/);
+  if (srgb) {
+    return [Number(srgb[1]) * 255, Number(srgb[2]) * 255, Number(srgb[3]) * 255, srgb[4] === undefined ? 1 : Number(srgb[4])];
+  }
+  return null;
 };
 
 const list = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
@@ -416,6 +449,42 @@ for (const [width, height] of VIEWPORTS) {
     }
   }
 
+  // Non-text contrast (WCAG 1.4.11): a boundary that carries meaning must reach 3:1 against what it
+  // sits on. This is the rule that would have caught the picker's selected-row marker at 1.73:1 in
+  // the dark scheme (§11.45), which the text rule cannot see. Decorative lines are deliberately
+  // exempt: it applies only where the element announces a state.
+  for (const row of rows) {
+    if (!row.state || !row.visible || row.disabled || row.decorative) continue;
+    // Once per colour: a border is normally the same on all four sides, and four identical failures
+    // would bury the one that matters.
+    const seen = new Set();
+    for (const [channel, value] of row.boundaries || []) {
+      const key = channel.startsWith('border-') ? String(value) : channel + ':' + String(value);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const colour = channel === 'box-shadow'
+        ? (String(value).match(/rgba?\([^)]+\)|color\(srgb [^)]+\)/) || [])[0]
+        : value;
+      const parsed = colour ? parseCss(colour) : null;
+      if (!parsed || parsed[3] === 0) continue;
+      const bg = parseCss(row.effectiveBg) || [255, 255, 255, 1];
+      const composited = parsed[3] < 1
+        ? [
+            parsed[0] * parsed[3] + bg[0] * (1 - parsed[3]),
+            parsed[1] * parsed[3] + bg[1] * (1 - parsed[3]),
+            parsed[2] * parsed[3] + bg[2] * (1 - parsed[3]),
+          ]
+        : [parsed[0], parsed[1], parsed[2]];
+      const ratio = contrast(composited, [bg[0], bg[1], bg[2]]);
+      if (ratio < 3) {
+        const named = channel.startsWith('border-') ? 'border' : channel;
+        failures.push(
+          `${width}x${height}: ${row.label} state marker (${row.state}) ${named} contrast ` +
+          `${ratio.toFixed(2)}:1 < 3:1 (${composited.map(Math.round).join(',')} on ${row.effectiveBg})`
+        );
+      }
+    }
+  }
   if (fit.scrollHeight > fit.innerHeight + 1) {
     failures.push(`${width}x${height}: document scrolls (scrollHeight ${fit.scrollHeight} > viewport ${fit.innerHeight})`);
   } else {

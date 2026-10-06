@@ -186,6 +186,7 @@ jobs:
             echo "the theme audit passed with planted violations"; echo "$theme_out"; exit 1
           fi
           for expected in 'lightgrey' '9px' 'contrast 2.96:1' 'renders in Arial' 'document scrolls' \
+            'state marker (is-selected) border contrast' \
             'did not load (natural size 0)' 'has no alt text' 'renders 5px tall (expected 16-64)' \
             'aspect ratio changed (4.00 vs natural 1.00)' 'is outside the viewport'; do
             echo "$theme_out" | grep -q "$expected" || {

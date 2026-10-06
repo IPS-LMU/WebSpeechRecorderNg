@@ -42,6 +42,10 @@
   link.textContent = 'planted link';
   link.setAttribute('style', 'font-family: Arial; font-size: 16px; color: var(--spr-link, #2A4765)');
   document.body.appendChild(link);
+  // A state marker whose boundary is too faint for WCAG 1.4.11: a pale edge on a pale surface, the
+  // class of defect §11.45 fixed by hand and the audit could not see (§11.54).
+  const stateMarker = add('div', 'width: 60px; height: 20px; background: #ffffff; border: 2px solid #f4f4f4');
+  stateMarker.className = marker + ' is-selected';
 
   // ---- and one per accessibility rule the audit claims to be sensitive to (a11y.md).
   // Rule 1: a control whose only content is aria-hidden has no accessible name.

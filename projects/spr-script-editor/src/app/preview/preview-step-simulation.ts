@@ -79,7 +79,7 @@ import {advanceStep, retreatStep, type SimStep, type StepView} from './preview-s
     }
 
     .step[aria-checked='true'] {
-      border-color: var(--spr-select-edge);
+      border-color: var(--spr-link, #2A4765);
       background: var(--spr-select-fill);
     }
 

@@ -104,7 +104,7 @@ button[disabled] {
 
 .row-main[aria-current='true'] {
   background: var(--spr-select-fill);
-  box-shadow: inset 3px 0 0 var(--spr-select-edge);
+  box-shadow: inset 3px 0 0 var(--spr-link, #2A4765);
 }
 
 .row-label {

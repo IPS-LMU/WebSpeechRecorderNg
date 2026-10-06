@@ -113,7 +113,7 @@ import type {OrderRow} from './preview-order';
     }
 
     li.selected {
-      border-left: 3px solid var(--spr-select-edge);
+      border-left: 3px solid var(--spr-link, #2A4765);
       background: var(--spr-select-fill);
     }
 
