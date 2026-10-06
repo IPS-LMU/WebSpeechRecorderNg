@@ -1406,3 +1406,23 @@ bank's own recording (`playBankAudio`), and the driver now does ask — the log 
 prompt control for item 6 — and the row still does not complete. So the reason lies in the recorder's
 drawn-item completion rule, not in the driver's presses, and it is left as a note naming the manual
 step rather than a failed walk.
+
+### 11.33 The drawn items that record and never complete — **Found, needs the recorder's rule**
+
+The dry run reaches the drawn pair and stops there. D001's takes record and upload — four in the last
+run, each answering `201` — the app fetches the item's own bank recording
+(`GET …/media/std-vowel-a.wav`, once the driver asks for it as an operator would) and the session is
+PATCHed with `{"replayLog":{"P5":1,"D001":1}}`, so the app has the item, its clip and its takes. What
+it never does is mark the row complete: the operator's table leaves D001's status cell empty, which is
+what the driver reads, while every other item — manual, AUTOPROGRESS, AUTORECORDING, with and without
+a clip — completes in the same run.
+
+The materialised session script is not the cause: `script/sess-1.json` carries
+`{"itemcode":"D001","bankItemId":"std-004","mediaitems":[{"text":"a"},{"audio/wav","src":"media/std-vowel-a.wav"}],"playback":{"when":"DURING","replayable":true,"maxReplays":1}}`
+— exactly what the recorder needs and what M1's fixture row promises.
+
+So the cause is in the recorder's own completion rule for an item that came from a bank draw. That is
+recorder behaviour, not a driver's press, and nothing here can settle whether the rule is wrong or the
+table simply does not show it: an operator's list that never shows a drawn item as recorded is either
+a display gap or a real one, and the answer decides whether the fix is in the table or in the item
+state. Recorded so the next pass starts from evidence rather than from a guess.
