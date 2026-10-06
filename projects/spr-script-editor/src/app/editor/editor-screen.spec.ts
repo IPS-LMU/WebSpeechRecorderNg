@@ -200,7 +200,7 @@ describe('EditorScreen states', () => {
     expect(error).withContext('the failure is announced').not.toBeNull();
     expect(error?.textContent).toContain('The draft could not be loaded');
     expect(error?.textContent).toContain('Editing is blocked until the draft loads. This is not an empty script.');
-    expect(error?.textContent).toContain('The script list could not be loaded. (HTTP 500)');
+    expect(error?.textContent).toContain('The draft could not be loaded (HTTP 500)');
     const retry = Array.from(error?.querySelectorAll<HTMLButtonElement>('button') ?? [])
       .find((button) => button.textContent?.trim() === 'Retry');
     expect(retry).withContext('a Retry action exists').toBeDefined();

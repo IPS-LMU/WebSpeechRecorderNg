@@ -317,7 +317,10 @@ export class EditorScreen {
 
   private describeError(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return `${this.strings.library.errorPrefix} (${this.strings.library.httpPrefix} ${error.status})`;
+      // The editor's own wording, as the sibling screens use theirs: this reported a draft's status
+      // under the *library list's* prefix, so a script with no draft said "The script list could not
+      // be loaded" beneath the title that said the draft could not be loaded.
+      return `${this.strings.editor.loadErrorTitle} (${this.strings.library.httpPrefix} ${error.status})`;
     }
     return this.strings.editor.loadErrorBody;
   }
