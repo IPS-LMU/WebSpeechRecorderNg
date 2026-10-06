@@ -20,6 +20,11 @@ jobs:
       # The receiver is Node builtins only: no install step is needed.
       - name: Receiver tests
         run: node --test server/
+      # The two trees this project owns outright: an export nothing names is either wired up or
+      # deleted (bin/dead_exports.mjs). The recorder library is not scanned - it is upstream code,
+      # and public-api.ts makes its exports reachable for consumers rather than callers.
+      - name: No unreferenced exports
+        run: node bin/dead_exports.mjs --verbose
 
   library:
     name: Library (karma)
