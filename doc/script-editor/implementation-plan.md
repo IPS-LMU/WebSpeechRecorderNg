@@ -1529,3 +1529,20 @@ a development server and Chrome: exit 0, "both audits named every planted violat
 messages reading exactly as §7's examples do, `contrast 2.96:1` among them. Neutering the fixture so it
 plants nothing makes the same block exit 1 with "the theme audit passed with planted violations", so
 the control is sensitive to an audit that has stopped biting.
+
+### 11.39 The workflow file nothing checked — **Done**
+
+Every check in this repository runs out of `.github/workflows/tests.yml`, this work edited that file in
+almost every round, and nothing ever looked at whether it was still a valid workflow: the edits were
+verified with `bash -n` on the extracted `run:` blocks and a grep for tabs, which says nothing about the
+file's structure. GitHub refuses to run a file it cannot parse, so a single wrong indent would have
+turned every job off with no check reporting it.
+
+`bin/workflow_check.mjs` checks the shape the file keeps, and the server job runs it — dependency-free,
+because that job installs nothing.
+
+**Verified** — the file passes (6 jobs: server, library, editor, audit, dry-run, detail-view) and parses
+under js-yaml with the expected steps per job, and the check is sensitive to each mistake it names: a
+removed `runs-on:`, a `run: |` block holding only a comment, a job indented by four spaces, and a tab.
+Writing the check found one of my own mistakes: the rule looked for `run:` at ten spaces where the file
+uses eight, and only the empty-block probe showed it was not running at all.

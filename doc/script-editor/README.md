@@ -480,6 +480,12 @@ rule).
   than callers. Files that exist for the specs — the shared check corpus and its helpers, the
   receiver's `api-harness.mjs` — are allowed by name with the reason. This is what found
   `checkIfMatch` unused in the receiver and three string/type exports in the editor.
+- **Workflow structure.** `node bin/workflow_check.mjs` checks the shape of
+  `.github/workflows/tests.yml`: no tabs, the three top-level keys, every job at two spaces with
+  `runs-on:` and at least one step, every `run: |` block with a command in it, and no job-level key the
+  check does not know — because a job that lost two spaces is indistinguishable from one. GitHub
+  refuses to run a file it cannot parse, so a hand-edited workflow would break every check at once and
+  none of them could report it.
 - **i18n guard.** `npm run validate:i18n` checks that every key of `src/assets/i18n/en.json`
   exists in every locale with a non-empty value, that every key of the library's `SPR_STRINGS` is
   overridable, and that every key the source references exists; regenerating with
