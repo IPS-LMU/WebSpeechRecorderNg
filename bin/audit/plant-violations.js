@@ -43,5 +43,47 @@
   link.setAttribute('style', 'font-family: Arial; font-size: 16px; color: var(--spr-link, #2A4765)');
   document.body.appendChild(link);
 
-  return 'planted 5 violations';
+  // ---- and one per accessibility rule the audit claims to be sensitive to (a11y.md).
+  // Rule 1: a control whose only content is aria-hidden has no accessible name.
+  const nameless = document.createElement('button');
+  nameless.className = marker;
+  nameless.innerHTML = '<span aria-hidden="true">*</span>';
+  document.body.appendChild(nameless);
+  // Rule 4: a duplicated id silently breaks aria-labelledby/describes.
+  for (const _ of [1, 2]) {
+    const dup = document.createElement('span');
+    dup.id = 'planted-duplicate-id';
+    dup.className = marker;
+    dup.textContent = 'duplicate id';
+    document.body.appendChild(dup);
+  }
+  // Rule 5: an image with no alt and no decorative marking.
+  const noAlt = document.createElement('img');
+  noAlt.className = marker;
+  noAlt.src = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+  document.body.appendChild(noAlt);
+  // Rule 11: no declared language.
+  document.documentElement.removeAttribute('lang');
+  // Rule 12: a second h1 on a route that already names itself once.
+  add('h1', 'font-size: 16px', 'planted second heading').className = marker;
+  // Rule 13: a second main landmark, which the shell owns.
+  add('main', 'height: 2px').className = marker;
+  // Rule 14: a positive tabindex, which reorders the document for every keyboard user.
+  const tabs = document.createElement('button');
+  tabs.className = marker;
+  tabs.tabIndex = 3;
+  tabs.textContent = 'positive tabindex';
+  document.body.appendChild(tabs);
+  // Rule 15: a control inside a control. Built through the DOM, because the HTML parser would
+  // hoist an inner button out of an outer one.
+  const outer = document.createElement('button');
+  outer.className = marker;
+  outer.textContent = 'outer';
+  const inner = document.createElement('button');
+  inner.className = marker;
+  inner.textContent = 'inner';
+  outer.appendChild(inner);
+  document.body.appendChild(outer);
+
+  return 'planted 5 theme and 9 accessibility violations';
 })()

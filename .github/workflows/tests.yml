@@ -168,10 +168,14 @@ jobs:
           a11y_out=$(node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script \
             --prepare bin/audit/plant-violations.js --viewports 1366x768 2>&1) && a11y_status=0 || a11y_status=$?
           if [ "${a11y_status:-1}" = "0" ]; then
-            echo "the accessibility audit passed with a planted 17 px target"; echo "$a11y_out"; exit 1
+            echo "the accessibility audit passed with planted violations"; echo "$a11y_out"; exit 1
           fi
-          echo "$a11y_out" | grep -q 'is 17 px high' || {
-            echo "the accessibility audit did not name the 17 px target"; echo "$a11y_out"; exit 1; }
+          for expected in 'exposes a button with no name' 'is 17 px high' 'has no lang attribute' \
+            '2 h1 heading(s)' '2 main landmark(s)' 'tabindex=3' 'a control inside a control' \
+            'id "planted-duplicate-id" appears 2 times' 'has no alt and is not marked decorative'; do
+            echo "$a11y_out" | grep -qF "$expected" || {
+              echo "the accessibility audit did not name: $expected"; echo "$a11y_out"; exit 1; }
+          done
           echo "both audits named every planted violation"
 
   dry-run:
