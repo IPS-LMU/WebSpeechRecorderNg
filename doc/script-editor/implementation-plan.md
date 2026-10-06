@@ -25,7 +25,7 @@ plan review that drove an amendment; §9 maps each one to where it lands.
 | `Group._shuffledPromptItems` / `Section._shuffledGroups` are **required, non-optional** fields | `script.ts:67-76` | The editor's loader fills them; the serialiser strips them (never make the recorder null-check). |
 | Fixtures: `1.json` 1.8 kB (legacy), `1245.json` 26.6 kB, `3456.json` 6.5 kB, `3171…json` 16.7 kB | `src/test/script/` | Enough for M2; M1/M4 need new fixtures (playback, draw, 500-item perf). |
 | Library tests: `@angular/build:karma`, `src/test.ts`, `tsconfig.spec.json`, `karma.conf.js` (Chrome, `singleRun:false`) | `angular.json`, `projects/speechrecorderng/*` | Copy the pattern for the editor; headless runs pass `--watch=false --browsers=ChromeHeadless`. |
-| Design-doc defects: README §4.1 test `tsConfig` is malformed (`"projects/spr-script-editor:tsconfig.spec.json"`); data-model §2.1 has no `Playback.durationMs` although the timeline/W05 need it; README §8.2 script-name question is open while fixtures already carry `name` | this directory | Fix while touching those files (M0/M1). |
+| Design-doc defects, found in M0 and since **fixed**: README §4.1's test `tsConfig` was malformed (`"projects/spr-script-editor:tsconfig.spec.json"`); data-model §2.1 had no `Playback.durationMs` although the timeline/W05 need it; README §8.2's script-name question was open while the fixtures already carried `name` | this directory | None left. The `tsConfig` path resolves to a real file, `durationMs` is in the `Playback` interface, and §8.2 answers the name question with D-I. |
 | Design tension: README §3 forbids `AudioContext` in the editor; rest-api §5 allows client-side decode of clip duration | README §3, rest-api §5 | Use `HTMLMediaElement` metadata (no Web Audio), server `durationMs` authoritative (D-G). |
 | The recorder loads a session's script as `GET script/{sess.script}` — the published, unresolved script | `speechrecorderng.component.ts:164`, rest-api §1 | A1: a published drawn group reaches the recorder empty; a delivery mechanism must be frozen (D-K). |
 | Every library component is a `standalone: false` NgModule declaration (`SpeechrecorderngModule` declares and exports them, and registers `SPR_ROUTES`) | `audio_display.ts:53`, `speechrecorderng.module.ts` declarations | A2: the editor cannot use `AudioPlayer`/`AudioDisplay` without importing the module; audition player decided in D-L. |
@@ -2537,3 +2537,19 @@ Two consistency checks closed alongside it, both negative:
 - **The dev loop agrees.** `proxy.conf.json` sends `/api/v1` to `127.0.0.1:8080`, the tracked
   `environment.ts` uses `apiEndPoint: '/api/v1'`, the receiver defaults to `--port 8080` and
   `--api-base /api/v1`, and `angular.json`'s serve options name the proxy.
+
+### 11.73 The docs' cross-references, resolved — **Done**
+
+A sweep of every `§`-style citation between the seven editor documents resolves 139 references, and all
+of them land. The first pass claimed ninety-three unresolved, which was the parser's fault: §8's open
+questions are a **numbered list**, not numbered headings, so `README §8.2`, `§8.4` and `§8.7` point at
+list items. Read in context, each is right — §8.2 the script name, §8.4 speaker pseudonymity, §8.7 the
+authentication surface — and matches what the citing document says: `data-model.md`'s `Script.name`
+comment, §11.4, §11.15, `rest-api.md` §4.2 and `ui-spec.md` §7.
+
+**One stale row fixed.** §1's ground-truth table carried M0's "Design-doc defects" as work to do "while
+touching those files" — the malformed test `tsConfig`, the missing `Playback.durationMs`, and §8.2's
+script-name question being "open while fixtures already carry `name`". All three are fixed: the
+`tsConfig` path resolves to a real file, `durationMs` is in the `Playback` interface, and §8.2 answers
+the name question with D-I while the library's `script.ts` carries `name?: string`. The row now says so
+and points at the evidence.
