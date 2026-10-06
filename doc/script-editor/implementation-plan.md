@@ -2079,3 +2079,29 @@ against a receiver-served recorder, ends with "Layout probe passed: 4 measuremen
 **Residual:** the rule reads the status element's `scrollWidth` against its `clientWidth`, so it
 catches content wider than the box it is drawn in. A status line clipped by an ancestor, or one that
 wraps out of the operator's view, is not its question.
+
+### 11.56 The preflight guard, verified in both directions — **Done**
+
+`bin/ensure_env.mjs` runs from `prebuild` and `prestart_prod`, and its value is entirely in *firing*:
+a guard that passes everything protects nothing. Nothing had tested that it does.
+
+**It refuses an uninstalled tree** — hiding one sentinel it checks
+(`node_modules/@jsverse/transloco/package.json`) makes it exit 1 naming that path and telling the
+operator to run `npm ci`; a healthy tree exits 0.
+
+**Its creation step is load-bearing.** `src/environments/environment.prod.ts` is gitignored
+(`.gitignore:52`) and deployment-specific, so a fresh checkout has none — `git archive HEAD` over that
+directory lists `environment.ts` and the two samples, nothing else. A production build with it missing
+fails before it starts, and this guard writes it from `environment.prod.sample.ts`. Verified: with the
+file removed it reports "was missing: created it from …", exits 0, and the recreation is byte-identical
+to the sample. The editor's equivalent *is* tracked, so `npm run build_editor` needs no such step.
+
+**A caution for anyone testing this.** The file is gitignored, so deleting it to exercise that path
+destroys a deployment's local values with nothing in git to restore them from — which is what happened
+here. What settled it was the built bundle: a production build inlines the whole environment object, so
+`dist/cavox/browser/main-*.js` still held
+`production:!0,apiType:"normal",apiEndPoint:"/api/v1",apiVersion:1,enableDownloadRecordings:!1,enableUploadRecordings:!0,defaultSessionId:void 0,configurationCatalogUrl:"assets/configurations.json"`
+— the sample's values exactly, so restoring from the sample and rebuilding produced a bundle whose
+environment object is character-for-character the same. The values were provably unchanged; only
+comments and formatting in a local file could have differed. Copy such a file aside *and keep the copy*
+before removing it.
