@@ -528,8 +528,9 @@ rule).
   `<html data-spr-scheme="dark">` before the same routes are measured again; that pass is what found
   the link contrast failures and the invisible timeline hatch in the dark scheme (plan §11.13). CI
 
-  The recorder’s own screens are measured too — `/spr/session/1` and the start page in the dry-run
-  job, which renders them — because the token, contrast, type-size and layout rules are shared and the
+  The recorder’s own screens are measured too, in the dry-run job that renders them: `/spr/session/1`,
+  the start page, and the respondent mirror (`/spr/respondent/1`, the screen the speaker reads) —
+  because the token, contrast, type-size and layout rules are shared and the
   **logo** rules (loaded, `alt`, height, inside the viewport) only ever fire there, on the control
   bar. That job also runs `bin/layout_probe.mjs` over the same session screen: it measures what a
   screenshot cannot, the instruction line against the centre of the header it sits in and which marks
