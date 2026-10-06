@@ -38,6 +38,23 @@ const SCRIPT_WITH_GROUP = {
 
 const EMPTY_SCRIPT = {scriptId: '1245', name: 'No sections', sections: []};
 
+/** A drawn group whose rule exists but names no bank yet — ui-spec §9's "no bank chosen" row.
+ * `prefill.bank` is the source object (the shape `drawnSource` returns); an empty `bank` id is
+ * what the editor produces when a drawn group is added before a bank is picked (finding E03). */
+const DRAWN_WITH_NO_BANK = {
+  scriptId: '1245',
+  name: 'Drawn, no bank',
+  sections: [{
+    name: 'A',
+    mode: 'MANUAL',
+    promptphase: 'RECORDING',
+    groups: [{
+      order: 'SEQUENTIAL',
+      promptItems: [{itemcode: 'RB', prefill: {bank: {bank: '', count: 6}}}],
+    }],
+  }],
+};
+
 const ROUTES = [{path: 'project/:p/script/:id/edit', component: EditorScreen}];
 
 interface Harness {
@@ -227,5 +244,19 @@ describe('EditorScreen states', () => {
     expect(inspector.querySelector('h2')?.textContent?.trim()).toBe('Script');
     expect(inspector.querySelector('#script-id')).not.toBeNull();
     expect(inspector.querySelectorAll('[name="group-kind"]').length).toBe(0);
+  });
+
+  it('says a drawn group has no bank chosen yet and points at the bank screen', async () => {
+    // ui-spec §9, drawn-group row: "no bank chosen: the group says so and points right". The branch
+    // is the centre's drawn card. Nothing asserted it: the centre has no spec of its own, and no
+    // other spec named either string, so the row's promise rode on the component compiling.
+    const state = await mount('/project/Demo1/script/1245/edit?sel=g:0:0');
+    await loadDraft(state, JSON.stringify(DRAWN_WITH_NO_BANK));
+
+    const centre = state.root.querySelector('spr-editor-centre') as HTMLElement;
+    expect(centre).withContext('the centre renders the walk').not.toBeNull();
+    expect(centre.querySelector('.group.drawn')).withContext('the drawn card, not a fixed group').not.toBeNull();
+    expect(centre.textContent).toContain('This group draws from a bank, but no bank is chosen yet.');
+    expect(centre.textContent).withContext('and points at the bank screen').toContain('Choose a bank on the bank screen.');
   });
 });
