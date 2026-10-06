@@ -85,5 +85,30 @@
   outer.appendChild(inner);
   document.body.appendChild(outer);
 
-  return 'planted 5 theme and 9 accessibility violations';
+  // The logo rules, which fire on `spr-logos img`: only the recorder's control bar renders those, so
+  // the editor routes carry none and the rules had never been exercised. One image per fault.
+  const logos = document.createElement('spr-logos');
+  logos.className = marker;
+  // Pinned top-left so only the last image is outside the viewport; appended at the end of the
+  // document every loaded one would be, and the message would say nothing about which rule it came from.
+  logos.setAttribute('style', 'display: block; position: fixed; top: 0; left: 0');
+  const gif = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  const logo = (src, style, alt) => {
+    const img = document.createElement('img');
+    img.className = marker;
+    img.src = src;
+    img.setAttribute('style', style);
+    if (alt !== undefined) {
+      img.alt = alt;
+    }
+    logos.appendChild(img);
+  };
+  logo('/planted/missing-logo.png', 'height: 24px', 'planted missing');       // did not load
+  logo(gif, 'height: 24px');                                                  // no alt text
+  logo(gif, 'height: 5px; width: 5px', 'planted short');                      // height outside 16-64
+  logo(gif, 'height: 16px; width: 64px', 'planted squashed');                 // aspect ratio changed
+  logo(gif, 'position: fixed; left: 200vw; height: 24px', 'planted off-screen');
+  document.body.appendChild(logos);
+
+  return 'planted 5 theme, 9 accessibility and 5 logo violations';
 })()
