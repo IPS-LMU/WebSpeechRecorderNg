@@ -1968,3 +1968,39 @@ report 60/60, and three back-to-back runs report no failures.
 **Fixed** — the test asks `node:net` for free ports. The probe-then-bind race is momentary and far
 smaller than a fixed port's; CI runs one suite per job, so this would not have failed there, but it
 fails anyone running the suite twice or concurrently, which is how it was met.
+
+### 11.53 The documented endpoints, called — **Done**
+
+`rest-api.md` §7 is the table an integrator reads, and nothing called it. Each row was requested
+against the receiver on a throwaway seeded tree (`--data /tmp/… --seed src/test`), with the two
+documented refusals and the four named error codes alongside.
+
+Every documented path exists and answers. The failures were data state, and each matches a rule the
+same document states:
+
+- `GET …/script/{id}/draft` → **404** for a seeded legacy script: it has a published script and no
+  draft, which is §11.3's "migrated" case and §6's "a script with no draft or version answers 404".
+- `GET …/script/{id}/version/1` → **404**, and `GET …/version` → `[]`: a legacy flat script has *no
+  numbered versions* even though `GET script/{id}` serves it from the flat file. Published script and
+  published version are different things, and `preview-session {version: 1}` correctly refuses for
+  the same reason.
+- `GET …/session/1/draws` → **404**: the seeded sessions are 2, 3, 9 and a uuid — there is no session
+  1 until something creates one, which is what the dry-run driver does. Against `session/2` the trace
+  answers 200.
+
+The refusals work as written: `DELETE …/media/model-01.wav` → **409 `MEDIA_IN_USE`** (a published
+version references it), and `POST …/publish` on a draft with no section → **409**, the documented
+error gate. All four codes the document names are in the source: `SCRIPT_DRAFT_CONFLICT`,
+`MEDIA_IN_USE`, `RECORDER_VERSION_TOO_OLD`, `TEST_SESSION_READ_ONLY`.
+
+**One row I first read wrong**, recorded so it is not repeated: I logged `…/version/1` as 200 on the
+first pass. Printing the body — `version 1 of script playback does not exist`, against a version index
+of `[]` — settled it as 404 and consistent. A status code without its body is not evidence.
+
+The live docs' counts were checked the same way and hold: README §7's 148 library specs, 481 editor
+specs and 60 receiver tests match the suites. The milestone gates' "146 pass" and "480 pass" are
+records *at that revision* and stay as they are.
+
+**Residual:** this covered the summary table, the refusals and the codes, not every request and
+response *shape* in §§2–6; the shapes are exercised by the receiver's own specs and the editor's
+service specs.
