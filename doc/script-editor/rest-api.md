@@ -202,7 +202,7 @@ POST project/{projectId}/script/{scriptId}/draft/_restore        { "version": 3 
 ```
 
 ```json
-[{ "version": 3, "publishedDate": "…", "publishedBy": "nylen", "note": "", "sessions": 14 }]
+[{ "version": 3, "publishedDate": "…", "note": "", "minRecorderVersion": null }]
 ```
 
 `_restore` copies version `n` into the draft — a new draft, not a publish. It replaces the current

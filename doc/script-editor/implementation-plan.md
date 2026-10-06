@@ -2760,3 +2760,31 @@ thirteen names with no file anywhere, and every one is right in context:
   now says what shipped, because a reader of that table alone would conclude a generated artifact exists.
 
 `feature-versions.spec.ts`, which `data-model.md` §5 names, does exist — that sentence resolves.
+
+### 11.83 The documented response shapes, checked against the receiver — **Done**
+
+§11.53 called every endpoint in `rest-api.md` and checked the status codes; it never compared the *shapes*
+the file shows. Doing that means fetching each documented response and looking for a documented key the
+receiver does not return.
+
+**The script-list row is exact.** The doc's keys and the response's fourteen agree, and the response holds
+nothing undocumented. (A first pass reported `total`, `started` and `byVersion` missing — they are nested
+inside `sessions`, a flat extractor's artefact, not a defect.)
+
+**The version-index example was wrong, by the receiver's own definition of that endpoint.** It showed
+`{version, publishedDate, publishedBy, note, sessions}`, while `publish` writes
+`{version, publishedDate, note, minRecorderVersion}` and `api.mjs` returns the store's index verbatim with
+no decoration — so two fields it shows are never written and the one it omits is. The editor's own model of
+the endpoint already said as much: "Session count is joined from the library list's `sessions.byVersion`
+(D5), **not this endpoint**". The example now shows the four fields the receiver returns.
+
+**Also checked:** the draw routes are plural everywhere — `…/session/{s}/draws`,
+`…/script/{id}/draws`, `…/draws/_redraw` — in `rest-api.md` and in the plan's table, and the router has
+`draws` with no `draw`; `…/session/{s}/draw` answers 404 "unsupported session route", which is what a probe
+against a seeded receiver showed.
+
+**Two tooling notes, because both cost time here and will again.** The rendered output *reformats* JSON —
+the file's line is `[{ "version": 3, … }]` with spaces while the display showed it compact, and three edits
+failed on anchors that never existed; `repr`/bytes are the reliable source. And an earlier pass of the
+shape harness printed figures I could not reconcile with the bodies it printed, so they were discarded:
+every claim above comes from a printed response or the source, not from that harness.
