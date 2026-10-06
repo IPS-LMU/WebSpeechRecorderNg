@@ -1063,7 +1063,8 @@ data-model.md §2 (D-M) says a `promptUnits` script "detects it, opens read-only
 on request (N06)", and §4's invariant row repeats it. The editor detected it (N06) and offered the
 conversion, and the loader never fabricated `groups` — but nothing made the script read-only: an
 operator could keep editing and publishing a legacy draft while N06 sat in the panel. The plan's
-D-M row and data-model §32/§373 asserted behaviour the tree did not have.
+D-M row, data-model §1's table (the `promptUnits` row) and §4's invariant 10 asserted behaviour the
+tree did not have.
 
 **What landed** — `hasLegacySection` (core/load.ts) folded into `ScriptDraftService` as `legacy`, and
 into `writesDisabled` next to FILES mode and the 403 flag: a legacy draft disables the inspector, the
