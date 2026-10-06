@@ -2974,3 +2974,16 @@ Dismissing it answers whether the name is *mentioned* somewhere, not whether wha
 **So the class holds exactly one member** — `theme.ts`'s attribution, corrected in §11.90 — across the five
 references and the manifest. Four of the five references were accurate, which is also the useful number: it
 says how much of this codebase's commenting is trustworthy, and why the one wrong case was worth chasing.
+
+### 11.92 The changelog that is not there — **Done**
+
+Every other documentation surface has been read and checked; the changelog had only ever been *excluded*
+from sweeps — the version-string pass skipped it — which is a good way to leave one unexamined.
+
+It does not exist. No `CHANGELOG*` outside `node_modules` and `dist`, none tracked by git, and nothing in
+the repository, the workflow or the scripts refers to one. The release record is the plan's §11 and the
+history, which is a legitimate practice and evidently a deliberate one.
+
+Recorded for two reasons: "the file is absent" is the only finding such a sweep can return, and the next
+person looking for release notes should be told where they are — the plan and the log — instead of hunting
+a file that was never meant to exist.
