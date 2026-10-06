@@ -532,9 +532,10 @@ rule).
   the start page, and the respondent mirror (`/spr/respondent/1`, the screen the speaker reads) —
   because the token, contrast, type-size and layout rules are shared and the
   **logo** rules (loaded, `alt`, height, inside the viewport) only ever fire there, on the control
-  bar. The same three screens are measured at 390x844 as well, as the editor's routes have been since
-  §11.14. That job also runs `bin/layout_probe.mjs` over the same session screen: it measures what a
-  screenshot cannot, the instruction line against the centre of the header it sits in and which marks
+  bar. The same three screens are measured at 390x844 as well, and in the dark scheme at 1366x768, as
+  the editor's routes have been since §11.14 and §11.13. That job also runs `bin/layout_probe.mjs`
+  over the same session screen: it measures what a screenshot cannot, the instruction line against the
+  centre of the header it sits in and which marks
   each branding slot shows, and exits non-zero when the line is more than a pixel off centre, when a
   page has no stage, or when a page overflows its viewport. The respondent mirror
   (`/spr/respondent/1`) is measured in the same run, where that line is set at the larger caption.
