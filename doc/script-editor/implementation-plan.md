@@ -306,12 +306,12 @@ and new modules `server/{etag,validate,bank,draw,media}.mjs`.
 | R7b draw record | `server/api.mjs`, `server/store.mjs` | **Done.** `GET project/{p}/session/{s}/draws` returns the trace (`prefills`, `bankDraws`, `drawnDate`, `redraw`); `GET project/{p}/script/{id}/draws?version&limit&offset` returns one row per drawn session with `drawn`/`recorded` counts and per-item `recorded` flags, honouring `includePreview` (TEST excluded by default); `Accept: text/csv` exports `sessionId,speaker,itemcode,bankItemId,recorded`; `POST …/draws/_redraw` re-seeds a `CREATED` session (the key gains `#n`, so the trace stays the truth) and answers `409 SESSION_ALREADY_STARTED` otherwise. Tests: `server/draws.test.mjs`. | M4 |
 | R8 preview sessions | `server/api.mjs`, `server/store.mjs` | **Done.** `POST …/preview-session {version: 'draft'|n}` creates a `TEST` session over a materialised copy of the draft or version, responds `201 {sessionId, expires}` and never touches the source. Uploads and chunked uploads are refused for a `TEST` session (`409 TEST_SESSION_READ_ONLY`) at both the session-scoped and project-scoped entry points; materialised scripts (`internal: true`) stay out of the library list. Tests: `server/preview.test.mjs`. | M4 |
 | R9 fixtures and dev loop | `src/test/**`, `README` §Testing | **Done.** `src/test/script/playback.json` (audio prompt, placement modifier, non-recording item), `bank-draw.json` (a bank source over `std-passages`), `large-500.json` (500 items), `src/test/bank/{std-passages,demo-sentences}.json` (R5) and `src/test/project/Demo1/media/model-01.wav`; all `--seed`-able, and the three new scripts pass the gate. `server/data` stays gitignored runtime state. | M2/M4 |
-| R10 tests and CI | `server/*.test.mjs`, `.github/workflows/tests.yml` (new) | **Done.** `node --test server/` covers store atomicity/ids, ETag/428/412, the check corpus, bank filters, draw resolution (determinism, skip/refill, redraw), media in-use, multipart, WAV duration, preview write refusal and the draw record. The workflow runs six jobs on push/PR — the receiver tests, the library karma job, the editor (karma + production build), the theme/accessibility audit list, the recorder dry run (11.5's driver) and the recorder's detail view and error dialog (11.35's fixtures, which need a development build). | M5 |
+| R10 tests and CI | `server/*.test.mjs`, `.github/workflows/tests.yml` (new) | **Done.** `node --test server/*.test.mjs` covers store atomicity/ids, ETag/428/412, the check corpus, bank filters, draw resolution (determinism, skip/refill, redraw), media in-use, multipart, WAV duration, preview write refusal and the draw record. The workflow runs six jobs on push/PR — the receiver tests, the library karma job, the editor (karma + production build), the theme/accessibility audit list, the recorder dry run (11.5's driver) and the recorder's detail view and error dialog (11.35's fixtures, which need a development build). | M5 |
 | R11 fixture parity | `server/api.mjs`, `src/test/**` | **Verified at M2/M3**: the receiver's read paths return the shapes [rest-api.md](rest-api.md) documents, and the editor's FILES-mode fixtures mirror them, so the M2 FILES gate and the M3 server-backed gate test one contract. Re-checked when the editor's read paths land. | M2 |
 
 | R12 transfer discipline | `server/store.mjs`, `server/server.mjs`, `server/README.md` | **Done.** `meta.json` carries `layoutVersion`; `node server/server.mjs --migrate` builds the per-script layout for legacy flat scripts (idempotent — on the seeded tree it imported 12 scripts as version 1); `--gc` prunes draft revisions (50 deep, 30 days) and expired preview sessions with their materialised scripts, reports orphan media and deletes it only with `--gc-media`; `server/README.md` is the runbook for run/seed/backup/restore/transfer and the production note. Tests: `server/maintenance.test.mjs`. | M0/M5 |
 
-Gate: `node --test server/` green; the M3/M4 gates run **against the receiver**, not FILES; a drawn
+Gate: `node --test server/*.test.mjs` green; the M3/M4 gates run **against the receiver**, not FILES; a drawn
 session's items are traceable to bank items through the materialised script; a TEST session cannot
 upload; a store-layout change is proven by a migration test on a legacy tree.
 
@@ -322,7 +322,7 @@ npm run test_module -- --watch=false --browsers=ChromeHeadless   # library, incl
 ng test spr-script-editor --watch=false --browsers=ChromeHeadless
 ng build spr-script-editor --configuration development           # typecheck + template strictness
 ng serve spr-script-editor --host=127.0.0.1 --configuration development
-node --test server/                                              # server unit tests (R10)
+node --test server/*.test.mjs                                    # server unit tests (R10)
 npm run serve:api -- --port 4301 --data /tmp/spr-server --seed src/test   # the receiver (track R)
 node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit \
   --viewports 1366x768,1920x1080 --prepare bin/audit/open-draw-rule.js
@@ -1785,3 +1785,35 @@ deliberately does not pin: a rewritten message must not fail a test. `countUnkno
 — the count message's suspended state is asserted in `draw-rule.spec.ts`. So the lead was worth
 chasing once and is now dropped, and the register's only other residuals are honest statements of
 what a tool does not measure (§11.45, §11.46).
+
+### 11.48 The receiver job that could not run on the version it pins — **Done**
+
+The server job ran `node --test server/`. Node 22's test runner treats a directory argument as an
+*entry module* — it only learned to scan one in a later major — so on the version the job pins the
+command dies with `MODULE_NOT_FOUND` and reports a single failing "test". Measured in a Linux
+container on the pinned version (node 22.23.3, no `node_modules`, as the job runs it):
+`node --test server/` is **1 test / 0 pass / 1 fail**; `node --test server/*.test.mjs` is **60 / 60**.
+
+Why it was invisible: the local Node here is v26, which scans directories, so the same command is
+green locally and red on the platform the job targets. And nothing reported it — the workflow is new
+work on an unpushed branch, and the repository's Actions history holds only CodeQL and the OSV
+scanner (`GET …/actions/workflows` lists two; `tests.yml` returns "Not Found"). A gate that has never
+run, on a command that cannot pass where it runs.
+
+**Fixed** — the explicit file list, `node --test server/*.test.mjs`. The other five jobs use explicit
+files or npm scripts; this was the only directory form.
+
+**Verified** — on node 22.23.3 in the container: the glob is 60/60 twice, and the job's other claim
+holds too — "the receiver is Node builtins only: no install step is needed" is true, the suite ran
+with no `node_modules` present. The three checks the job runs after it pass on Linux as well:
+`bin/dead_exports.mjs` (708 exports), `bin/workflow_check.mjs` (six jobs), `bin/route_check.mjs`
+(8 screens / 9 URLs).
+
+**Characterised, so it is not "fixed" backwards:** bare `node --test` *does* scan, but it also picks
+up `projects/speechrecorderng/src/test.ts` — Karma's bootstrap, which cannot run under Node's runner
+— and in that run `server/maintenance.test.mjs` fails non-deterministically (it is 6/6 alone). The
+explicit glob is the form that isolates the receiver.
+
+**Residual:** the workflow still needs its first run on GitHub. A green run is now possible rather
+than impossible, and the other five jobs remain unverified on the platform they target — the audit
+jobs need Chrome, which this container did not have.

@@ -510,7 +510,8 @@ rule).
   and `server/checks-corpus.test.mjs` both run it. The write protocol is additionally exercised
   against the receiver over `fetch` (create → publish → 412 → reapply → restore → PATCH → media),
   and the draft service's specs assert the exact request shapes.
-- **Server (node --test).** `node --test server/` covers the receiver: store atomicity and ids,
+- **Server (node --test).** `node --test server/*.test.mjs` — the explicit file list, because Node
+  22's runner treats a directory argument as an entry module (§11.48) — covers the receiver: store atomicity and ids,
   ETag/428/412, the shared check fixtures, bank filter semantics, draw determinism, the draw
   record and its CSV, media in use, multipart and WAV duration, the version gate, CORS, and that a
   `TEST` session cannot upload, and the deployment harness's mounts, SPA fallback and API proxy —
