@@ -2267,3 +2267,11 @@ a11y pass, and the planted-violation run exiting 1 with its rules named. Before 
 server could not have started at all, so this change is what makes the job runnable rather than a
 convenience. Every asset root the steps read is fully tracked — `src/assets` 8/8, the editor's 1/1, the
 fixtures under `src/test` 76/76 and the check corpus 9/9 — so a checkout has everything they ask for.
+
+**The class is one mapping wide.** A repo-wide scan finds every TypeScript import of the package by
+name — 69 files — under `projects/spr-script-editor/src/`, which is exactly the project whose
+`tsconfig.json` now maps it; nothing else in the repository imports it by name (the demo and the
+library use relative paths). The only Sass mentions of `speechrecorderng/theme` are the doc comments
+telling a *consumer* how to import it, which §11.43's export now makes true. And CI's own editor job is
+the guard for this: it never builds the library, so a regression in that mapping fails `test_editor`
+rather than waiting to be noticed.
