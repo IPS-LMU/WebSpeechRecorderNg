@@ -1547,7 +1547,7 @@ removed `runs-on:`, a `run: |` block holding only a comment, a job indented by f
 Writing the check found one of my own mistakes: the rule looked for `run:` at ten spaces where the file
 uses eight, and only the empty-block probe showed it was not running at all.
 
-### 11.40 The locale fixture that never switched anything — **Done**
+### 11.40 The fixtures that could not tell they had failed — **Done**
 
 Checking the last unreferenced fixture, as §11.35 had done for two others, turned up the same defect in
 a worse form. `bin/audit/use-locale-sv.js` asked `app-root`'s component for `setLanguage` and, finding
@@ -1566,3 +1566,12 @@ example uses, exits 0 with `locale sv, sample: "Cavox"`.
 No job runs it, and that is the right answer rather than a gap: the recorder's screens are Swedish
 already and the editor has no other locale. It stays a documented manual check, one that can no longer
 claim success it did not have.
+
+**The injector had the same hole.** `bin/audit/use-dark-scheme.js` set the root attribute and returned
+whatever `--spr-chrome` then read — an empty or unchanged value included — so a dark pass would have gone
+on reporting on the light scheme while claiming to measure the dark one, and stayed green doing it. It
+now reads chrome and surface before and after, throws unless both exist and at least one changed, and its
+log line shows the switch it performs: `dark scheme: chrome #2A4765 -> #0E1A26`. Verified both ways — exit
+0 as committed, exit 1 with the attribute commented out. The two fixtures that legitimately cannot fail,
+the locale one on an app with no switch and `plant-violations.js` which plants what it says, are the ones
+whose failure is now loud instead of silent.
