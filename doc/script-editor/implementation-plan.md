@@ -2205,3 +2205,26 @@ resolves.
 **Residual:** §6's PR slicing is a suggestion about order, not a gate, and this branch landed as one
 181-commit change set rather than the twenty slices it sketches — a deliberate difference, not a
 discrepancy to fix.
+
+### 11.60 The CI's steps on a checkout of exactly what git tracks — **Done**
+
+Every verification so far — the containers in §11.50 included — worked on a copy of the *working tree*,
+untracked and gitignored files and all. CI checks out **only what git tracks**, which is the one
+difference left that could hide a defect of the same kind as §11.48 and §11.49: green everywhere I
+looked, red where it runs.
+
+So the tree was materialised as a checkout: `git archive HEAD | tar -x` into a temporary directory —
+539 files, with no `src/environments/environment.prod.ts`, no `node_modules`, no `dist` and no
+`server/data` — and the jobs' non-browser steps run there after `npm ci`.
+
+**Twelve of twelve pass**: the receiver's suite; `bin/dead_exports.mjs`, `bin/workflow_check.mjs`,
+`bin/route_check.mjs`, `bin/editor_lint.mjs`; `validate:i18n` and `build:i18n` with the regenerated
+catalogues identical; `build_module` and `bin/package_check.mjs`; `build_editor`; and `npm run build`,
+**which created the ignored `environment.prod.ts`** — the guard's creation path, which §11.56 verified
+by hand after copying the file aside and losing its comments, verified here the safe way: on the tree
+CI gets, by doing nothing but what CI does.
+
+**Residual:** the browser-driven jobs (karma, the audits, the dry run) need Chrome and were not re-run
+here; they ran in the containers in §11.50, on both architectures for the install and the build. This is
+the closest local equivalent of the six jobs' non-browser half, not a substitute for their first run on
+GitHub.
