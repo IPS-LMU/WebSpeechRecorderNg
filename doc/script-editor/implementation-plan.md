@@ -3244,3 +3244,29 @@ keys, 63 of which *appear* unused only because so many are read through `core/sh
 `validation/`. They need the block-level reading of §11.101, and three of them are already named in §11.100 as
 states whose text appears nowhere.
 
+### 11.105 The last six, and the sweep is empty — **Fixed**
+
+The six that resisted §11.104's file-level test, resolved by reading their blocks:
+
+- `historySessions` (`inspector.script`) — the block's other `history*` keys are live, and the template
+  renders `ext.inspector.script.sessions` (`editor-strings-ext.ts:17` carries the same value). A dead
+  duplicate, proven at the point of use.
+- `onDemand` (`inspector.timing`) — `whenOptions.ONDEMAND: 'On request'` is live in the playback block; this
+  was the long-form twin no screen shows.
+- `openEnded`, `unbounded`, `overMicrophone` (`inspector.timing`) — the centre's `recUnbounded: 'open'` is
+  live, and the hatching these describe is the *timeline's visual* treatment ("Hatch: an open-ended
+  recording, or a clip that plays over an open microphone" is its own comment). The microphone case also
+  reaches the operator through the check catalogue's **W03** ("Playing while recording captures the sound
+  through the microphone unless headphones are required."), which §11.78 ties to the modules — so the concept
+  is served where it belongs.
+- `canvasUnsupported` (`inspector.playback`) — the block is otherwise live (`audition`, `auditionNote`,
+  `durationUnknown` among them), so an unplayable file has no message. That is a *failure state*, not a
+  string.
+
+**Verified** — the editor suite is 482 pass and the lint passes, the `timing` block is now entirely live, and
+the flagged set is **empty**: 38 → 0 across §11.99 to §11.105.
+
+**Two product notes for the register.** An unplayable media file currently says nothing, and the timeline's
+hatch explains itself only visually — a tooltip would be a feature. Both are recorded rather than guessed at,
+and no string was kept to gesture at either.
+

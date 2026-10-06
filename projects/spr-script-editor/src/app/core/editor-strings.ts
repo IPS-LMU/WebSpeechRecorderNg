@@ -253,7 +253,6 @@ export const EDITOR_STRINGS = {
       historyTitle: 'Version history',
       historyEmpty: 'No published versions yet.',
       historyVersion: 'v{version}',
-      historySessions: '{count} sessions',
       historyNote: 'Note',
       restore: 'Restore into the draft',
       openDraws: 'Resolved draws',
@@ -364,7 +363,6 @@ export const EDITOR_STRINGS = {
       maxReplays: 'Max replays',
       headphones: 'Requires headphones',
       w03: 'Playing while recording captures the sound through the microphone unless headphones are required.',
-      canvasUnsupported: 'This browser cannot play this file here.',
     },
     timing: {
       legend: 'Timing',
@@ -372,10 +370,6 @@ export const EDITOR_STRINGS = {
       preRecording: 'Pre-recording',
       recording: 'Recording',
       postRecording: 'After recording',
-      onDemand: 'The clip plays on the speaker’s request.',
-      openEnded: 'Open-ended',
-      unbounded: 'The recording is open-ended, so it is hatched.',
-      overMicrophone: 'The clip plays over an open microphone, so the recording is hatched.',
       previewLabel: 'Timeline preview',
       visibilityPrefix: 'Prompt visibility: ',
       visibility: {
