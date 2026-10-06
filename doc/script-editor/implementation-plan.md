@@ -1513,3 +1513,19 @@ own header says it is a test helper Node's runner will not collect.
 **Verified** — the check passes on the tree as committed, and is sensitive: a planted
 `export const TEMPORARY_DEAD_EXPORT = 1` in `editor-strings.ts` makes it exit 1 naming that file and
 symbol, and removing it returns it to 0 with the tree clean. README §7 records it.
+
+### 11.38 The audits' sensitivity, which was prose — **Done**
+
+README §7 promised that the theme audit's rules bite — "a `--prepare` script that injects `lightgrey`
+fails it naming `lightgrey`", 9 px text, a 3000 px block, a font outside the scale — and those promises
+came from one-off checks by hand in earlier rounds, with nothing running them. The same shape as every
+other gap this work has closed, except that here the gate itself was the unguarded thing.
+
+`bin/audit/plant-violations.js` plants one violation per documented rule, and the audit job asserts
+both directions: neither audit may pass with the violations in place, and each must name what it found.
+
+**Verified** as the job runs it — the block extracted from the workflow and executed by `bash` against
+a development server and Chrome: exit 0, "both audits named every planted violation", the five theme
+messages reading exactly as §7's examples do, `contrast 2.96:1` among them. Neutering the fixture so it
+plants nothing makes the same block exit 1 with "the theme audit passed with planted violations", so
+the control is sensitive to an audit that has stopped biting.

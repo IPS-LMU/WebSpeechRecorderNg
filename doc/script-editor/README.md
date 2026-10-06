@@ -539,13 +539,13 @@ rule).
   each branding slot shows, and exits non-zero when the line is more than a pixel off centre, when a
   page has no stage, or when a page overflows its viewport. The respondent mirror
   (`/spr/respondent/1`) is measured in the same run, where that line is set at the larger caption.
-  Each rule is sensitive: a `--prepare` script that injects `lightgrey` fails it naming
-  `lightgrey`, a low-contrast paragraph names its ratio, 9 px text names its size, a 3000 px block
-  names the scrollbar, `Arial` on a measured link names the font, and `use-dark-scheme.js` reaches the
-  other scheme.
-  also measures a phone width (390×844) on the screens that reflow — the editor stacks its columns
-  below 820 px, the bank below 1100 px — which is how the editor's overlapping columns and the bank's
-  document-level scrollbar were found (§11.14).
+  Each rule is sensitive and CI checks that it is: `bin/audit/plant-violations.js` plants one
+  violation per rule — a `lightgrey` div, 9 px text, a 2.96:1 paragraph, a `3000 px` block and an
+  `Arial` link — and the audit job requires the theme and accessibility audits to fail and to name
+  each one, so an audit that stops biting fails the job rather than passing quietly.
+  The theme audit also measures a phone width (390×844) on the screens that reflow — the editor stacks
+  its columns below 820 px, the bank below 1100 px — which is how the editor's overlapping columns and
+  the bank's document-level scrollbar were found (§11.14).
 - **Accessibility audit.** `bin/a11y_audit.mjs` attaches to the same running Chrome and checks the
   machine-checkable part of ui-spec §8 on the same routes: accessible names, labels and the ARIA
   relationships that carry them, unique ids, `alt`, nothing focusable inside `aria-hidden`, tree and
