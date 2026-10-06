@@ -503,7 +503,7 @@ rule).
   ETag/428/412, the shared check fixtures, bank filter semantics, draw determinism, the draw
   record and its CSV, media in use, multipart and WAV duration, the version gate, CORS, and that a
   `TEST` session cannot upload, and the deployment harness's mounts, SPA fallback and API proxy —
-  `server/deploy.test.mjs` spawns it once against fixture directories. 58 tests today. Development runs it with
+  `server/deploy.test.mjs` spawns it once against fixture directories. 60 tests today. Development runs it with
   `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` is gitignored.
 - **Theme audit.** Run the editor (or the built bundle) and drive a headless Chrome the tool can
   attach to, then audit the routes and one interaction state:
