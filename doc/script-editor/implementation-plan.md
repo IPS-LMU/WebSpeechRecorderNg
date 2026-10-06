@@ -3197,3 +3197,26 @@ this round reached "product question" by reading the *value* rather than the con
 same way. A state that *looks* unimplemented is a claim about the code and needs the same evidence as one
 that looks dead.
 
+### 11.103 The draws screen's twelve, settled by a used-against-defined comparison — **Fixed**
+
+§11.102 taught reading a consumer. The draws cluster had a better instrument: the list of keys the screen
+**uses** against the list it **defines**, which answers the question directly instead of by inference.
+
+Twelve keys in `draws-strings.ts` are referenced nowhere. What makes them stale rather than unbuilt is their
+neighbours: ten sibling `field*` keys *are* used (`fieldCount`, `fieldDrawnAt`, `fieldFixedBy`, `fieldSeed`,
+`fieldStatus`, `fieldSpeaker`, `fieldVersion`, `fieldFilter`, `fieldPlaceholder`, `fieldPrefix`), as are
+eight `col*` keys, `originProject`/`originBuiltin`, `errorPrefix`, `materialisedNote` and `previewChip`. So
+the blocks are current and exactly these twelve are the stale members — including `colDraws` beside the live
+`colDrawn`, and `originUnknown` beside the two live origins.
+
+Deleted: `colDraws`, `listDrawsChip`, `bankDrawsChip`, `detailErrorPrefix`, `chooseSession`, `fieldScript`,
+`fieldRedraws`, `fieldBank`, `fieldOrigin`, `originUnknown`, `materialisedTitle`, `unknownStatus`.
+
+**Verified** — the editor suite is 482 pass and the lint passes; the flagged set falls from 24 to **12**, which
+is the §11.100 set plus `dryRun`, `drawnGroup`, `timingGap`, `timingRepeats`, `historySessions`, `mediaOnly`
+and `idHint`.
+
+**One note for whoever adds the detail message.** `detailErrorPrefix` ("The session trace could not be
+loaded.") is gone while `errorPrefix` ("The draw record could not be loaded.") remains, and that one belongs
+to the list. Whether the detail panel should have its own wording is a feature, not a string to keep unused.
+

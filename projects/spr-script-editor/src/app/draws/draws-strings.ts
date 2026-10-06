@@ -25,12 +25,9 @@ export const DRAWS_STRINGS = {
   colDrawn: 'Drawn',
   colRecorded: 'Recorded',
   colItems: 'First itemcodes',
-  colDraws: 'Draws',
   showPreview: 'Show preview sessions',
   previewChip: 'Preview',
   previewTitle: 'A tier-2 dry run (type: TEST); hidden from the record unless asked for.',
-  listDrawsChip: 'List draw',
-  bankDrawsChip: 'Bank draw',
   unrecorded: '\u2014',
   speakerUnknown: '(no speaker)',
 
@@ -40,19 +37,13 @@ export const DRAWS_STRINGS = {
   emptyHint: 'A session appears here once it is created against a version of this script.',
   errorPrefix: 'The draw record could not be loaded.',
   detailLoading: 'Loading the session trace\u2026',
-  detailErrorPrefix: 'The session trace could not be loaded.',
 
   // Detail panel
   detailTitle: 'Session detail',
-  chooseSession: 'Select a session in the table to see its trace.',
   fieldStatus: 'Status',
   fieldSpeaker: 'Speaker',
-  fieldScript: 'Script',
   fieldVersion: 'Script version',
   fieldDrawnAt: 'Draw made',
-  fieldRedraws: 'Re-draws',
-  fieldBank: 'Bank',
-  fieldOrigin: 'Origin',
   fieldFixedBy: 'Fixed by',
   fieldSeed: 'Seed key',
   fieldCount: 'Requested',
@@ -61,7 +52,6 @@ export const DRAWS_STRINGS = {
   fieldPlaceholder: 'Placeholder item',
   originProject: 'This project',
   originBuiltin: 'Ships with SpeechRecorder',
-  originUnknown: 'Unknown',
   fixedBySession: 'Session (a fresh draw per session)',
   fixedBySpeaker: 'Speaker (a returning speaker draws again)',
   fixedByScript: 'Script version (everyone on this version draws alike)',
@@ -75,7 +65,6 @@ export const DRAWS_STRINGS = {
 
   // Trace / items
   traceTitle: 'Drawn items',
-  materialisedTitle: 'Materialised session script',
   materialisedNote:
     'These are the items stored into the session script; the recorder reads them unchanged.',
   listTraceTitle: 'List draws',
@@ -111,7 +100,6 @@ export const DRAWS_STRINGS = {
   redrawBusy: 'Re-drawing\u2026',
   redrawDone: 'The draw was re-resolved. The session keeps its id and its recorded files.',
   redrawFailed: 'The re-draw was refused.',
-  unknownStatus: 'Unknown',
 
   // Project-scoped entry (route project/:p/draws)
   scriptPickerLabel: 'Script',
