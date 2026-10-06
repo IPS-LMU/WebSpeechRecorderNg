@@ -12,7 +12,9 @@
  *   5. no user-facing literal in a template attribute — `aria-label`, `title` and `placeholder` come
  *      from the `*-strings` files, so a literal is text nobody can review in one place;
  *   6. the check catalogue agrees with the code: every id in `validation.md` has a check and a
- *      `describe`, every check it defines is catalogued, and the server publishes no unknown code.
+ *      `describe`, every check it defines is catalogued, and the server publishes no unknown code;
+ *   7. no `AudioContext` in the editor's sources — audio capture belongs to the recorder (D-G, README §3)
+ *      and the editor's audition player uses an `HTMLMediaElement`.
  *
  * Usage: `node bin/editor_lint.mjs [--root <dir>] [--catalogue <file>]`. Exits non-zero and names `file:line` for each
  * violation; `--verbose` also prints the counts of what passed.
@@ -80,6 +82,13 @@ for (const path of filesUnder(ROOT, (name) => name.endsWith('.scss') || (name.en
       continue;
     }
     failures.push(`${where}:${lineAt(text, match.index)}: colour "${match[0]}" is not a --spr-* token (a literal belongs in a var() fallback)`);
+  }
+
+  // 7: no Web Audio in the editor. D-G and README §3 put capture and playback in the recorder, where
+  // `AudioContext` is the right tool; the editor's audition uses an `HTMLMediaElement` instead. The
+  // boundary is easy to cross by reaching for the library's own audio classes.
+  for (const match of text.matchAll(/\b(?:webkit)?AudioContext\b/g)) {
+    failures.push(`${where}:${lineAt(text, match.index)}: ${match[0]} in the editor — audio capture belongs to the recorder (D-G)`);
   }
 }
 

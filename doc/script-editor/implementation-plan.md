@@ -3656,5 +3656,23 @@ its hook. Six scripts showed as unreferenced: one was dead, two are hooks, and t
 documented in a phrasing a literal search misses — §11.120's README section names
 `new_prerelease_build_and_pack_module` as "or `new_prerelease_build_and_pack_module` for a prerelease".
 
+### 11.122 D-G and D-E, the decisions nothing checked — **Done, one now gated**
+
+The decision table has twenty-three entries, and most are verified somewhere in this register. Two were stated
+as *rules* and checked nowhere.
+
+- **D-G, "never `AudioContext`"** — verified: the editor's sources contain no occurrence at all, while the
+  library uses it where capture and playback belong (`speechrecorderng.component.ts`, `prompt_audio.ts`,
+  `capture.ts`). Nothing enforced the boundary, and it is easy to cross by reaching for the library's own audio
+  classes. **`editor_lint` rule 7 now fails on any `AudioContext`** in the editor's sources, and it runs in the
+  editor CI job.
+- **D-E, "no code-editor dependency"** — verified: no `monaco`, `codemirror`, `ace`, `prism` or `highlight.js`
+  in any of the three manifests, and `core/validation/json-lines.ts` is the in-repo tokenizer the decision
+  names. Left ungated deliberately: adding such a dependency is a deliberate act with a visible manifest diff,
+  unlike reaching for an API that needs no declaration at all.
+
+**Verified** — the rule passes on the tree, and an injected `new AudioContext()` in the inspector is reported as
+`…editor-inspector.ts:904: AudioContext in the editor — audio capture belongs to the recorder (D-G)`.
+
 
 
