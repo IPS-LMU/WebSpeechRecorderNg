@@ -110,5 +110,16 @@
   logo(gif, 'position: fixed; left: 200vw; height: 24px', 'planted off-screen');
   document.body.appendChild(logos);
 
-  return 'planted 5 theme, 9 accessibility and 5 logo violations';
+  // Accessibility rule 6: nothing focusable inside `aria-hidden="true"`. The dialog job waives this
+  // rule for one modal state; here it must be live and seen.
+  const hidden = document.createElement('div');
+  hidden.className = marker;
+  hidden.setAttribute('aria-hidden', 'true');
+  const hiddenButton = document.createElement('button');
+  hiddenButton.className = marker;
+  hiddenButton.textContent = 'hidden but focusable';
+  hidden.appendChild(hiddenButton);
+  document.body.appendChild(hidden);
+
+  return 'planted 5 theme, 10 accessibility and 5 logo violations';
 })()

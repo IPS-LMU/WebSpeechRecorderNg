@@ -174,11 +174,26 @@ jobs:
           fi
           for expected in 'exposes a button with no name' 'is 17 px high' 'has no lang attribute' \
             '2 h1 heading(s)' '2 main landmark(s)' 'tabindex=3' 'a control inside a control' \
-            'id "planted-duplicate-id" appears 2 times' 'has no alt and is not marked decorative'; do
+            'id "planted-duplicate-id" appears 2 times' 'has no alt and is not marked decorative' \
+            'is aria-hidden but contains focusable content'; do
             echo "$a11y_out" | grep -qF "$expected" || {
               echo "the accessibility audit did not name: $expected"; echo "$a11y_out"; exit 1; }
           done
-          echo "both audits named every planted violation"
+          # And the two theme rules a page of the application cannot show: with no token layer at all
+          # the audit must say so, and the Material pins must be reported as unfollowed rather than
+          # skipped. A page that is not the application is exactly that state, so this needs no
+          # fixture - pointing it at the app makes both assertions fail, which is the check on them.
+          tokens_out=$(node bin/theme_audit.mjs --url http://127.0.0.1:4300/favicon.ico --viewports 1366x768 2>&1) \
+            && tokens_status=0 || tokens_status=$?
+          if [ "${tokens_status:-1}" = "0" ]; then
+            echo "the theme audit passed on a page with no token layer"; echo "$tokens_out"; exit 1
+          fi
+          for expected in 'no --spr-* tokens are defined (token layer inert)' \
+            'does not follow --spr-primary'; do
+            echo "$tokens_out" | grep -qF "$expected" || {
+              echo "the theme audit did not name: $expected"; echo "$tokens_out"; exit 1; }
+          done
+          echo "both audits named every planted violation, and the token layer itself"
 
   dry-run:
     name: Recorder dry run (Chrome, fake media)
