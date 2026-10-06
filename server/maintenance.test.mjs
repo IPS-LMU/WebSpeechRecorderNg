@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {existsSync, mkdtempSync, readdirSync, utimesSync, writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {existsSync, mkdirSync, mkdtempSync, readdirSync, utimesSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {Store} from './store.mjs';
@@ -99,4 +100,25 @@ test('gc defaults to the 50 deep, 30 day retention the runbook documents', () =>
   assert.ok(existsSync(join(dir, inside)), 'a revision inside the window stays');
   assert.ok(readdirSync(dir).length <= 50, 'the runbook documents 50 deep');
   assert.deepEqual(store.versionsIndex(id).map((entry) => entry.version), versionsBefore, 'published versions are never pruned');
+});
+
+test('the documented gc commands thread --gc-media through to the store', () => {
+  // The store-level tests above call `gc({media})` directly, so the flag the runbook tells an
+  // operator to pass was the one part of that promise nothing checked.
+  const store = freshStore();
+  const created = store.createScript({name: 'M', project: 'demo', value: doc(), text: JSON.stringify(doc())});
+  mkdirSync(join(store.dataDir, 'project', 'demo', 'media'), {recursive: true});
+  writeFileSync(join(store.dataDir, 'project', 'demo.json'), JSON.stringify({name: 'Demo'}));
+  writeFileSync(store.mediaPath('demo', 'orphan.wav'), 'RIFF');
+  const run = (...flags) => execFileSync(process.execPath,
+    ['server/server.mjs', '--data', store.dataDir, ...flags], {encoding: 'utf8', cwd: process.cwd()});
+
+  const without = run('--gc');
+  assert.match(without, /1 orphan media found \(pass --gc-media to remove\)/);
+  assert.ok(existsSync(store.mediaPath('demo', 'orphan.wav')), 'without the flag the orphan stays');
+
+  const with_ = run('--gc', '--gc-media');
+  assert.match(with_, /1 orphan media found, 1 removed/);
+  assert.ok(!existsSync(store.mediaPath('demo', 'orphan.wav')), 'with the flag it goes');
+  assert.ok(store.scriptMeta(String(created.scriptId)) !== null, 'and the script itself survives');
 });
