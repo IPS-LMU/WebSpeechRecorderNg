@@ -35,6 +35,8 @@ class FakeContext {
   state: AudioContextState = 'running';
   destination = {};
   resumed = 0;
+  /** The rendering clock. Left alone, it stands still — as it does in a browser with no output. */
+  currentTime = 0;
   readonly created: FakeSource[] = [];
 
   createBufferSource(): AudioBufferSourceNode {
@@ -157,6 +159,32 @@ describe('PromptAudioService', () => {
     await expectAsync(playing).toBeResolvedTo('failed' as PromptAudioResult);
 
     await expectAsync(service.play('Demo1', {mimetype: 'audio/wav'})).toBeResolvedTo('failed' as PromptAudioResult);
+  });
+
+  it('resolves with failed when the audio clock never moves, so the session cannot wait forever', async () => {
+    const playing = service.play('Demo1', SOUND);
+    flushSound();
+    await settle();
+    const source = context.source;
+    expect(source.started).toBe(1);             // the source did start...
+    expect(source.stopped).toBe(0);             // ...and nothing has silenced it yet
+    // The clip is 0.5 s long, so one clip plus the slack is 1.5 s; the clock never moves.
+    await new Promise((resolve) => setTimeout(resolve, 1700));
+    expect(await playing).toBe('failed' as PromptAudioResult);
+    expect(source.stopped).toBe(1);             // silenced rather than left sounding
+    expect(source.disconnected).toBe(1);
+  });
+
+  it('gives a playing-but-slow clip a second grace period instead of calling it stuck', async () => {
+    const playing = service.play('Demo1', SOUND);
+    flushSound();
+    await settle();
+    const source = context.source;
+    context.currentTime = 1;                    // rendering, just slower than real time
+    await new Promise((resolve) => setTimeout(resolve, 1700));
+    expect(source.stopped).toBe(0);             // a moving clock is not called stuck
+    source.end();
+    expect(await playing).toBe('ended' as PromptAudioResult);
   });
 
   it('plays a sound once per repeat, with the gap between them', async () => {
