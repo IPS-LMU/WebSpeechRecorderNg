@@ -1334,3 +1334,20 @@ The M1 and L4 rows both claim behaviour whose *rule* is spec'd and whose *effect
 guard and the audit set green. The dry run cannot press the replay control reliably (the replayable
 item sits behind a section the driver cannot enter unattended, §11.5's stated limit), which is why
 the persistence is pinned at the request level instead.
+
+### 11.30 The library's own build, never run — **Done**
+
+`npm run build_module` is the documented packaging step (`ng build speechrecorderng --configuration
+production` over the version write), and the library is the deliverable the recorder consumes. No CI
+job ran it: the karma suite compiles the sources through the test builder, which is a different
+pipeline from ng-packagr — where a broken `public-api`, an entry point, a budget or the package
+manifest fails, and where the version file is regenerated.
+
+**What landed** — the library job runs it, and asserts the regenerated
+`projects/speechrecorderng/src/lib/spr.module.version.ts` matches what is committed (`git diff
+--exit-code`), because the build writes it from the package version.
+
+**Verified** — it passes on the tree as committed (7 s, `Built Angular Package`) and is sensitive: a
+deliberate syntax error appended to `projects/speechrecorderng/src/public-api.ts` makes it exit 1 with
+`public-api.ts:74:28 - error TS1109: Expression expected`, and restoring the file returns it to 0 with
+the tree clean. README §7 records both.

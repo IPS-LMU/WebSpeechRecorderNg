@@ -463,6 +463,9 @@ rule).
   recorder's behaviour as the oracle: `promptVisibleAt`, `effectiveTiming`, the phase transitions
   and the placement table for every `when` (C7), the feature→version map, the prefill utility and
   the editor's model helpers. 146 specs today.
+- **Library package.** The same job runs `npm run build_module`: ng-packagr is the pipeline the
+  recorder consumes, and it fails on a bad `public-api`, an entry point or a budget — none of which
+  karma compiles — while the version file it regenerates must match what is committed.
 - **Editor (karma).** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` — the
   validation catalogue (one `describe` per id plus the shared corpus), the normaliser with
   idempotence, the JSON line tokenizer (escapes, tabs/CRLF, duplicate keys, unicode), the draft
