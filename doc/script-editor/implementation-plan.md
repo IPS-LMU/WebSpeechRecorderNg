@@ -3317,3 +3317,24 @@ and says why in a comment beside the list.
 **Verified** — the server's corpus test is 1/1 and the editor suite is **486 pass** (484 plus one `it()` per
 case), so both drafts hold on both runtimes.
 
+### 11.108 §11.19's corpus scope, accounted for — **Done**
+
+The scope note asked for five things. Each is now verified in the tree, with its evidence:
+
+- **a draft per E id** — all ten ids the server publishes appear in a case (§11.106 added E06 and E10), and
+  rule 6 fails if that stops being true;
+- **E05: two draws sharing a prefix** — `bank-prefix-clash`, two items carrying `itemcodePrefix: "RB"`;
+- **E05: reserved ranges across sections** — `bank-prefix-across-sections` (§11.107);
+- **E11: cap 999, and zero/negative** — `bank-count-cap` (with E04 beside it, since the same draft over-draws)
+  and `playback-bounds`' `repeats: 0` with `gap: -5`;
+- **E04 against a bank fixture** — `bank-count`, and now `bank-count-cap` too;
+- **every `path` asserted byte-for-byte** — by construction in both runtimes: the editor's `runCorpus` reports
+  an entry missing unless a finding matches **id *and* path**, and counts any error whose `${id}|${path}` key
+  was not expected, while the server keys its findings `${id}@${path}`. A changed path is therefore both a
+  miss and an unexpected error.
+
+**One reading left open, deliberately.** "one positive and one negative draft" reads as *per id*, and only the
+positive half exists per id — `clean` is the single all-negative case. Negatives per id would test the
+boundary just outside each trigger, which is real value but not something to infer from a scope note; the
+register names it rather than inventing ten cases and calling it the plan's.
+
