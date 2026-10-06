@@ -1491,3 +1491,22 @@ internal value rather than a client header.
 before-picture: `If-Match: *` and `If-Match: "other", <etag>` were `412` and are `200`; `If-Match:
 <etag>` was and is `200`; `If-Match: "other"` was and is `412`; a missing header was and is `428`.
 `node --test server/` is 58 pass.
+
+### 11.37 The sweep that was a habit, now a gate — **Done**
+
+§11.28 deleted five editor exports nothing called; §11.36's `checkIfMatch` came from the same kind of
+sweep, typed into a shell each time. That is the shape this session kept finding — a check that
+exists only in someone's history — so it is now `bin/dead_exports.mjs`, run by the server job, over
+the two trees this project owns outright: the receiver and the editor, 708 exported symbols, none
+unreferenced.
+
+It does not scan the recorder library, and that is the point of writing the reason down: the library
+is upstream code this work does not own, and `public-api.ts` makes its exports reachable for
+*consumers* rather than callers, so an unused-looking export there is not evidence of anything. The
+sweep's twenty other hits are all in that library. Files that exist for the specs are allowed by name
+with the reason — the shared check corpus and its helpers, and the receiver's `api-harness.mjs`, whose
+own header says it is a test helper Node's runner will not collect.
+
+**Verified** — the check passes on the tree as committed, and is sensitive: a planted
+`export const TEMPORARY_DEAD_EXPORT = 1` in `editor-strings.ts` makes it exit 1 naming that file and
+symbol, and removing it returns it to 0 with the tree clean. README §7 records it.

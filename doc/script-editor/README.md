@@ -474,6 +474,12 @@ rule).
   route-level mount through `APP_ROUTES` so an unprovided service fails here rather than at
   runtime; the library's five actions (create, import, duplicate, archive, export) assert their
   request shapes there too. 480 specs today.
+- **Dead exports.** `node bin/dead_exports.mjs` scans the receiver and the editor for exported
+  symbols no production file names, and fails naming them. The recorder library is deliberately not
+  scanned: it is upstream code, and `public-api.ts` makes its exports reachable for consumers rather
+  than callers. Files that exist for the specs — the shared check corpus and its helpers, the
+  receiver's `api-harness.mjs` — are allowed by name with the reason. This is what found
+  `checkIfMatch` unused in the receiver and three string/type exports in the editor.
 - **i18n guard.** `npm run validate:i18n` checks that every key of `src/assets/i18n/en.json`
   exists in every locale with a non-empty value, that every key of the library's `SPR_STRINGS` is
   overridable, and that every key the source references exists; regenerating with
