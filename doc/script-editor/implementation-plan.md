@@ -1400,8 +1400,9 @@ two real clicks through CDP's input pipeline took the walk from 2 finished items
 from two to four. Every press in the driver now goes through that path, and the walk covers P1 to P5
 — both MANUAL items, both AUTOPROGRESS items and the AUTORECORDING one.
 
-**What is still a limit** — the drawn pair. A drawn item that plays the bank's own recording waits
-for the operator to ask for it (`playBankAudio`), which this driver does not do: its takes record and
-upload (four for D001) and the row never completes. That is reported as a note naming the manual
-step rather than as a failed walk. Making it automatic means pressing the prompt control for those
-items, which is a decision about what the gate should claim, not a bug to chase.
+**What is still a limit** — the drawn pair. Its takes record and upload (four for D001) and the row
+never completes. The obvious explanation was that a drawn item waits for the operator to ask for the
+bank's own recording (`playBankAudio`), and the driver now does ask — the log shows it pressing the
+prompt control for item 6 — and the row still does not complete. So the reason lies in the recorder's
+drawn-item completion rule, not in the driver's presses, and it is left as a note naming the manual
+step rather than a failed walk.
