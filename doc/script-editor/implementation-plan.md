@@ -2045,4 +2045,6 @@ screens render, and the centre's selected card was one of those until
 throw, so the fixture asserts a selection marker is on the page and the audit measures the marker or
 fails. Verified both ways — with the selection it reports
 `selection marker present: spr-editor-centre .group.active` and the audit exits 0; with none it exits
-1 naming the three selectors it looked for.
+1 naming the three selectors it looked for. The same URL and fixture also carry the **a11y** pass over
+that state — `aria-current` on the current row, the active card's names and target sizes — which the
+unselected routes do not render; it passes.
