@@ -253,6 +253,17 @@ await send('Log.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', {source: HOOKS});
 await send('Page.navigate', {url: `${BASE}/spr/session/${SESSION}`});
 
+// The walk locates the operator's controls by their labels — "Starta", "Stopp", "Nästa", "SPELAR" —
+// and reads the run's progress from the same catalogue. The application defaults to Swedish, but a
+// browser that prefers English gets the English catalogue, so on a CI runner (en-US) this waited its
+// full 30 s for a start control that could not exist and reported the app as not served, while every
+// other job was green (plan §11.49). A stored choice beats the browser's preference, so state the
+// requirement here instead of depending on where the driver happens to run. The reload resolves the
+// catalogue and `LOCALE_ID` from the pinned value; the audio probe below and the ready loop further
+// down both run after it.
+await evaluate(`localStorage.setItem('spr.lang', 'sv')`);
+await send('Page.reload');
+
 // No take can start until the item's prompt clip has finished playing, so this gate needs an audio
 // clock that advances. A headless Chrome with no output device — a CI runner, or a remote mac with
 // no display attached — stalls every clip at currentTime 0 forever, which makes a healthy recorder
