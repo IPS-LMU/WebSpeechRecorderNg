@@ -2105,3 +2105,32 @@ here. What settled it was the built bundle: a production build inlines the whole
 environment object is character-for-character the same. The values were provably unchanged; only
 comments and formatting in a local file could have differed. Copy such a file aside *and keep the copy*
 before removing it.
+
+### 11.57 The sample pointed at a list that did not exist — **Done**
+
+`src/environments/environment.prod.sample.ts` tells the reader that "the full list is documented in
+projects/speechrecorderng/README.md". That README had no such list: `apiType` and
+`enableUploadRecordings` appear nowhere in it, and the remaining fields appear only inside prose about
+logging, security and uploads. A deployment reading the sample was sent to a document that did not
+answer the question.
+
+**Fixed** — the library README's Configuration section now carries a table of all eleven
+`SpeechRecorderConfig` fields with type, default and purpose, each read from `spr.config.ts`, and for
+the two whose purpose is not in the name, from the code that consumes them
+(`enableDownloadRecordings` and `enableUploadRecordings` gate the actions in `audiorecorder.ts`;
+`apiType === ApiType.FILES` branches in `recordings.service.ts`). It also names the two fields the
+*demo's* environment adds on top, so the table is not mistaken for the application's whole file.
+
+**And a public export nobody could find**: `SPEECHRECORDER_ENVIRONMENT_DEFAULTS` is exported from
+`public-api.ts` and mentioned in no `.md` anywhere. It is the offline/fixture mode's default set —
+`apiType: 'files'`, `apiEndPoint: 'test'`, downloads on, uploads off — deliberately unlike the class's
+REST-oriented defaults (`uploads true`). It now has an "Offline and fixture mode" subsection naming it
+and its app-side twin `src/environments/environment.demo.sample.ts`, whose values are identical (with
+`production: true`), so "how do I run this offline" has an answer in the shipped document.
+
+**Verified** — every value in the table read from `spr.config.ts`; the export's values from its own
+file; the sample's values confirmed equal to the export's.
+
+**Residual:** the table describes the config class. An application's environment file may add fields,
+as the demo does; the two it adds are named rather than enumerated, because they belong to the
+application.

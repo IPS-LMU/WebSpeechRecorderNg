@@ -361,6 +361,40 @@ Versions 2.x.x of the recorder (then WebSpeechRecorderNg) use the REST API versi
 
 By default the API Endpoint ({apiEndPoint}) is an empty string, the API is then expected to be relative to the base path of the application. 
 
+### The options
+
+`SpeechRecorderConfig` (`spr.config.ts`) carries these, and an application's environment file
+normally lists them directly — `src/environments/environment.ts` in the demo does, and the
+production sample beside it is the deployment-specific copy:
+
+| Field | Type | Default | Purpose |
+|---|---|---|---|
+| `apiEndPoint` | `string \| null` | `null` | API base; relative to the application's path unless set. |
+| `apiType` | `ApiType \| null` | `null` | `NORMAL` talks to the REST API, `FILES` reads `.json` fixtures instead. |
+| `apiVersion` | `number` | `1` | The API version segment. |
+| `withCredentials` | `boolean` | `false` | Send cookies; see Security below. |
+| `enableDownloadRecordings` | `boolean` | `false` | Offer the download action for recordings. |
+| `enableUploadRecordings` | `boolean` | `true` | Upload recordings to the server. |
+| `uploadConfig` | `UploadConfig` | see below | Upload retries, concurrency and idempotency. |
+| `logLevel` | `SprLogLevel` | `INFO` | The logger's gate; see Logging below. |
+| `encryptPersistentRecordings` | `boolean` | `false` | Encrypt chunks at rest in IndexedDB; see Security below. |
+| `branding` | `SpeechRecorderBranding` | unset | Logos per slot; unset renders no marks at all. |
+| `respondentDisplayKey` | `string \| null` | `null` | Key that opens the respondent display; unset keeps `keybindings.ts`'s default. |
+
+An application's environment may add its own fields on top: the demo adds `defaultSessionId` (the
+session the start page's action leads to) and `configurationCatalogUrl` (the catalogue the
+configuration picker offers) — neither is part of this class.
+
+### Offline and fixture mode
+
+`apiType: 'files'` reads scripts, banks, media and recordings from `.json` fixtures under
+`apiEndPoint` instead of talking to a REST API. The defaults for that mode are exported from the
+public API as `SPEECHRECORDER_ENVIRONMENT_DEFAULTS` — `apiType: 'files'`, `apiEndPoint: 'test'`,
+downloads on, uploads off — which is deliberately not what this class defaults to, since the class's
+defaults describe a normal deployment. The demo application ships the same values in
+`src/environments/environment.demo.sample.ts` — with `production: true`, as an environment file needs —
+so copy it over `environment.ts` to run the demo offline.
+
 ### Logging
 
 All library log output goes through a level gated logger. The level is configured with `logLevel` in `SpeechRecorderConfig` (`SprLogLevel.DEBUG`, `INFO` (default), `WARN`, `ERROR`, `OFF`). With the default level, debug output is suppressed.
