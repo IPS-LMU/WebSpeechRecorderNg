@@ -2279,3 +2279,39 @@ library use relative paths). The only Sass mentions of `speechrecorderng/theme` 
 telling a *consumer* how to import it, which §11.43's export now makes true. And CI's own editor job is
 the guard for this: it never builds the library, so a regression in that mapping fails `test_editor`
 rather than waiting to be noticed.
+
+### 11.62 The non-text rule over-reached, and the detail-view job would have failed — **Done**
+
+Running the last two CI jobs on a checkout of only what git tracks (§11.60's method) closed the
+browser half of the six, and found this.
+
+- **The dry-run job passes there**: the driver reports `start: …Starta…`, the headphone reminder,
+  `rows: 7/7 reached, 6 marked done`, `session: status=COMPLETED` and "Dry run passed."; its six
+  audits pass; and the probe reports four measurements within 1px and all three failure modes.
+- **The detail-view job would have failed.** Its theme audit exited 1 on `div.collapsable.active` —
+  border 1.34:1, box-shadow 1.85:1 — and that step carries `set -e` (line 18), so the job dies there on
+  its first run. That element's `active` is `!audioSignalCollapsed && !screenXs`: expanded or
+  collapsed, a *layout* flag, not a state a boundary has to identify.
+
+**Why the rule fired.** §11.54's vocabulary treated `active` as a state, which is right in the editor —
+`.group.active` is the selected group — and wrong in the recorder, where the same class means a pane is
+open. The class name cannot tell the two apart, so **bare `active` is gone from the vocabulary**, with
+the reasoning in the code beside it; `selected`, `current`, `checked`, `is-*` and the ARIA states remain.
+
+**What that costs, stated:** the centre's `.group.active` card is no longer contrast-checked. It was
+fixed by hand in §11.54, `bin/audit/open-centre-state.js` still asserts the class is there, and the
+editor's other selection markers stay covered by `aria-current` and `selected`. That is the price of the
+ambiguity, and it is smaller than a failing job.
+
+**Verified.** Locally: the planted-violation fixture still bites (exit 1, one `state marker
+(is-selected)` line), four editor routes, the selected-card fixture and a dark-scheme run all exit 0.
+In a container on the tracked checkout: the detail-view job exits 0 under `set -e` with all four fixture
+audits passing (`detail view open (app-audiorecorder)`, `error dialog open (app-audiorecorder)`), and
+the dry-run job as described above.
+
+**A note on method, because it nearly fooled me twice.** `node --check` passed throughout: the file
+parsed even when the probe was broken, because the mistake was backticks inside the template literal
+that builds it. Only *running* the tool exposes that. And an earlier container run's exit 0 meant
+nothing because my `set -e` had landed in the parent shell rather than in the script. Both are the same
+lesson as a status code without its body — which is why the numbers quoted above come from runs whose
+own verdicts are visible.
