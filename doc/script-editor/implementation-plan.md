@@ -2039,6 +2039,10 @@ block now asserts that string, so the rule cannot silently stop biting. Editor l
 
 **Residual:** the rule covers boundaries, not large-area tint fills — `--spr-select-fill` stays at
 about 1.1:1 — which is the reading 1.4.11 usually takes (the boundary is what identifies the state,
-and the fill accompanies a boundary in every case here). And it can only see the states the audited
-screens render: the centre's card marker needs a `?sel=` state with a drawn card, which no fixture
-opens, so that site is fixed here but not yet exercised by the rule.
+and the fill accompanies a boundary in every case here). It can also only see the states the audited
+screens render, and the centre's selected card was one of those until
+`bin/audit/open-centre-state.js` existed: a URL selects the node (`?sel=g:0:0`) but a URL cannot
+throw, so the fixture asserts a selection marker is on the page and the audit measures the marker or
+fails. Verified both ways — with the selection it reports
+`selection marker present: spr-editor-centre .group.active` and the audit exits 0; with none it exits
+1 naming the three selectors it looked for.

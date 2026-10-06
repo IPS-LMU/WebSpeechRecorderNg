@@ -538,6 +538,8 @@ rule).
     --prepare bin/audit/open-draw-rule.js --viewports 1366x768,1920x1080
   node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768,1920x1080
   node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url 'http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit?sel=g:0:0' \
+    --prepare bin/audit/open-centre-state.js --viewports 1366x768
   node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/bank/g:0:0 --viewports 1366x768,1920x1080
   node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/draws --viewports 1366x768,1920x1080
   ```
