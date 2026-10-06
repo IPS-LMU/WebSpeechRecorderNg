@@ -55,6 +55,22 @@ const DRAWN_WITH_NO_BANK = {
   }],
 };
 
+/** The same drawn group with a bank actually chosen — the branch ui-spec §9's "drawn group" row shows once
+ * the rule can resolve, and §11.124's record explains why no case had mounted it. */
+const DRAWN_WITH_BANK = {
+  scriptId: '1245',
+  name: 'Drawn, banked',
+  sections: [{
+    name: 'A',
+    mode: 'MANUAL',
+    promptphase: 'RECORDING',
+    groups: [{
+      order: 'SEQUENTIAL',
+      promptItems: [{itemcode: 'RB', prefill: {bank: {bank: 'std-passages', count: 2}}}],
+    }],
+  }],
+};
+
 const ROUTES = [{path: 'project/:p/script/:id/edit', component: EditorScreen}];
 
 interface Harness {
@@ -258,5 +274,30 @@ describe('EditorScreen states', () => {
     expect(centre.querySelector('.group.drawn')).withContext('the drawn card, not a fixed group').not.toBeNull();
     expect(centre.textContent).toContain('This group draws from a bank, but no bank is chosen yet.');
     expect(centre.textContent).withContext('and points at the bank screen').toContain('Choose a bank on the bank screen.');
+  });
+
+  it('renders the banked drawn card, example and all', async () => {
+    // §11.124: the card's `@else` branch — bank title, filter words, match count, and the whole example
+    // block — is mounted by no other case, because a banked group makes the screen fan out two more
+    // requests. The example's algorithm is covered by example-draw.spec.ts; this covers its rendering,
+    // including the note that tells the speaker it is not the session's draw (D-J).
+    const state = await mount('/project/Demo1/script/1245/edit?sel=g:0:0');
+    await loadDraft(state, JSON.stringify(DRAWN_WITH_BANK));
+
+    state.http.expectOne((request) => request.method === 'GET'
+      && pathOf(request.urlWithParams).includes('/bank/std-passages/item'))
+      .flush({matchCount: 3, withoutAudio: 0, items: [
+        {bankItemId: 'p1', text: 'one', category: 'sentence', tags: []},
+        {bankItemId: 'p2', text: 'two', category: 'sentence', tags: []},
+        {bankItemId: 'p3', text: 'three', category: 'sentence', tags: []},
+      ]});
+    await firstValueFrom(timer(0));
+    state.harness.detectChanges();
+
+    const centre = state.root.querySelector('spr-editor-centre') as HTMLElement;
+    expect(centre.querySelector('.group.drawn .example')).not.toBeNull();
+    expect(centre.textContent).toContain('An example, not this session');
+    expect(centre.textContent).toContain('Reserved codes');
+    expect(centre.querySelectorAll('.example-items li').length).toBe(2);
   });
 });

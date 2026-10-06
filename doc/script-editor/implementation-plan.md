@@ -3701,7 +3701,7 @@ example is not. §11.124 traces why: the label lives in the drawn card's *banked
 **And the measurement is the useful record**: ten of twenty-three named in §11, thirteen evidenced elsewhere.
 A reader asking "where is D-S checked" now has an answer instead of an assurance.
 
-### 11.124 The drawn card's banked branch, which no case mounts — **Recorded**
+### 11.124 The drawn card's banked branch, which no case mounted — **Done, §11.125**
 
 Chasing §11.123's recorded gap — the example label had no assertion — led to its root: the label is not in the
 branch that `editor-screen.spec.ts` mounts. `editor-centre.html` renders `drawnNoBank`/`drawnNoBankHint` under
@@ -3719,9 +3719,22 @@ is asserted nowhere.
 the case is three lines. A banked one needs the bank list *and* the filtered item page flushed — which is a new
 fixture plus two flushes, not a two-line assertion.
 
-**The shape to write it**, for whoever does: a fixture whose `prefill.bank.bank` names a real bank from the
-fixture tree, `mount('…?sel=g:0:0')`, `loadDraft`, then the file's own `http.expectOne(...).flush(...)` for the
-bank list and the item page, and assertions on the card's text with the example note among them.
+**The shape was written and the recipe corrected in §11.125**: it is one flush, not two. The screen never
+fetches a bank list in this flow; the only request the banked card makes is the filtered item page.
+
+### 11.125 The banked drawn card, written — **Done**
+
+§11.124 recorded the gap and a recipe; the recipe was half wrong, which is what the run showed. An `expectOne`
+for `GET …/project/Demo1/bank` found none — **the screen never fetches a bank list in this flow.** The only
+request a banked card makes is `GET …/bank/std-passages/item?limit=1000`. The example's items come from that
+page, and the `itemCount` a bank list would have supplied falls back to the rule's own `count`.
+
+**The case added**: `DRAWN_WITH_BANK` — the drawn fixture with `prefill.bank.bank` set — mounted at
+`?sel=g:0:0`, `loadDraft`, one flush of `{matchCount, withoutAudio, items}`, then assertions on
+`.group.drawn .example`, the note ("An example, not this session…"), the reserved range, and two rendered items.
+
+Editor suite **488 pass**, 487 before. So the branch renders what §11.124 said nothing checked, and D-J's third
+property — that the example is *labelled* — now has an assertion rather than a record.
 
 
 
