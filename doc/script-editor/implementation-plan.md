@@ -2519,3 +2519,21 @@ The repository's front door was the last document read only in fragments. Its ch
 recording under `recfiles/<itemcode>/`, plus `session.json`" — the code also writes a `manifest.json`
 index (`session_export.ts` says so in its own header, and `session_export.spec.ts` pins
 `recfiles/A0/A0_0.wav`, `…_1.wav` and `session.json`). The README now names it too.
+
+### 11.72 The residue, enumerated — **Done**
+
+With the documentation surface read, the last question was whether anything agent-actionable remains
+unmarked. It does not, and the plan's own list says so: of seventy-one entries, sixty-six are plain
+**Done** and seven name an owner — §11.2 a human screen-reader pass, §11.4 the owner's pseudonym policy,
+§11.5 and §11.32 stated harness limits (each enforced where it matters), §11.33 a withdrawn finding,
+§11.34 a recorder product call, §11.58 the maintainer's advisory. Both standing items are written down:
+the peer range in §11.58, the pull request in §11.50, §11.63 and §6.
+
+Two consistency checks closed alongside it, both negative:
+
+- **The version strings agree.** `~20.3.30` occurs only in the library's `package.json` (nine peers) and
+  `~20.3.31` in the lockfile; no document states another range, so there is no doc-versus-package
+  disagreement to fix. A remembered `^20.3.30` was mine, not the tree's.
+- **The dev loop agrees.** `proxy.conf.json` sends `/api/v1` to `127.0.0.1:8080`, the tracked
+  `environment.ts` uses `apiEndPoint: '/api/v1'`, the receiver defaults to `--port 8080` and
+  `--api-base /api/v1`, and `angular.json`'s serve options name the proxy.
