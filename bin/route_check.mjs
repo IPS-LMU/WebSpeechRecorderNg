@@ -40,8 +40,9 @@ for (const entry of entries) {
 // Line continuations in the workflow join first, so a wrapped command is still one line.
 const workflow = readFileSync(WORKFLOW, 'utf8').replace(/\\\s*\n\s*/g, ' ');
 const audited = new Set();
-for (const match of workflow.matchAll(new RegExp(`--url ${EDITOR_ORIGIN}(/[^\\s'"]*)`, 'g'))) {
-  const url = match[1].replace(/\/$/, '');
+for (const match of workflow.matchAll(new RegExp(`--url ['"]?${EDITOR_ORIGIN}(/[^\\s'"]*)`, 'g'))) {
+  // A query string selects a node, not a route: the route is what has to be audited.
+  const url = match[1].replace(/\/$/, '').split('?')[0];
   if (url.startsWith('/project/')) {
     audited.add(url);
   }
