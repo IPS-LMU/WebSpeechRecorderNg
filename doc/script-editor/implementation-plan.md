@@ -3220,3 +3220,27 @@ and `idHint`.
 loaded.") is gone while `errorPrefix` ("The draw record could not be loaded.") remains, and that one belongs
 to the list. Whether the detail panel should have its own wording is a feature, not a string to keep unused.
 
+### 11.104 Six more, by the only-unused-key test — **Fixed**
+
+Two files answered outright. `preview-strings.ts` has 87 keys and **exactly four** unused — the flagged ones —
+and `bank-strings.ts` has 119 with **exactly one**, `idHint`. A file whose every other key is live is a
+current block, so those five are stale rather than unbuilt: the same instrument as §11.103, but stronger,
+because the whole file is the comparison instead of one block.
+
+`mediaOnly` came from the other direction. The `centre` block has 36 live siblings, `playsMediaFlag` among
+them, so the singular label is the stale member of a trio whose `mediaPlaysFirst` and `mediaPlaysOnDemand`
+are both rendered.
+
+Deleted: `dryRun`, `drawnGroup`, `timingGap`, `timingRepeats` (`preview-strings.ts`), `idHint`
+(`bank-strings.ts`) and `mediaOnly` (`editor-strings.ts`). Their neighbours are the evidence: `drawnItem` is
+live while `drawnGroup` was not.
+
+**Verified** — the editor suite is 482 pass and the lint passes; the flagged set falls from 12 to **6**, which
+is 38 → 6 across §11.99, §11.101, §11.102, §11.103 and this entry.
+
+**What remains** is the six inside `editor-strings.ts` — `canvasUnsupported`, `historySessions`, `onDemand`,
+`openEnded`, `overMicrophone`, `unbounded` — and they resist the file-level test because that file has 309
+keys, 63 of which *appear* unused only because so many are read through `core/shell-strings.ts` and
+`validation/`. They need the block-level reading of §11.101, and three of them are already named in §11.100 as
+states whose text appears nowhere.
+

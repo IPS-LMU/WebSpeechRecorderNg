@@ -102,7 +102,6 @@ export const BANK_STRINGS = {
     newTitle: 'New bank item',
     editTitle: 'Edit bank item',
     id: 'Bank id',
-    idHint: 'Leave blank to let the server assign one.',
     text: 'Item text',
     category: 'Category',
     words: 'Words',

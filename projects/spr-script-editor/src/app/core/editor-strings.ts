@@ -206,7 +206,6 @@ export const EDITOR_STRINGS = {
     mediaText: 'Text',
     mediaPlaysFirst: 'Text + plays first',
     mediaPlaysOnDemand: 'Text + plays on demand',
-    mediaOnly: 'Plays media',
     kindRecording: 'Recording',
     kindNonRecording: 'Information only',
     timingSentence: 'pre {pre} ms · rec {rec} · post {post} ms',
