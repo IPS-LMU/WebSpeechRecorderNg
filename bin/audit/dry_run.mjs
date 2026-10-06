@@ -112,6 +112,26 @@ const OPERATOR = '/Start \\/ Stopp|Nästa inspelning/i';
 const FORWARD = '/Framåt|Next item/i';
 /** Pause, which stops a recording and must also stop a playing sound. */
 const PAUSE = '/Paus|Pause/i';
+/**
+ * What the transport offers right now, read from the controls the operator would use. A press made
+ * without looking is spent for nothing when it lands while the previous take is still winding down:
+ * the app then waits for a start that never comes.
+ */
+const OPERATOR_STATE = `(() => {
+  const buttons = Array.from(document.querySelectorAll('button'));
+  const label = (b) => ((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || ''));
+  const enabled = (pattern) => buttons.some((b) => pattern.test(label(b)) && !b.disabled);
+  return JSON.stringify({forward: enabled(/Framåt|Next item/i), start: enabled(/Starta|Start \\//i)});
+})()`;
+/** The item the recorder is on: its table row carries `selRow`. Null when no row is marked. */
+const CURRENT_ROW = `(() => {
+  const row = Array.from(document.querySelectorAll('table tr, [role="row"]'))
+    .find((r) => typeof r.className === 'string' && /(^|\\s)selRow(\\s|$)/.test(r.className));
+  if (!row) { return null; }
+  const first = row.querySelector('td, th');
+  const value = first ? (first.textContent || '').trim() : '';
+  return /^\\d+$/.test(value) ? Number(value) : null;
+})()`;
 const SOUND = '/Spela upp ljudet|Promptljud/i';
 const DRAWN_MEDIA = /std-vowel-[ai]\b/;
 
@@ -321,11 +341,13 @@ if (reminder === null) failures.push('the headphone reminder never appeared for 
 let soundPressedAt = null;
 let pausedAt = null;
 let cancelledOnPause = false;
+/** How long to wait between attempts to get a take started, so retries cannot fall over each other. */
+const PRESS_INTERVAL_MS = 2500;
+
 /** Wait for the walk to reach `index`, driving only the sections that need an operator. */
 const waitForRow = async (index) => {
   const deadline = rel() + STEP_TIMEOUT_MS;
-  let pressedForwardFor = null;
-  let startedTakeFor = null;
+  let lastPressAt = Number.NEGATIVE_INFINITY;
   while (rel() < deadline) {
     const current = await state();
     await collect(current);
@@ -339,28 +361,35 @@ const waitForRow = async (index) => {
     const entry = schedule[index];
     const previous = schedule[index - 1];
     const startsSection = index === 0 || previous === undefined || previous.mode !== entry.mode;
-    const needsOperator = entry.mode === 'MANUAL' || startsSection;
+    // `continueSession` starts an AUTORECORDING section's takes by itself; every other mode waits
+    // for the operator. AUTOPROGRESS moves its own pointer but still waits for a start.
+    const needsOperator = entry.mode !== 'AUTORECORDING' || startsSection;
     const isRecording = current.status.toUpperCase().includes('SPELAR');
-    if (needsOperator && !isRecording && index > 0) {
-      if (pressedForwardFor !== index) {
+    // The recorder marks the item it is on with `selRow`, so press toward `index` rather than by
+    // guesswork: move the pointer while it is behind, start a take once it is there, and keep
+    // checking — a press that lands while the previous take is winding down is spent for nothing,
+    // and a driver that has pressed once then waits out its deadline for a take the app is waiting
+    // to be told to start (which is where every run stopped at the first AUTOPROGRESS section).
+    if (needsOperator && !isRecording && rel() - lastPressAt >= PRESS_INTERVAL_MS) {
+      const offers = JSON.parse((await evaluate(OPERATOR_STATE)) ?? '{}');
+      const onRow = await evaluate(CURRENT_ROW);
+      if (onRow !== null && onRow < index && offers.forward) {
         const clicked = await evaluate(CLICK(FORWARD));
-        pressedForwardFor = index;
-        if (VERBOSE) console.log(`  t+${rel()}ms enter item ${index + 1}: forward -> ${clicked ?? '(disabled)'}`);
+        lastPressAt = rel();
+        if (VERBOSE) console.log(`  t+${rel()}ms item ${index + 1}: on row ${onRow + 1}, forward -> ${clicked ?? '(disabled)'}`);
         continue;
       }
-      if (startedTakeFor !== index) {
+      if (onRow === index && offers.start) {
+        lastPressAt = rel();
         const clicked = await evaluate(CLICK(OPERATOR));
-        startedTakeFor = index;
-        // A section boundary consumes one press as "leave the finished section"; a second press is
-        // what starts the new section's first take. Harmless in a manual section, where the extra
-        // press only re-starts a take that has not begun.
-        if (startsSection) {
-          await sleep(800);
-          await evaluate(CLICK(OPERATOR));
-        }
+        // Starting is idempotent where the app is ready: a second press only re-starts a take that
+        // has not begun, and it is what a bare section boundary needs.
+        await sleep(800);
+        await evaluate(CLICK(OPERATOR));
         if (VERBOSE) console.log(`  t+${rel()}ms enter item ${index + 1}: start -> ${clicked ?? '(disabled)'}${startsSection ? ' (twice at the section boundary)' : ''}`);
         continue;
       }
+      lastPressAt = rel();
     }
     // The operator-only item never records: ask for its sound once, then let the recorder move on.
     if (entry.when === 'ONDEMAND' && soundPressedAt === null && rel() > 4000) {
@@ -442,7 +471,10 @@ if (firstUnreached !== -1 && schedule[firstUnreached].mode === 'MANUAL') {
   // the operator's own timing that these DOM controls do not reproduce (a stated limit in the plan).
   // The placement of all five `when` values is pinned by the unit-tested table in phases.spec.ts.
   const blocked = schedule.slice(firstUnreached).map((entry) => entry.itemcode).join(', ');
-  console.log(`note: ${blocked} sit behind a ${schedule[firstUnreached].mode} section this driver cannot enter unattended — see the manual step`);
+  // The pointer is not the blocker: the driver moved it to this item (`selRow`) and the transport
+  // reported a start available, but pressing it eleven times over 26 s produced no take and no
+  // upload, where the same press in a MANUAL section records. See the plan's §11.32.
+  console.log(`note: ${blocked} sit in or behind a ${schedule[firstUnreached].mode} section, whose takes this driver cannot start — see the manual step`);
 }
 for (const [index, entry] of schedule.entries()) {
   const rowDone = timeline.filter((event) => event.kind === 'row-done' && event.row === index).at(-1);
