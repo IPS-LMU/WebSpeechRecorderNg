@@ -1814,13 +1814,9 @@ up `projects/speechrecorderng/src/test.ts` — Karma's bootstrap, which cannot r
 — and in that run `server/maintenance.test.mjs` fails non-deterministically (it is 6/6 alone). The
 explicit glob is the form that isolates the receiver.
 
-**Residual:** the workflow still needs its first run on GitHub. What has now been verified on Linux
-in a container (§11.49's runs): the receiver's suite, the three static checks, the library's karma
-suite (148), `build_module` and the package check, the recorder's production build, the null sink,
-the dry run, and the recorder's three theme and three a11y audits at 1366×768. Still unverified on
-the platform they target: the editor's karma suite and its production build, `bin/editor_lint.mjs`,
-the editor-route audits under the dev server, the recorder's narrow, dark and dark-a11y passes, and
-the detail-view job.
+**Residual:** the workflow still needs its first run on GitHub. Every job's Linux path has since been
+verified in a container (§11.50), so a red first run would mean something the container does not
+reproduce — the runner's x86_64 Google Chrome, its image's tooling, or the `actions/*` setup steps.
 
 ### 11.49 The dry-run driver that waited for a language the runner does not use — **Done**
 
@@ -1862,5 +1858,43 @@ does carry the x64 Linux optional deps (`@esbuild/linux-x64`, `@rollup/rollup-li
 `@napi-rs/nice-linux-x64-gnu`, `@parcel/watcher-linux-x64-glibc`), which is what the common
 install failure turns on.
 
-**Residual:** the root cause is shared by every job — none has run on the platform it targets — and
-the driver's Swedish labels stay as they are now that the language is pinned.
+**Residual:** the driver's Swedish labels stay as they are, now that the language is pinned for it; the
+root cause — no job had run on the platform it targets — is closed by §11.50, and the first run on
+GitHub is still owed (§11.48).
+
+### 11.50 The six jobs, on the platform they target — **Done**
+
+§11.48 and §11.49 came out of running the workflow's jobs where they run rather than where they were
+written. This closes that exercise for all six: each job's own steps were run in a Linux container on
+the version the jobs pin (node 22.23.3), with the audit commands **extracted from the workflow file
+itself** so that what ran is what the file says.
+
+- **server** — `node --test server/*.test.mjs` 60/60, `bin/dead_exports.mjs` (708), `bin/workflow_check.mjs`
+  (six jobs).
+- **library** — karma **148/148**; `build_module`; `bin/package_check.mjs` (8 promised paths, 7 declared
+  imports); `validate:i18n` (242 keys, 209 `SPR_STRINGS`, 203 referenced) and `build:i18n` regenerating
+  catalogues **byte-identical** to the committed ones, which is what the job's `git diff --exit-code`
+  asserts.
+- **editor** — karma **481/481**; `build_editor` 500.31 kB initial, no budget warning; `bin/editor_lint.mjs`;
+  `bin/route_check.mjs` (8 screens / 9 URLs).
+- **audit** — all **35** audit invocations pass (editor routes: light 1366×768 and 1920×1080, narrow
+  390×844, dark, a11y light, dark and narrow, and the `open-draw-rule.js` state), and the job's
+  planted-violation block passes **verbatim**: both audits named all twenty rules it plants, plus the
+  no-token-layer case on `/favicon.ico`. The expectation lists are font-metric and image based, so this
+  was the likeliest place for a platform difference; there is none.
+- **dry-run** — install; the recorder's production build (the job's own proof of the app build); the null
+  sink reaching `default-sink: null_out`, so the clip-relative checks were checked rather than marked
+  unverified; the driver (§11.49); and its twelve narrow, dark and dark-a11y recorder passes.
+- **detail-view** — the development build; the `--migrate` pre-pass; the session page; and its four
+  fixture audits (theme and a11y with the detail pane, theme and a11y-with-`--except 6` with the error
+  dialog) all pass.
+
+**One trap worth recording**, because it cost two runs and looks like a defect: a data directory
+created by a *different* user — here a `--migrate` pre-pass run as root — leaves the receiver unable to
+write, so `GET …/session/1` answers **500** with `EACCES … script/sess-1.json` and the recorder renders
+a degraded page; the fixtures then fail with messages about the dev API and missing components that
+point nowhere near the cause. Run every step of a reproduction as one user.
+
+**Caveat:** the container was Linux aarch64 with Chromium, not the runner's x86_64 with Google Chrome —
+the code paths are verified, not the architecture. The lockfile does carry the x64 Linux optional deps,
+which is what the common install failure turns on. The first run on GitHub is still owed.
