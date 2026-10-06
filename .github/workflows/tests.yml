@@ -148,6 +148,26 @@ jobs:
           # The editor at a phone width: the columns stack there, and the tab order must follow.
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/edit --viewports 390x844
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 390x844
+          # The audits are the gates the screens are held to, so check that they bite. The fixture
+          # plants one violation per documented rule; this fails if the audit passes anyway or if it
+          # does not name one of them. README §7's sensitivity claims were prose before this.
+          theme_out=$(node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script \
+            --prepare bin/audit/plant-violations.js --viewports 1366x768 2>&1) && theme_status=0 || theme_status=$?
+          if [ "${theme_status:-1}" = "0" ]; then
+            echo "the theme audit passed with planted violations"; echo "$theme_out"; exit 1
+          fi
+          for expected in 'lightgrey' '9px' 'contrast 2.96:1' 'renders in Arial' 'document scrolls'; do
+            echo "$theme_out" | grep -q "$expected" || {
+              echo "the theme audit did not name: $expected"; echo "$theme_out"; exit 1; }
+          done
+          a11y_out=$(node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script \
+            --prepare bin/audit/plant-violations.js --viewports 1366x768 2>&1) && a11y_status=0 || a11y_status=$?
+          if [ "${a11y_status:-1}" = "0" ]; then
+            echo "the accessibility audit passed with a planted 17 px target"; echo "$a11y_out"; exit 1
+          fi
+          echo "$a11y_out" | grep -q 'is 17 px high' || {
+            echo "the accessibility audit did not name the 17 px target"; echo "$a11y_out"; exit 1; }
+          echo "both audits named every planted violation"
 
   dry-run:
     name: Recorder dry run (Chrome, fake media)
