@@ -3123,4 +3123,28 @@ referenced them: a deleted key in a template fails the build.
 `bank-strings.ts` (1). Deleting on a script's say-so would repeat §11.88's mistake.
 
 **A gate is not the answer here.** Dynamic indexing and destructuring make "unused" undecidable by text
-search, so the decidable test is written down instead — minutes next time rather than an afternoon.
+search, so the decidable test is written down instead — it flags in minutes; §11.100 records what it does
+not do, which is adjudicate.
+
+### 11.100 Why the remaining thirty-three were not deleted — **Recorded**
+
+§11.99 said the decidable test made the next pass cheap. It does not: the test *flags* correctly, but
+adjudicating needs per-feature reading, and I tried to shortcut it — with two more checker flaws in one
+round.
+
+The three keys I was about to delete on the strength of "the value appears elsewhere" were wrong to pick.
+`mediaOnly = 'Plays media'` looked rendered by `editor/markers.ts`; an exact search finds nothing there, so
+the earlier hit was a different casing, reported by a case-insensitive matcher I had written.
+`openEnded` and `overMicrophone` looked rendered by `editor/timeline.ts`, whose occurrences are **comments**
+— `/** Hatch: an open-ended recording, or a clip that plays over an open microphone. */` — not text. And a
+loose fragment search for `'—'`, which is `countsUnknown`'s entire value, matched 27 files.
+
+So nothing was deleted. §11.99's lamps were provable because `preview-playback-panel.ts` *documents* that the
+lamps are `aria-hidden` and no label renders; these are not provable that way, and telling *dead* from
+*rendered by a path a text search cannot follow* is the whole question.
+
+**The five worth someone's attention** are those whose text appears nowhere and whose wording is
+unambiguous: `notFound` ("That selection no longer exists in this script" — the `?sel=` fallback E1 claims),
+`sectionHeading` ("Section {n}"), `onDemand` ("The clip plays on the speaker's request"), `unbounded` ("The
+recording is open-ended, so it is hatched") and `canvasUnsupported` ("This browser cannot play this file
+here."). Each is either an unrendered state or a string that outlived one — a product question, not a sweep.
