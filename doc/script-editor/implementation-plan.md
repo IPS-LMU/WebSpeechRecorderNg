@@ -1884,7 +1884,11 @@ itself** so that what ran is what the file says.
   was the likeliest place for a platform difference; there is none.
 - **dry-run** — install; the recorder's production build (the job's own proof of the app build); the null
   sink reaching `default-sink: null_out`, so the clip-relative checks were checked rather than marked
-  unverified; the driver (§11.49); and its twelve narrow, dark and dark-a11y recorder passes.
+  unverified; the driver (§11.49); and its twelve narrow, dark and dark-a11y recorder passes. The step's
+  last tool, `bin/layout_probe.mjs`, is verified too: four measurements within 1 px at
+  `1568x986,1280x800`, the instruction line 0.16 px and 0.84 px from its header's centre, and both
+  asserted failure modes — a page with no stage reported as `no stage on the page` with a non-zero exit,
+  and an off-centre line failing at `--tolerance 0`.
 - **detail-view** — the development build; the `--migrate` pre-pass; the session page; and its four
   fixture audits (theme and a11y with the detail pane, theme and a11y-with-`--except 6` with the error
   dialog) all pass.
@@ -1894,6 +1898,13 @@ created by a *different* user — here a `--migrate` pre-pass run as root — le
 write, so `GET …/session/1` answers **500** with `EACCES … script/sess-1.json` and the recorder renders
 a degraded page; the fixtures then fail with messages about the dev API and missing components that
 point nowhere near the cause. Run every step of a reproduction as one user.
+
+**How the list was checked, and the one thing it caught.** The jobs were first reproduced command by
+command, and that missed a tool: `bin/layout_probe.mjs` is part of the dry-run step and never appeared
+in the list — the same trap §11.41 recorded, where running a step whole found three defects that
+per-command verification had not. Extracting every command from the workflow per job and comparing it
+against what had been run found the gap, which is why the probe is named above; that inventory is the
+check on this entry rather than my reading of it.
 
 **Platform, both dimensions.** Each job's code path was verified on Linux (aarch64). The architecture
 dimension was then checked on **x86_64** — the runner's — under emulation: the receiver's suite 60/60,
