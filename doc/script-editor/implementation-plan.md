@@ -3556,4 +3556,31 @@ package should point at is the owner's decision rather than something the tree s
 derivable — `Klaus Jänsch`, stated in the root manifest and again in the licence text — and was left alone for
 the same reason: no condition demands it, unlike the licence, which MIT requires to travel with every copy.
 
+### 11.117 The install instruction pinned the version — **Fixed, and the fixture behind it**
+
+Chasing version claims: every doc string matching the project's version shape is the current `3.11.26`, and
+"Angular 20" matches the manifests' ranges — nothing stale. But two of those strings were *instructions*, and
+the version script did not own them.
+
+**`apply_version.js` wrote one file** — `spr.module.version.ts` — while both READMEs, at line 12, told
+consumers to add `"speechrecorderng": "3.11.26"` to their `dependencies`. An exact pin, hand-written, in the
+README that *ships inside the tarball*: every release would leave it claiming the previous version, and an
+exact pin is poor advice besides. It now reads `npm install speechrecorderng`, which cannot go stale.
+
+**And the same script left a fixture behind.** `src/test/version.json` is what the editor reads in FILES mode
+where a deployment answers `GET version`, and the editor's validation context takes the recorder version from
+it — so a release would have left those version checks comparing against the old number. Nothing asserted it
+against the build. The script now writes it too, in the file's own format: two-space JSON with a trailing
+newline, so a current fixture is left **byte-identical** and a stale one is corrected.
+
+**Verified**: the remaining occurrences of the version are quotes and history — the plan's `VERSION='3.11.26'`
+line, a recorded command output, and `rest-api.md`'s illustrative `{"recorderVersion":"3.11.26"}` response. For
+the fixture, `md5` is unchanged after a run and `git status` reports nothing, while a fixture claiming `3.0.0`
+is rewritten to `3.11.26`.
+
+**A formatting trap worth recording**: the fixture is pretty-printed and `cat` here shows it compacted — my
+first version of the write produced the compact form, and the file's own hash caught it rather than my eye,
+after the edit had looked right in the diff.
+
+
 
