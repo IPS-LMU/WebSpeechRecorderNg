@@ -18,8 +18,12 @@ jobs:
         with:
           node-version: 22
       # The receiver is Node builtins only: no install step is needed.
+      # The explicit file list, not `server/`: Node 22's runner treats a directory argument as an
+      # entry module (`MODULE_NOT_FOUND`) — it only learned to scan one in a later major — so the
+      # directory form passes on a new local Node and fails on the version this job pins. Verified
+      # on node 22.23.3: `node --test server/` is 1 test / 1 fail, the glob is 60 / 60.
       - name: Receiver tests
-        run: node --test server/
+        run: node --test server/*.test.mjs
       # The two trees this project owns outright: an export nothing names is either wired up or
       # deleted (bin/dead_exports.mjs). The recorder library is not scanned - it is upstream code,
       # and public-api.ts makes its exports reachable for consumers rather than callers.
