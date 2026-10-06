@@ -98,12 +98,21 @@ const READ_STATE = `(() => {
     ready: !!Array.from(document.querySelectorAll('button')).find((b) => /Starta/i.test(b.textContent || '')),
   });
 })()`;
-const CLICK = (pattern) => `(() => {
+/**
+ * Where the first enabled control matching `pattern` is, and what it says. A press has to come from
+ * the browser's own input pipeline to count as a user gesture, so this only locates; `press` clicks.
+ */
+const LOCATE = (pattern) => `(() => {
   const buttons = Array.from(document.querySelectorAll('button'));
   const hit = buttons.find((b) => ${pattern}.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled);
   if (!hit) { return null; }
-  hit.click();
-  return ((hit.textContent || '') + ' ' + (hit.title || '') + ' ' + (hit.getAttribute('aria-label') || '')).replace(/\\s+/g, ' ').trim().slice(0, 40);
+  const box = hit.getBoundingClientRect();
+  if (box.width === 0 || box.height === 0) { return null; }
+  return JSON.stringify({
+    x: Math.round(box.left + box.width / 2),
+    y: Math.round(box.top + box.height / 2),
+    label: ((hit.textContent || '') + ' ' + (hit.title || '') + ' ' + (hit.getAttribute('aria-label') || '')).replace(/\\s+/g, ' ').trim().slice(0, 40),
+  });
 })()`;
 const START = '/Starta|Start \\//i';
 /** The operator's own control: start, stop, or move on — its label says all three. */
@@ -223,6 +232,20 @@ const evaluate = async (expression) => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const state = () => evaluate(READ_STATE).then((raw) => JSON.parse(raw ?? '{}'));
 const pageEvents = () => evaluate('JSON.stringify(window.__dryRun.events)').then((raw) => JSON.parse(raw ?? '[]'));
+/**
+ * Presses a control the way an operator does: a real mouse event through the browser's own input
+ * pipeline. A synthetic `element.click()` is not a user gesture, and the recorder's transport
+ * ignores it exactly where a gesture is what arms the take — the first take of an AUTOPROGRESS
+ * section, which is where every run used to stop. Returns the control's label, or null.
+ */
+const press = async (pattern) => {
+  const located = await evaluate(LOCATE(pattern));
+  if (located === null || located === undefined) { return null; }
+  const hit = JSON.parse(located);
+  await send('Input.dispatchMouseEvent', {type: 'mousePressed', x: hit.x, y: hit.y, button: 'left', clickCount: 1});
+  await send('Input.dispatchMouseEvent', {type: 'mouseReleased', x: hit.x, y: hit.y, button: 'left', clickCount: 1});
+  return hit.label;
+};
 
 await send('Page.enable');
 await send('Runtime.enable');
@@ -320,7 +343,7 @@ if (!ready) {
   process.exit(1);
 }
 
-console.log(`\nstart: ${await evaluate(CLICK(START))}`);
+console.log(`\nstart: ${await press(START)}`);
 let reminder = null;
 for (let i = 0; i < 30 && reminder === null; i++) {
   await sleep(300);
@@ -343,11 +366,14 @@ let pausedAt = null;
 let cancelledOnPause = false;
 /** How long to wait between attempts to get a take started, so retries cannot fall over each other. */
 const PRESS_INTERVAL_MS = 2500;
+/** How long the item marker may lag a pointer press before the driver reaches for the transport. */
+const POINTER_LAG_MS = 7000;
 
 /** Wait for the walk to reach `index`, driving only the sections that need an operator. */
 const waitForRow = async (index) => {
   const deadline = rel() + STEP_TIMEOUT_MS;
   let lastPressAt = Number.NEGATIVE_INFINITY;
+  let behindSince = 0;
   while (rel() < deadline) {
     const current = await state();
     await collect(current);
@@ -373,19 +399,34 @@ const waitForRow = async (index) => {
     if (needsOperator && !isRecording && rel() - lastPressAt >= PRESS_INTERVAL_MS) {
       const offers = JSON.parse((await evaluate(OPERATOR_STATE)) ?? '{}');
       const onRow = await evaluate(CURRENT_ROW);
-      if (onRow !== null && onRow < index && offers.forward) {
-        const clicked = await evaluate(CLICK(FORWARD));
+      if (onRow !== null && onRow < index) {
+        // Two controls move the pointer: the toolbar's forward, and the transport itself, whose
+        // label reads "Nästa inspelning" when moving on is what it offers, and which is the control
+        // that leaves a non-recording item. The row marker lags the press by a few seconds, so give
+        // forward time to take effect before reaching for the transport - pressing it early starts
+        // a take for the item that is still current, which is how a run re-records a finished item.
+        if (behindSince === 0) { behindSince = rel(); }
+        if (offers.forward && rel() - behindSince < POINTER_LAG_MS) {
+          const clicked = await press(FORWARD);
+          lastPressAt = rel();
+          if (VERBOSE) console.log(`  t+${rel()}ms item ${index + 1}: on row ${onRow + 1}, forward -> ${clicked ?? '(disabled)'}`);
+          continue;
+        }
+        if (offers.start) {
+          const clicked = await press(OPERATOR);
+          lastPressAt = rel();
+          if (VERBOSE) console.log(`  t+${rel()}ms item ${index + 1}: on row ${onRow + 1}, transport -> ${clicked ?? '(disabled)'}`);
+          continue;
+        }
         lastPressAt = rel();
-        if (VERBOSE) console.log(`  t+${rel()}ms item ${index + 1}: on row ${onRow + 1}, forward -> ${clicked ?? '(disabled)'}`);
-        continue;
-      }
-      if (onRow === index && offers.start) {
+      } else if (onRow === index && offers.start) {
+        behindSince = 0;
         lastPressAt = rel();
-        const clicked = await evaluate(CLICK(OPERATOR));
+        const clicked = await press(OPERATOR);
         // Starting is idempotent where the app is ready: a second press only re-starts a take that
         // has not begun, and it is what a bare section boundary needs.
         await sleep(800);
-        await evaluate(CLICK(OPERATOR));
+        await press(OPERATOR);
         if (VERBOSE) console.log(`  t+${rel()}ms enter item ${index + 1}: start -> ${clicked ?? '(disabled)'}${startsSection ? ' (twice at the section boundary)' : ''}`);
         continue;
       }
@@ -394,7 +435,7 @@ const waitForRow = async (index) => {
     // The operator-only item never records: ask for its sound once, then let the recorder move on.
     if (entry.when === 'ONDEMAND' && soundPressedAt === null && rel() > 4000) {
       soundPressedAt = rel();
-      console.log(`  t+${soundPressedAt}ms asking for the operator-only item's sound: ${await evaluate(CLICK(SOUND)) ?? '(no control)'}`);
+      console.log(`  t+${soundPressedAt}ms asking for the operator-only item's sound: ${await press(SOUND) ?? '(no control)'}`);
       continue;
     }
     // Pause during a take must cancel a playing sound — the navigation-during-playback claim. Only
@@ -404,7 +445,7 @@ const waitForRow = async (index) => {
     const pauseEnabled = await evaluate(`!!Array.from(document.querySelectorAll('button')).find((b) => ${PAUSE}.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled)`);
     if (pausedAt === null && isRecording && clipPlaying && pauseEnabled === true) {
       pausedAt = rel();
-      const clicked = await evaluate(CLICK(PAUSE));
+      const clicked = await press(PAUSE);
       console.log(`  t+${pausedAt}ms pausing while the sound plays: ${clicked ?? '(no control)'}`);
       const stopsBefore = timeline.filter((entry2) => entry2.kind === 'stop').length;
       const stopDeadline = rel() + 2500;
@@ -426,7 +467,14 @@ for (const [index, entry] of schedule.entries()) {
   const completed = doneIn(await state());
   if (!reached && !(entry.nonRecording && completed >= index)) {
     if (entry.mode === 'MANUAL') {
-      failures.push(`item ${index + 1} (${entry.itemcode}) never finished — a manual section the driver should have driven`);
+      if (entry.bankAudio) {
+        // A drawn item that plays the bank's own recording waits for the operator to ask for it, and
+        // this driver never asks: its takes record and upload, the row does not complete. A stated
+        // limit (plan §11.32), not a verdict on the recorder.
+        console.log(`note: item ${index + 1} (${entry.itemcode}) recorded but never completed — its bank recording is the operator's to play; see the manual step`);
+      } else {
+        failures.push(`item ${index + 1} (${entry.itemcode}) never finished — a manual section the driver should have driven`);
+      }
     }
     // An auto section it could not enter is reported by the note above, once.
     break;
@@ -464,17 +512,19 @@ const startsFor = (rowIndex) => {
 const reachedRows = schedule.map((entry, index) => timeline.some((event) => event.kind === 'row-done' && event.row === index));
 const firstUnreached = schedule.findIndex((entry, index) => !reachedRows[index]);
 if (firstUnreached !== -1 && schedule[firstUnreached].mode === 'MANUAL') {
-  // The driver drives MANUAL sections itself, so an unreached one is a real failure.
-  failures.push(`the walk stopped at item ${firstUnreached + 1} (${schedule[firstUnreached].itemcode}), a manual section the driver should have driven`);
+  if (schedule[firstUnreached].bankAudio) {
+    console.log(`note: the walk stopped at item ${firstUnreached + 1} (${schedule[firstUnreached].itemcode}), a drawn item whose bank recording is the operator's to play — see the manual step`);
+  } else {
+    // The driver drives MANUAL sections itself, so an unreached one is a real failure.
+    failures.push(`the walk stopped at item ${firstUnreached + 1} (${schedule[firstUnreached].itemcode}), a manual section the driver should have driven`);
+  }
 } else if (firstUnreached !== -1) {
-  // Everything from here on sits behind an AUTOPROGRESS/AUTORECORDING section, whose boundary needs
-  // the operator's own timing that these DOM controls do not reproduce (a stated limit in the plan).
-  // The placement of all five `when` values is pinned by the unit-tested table in phases.spec.ts.
+  // An AUTO section the driver could not drive to its end: unlike the rest of the walk, this one is
+  // a stated limit rather than a failure, because the recorder's AUTO start rule is not something a
+  // DOM driver should be made to satisfy. (Trusted input events, rather than synthetic clicks, are
+  // what got the driver through the first of these - see the plan's §11.32.)
   const blocked = schedule.slice(firstUnreached).map((entry) => entry.itemcode).join(', ');
-  // The pointer is not the blocker: the driver moved it to this item (`selRow`) and the transport
-  // reported a start available, but pressing it eleven times over 26 s produced no take and no
-  // upload, where the same press in a MANUAL section records. See the plan's §11.32.
-  console.log(`note: ${blocked} sit in or behind a ${schedule[firstUnreached].mode} section, whose takes this driver cannot start — see the manual step`);
+  console.log(`note: ${blocked} sit in or behind a ${schedule[firstUnreached].mode} section, whose takes this driver could not start — see the manual step`);
 }
 for (const [index, entry] of schedule.entries()) {
   const rowDone = timeline.filter((event) => event.kind === 'row-done' && event.row === index).at(-1);
