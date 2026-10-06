@@ -46,7 +46,7 @@ function lineAt(text, index) {
 }
 
 const failures = [];
-const passed = {type: 0, colour: 0, click: 0, structure: 0};
+const passed = {type: 0, colour: 0, click: 0, structure: 0, label: 0};
 
 for (const path of filesUnder(ROOT, (name) => name.endsWith('.scss') || (name.endsWith('.ts') && !name.endsWith('.spec.ts')))) {
   const text = readFileSync(path, 'utf8');
@@ -128,14 +128,24 @@ for (const path of filesUnder(ROOT, (name) => name.endsWith('.html'))) {
     }
     failures.push(`${where}:${lineAt(text, match.index)}: (click) on <${lower}> — use a control, or state its role`);
   }
+
+  // 5: a user-facing literal in a template attribute. The chrome text lives in the *-strings files, so
+  // a literal is text nobody can review in one place — and the one kind of string that no catalogue
+  // could ever reach. Bound attributes count as passes, whitespace and empty values are ignored.
+  for (const match of text.matchAll(/\b(aria-label|title|placeholder)="([^\s"{}][^"]*)"/g)) {
+    failures.push(`${where}:${lineAt(text, match.index)}: ${match[1]}="${match[2]}" is a literal — bind it from the strings`);
+  }
+  for (const _ of text.matchAll(/\b(aria-label|title|placeholder)=["']?\{|\[attr\.(aria-label|title|placeholder)\]|\[(title|placeholder)\]=/g)) {
+    passed.label += 1;
+  }
 }
 
 if (VERBOSE) {
-  console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs`);
+  console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels`);
 }
 if (failures.length > 0) {
   for (const failure of failures) console.error(`✗ ${failure}`);
   console.error(`editor lint failed: ${failures.length} violation(s)`);
   process.exit(1);
 }
-console.log(`Editor lint passed (${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs).`);
+console.log(`Editor lint passed (${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels).`);

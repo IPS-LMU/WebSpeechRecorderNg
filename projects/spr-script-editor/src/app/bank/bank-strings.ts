@@ -119,6 +119,7 @@ export const BANK_STRINGS = {
   rule: {
     heading: 'Draw rule',
     noBank: 'No bank chosen',
+    findingsLabel: 'Checks',
     changeBank: 'Choose another bank',
     bankField: 'Bank',
     order: 'Order',
