@@ -38,7 +38,7 @@ import {extname, join} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {RequestError, readJsonBody, readTextBody, streamToFile} from './body.mjs';
 import {bankIdFor, csvToItems, queryBank} from './bank.mjs';
-import {etagOf} from './etag.mjs';
+import {checkIfMatch, etagOf} from './etag.mjs';
 import {minRecorderVersionFor} from './feature-versions.mjs';
 import {durationMsOf, MEDIA_DIR, mimeTypeFor, sanitiseMediaName} from './media.mjs';
 import {validateScript} from './validate.mjs';
@@ -246,11 +246,22 @@ export function createApiHandler({store, base, maxBody, log, autoCreateSession, 
       if (currentEtag === null && req.headers['if-none-match'] === '*') {
         return {bytes: null, currentEtag: null, value: null};
       }
-      const candidate = provided ?? req.headers['if-match'];
-      if (candidate === undefined || candidate === null || candidate === '') {
-        throw new RequestError(428, 'If-Match is required for a draft write', {code: 'PRECONDITION_REQUIRED'});
-      }
-      if (candidate !== currentEtag) {
+      // The header's verdicts come from `etag.mjs`, so the module R1 documents — with `*` and
+      // multi-value lists per RFC 9110 — is the one the API enforces. A caller-supplied validator
+      // (the body's own ETag) is compared exactly: it is an internal value, not a client header.
+      const candidate = provided ?? null;
+      if (candidate === null) {
+        const verdict = checkIfMatch(req, currentEtag);
+        if (verdict === 'missing') {
+          throw new RequestError(428, 'If-Match is required for a draft write', {code: 'PRECONDITION_REQUIRED'});
+        }
+        if (verdict === 'stale') {
+          throw new RequestError(412, 'The draft changed since you loaded it.', {
+            code: 'SCRIPT_DRAFT_CONFLICT',
+            details: {current: bytes === null ? null : JSON.parse(bytes.toString('utf8')), currentEtag},
+          });
+        }
+      } else if (candidate !== currentEtag) {
         throw new RequestError(412, 'The draft changed since you loaded it.', {
           code: 'SCRIPT_DRAFT_CONFLICT',
           details: {current: bytes === null ? null : JSON.parse(bytes.toString('utf8')), currentEtag},
