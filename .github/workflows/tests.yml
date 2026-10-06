@@ -214,6 +214,14 @@ jobs:
           node bin/a11y_audit.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 390x844 --rules universal
           node bin/a11y_audit.mjs --url http://127.0.0.1:8391/spr/respondent/1 --viewports 390x844 --rules universal
           node bin/a11y_audit.mjs --url http://127.0.0.1:8391/ --viewports 390x844 --rules universal
+          # And in the opt-in dark scheme at 1366x768, where §11.13's contrast failures were found -
+          # the editor's routes have had that pass since then, the recorder's none.
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/spr/respondent/1 --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
+          node bin/theme_audit.mjs --url http://127.0.0.1:8391/ --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/spr/session/1 --viewports 1366x768 --rules universal --prepare bin/audit/use-dark-scheme.js
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/spr/respondent/1 --viewports 1366x768 --rules universal --prepare bin/audit/use-dark-scheme.js
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/ --viewports 1366x768 --rules universal --prepare bin/audit/use-dark-scheme.js
           # The stage's instruction line, and which marks the branding slots actually show, measured
           # rather than eyeballed: the tool exits non-zero when the line sits off the header's centre
           # beyond a pixel, when a page has no stage, or when a page overflows its viewport. The
