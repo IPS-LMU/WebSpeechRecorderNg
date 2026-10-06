@@ -55,7 +55,9 @@ export const CORPUS_FILES = [
   'clean',
   'duplicate-itemcode',
   'empty-item',
+  'empty-script',
   'missing-itemcode',
   'negative-timing',
   'playback-bounds',
+  'playback-without-audio',
 ] as const;

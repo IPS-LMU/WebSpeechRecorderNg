@@ -3270,3 +3270,27 @@ the flagged set is **empty**: 38 → 0 across §11.99 to §11.105.
 hatch explains itself only visually — a tooltip would be a feature. Both are recorded rather than guessed at,
 and no string was kept to gesture at either.
 
+### 11.106 The corpus covered eight of the ten ids, and now says so — **Fixed**
+
+The corpus is the **cross-runtime contract**: `doc/script-editor/checks/*.checks.json` is run by the editor's
+specs *and* by `server/checks-corpus.test.mjs`, so an id with no case is tested on one side only — which is
+where two implementations drift apart unnoticed. Measured, it covered `E01`–`E05`, `E07`, `E09` and `E11`
+(eight) while the server publishes **ten**: `E06` and `E10` had no case at all. §11.19's own corpus-scope note
+asks for "per E id, one positive and one negative draft", so this was a stated requirement with neither a case
+nor a checker.
+
+**Two cases authored.** `empty-script.checks.json` — E10, a script with no sections, path `sections`;
+`playback-without-audio.checks.json` — E06, an item that declares `playback` with only a text `mediaitem`,
+path `sections[0].groups[0].promptItems[0].playback`. Both hold on **both** runtimes: the server's corpus test
+is 1/1 and the editor suite is **484 pass** (482 plus one `it()` per case), so each draft produces exactly its
+expected finding and no other error.
+
+**And a gate.** §11.78's rule 6 tied the ids to the modules, the specs and the catalogue, but not to the
+corpus; it now asserts that every id `server/validate.mjs` publishes is exercised by a `checks/*.checks.json`
+case. Verified passing on the tree and sensitive — with `empty-script.checks.json` moved aside it reports
+"publishes E10, which no checks/*.checks.json case exercises".
+
+**The file-set mechanism did its job on the way.** `CORPUS_FILES` in `corpus.ts` and the server test's
+`expectedNames` both had to be updated, and because the server test reads the directory it failed until they
+were — §11.19 working exactly as intended.
+

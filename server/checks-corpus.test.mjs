@@ -20,7 +20,8 @@ test('every corpus case matches the server catalogue', () => {
   // stop being checked. Keep in step with `CORPUS_FILES` in the editor's
   // `projects/spr-script-editor/src/app/core/validation/corpus.ts`.
   const expectedNames = ['bank-count', 'bank-missing', 'bank-prefix-clash', 'clean', 'duplicate-itemcode',
-    'empty-item', 'missing-itemcode', 'negative-timing', 'playback-bounds'];
+    'empty-item', 'empty-script', 'missing-itemcode', 'negative-timing', 'playback-bounds',
+    'playback-without-audio'];
   assert.deepEqual(files.map((name) => name.replace(/\.checks\.json$/, '')),
     [...expectedNames].sort(), 'the corpus file set drifted from the editor\'s CORPUS_FILES');
   for (const file of files) {

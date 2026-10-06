@@ -196,6 +196,16 @@ const serverIds = new Set([...readFileSync('server/validate.mjs', 'utf8').matchA
 for (const id of serverIds) {
   if (!catalogued.has(id)) failures.push(`server/validate.mjs: publishes ${id}, which ${CATALOGUE} does not catalogue`);
 }
+// The corpus is the cross-runtime contract (§11.19, §11.106): an id the server publishes with no case in
+// `doc/script-editor/checks/` is tested on one side only, which is where the two drift apart unnoticed.
+const CORPUS = join(process.cwd(), 'doc/script-editor/checks');
+const corpusIds = new Set();
+for (const path of filesUnder(CORPUS, (name) => name.endsWith('.checks.json'))) {
+  for (const m of readFileSync(path, 'utf8').matchAll(/"id":\s*"([EWN]\d+)"/g)) corpusIds.add(m[1]);
+}
+for (const id of serverIds) {
+  if (!corpusIds.has(id)) failures.push(`server/validate.mjs: publishes ${id}, which no checks/*.checks.json case exercises`);
+}
 
 if (VERBOSE) {
   console.log(`checked ${passed.type} font sizes, ${passed.colour} colours, ${passed.click} click handlers, ${passed.structure} paragraphs, ${passed.label} bound labels, ${passed.catalogue} catalogued checks`);
