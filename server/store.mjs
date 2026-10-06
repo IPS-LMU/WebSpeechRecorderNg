@@ -26,6 +26,13 @@ import {MEDIA_DIR, mimeTypeFor, referencedResources} from './media.mjs';
 const ID_SEQUENCE = 'sequence.json';
 const JOURNAL = 'journal.json';
 
+/**
+ * Draft revision retention, in one place because the runbook documents the numbers and both the
+ * pruning helper and `gc` have to agree on them.
+ */
+const DRAFT_KEEP = 50;
+const DRAFT_MAX_AGE_DAYS = 30;
+
 export class Store {
   constructor({dataDir, seedDir, log, recorderVersion = RECORDER_VERSION, pseudonymiseSpeakers = false}) {
     this.dataDir = resolve(dataDir);
@@ -1066,7 +1073,7 @@ export class Store {
   }
 
   /** Keeps the newest `keep` draft revisions per script and drops anything older than `maxAgeDays`. */
-  pruneDraftRevisions({keep = 50, maxAgeDays = 30} = {}) {
+  pruneDraftRevisions({keep = DRAFT_KEEP, maxAgeDays = DRAFT_MAX_AGE_DAYS} = {}) {
     const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
     let removed = 0;
     for (const id of this.scriptIds()) {
@@ -1142,7 +1149,7 @@ export class Store {
    * Housekeeping: draft revisions per policy, expired preview sessions, and (only when asked)
    * unreferenced media. Published versions and recordings are never touched.
    */
-  gc({keep = 50, maxAgeDays = 30, media = false, now = Date.now()} = {}) {
+  gc({keep = DRAFT_KEEP, maxAgeDays = DRAFT_MAX_AGE_DAYS, media = false, now = Date.now()} = {}) {
     const revisions = this.pruneDraftRevisions({keep, maxAgeDays});
     const expired = this.expiredPreviews(now);
     for (const entry of expired) {

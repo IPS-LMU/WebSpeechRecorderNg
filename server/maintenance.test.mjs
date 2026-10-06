@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {existsSync, mkdtempSync, readdirSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdtempSync, readdirSync, utimesSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {Store} from './store.mjs';
@@ -71,4 +71,32 @@ test('orphanMedia reports only files no draft or published version references', 
   assert.equal(summary.mediaRemoved, 1);
   assert.ok(!existsSync(store.mediaPath('demo', 'orphan.wav')));
   assert.ok(existsSync(store.mediaPath('demo', 'used.wav')));
+});
+
+test('gc defaults to the 50 deep, 30 day retention the runbook documents', () => {
+  const store = freshStore();
+  const created = store.createScript({name: 'R', project: 'demo', value: doc(), text: JSON.stringify(doc())});
+  const id = String(created.scriptId);
+  for (let i = 0; i < 60; i++) {
+    store.writeDraft(id, JSON.stringify({...doc(), n: i}), {...doc(), n: i});
+  }
+  const dir = join(store.scriptDir(id), 'revisions');
+  const revisions = readdirSync(dir).sort((a, b) => Number(a.split('.')[0]) - Number(b.split('.')[0]));
+  assert.equal(revisions.length, 61, 'the create writes one, then sixty drafts');
+
+  // One of the newest carries a date outside the documented window, its neighbour one inside it.
+  const day = 24 * 60 * 60 * 1000;
+  const aged = revisions[revisions.length - 1];
+  const inside = revisions[revisions.length - 2];
+  utimesSync(join(dir, aged), new Date(Date.now() - 31 * day), new Date(Date.now() - 31 * day));
+  utimesSync(join(dir, inside), new Date(Date.now() - 29 * day), new Date(Date.now() - 29 * day));
+
+  const versionsBefore = store.versionsIndex(id).map((entry) => entry.version);
+  const summary = store.gc();
+
+  assert.equal(summary.revisionsRemoved, 12, 'eleven over the documented depth, plus the one out of its window');
+  assert.ok(!existsSync(join(dir, aged)), 'a revision older than 30 days goes');
+  assert.ok(existsSync(join(dir, inside)), 'a revision inside the window stays');
+  assert.ok(readdirSync(dir).length <= 50, 'the runbook documents 50 deep');
+  assert.deepEqual(store.versionsIndex(id).map((entry) => entry.version), versionsBefore, 'published versions are never pruned');
 });
