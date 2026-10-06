@@ -2578,7 +2578,9 @@ already read `section.name?.trim()` (falling back to a position — `preview-ord
 `script.ts`, commented as the preview shows it — additive and invisible to the recorder.
 
 **Verified** — `ng build speechrecorderng --configuration production` exits 0 and the library suite runs
-**148 SUCCESS**, so nothing moved but the type.
+**148 SUCCESS**, so nothing moved but the type; and since the editor resolves the library *from source*
+(`projects/spr-script-editor/tsconfig.json`'s path mapping — §11.61's fix), the changed interface reached
+its consumer directly: editor suite **481 SUCCESS**, production build exit 0 at 500.36 kB.
 
 **And a false alarm worth writing down.** The editor's `EditorSection`/`EditorGroup`/`EditorScript` look
 like exactly the copy `data-model.md` §1 forbids ("The editor must not keep its own copy"). They are not:
@@ -2627,3 +2629,16 @@ line whose loop runs over `CORPUS_FILES`' **nine** entries — runtime 84 − 1 
 
 The editor suite is **481** today; the Gate row's "480 pass" is stamped "at this revision", so the two
 are history and current state respectively, not a disagreement.
+
+### 11.77 The quoted constants, and the two that are right — **Done**
+
+The last claim type was the string constants the docs quote, where a rename is a real divergence because a
+client matches on the code. Of 48 SCREAMING tokens across the editor docs, two appear nowhere in the code,
+and both are correct as written:
+
+- `ERR_PACKAGE_PATH_NOT_EXPORTED` is **Node's** own code — the error a consumer's build would have raised
+  before the theme had an `exports` entry (§11.43);
+- `SPELAR` / `SPELAR IN` is the Swedish transport label, which `src/assets/i18n/sv.json` carries as
+  `Spelar in`. The docs quote it case-styled; a future sweep must not "correct" it.
+
+Every other code the docs cite — the `409`s and their names, `If-Match`, the settings — is in the tree.
