@@ -244,10 +244,9 @@ jobs:
             curl -sf -o /dev/null http://127.0.0.1:9333/json/version && break
             sleep 1
           done
-          # The driver first, on the session it expects: it was created by the migrate above and nothing
-          # has loaded it yet. The audits and the probe below visit the same pages and leave the session
-          # loaded and connected - measured, running them first makes the driver's first take never
-          # happen ("the headphone reminder never appeared", every clip "never played").
+          # The driver first, on the session it expects: the migrate above created it and nothing has
+          # loaded it yet. The audits and the probe below visit the same pages and leave the session
+          # loaded and connected, which is not the state the driver's first take is written for.
           node bin/audit/dry_run.mjs --base http://127.0.0.1:8391 --port 9333 --session 1
           # The recorder's own screens, which the editor-scoped audit job never renders: the token,
           # contrast, type-size and layout rules apply to them too (the redesign is shared), and the

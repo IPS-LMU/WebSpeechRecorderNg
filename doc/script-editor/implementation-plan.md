@@ -1586,3 +1586,35 @@ log line shows the switch it performs: `dark scheme: chrome #2A4765 -> #0E1A26`.
 0 as committed, exit 1 with the attribute commented out. The two fixtures that legitimately cannot fail,
 the locale one on an app with no switch and `plant-violations.js` which plants what it says, are the ones
 whose failure is now loud instead of silent.
+
+### 11.41 Three defects in the gates themselves — **Done**
+
+Running the dry-run job's whole step, rather than each command in it, found three things that no
+individual verification would have.
+
+**The layout probe crashed on the page it exists to report.** Its display loop built its log line from
+`m.viewport` before checking `m.state`, and a state report carries no viewport, so a page with no stage
+died with a stack trace instead of saying so. Fixed, and both reachable failure modes — no stage, and a
+line off the centre at `--tolerance 0` — are now asserted in the job.
+
+**Its header claimed an overflow check that does not exist** — `scrollHeight` appears nowhere in that
+file, and the planted 3000 px block that fails the theme audit left the probe green. The claim is gone
+from the tool, README §7 and the CI comment; `bin/theme_audit.mjs` owns the document-overflow check.
+
+**The clock guard measured the wrong medium.** It decided whether a frozen audio clock explained what
+the driver was about to see by playing an `<audio>` element, while the recorder's prompts are Web Audio;
+the two can disagree on a host, and the guard would then call the clock healthy and let the driver blame
+the recorder. It now plays a buffer on an `AudioContext` — the clock the app waits on — and the verdict
+drives the same branch as before.
+
+Two things about the step itself came out of the same run. It reuses `/tmp/dryrun`, so running it twice
+locally hands the driver an already-completed session — measured: `start: play_arrow Starta
+uppspelning`, `session: status=COMPLETED`, every clip "never played" — and it now clears its own scratch
+state first. And the driver runs before the audits, which is the order its first take is written for; I
+blamed the audits for one failing run before checking the data directory, and the ordering comment says
+why the order is right rather than repeating that mistake.
+
+**Verified** by running the whole step as the job does (receiver and Chrome started inside it, on a
+clean data dir): exit 0 — the driver at 7/7 with seven windows, nine theme and nine accessibility
+passes, the probe at four measurements with both of its failure modes reported, and every planted
+violation named.
