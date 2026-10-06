@@ -53,6 +53,17 @@ describe('example draw: determinism', () => {
     expect(exampleDraw(bank, source(), 5)).toEqual(exampleDraw(bank, source(), 0));
   });
 
+  it('is the same example whatever the rule fixes or skips, because it is not a session draw', () => {
+    // D-J and D-U: the example ignores `fixedBy` and `skipRecordedBySpeaker` — those decide what a real
+    // session draws, and the server stays the only resolver. The specs asserted the algorithm (reserved
+    // codes, determinism, the offset) but never this, so nothing would have noticed the example quietly
+    // becoming a second resolver that disagrees with the server.
+    const plain = source();
+    expect(exampleDraw(bank, source({fixedBy: 'SPEAKER'}), 0)).toEqual(exampleDraw(bank, plain, 0));
+    expect(exampleDraw(bank, source({fixedBy: 'SPEAKER', skipRecordedBySpeaker: true}), 0))
+      .toEqual(exampleDraw(bank, plain, 0));
+  });
+
   it('is deterministic for a random rule and moves with the offset', () => {
     const rule = source({order: 'RANDOM'});
     expect(exampleDraw(bank, rule, 0)).toEqual(exampleDraw(bank, rule, 0));

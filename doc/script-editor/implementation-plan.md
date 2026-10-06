@@ -3674,5 +3674,32 @@ as *rules* and checked nowhere.
 **Verified** — the rule passes on the tree, and an injected `new AudioContext()` in the inspector is reported as
 `…editor-inspector.ts:904: AudioContext in the editor — audio capture belongs to the recorder (D-G)`.
 
+### 11.123 The decisions the register never named — **Done, one gap closed**
+
+§11.122 opened with "most are verified somewhere in this register", which is what the entry *hoped* rather than
+what was measured. Measured: of the table's **23** decisions, **10** are named in a §11 entry — D-A, D-E, D-G,
+D-I, D-K, D-L, D-M, D-Q, D-T and D-W — and **13** are never mentioned: D-B, D-C, D-D, D-F, D-H, D-J, D-N, D-O,
+D-P, D-R, D-S, D-U and D-V. Unmentioned is not unverified, so three were spot-checked: D-N's draft backup is
+asserted in `script-draft.service.spec.ts`, D-S's strong validator in `server/draft.test.mjs` ("create, ETag,
+428, 412, byte-preserving writes, revisions"), and D-U's determinism across the `draw`, `bank` and `deploy`
+tests.
+
+**D-J was the one with a gap, and a precise one.** Its substance is that the editor's example draw is
+"independent, labelled, and never presented as the session's draw". The example *does* ignore `fixedBy` and
+`skipRecordedBySpeaker` — but `example-draw.spec.ts` asserted only the algorithm: reserved codes, determinism,
+and that the offset moves a random rule. Nothing would have noticed the example quietly becoming a second
+resolver that disagreed with the server.
+
+**A case added** asserting the example is identical whatever the rule fixes or skips. Editor suite **487
+pass**, up one.
+
+**Still unasserted, and recorded rather than glossed**: the label itself — `editor-strings.ts`'s `exampleNote`,
+rendered in `editor-centre.html` — has no assertion. That is the shape §11.47 found for a ui-spec §9 state that
+"rode on compilation": the example's *behaviour* is now guarded, the sentence telling the speaker it is an
+example is not.
+
+**And the measurement is the useful record**: ten of twenty-three named in §11, thirteen evidenced elsewhere.
+A reader asking "where is D-S checked" now has an answer instead of an assurance.
+
 
 
