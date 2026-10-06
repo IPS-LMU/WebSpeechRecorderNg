@@ -25,7 +25,7 @@ export const EDITOR_STRINGS = {
     redo: 'Redo',
     preview: 'Preview',
     publish: 'Publish',
-    readOnlyReason: 'This milestone is read-only: saving, publishing and editing are disabled.',
+    readOnlyReason: 'Read-only: publishing, saving and editing are disabled.',
   },
 
   library: {

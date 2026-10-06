@@ -273,7 +273,7 @@ describe('AppShell', () => {
     state.draft.writesDisabled.set(true);
     state.harness.detectChanges();
     expect(publish().disabled).toBe(true);
-    expect(publish().getAttribute('title')).toBe('This milestone is read-only: saving, publishing and editing are disabled.');
+    expect(publish().getAttribute('title')).toBe('Read-only: publishing, saving and editing are disabled.');
 
     state.draft.writesDisabled.set(false);
     state.harness.detectChanges();

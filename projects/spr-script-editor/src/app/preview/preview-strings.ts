@@ -17,7 +17,7 @@ export const PREVIEW_STRINGS = {
   nothingRecorded: 'Nothing is recorded or uploaded',
   nothingRecordedBody: 'This screen only draws what the recorder would do. No microphone is opened, no session is created and no file leaves the browser.',
   dryRun: 'Open the tier-2 dry run',
-  dryRunTitle: 'M4 owns the tier-2 dry run (POST project/{p}/script/{id}/preview-session). Until then this button is disabled.',
+  buttonTitle: 'Creates a throwaway session over this script and opens the real recorder, so a draft can be driven end to end without touching a recorded session.',
   loading: 'Loading the script…',
   loadErrorPrefix: 'The script could not be loaded.',
   empty: 'This script has no items, so there is nothing to preview.',
