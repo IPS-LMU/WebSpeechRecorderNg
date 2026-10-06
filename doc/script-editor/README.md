@@ -534,7 +534,9 @@ rule).
   bar. That job also runs `bin/layout_probe.mjs` over the same session screen: it measures what a
   screenshot cannot, the instruction line against the centre of the header it sits in and which marks
   each branding slot shows, and exits non-zero when the line is more than a pixel off centre, when a
-  page has no stage, or when a page overflows its viewport. Each rule is sensitive: a `--prepare` script that injects `lightgrey` fails it naming
+  page has no stage, or when a page overflows its viewport. The respondent mirror
+  (`/spr/respondent/1`) is measured in the same run, where that line is set at the larger caption.
+  Each rule is sensitive: a `--prepare` script that injects `lightgrey` fails it naming
   `lightgrey`, a low-contrast paragraph names its ratio, 9 px text names its size, a 3000 px block
   names the scrollbar, `Arial` on a measured link names the font, and `use-dark-scheme.js` reaches the
   other scheme.
