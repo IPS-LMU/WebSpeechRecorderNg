@@ -1523,6 +1523,9 @@ other gap this work has closed, except that here the gate itself was the unguard
 
 `bin/audit/plant-violations.js` plants one violation per documented rule, and the audit job asserts
 both directions: neither audit may pass with the violations in place, and each must name what it found.
+For the accessibility audit that means nine of its rules — a nameless button, a duplicated id, an image
+without `alt`, a page without `lang`, a second `h1`, a second `main`, a positive `tabindex`, a control
+inside a control and a 17 px target — since a11y.md's own sensitivity claim named only the last of those.
 
 **Verified** as the job runs it — the block extracted from the workflow and executed by `bash` against
 a development server and Chrome: exit 0, "both audits named every planted violation", the five theme

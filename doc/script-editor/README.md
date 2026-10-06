@@ -550,10 +550,12 @@ rule).
   each branding slot shows, and exits non-zero when the line is more than a pixel off centre, when a
   page has no stage, or when a page overflows its viewport. The respondent mirror
   (`/spr/respondent/1`) is measured in the same run, where that line is set at the larger caption.
-  Each rule is sensitive and CI checks that it is: `bin/audit/plant-violations.js` plants one
-  violation per rule — a `lightgrey` div, 9 px text, a 2.96:1 paragraph, a `3000 px` block and an
-  `Arial` link — and the audit job requires the theme and accessibility audits to fail and to name
-  each one, so an audit that stops biting fails the job rather than passing quietly.
+  Each rule is sensitive and CI checks that it is: `bin/audit/plant-violations.js` plants a violation
+  for each theme rule named here — a `lightgrey` div, 9 px text, a 2.96:1 paragraph, a `3000 px` block
+  and an `Arial` link — and for nine of the accessibility rules below (a nameless button, a duplicated
+  id, an image without `alt`, a page without `lang`, a second `h1`, a second `main`, a positive
+  `tabindex`, a control inside a control and a 17 px target). The audit job requires both audits to fail
+  and to name each one, so an audit that stops biting fails the job rather than passing quietly.
   The theme audit also measures a phone width (390×844) on the screens that reflow — the editor stacks
   its columns below 820 px, the bank below 1100 px — which is how the editor's overlapping columns and
   the bank's document-level scrollbar were found (§11.14).
