@@ -1473,3 +1473,21 @@ Wiring them up therefore means a route or harness that renders `AudioRecorderCom
 development build beside a working API, and both fixtures brought up to the current hooks. That is
 coverage for screens the plan's audit list never claimed rather than a gate that came loose, so it is
 recorded as a scoping decision instead of being built here.
+
+### 11.36 The ETag verdicts the API did not use — **Done**
+
+R1's row says `server/etag.mjs` holds the strong validators and the `If-Match` verdicts —
+`missing`/`stale`/`ok`, with `*` supported. It does, and nothing called it: `server/api.mjs` compared
+the header against the stored validator itself, so `checkIfMatch` was exercised only by its own spec
+and the header forms RFC 9110 allows beyond a single exact value answered `412` as though the draft had
+changed. A sweep for exports no other file names turned it up, alongside twenty hits in upstream
+recorder code that are not this work's to touch.
+
+`requireDraftPrecondition` now takes the header's verdict from the module. A caller-supplied validator
+— the ETag a request body carries, as `_restore` does — is still compared exactly, because that is an
+internal value rather than a client header.
+
+**Verified** live against the receiver, with `server/api.mjs` stashed back to HEAD for the
+before-picture: `If-Match: *` and `If-Match: "other", <etag>` were `412` and are `200`; `If-Match:
+<etag>` was and is `200`; `If-Match: "other"` was and is `412`; a missing header was and is `428`.
+`node --test server/` is 58 pass.
