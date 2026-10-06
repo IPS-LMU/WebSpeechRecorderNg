@@ -2134,3 +2134,31 @@ file; the sample's values confirmed equal to the export's.
 **Residual:** the table describes the config class. An application's environment file may add fields,
 as the demo does; the two it adds are named rather than enumerated, because they belong to the
 application.
+
+### 11.58 A high advisory in the dependency surface — **Recorded, left for the maintainer**
+
+`npm audit --omit=dev` on this branch reports one **high** advisory: `@angular/router`
+`>=20.0.0 <20.3.32` — *Angular Server-Side Rendering (SSR): Denial of Service via Numeric URL Matrix
+Parameters* (GHSA-ff3f-86qr-9cv3). The tree declares `~20.3.31` across the framework set and resolves
+20.3.31, and the shipped library's peer range is `~20.3.30`, so both the lockfile and what a consumer
+following the peers may install admit the vulnerable patches.
+
+**Reach in this repository: none.** The advisory's path is SSR, and nothing here uses it —
+`@angular/ssr`, `@angular/platform-server`, `provideServerRendering` and `ngExpressEngine` appear
+nowhere in the two applications or the library. This is a version-range finding, not a reachable
+defect.
+
+**Why it is not fixed here.** 20.3.32 and 20.3.33 exist and npm reports `fixAvailable`, but the
+framework packages peer-pin each other *exactly* (`@angular/forms@20.3.31` demands
+`@angular/platform-browser@"20.3.31"`), and `@angular/build`/`@angular/devkit` pin them as well, so
+this is an Angular version *alignment* rather than a dependency bump. Attempting it by hand failed:
+`npm install @angular/router@~20.3.32 …` errored with ERESOLVE and left `node_modules` broken;
+`npm ci` restored it, both manifests were untouched, and the installed versions are back at 20.3.31
+(all verified). `ng update` is the tool that handles the alignment, and it accepts no `--dry-run`
+(checked), so it cannot be previewed — a maintainer's decision, and one that wants the full suites and
+the audits behind it.
+
+**Two things for that decision.** The library's peer range `~20.3.30` should move to exclude the
+vulnerable patches when the next release is cut; narrowing a peer range is consumer-visible, which is
+why it is a release decision and not a local edit. And `npm audit fix` is the documented remedy the
+repository's own OSV job exists to prompt.
