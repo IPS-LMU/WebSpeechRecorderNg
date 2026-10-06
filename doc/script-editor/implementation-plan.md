@@ -3079,3 +3079,24 @@ This is the third round running where the checker was wrong and the tree right (
 two session layouts, this one). The pattern is consistent enough to state plainly: **every sweep in this
 series has needed its blind spot hunted before its result was written down** — here, the file extension; there,
 a layout, a name form, a variable.
+
+### 11.98 The gate that could not see inline templates — **Fixed**
+
+Correcting §11.95 exposed the same blind spot in the *gate*. `editor_lint`'s rules 3, 4 and 5 — paragraph
+nesting, click handlers, literal labels — iterated `filesUnder(ROOT, name => name.endsWith('.html'))`, and six
+of the editor's components carry their templates **inline**: `preview-order-panel`, `preview-playback-panel`,
+`preview-stage-panel`, `preview-step-simulation`, `preview-tier2-panel` and `preview-transport-bar`, holding
+between them 11 click handlers, 13 bound labels and 19 paragraphs. A `(click)` on a `div`, a block inside a
+`<p>`, or a user-facing literal in any of them passed CI.
+
+**Fixed.** The three rules now run over every template *source* — each `.html` file and each inline
+`template:` string — with the inline text padded by the newlines preceding its backtick, so a report still
+names a line in the file it lives in. The rules' bodies are untouched; only the list they iterate changed.
+Rules 1 and 2 never had the gap, being text-level over `.ts` sources, which is why inline `styles:` were
+always covered.
+
+**Verified** — passing on the tree with the counters risen by exactly what the inline templates hold: click
+handlers **69 → 80**, paragraphs **125 → 144**, bound labels **72 → 85**. And sensitive: `aria-label="Probe"`
+added to `preview-tier2-panel.ts`'s template reports
+`preview/preview-tier2-panel.ts (inline template):26: aria-label="Probe" is a literal — bind it from the
+strings`, the line being the file's own 26, which is what the padding is for. Reverted.

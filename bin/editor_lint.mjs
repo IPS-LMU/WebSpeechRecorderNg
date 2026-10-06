@@ -83,9 +83,24 @@ for (const path of filesUnder(ROOT, (name) => name.endsWith('.scss') || (name.en
   }
 }
 
+// Rules 3, 4 and 5 need tag structure, so they run over every *template source*: each `.html` file and
+// each inline `template:` string in a component. Scanning `.html` alone left the preview's six inline
+// templates unchecked — 11 click handlers, 13 bound labels and 19 paragraphs — where a `(click)` on a
+// div or a user-facing literal would have passed CI. An inline template is padded with the newlines
+// that precede its backtick, so every report still names a line in the file it lives in.
+const templates = [];
 for (const path of filesUnder(ROOT, (name) => name.endsWith('.html'))) {
-  const text = readFileSync(path, 'utf8');
+  templates.push({where: relative(process.cwd(), path), text: readFileSync(path, 'utf8')});
+}
+for (const path of filesUnder(ROOT, (name) => name.endsWith('.ts') && !name.endsWith('.spec.ts'))) {
+  const source = readFileSync(path, 'utf8');
   const where = relative(process.cwd(), path);
+  for (const match of source.matchAll(/template:\s*`([\s\S]*?)`/g)) {
+    const before = source.slice(0, match.index + match[0].indexOf('`')).split('\n').length - 1;
+    templates.push({where: `${where} (inline template)`, text: '\n'.repeat(before) + match[1]});
+  }
+}
+for (const {where, text} of templates) {
 
   // 4: a block element inside <p>. The parser closes the paragraph before it, so the rendered tree
   // is not the template's and the layout drifts without anything failing.
