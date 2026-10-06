@@ -1721,3 +1721,32 @@ the same gates as the rest (README §4.4, §7).
 
 **Residual, recorded not fixed:** the text audit does not measure non-text contrast, so selection
 borders and box-shadows elsewhere are only checked where they were reasoned about here.
+
+### 11.46 Every screen audited, and every audit a screen — **Done**
+
+§11.45's defect lived in the gap between what the router *exposes* and what the audits *visit*: the
+bank + draw-rule route rendered with no interaction and no audit ever loaded it. The router is the
+ground truth for the first list; the audit lines in `.github/workflows/tests.yml` are hand-written.
+Nothing compared the two.
+
+`bin/route_check.mjs` does, statically, in both directions: every non-redirect route pattern must
+match at least one audited editor URL, and every audited editor URL must match a route. It runs as
+its own step in the editor job, before the browser-driven ones. The reverse direction matters on its
+own: a renamed route leaves an audit line pointing at a URL that renders the shell and nothing else,
+and the audit passes because there is no screen left to find faults in.
+
+**Found:** `/project/:p/draws` — the project-scoped draws view, a distinct route from the
+script-scoped one that was audited. Measured before adding it: clean in both schemes at 1366×768,
+1920×1080 and 390×844, and in a11y. So this gap was latent rather than exploited; the §11.45 one was
+not.
+
+**Verified** — the check passes on the tree as committed: "8 routed screen(s), all exercised by 9
+audited URL(s), and every audited URL is a screen." Both directions bite, proven on copies so the
+tree was untouched: pointing an audit at `/project/Demo1/script/9999/gone` reports that no route
+renders it *and* that `/project/:p/bank` lost its only audit, and renaming a route to
+`/project/:p/nowhere` reports that screen unaudited *and* the draws URL orphaned. Before this entry,
+the check reported exactly one gap: the draws route, now added to the light, dark and a11y lists
+(plan §11.45 added the rule route to the same three).
+
+**Residual:** the pattern match is segment-wise, so a route that changes only a *parameter*'s shape
+(e.g. a validator on `:groupRef`) is not distinguished — the audits cover one value per parameter.

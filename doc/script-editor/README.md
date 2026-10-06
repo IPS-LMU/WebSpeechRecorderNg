@@ -516,6 +516,13 @@ rule).
   `TEST` session cannot upload, and the deployment harness's mounts, SPA fallback and API proxy —
   `server/deploy.test.mjs` spawns it once against fixture directories. 60 tests today. Development runs it with
   `npm run serve:api -- --data /tmp/… --seed src/test`; `server/data` is gitignored.
+- **Route coverage.** `node bin/route_check.mjs` reads the router and the audited URLs in
+  `.github/workflows/tests.yml` and compares them both ways: every screen the router exposes must be
+  exercised by an audit, and every audited URL must be a screen the router renders. It is static, so
+  it needs no browser. Both directions have failed here — the bank + draw-rule route was unaudited
+  and its dark scheme was broken (§11.45), and a renamed route would leave an audit line pointing at
+  a URL that renders nothing to find faults in. It found `/project/:p/draws`, the project-scoped
+  draws view, in the first direction (plan §11.46).
 - **Theme audit.** Run the editor (or the built bundle) and drive a headless Chrome the tool can
   attach to, then audit the routes and one interaction state:
 
@@ -530,6 +537,8 @@ rule).
     --prepare bin/audit/open-draw-rule.js --viewports 1366x768,1920x1080
   node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768,1920x1080
   node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/bank/g:0:0 --viewports 1366x768,1920x1080
+  node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/draws --viewports 1366x768,1920x1080
   ```
 
   `bin/audit/*.js` are page scripts for states behind an interaction; `open-draw-rule.js` clicks the
