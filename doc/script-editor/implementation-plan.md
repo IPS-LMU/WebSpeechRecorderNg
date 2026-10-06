@@ -2499,3 +2499,23 @@ in a temporary directory since it works with relative paths:
 
 The rest of that chain is verified elsewhere — `build_module` in §11.50 and §11.60, and `npm pack` is
 npm's own — so the release path's pieces are all covered, and the list of tools nothing has run is empty.
+
+### 11.71 The root README's claims, checked — **Done**
+
+The repository's front door was the last document read only in fragments. Its checkable claims hold:
+
+- **The six endpoints it documents** — `project/{id}`, `session/{id}` (GET and PATCH), `script/{id}`,
+  `session/{id}` again and `project/{p}/session/{s}/recfile` — all answer 200 against a seeded receiver,
+  so the front door has no `draw`/`draws`-style staleness (§11.53's check, applied here).
+- **Its Configuration section** documents the *environment files* rather than a second options list —
+  which is why §11.57's table did not duplicate it — and its line "`npm run build` creates
+  `environment.prod.ts` from the sample when it is missing, so a fresh checkout builds with the sample's
+  defaults" is exactly §11.56's verified behaviour.
+- **Standalone mode** matches the code: `defaultSessionId` unset opens the picker whose catalogue comes
+  from `configurationCatalogUrl ?? 'assets/configurations.json'`, and that asset exists and is a
+  configured build asset.
+
+**One omission fixed.** The export description said the zip holds "one WAVE and one metadata file per
+recording under `recfiles/<itemcode>/`, plus `session.json`" — the code also writes a `manifest.json`
+index (`session_export.ts` says so in its own header, and `session_export.spec.ts` pins
+`recfiles/A0/A0_0.wav`, `…_1.wav` and `session.json`). The README now names it too.
