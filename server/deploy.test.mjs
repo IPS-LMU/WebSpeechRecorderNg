@@ -14,6 +14,7 @@ import {mkdtempSync, mkdirSync, writeFileSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
+import {createServer} from 'node:net';
 import {fileURLToPath} from 'node:url';
 
 const HERE = fileURLToPath(new URL('.', import.meta.url));
@@ -39,6 +40,15 @@ const waitFor = async (url, tries = 80) => {
   return false;
 };
 
+/** A free port, so two runs of this suite cannot collide over one. */
+const freePort = async () => {
+  const probe = createServer();
+  await new Promise((resolve) => probe.listen(0, '127.0.0.1', resolve));
+  const {port} = probe.address();
+  await new Promise((resolve) => probe.close(resolve));
+  return port;
+};
+
 test('the deployment harness serves both mounts, their fallback and the API', async () => {
   const root = mkdtempSync(join(tmpdir(), 'spr-deploy-'));
   const recorder = join(root, 'recorder');
@@ -46,8 +56,10 @@ test('the deployment harness serves both mounts, their fallback and the API', as
   const data = join(root, 'data');
   writeApp(recorder, 'recorder shell');
   writeApp(editor, 'editor shell');
-  const port = 8481;
-  const apiPort = 8482;
+  // Fixed ports made this flaky: a second run, or one soon after another, found 8481 or 8482 held or
+  // in TIME_WAIT and the spawn failed. Ask the OS for free ones instead.
+  const port = await freePort();
+  const apiPort = await freePort();
 
   const receiver = spawn(process.execPath, ['server/server.mjs', '--port', String(apiPort), '--data', data,
     '--seed', 'src/test', '--app', 'none', '--project', 'Demo1', '--script', 'playback', '--quiet'],
