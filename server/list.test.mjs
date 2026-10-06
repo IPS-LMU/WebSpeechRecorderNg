@@ -45,5 +45,16 @@ test('library list counts fixed and drawn items and how sessions use the version
 
     const empty = rows.find((entry) => String(entry.scriptId) === '1');
     assert.deepEqual(empty.sessions, {total: 0, started: 0, byVersion: {}});
+
+    // The recorder PATCHes a per-item replay count onto the session as it runs (M1's gate: "the
+    // count survives the take"), so a patch must round-trip through the receiver unchanged.
+    const patched = await fetch(`${base}/session/list-1`, {
+      method: 'PATCH',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify({replayLog: {P1: 2, D: 1}}),
+    });
+    assert.equal(patched.status, 200);
+    const reread = await (await fetch(`${base}/session/list-1`)).json();
+    assert.deepEqual(reread.replayLog, {P1: 2, D: 1}, 'the replay count survives the write');
   }, {seed});
 });

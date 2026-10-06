@@ -1313,3 +1313,24 @@ so a static scan cannot see them — the same reason the CDK's `cdk-drag-*` clas
 
 **Verified** — the five symbols have zero references in the tree; editor 480 specs, house-rule lint and
 both production builds green.
+
+### 11.29 Two acceptance criteria that had no test — **Done**
+
+The M1 and L4 rows both claim behaviour whose *rule* is spec'd and whose *effect* was never asserted:
+
+- **"the count survives the take"** (L3 replay): the manager does the right thing —
+  `sessionmanager.ts` keeps `replayLog`, updates it per itemcode and PATCHes the session
+  (`patchSession`, which merges the body wholesale) — but nothing asserted that the count comes back
+  out, so a receiver that whitelisted session fields would have broken it silently. `list.test.mjs`
+  now patches a session with `replayLog` and reads it back.
+- **"the recorder refuses an unsupported script at load"** (L4): the branch exists in
+  `speechrecorderng.component.ts` (status type `error`, message `spr.status.scriptVersionTooOld` with
+  both versions, waiting cleared) and `supportsRecorderVersion` has its own table, but the component's
+  spec had a single "should create". It now drives the real component twice: a floor one minor above
+  this build is refused with both versions in the message and no waiting state; a floor this build
+  meets loads with an info status.
+
+**Verified** — library 146 specs (was 144), server 58, both builds, the house-rule lint, the i18n
+guard and the audit set green. The dry run cannot press the replay control reliably (the replayable
+item sits behind a section the driver cannot enter unattended, §11.5's stated limit), which is why
+the persistence is pinned at the request level instead.
