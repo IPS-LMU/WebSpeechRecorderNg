@@ -1918,3 +1918,37 @@ they passed on aarch64.
 The first run on GitHub is still owed, and it is one push away: this branch is unpushed, `gh` is
 present with `repo` and `workflow` scopes, and the repository's Actions history holds only CodeQL and
 the OSV scanner.
+
+### 11.51 A drawn group's recordings were "orphan media" — **Done**
+
+`server/README.md` is the operational runbook, and its Maintenance block recommends
+`--gc --gc-media` to "also delete unreferenced media". Running it on a freshly seeded `src/test` tree
+reported **2 orphan media found** and removed them; the receiver then answered **404** for
+`media/std-vowel-a.wav` and `media/std-vowel-i.wav`, while `media/model-01.wav` — referenced by a
+script — survived.
+
+Those two clips are the fixture's drawn-group recordings, and they are referenced by *bank items*
+(`std-passages` items 3 and 4, `audioSrc`). `Store.resourceReferences` walked drafts, published
+versions and legacy scripts only — its own comment said "no draft or published version references" —
+so a clip a bank holds counted as unreferenced. The API's media listing shares that walk, so `usedBy`
+omitted bank holders too, and an operator following the runbook would have deleted every drawn group's
+audio with no way to notice: the groups keep working, silent.
+
+**Fixed** — `resourceReferences` also walks the banks, attributing `{bankId, bank: true}`, and does so
+for every project because a bank is not project-scoped on disk and a builtin bank's `audioSrc`
+resolves inside whichever project draws from it. The comment on `orphanMedia` and the reference
+walker's doc comment now state the scope; `server/README.md` defines "unreferenced" the same way.
+
+**Verified** — the receiver's suite is 60/60, with the orphan test extended (same test, its title
+corrected): a bank-referenced clip is not an orphan, the reference map carries
+`{bankId: 'std', bank: true}`, and `gc({media: true})` leaves the file. End to end on a fresh seeded
+tree: `--gc` reports **0** orphans, `--gc-media` removes nothing, both clips answer **200**, and the
+media listing reports `std-vowel-a.wav -> [{"bankId":"std-passages","bank":true}]`.
+
+**The runbook's Tests block was stale twice over**, and is corrected: it still carried the
+directory-form command that cannot run on the pinned Node (§11.48) and said "37 specs" for a suite of
+60, and it described CI as this job plus the library karma suite when there are six jobs.
+
+**Note, not a change:** `deleteMedia`'s `409 MEDIA_IN_USE` still triggers for *published script*
+owners only — that is the existing policy — but the `usedBy` it returns now names the bank holder, so
+the caller can see what depends on the clip.
