@@ -267,10 +267,13 @@ jobs:
             --prepare bin/audit/open-detail-view.js --viewports 1366x768
           node bin/a11y_audit.mjs --url http://127.0.0.1:8391/recorder/session/1 \
             --prepare bin/audit/open-detail-view.js --viewports 1366x768 --rules universal
-          # The error dialog too, through the recorder's own error path. Only the theme pass: with a
-          # modal open Angular Material marks the application root `aria-hidden` while its focus trap
-          # keeps Tab inside the dialog - measured, four presses all landed on the dialog's button -
-          # so the universal rule "aria-hidden but contains focusable content" cannot tell that
-          # pattern from a real violation, and firing on it here would say nothing about the dialog.
+          # The error dialog too, through the recorder's own error path. Rule 6 is skipped here and
+          # nothing else: with a modal open Angular Material marks the application root `aria-hidden`
+          # while its focus trap keeps Tab inside the dialog - measured, four presses all landed on the
+          # dialog's button - so that rule cannot tell the pattern from a real violation and would
+          # report the framework. Skipping it is written in the command, where it is visible, and every
+          # other rule runs against the dialog.
           node bin/theme_audit.mjs --url http://127.0.0.1:8391/recorder/session/1 \
             --prepare bin/audit/open-error-dialog.js --viewports 1366x768
+          node bin/a11y_audit.mjs --url http://127.0.0.1:8391/recorder/session/1 \
+            --prepare bin/audit/open-error-dialog.js --viewports 1366x768 --rules universal --except 6

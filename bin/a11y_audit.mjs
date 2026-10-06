@@ -50,6 +50,9 @@
  * `h1`" and "exactly one `main`" halves of 12 and 13), so the *recorder's* screens — the app the
  * plan extends, which predates those house rules — can be checked for the rules that hold anywhere:
  * names, labels, ids, alt, ARIA, the tree, tab order, nesting and a quiet console.
+ * `--except <n>[,<n>]` skips rules by the numbers in the list above, for a state where one of them
+ * cannot tell a legitimate pattern from a violation; the caller names the number and the reason in the
+ * command it runs, where the exemption is visible.
  */
 
 const args = process.argv.slice(2);
@@ -68,6 +71,17 @@ if (RULE_SET !== 'all' && RULE_SET !== 'universal') {
   console.error(`--rules must be "all" or "universal", not "${RULE_SET}".`);
   process.exit(2);
 }
+/**
+ * Rules to skip, by the numbers in the list above (`--except 6`). For states where a rule cannot tell
+ * a legitimate pattern from a violation — with a modal open, Angular Material marks the application
+ * root `aria-hidden` while its focus trap keeps Tab inside the dialog, so rule 6 reports the
+ * framework — and the caller says so in the command it runs, where the exemption is visible.
+ */
+const EXCEPT = new Set(opt('except', '')
+  .split(',')
+  .map((value) => Number(value.trim()))
+  .filter((number) => Number.isInteger(number) && number > 0));
+const runs = (rule) => !EXCEPT.has(rule);
 /** The editor's own house rules (ui-spec §8): skipped for screens that predate them (the recorder). */
 const HOUSE_RULES = RULE_SET === 'all';
 
@@ -443,8 +457,11 @@ for (const [width, height] of VIEWPORTS) {
   // 5: images.
   for (const image of images) failures.push(at(`${image} has no alt and is not marked decorative`));
 
-  // 6: focusable inside aria-hidden.
-  for (const host of hiddenFocusable) failures.push(at(`${host} is aria-hidden but contains focusable content`));
+  // 6: focusable inside aria-hidden. Skipped where the caller has said the state makes it ambiguous
+  // (a modal: the framework marks the root `aria-hidden` and traps focus inside the dialog).
+  if (runs(6)) {
+    for (const host of hiddenFocusable) failures.push(at(`${host} is aria-hidden but contains focusable content`));
+  }
 
   // 7: radiogroups and the tree.
   for (const group of radiogroups) {
