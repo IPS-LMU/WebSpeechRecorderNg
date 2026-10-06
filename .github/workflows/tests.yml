@@ -158,7 +158,8 @@ jobs:
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/edit --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/playback/preview --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
-          node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
+          node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js,bin/audit/open-draw-rule.js
+          node bin/theme_audit.mjs --url 'http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit?sel=g:0:0' --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js,bin/audit/open-centre-state.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/bank/g:0:0 --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js

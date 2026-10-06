@@ -41,8 +41,11 @@ const MIN_TEXT_PX = Number(opt('min-text-px', '13.6')) - 0.1;
  * Optional script evaluated in the page after load and before measuring, to reach states
  * that need interaction (overlays, dialogs). See `bin/audit/`.
  */
-const PREPARE_FILE = opt('prepare', '');
-const PREPARE_SOURCE = PREPARE_FILE ? readFileSync(PREPARE_FILE, 'utf8') : '';
+// `--prepare` takes one fixture or a comma-separated list, evaluated in order: the dark scheme *plus* a
+// state fixture (`use-dark-scheme.js,open-draw-rule.js`) is one pass, because a state the light pass opens
+// is otherwise never measured in dark.
+const PREPARE_FILES = opt('prepare', '').split(',').map((name) => name.trim()).filter((name) => name !== '');
+const PREPARE_SOURCES = PREPARE_FILES.map((file) => ({file, source: readFileSync(file, 'utf8')}));
 
 /** Colours that must not appear anywhere after the redesign. */
 const FORBIDDEN = {
@@ -315,18 +318,18 @@ for (const [width, height] of VIEWPORTS) {
   await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: URL_TO_TEST });
   await new Promise(r => setTimeout(r, 9000));
-  if (PREPARE_SOURCE) {
+  for (const {file, source} of PREPARE_SOURCES) {
     const prepared = await send('Runtime.evaluate', {
-      expression: PREPARE_SOURCE,
+      expression: source,
       awaitPromise: true,
       returnByValue: true,
     });
     if (prepared.result?.exceptionDetails) {
-      failures.push(`${width}x${height}: --prepare script failed: ${prepared.result.exceptionDetails.exception?.description || ''}`);
-    } else {
-      console.log(`  prepared(${PREPARE_FILE}): ${String(prepared.result?.result?.value ?? '').slice(0, 120)}`);
-      await new Promise(r => setTimeout(r, 1500));
+      failures.push(`${width}x${height}: --prepare ${file} failed: ${prepared.result.exceptionDetails.exception?.description || ''}`);
+      break;
     }
+    console.log(`  prepared(${file}): ${String(prepared.result?.result?.value ?? '').slice(0, 120)}`);
+    await new Promise(r => setTimeout(r, 1500));
   }
   const out = await send('Runtime.evaluate', { expression: PAGE_PROBE, returnByValue: true });
   const raw = out.result?.result?.value;

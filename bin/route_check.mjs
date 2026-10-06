@@ -70,6 +70,47 @@ for (const url of [...audited].sort()) {
   }
 }
 
+// --- the dark pass must mirror the light one ------------------------------------------------
+// The dark block's comment says "the same routes again with the opt-in dark scheme switched on", and a
+// URL alone is not enough to check that: `bank-draw/edit` is audited in both passes, but the light one
+// opens the draw-rule inspector with `open-draw-rule.js` and the dark one did not, so that state was
+// never measured in dark — the failure mode §11.45 records. Compare URL *and* fixture, with the scheme
+// fixture itself of course ignored.
+//
+// Three things this comparison must not do, each of which it did first: count the mobile-only pass (the
+// dark pass is deliberately one desktop viewport), count the `plant-*` sensitivity lines (they prove the
+// audit *fails* on a planted fault and have no dark twin), or count URLs that are not editor screens
+// (`/favicon.ico`).
+const SCHEME_FIXTURE = 'bin/audit/use-dark-scheme.js';
+const DESKTOP = '1366x768';
+const auditCalls = [];
+for (const line of workflow.split('\n')) {
+  if (!line.includes('theme_audit.mjs')) {
+    continue;
+  }
+  const url = (line.match(new RegExp(`--url '?${EDITOR_ORIGIN}([^\\s'"]*)`)) ?? [])[1] ?? '';
+  const prepare = ((line.match(/--prepare ([^\s]+)/) ?? [])[1] ?? '').split(',')
+    .map((name) => name.trim()).filter((name) => name !== '');
+  const viewports = (line.match(/--viewports ([^\s]+)/) ?? [])[1] ?? '';
+  auditCalls.push({url, prepare, viewports});
+}
+const stateOf = ({url, prepare}) => `${url}|${prepare.filter((name) => name !== SCHEME_FIXTURE).join(',')}`;
+const darkStates = new Set(auditCalls.filter((call) => call.prepare.includes(SCHEME_FIXTURE)).map(stateOf));
+for (const call of auditCalls) {
+  if (call.prepare.includes(SCHEME_FIXTURE) || !call.url.startsWith('/project/')) {
+    continue;
+  }
+  if (!call.viewports.split(',').includes(DESKTOP)) {
+    continue;
+  }
+  if (call.prepare.some((name) => name.includes('plant-'))) {
+    continue;
+  }
+  if (!darkStates.has(stateOf(call))) {
+    problems.push(`the light pass audits ${call.url}${call.prepare.length ? ' with ' + call.prepare.join(',') : ''} and no dark pass measures that state`);
+  }
+}
+
 if (problems.length) {
   console.error(`${problems.length} route/audit gap(s):`);
   for (const problem of problems) {

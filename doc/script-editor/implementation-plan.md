@@ -3364,3 +3364,35 @@ table" as I first wrote; the library declares `SPR_ROUTES` in its own module and
 application. And the audited URLs are not nine: the workflow makes 36 `theme_audit` and 26 `a11y_audit`
 invocations, most of them the same routes at several viewports, which is why counting lines proves nothing.
 
+### 11.110 The dark pass did not mirror the light one — **Fixed, with one limit stated**
+
+`route_check` ties the editor's routes to the audit URLs, but not the *schemes*. The dark block's own comment
+says "the same routes again with the opt-in dark scheme switched on", and comparing the two lists showed it
+was not: **nine** light URLs against **eight** dark, and two dark lines lacking the light pass's fixtures — so
+the **draw-rule inspector** (which light reaches with `open-draw-rule.js`) and the **drawn-group centre state**
+(`?sel=g:0:0` with `open-centre-state.js`) had never been measured in dark. That is §11.45's failure mode
+exactly: "its dark scheme was broken in seven places nobody could have seen".
+
+**Two dark lines added**, and `--prepare` now takes a comma-separated list evaluated in order — one file, or
+the dark scheme *plus* a state fixture in a single pass. The comment beside it carries the syntax, and an
+empty value still means no fixtures, so omitting the flag behaves as before.
+
+**A gate, which needed three corrections before it was right.** `route_check` now compares the *(URL, fixture)*
+pair across the two schemes — a URL alone would not catch a missing fixture, since `bank-draw/edit` appears in
+both. Run first, it flagged the mobile-only pass (the dark pass is deliberately one desktop viewport), the
+`plant-*` sensitivity lines (they prove the audit *fails* on a planted fault) and `/favicon.ico` (not an editor
+screen). All three are now filtered with the reason beside them. It passes — "8 routed screen(s), all exercised
+by 9 audited URL(s)" — and is sensitive: removing the dark centre-state line reports precisely that gap.
+
+**The limit, stated rather than glossed.** The two new audit *runs* could not be executed here. Three attempts,
+each with the editor and the CDP endpoint confirmed up by curl, ended in `ECONNREFUSED 127.0.0.1:9333` the
+moment the audit connected, and macOS headless Chrome left a zero-byte log — `about:blank` exits immediately,
+and pointing it at a real page did not help either. What *is* verified: both changed scripts pass `node
+--check`, `PREPARE_SOURCES` is the only name left, the list parses as intended (single, list, spaced, empty),
+the gate passes and fails as designed, and the workflow's shape is checked. The audit itself runs in CI on
+Linux, where §11.50 verified the job.
+
+**A difference left standing.** `a11y_audit.mjs` and `layout_probe.mjs` still take one fixture each. Nothing
+needs a list there — no dark a11y pass exists and the a11y rules are scheme-independent — so it is written
+down rather than unified into code this environment cannot run.
+
