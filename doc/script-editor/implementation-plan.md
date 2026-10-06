@@ -3333,8 +3333,13 @@ The scope note asked for five things. Each is now verified in the tree, with its
   was not expected, while the server keys its findings `${id}@${path}`. A changed path is therefore both a
   miss and an unexpected error.
 
-**One reading left open, deliberately.** "one positive and one negative draft" reads as *per id*, and only the
-positive half exists per id — `clean` is the single all-negative case. Negatives per id would test the
-boundary just outside each trigger, which is real value but not something to infer from a scope note; the
-register names it rather than inventing ten cases and calling it the plan's.
+**On "one positive and one negative draft".** Two readings were possible and the entry first left it at "open",
+which reads as an unmet requirement. Under the natural one — each id has a draft where it fires and *a* draft
+where it does not — the tree satisfies it: every id has its positive case, and `clean.checks.json` expects
+nothing at all, so it is the negative draft for every id at once. Nothing in the phrase asks for the drafts to
+be distinct per id.
+
+What does *not* exist is the stronger form: a negative *per id* aimed at the boundary just outside its own
+trigger, ten cases that would catch an over-eager check as well as a missing one. That is real value, and it
+is the owner's call rather than something to infer — but the requirement as written is met.
 
