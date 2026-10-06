@@ -473,7 +473,7 @@ rule).
   rule), the services in both API modes, the shell, and one spec per screen including a
   route-level mount through `APP_ROUTES` so an unprovided service fails here rather than at
   runtime; the library's five actions (create, import, duplicate, archive, export) assert their
-  request shapes there too. 465 specs today.
+  request shapes there too. 480 specs today.
 - **i18n guard.** `npm run validate:i18n` checks that every key of `src/assets/i18n/en.json`
   exists in every locale with a non-empty value, that every key of the library's `SPR_STRINGS` is
   overridable, and that every key the source references exists; regenerating with
