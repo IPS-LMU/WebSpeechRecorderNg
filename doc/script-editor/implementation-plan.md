@@ -1656,3 +1656,26 @@ and every path in the map exists in the packed tarball; Node's resolver against 
 answers `speechrecorderng/theme -> theme.scss`, `speechrecorderng/theme.scss -> theme.scss` and
 `speechrecorderng -> fesm2022/…`, while `speechrecorderng/lib/index.js` is still
 `ERR_PACKAGE_PATH_NOT_EXPORTED` — the error the theme would have raised before this entry existed.
+
+### 11.44 The deliverable's shape, now checked — **Done**
+
+§11.43 came out of inspecting the tarball by hand, which is the only way anything in this repository
+ever looked at it: the demo imports the library from source, so no consumer-shaped check existed. Two
+invariants catch the mistakes that cost a consumer a broken build, and both need no dependency:
+
+- every path the manifest names exists in the package — the `exports` map, all conditions of it, and
+  `main`/`module`/`types`. An `exports` map is exhaustive, so a missing file behind an entry is a
+  resolution failure at the consumer's end and a typo is a subpath nobody can import;
+- every external package the shipped bundle imports is declared as a dependency or peer. An
+  undeclared import fails at their install, not here. This one is `(none)` today: 38 import statements
+  across the bundle, seven packages, all declared.
+
+`bin/package_check.mjs` checks both; the library job runs it directly after the build, where
+`dist/speechrecorderng` exists and the version-file assert already lives.
+
+**Verified** — passing as committed ("8 promised path(s) present, 7 imported package(s) all
+declared") and sensitive in both directions: removing `tslib` from `dependencies` exits 1 with "the
+shipped bundle imports tslib, which the manifest does not declare", and pointing `./theme` at a file
+the package lacks exits 1 with "the manifest points ./theme[default] at ./theme-missing.scss, which
+the package does not contain". The job's steps run end to end here: build, "version file unchanged",
+package check, exit 0.

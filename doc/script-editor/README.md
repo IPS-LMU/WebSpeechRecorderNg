@@ -465,7 +465,10 @@ rule).
   the editor's model helpers. 146 specs today.
 - **Library package.** The same job runs `npm run build_module`: ng-packagr is the pipeline the
   recorder consumes, and it fails on a bad `public-api`, an entry point or a budget — none of which
-  karma compiles — while the version file it regenerates must match what is committed.
+  karma compiles — while the version file it regenerates must match what is committed. The job then
+  runs `node bin/package_check.mjs` over what was built: every path the manifest names exists in the
+  package, and every external import in the shipped bundle is a declared dependency or peer (plan
+  §11.44).
 - **Editor (karma).** `npm run test_editor -- --watch=false --browsers=ChromeHeadless` — the
   validation catalogue (one `describe` per id plus the shared corpus), the normaliser with
   idempotence, the JSON line tokenizer (escapes, tabs/CRLF, duplicate keys, unicode), the draft
