@@ -361,7 +361,8 @@ for (let i = 0; i < 30 && reminder === null; i++) {
 }
 if (reminder === null) failures.push('the headphone reminder never appeared for the section that asks for it');
 
-let soundPressedAt = null;
+/** Rows whose sound the driver has asked for: each asks at most once, and the check below can tell. */
+const soundAskedFor = new Set();
 let pausedAt = null;
 let cancelledOnPause = false;
 /** How long to wait between attempts to get a take started, so retries cannot fall over each other. */
@@ -432,10 +433,13 @@ const waitForRow = async (index) => {
       }
       lastPressAt = rel();
     }
-    // The operator-only item never records: ask for its sound once, then let the recorder move on.
-    if (entry.when === 'ONDEMAND' && soundPressedAt === null && rel() > 4000) {
-      soundPressedAt = rel();
-      console.log(`  t+${soundPressedAt}ms asking for the operator-only item's sound: ${await press(SOUND) ?? '(no control)'}`);
+    // An item whose sound the operator must ask for: the operator-only item, and a drawn item that
+    // plays the bank's own recording — `playBankAudio`, which the script offers as the prompt control
+    // ("Spela upp ljudet för …"). Ask once, then let the recorder move on.
+    const asksForItsSound = entry.when === 'ONDEMAND' || entry.bankAudio;
+    if (asksForItsSound && !soundAskedFor.has(index) && rel() > 4000) {
+      soundAskedFor.add(index);
+      console.log(`  t+${rel()}ms asking for item ${index + 1}'s sound: ${await press(SOUND) ?? '(no control)'}`);
       continue;
     }
     // Pause during a take must cancel a playing sound — the navigation-during-playback claim. Only
@@ -535,7 +539,7 @@ for (const [index, entry] of schedule.entries()) {
   const rowStarts = startsFor(index);
   const window = windowFor(index);
   if (entry.nonRecording) {
-    if (soundPressedAt === null) {
+    if (!soundAskedFor.has(index)) {
       failures.push(`item ${index + 1} (${entry.itemcode}) is operator-only and was never asked to play`);
     } else if (!rowStarts.length) {
       clipFailure(`item ${index + 1} (${entry.itemcode}) did not play when asked`);
