@@ -1814,6 +1814,53 @@ up `projects/speechrecorderng/src/test.ts` — Karma's bootstrap, which cannot r
 — and in that run `server/maintenance.test.mjs` fails non-deterministically (it is 6/6 alone). The
 explicit glob is the form that isolates the receiver.
 
-**Residual:** the workflow still needs its first run on GitHub. A green run is now possible rather
-than impossible, and the other five jobs remain unverified on the platform they target — the audit
-jobs need Chrome, which this container did not have.
+**Residual:** the workflow still needs its first run on GitHub. What has now been verified on Linux
+in a container (§11.49's runs): the receiver's suite, the three static checks, the library's karma
+suite (148), `build_module` and the package check, the recorder's production build, the null sink,
+the dry run, and the recorder's three theme and three a11y audits at 1366×768. Still unverified on
+the platform they target: the editor's karma suite and its production build, `bin/editor_lint.mjs`,
+the editor-route audits under the dev server, the recorder's narrow, dark and dark-a11y passes, and
+the detail-view job.
+
+### 11.49 The dry-run driver that waited for a language the runner does not use — **Done**
+
+`bin/audit/dry_run.mjs` locates the operator's controls by their labels — "Starta", "Stopp", "Nästa"
+— and reads the run's progress from the same catalogue (`SPELAR`). Those labels exist in the Swedish
+catalogue. The application defaults to Swedish, but not unconditionally: the root README's rule is "a
+stored choice wins, then a browser that prefers English or Swedish, then Swedish", so a browser
+preferring English gets the English catalogue. A CI runner's Chrome is en-US, so the app rendered
+English, no "Starta" control ever existed, and the driver spent its 30 s readiness window looking for
+one — then reported "the recorder never offered a start control — is the app served and the session
+created?", which points at the app rather than at the language. The job cannot pass on the runner.
+
+Measured in the container on the pinned Node, driving the production bundle: before anything was
+pinned, the page reported `htmlLang: en`, `navigator.language: en-US` and buttons "stop", "Fit to
+panel", "Selected" — no "Starta". With `spr.lang` pinned to `sv` it reported `htmlLang: sv`,
+"Anpassa till panelen", "Markerad", and the driver passed.
+
+Why it was invisible is §11.48's reason: the job has never run on the runner. The §11.5 record's
+figures ("2110 ms vs a window at 3378 ms … in the last run") come from a local run, where the
+browser is Swedish.
+
+**Fixed** — the driver states its own requirement instead of depending on where it runs: it pins
+`spr.lang = 'sv'` — the key the catalogue's own boot script and `use-locale-sv.js` document, and a
+stored choice beats the browser's preference — and reloads before the walk. No workflow change: the
+other fixtures do not need it, and the detail-view job's fixtures select by CSS class, not by label
+(checked).
+
+**Verified after** — a fresh Chrome profile with `spr.lang` unset, an en-US browser and the job
+unchanged: `driver exit: 0`, "Dry run passed.", 7/7 rows reached with 6 marked done,
+`session: status=COMPLETED`, and the Swedish labels in the trail. The same runs verified the job's
+other claims on Linux: `npm ci`; the recorder **production build** (the job's own proof of the app
+build); the null sink reaching `default-sink: null_out`, so the clip-relative checks were *checked*
+rather than marked unverified, which is the job's stated goal; and its six 1366×768 recorder audits
+(three theme, three a11y) all pass.
+
+**Caveat on the platform:** the container was Linux aarch64 with Chromium rather than the runner's
+x86_64 with Google Chrome, so what is verified is the code path, not the architecture. The lockfile
+does carry the x64 Linux optional deps (`@esbuild/linux-x64`, `@rollup/rollup-linux-x64-gnu`,
+`@napi-rs/nice-linux-x64-gnu`, `@parcel/watcher-linux-x64-glibc`), which is what the common
+install failure turns on.
+
+**Residual:** the root cause is shared by every job — none has run on the platform it targets — and
+the driver's Swedish labels stay as they are now that the language is pinned.
