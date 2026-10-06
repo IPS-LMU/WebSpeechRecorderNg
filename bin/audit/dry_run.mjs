@@ -383,6 +383,27 @@ const waitForRow = async (index) => {
   while (rel() < deadline) {
     const current = await state();
     await collect(current);
+    // Pause during a take must cancel a playing sound — the navigation-during-playback claim. Checked
+    // before the press block below so the loop passes here on every iteration; the press block spends
+    // the next PRESS_INTERVAL_MS on its own attempts and would hide a short-lived window. (As it
+    // happens the recorder never enables the control, so this is a standing check, not a race.)
+    const clipPlaying = timeline.some((entry2) => entry2.kind === 'start' && rel() - entry2.t < 1500);
+    const recordingNow = current.status.toUpperCase().includes('SPELAR');
+    const pauseEnabled = await evaluate(`!!Array.from(document.querySelectorAll('button')).find((b) => ${PAUSE}.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled)`);
+    if (pausedAt === null && recordingNow && clipPlaying && pauseEnabled === true) {
+      pausedAt = rel();
+      const clicked = await press(PAUSE);
+      console.log(`  t+${pausedAt}ms pausing while the sound plays: ${clicked ?? '(no control)'}`);
+      const stopsBefore = timeline.filter((entry2) => entry2.kind === 'stop').length;
+      const stopDeadline = rel() + 2500;
+      while (rel() < stopDeadline && !cancelledOnPause) {
+        await sleep(150);
+        await collect(await state());
+        cancelledOnPause = timeline.filter((entry2) => entry2.kind === 'stop').length > stopsBefore;
+      }
+      console.log(`     sound cancelled by the pause: ${cancelledOnPause}`);
+      continue;
+    }
     const completed = doneCount(current);
     // The recorder marks a row done with a `done` icon. A non-recording item never gets one - it has
     // no take to mark - so its evidence is the app moving on and leaving the row's marker behind.
@@ -467,25 +488,6 @@ const waitForRow = async (index) => {
     if (asksForItsSound && !soundAskedFor.has(index) && asksNow) {
       soundAskedFor.add(index);
       console.log(`  t+${rel()}ms asking for item ${index + 1}'s sound: ${await press(SOUND) ?? '(no control)'}`);
-      continue;
-    }
-    // Pause during a take must cancel a playing sound — the navigation-during-playback claim. Only
-    // attempt it while a clip is actually playing and the pause control is enabled; otherwise wait
-    // for a better moment rather than burning the one attempt.
-    const clipPlaying = timeline.some((entry2) => entry2.kind === 'start' && rel() - entry2.t < 1500);
-    const pauseEnabled = await evaluate(`!!Array.from(document.querySelectorAll('button')).find((b) => ${PAUSE}.test((b.textContent || '') + ' ' + (b.title || '') + ' ' + (b.getAttribute('aria-label') || '')) && !b.disabled)`);
-    if (pausedAt === null && isRecording && clipPlaying && pauseEnabled === true) {
-      pausedAt = rel();
-      const clicked = await press(PAUSE);
-      console.log(`  t+${pausedAt}ms pausing while the sound plays: ${clicked ?? '(no control)'}`);
-      const stopsBefore = timeline.filter((entry2) => entry2.kind === 'stop').length;
-      const stopDeadline = rel() + 2500;
-      while (rel() < stopDeadline && !cancelledOnPause) {
-        await sleep(150);
-        await collect(await state());
-        cancelledOnPause = timeline.filter((entry2) => entry2.kind === 'stop').length > stopsBefore;
-      }
-      console.log(`     sound cancelled by the pause: ${cancelledOnPause}`);
       continue;
     }
     await sleep(250);
@@ -595,10 +597,11 @@ if (drawnEntries.length === 0) {
   clipFailure('the drawn items never played their own bank recordings');
 }
 if (!cancelledOnPause) {
-  // The clip is about a second long and the controls are phase-dependent, so a race here is a
-  // limitation of the driver: report it and leave the claim to the manual pass (the plan's M1 gate
-  // lists navigation-during-playback as manual).
-  console.log('note: the pause did not land inside a playing clip this run — see the manual step');
+  // Not a race this driver keeps losing: the recorder leaves its pause control disabled - the action
+  // is never enabled and its `onAction` wiring is commented out in `audiorecorder.ts` (`pauseAction
+  // .disabled = true`), measured as `Paus (P) OFF` while a take was running. The pause-during-
+  // playback claim is therefore exercised by the L3 specs, which call the manager directly.
+  console.log('note: the pause control is disabled in the recorder itself, so the pause-during-playback claim is the L3 specs\' to keep — see the manual step');
 }
 
 const short = (url) => (url === null ? '-' : url.split('/').pop().split('?')[0]);
