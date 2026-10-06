@@ -17,8 +17,8 @@ export interface SessionExportEncoding {
  *
  * The session keeps every take's audio client side (`items.setSprRecFileAudioData`), so the
  * export works in a standalone install where nothing was uploaded to a server: each recording
- * becomes a WAVE file and a metadata file under `recfiles/<itemcode>/`, next to `session.json`
- * and a `manifest.json` index. A recording whose audio is not held client side (NET_CHUNKED —
+ * becomes a WAVE file and a metadata file under `recfiles/<itemcode>/`, next to `session.json`.
+ * A recording whose audio is not held client side (NET_CHUNKED —
  * it lives on the server already) is skipped, not faked.
  */
 @Injectable()

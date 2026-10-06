@@ -37,6 +37,7 @@ describe('SessionExportService', () => {
     const archive = new Uint8Array(await blob!.arrayBuffer());
     const names = new TextDecoder('latin1').decode(archive);
     expect(names.indexOf('recfiles/A0/A0_0.wav')).toBeGreaterThan(-1);
+    expect(names.indexOf('recfiles/A0/A0_0.json')).toBeGreaterThan(-1);
     expect(names.indexOf('recfiles/A0/A0_1.wav')).toBeGreaterThan(-1);
     expect(names.indexOf('session.json')).toBeGreaterThan(-1);
   });

@@ -717,8 +717,8 @@ action goes straight to that session.
 
 When `enableDownloadRecordings` is on, the completion dialog offers **Export recordings**: every
 recording the session holds client side is packed into a zip — one WAVE and one metadata file per
-recording under `recfiles/<itemcode>/`, plus `session.json` and a `manifest.json` index — and
-downloaded. That is how a standalone install gets its recordings out without a server.
+recording under `recfiles/<itemcode>/`, plus `session.json` — and downloaded. That is how a
+standalone install gets its recordings out without a server.
 
 The app will automatically reload if you change any of the source files.
 

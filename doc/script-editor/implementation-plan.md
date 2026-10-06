@@ -2523,10 +2523,11 @@ The repository's front door was the last document read only in fragments. Its ch
   from `configurationCatalogUrl ?? 'assets/configurations.json'`, and that asset exists and is a
   configured build asset.
 
-**One omission fixed.** The export description said the zip holds "one WAVE and one metadata file per
-recording under `recfiles/<itemcode>/`, plus `session.json`" — the code also writes a `manifest.json`
-index (`session_export.ts` says so in its own header, and `session_export.spec.ts` pins
-`recfiles/A0/A0_0.wav`, `…_1.wav` and `session.json`). The README now names it too.
+**One "omission" that was mine, not the code's.** I read `session_export.ts`'s header, which promised a
+`manifest.json` index, and added it to the README as a chip I believed the code wrote. It does not: the
+export adds exactly `${base}.wav`, `${base}.json` and `session.json` (lines 60, 61, 70), and the header
+comment was stale. Reverted in §11.88, which also corrects that comment — and this is the one entry in
+§11 where the defect was introduced by the check rather than found by it.
 
 ### 11.72 The residue, enumerated — **Done**
 
@@ -2887,3 +2888,26 @@ checker, not the tree, was wrong.
 **Nothing was changed.** The convention holds everywhere it applies, so a lint rule ("every HTTP call in
 these sources passes `withCredentials`, directly or through its options object") would be *hardening*
 rather than a fix. Recorded here so the option is visible rather than taken unasked.
+
+### 11.88 The manifest that never existed, and the metadata file nothing asserted — **Fixed**
+
+Closing a loop from §11.71, which added a `manifest.json` index to the README's export description because
+`session_export.ts`'s header promised one. Checking whether a spec backed that claim showed the opposite:
+no spec mentions `manifest.json`, and neither does the source outside that comment. The export adds exactly
+three things — `${base}.wav` and `${base}.json` per recording, and `session.json` (lines 60, 61, 70). The
+comment was stale, and the README sentence I built on it was false for anyone who opened the zip.
+
+**Fixed**: the README is back to its wording before §11.71, and the stale comment now stops at "next to
+`session.json`".
+
+**And the loop closed the other way.** Reading the spec's assertions in order to check the manifest showed
+that `session.json` and both `.wav` files are pinned but the **metadata file** — half of what the comment
+promises, "a WAVE file and a metadata file" — was not. It now is: `recfiles/A0/A0_0.json`, asserted beside
+its `.wav`, which passes and so records that the export really writes it.
+
+**Verified** — the library suite is **148 SUCCESS** with the new assertion, and `manifest` appears zero
+times in both the README and `session_export.ts`.
+
+**The lesson is the series' own, inverted.** Every previous round here found the tree wrong and the checker
+right; this one is the reverse. Only comparing the claim against the *code* — rather than against the
+comment that described it — caught it, which is why §11.71's shortcut was wrong to take.
