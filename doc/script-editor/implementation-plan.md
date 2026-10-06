@@ -2843,3 +2843,29 @@ passes, click handlers 65 → 69.
 list, and these buttons appear only after a click. They reuse the exact class and structure of buttons that
 route already passes, and the specs render and query them; a `bin/audit` fixture for the confirm state is
 the roadmap item if the owner wants it measured rather than inherited.
+
+### 11.86 Every house rule, and what enforces it — **Done**
+
+ui-spec §1 lists five house rules, and a rule stated without an enforcer is exactly how §11.85's violation
+survived — so each was matched to its checker.
+
+| ui-spec rule | enforced by |
+|---|---|
+| colours from `--spr-*` tokens, no literals | `editor_lint` rule 2 (291 colours) |
+| targets ≥ 44 px, `--spr-type-*` scale | audit **rule 10** — which names the house rule — and `editor_lint` rule 1 |
+| real controls, never a click on a `div`; `<input>` with `<label>` | `editor_lint` rule 4, plus audit **rule 2** (a label per form control) and **rule 9** (the a11y tree: no nameless button, link or textbox) |
+| destructive actions: undo, or ask first | **§11.85's specs** — the rule had no enforcer at all before it |
+| deep-linkable, surviving a reload | mount-at-URL specs on all four screens |
+
+**Rule 4 is the instructive one.** Its first half has three checkers; its second half — "asks first" — is
+neither a text property (what the lint reads) nor a rendered one (what the audit measures), so nothing
+looked at it. §11.85's rewritten specs are now its enforcer.
+
+**Rule 3's `<label>` half, swept by hand, is clean**: 62 `<input>`s across 21 templates, all labelled. The
+filter form pairs a bound `[attr.for]` with a bound `[attr.id]`, and the two `type="file"` inputs are
+`hidden`. The sweep missed the five bound pairs at first because my extractor followed only literal
+`for="…"` — the fifth time in this series that the checker, not the tree, was wrong.
+
+**Rule 5's read direction** is covered on every screen: `editor-screen.spec.ts` mounts `?sel=` and says so
+in its own comment ("the four inspector variants the deep link chooses"), `script-preview.spec.ts` mounts
+`?item=`, and the draws and bank specs mount their URLs through `RouterTestingHarness`.
