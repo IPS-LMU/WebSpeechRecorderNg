@@ -1465,14 +1465,20 @@ harness that mounts it).
 
 The error dialog is closer to reachable — its page does render `app-sprrecordingsession` — but the
 fixture calls `error(...)` on that component and the recorder's error path lives on the session
-manager, so its hook has drifted too. Both fixtures also need a development build for `window.ng`,
-and the development server here serves no API (`/api/v1/session/1` answers `500`), so neither page is
-a clean surface for an accessibility audit as it stands.
+manager, so its hook has drifted too.
 
-Wiring them up therefore means a route or harness that renders `AudioRecorderComponent`, a
-development build beside a working API, and both fixtures brought up to the current hooks. That is
-coverage for screens the plan's audit list never claimed rather than a gate that came loose, so it is
-recorded as a scoping decision instead of being built here.
+Both fixtures need a development build for `window.ng`, and that prerequisite is now known to be
+satisfiable: built with `ng build --configuration development` and served by the receiver, the page
+has `window.ng` on all three routes and the API answers, so the earlier confound (a development
+server with no API, answering `500`) is gone. Re-measured in exactly that setup, the component is
+still absent: `/spr/session/1` renders only `app-sprrecordingsession`, and `/spr/recorder/session/1`
+falls through to the start page as before. The pane's own component is the thing to provide, not the
+build.
+
+Wiring them up therefore means a route or harness that renders `AudioRecorderComponent`, a job that
+serves a development build beside a working API, and both fixtures brought up to the current hooks.
+That is coverage for screens the plan's audit list never claimed rather than a gate that came loose,
+so it is recorded as a scoping decision instead of being built here.
 
 ### 11.36 The ETag verdicts the API did not use — **Done**
 
