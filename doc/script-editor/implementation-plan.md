@@ -1895,6 +1895,15 @@ write, so `GET …/session/1` answers **500** with `EACCES … script/sess-1.jso
 a degraded page; the fixtures then fail with messages about the dev API and missing components that
 point nowhere near the cause. Run every step of a reproduction as one user.
 
-**Caveat:** the container was Linux aarch64 with Chromium, not the runner's x86_64 with Google Chrome —
-the code paths are verified, not the architecture. The lockfile does carry the x64 Linux optional deps,
-which is what the common install failure turns on. The first run on GitHub is still owed.
+**Platform, both dimensions.** Each job's code path was verified on Linux (aarch64). The architecture
+dimension was then checked on **x86_64** — the runner's — under emulation: the receiver's suite 60/60,
+`npm ci` 571 entries with all four x64 native binaries present (`@esbuild/linux-x64`,
+`@rollup/rollup-linux-x64-gnu`, `@napi-rs/nice-linux-x64-gnu`, `@parcel/watcher-linux-x64-glibc`), and
+`build_editor` producing the same 500.31 kB / 136.08 kB bundle as on aarch64. That converts the one
+remaining static claim — the lockfile carries the x64 optional deps — into an observation. Not
+exercised on x86_64: the browser suites (karma and the audits); Chrome is the same code either way and
+they passed on aarch64.
+
+The first run on GitHub is still owed, and it is one push away: this branch is unpushed, `gh` is
+present with `repo` and `workflow` scopes, and the repository's Actions history holds only CodeQL and
+the OSV scanner.
