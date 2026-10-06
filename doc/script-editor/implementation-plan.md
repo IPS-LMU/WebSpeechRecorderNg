@@ -1634,3 +1634,25 @@ a release is not a push. It works: `Moved: speechrecorderng-3.11.26.tgz`, exit 0
 
 **Verified** in three states: no tarball → exit 1 listing what `dist/speechrecorderng` holds; no build
 output → exit 1 with "run `npm run build_module` first"; the documented command → exit 0 with the move.
+
+### 11.43 The theme the package documented and did not export — **Done**
+
+Inspecting the packed tarball — the deliverable, which nothing in this repository consumes, because the
+demo imports the library from source — turned up a contradiction inside it. The README shipped in the
+tarball tells consumers to write `@use 'speechrecorderng/theme' as spr;`, and ng-packagr's generated
+`exports` map listed only `.` and `./package.json`. An `exports` map is exhaustive: every subpath it does
+not name is unreachable. Plain dart-sass resolves by file lookup, so the instruction always worked there,
+which is why nobody noticed; `sass-loader` and Vite resolve through Node, where it answers
+`ERR_PACKAGE_PATH_NOT_EXPORTED`.
+
+`projects/speechrecorderng/package.json` now declares the map — `.`, `./package.json`, `./theme` and
+`./theme.scss`, the last two pointing at the shipped `theme.scss` with a `sass` condition — so the theme
+is a subpath of the package rather than a file that happens to sit in it. ng-packagr merges a source
+`exports` and passes it through to the tarball, once the entries are in the object form it expects
+(`Cannot create property 'default' on string './package.json'` is what a string entry gets you).
+
+**Verified** — the generated manifest carries `./theme -> {sass: ./theme.scss, default: ./theme.scss}`
+and every path in the map exists in the packed tarball; Node's resolver against the installed package
+answers `speechrecorderng/theme -> theme.scss`, `speechrecorderng/theme.scss -> theme.scss` and
+`speechrecorderng -> fesm2022/…`, while `speechrecorderng/lib/index.js` is still
+`ERR_PACKAGE_PATH_NOT_EXPORTED` — the error the theme would have raised before this entry existed.
