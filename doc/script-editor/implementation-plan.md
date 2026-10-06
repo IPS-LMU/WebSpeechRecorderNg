@@ -3478,3 +3478,25 @@ stack — so "every route at phone width" is not a rule to enforce. What is reco
 additions: a screen a fix was *about* belongs in the pass that would catch its regression, at the width it
 broke at.
 
+### 11.114 The audit matrices, both projects — **Done**
+
+With the editor's coverage family closed (§11.109–§11.113), the same question for the recorder. Its job audits
+three screens — `/`, `/spr/session/1`, `/spr/respondent/1` — in **eight** combinations: light desktop, dark and
+phone, each with a theme *and* an accessibility pass, plus `/recorder/session/1` in both. Uniform, and the
+tidiest part of the workflow.
+
+**The editor's is partial, deliberately.** Its theme pass runs 26 calls — light desktop, dark and phone — and
+its accessibility pass 15, of which two use the dark fixture (`script` and `bank-draw/draws`) and three run at
+phone width. That darkness sample is defensible for the reason §11.110 gives: the a11y rules are
+scheme-independent, because the markup does not change with the scheme, only the tokens. Two screens' worth is
+a sample, not a gap.
+
+**And two of my own claims this round were wrong, both caught by measuring rather than reasoning.** I said the
+editor's a11y had *no* dark pass — it has two. And I was about to record that the editor "lags" the recorder
+before counting showed each is thorough in its own terms, and that my first summary had double-counted the
+phone runs as light because the categories overlap by construction.
+
+Recorded because the comparison is the useful artifact: a reader asking "how much does the audit cover" now has
+both matrices, and knows which parts are deliberate rather than missing.
+
+
