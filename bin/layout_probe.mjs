@@ -25,9 +25,16 @@
  *   node bin/layout_probe.mjs --browser safari --url ... --mirror ...
  *
  * Exits non-zero when the instruction line sits further from the header's centre than
- * `--tolerance` px, when a page reports no stage, or when the status line does not fit. A page that
- * overflows its viewport is `bin/theme_audit.mjs`'s check (`document scrolls`), not this one's.
+ * `--tolerance` px, when a page reports no stage, when the status line's content is wider than its
+ * own box, or when the root overflows horizontally. A page that overflows *vertically* is
+ * `bin/theme_audit.mjs`'s check (`document scrolls`), not this one's.
+ *
+ * `--prepare <file>` runs a page script once the page has settled and before anything is measured —
+ * the same fixture mechanism the audits use, and the way the three failure modes are induced
+ * (`bin/audit/plant-status-overflow.js` for the third).
  */
+import {readFileSync} from 'node:fs';
+
 const args = process.argv.slice(2);
 const opt = (name, fallback) => {
   const i = args.indexOf('--' + name);
@@ -42,6 +49,10 @@ const PORT = Number(opt('port', BROWSER === 'safari' ? '4459' : '9333'));
 /** The demo's current item carries no instruction string; write one before measuring geometry. */
 const TEXT = opt('text', '1/21: Please answer:');
 const TOLERANCE = Number(opt('tolerance', '1'));
+// A page script, run once the page has settled and before anything is measured — the audits' fixture
+// mechanism, so a state behind an interaction can be measured and a drifted fixture fails loudly.
+const PREPARE_FILE = opt('prepare', '');
+const PREPARE_SOURCE = PREPARE_FILE ? readFileSync(PREPARE_FILE, 'utf8') : '';
 const SETTLE = Number(opt('settle', '7000'));
 const AS_JSON = args.includes('--json');
 
@@ -79,6 +90,11 @@ return JSON.stringify({
   textOffsetFromHeaderCentre: +((text.y + text.height / 2) - (headerBox.y + headerBox.height / 2)).toFixed(2),
   labelLeftMinusStageLeft: stage ? +(label.getBoundingClientRect().x - stage.getBoundingClientRect().x).toFixed(1) : null,
   statusX: status ? +status.getBoundingClientRect().x.toFixed(1) : null,
+  // The third failure mode its header promises: the status line's own content wider than its box, so
+  // the operator cannot read it. The "fits" value above is a different question — the root's
+  // horizontal overflow — and conflating the two is how the header came to describe a check that was
+  // never implemented.
+  statusFits: status ? status.scrollWidth <= status.clientWidth + 1 : true,
   slots: [...document.querySelectorAll('spr-logos')].map((slot) => ({
     classes: slot.className || '(plain)',
     display: getComputedStyle(slot).display,
@@ -117,6 +133,16 @@ async function chromeTransport(port) {
       return {
         async measure() {
           await sleep(SETTLE);
+          if (PREPARE_SOURCE) {
+            const prepared = await send('Runtime.evaluate', {
+              expression: PREPARE_SOURCE, awaitPromise: true, returnByValue: true,
+            });
+            const failure = prepared.result?.exceptionDetails?.exception?.description;
+            if (failure) {
+              throw new Error(`--prepare script failed: ${failure}`);
+            }
+            console.log(`  prepared(${PREPARE_FILE}): ${String(prepared.result?.result?.value ?? '').slice(0, 120)}`);
+          }
           const out = await send('Runtime.evaluate', {expression: `(() => {${MEASURE}})()`, returnByValue: true});
           const value = out.result?.result?.value;
           if (typeof value !== 'string') throw new Error('probe returned nothing: ' + JSON.stringify(out.result).slice(0, 200));
@@ -168,6 +194,13 @@ async function webdriverTransport(port) {
       return {
         async measure() {
           await sleep(SETTLE);
+          if (PREPARE_SOURCE) {
+            const prepared = await cmd('POST', `/session/${session}/execute/async`, {script: PREPARE_SOURCE, args: []});
+            if (prepared.value && prepared.value.error) {
+              throw new Error(`--prepare script failed: ${prepared.value.error}`);
+            }
+            console.log(`  prepared(${PREPARE_FILE}): ${String(prepared.value ?? '').slice(0, 120)}`);
+          }
           const out = await cmd('POST', `/session/${session}/execute/sync`, {script: MEASURE, args: []});
           if (typeof out.value !== 'string') throw new Error('probe returned nothing: ' + JSON.stringify(out).slice(0, 200));
           return JSON.parse(out.value);
@@ -209,12 +242,13 @@ if (AS_JSON) {
       const marks = slot.marks.length ? slot.marks.join(', ') : '(none shown)';
       console.log(`  ${slot.classes} display=${slot.display} x=${slot.box.x} ${marks}`);
     }
-    console.log(`  status x=${m.statusX}  fits=${m.fits}`);
+    console.log(`  status x=${m.statusX}  fits=${m.fits}  statusFits=${m.statusFits}`);
   }
 }
 
 const failures = measurements.filter((m) => m.state
   || !m.fits
+  || !m.statusFits
   || !Number.isFinite(m.textOffsetFromHeaderCentre)
   || Math.abs(m.textOffsetFromHeaderCentre) > TOLERANCE);
 if (failures.length) {
@@ -222,7 +256,7 @@ if (failures.length) {
   for (const m of failures) {
     console.error(m.state
       ? `  ${m.url}: ${m.state}`
-      : `  ${m.url} @${m.viewport[0]}x${m.viewport[1]}: text ${m.textOffsetFromHeaderCentre}px from the header centre (tolerance ${TOLERANCE}), fits=${m.fits}`);
+      : `  ${m.url} @${m.viewport[0]}x${m.viewport[1]}: text ${m.textOffsetFromHeaderCentre}px from the header centre (tolerance ${TOLERANCE}), fits=${m.fits}, statusFits=${m.statusFits}`);
   }
   process.exitCode = 1;
 } else {

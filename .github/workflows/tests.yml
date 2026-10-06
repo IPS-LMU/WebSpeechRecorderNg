@@ -314,10 +314,10 @@ jobs:
           # beyond a pixel, when a page has no stage, or when the status line does not fit. The
           # respondent mirror is measured too, where the same line is set at the larger caption.
           node bin/layout_probe.mjs --url http://127.0.0.1:8391/spr/session/1 --mirror http://127.0.0.1:8391/spr/respondent/1 --viewports 1568x986,1280x800
-          # The probe's two reachable failure modes, so the tool cannot stop biting: a page with no
-          # stage must be reported as such - it used to crash on one, building its log line from a
-          # viewport that a state report does not carry - and a line off the centre must fail at zero
-          # tolerance. The third mode, a status line that does not fit, is implemented but not induced.
+          # The probe's three failure modes, so the tool cannot stop biting: a page with no stage must be
+          # reported as such - it used to crash on one, building its log line from a viewport that a
+          # state report does not carry - a line off the centre must fail at zero tolerance, and a status
+          # line whose content is wider than its box must be named. The first two need no fixture.
           nopage_out=$(node bin/layout_probe.mjs --url http://127.0.0.1:8391/recorder/session/1 --viewports 1568x986 2>&1) \
             && nopage_status=0 || nopage_status=$?
           if [ "${nopage_status:-0}" = "0" ]; then
@@ -332,7 +332,15 @@ jobs:
           fi
           echo "$tight_out" | grep -qF 'outside tolerance' || {
             echo "the probe did not report the off-centre line"; echo "$tight_out"; exit 1; }
-          echo "the layout probe reports both reachable failure modes"
+          status_out=$(node bin/layout_probe.mjs --url http://127.0.0.1:8391/spr/session/1 \
+            --prepare bin/audit/plant-status-overflow.js --viewports 1568x986 2>&1) \
+            && status_status=0 || status_status=$?
+          if [ "${status_status:-0}" = "0" ]; then
+            echo "the probe passed a status line wider than its box"; echo "$status_out"; exit 1
+          fi
+          echo "$status_out" | grep -qF 'statusFits=false' || {
+            echo "the probe did not report the unreadable status line"; echo "$status_out"; exit 1; }
+          echo "the layout probe reports all three failure modes"
 
   detail-view:
     name: Recorder detail view (development build, Chrome)
