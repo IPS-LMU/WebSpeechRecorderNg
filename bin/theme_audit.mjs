@@ -198,7 +198,12 @@ const PAGE_PROBE = `(() => {
           : el.getAttribute('aria-invalid') === 'true' ? 'aria-invalid' : '';
         if (aria) return aria;
         const classes = typeof el.className === 'string' ? el.className.split(/\\s+/) : [];
-        return classes.find(c => /^(selected|current|active|checked|is-[a-z][a-z-]*)$/.test(c)) || '';
+        // "active" is deliberately absent: it means a selection in the editor (.group.active) but a
+        // layout flag in the recorder (.collapsable.active is !audioSignalCollapsed && !screenXs,
+        // which is expanded/collapsed, not a state a boundary has to identify). Including it made the
+        // detail-view job fail on a pane whose border is decorative; the two meanings cannot be told
+        // apart from the class name, so only the unambiguous signals are used (§11.62).
+        return classes.find(c => /^(selected|current|checked|is-[a-z][a-z-]*)$/.test(c)) || '';
       })(),
       boundaries: (() => {
         const out = [];
