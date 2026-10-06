@@ -3384,7 +3384,9 @@ both. Run first, it flagged the mobile-only pass (the dark pass is deliberately 
 screen). All three are now filtered with the reason beside them. It passes — "8 routed screen(s), all exercised
 by 9 audited URL(s)" — and is sensitive: removing the dark centre-state line reports precisely that gap.
 
-**The limit, stated rather than glossed.** The two new audit *runs* could not be executed here. Three attempts,
+**The limit, stated rather than glossed** — and removed in §11.111, which found the mechanism: `bash`'s `ready`
+parameter registers a *service*, and a service survives between calls, which backgrounded subshells do not.
+The two new audit *runs* could not be executed at the time this entry was written. Three attempts,
 each with the editor and the CDP endpoint confirmed up by curl, ended in `ECONNREFUSED 127.0.0.1:9333` the
 moment the audit connected, and macOS headless Chrome left a zero-byte log — `about:blank` exits immediately,
 and pointing it at a real page did not help either. What *is* verified: both changed scripts pass `node
@@ -3395,4 +3397,33 @@ Linux, where §11.50 verified the job.
 **A difference left standing.** `a11y_audit.mjs` and `layout_probe.mjs` still take one fixture each. Nothing
 needs a list there — no dark a11y pass exists and the a11y rules are scheme-independent — so it is written
 down rather than unified into code this environment cannot run.
+
+### 11.111 The dark pass earned its keep: three contrast failures — **Fixed**
+
+§11.110 added the two dark lines and a gate for them, then could not *run* the audits — the limit it recorded.
+That limit is gone now: `bash`'s `ready` parameter registers a **service**, and a service survives between
+calls, which is what my backgrounded subshells had never done. With the editor and headless Chrome running that
+way, both new passes ran.
+
+**The first failed three times over** — which is the whole point of having added it:
+
+- `a "Open the bank screen" contrast 1.72:1 < 4.5:1` — the centre's link. `editor-centre.scss` coloured every
+  `a` with `var(--spr-primary)`, while the global rule in `main.scss` says why not, in its own comment: "the
+  dark scheme's 4.5:1 is not something a browser default can know". It now reads `var(--spr-link)`, whose dark
+  step is `#9CC0F0`.
+- `span.severity "warning"` and `span.severity "note"` at **1.34:1** — the inspector's findings chips.
+  `.severity` set `color: var(--spr-chrome-ink)` on `background: var(--spr-ink-muted)`, and the tokens state
+  what each is for: `spr-chrome-ink` is "9.60:1 **on chrome**", `spr-ink-muted` is "6.19:1 **on surface**" —
+  text rated *against* a surface, used here *as* the surface. In dark both steps are light, hence light on
+  light. It now uses the pair the checks panel's own `.chip` renders, `--spr-ink-strong` on `--spr-surface-3`.
+
+**Verified** — both previously failing states report "Theme audit passed" in dark; the editor suite is
+**486 pass**; the lint and `route_check` pass.
+
+**And the light scheme is provably unchanged.** `spr-link`'s *light* step is `p.$umu-blue`, and
+`_palette.scss` gives `$umu-blue: #2A4765` — the very colour the centre's rule hardcoded, so that half is a
+no-op in light. The chip's new pair is the one the checks panel already renders in both schemes.
+
+**One limit for this round**: later audit invocations printed nothing, the dev server having gone quiet after
+the first passes; the two fixed states and their light twins had already reported by then.
 
