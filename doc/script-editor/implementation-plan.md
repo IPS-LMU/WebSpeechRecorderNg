@@ -2610,3 +2610,20 @@ declaration are prose statuses (`Proven`, `Verified`), Angular and tsconfig keys
 The general form of that second one is now checked too: every symbol the plan records as deleted is
 cited only where its deletion is recorded — exactly one exception, the one above. D10's "M0 doc fixes"
 also landed: the editor's README no longer names `BankService`/`DrawService`.
+
+### 11.76 The plan's numbers, counted — **Done**
+
+Sweeping names left the numbers. The countable current-state claims hold: the corpus is **nine**
+`doc/script-editor/checks/*.checks.json` files; the catalogue's ids are `errors.ts` E01–E11,
+`warnings.ts` W01–W13 and `notes.ts` N01–N06, and the **set in code equals the set in the table** — no
+gap inside a range, nothing extra; and "six jobs" is `server`, `library`, `editor`, `audit`, `dry-run`
+and `detail-view`.
+
+**One of them looks wrong at a glance and is exactly right.** The V1 row's "Specs: **109**" does not
+match a count of `it(` over `core/validation/**`, which gives 84. Its scope is `validation/**` *plus*
+`app/core/normalise.ts`, so: `validation/` holds 84 static `it(` lines, but `corpus.spec.ts` has one
+line whose loop runs over `CORPUS_FILES`' **nine** entries — runtime 84 − 1 + 9 = 92 — and
+`normalise.spec.ts` adds **17**, giving **109**. Written out here so nobody "corrects" it to 84.
+
+The editor suite is **481** today; the Gate row's "480 pass" is stamped "at this revision", so the two
+are history and current state respectively, not a disagreement.
