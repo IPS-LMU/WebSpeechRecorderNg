@@ -60,4 +60,6 @@ export const CORPUS_FILES = [
   'negative-timing',
   'playback-bounds',
   'playback-without-audio',
+  'bank-count-cap',
+  'bank-prefix-across-sections',
 ] as const;

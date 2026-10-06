@@ -15,14 +15,17 @@ const CORPUS_DIR = fileURLToPath(new URL('../doc/script-editor/checks', import.m
 const key = (finding) => `${finding.id}@${finding.path}`;
 
 test('every corpus case matches the server catalogue', () => {
-  const files = readdirSync(CORPUS_DIR).filter((name) => name.endsWith('.checks.json')).sort();
+  const files = readdirSync(CORPUS_DIR).filter((name) => name.endsWith('.checks.json'));
   // The file *set* is part of the contract: a renamed or dropped case must fail here, not silently
   // stop being checked. Keep in step with `CORPUS_FILES` in the editor's
   // `projects/spr-script-editor/src/app/core/validation/corpus.ts`.
+  // Compare the *stripped* names sorted, not the filenames: sorting names with their extension puts
+  // `bank-count-cap` before `bank-count` (`.` sorts after `-`), so a case whose name extends another's
+  // failed a comparison that had nothing to do with the file set.
   const expectedNames = ['bank-count', 'bank-missing', 'bank-prefix-clash', 'clean', 'duplicate-itemcode',
     'empty-item', 'empty-script', 'missing-itemcode', 'negative-timing', 'playback-bounds',
-    'playback-without-audio'];
-  assert.deepEqual(files.map((name) => name.replace(/\.checks\.json$/, '')),
+    'playback-without-audio', 'bank-count-cap', 'bank-prefix-across-sections'];
+  assert.deepEqual(files.map((name) => name.replace(/\.checks\.json$/, '')).sort(),
     [...expectedNames].sort(), 'the corpus file set drifted from the editor\'s CORPUS_FILES');
   for (const file of files) {
     const corpusCase = JSON.parse(readFileSync(join(CORPUS_DIR, file), 'utf8'));

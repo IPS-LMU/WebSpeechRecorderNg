@@ -3294,3 +3294,26 @@ case. Verified passing on the tree and sensitive — with `empty-script.checks.j
 `expectedNames` both had to be updated, and because the server test reads the directory it failed until they
 were — §11.19 working exactly as intended.
 
+### 11.107 The corpus boundaries, and a latent flaw they exposed — **Fixed**
+
+§11.106 covered the *ids*; §11.19's scope note also asks for **boundaries** — "E05 boundaries (reserved ranges
+across sections, two draws sharing a prefix); E11 boundaries (cap 999, zero/negative); E04 against a bank
+fixture". Measured, two were present: `bank-prefix-clash` uses two items with the same prefix (the "sharing a
+prefix" case) and `playback-bounds` uses `repeats: 0` and `gap: -5` (the "zero/negative" case). Two were
+missing: no case had `count > 999`, and every case had exactly one section.
+
+**Two cases authored.** `bank-count-cap.checks.json` — `count: 1000` against a two-item bank, expecting
+**E11** at `….prefill.bank.count` *and* **E04**, because drawing 1000 from 2 over-draws as well; the first
+draft expected only E11 and both suites said so. `bank-prefix-across-sections.checks.json` — the same prefix
+reserved in two sections, expecting E05 at the *second* range's path, which is where the code reports it.
+
+**And the additions exposed a latent flaw in the test that guards the file set.**
+`server/checks-corpus.test.mjs` sorted the *filenames with their extension* on one side and the *stripped
+names* on the other. Those agree until one name extends another's: `bank-count.checks.json` and
+`bank-count-cap.checks.json` compare `'.'` (0x2E) with `'-'` (0x2D), so the orders diverge and the assertion
+failed for a reason that had nothing to do with the file set. It now sorts the stripped names on both sides,
+and says why in a comment beside the list.
+
+**Verified** — the server's corpus test is 1/1 and the editor suite is **486 pass** (484 plus one `it()` per
+case), so both drafts hold on both runtimes.
+
