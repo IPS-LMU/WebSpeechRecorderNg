@@ -303,11 +303,16 @@ const failures = [];
 const unverified = [];
 const clipFailure = (message) => { if (clipsAudible) { failures.push(message); } else { unverified.push(message); } };
 const timeline = [];
-const doneIn = (current) => current.rows.filter((row) => /done|klar|complete/i.test(row[2] ?? '')).length;
+/**
+ * A row is done when the recorder has put its `done` mark in the status cell. Counting such rows is
+ * not the same thing: a non-recording item never gets the mark, so a count can stall a row short of
+ * the item the walk is actually waiting for (which is what stopped the walk at the drawn items).
+ */
+const isRowDone = (row) => /done|klar|complete/i.test(row?.[2] ?? '');
+const doneCount = (current) => current.rows.filter(isRowDone).length;
 
 /** Pull the page's audio events, the global recording state and the finished rows into one timeline. */
 let recording = false;
-let doneRows = 0;
 const collect = async (current) => {
   for (const event of await pageEvents()) {
     if (timeline.some((entry) => entry.kind === event.kind && entry.tPage === event.t)) {
@@ -316,11 +321,11 @@ const collect = async (current) => {
     timeline.push({kind: event.kind, tPage: event.t, t: rel(), url: event.url ?? null, recording});
   }
   if (current !== undefined) {
-    const completed = doneIn(current);
-    while (doneRows < completed) {
-      timeline.push({kind: 'row-done', row: doneRows, t: rel()});
-      doneRows += 1;
-    }
+    current.rows.forEach((row, index) => {
+      if (isRowDone(row) && !timeline.some((event) => event.kind === 'row-done' && event.row === index)) {
+        timeline.push({kind: 'row-done', row: index, t: rel()});
+      }
+    });
     const now = current?.status?.toUpperCase().includes('SPELAR') ?? false;
     if (now !== recording) {
       recording = now;
@@ -378,8 +383,18 @@ const waitForRow = async (index) => {
   while (rel() < deadline) {
     const current = await state();
     await collect(current);
-    const completed = doneIn(current);
-    if (completed > index) {
+    const completed = doneCount(current);
+    // The recorder marks a row done with a `done` icon. A non-recording item never gets one - it has
+    // no take to mark - so its evidence is the app moving on and leaving the row's marker behind.
+    if (isRowDone(current.rows[index])) {
+      return true;
+    }
+    if (schedule[index].nonRecording && (await evaluate(CURRENT_ROW)) > index) {
+      return true;
+    }
+    if (completed > index + 1) {
+      // More rows are done than this one: the walk is already past it (a non-recording row, or one
+      // whose mark the app has not drawn). Do not stall on an item the session has left behind.
       return true;
     }
     // The recorder drives AUTOPROGRESS/AUTORECORDING itself once the section has started, so those
@@ -390,7 +405,7 @@ const waitForRow = async (index) => {
     const startsSection = index === 0 || previous === undefined || previous.mode !== entry.mode;
     // `continueSession` starts an AUTORECORDING section's takes by itself; every other mode waits
     // for the operator. AUTOPROGRESS moves its own pointer but still waits for a start.
-    const needsOperator = entry.mode !== 'AUTORECORDING' || startsSection;
+    const needsOperator = entry.mode !== 'AUTORECORDING' || startsSection || entry.nonRecording;
     const isRecording = current.status.toUpperCase().includes('SPELAR');
     // The recorder marks the item it is on with `selRow`, so press toward `index` rather than by
     // guesswork: move the pointer while it is behind, start a take once it is there, and keep
@@ -400,6 +415,14 @@ const waitForRow = async (index) => {
     if (needsOperator && !isRecording && rel() - lastPressAt >= PRESS_INTERVAL_MS) {
       const offers = JSON.parse((await evaluate(OPERATOR_STATE)) ?? '{}');
       const onRow = await evaluate(CURRENT_ROW);
+      if (entry.nonRecording && offers.forward) {
+        // A non-recording item has no take to start and no `done` mark to earn: the app finishes it
+        // when the operator moves on, and the only control it leaves enabled is the forward one.
+        const clicked = await press(FORWARD);
+        lastPressAt = rel();
+        if (VERBOSE) console.log(`  t+${rel()}ms item ${index + 1} (non-recording): forward -> ${clicked ?? '(disabled)'}`);
+        continue;
+      }
       if (onRow !== null && onRow < index) {
         // Two controls move the pointer: the toolbar's forward, and the transport itself, whose
         // label reads "Nästa inspelning" when moving on is what it offers, and which is the control
@@ -437,7 +460,11 @@ const waitForRow = async (index) => {
     // plays the bank's own recording — `playBankAudio`, which the script offers as the prompt control
     // ("Spela upp ljudet för …"). Ask once, then let the recorder move on.
     const asksForItsSound = entry.when === 'ONDEMAND' || entry.bankAudio;
-    if (asksForItsSound && !soundAskedFor.has(index) && rel() > 4000) {
+    // `DURING` means the sound belongs with the take, so the operator asks for it once the take has
+    // begun; asking earlier would place it before the recording and say so in the audit trail.
+    const takeStarted = timeline.some((event) => event.kind === 'recording-start' && event.t >= (rowReachedAt[index - 1] ?? 0));
+    const asksNow = entry.when === 'DURING' && entry.bankAudio ? takeStarted : rel() > 4000;
+    if (asksForItsSound && !soundAskedFor.has(index) && asksNow) {
       soundAskedFor.add(index);
       console.log(`  t+${rel()}ms asking for item ${index + 1}'s sound: ${await press(SOUND) ?? '(no control)'}`);
       continue;
@@ -466,19 +493,16 @@ const waitForRow = async (index) => {
   return false;
 };
 
+const walkReached = [];
+/** When the walk saw each row reached, in `rel()` ms: the boundaries the clip assertions use. */
+const rowReachedAt = [];
 for (const [index, entry] of schedule.entries()) {
   const reached = await waitForRow(index);
-  const completed = doneIn(await state());
-  if (!reached && !(entry.nonRecording && completed >= index)) {
+  walkReached[index] = reached;
+  rowReachedAt[index] = rel();
+  if (!reached) {
     if (entry.mode === 'MANUAL') {
-      if (entry.bankAudio) {
-        // A drawn item that plays the bank's own recording waits for the operator to ask for it, and
-        // this driver never asks: its takes record and upload, the row does not complete. A stated
-        // limit (plan §11.32), not a verdict on the recorder.
-        console.log(`note: item ${index + 1} (${entry.itemcode}) recorded but never completed — its bank recording is the operator's to play; see the manual step`);
-      } else {
-        failures.push(`item ${index + 1} (${entry.itemcode}) never finished — a manual section the driver should have driven`);
-      }
+      failures.push(`item ${index + 1} (${entry.itemcode}) never finished — a manual section the driver should have driven`);
     }
     // An auto section it could not enter is reported by the note above, once.
     break;
@@ -495,25 +519,20 @@ const starts = timeline.filter((entry) => entry.kind === 'start');
 const stops = timeline.filter((entry) => entry.kind === 'stop');
 const recordingStarts = timeline.filter((entry) => entry.kind === 'recording-start');
 const windowFor = (rowIndex) => {
-  // The recording window of a row is the first recording-start after the previous row finished.
-  const previousDone = timeline.filter((entry) => entry.kind === 'row-done' && entry.row === rowIndex - 1).at(-1);
-  const after = previousDone === undefined ? 0 : previousDone.t;
+  // The recording window of a row is the first recording-start after the walk reached the row before.
+  const after = rowIndex === 0 ? 0 : (rowReachedAt[rowIndex - 1] ?? 0);
   return recordingStarts.find((entry) => entry.t >= after);
 };
 const startsFor = (rowIndex) => {
-  // A start belongs to the row that was current when it happened: rows complete in order, and the
-  // counts in the table are the recorder's own.
-  const bounds = [];
-  for (let row = 0; row < schedule.length; row++) {
-    const rowDone = timeline.filter((entry) => entry.kind === 'row-done' && entry.row === row).at(-1);
-    bounds.push(rowDone === undefined ? null : rowDone.t);
-  }
-  const from = rowIndex === 0 ? 0 : (bounds[rowIndex - 1] ?? 0);
-  const to = bounds[rowIndex] ?? rel();
+  // A start belongs to the row the walk was on. The walk's own boundaries are used rather than the
+  // table's marks: a non-recording row earns no mark, and a bound derived from one falls back to
+  // zero, which attributes the session's earliest clip to it.
+  const from = rowIndex === 0 ? 0 : (rowReachedAt[rowIndex - 1] ?? 0);
+  const to = rowReachedAt[rowIndex] ?? rel();
   return starts.filter((entry) => entry.t >= from && entry.t <= to);
 };
 
-const reachedRows = schedule.map((entry, index) => timeline.some((event) => event.kind === 'row-done' && event.row === index));
+const reachedRows = schedule.map((entry, index) => walkReached[index] === true);
 const firstUnreached = schedule.findIndex((entry, index) => !reachedRows[index]);
 if (firstUnreached !== -1 && schedule[firstUnreached].mode === 'MANUAL') {
   if (schedule[firstUnreached].bankAudio) {
@@ -587,7 +606,7 @@ console.log(`\naudit trail`);
 console.log(`  starts:  ${starts.map((entry) => `@${entry.t}ms${entry.recording ? ' (recording)' : ''} ${short(entry.url)}`).join('  ') || '(none)'}`);
 console.log(`  stops:   ${stops.map((entry) => `@${entry.t}ms`).join('  ') || '(none)'}`);
 console.log(`  windows: ${recordingStarts.map((entry) => `@${entry.t}ms`).join('  ') || '(none)'}`);
-console.log(`  rows:    ${doneIn(await state())}/${schedule.length} finished`);
+console.log(`  rows:    ${reachedRows.filter(Boolean).length}/${schedule.length} reached, ${doneCount(await state())} marked done`);
 console.log(`  session: status=${(await (await fetch(`${BASE}/api/v1/session/${SESSION}`)).json()).status ?? '?'}`);
 if (JSON_OUT) console.log(JSON.stringify({schedule, timeline}, null, 2));
 
