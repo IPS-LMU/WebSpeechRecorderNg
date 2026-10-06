@@ -3427,3 +3427,29 @@ no-op in light. The chip's new pair is the one the checks panel already renders 
 **One limit for this round**: later audit invocations printed nothing, the dev server having gone quiet after
 the first passes; the two fixed states and their light twins had already reported by then.
 
+### 11.112 The screen only the a11y audit visited — **Fixed**
+
+Measuring the lists — which §11.110's gate made worthwhile — turned up the *reverse* gap. The a11y block's
+comment says "on the same routes", and its list is in fact the longer one: `…/script/1245/source`, the JSON
+source screen, appeared in **no theme list at all**, so its tokens and contrast had never been measured in
+either scheme. (The same arithmetic cleared a suspicion: `draws` *is* in the a11y list.)
+
+**Two theme lines added**, light and dark, and the screen passes both — "Theme audit passed" with
+`prepared: dark scheme: chrome #2A4765 -> #0E1A26`. So this was a hole in coverage rather than a defect behind
+it, which is the useful distinction to record.
+
+**And the gate now runs the comparison the other way**: every a11y-audited state must be theme-audited.
+Proven in both directions at once — with the theme's two source lines absent it reports "the **light** pass
+audits `/project/Demo1/script/1245/source` and no **dark** pass measures that state" *and* "the **a11y** pass
+audits `/project/Demo1/script/1245/source` and no **theme** pass measures that state".
+
+**A flaw it exposed in the comparison itself.** The first version classified a line with
+`line.includes('theme_audit.mjs')`, which matches *comments and wrapped continuations*: a debug print showed
+64 "calls" where the workflow has about 30, and a **theme line counted as a11y** — which satisfied the very
+comparison meant to test it. It now matches the *command* (`node bin/(theme|a11y)_audit\.mjs`).
+
+**Two things worth keeping.** The source screen had *already* been in the route check's audited set through
+its a11y line, which is why nothing complained: the route was covered, its colour scheme was not. And the
+first sensitivity attempt — removing only the light line — rightly still passed, because the dark line carries
+that state too; a test that does not remove *both* proves nothing.
+

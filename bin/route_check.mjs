@@ -85,14 +85,18 @@ const SCHEME_FIXTURE = 'bin/audit/use-dark-scheme.js';
 const DESKTOP = '1366x768';
 const auditCalls = [];
 for (const line of workflow.split('\n')) {
-  if (!line.includes('theme_audit.mjs')) {
+  // Match the *command*, not any line that mentions it: a comment or a wrapped continuation can carry the
+  // tool's name, and a theme line classified as a11y made the cross-tool comparison below a no-op.
+  const command = line.match(/node bin\/(theme|a11y)_audit\.mjs/);
+  if (command === null) {
     continue;
   }
+  const tool = command[1] === 'theme' ? 'theme' : 'a11y';
   const url = (line.match(new RegExp(`--url '?${EDITOR_ORIGIN}([^\\s'"]*)`)) ?? [])[1] ?? '';
   const prepare = ((line.match(/--prepare ([^\s]+)/) ?? [])[1] ?? '').split(',')
     .map((name) => name.trim()).filter((name) => name !== '');
   const viewports = (line.match(/--viewports ([^\s]+)/) ?? [])[1] ?? '';
-  auditCalls.push({url, prepare, viewports});
+  auditCalls.push({tool, url, prepare, viewports});
 }
 const stateOf = ({url, prepare}) => `${url}|${prepare.filter((name) => name !== SCHEME_FIXTURE).join(',')}`;
 const darkStates = new Set(auditCalls.filter((call) => call.prepare.includes(SCHEME_FIXTURE)).map(stateOf));
@@ -108,6 +112,21 @@ for (const call of auditCalls) {
   }
   if (!darkStates.has(stateOf(call))) {
     problems.push(`the light pass audits ${call.url}${call.prepare.length ? ' with ' + call.prepare.join(',') : ''} and no dark pass measures that state`);
+  }
+}
+
+// The a11y block says "on the same routes" as the theme block, so the same (URL, fixture) comparison runs
+// the other way: a screen only the a11y audit visits has had no token or contrast measurement at all, which
+// is how `…/script/1245/source` sat unchecked (§11.112).
+const themeStates = new Set(auditCalls
+  .filter((call) => call.tool === 'theme' && call.viewports.split(',').includes(DESKTOP))
+  .map(stateOf));
+for (const call of auditCalls) {
+  if (call.tool !== 'a11y' || !call.url.startsWith('/project/')) {
+    continue;
+  }
+  if (!themeStates.has(stateOf(call))) {
+    problems.push(`the a11y pass audits ${call.url}${call.prepare.length ? ' with ' + call.prepare.join(',') : ''} and no theme pass measures that state`);
   }
 }
 

@@ -130,6 +130,7 @@ jobs:
           # state behind an interaction: the inspector with a draw rule selected.
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 1366x768,1920x1080
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/edit --viewports 1366x768,1920x1080
+          node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/source --viewports 1366x768,1920x1080
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/playback/preview --viewports 1366x768,1920x1080
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --prepare bin/audit/open-draw-rule.js --viewports 1366x768,1920x1080
           # The centre's *selected* card. A URL selects the node (`?sel=g:0:0`), but a URL cannot
@@ -157,6 +158,7 @@ jobs:
           # timeline's hatch were failing before §11.13.
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/edit --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
+          node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/source --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/playback/preview --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           node bin/theme_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js,bin/audit/open-draw-rule.js
           node bin/theme_audit.mjs --url 'http://127.0.0.1:4300/project/Demo1/script/bank-draw/edit?sel=g:0:0' --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js,bin/audit/open-centre-state.js
