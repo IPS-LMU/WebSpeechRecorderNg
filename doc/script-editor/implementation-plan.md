@@ -201,7 +201,7 @@ inventory (§4 M2).
 | L4 version gate | `script/feature-versions.ts` (new), `speechrecorderng.component.ts`, `public-api.ts`, `server/feature-versions.mjs`, `server/store.mjs`, `server/server.mjs` | **Done.** `feature-versions.ts` holds the comparator (numeric segments, `"3.10" > "3.9"`, missing segments, pre-release), `featuresUsed`, `minRecorderVersionFor` and `supportsRecorderVersion`; `playback` maps to `VERSION`, so its floor rises with the release that ships it. The recorder refuses an unsupported script at load with `spr.status.scriptVersionTooOld` (en + sv) instead of running a session that silently differs. The receiver mirrors the table, refuses at session creation and preview with `409 RECORDER_VERSION_TOO_OLD` (C8) and takes `--recorder-version`. New `Script.name/type/minRecorderVersion` fields (D-I). Verified: library suite **136 pass** (4 new); server suite **44 pass** (gate, comparator and the detector⊆table invariant); `ng build speechrecorderng` clean; end-to-end smoke — a seeded script with `minRecorderVersion: "99.0.0"` is refused `409 RECORDER_VERSION_TOO_OLD` by default and served with `--recorder-version 99.0.0`. The manual gate (a browser dry run of a script above `VERSION`) remains. | M1 |
 | L5 resolved script | (server half done; recorder unchanged by design) | **Done via the receiver (R7a/R8).** The server materialises a session's script into `script/sess-<sessionId>` and points `Session.script` at it, so the recorder's existing `GET script/{sess.script}` reads resolved, plain items with no call-site change — verified end to end in `server/draw.test.mjs`. A deployment's server must resolve draws the same way; that is a contract in [rest-api.md](rest-api.md) §4.1, not recorder work. | M1 |
 | Fixture | `src/test/script/playback.json`, `src/test/project/Demo1/media/std-vowel-{a,i}.wav` | **Done.** One item per placement — `WITH_PROMPT`, `BEFORE` (repeats, gap, headphones), `PRERECORDING`, `DURING` (replayable, capped) — a non-recording `ONDEMAND` item, and a drawn group (`std-passages`, filter `vowel` + `hasAudio`, `playBankAudio`, its own `playback` and `itemDefaults`). The two model recordings the drawn items resolve to were missing, so the fixture was unrunnable offline; they are now shipped beside `model-01.wav`. | M1 |
-| Gate | **Automated:** `npm run test_module -- --watch=false --browsers=ChromeHeadless` **146 pass**, including C7's placement table — every `when` → `playbackStart` → `playbackTiming` (gates the clocks / alongside them / at the recording window / operator only), which is the single place the manager decides it (`phases.spec.ts`). The fixture's data path is proven against the receiver: seeded, session created (`draws: 1`), materialised script fetched, and **every** audio URL of the five placements and the two drawn items answers `200 audio/wav` (`playback.json` → `sess-1`). **Dry run, headless (real recorder, real receiver):** built app served by the receiver, fake media stream, `/spr/session/1` — the session loads `script/sess-1` (L5), the caller in `sessionmanager` fetches the fixture's clip, **Starta** opens the headphone reminder *before* the take ("Hörlurar krävs", my L3 string) and only dismisses into `status: STARTED`, and two presses of the prompt-audio control PATCH the session with **`{"replayLog":{"P1":1}}` then `{"replayLog":{"P1":2}}`** — the replay count is persisted (C4). No console errors. **Manual (remains):** hearing each `when` in sequence and navigation during playback. The driver presses the way an operator does (real input events, not synthetic `element.click()`, §11.32) and now drives **five of the seven items** — both MANUAL items, both AUTOPROGRESS items and the AUTORECORDING one — with ten recording windows; the drawn pair's takes record and upload but their rows do not complete, because a drawn item that plays the bank's own recording waits for the operator to ask for it, which stays in the manual step. **A host with no audio device:** a browser whose clock never advances can play no clip, so the recorder bounds that wait — one clip length plus a second of slack — reports `spr.status.promptAudioError` to the operator and carries on with the take (measured on this host: `state: running`, `resume()` resolved, `currentTime` frozen at 0.005 s, `onended` never fired). `bin/audit/dry_run.mjs` measures the clock, warns, drives the run anyway and reports the checks that need an audible clip as *not verified* rather than passed or failed — on a host without a device that is exit 0 with the prompt-audio console errors listed as not verified, each naming the clock it stopped at (measured here while this host's audio device was unavailable). CI gives the runner a PulseAudio null sink so the clip-relative checks are checked there too. | M1 |
+| Gate | **Automated:** `npm run test_module -- --watch=false --browsers=ChromeHeadless` **146 pass**, including C7's placement table — every `when` → `playbackStart` → `playbackTiming` (gates the clocks / alongside them / at the recording window / operator only), which is the single place the manager decides it (`phases.spec.ts`). The fixture's data path is proven against the receiver: seeded, session created (`draws: 1`), materialised script fetched, and **every** audio URL of the five placements and the two drawn items answers `200 audio/wav` (`playback.json` → `sess-1`). **Dry run, headless (real recorder, real receiver):** built app served by the receiver, fake media stream, `/spr/session/1` — the session loads `script/sess-1` (L5), the caller in `sessionmanager` fetches the fixture's clip, **Starta** opens the headphone reminder *before* the take ("Hörlurar krävs", my L3 string) and only dismisses into `status: STARTED`, and two presses of the prompt-audio control PATCH the session with **`{"replayLog":{"P1":1}}` then `{"replayLog":{"P1":2}}`** — the replay count is persisted (C4). No console errors. **Manual (remains):** hearing each `when` in sequence and navigation during playback. The driver presses the way an operator does (real input events, not synthetic `element.click()`, §11.32) and drives **all seven items** — the two MANUAL ones, the two AUTOPROGRESS ones, the AUTORECORDING non-recording one and both drawn items — with seven recording windows and an upload for each recording item. **A host with no audio device:** a browser whose clock never advances can play no clip, so the recorder bounds that wait — one clip length plus a second of slack — reports `spr.status.promptAudioError` to the operator and carries on with the take (measured on this host: `state: running`, `resume()` resolved, `currentTime` frozen at 0.005 s, `onended` never fired). `bin/audit/dry_run.mjs` measures the clock, warns, drives the run anyway and reports the checks that need an audible clip as *not verified* rather than passed or failed — on a host without a device that is exit 0 with the prompt-audio console errors listed as not verified, each naming the clock it stopped at (measured here while this host's audio device was unavailable). CI gives the runner a PulseAudio null sink so the clip-relative checks are checked there too. | M1 |
 
 ### M2 — Editor skeleton, read-only
 
@@ -1400,29 +1400,30 @@ two real clicks through CDP's input pipeline took the walk from 2 finished items
 from two to four. Every press in the driver now goes through that path, and the walk covers P1 to P5
 — both MANUAL items, both AUTOPROGRESS items and the AUTORECORDING one.
 
-**What is still a limit** — the drawn pair. Its takes record and upload (four for D001) and the row
-never completes. The obvious explanation was that a drawn item waits for the operator to ask for the
-bank's own recording (`playBankAudio`), and the driver now does ask — the log shows it pressing the
-prompt control for item 6 — and the row still does not complete. So the reason lies in the recorder's
-drawn-item completion rule, not in the driver's presses, and it is left as a note naming the manual
-step rather than a failed walk.
+**Resolution** — the drawn pair was never the problem. The driver was counting the rows that carried
+the app's `done` mark and waiting for that count to pass the row it wanted, and a non-recording item
+never earns one, so the count could never reach the drawn rows and the walk gave up on items the app
+had already finished. The walk now reads the row it is waiting for, uses its own boundaries for the
+clip assertions, and finishes a non-recording row the way the app does — the forward press, the only
+control it leaves enabled on such an item. Two consecutive runs reach **7/7** and pass, with uploads
+for every recording item.
 
-### 11.33 The drawn items that record and never complete — **Found, needs the recorder's rule**
+### 11.33 The drawn items that record and never complete — **Withdrawn: the driver was counting**
 
-The dry run reaches the drawn pair and stops there. D001's takes record and upload — four in the last
-run, each answering `201` — the app fetches the item's own bank recording
-(`GET …/media/std-vowel-a.wav`, once the driver asks for it as an operator would) and the session is
-PATCHed with `{"replayLog":{"P5":1,"D001":1}}`, so the app has the item, its clip and its takes. What
-it never does is mark the row complete: the operator's table leaves D001's status cell empty, which is
-what the driver reads, while every other item — manual, AUTOPROGRESS, AUTORECORDING, with and without
-a clip — completes in the same run.
+This entry claimed the recorder never marks a bank-drawn item complete, on the evidence of four
+uploaded takes, a fetched `std-vowel-a.wav`, a `replayLog` entry for D001 and a row whose status cell
+stayed empty. The first three were right; the fourth was read wrong. A probe inside `Item.itemDone()`,
+and then the table's own cells, show the item is marked:
+`["done","done","done","done","-","done","-"]` — D001 done, D002 still to come, and the blank one a
+non-recording item, which has no take to mark.
 
-The materialised session script is not the cause: `script/sess-1.json` carries
-`{"itemcode":"D001","bankItemId":"std-004","mediaitems":[{"text":"a"},{"audio/wav","src":"media/std-vowel-a.wav"}],"playback":{"when":"DURING","replayable":true,"maxReplays":1}}`
-— exactly what the recorder needs and what M1's fixture row promises.
+What failed was the driver's bookkeeping: it asked for the *number* of done rows and waited for that
+count to pass the row it was on, which one non-recording item makes impossible. §11.32 records the fix,
+and the walk now reaches 7/7.
 
-So the cause is in the recorder's own completion rule for an item that came from a bank draw. That is
-recorder behaviour, not a driver's press, and nothing here can settle whether the rule is wrong or the
-table simply does not show it: an operator's list that never shows a drawn item as recorded is either
-a display gap or a real one, and the answer decides whether the fix is in the table or in the item
-state. Recorded so the next pass starts from evidence rather than from a guess.
+The useful part of the misreading is the trail it left — how the mark is produced, for the next person
+who has to judge a drawn row: `progress.ts` renders it from `item.itemDone()`, which is true when any
+recording file attached to the item satisfies `recordingFileDone()`, i.e.
+`serverPersisted === true || audioDataHolder != null` (`recording.ts`), and those files are attached
+through `this.items.getItem(this.promptIndex)` (`sessionmanager.ts`). Nothing in the recorder reads
+`bankItemId` at runtime.
