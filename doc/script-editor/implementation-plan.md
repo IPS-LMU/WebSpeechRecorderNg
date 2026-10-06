@@ -1952,3 +1952,19 @@ directory-form command that cannot run on the pinned Node (§11.48) and said "37
 **Note, not a change:** `deleteMedia`'s `409 MEDIA_IN_USE` still triggers for *published script*
 owners only — that is the existing policy — but the `usedBy` it returns now names the bank holder, so
 the caller can see what depends on the clip.
+
+### 11.52 The deploy test's fixed ports — **Done**
+
+While verifying §11.51 the receiver's suite failed once with no code change behind it, and eleven runs
+passed afterwards: an intermittent failure. It comes from `server/deploy.test.mjs`, which bound fixed
+ports 8481 and 8482 — two runs of the suite at once, or one soon after another with a port still in
+`TIME_WAIT`, and the spawned receiver cannot bind.
+
+Measured against the committed fixed ports, with two suites running concurrently: one reports
+`✖ the deployment harness serves both mounts, their fallback and the API` — `AssertionError: receiver
+did not start` — while the other passes. With the ports probed from the OS, two concurrent suites both
+report 60/60, and three back-to-back runs report no failures.
+
+**Fixed** — the test asks `node:net` for free ports. The probe-then-bind race is momentary and far
+smaller than a fixed port's; CI runs one suite per job, so this would not have failed there, but it
+fails anyone running the suite twice or concurrently, which is how it was met.
