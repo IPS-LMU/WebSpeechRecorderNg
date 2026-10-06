@@ -2171,3 +2171,37 @@ the audits behind it.
 vulnerable patches when the next release is cut; narrowing a peer range is consumer-visible, which is
 why it is a release decision and not a local edit. And `npm audit fix` is the documented remedy the
 repository's own OSV job exists to prompt.
+
+### 11.59 The whole plan, walked — **Done**
+
+Every prior round worked inside §11 and the milestone tables; §2, §6, §7, §8 and §9 had never been
+read. They have now, and their reference space was checked mechanically.
+
+**§8 (open questions and their gates)** — 24 rows, each answered by a milestone or marked *Done*. The
+four marked Done are the ones whose answers live in code (the feature→version map, the auth surface,
+W10's served version, bank/media concurrency); the rest are answered at M0, which is closed. No
+question is open except **4, speaker pseudonymity**, whose stated default is the policy the owner
+still holds — the standing item the register already names.
+
+**§9 (findings index)** — 30 findings (A1–A4, B1–B8, C1–C8, D1–D10), each "addressed by" ids that all
+resolve: `D-x` from §2's table, `L/E/S/V/R` from the milestone tables, the `A–D` labels from §9's own
+table, and `E/W/N` from validation.md's catalogue. A first pass flagged thirty ids; all three classes
+were my detector's crudeness — decisions defined as table rows rather than bold spans, the deliberate
+`R7a`/`R7b` split, and the README's `Q`-notation for §8's questions (fixture itemcodes like `P1`
+matched too). Recorded so the check can be repeated correctly rather than rediscovering them.
+
+**§7 (risks)** — every mitigation names an id that exists, with three checked by hand: `server/data`
+is gitignored (`.gitignore:9`), the editor imports no NgModule (A2/D-L), and the **re-base drift** risk
+— `master` renaming the application while this branch sat on `0c1de418` — is closed *measurably*: the
+merge base equals `origin/master`'s tip (`ba81bcf8e3`).
+
+**§2 (decisions)** — D-A … D-W, 24 rows each with the alternative it rejected; consistent with what the
+tree does (D-K's materialised scripts, D-T's shared fixtures and D-Q's transfer discipline are all in
+place).
+
+**Result: no defect.** The plan's non-register sections are coherent and every reference in them
+resolves.
+
+**Residual:** §6's PR slicing is a suggestion about order, not a gate, and this branch landed as one
+181-commit change set rather than the twenty slices it sketches — a deliberate difference, not a
+discrepancy to fix.
