@@ -3520,4 +3520,35 @@ and a failing one does not. The guards are shell, so unlike the audit runs this 
 accessibility loop `grep -qF`. `grep`'s default pattern is basic, so the theme names containing parentheses
 match literally, and both loops are correct as written.
 
+### 11.116 The tarball shipped no licence — **Fixed**
+
+The one published artifact this repository produces is the library tarball, and it exists to be consumed by
+someone else, which is why `package_check.mjs` looks at it. That check covered the manifest's promised paths
+and the bundle's declared imports — never the licence.
+
+**What was wrong.** The repository states `"license": "MIT"` at its root, and its `LICENSE.txt` is the MIT
+text, whose own condition is that *"the above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software"*. The library's manifest declared **no** `license`, and the
+built package carried **no** LICENSE — so a consumer received a tarball with neither the field nor the notice.
+
+**Fixed.** `"license": "MIT"` in the library's manifest — the identifier the root already states, so nothing
+was chosen here — and the repository's `LICENSE.txt` copied beside the library's `package.json` **named
+`LICENSE`**, which is the name the build copies; `LICENSE.txt` is not.
+
+**And the check now enforces all three**: the manifest declares a licence, the package ships a LICENSE, and its
+text matches the repository's — with the file's header counting three things instead of two.
+
+**Verified**: the tarball ships **9 files** including `LICENSE`, byte-identical to the repository's; the check
+passes and names the licence; and it is sensitive in both directions — a drifted `LICENSE` reports "differs
+from the repository's LICENSE.txt", a removed one reports "the package carries no LICENSE — copy the
+repository's LICENSE.txt beside the library's package.json (named LICENSE…)", and a rebuild restores it.
+
+**A slip in this round's own edit**, recorded because it is the kind that would have gone unnoticed: replacing
+the usage line dropped the header's closing `*/`, leaving the script unparseable. `node --check` in the next
+step caught it, and nothing ran until it was repaired.
+
+**Left for the owner**: the manifest has no `description`, `repository`, `keywords` or `homepage` either. Those
+are publishing choices rather than derived facts — the licence was derivable because the root states it — so
+they are recorded rather than guessed at.
+
 

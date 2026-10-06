@@ -2,13 +2,18 @@
 /**
  * Packaging invariants for the library tarball — the deliverable, which nothing in this repository
  * consumes (the demo imports the library from source), so its shape is only ever checked when
- * somebody looks. Two things cost a consumer a broken build when they are wrong:
+ * somebody looks. Three things cost a consumer a broken build when they are wrong:
  *
  *   1. every path the manifest's public surface names exists in the package — the `exports` map, and
  *      `main`/`module`/`types`. An `exports` map is exhaustive, so a typo here is a subpath nobody
  *      can import, and a missing file behind an entry is a resolution failure at the consumer's end;
  *   2. every external package the shipped bundle imports is declared as a dependency or peer. An
  *      import the manifest does not declare fails at install time for the consumer, not here.
+ *
+ *   3. the licence travels with the package, declared in the manifest and shipped as a file whose
+ *      text matches the repository's. MIT's own condition is that the notice accompanies copies, so
+ *      a package without it breaks the licence; and two copies of the text are two chances to edit
+ *      one of them.
  *
  * Usage: node bin/package_check.mjs   (after `npm run build_module`)
  */
@@ -86,6 +91,20 @@ for (const name of [...imported.keys()].sort()) {
   }
 }
 
+/** The licence: declared, shipped, and the same text as the repository's copy. */
+const REPO_LICENSE = 'LICENSE.txt';
+if (typeof manifest.license !== 'string' || manifest.license === '') {
+  problems.push('the manifest declares no license, so a consumer cannot tell what they may do with it');
+}
+const packageLicense = join(PACKAGE_DIR, 'LICENSE');
+if (!existsSync(packageLicense)) {
+  problems.push(`the package carries no LICENSE — copy the repository's ${REPO_LICENSE} beside the library's `
+    + 'package.json (named LICENSE, which is the name the build copies) so the tarball ships it');
+} else if (existsSync(REPO_LICENSE)
+    && readFileSync(packageLicense, 'utf8') !== readFileSync(REPO_LICENSE, 'utf8')) {
+  problems.push(`the package's LICENSE differs from the repository's ${REPO_LICENSE}`);
+}
+
 if (problems.length) {
   console.error(`${problems.length} packaging problem(s):`);
   for (const problem of problems) {
@@ -94,4 +113,5 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(`Package check passed: ${promised.length} promised path(s) present, `
-  + `${imported.size} imported package(s) all declared (${[...imported.keys()].sort().join(', ')}).`);
+  + `${imported.size} imported package(s) all declared (${[...imported.keys()].sort().join(', ')}), `
+  + `licence ${manifest.license}.`);
