@@ -2801,3 +2801,17 @@ Two further harness artefacts, worth naming because each looked like a defect: t
 (`project`, `itemCount`, `updated`), whose keys can never appear in an item page. One real omission
 remains: the item page's envelope echoes `offset`, which the file documents as a query input rather than a
 response field.
+
+### 11.84 The documented inputs, checked the same way — **Done**
+
+Shapes are outputs; the mirror is inputs. A client sends a documented query parameter and the server ignores
+it, and the result is silently wrong. `rest-api.md` documents `category`, `hasAudio`, `includePreview`,
+`limit`, `maxWords`, `minWords`, `offset`, `q`, `tag` and `version`; the server reads all of them —
+`limit`, `offset` and `tag` included, through the generic `intParam(url, name)` and
+`searchParams.get(name)` helpers, which is exactly why a scan for literal `searchParams.get('<name>')` calls
+missed them and looked like a defect. The one documented name the server never reads, `requestUUID`, is a
+cache-buster the *client* appends in `ApiType.FILES` mode, so ignoring it is the correct behaviour.
+
+Request bodies were not swept here because §11.65 drove the write path against the receiver end to end —
+create, draft, publish, restore — which exercises the documented fields (`name`, `archived`, `version`)
+rather than comparing them on paper.
