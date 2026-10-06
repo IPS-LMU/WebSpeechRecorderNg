@@ -26,7 +26,9 @@ export const SPR_PALETTE = {
   'spr-select-edge': '#D7B17C',
 } as const;
 
-/** Root attribute that switches to the dark scheme (`_tokens.scss` emits the values for it). */
+/** Root attribute that switches to the dark scheme: a stylesheet emits the dark tokens under
+ *  `:root[data-spr-scheme="dark"]` via `spr-token-styles(dark, …)` from `_tokens.scss`, which only
+ *  takes the selector — see `theme.scss` and the applications' `main.scss`. */
 export const SCHEME_ATTRIBUTE = 'data-spr-scheme';
 
 type SchemeListener = () => void;

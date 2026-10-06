@@ -2934,3 +2934,25 @@ cannot see the case that motivated it, and the wording that made it invisible is
 stale comment would use. The class is empty as of §11.88, and the broad sweep is the tool to reach for if
 another is ever suspected — which is why it is written down with its false positives rather than turned
 into a check that would be ignored.
+
+### 11.90 A reference is still a claim — **Fixed**
+
+§11.89 set five comments aside as "legitimate cross-file references". That was right for the *sweep's*
+precision and wrong as a *verdict*, so the two most consequential were checked and one was inaccurate.
+
+- `draws.service.ts` says "Read methods stay in `core/draw-api.service.ts`; this slice-local service adds
+  only the write" — **true**: its sole HTTP call is `this.http.post<SessionDrawTrace>(`, spanning lines,
+  which is also why the first grep for `this.http.<verb>` in it printed nothing.
+- `theme.ts` described `SCHEME_ATTRIBUTE` as the root attribute that switches the dark scheme "(`_tokens.scss`
+  emits the values for it)". **`_tokens.scss` does not select that attribute.** It defines two token maps and
+  a mixin, `spr-token-styles($scheme, $selector: ':root')`, whose own doc says "Call once per scheme from the
+  application stylesheet". The attribute is keyed by the **callers**: `projects/speechrecorderng/src/theme.scss:29`,
+  `projects/spr-script-editor/src/main.scss:37` and `src/main.scss:43` each pass `':root[data-spr-scheme="dark"]'`.
+  The comment now names the emitter and points at them, so a reader hunting the dark selector lands on the
+  file that has it.
+
+**Verified** — the three call sites are the evidence, and the library builds (a comment-only change, but the
+build takes seven seconds).
+
+**The lesson, one step on from §11.88**: a reference to another file is a claim about that file too.
+Dismissing it answers whether the name is *mentioned* somewhere, not whether what it says is true.
