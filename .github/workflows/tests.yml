@@ -164,6 +164,17 @@ jobs:
       - name: Drive a session end to end
         run: |
           set -e
+          # Chrome will not advance an audio clip's clock without an output device, and the recorder
+          # waits for each prompt clip to finish before it starts a take, so this gate needs a sink.
+          # A runner has no sound card: give it a null one. This is best effort - if it does not take,
+          # the driver reports the frozen clock itself and skips loudly instead of blaming the
+          # recorder (bin/audit/dry_run.mjs).
+          if ! pactl info > /dev/null 2>&1; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq pulseaudio > /dev/null 2>&1 || true
+          fi
+          pulseaudio --start --exit-idle-time=-1 --disallow-exit > /dev/null 2>&1 || true
+          pactl load-module module-null-sink sink_name=null_out > /dev/null 2>&1 || true
+          pactl set-default-sink null_out > /dev/null 2>&1 || true
           node server/server.mjs --port 8391 --data /tmp/dryrun --seed src/test \
             --app dist/cavox/browser --project Demo1 --script playback --quiet > /tmp/receiver.log 2>&1 &
           google-chrome --headless=new --remote-debugging-port=9333 --user-data-dir=/tmp/cdp-dry \

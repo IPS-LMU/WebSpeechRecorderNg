@@ -210,6 +210,43 @@ await send('Log.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', {source: HOOKS});
 await send('Page.navigate', {url: `${BASE}/spr/session/${SESSION}`});
 
+// No take can start until the item's prompt clip has finished playing, so this gate needs an audio
+// clock that advances. A headless Chrome with no output device — a CI runner, or a remote mac with
+// no display attached — stalls every clip at currentTime 0 forever, which makes a healthy recorder
+// look like one that never starts a take. Measure the clock once and report the real cause.
+await sleep(1500);
+const audioClock = await evaluate(`(async () => {
+  let probe;
+  try {
+    // One second of silence, built here so the probe needs nothing from the receiver.
+    const rate = 8000, samples = rate;
+    const frame = new DataView(new ArrayBuffer(44 + samples));
+    const ascii = (offset, text) => { for (let i = 0; i < text.length; i += 1) { frame.setUint8(offset + i, text.charCodeAt(i)); } };
+    ascii(0, 'RIFF'); frame.setUint32(4, 36 + samples, true); ascii(8, 'WAVEfmt ');
+    frame.setUint32(16, 16, true); frame.setUint16(20, 1, true); frame.setUint16(22, 1, true);
+    frame.setUint32(24, rate, true); frame.setUint32(28, rate, true); frame.setUint16(32, 1, true);
+    frame.setUint16(34, 8, true); ascii(36, 'data'); frame.setUint32(40, samples, true);
+    for (let i = 0; i < samples; i += 1) { frame.setUint8(44 + i, 128); }
+    probe = new Audio(URL.createObjectURL(new Blob([frame], {type: 'audio/wav'})));
+  } catch { return 'unavailable'; }
+  try { await probe.play(); } catch { return 'blocked'; }
+  let ended = false;
+  probe.onended = () => { ended = true; };
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+  // A stalled device still ticks a few tens of milliseconds and then stops, so demand real progress.
+  if (ended || probe.currentTime >= 0.5) { return 'advances'; }
+  return 'frozen at ' + probe.currentTime.toFixed(2) + 's of ' + (isNaN(probe.duration) ? '?' : probe.duration.toFixed(2)) + 's';
+})()`);
+if (!audioClock.startsWith('advances')) {
+  console.log(`::warning title=Dry run skipped::this browser has no audio output (clock ${audioClock}), so no prompt clip can finish playing and no take can start`);
+  console.log(`\ndry run SKIPPED, not failed: the browser's audio clock is ${audioClock}.`);
+  console.log('Every take waits for a prompt clip to finish, so nothing can start without an audio');
+  console.log('output device. Give the browser one (a null sink is enough: on Linux, pulseaudio with');
+  console.log('module-null-sink) and re-run; the row, label and window checks stay unverified until then.');
+  ws.close();
+  process.exit(0);
+}
+
 const t0 = Date.now();
 const rel = () => Math.round(Date.now() - t0);
 const failures = [];
