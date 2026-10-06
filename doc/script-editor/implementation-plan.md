@@ -2350,3 +2350,27 @@ on it.
 rows' `Done`/`Proven`/`Verified` phrases against `left`, `remains`, `except`, `manual`, `not yet`) finds
 no other: M1's human row and L4's manual gate say what they mean, and every other row is a plain
 `Done`.
+
+### 11.65 The editor's write path, driven against the receiver — **Done**
+
+Every verification in this plan's neighbourhood exercised the editor's *rendering* (the audits) or its
+units (the specs) or the receiver on its own. The M3 gate — create, edit, publish, persisted — had only
+ever been read, so it was driven here: the **built** editor (`npm run build_editor`, 500.38 kB) served
+same-origin by the receiver (`--app dist/spr-script-editor/browser`), which is how a deployment runs it,
+with the browser driven over CDP and every step measured at the *receiver* rather than in the page.
+
+- **Read**: the library list renders all twelve seeded rows with real data (dates, section counts,
+  status), so the built bundle's API base and credentials work.
+- **Create**: "New script" made one — `GET …/script` went 12 → 13 — and navigated into its editor
+  (`/project/Demo1/script/3458/edit`) with the draft loaded and "All changes saved".
+- **Edit and autosave**: setting `#shell-script-name` moved the shell to "Unsaved changes" and back to
+  "All changes saved"; the receiver logged `PUT …/script/3458/draft 128B` and holds
+  `name: "E2E edit probe"`.
+- **Publish**: a real click on the shell's Publish produced version 1
+  (`publishedDate: 2026-10-06T13:09:47Z`). No dialog appeared, which is the documented behaviour: the
+  shell reported *0 warnings*, and the dialog is for the warning path.
+
+**A note for anyone driving this UI**: `element.click()` did not reach the shell's handlers — the button
+is enabled, on-screen and unremarkable, and nothing happened. Dispatching real
+`Input.dispatchMouseEvent` presses did, which is why `bin/audit/*.js` and `bin/audit/dry_run.mjs` press
+buttons that way. A driver that used `.click()` would report a dead Publish button that is not dead.
