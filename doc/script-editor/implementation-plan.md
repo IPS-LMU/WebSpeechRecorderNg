@@ -3100,3 +3100,27 @@ handlers **69 → 80**, paragraphs **125 → 144**, bound labels **72 → 85**. 
 added to `preview-tier2-panel.ts`'s template reports
 `preview/preview-tier2-panel.ts (inline template):26: aria-label="Probe" is a literal — bind it from the
 strings`, the line being the file's own 26, which is what the padding is for. Reverted.
+
+### 11.99 The dead strings — five deleted, thirty-three recorded — **Fixed, partly**
+
+§11.68 found two dead strings by hand and deleted them; the sweep is worth re-running, and it needs a
+*decidable* test. The one that works is "does this key's name appear anywhere outside its own strings file",
+because the prettier `\.key` search misses the two ways the editor actually reads keys: a **literal map**
+(`const COUNT_KEYS: Record<Severity, 'errorsLabel' | 'warningsLabel' | 'notesLabel'>`) and **dynamic
+indexing** (`strings.status[statusKind(row.status)]`, `strings.library.statusLabels[script.status]`). Both
+were my first pass's blind spots, and both are live code.
+
+By that test 38 keys appear nowhere else. **Five were read and deleted** — `trafficLabel`, `lampHold`,
+`lampCue`, `lampLive`, `lampOff` in `preview-strings.ts`. `preview-playback-panel.ts` says the lamps "are
+`aria-hidden`: the status line always says the same", so no per-lamp label is rendered; `lampPlayback`, the
+fourth lamp, *is* used and stayed.
+
+**Verified** — the editor suite is **482 pass** and the lint passes, which is the proof that no template
+referenced them: a deleted key in a template fails the build.
+
+**Thirty-three remain recorded, not deleted**, each needing the same individual reading first:
+`editor-strings.ts` (14), `draws-strings.ts` (12), `preview-strings.ts` (4), `editor-strings-ext.ts` (2),
+`bank-strings.ts` (1). Deleting on a script's say-so would repeat §11.88's mistake.
+
+**A gate is not the answer here.** Dynamic indexing and destructuring make "unused" undecidable by text
+search, so the decidable test is written down instead — minutes next time rather than an afternoon.
