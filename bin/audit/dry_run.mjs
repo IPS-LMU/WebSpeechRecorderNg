@@ -238,18 +238,27 @@ const audioClock = await evaluate(`(async () => {
   return 'frozen at ' + probe.currentTime.toFixed(2) + 's of ' + (isNaN(probe.duration) ? '?' : probe.duration.toFixed(2)) + 's';
 })()`);
 if (!audioClock.startsWith('advances')) {
-  console.log(`::warning title=Dry run skipped::this browser has no audio output (clock ${audioClock}), so no prompt clip can finish playing and no take can start`);
-  console.log(`\ndry run SKIPPED, not failed: the browser's audio clock is ${audioClock}.`);
-  console.log('Every take waits for a prompt clip to finish, so nothing can start without an audio');
-  console.log('output device. Give the browser one (a null sink is enough: on Linux, pulseaudio with');
-  console.log('module-null-sink) and re-run; the row, label and window checks stay unverified until then.');
-  ws.close();
-  process.exit(0);
+  // The recorder now reports such a clip as failed and carries on (PromptAudioService), so the run
+  // is still worth driving: the rows, the labels and the recording windows are checked as usual,
+  // and only the claims that need a clip to have been audible are marked unverified below.
+  console.log(`::warning title=No audio output::this browser's audio clock is ${audioClock}, so no prompt clip can play; the clip-relative checks will be reported as unverified`);
+  console.log(`\nthe browser's audio clock is ${audioClock}: the recorder will report every prompt sound as failed.`);
+  console.log('The run is driven anyway, and the clip-relative checks are reported as unverified rather');
+  console.log('than passed or failed. Give the browser a device (a null sink is enough: on Linux,');
+  console.log('pulseaudio with module-null-sink) to check those too.\n');
 }
+const clipsAudible = audioClock.startsWith('advances');
 
 const t0 = Date.now();
 const rel = () => Math.round(Date.now() - t0);
 const failures = [];
+/**
+ * What could not be checked here: the clip-relative claims need a browser that can actually play a
+ * clip. Reported at the end as unverified, so a run without an audio device is neither passed nor
+ * failed on those points (see `clipsAudible`).
+ */
+const unverified = [];
+const clipFailure = (message) => { if (clipsAudible) { failures.push(message); } else { unverified.push(message); } };
 const timeline = [];
 const doneIn = (current) => current.rows.filter((row) => /done|klar|complete/i.test(row[2] ?? '')).length;
 
@@ -447,7 +456,7 @@ for (const [index, entry] of schedule.entries()) {
     if (soundPressedAt === null) {
       failures.push(`item ${index + 1} (${entry.itemcode}) is operator-only and was never asked to play`);
     } else if (!rowStarts.length) {
-      failures.push(`item ${index + 1} (${entry.itemcode}) did not play when asked`);
+      clipFailure(`item ${index + 1} (${entry.itemcode}) did not play when asked`);
     }
     continue;
   }
@@ -455,7 +464,7 @@ for (const [index, entry] of schedule.entries()) {
     continue;
   }
   if (rowStarts.length === 0) {
-    failures.push(`item ${index + 1} (${entry.itemcode}, ${entry.when}) never played its clip`);
+    clipFailure(`item ${index + 1} (${entry.itemcode}, ${entry.when}) never played its clip`);
     continue;
   }
   const first = rowStarts[0];
@@ -464,13 +473,13 @@ for (const [index, entry] of schedule.entries()) {
     if (window === undefined) {
       failures.push(`item ${index + 1} (${entry.itemcode}) never started recording although it is a recording item`);
     } else if (!(first.t < window.t)) {
-      failures.push(`item ${index + 1} (${entry.itemcode}, ${when}) played at ${first.t}ms, not before the clocks (${window.t}ms)`);
+      clipFailure(`item ${index + 1} (${entry.itemcode}, ${when}) played at ${first.t}ms, not before the clocks (${window.t}ms)`);
     }
   } else if (when === 'PRERECORDING' || when === 'DURING') {
     if (window === undefined) {
       failures.push(`item ${index + 1} (${entry.itemcode}) never started recording although it is a recording item`);
     } else if (first.t < window.t - 400) {
-      failures.push(`item ${index + 1} (${entry.itemcode}, ${when}) played at ${first.t}ms, too early for its placement (recording began at ${window.t}ms)`);
+      clipFailure(`item ${index + 1} (${entry.itemcode}, ${when}) played at ${first.t}ms, too early for its placement (recording began at ${window.t}ms)`);
     }
   }
 }
@@ -478,7 +487,7 @@ const drawnEntries = schedule.filter((entry) => entry.bankAudio);
 if (drawnEntries.length === 0) {
   failures.push('the drawn items are not in the session with their own bank recordings');
 } else if (drawnEntries.some((entry) => reachedRows[schedule.indexOf(entry)]) && !starts.some((entry) => DRAWN_MEDIA.test(entry.url ?? ''))) {
-  failures.push('the drawn items never played their own bank recordings');
+  clipFailure('the drawn items never played their own bank recordings');
 }
 if (!cancelledOnPause) {
   // The clip is about a second long and the controls are phase-dependent, so a race here is a
@@ -498,7 +507,19 @@ if (JSON_OUT) console.log(JSON.stringify({schedule, timeline}, null, 2));
 
 // A recorder that behaves while logging on every take is still broken for the operator.
 for (const problem of [...new Set(consoleProblems)].slice(0, 6)) {
-  failures.push(`console: ${problem}`);
+  if (!clipsAudible && /Prompt audio/.test(problem)) {
+    // What the recorder is reporting is exactly what this host cannot do; that is the failure it is
+    // supposed to report, not a defect. Anything else still fails the run.
+    unverified.push(`console: ${problem}`);
+  } else {
+    failures.push(`console: ${problem}`);
+  }
+}
+
+if (unverified.length) {
+  console.log(`\n${unverified.length} check(s) not verified here: this browser cannot play a clip.`);
+  unverified.forEach((item) => console.log('  · ' + item));
+  console.log('  (the rows, the labels and the recording windows were checked as usual)');
 }
 
 ws.close();
