@@ -2688,3 +2688,24 @@ entry, resolving the library's bare `VERSION` to its own value. It runs in the `
 **Verified** — the suite is **61 pass, 0 fail** with it in place; moving the library's `VERSION` fails
 with "keep RECORDER_VERSION in step with the library VERSION"; adding a feature on one side fails with "a
 feature added on one side must be added on the other". Both injections were reverted.
+
+### 11.80 The layout version the runbook promises in each meta — **Done**
+
+Third of the same family. `server/README.md` says "the layout version in each `meta.json` says which
+layout a script is", and `layoutVersion` is stamped by **two** write paths — `createScript` and
+`ensureScriptMeta`, the latter covering the legacy migration — with **no assertion on either**.
+`maintenance.test.mjs`'s migration test is *named* "…imports flat scripts **as version 1**" and asserts
+`meta.publishedVersion` and the versions index, which is the script's first published revision, not the
+layout version — so the name was satisfied by a different field and the layout version went unchecked.
+
+Two assertions now: the migration test checks the migrated meta's `layoutVersion`, and a new test checks
+`createScript`'s. The first alone would not have done — a fresh script never goes through `--migrate`.
+
+**Verified** — the file's seven tests pass (whole suite **62/62**), and deleting the stamp from
+`createScript` fails the new test with "createScript must stamp the layout version" *while the migration
+test still passes*, which is what shows the two assertions cover different paths.
+
+**And a note, because it invites the wrong fix.** `layoutVersion` is written by both paths and read by
+nothing: no refusal of a data dir whose layout is newer than the receiver understands. That is consistent
+with the runbook, which describes the field as a *label* — "says which layout a script is" — and asks the
+operator to migrate forward rather than to be refused. Recorded so nobody adds a gate nothing promised.

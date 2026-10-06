@@ -15,6 +15,7 @@ test('migrateLegacyTrees imports flat scripts as version 1 and is idempotent', (
 
   assert.deepEqual(store.migrateLegacyTrees(), {scripts: 1, imported: 1});
   assert.equal(store.scriptMeta('legacy').publishedVersion, 1);
+  assert.equal(store.scriptMeta('legacy').layoutVersion, 1, 'server/README.md promises a layout version in each meta.json');
   assert.equal(store.version('legacy', 1).name, 'Legacy');
   // The history the editor's panel and `GET …/version` read must agree with `meta.publishedVersion`;
   // the imported document alone is invisible.
@@ -24,6 +25,17 @@ test('migrateLegacyTrees imports flat scripts as version 1 and is idempotent', (
   assert.ok(typeof index[0].publishedDate === 'string' && index[0].publishedDate !== '');
   assert.deepEqual(store.migrateLegacyTrees(), {scripts: 1, imported: 0});
   assert.equal(store.versionsIndex('legacy').length, 1, 'migrating twice must not duplicate the entry');
+});
+
+test('every meta.json carries the layout version the runbook promises', () => {
+  // server/README.md: "the layout version in each meta.json says which layout a script is". Two write
+  // paths produce a meta — createScript and ensureScriptMeta, the latter covering the migration above —
+  // and neither was asserted, so a script could have been written without it and the runbook's claim
+  // would have stopped being true in silence. `--migrate` alone does not cover this: a fresh script
+  // never goes through it.
+  const store = freshStore();
+  const created = store.createScript({name: 'S', project: 'demo', value: doc(), text: JSON.stringify(doc())});
+  assert.equal(store.scriptMeta(created.scriptId).layoutVersion, 1, 'createScript must stamp the layout version');
 });
 
 test('pruneDraftRevisions keeps the newest N and drops aged-out revisions', () => {
