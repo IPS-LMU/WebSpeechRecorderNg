@@ -3549,6 +3549,11 @@ step caught it, and nothing ran until it was repaired.
 
 **Left for the owner**: the manifest has no `description`, `repository`, `keywords` or `homepage` either. Those
 are publishing choices rather than derived facts — the licence was derivable because the root states it — so
-they are recorded rather than guessed at.
+they are recorded rather than guessed at. `repository` is the clearest case, and worth the evidence: the
+worktree has **two** remotes, `origin` (`humlab-speech/WebSpeechRecorderNG`) and `upstream`
+(`IPS-LMU/WebSpeechRecorderNG`), a fork of the other, and no document names either, so what a published
+package should point at is the owner's decision rather than something the tree settles. `author` *is*
+derivable — `Klaus Jänsch`, stated in the root manifest and again in the licence text — and was left alone for
+the same reason: no condition demands it, unlike the licence, which MIT requires to travel with every copy.
 
 
