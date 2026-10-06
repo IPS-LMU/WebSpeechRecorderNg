@@ -1016,9 +1016,15 @@ does not reflow is not merely ugly, it is clipped. At 390×844 two screens faile
   editor's stylesheet with `top: 0; left: 0` (four components had their own copy), and the bank
   screen scrolls internally like the others.
 
-**In CI** — the theme audit runs `390x844` on six routes and the accessibility audit on three, next
-to the desktop and dark passes. Verified: theme and accessibility audits exit 0 on all eight routes
-at 390×844, and unchanged at 834×1112 and 1366×768.
+**In CI** — the theme audit runs `390x844` on the six editor routes listed above, and the accessibility
+audit on three of those same routes; the recorder's own job adds three more at that width. Verified: theme
+and accessibility audits exit 0 on all six editor routes at 390×844, and unchanged at 834×1112 and 1366×768.
+
+**Corrected here.** This entry said the accessibility audit ran `390x844` on three routes beside the theme's
+six. The editor's a11y phone pass was **two** — `script` and `script/1245/edit` — while the three belonged to
+the recorder's job. That mattered more than an off-by-one: the entry's second failure was the **bank**'s
+caption at phone width, and the bank was theme-audited at 390 but never accessibility-audited there, so the
+screen this fix was about had no accessibility check at the width it broke at. §11.113 adds that line.
 
 ### 11.15 The auth surface the docs promised and the client never had — **Done**
 
@@ -3452,4 +3458,23 @@ comparison meant to test it. It now matches the *command* (`node bin/(theme|a11y
 its a11y line, which is why nothing complained: the route was covered, its colour scheme was not. And the
 first sensitivity attempt — removing only the light line — rightly still passed, because the dark line carries
 that state too; a test that does not remove *both* proves nothing.
+
+### 11.113 The bank had no accessibility check at the width it broke at — **Fixed**
+
+§11.14's second phone-width failure was the **bank's table caption**, and §11.112's cross-tool comparison sent
+me looking at the mobile dimension, where the theme pass runs six editor routes and the accessibility pass ran
+**two** — `script` and `script/1245/edit`. The bank was theme-audited at 390 and never accessibility-audited
+there: the screen that fix was about had no accessibility check at the width it broke at.
+
+**One line added**, and it passes — "Accessibility audit passed" at 390x844 — so this is a coverage hole
+rather than a fault behind it, the same distinction as §11.112.
+
+**And §11.14's own count was wrong in the way that concealed it.** That entry says "the accessibility audit on
+three routes" beside the theme's six; the editor's a11y phone pass was two, and the three belong to the
+recorder's job. Corrected in place, with what the error hid written beside it.
+
+**Not gated, and why.** The mobile list is a deliberate subset — the phone pass exists for the screens that
+stack — so "every route at phone width" is not a rule to enforce. What is recorded is the principle behind both
+additions: a screen a fix was *about* belongs in the pass that would catch its regression, at the width it
+broke at.
 

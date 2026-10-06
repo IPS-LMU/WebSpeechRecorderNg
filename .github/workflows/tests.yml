@@ -186,6 +186,7 @@ jobs:
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/bank-draw/draws --viewports 1366x768 --prepare bin/audit/use-dark-scheme.js
           # The editor at a phone width: the columns stack there, and the tab order must follow.
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script/1245/edit --viewports 390x844
+          node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/bank --viewports 390x844
           node bin/a11y_audit.mjs --url http://127.0.0.1:4300/project/Demo1/script --viewports 390x844
           # The audits are the gates the screens are held to, so check that they bite. The fixture
           # plants one violation per documented rule; this fails if the audit passes anyway or if it
