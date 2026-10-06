@@ -2665,3 +2665,26 @@ a catalogue missing `| N06 |` gives "N06 is defined but not catalogued"; and `ad
 server writes `add('E01', …)` — it matched nothing, so the clause was a silent no-op that a green run
 would have hidden. And it filtered to `E`-prefixed ids, which would have let a stray `W`/`N` code through.
 Both were fixed before the four proofs above, which is why the injection test exists.
+
+### 11.79 The mirror the comment asked for — **Done**
+
+§11.78's shape, one more time. `server/feature-versions.mjs` says of `RECORDER_VERSION`: "keep in step
+with the library's `VERSION`" — and nothing checked it. `server/feature-versions.test.mjs` tested the
+server's own behaviour thoroughly (`compareVersions` per segment and pre-release, `featuresUsed`,
+`minRecorderVersionFor`, "every feature the detector reports has a floor in the table",
+`supportsRecorderVersion`, and the `409 RECORDER_VERSION_TOO_OLD` at session creation) but never compared
+the table to the library's. The two live in different files in different languages, and they agree today
+by hand.
+
+It matters because they decide *opposite sides of one question*: publish floors a script against
+`RECORDER_VERSION`, while the recorder refuses at load against the library's `VERSION`. A release that
+moved one and not the other would make the server and the client disagree about what is publishable —
+silently, because each side is self-consistent and the library's own tests would still pass.
+
+**The tie** is a server test that reads the library's `spr.module.version.ts` and
+`script/feature-versions.ts`, asserts `RECORDER_VERSION === VERSION`, and compares the tables entry for
+entry, resolving the library's bare `VERSION` to its own value. It runs in the `server` CI job.
+
+**Verified** — the suite is **61 pass, 0 fail** with it in place; moving the library's `VERSION` fails
+with "keep RECORDER_VERSION in step with the library VERSION"; adding a feature on one side fails with "a
+feature added on one side must be added on the other". Both injections were reverted.

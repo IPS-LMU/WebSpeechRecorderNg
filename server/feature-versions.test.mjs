@@ -1,4 +1,4 @@
-import {mkdtempSync, mkdirSync, writeFileSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test} from 'node:test';
@@ -73,4 +73,28 @@ test('session creation refuses a script that needs a newer recorder (L4/C8)', as
     const newer = new Store({dataDir, seedDir: seed, log: () => {}, recorderVersion: '99.0.0'}).open();
     assert.equal(newer.createSession('old-ok', {project: 'demo', script: 'future', type: 'NORM'}).script, 'future');
   }, {seed});
+});
+
+test('the table and the recorder version stay in step with the library', () => {
+  // The receiver mirrors the library's table (L4) and the two live in different files in different
+  // languages, so nothing but this test relates them. They have to agree: publish floors a script
+  // against RECORDER_VERSION while the recorder refuses at load against the library's VERSION, so a
+  // release that moves one and not the other makes the two disagree about what is publishable.
+  const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  const version = /VERSION\s*=\s*'([^']+)'/.exec(
+    read('../projects/speechrecorderng/src/lib/spr.module.version.ts'))?.[1];
+  assert.ok(version, 'the library VERSION could not be read — has the file moved?');
+  assert.equal(RECORDER_VERSION, version, 'keep RECORDER_VERSION in step with the library VERSION');
+
+  const table = (source) => {
+    const body = /FEATURE_VERSIONS[^=]*=\s*\{([^}]*)\}/.exec(source)?.[1];
+    assert.ok(body, 'FEATURE_VERSIONS could not be read — has the declaration changed shape?');
+    const entries = {};
+    for (const m of body.matchAll(/(\w+)\s*:\s*(?:'([^']*)'|VERSION)/g)) {
+      entries[m[1]] = m[2] ?? version;
+    }
+    return entries;
+  };
+  const theirs = table(read('../projects/speechrecorderng/src/lib/speechrecorder/script/feature-versions.ts'));
+  assert.deepEqual(FEATURE_VERSIONS, theirs, 'a feature added on one side must be added on the other');
 });
