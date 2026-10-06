@@ -19,7 +19,6 @@
     "theme_audit": "node bin/theme_audit.mjs",
     "build:i18n": "node bin/build_i18n.mjs",
     "validate:i18n": "node bin/validate_i18n.mjs",
-    "pack_module": "cd dist && cd speechrecorderng && npm pack && mv speechrecorderng-*.tgz ../",
     "pack_pi_module": "cd dist && cd speechrecorderng && npm pack && cd ../../ && node bin/mv_tgz_pkgs.js",
     "build_and_pack_module": "npm run build_module && npm run pack_pi_module",
     "publish_module": "cd dist && cd speechrecorderng && npm publish",

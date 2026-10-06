@@ -3598,5 +3598,24 @@ catch rather than preserve.
 **Verified** — `node --check` passes, and a run still stamps `spr.module.version.ts` and leaves
 `src/test/version.json` byte-identical, with nothing else modified.
 
+### 11.119 The packaging script nothing called, and the check it bypassed — **Fixed**
+
+§11.117 and §11.118 put me on the release chain, so the chain itself was worth reading. It is intact: every
+script-to-script call resolves, and the two entry points — `new_patchrelease_build_and_pack_module` and
+`new_prerelease_build_and_pack_module` — bump the version in **both** manifests before
+`build_and_pack_module`, which runs `apply_module_version` (stamping the constant and, since §11.117, the
+FILES-mode fixture) and ends at `pack_pi_module`.
+
+**One script sat outside it.** `pack_module` did the tarball move inline (`mv speechrecorderng-*.tgz ../`) and
+was referenced **nowhere** — not by another script, not by a document. That is precisely the shape §11.42 fixed
+in `pack_pi_module`, whose own doc records the defect: *"a tarball under another name, or none at all, used to
+leave the release looking successful with the artifact somewhere else"*. A dead script is one thing; a dead
+script named `pack_module` is worse, because it is the name one would reach for, and it bypasses the check.
+
+**Deleted** — §11.28's standard for an export nothing calls, applied to a script nothing runs.
+
+**Verified**: `package.json` parses; no reference to the removed name remains; and `npm run pack_pi_module`
+still packs and reports the move through the checked script (`Moved: speechrecorderng-3.11.26.tgz`).
+
 
 
