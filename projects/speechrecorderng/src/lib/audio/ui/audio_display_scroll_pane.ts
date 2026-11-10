@@ -2,6 +2,7 @@ import {
   Component,
   ViewChild,
   HostListener, ElementRef, Output, Input,
+  ChangeDetectionStrategy
 } from '@angular/core'
 
 
@@ -42,6 +43,7 @@ import {AudioDataHolder} from "../audio_data_holder";
          box-sizing: border-box;
        }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioDisplayScrollPane {

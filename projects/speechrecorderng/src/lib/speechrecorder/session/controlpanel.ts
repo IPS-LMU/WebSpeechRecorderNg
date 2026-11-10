@@ -1,6 +1,7 @@
 import {Action} from '../../action/action'
 import {
-  Component, ViewChild, Input
+  Component, ViewChild, Input,
+  ChangeDetectionStrategy
 } from "@angular/core";
 
 import { MatDialog} from "@angular/material/dialog";
@@ -43,6 +44,7 @@ import {ThemePalette} from "@angular/material/core";
       color: red;
     }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 
@@ -64,6 +66,7 @@ export class StatusDisplay {
   }`, `mat-progress-spinner{
       display: inline-block;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UploadStatus {
@@ -139,6 +142,7 @@ export class UploadStatus {
       width: 100%;
     text-align: left;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ProgressDisplay {
@@ -237,6 +241,7 @@ export class TransportActions {
       vertical-align: baseline;
     }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TransportPanel extends ResponsiveComponent{
@@ -337,6 +342,7 @@ export class TransportPanel extends ResponsiveComponent{
     }
     `,
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WakeLockIndicator {
@@ -355,6 +361,7 @@ export class WakeLockIndicator {
     <mat-icon [matTooltip]="readyStateToolTip">{{hourGlassIconName}}</mat-icon>
   `,
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ReadyStateIndicator {
@@ -412,6 +419,7 @@ export class ReadyStateIndicator {
     padding: 20px;
     min-height: min-content; /* important */
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ControlPanel extends ResponsiveComponent {

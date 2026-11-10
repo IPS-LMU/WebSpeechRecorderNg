@@ -12,7 +12,8 @@ import {
   OnDestroy,
   OnInit,
   Renderer2,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from "@angular/core";
 import {SessionService} from "./session.service";
 import {MatDialog} from "@angular/material/dialog";
@@ -55,23 +56,23 @@ export const enum Status {
       [selectedRecordingFile]="displayRecFile"
       [selectDisabled]="isActive()"
       [displayAudioClip]="displayAudioClip"
-      [playStartAction]="controlAudioPlayer?.startAction"
-      [playStopAction]="controlAudioPlayer?.stopAction"
-      [playSelectionAction]="controlAudioPlayer?.startSelectionAction"
-      [autoPlayOnSelectToggleAction]="controlAudioPlayer?.autoPlayOnSelectToggleAction"
+      [playStartAction]="$safeNavigationMigration(controlAudioPlayer?.startAction)"
+      [playStopAction]="$safeNavigationMigration(controlAudioPlayer?.stopAction)"
+      [playSelectionAction]="$safeNavigationMigration(controlAudioPlayer?.startSelectionAction)"
+      [autoPlayOnSelectToggleAction]="$safeNavigationMigration(controlAudioPlayer?.autoPlayOnSelectToggleAction)"
     ></app-recordercombipane>
 
     <div [class]="{audioStatusDisplay:!screenXs,audioStatusDisplayXs:screenXs}">
       <audio-levelbar style="flex:1 0 1%" [streamingMode]="isRecording() || keepLiveLevel" [state]="liveLevelDisplayState"
-      [displayLevelInfos]="displayAudioClip?.levelInfos"></audio-levelbar>
+      [displayLevelInfos]="$safeNavigationMigration(displayAudioClip?.levelInfos)"></audio-levelbar>
       <div style="display:flex;flex-direction: row">
         <spr-recordingitemcontrols style="flex:10 0 1px"
           [disableAudioDetails]="disableAudioDetails"
           [audioLoaded]="audioLoaded"
-          [playStartAction]="controlAudioPlayer?.startAction"
-          [playStopAction]="controlAudioPlayer?.stopAction"
+          [playStartAction]="$safeNavigationMigration(controlAudioPlayer?.startAction)"
+          [playStopAction]="$safeNavigationMigration(controlAudioPlayer?.stopAction)"
           [peakDbLvl]="peakLevelInDb"
-          [agc]="this.ac?.agcStatus"
+          [agc]="$safeNavigationMigration(this.ac?.agcStatus)"
           (onShowRecordingDetails)="audioSignalCollapsed=!audioSignalCollapsed">
         </spr-recordingitemcontrols>
 
@@ -186,6 +187,7 @@ export const enum Status {
     min-height: 125px;
   }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit,OnDestroy, AudioCaptureListener,ReadyStateProvider,ChunkAudioBufferReceiver {
@@ -1148,7 +1150,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     selector: 'app-audiorecorder-comp',
     providers: [SessionService],
     template: `
-    <app-audiorecorder [projectName]="_project?.name" [dataSaved]="dataSaved"></app-audiorecorder>
+    <app-audiorecorder [projectName]="$safeNavigationMigration(_project?.name)" [dataSaved]="dataSaved"></app-audiorecorder>
   `,
     styles: [`:host{
     flex: 2;
@@ -1158,6 +1160,7 @@ export class AudioRecorder extends BasicRecorder implements OnInit,AfterViewInit
     min-height:0;
 
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioRecorderComponent extends RecorderComponent  implements OnInit,OnDestroy,AfterViewInit,ReadyStateProvider {

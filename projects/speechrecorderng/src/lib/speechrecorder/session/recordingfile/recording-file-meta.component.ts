@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {RecordingFileUtil} from "./recording-file";
 import {SprRecordingFile} from "../../recording";
 
@@ -54,6 +54,7 @@ import {SprRecordingFile} from "../../recording";
     </mat-card>
     `,
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecordingFileMetaComponent{

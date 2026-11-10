@@ -1,8 +1,9 @@
 import {
-    Component,
-    ViewChild,
-    ChangeDetectorRef,
-    AfterViewInit, Input, OnInit, ElementRef,
+  Component,
+  ViewChild,
+  ChangeDetectorRef,
+  AfterViewInit, Input, OnInit, ElementRef,
+  ChangeDetectionStrategy
 } from '@angular/core'
 
 import {AudioClip} from './persistor'
@@ -23,7 +24,7 @@ import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
                              [playStartAction]="playStartAction"
                              [playSelectionAction]="playSelectionAction"
                              [playStopAction]="playStopAction"
-                             [autoPlayOnSelectToggleAction]="ap?.autoPlayOnSelectToggleAction"
+                             [autoPlayOnSelectToggleAction]="$safeNavigationMigration(ap?.autoPlayOnSelectToggleAction)"
                              [zoomInAction]="zoomInAction"
                              [zoomOutAction]="zoomOutAction"
                              [zoomSelectedAction]="zoomSelectedAction"
@@ -44,6 +45,7 @@ import {AudioBufferSource, AudioDataHolder} from "./audio_data_holder";
              background-color: rgba(0, 0, 0, 0.75)
            }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioDisplayPlayer implements AudioPlayerListener, OnInit,AfterViewInit {

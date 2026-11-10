@@ -1,6 +1,7 @@
 import {
-    ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
-    ViewChild
+  ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnDestroy, Output,
+  ViewChild,
+  ChangeDetectionStrategy
 } from "@angular/core"
 import {LevelInfo, LevelInfos, LevelListener} from "../audio/dsp/level_measure";
 import {LevelBar} from "../audio/ui/livelevel";
@@ -21,7 +22,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
           <mat-icon>play_arrow</mat-icon>
         </button>
         <button matTooltip="Stop playback" (click)="playStopAction?.perform()"
-          [disabled]="playStopAction?.disabled"
+          [disabled]="$safeNavigationMigration(playStopAction?.disabled)"
           [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
           <mat-icon>stop</mat-icon>
         </button>
@@ -64,6 +65,7 @@ export const DEFAULT_WARN_DB_LEVEL = -2;
      button {
        touch-action: manipulation;
      }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecordingItemControls extends ResponsiveComponent implements OnDestroy {
@@ -168,6 +170,7 @@ export class RecordingItemControls extends ResponsiveComponent implements OnDest
     height:125px;
     min-height: 125px;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecordingItemDisplay extends ResponsiveComponent implements LevelListener, OnDestroy {

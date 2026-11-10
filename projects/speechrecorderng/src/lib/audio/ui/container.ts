@@ -1,5 +1,6 @@
 import {
-  ElementRef, AfterViewInit, HostListener, Input, OnInit, Output, EventEmitter
+  ElementRef, AfterViewInit, HostListener, Input, OnInit, Output, EventEmitter,
+  ChangeDetectionStrategy
 } from '@angular/core'
 import {AudioSignal} from './audiosignal'
 import {Sonagram} from './sonagram'
@@ -99,6 +100,7 @@ import {AudioDataHolder} from "../audio_data_holder";
     z-index: 1;
     transform: none;
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AudioClipUIContainer extends BasicAudioCanvasLayerComponent implements OnInit,AfterViewInit{

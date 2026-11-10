@@ -1,4 +1,4 @@
-import {Component, ElementRef, EventEmitter, Input, Output} from '@angular/core'
+import {Component, ElementRef, EventEmitter, Input, Output, ChangeDetectionStrategy} from '@angular/core'
 import {Item} from './item';
 import {IntersectionObserverDirective} from "../../ui/intersection-observer.directive";
 
@@ -77,6 +77,7 @@ import {IntersectionObserverDirective} from "../../ui/intersection-observer.dire
       overflow: hidden;
       white-space: nowrap;
     }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Progress {

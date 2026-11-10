@@ -9,7 +9,8 @@ import {
   OnInit,
   Renderer2,
   HostBinding,
-  AfterContentChecked
+  AfterContentChecked,
+  ChangeDetectionStrategy
 } from "@angular/core";
 
 import {SimpleTrafficLight} from "../startstopsignal/ui/simpletrafficlight";
@@ -42,6 +43,7 @@ import {BreakpointObserver} from "@angular/cdk/layout";
     width: 100%;
   }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Recinstructions {
@@ -91,6 +93,7 @@ export class Recinstructions {
     /* A separate flex container might be necessayr to alighn centered */
     vertical-align: middle; /* TODO does not work, image is not vertically centered */
   }`],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Prompter {
@@ -290,6 +293,7 @@ export const FALLBACK_DEF_USER_AGENT_FONT_SIZE = 14;
     width: 100%;
   }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PromptContainer implements OnInit,AfterContentChecked {
@@ -451,7 +455,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     selector: 'app-sprpromptingcontainer',
     template: `
     <spr-recinstructions [selectedItemIdx]="selectedItemIdx" [itemCount]="itemCount"
-                         [recinstructions]="promptItem?.recinstructions?.recinstructions"></spr-recinstructions>
+                         [recinstructions]="$safeNavigationMigration(promptItem?.recinstructions?.recinstructions)"></spr-recinstructions>
     <app-sprpromptcontainer [projectName]="projectName"
                             [mediaitems]="showPrompt?(promptItem?promptItem.mediaitems:null):null"></app-sprpromptcontainer>
 
@@ -469,6 +473,7 @@ export class PromptContainer implements OnInit,AfterContentChecked {
     min-height: 0px;
   }
   `],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PromptingContainer {
@@ -605,7 +610,7 @@ export class PromptingContainer {
 
 <app-simpletrafficlight [status]="startStopSignalState"></app-simpletrafficlight>
 <app-sprpromptingcontainer [projectName]="projectName" [promptItem]="promptItem" [showPrompt]="showPrompt"
-  [itemCount]="items?.length" [selectedItemIdx]="selectedItemIdx"
+  [itemCount]="$safeNavigationMigration(items?.length)" [selectedItemIdx]="selectedItemIdx"
 [transportActions]="transportActions"></app-sprpromptingcontainer>
 @if (!screenXs) {
   <app-sprprogress [items]="items" [selectedItemIdx]="selectedItemIdx"
@@ -690,6 +695,7 @@ export class PromptingContainer {
 
     }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class Prompting extends ResponsiveComponent{

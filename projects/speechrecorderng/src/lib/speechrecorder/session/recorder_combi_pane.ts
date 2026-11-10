@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, EventEmitter, Input, Output, ViewChild} from "@angular/core";
+import {AfterViewInit, Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {RecordingFile} from "../recording";
 import {RecordingList} from "./recording_list";
 import {AudioClip} from "../../audio/persistor";
@@ -64,6 +64,7 @@ import {BreakpointObserver} from "@angular/cdk/layout";
       background-color: rgba(0, 0, 0, 0)
     }`],
     styleUrls: ['../../speechrecorder_mat.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class RecorderCombiPane extends ResponsiveComponent implements AfterViewInit{

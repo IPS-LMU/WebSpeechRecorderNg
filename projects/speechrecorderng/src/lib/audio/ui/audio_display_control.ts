@@ -1,4 +1,4 @@
-import {Component, Input, ViewChild} from '@angular/core'
+import {Component, Input, ViewChild, ChangeDetectionStrategy} from '@angular/core'
 import {Action} from "../../action/action";
 import {MatCheckbox, MatCheckboxChange} from "@angular/material/checkbox";
 import {AudioClip} from "../persistor";
@@ -12,15 +12,15 @@ import {AudioClip} from "../persistor";
 
             <legend>Play</legend>
 
-            <button (click)="playStartAction?.perform()" [disabled]="playStartAction?.disabled"
+            <button (click)="playStartAction?.perform()" [disabled]="$safeNavigationMigration(playStartAction?.disabled)"
               [style.color]="playStartAction?.disabled ? 'grey' : 'green'" matTooltip="Play all">
               <mat-icon>play_arrow</mat-icon>
             </button>
-            <button (click)="playSelectionAction?.perform()" [disabled]="playSelectionAction?.disabled"
+            <button (click)="playSelectionAction?.perform()" [disabled]="$safeNavigationMigration(playSelectionAction?.disabled)"
               [style.color]="playSelectionAction?.disabled ? 'grey' : 'green'" matTooltip="Play selection">
               <mat-icon>play_circle_outline</mat-icon>
             </button>
-            <button (click)="playStopAction?.perform()" [disabled]="playStopAction?.disabled"
+            <button (click)="playStopAction?.perform()" [disabled]="$safeNavigationMigration(playStopAction?.disabled)"
               [style.color]="playStopAction?.disabled ? 'grey' : 'yellow'">
               <mat-icon>stop</mat-icon>
             </button>&nbsp;
@@ -31,13 +31,13 @@ import {AudioClip} from "../persistor";
 
             <legend>Zoom</legend>
             <button (click)="zoomFitToPanelAction?.perform()"
-            [disabled]="zoomFitToPanelAction?.disabled">{{zoomFitToPanelAction?.name}}</button>
+            [disabled]="$safeNavigationMigration(zoomFitToPanelAction?.disabled)">{{zoomFitToPanelAction?.name}}</button>
             <button (click)="zoomOutAction?.perform()"
-            [disabled]="zoomOutAction?.disabled">{{zoomOutAction?.name}}</button>
+            [disabled]="$safeNavigationMigration(zoomOutAction?.disabled)">{{zoomOutAction?.name}}</button>
             <button (click)="zoomInAction?.perform()"
-            [disabled]="zoomInAction?.disabled">{{zoomInAction?.name}}</button>
+            [disabled]="$safeNavigationMigration(zoomInAction?.disabled)">{{zoomInAction?.name}}</button>
             <button (click)="zoomSelectedAction?.perform()"
-            [disabled]="zoomSelectedAction?.disabled">{{zoomSelectedAction?.name}}</button>
+            [disabled]="$safeNavigationMigration(zoomSelectedAction?.disabled)">{{zoomSelectedAction?.name}}</button>
           </fieldset>
           <fieldset>
             <legend>Selection</legend>
@@ -57,6 +57,7 @@ import {AudioClip} from "../persistor";
 
                }`
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 	export class AudioDisplayControl {
